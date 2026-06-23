@@ -1,6 +1,6 @@
 ---
 title: "Gateway Lifespan + Runs Router + SSE"
-status: ready-for-agent
+status: done
 labels: []
 created: 2026-06-23
 github: 11

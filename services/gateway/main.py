@@ -19,11 +19,19 @@ from .routers import approvals, artifacts, auth_router, runs, webhooks
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle — initialize checkpointer, LLM clients."""
+    import os
+
     configure_logging(log_level="INFO", json_output=True)
-    # TODO: Initialize PostgresSaver/MemorySaver based on ENV
-    # TODO: Initialize LiteLLM client
+
+    from packages.agents.checkpointer import get_checkpointer
+
+    environment = os.getenv("OMC_ENVIRONMENT", "development")
+    app.state.checkpointer = get_checkpointer(environment)
+    app.state.runs: dict = {}
+
     yield
-    # TODO: Cleanup connections
+
+    app.state.runs.clear()
 
 
 app = FastAPI(
