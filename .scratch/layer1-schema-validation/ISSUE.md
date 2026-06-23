@@ -1,6 +1,6 @@
 ---
 title: "Layer 1: Schema Validation with Pydantic Retry + CircuitBreaker"
-status: ready-for-agent
+status: done
 labels: []
 created: 2026-06-23
 github: 1

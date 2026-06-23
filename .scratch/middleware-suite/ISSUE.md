@@ -1,6 +1,6 @@
 ---
 title: "Middleware Suite: 5 Core Middleware Implementations"
-status: ready-for-agent
+status: done
 labels: []
 created: 2026-06-23
 github: 3
