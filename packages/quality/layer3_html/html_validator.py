@@ -83,6 +83,21 @@ class HTMLValidator:
         if not self.check_viewport_meta(html):
             warnings.append("missing_viewport_meta")
 
+        # Check native radio inputs
+        radio_issues = self.validate_no_native_radio(html)
+        if radio_issues:
+            hard_blocks.append("native_radio_inputs")
+
+        # Check external JS
+        js_issues = self.validate_no_external_js(html)
+        if js_issues:
+            hard_blocks.append("unmanaged_js_runtime")
+
+        # Check answer key separation
+        answer_issues = self.check_answer_key_separation(html)
+        if answer_issues:
+            hard_blocks.append("answer_key_leakage")
+
         return HTMLValidationResult(
             passed=len(hard_blocks) == 0,
             hard_block_violations=hard_blocks,
@@ -149,5 +164,62 @@ class HTMLValidator:
         Returns:
             List of issues (empty if properly separated).
         """
-        # TODO: Implement answer key leakage detection
-        return []
+        issues: list[str] = []
+        answer_patterns = [
+            r'correct\s+answer',
+            r'answer\s*:',
+            r'solution\s*:',
+            r'answer\s+key',
+        ]
+        for pattern in answer_patterns:
+            if re.findall(pattern, html, re.IGNORECASE):
+                issues.append(f"Answer key pattern found: '{pattern}'")
+        return issues
+
+    def validate_no_native_radio(self, html: str) -> list[str]:
+        """Check for native radio inputs visible to student.
+
+        INVARIANT: Student-facing artifacts MUST NOT contain <input type="radio">.
+        Use custom CSS-styled elements instead.
+
+        Args:
+            html: HTML content.
+
+        Returns:
+            List of issues (empty if no native radios found).
+        """
+        issues: list[str] = []
+        matches = re.findall(r'<input\s+[^>]*type=["\']radio["\']', html, re.IGNORECASE)
+        if matches:
+            issues.append(f"Native radio inputs found: {len(matches)} instances")
+        return issues
+
+    def validate_no_external_js(self, html: str) -> list[str]:
+        """Check for external JavaScript references.
+
+        INVARIANT: No external JS frameworks allowed (React, Vue, etc.).
+        Only inline vanilla JS permitted.
+
+        Args:
+            html: HTML content.
+
+        Returns:
+            List of issues (empty if no external JS found).
+        """
+        issues: list[str] = []
+
+        matches = re.findall(r'<script\s+[^>]*src=["\']https?://', html, re.IGNORECASE)
+        if matches:
+            issues.append(f"External script references found: {len(matches)} instances")
+
+        cdn_patterns = [
+            ("cdn.tailwindcss.com", r'cdn\.tailwindcss\.com'),
+            ("cdnjs.cloudflare.com", r'cdnjs\.cloudflare\.com'),
+            ("cdn.jsdelivr.net", r'cdn\.jsdelivr\.net'),
+            ("unpkg.com", r'unpkg\.com'),
+        ]
+        for display, pattern in cdn_patterns:
+            if re.search(pattern, html, re.IGNORECASE):
+                issues.append(f"CDN framework detected: {display}")
+
+        return issues

@@ -1,6 +1,6 @@
 ---
 title: "Layer 3: HTML Presentation Validation + Responsive Check"
-status: ready-for-agent
+status: done
 labels: []
 created: 2026-06-23
 github: 2

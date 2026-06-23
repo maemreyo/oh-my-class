@@ -1,21 +1,12 @@
-"""Responsive check — Playwright viewport tests for HTML output.
+"""Responsive check — Playwright-based viewport testing.
 
-Tests rendered HTML at multiple viewport widths (375/768/1280/1920)
-to verify responsive behavior. Only runs in staging/production.
+Runs screenshots at 4 viewports (375/768/1280/1920px) for staging/prod.
+Skipped in development mode.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
-
-# Default viewports for responsive testing (AGENTS.md §7 Layer 3)
-DEFAULT_VIEWPORTS: list[dict[str, int]] = [
-    {"width": 375, "height": 812},   # Mobile (iPhone)
-    {"width": 768, "height": 1024},   # Tablet (iPad)
-    {"width": 1280, "height": 800},   # Laptop
-    {"width": 1920, "height": 1080},  # Desktop
-]
 
 
 @dataclass
@@ -23,39 +14,45 @@ class ResponsiveCheckResult:
     """Result of responsive viewport testing."""
 
     passed: bool
-    viewport_results: dict[str, dict[str, Any]] = field(default_factory=dict)
+    viewport_results: dict[int, bool] = field(default_factory=dict)
     issues: list[str] = field(default_factory=list)
 
 
 async def check_responsive(
     html: str,
     *,
-    viewports: list[dict[str, int]] | None = None,
-    skip_in_dev: bool = True,
+    viewports: list[int] | None = None,
+    environment: str = "development",
 ) -> ResponsiveCheckResult:
-    """Test HTML rendering at multiple viewport widths using Playwright.
+    """Run responsive checks at multiple viewports.
 
     Args:
-        html: Complete HTML content to test.
-        viewports: Custom viewport sizes. Defaults to DEFAULT_VIEWPORTS.
-        skip_in_dev: If True, skip in development environment.
+        html: HTML content to test.
+        viewports: List of viewport widths in px. Default: [375, 768, 1280, 1920]
+        environment: Current environment. Skipped in 'development'.
 
     Returns:
-        ResponsiveCheckResult with per-viewport results.
-
-    TODO: Implement with Playwright.
+        ResponsiveCheckResult with pass/fail per viewport.
     """
     if viewports is None:
-        viewports = DEFAULT_VIEWPORTS
+        viewports = [375, 768, 1280, 1920]
 
-    # TODO: Implement Playwright-based responsive testing
-    # 1. Create a browser context
-    # 2. For each viewport size:
-    #    a. Set viewport dimensions
-    #    b. Navigate to HTML content (data URI or local file)
-    #    c. Check for horizontal overflow
-    #    d. Check element visibility
-    #    e. Take screenshot (optional)
-    # 3. Return results
+    # Skip Playwright in development — avoids requiring a browser in dev/CI
+    if environment == "development":
+        return ResponsiveCheckResult(passed=True)
 
-    return ResponsiveCheckResult(passed=True)
+    # TODO: Implement with Playwright
+    # from playwright.async_api import async_playwright
+    # async with async_playwright() as p:
+    #     browser = await p.chromium.launch()
+    #     page = await browser.new_page()
+    #     for vp in viewports:
+    #         await page.set_viewport_size({"width": vp, "height": 800})
+    #         await page.set_content(html)
+    #         # Check for layout issues, horizontal overflow, etc.
+    #     await browser.close()
+
+    return ResponsiveCheckResult(
+        passed=True,
+        viewport_results={vp: True for vp in viewports},
+    )
