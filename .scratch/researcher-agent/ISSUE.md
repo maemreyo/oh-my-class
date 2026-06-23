@@ -1,6 +1,6 @@
 ---
 title: "Researcher Agent"
-status: ready-for-agent
+status: done
 labels: []
 created: 2026-06-23
 github: 6
