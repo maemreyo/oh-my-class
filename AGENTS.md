@@ -577,7 +577,7 @@ Theme is driven by `common/branding/kits/{name}/theme.json` — single source of
 
 ## 9. Exercise Types — Quick Reference
 
-Full schemas in `packages/contracts/src/exercise-types/`.
+Full schemas in `common/schemas/src/exercise-types/`.
 
 ### Core Assessment (§1)
 
@@ -669,64 +669,83 @@ Maximum portability?                 → QTI 2.1
 ```
 oh-my-class/
 ├── packages/
-│   ├── harness/                    # Core agent runtime (publishable, no app.* imports)
-│   │   └── deerflow/
-│   │       ├── agents/
-│   │       │   ├── lead_agent/
-│   │       │   ├── planner/
-│   │       │   ├── researcher/
-│   │       │   ├── content_creator/
-│   │       │   └── reviewer/
-│   │       ├── middleware/         # 24 single-concern layers
-│   │       ├── tools/
-│   │       └── state.py
-│   ├── contracts/                  # Shared JSON schemas + TypeScript types
-│   │   └── src/
-│   │       ├── lesson-plan.ts
-│   │       ├── artifact-content.ts
-│   │       ├── judge-output.ts
-│   │       └── exercise-types/     # One file per exercise type
-│   └── template-renderer/          # Eta renderer (TypeScript)
-│       ├── src/renderer.ts
-│       ├── src/inline-assets.ts
-│       └── templates/              # see §8.2
-├── app/
-│   ├── api/                        # FastAPI gateway
-│   │   ├── routes/
-│   │   │   ├── run.py              # POST /run, GET /run/{id}
-│   │   │   ├── gate.py             # POST /run/{id}/approve
-│   │   │   └── export.py           # GET /run/{id}/export/{format}
-│   │   └── pipeline/
-│   │       ├── graph.py            # LangGraph builder
-│   │       ├── nodes/              # One file per step (step_01_preflight.py, etc.)
-│   │       └── gates/              # Layer 1–6 gate implementations
-│   └── web/                        # Next.js 15 teacher dashboard
-│       └── src/app/
-├── skills/                         # Markdown skills injected into agent prompts
-│   ├── zamery-blueprint-designer/SKILL.md
-│   ├── zamery-pack-generator/SKILL.md
-│   ├── zamery-artifact-reviewer/SKILL.md
-│   └── zamery-export-assistant/SKILL.md
+│   ├── agents/                  # LangGraph multi-agent pipeline (Python)
+│   │   ├── lead_agent/
+│   │   ├── sub_agents/          # planner, researcher, content_creator, reviewer
+│   │   ├── middleware/          # 24 single-concern layers
+│   │   ├── tools/
+│   │   ├── state.py
+│   │   └── graph.py
+│   ├── quality/                 # 6-layer quality gate system (Python)
+│   │   ├── layer1_schema/
+│   │   ├── layer2_content/
+│   │   ├── layer3_html/
+│   │   ├── layer4_judge/
+│   │   ├── layer5_human/
+│   │   └── layer6_export/
+│   ├── renderer/                # Eta template engine → standalone HTML (TypeScript)
+│   │   ├── src/renderer.ts
+│   │   ├── src/inline-assets.ts
+│   │   └── templates/          # see §8.2
+│   └── exporters/               # Export format generators (TypeScript)
+│       ├── src/gift/
+│       ├── src/h5p/
+│       └── src/qti/
 ├── common/
+│   ├── contracts/               # Pydantic models (Python) — source of truth for schemas
+│   │   ├── lesson_plan.py
+│   │   ├── artifact.py
+│   │   ├── judge_output.py
+│   │   └── auth.py
+│   ├── schemas/                 # TypeScript types + Zod schemas (generated from Pydantic)
+│   │   └── src/
+│   │       ├── exercise-types/  # One file per exercise type
+│   │       ├── questions.ts
+│   │       └── generated/       # Auto-generated from Pydantic — do not edit
 │   └── branding/
 │       └── kits/
 │           ├── default/theme.json  # Single source of truth for all themes
 │           ├── ocean/
 │           └── forest/
-├── config/
-│   ├── litellm-config.yaml         # LLM proxy config (models, fallbacks, cache)
-│   ├── gate-config.yaml            # Quality gate thresholds
-│   └── agents-config.yaml          # Per-agent model + tool assignments
-├── docker-compose.yml              # db, redis, 9router, litellm, gateway, web
-└── AGENTS.md                       # ← this file
+├── services/
+│   ├── gateway/                 # FastAPI + embedded agent runtime :8001
+│   │   ├── main.py
+│   │   ├── routers/
+│   │   ├── middleware/
+│   │   ├── auth/
+│   │   ├── webhooks/
+│   │   ├── observability/
+│   │   ├── models.py
+│   │   └── alembic/
+│   ├── proxy/                   # LiteLLM proxy :4000
+│   │   └── config.yaml
+│   └── router/                  # 9Router sidecar :20128
+│       └── config.yaml
+├── apps/
+│   └── web/                     # Next.js 16 teacher dashboard :3000
+│       └── src/app/
+├── skills/                      # Markdown skills injected into agent prompts
+│   ├── blueprint-designer/SKILL.md
+│   ├── pack-generator/SKILL.md
+│   ├── artifact-reviewer/SKILL.md
+│   └── export-assistant/SKILL.md
+├── infra/
+│   └── compose/docker-compose.yml
+├── scripts/                     # Utility scripts (generate_zod_schemas, typecheck, etc.)
+├── tests/                       # Cross-package integration + E2E tests
+└── AGENTS.md                    # ← this file
 ```
 
 ### Package Boundaries (enforced by CI)
 
 ```
-packages/harness   →  MUST NOT import from  app.*
-packages/contracts →  MUST NOT import from  packages/harness  or  app.*
-app/*              →  MAY import from        packages/*
+packages/agents     →  MUST NOT import from  services/* or apps/*
+packages/quality    →  MUST NOT import from  services/* or apps/*
+packages/renderer   →  MUST NOT import from  services/* or apps/*
+packages/exporters  →  MUST NOT import from  services/* or apps/*
+common/contracts    →  MUST NOT import from  packages/* or services/* or apps/*
+services/*          →  MAY import from       packages/* and common/*
+apps/*              →  MAY import from       packages/* and common/* and services/*
 ```
 
 ---
@@ -737,7 +756,7 @@ app/*              →  MAY import from        packages/*
 
 ```python
 # ✅ DO: one agent = one file = one responsibility
-# packages/harness/deerflow/agents/planner/agent.py
+# packages/agents/sub_agents/planner/agent.py
 
 # ✅ DO: typed function signatures with Pydantic models
 def design_lesson_plan(state: OhMyClassState) -> dict[str, Any]:
@@ -766,7 +785,7 @@ const ArtifactContentSchema = z.object({ ... });
 type ArtifactContent = z.infer<typeof ArtifactContentSchema>;
 
 // ❌ DON'T: use `any`
-// ❌ DON'T: import from `app/` in template-renderer package
+// ❌ DON'T: import from `app/` in renderer package
 ```
 
 ### Middleware (Python)
@@ -786,7 +805,7 @@ Middleware execution order is fixed. **Clarification (24) must always be last.**
 
 ### LangGraph Nodes
 
-- One Python file per node in `app/api/pipeline/nodes/`
+- One Python file per node in `packages/agents/` or `services/gateway/`
 - File naming: `step_01_preflight.py` through `step_13_export.py`
 - Every node is a pure function: `(state) → partial_state`
 - No I/O except via state — nodes never write to disk directly
@@ -814,14 +833,14 @@ agents:
 ### Test Pyramid
 
 ```
-Unit Tests         packages/harness/tests/          pytest
-                   packages/template-renderer/tests/ Vitest
-                   packages/contracts/tests/         Vitest
+Unit Tests         packages/agents/tests/              pytest
+                   packages/renderer/__tests__/        Vitest
+                   common/contracts/tests/             pytest
 
-Integration Tests  app/tests/integration/            pytest + TestClient
+Integration Tests  tests/integration/                  pytest + TestClient
                    (real LangGraph graph, mock LLMs)
 
-E2E Tests          app/tests/e2e/                    pytest
+E2E Tests          tests/e2e/                          pytest
                    (real pipeline, real LiteLLM sandbox keys)
 ```
 
@@ -885,10 +904,10 @@ describe("quiz template", () => {
 
 | Package | Line Coverage |
 |---------|--------------|
-| `packages/harness` | ≥ 85% |
-| `packages/contracts` | ≥ 95% |
-| `packages/template-renderer` | ≥ 90% |
-| `app/api/pipeline/gates` | ≥ 90% |
+| `packages/agents` | ≥ 85% |
+| `common/contracts` | ≥ 95% |
+| `packages/renderer` | ≥ 90% |
+| `packages/quality` | ≥ 90% |
 
 ---
 
@@ -900,7 +919,8 @@ These rules are never negotiable. CI enforces them.
 INVARIANT-01  Lead Agent NEVER calls an LLM to generate content.
               It only calls task(agent_name, prompt).
 
-INVARIANT-02  packages/harness NEVER imports from app.*.
+INVARIANT-02  packages/agents NEVER imports from services/* or apps/*.
+              packages/quality NEVER imports from services/* or apps/*.
               Enforced by CI import boundary check.
 
 INVARIANT-03  Every LangGraph node is a pure function (state) → partial_state.
@@ -926,7 +946,7 @@ INVARIANT-09  theme.json is the single source of truth for all brand tokens.
               theme_*.css files are auto-generated — never edit them manually.
 
 INVARIANT-10  Every Pydantic model that validates agent output MUST be in
-              packages/contracts, not in packages/harness or app/*.
+              common/contracts, not in packages/agents or services/gateway/*.
               Contracts are the canonical schema — code references them, not the reverse.
 ```
 

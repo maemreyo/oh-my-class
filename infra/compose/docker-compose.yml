@@ -11,6 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-langfuse.sh
 
   redis:
     image: redis:7-alpine
@@ -23,6 +24,8 @@ services:
       dockerfile: infra/docker/Dockerfile.gateway
     ports:
       - "8001:8001"
+    env_file:
+      - ../../.env
     environment:
       DATABASE_URL: postgresql://omc_dev:omc_dev@db:5432/oh_my_class
       REDIS_URL: redis://redis:6379
@@ -60,7 +63,7 @@ services:
       - router
 
   router:
-    image: 9router/9router:latest  # TODO: replace with actual image
+    image: decolua/9router:latest
     ports:
       - "20128:20128"
     volumes:
