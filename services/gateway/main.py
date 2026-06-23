@@ -9,13 +9,17 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .logging_config import configure_logging
 from .middleware.auth_middleware import JWTMiddleware
+from .middleware.error_handler import register_exception_handlers
+from .middleware.request_id import RequestIDMiddleware
 from .routers import approvals, artifacts, auth_router, runs, webhooks
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle — initialize checkpointer, LLM clients."""
+    configure_logging(log_level="INFO", json_output=True)
     # TODO: Initialize PostgresSaver/MemorySaver based on ENV
     # TODO: Initialize LiteLLM client
     yield
@@ -28,6 +32,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+register_exception_handlers(app)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -36,6 +42,7 @@ app.add_middleware(
 )
 
 app.add_middleware(JWTMiddleware)
+app.add_middleware(RequestIDMiddleware)
 
 app.include_router(auth_router.router)
 app.include_router(runs.router, prefix="/run", tags=["runs"])

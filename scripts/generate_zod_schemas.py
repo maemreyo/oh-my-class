@@ -18,7 +18,6 @@ import tempfile
 from pathlib import Path
 from typing import Any, TypedDict
 
-
 # ── Configuration ──────────────────────────────────────────────
 
 class ModelConfig(TypedDict):

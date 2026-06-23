@@ -6,10 +6,9 @@ Output: packages/renderer/branding/theme_{name}.css
 
 from __future__ import annotations
 
-from typing import Any
-
 import json
 from pathlib import Path
+from typing import Any
 
 KITS_DIR = Path("common/branding/kits")
 OUTPUT_DIR = Path("packages/renderer/branding")

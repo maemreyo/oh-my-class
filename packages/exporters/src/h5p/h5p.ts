@@ -7,8 +7,8 @@
 import type { ArtifactContent } from "@oh-my-class/schemas";
 
 export async function generateH5P(
-  _artifacts: ArtifactContent[],
+	_artifacts: ArtifactContent[],
 ): Promise<Buffer> {
-  // TODO: Implement H5P generation
-  throw new Error("Not yet implemented");
+	// TODO: Implement H5P generation
+	throw new Error("Not yet implemented");
 }

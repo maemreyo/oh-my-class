@@ -1,0 +1,53 @@
+# Logging configuration for oh-my-class
+# Consumed by services/gateway/logging_config.py
+# Levels: DEBUG | INFO | WARNING | ERROR | CRITICAL
+
+default:
+  level: INFO
+  json_output: true
+
+modules:
+  services.gateway: INFO
+  services.gateway.middleware: INFO
+  packages.agents: INFO
+  packages.agents.sub_agents: INFO
+  packages.quality: INFO
+  packages.quality.layer1_schema: WARNING  # noisy schema validation
+  packages.quality.layer3_html: INFO
+  packages.quality.layer4_judge: INFO
+
+transports:
+  stdout:
+    enabled: true
+    format: json  # or "console" for dev
+
+correlation:
+  enabled: true
+  header_name: X-Request-ID
+  propagate_to_agents: true
+
+errors:
+  # HTTP status → ErrorCode mapping for error_handler middleware
+  status_to_code:
+    400: VALIDATION_ERROR
+    401: AUTHENTICATION_ERROR
+    403: AUTHORIZATION_ERROR
+    404: NOT_FOUND
+    422: VALIDATION_ERROR
+    429: RATE_LIMITED
+    500: PIPELINE_ERROR
+    502: PIPELINE_ERROR
+    503: PIPELINE_ERROR
+
+  # ErrorCode → HTTP status mapping (for OMCError responses)
+  code_to_status:
+    VALIDATION_ERROR: 422
+    AUTHENTICATION_ERROR: 401
+    AUTHORIZATION_ERROR: 403
+    NOT_FOUND: 404
+    RATE_LIMITED: 429
+    PIPELINE_ERROR: 500
+    AGENT_ERROR: 500
+    QUALITY_GATE_ERROR: 422
+    EXPORT_ERROR: 500
+    INTERNAL_ERROR: 500

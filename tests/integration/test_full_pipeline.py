@@ -1,6 +1,5 @@
 """Tests for full_pipeline integration."""
 
-import pytest
 
 
 class TestFullPipeline:

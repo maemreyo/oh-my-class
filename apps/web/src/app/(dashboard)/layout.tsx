@@ -1,3 +1,7 @@
+"use client";
+
+import { ErrorBoundary } from "@/components/error-boundary";
+
 export default function DashboardLayout({
 	children,
 }: {
@@ -25,7 +29,9 @@ export default function DashboardLayout({
 			</aside>
 
 			{/* Main content */}
-			<main className="flex-1 p-6">{children}</main>
+			<main className="flex-1 p-6">
+				<ErrorBoundary>{children}</ErrorBoundary>
+			</main>
 		</div>
 	);
 }

@@ -6,32 +6,44 @@
  * Hand-written types (questions.ts, quiz.ts) are NOT generated — they stay manual.
  */
 
-// Generated Zod schemas from Pydantic
+export { ArtifactContentSchema as ArtifactContentSchemaLegacy } from "./artifact.js";
+// Error schemas
 export {
-  LessonPlanSchema,
-  type LessonPlan,
-  type LearningObjective,
-} from "./generated/lesson_plan.js";
-
-export {
-  ArtifactContentSchema,
-  type ArtifactContent,
-} from "./generated/artifact.js";
-
-// Hand-written question types (not from Pydantic)
-export {
-  QuestionTypeSchema,
-  type QuestionType,
-  CoreQuestionTypes,
-  EnglishQuestionTypes,
-  MathScienceQuestionTypes,
-  MultimediaQuestionTypes,
-  GamifiedQuestionTypes,
-} from "./questions.js";
-
+	type ErrorCode,
+	ErrorCodeSchema,
+	type ErrorResponse,
+	ErrorResponseSchema,
+	type PipelineErrorResponse,
+	PipelineErrorResponseSchema,
+	type ValidationErrorDetail,
+	ValidationErrorDetailSchema,
+} from "./error.js";
 // Exercise type schemas
 export * from "./exercise-types/index.js";
-
+export {
+	type ArtifactContent,
+	ArtifactContentSchema,
+} from "./generated/artifact.js";
+// Generated Zod schemas from Pydantic
+export {
+	type LearningObjective,
+	type LessonPlan,
+	LessonPlanSchema,
+} from "./generated/lesson_plan.js";
 // Legacy re-exports — will be removed after migration
 export { LessonPlanSchema as LessonPlanSchemaLegacy } from "./lesson_plan.js";
-export { ArtifactContentSchema as ArtifactContentSchemaLegacy } from "./artifact.js";
+// Log context schemas
+export {
+	type LogContext,
+	LogContextSchema,
+} from "./log-context.js";
+// Hand-written question types (not from Pydantic)
+export {
+	CoreQuestionTypes,
+	EnglishQuestionTypes,
+	GamifiedQuestionTypes,
+	MathScienceQuestionTypes,
+	MultimediaQuestionTypes,
+	type QuestionType,
+	QuestionTypeSchema,
+} from "./questions.js";

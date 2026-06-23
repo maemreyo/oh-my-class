@@ -41,3 +41,5 @@ omc_checkpoints.db
 
 # Turborepo
 .turbo
+**/tsconfig.tsbuildinfo
+.omo/ralph-loop.local.md

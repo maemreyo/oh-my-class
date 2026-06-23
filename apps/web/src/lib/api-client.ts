@@ -23,10 +23,21 @@ class APIClient {
 		);
 	}
 
+	private generateRequestId(): string {
+		// Use crypto.randomUUID() if available (modern browsers, SSR-safe)
+		if (typeof window !== "undefined" && window.crypto?.randomUUID) {
+			return window.crypto.randomUUID();
+		}
+		// Fallback for environments without crypto.randomUUID()
+		return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+	}
+
 	async request<T>(method: string, path: string, body?: unknown): Promise<T> {
 		const token = this.getToken();
+		const requestId = this.generateRequestId();
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
+			"X-Request-ID": requestId,
 		};
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
@@ -38,11 +49,15 @@ class APIClient {
 			body: body ? JSON.stringify(body) : undefined,
 		});
 
+		// Extract X-Request-ID from response headers for tracing
+		const responseRequestId = response.headers.get("X-Request-ID") || requestId;
+
 		if (!response.ok) {
 			const error = await response
 				.json()
 				.catch(() => ({ detail: "Unknown error" }));
-			throw new Error(error.detail || `HTTP ${response.status}`);
+			const errorMessage = error.detail || `HTTP ${response.status}`;
+			throw new Error(`${errorMessage} (request: ${responseRequestId})`);
 		}
 
 		return response.json() as Promise<T>;
