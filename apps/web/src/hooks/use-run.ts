@@ -2,32 +2,73 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import type { Run } from "@/types";
+
+export interface RunRequest {
+	raw_request: string;
+	class_info: {
+		grade: number;
+		subject: string;
+		student_count?: number;
+		language?: string;
+	};
+	teacher_id: string;
+}
+
+export interface RunResponse {
+	run_id: string;
+	status: string;
+	state?: Record<string, unknown>;
+	// Legacy fields used by existing dashboard components
+	topic?: string;
+	current_step?: number;
+}
 
 export function useRuns() {
 	return useQuery({
 		queryKey: ["runs"],
-		queryFn: () => apiClient.get<Run[]>("/run"),
+		queryFn: () => apiClient.get<RunResponse[]>("/run"),
 	});
 }
 
-export function useRun(runId: string) {
-	return useQuery({
-		queryKey: ["runs", runId],
-		queryFn: () => apiClient.get<Run>(`/run/${runId}`),
+export function useRun(runId: string | null) {
+	return useQuery<RunResponse>({
+		queryKey: ["run", runId],
+		queryFn: async () => {
+			if (!runId) throw new Error("No run ID");
+			return apiClient.get<RunResponse>(`/run/${runId}`);
+		},
 		enabled: !!runId,
+		refetchInterval: 5000,
 	});
 }
 
 export function useCreateRun() {
 	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: (data: {
-			raw_request: string;
-			class_info: Record<string, unknown>;
-		}) => apiClient.post<Run>("/run", data),
+	return useMutation<RunResponse, Error, RunRequest>({
+		mutationFn: async (request) => {
+			return apiClient.post<RunResponse>("/run", request);
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["runs"] });
 		},
 	});
+}
+
+export function useRunStatus(runId: string | null) {
+	const subscribe = (callback: (event: MessageEvent) => void) => {
+		if (!runId) return () => {};
+
+		const eventSource = new EventSource(
+			`${process.env.NEXT_PUBLIC_GATEWAY_URL}/run/${runId}/status`,
+		);
+
+		eventSource.onmessage = callback;
+		eventSource.onerror = (error) => {
+			console.error("SSE error:", error);
+		};
+
+		return () => eventSource.close();
+	};
+
+	return { subscribe };
 }

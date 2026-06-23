@@ -1,60 +1,151 @@
 "use client";
 
-import { motion } from "motion/react";
 import { useState } from "react";
-import { useApprove, useReject } from "@/hooks/use-approval";
-import type { Run } from "@/types";
+import { useApproveRun, useRejectRun } from "@/hooks/use-approval";
 
 interface ApprovalModalProps {
-	run: Run;
+	runId: string;
+	gateType: "blueprint_approval" | "content_approval";
+	data: {
+		lesson_plan?: Record<string, unknown>;
+		artifacts?: Record<string, unknown>[];
+		quality_scores?: Record<string, unknown>;
+	};
+	onClose: () => void;
+	onApproved?: () => void;
+	onRejected?: () => void;
 }
 
-export function ApprovalModal({ run }: ApprovalModalProps) {
+export function ApprovalModal({
+	runId,
+	gateType,
+	data,
+	onClose,
+	onApproved,
+	onRejected,
+}: ApprovalModalProps) {
 	const [feedback, setFeedback] = useState("");
-	const approve = useApprove();
-	const reject = useReject();
+	const [activeTab, setActiveTab] = useState<"preview" | "feedback">("preview");
+
+	const approveMutation = useApproveRun(runId);
+	const rejectMutation = useRejectRun(runId);
+
+	const handleApprove = async () => {
+		await approveMutation.mutateAsync({ action: "approve" });
+		onApproved?.();
+		onClose();
+	};
+
+	const handleReject = async () => {
+		if (!feedback.trim()) {
+			alert("Feedback required for rejection");
+			return;
+		}
+		await rejectMutation.mutateAsync({ feedback });
+		onRejected?.();
+		onClose();
+	};
 
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 10 }}
-			animate={{ opacity: 1, y: 0 }}
-			className="rounded-lg border border-border bg-card p-4"
-		>
-			<h3 className="font-semibold">{run.topic || `Run ${run.run_id}`}</h3>
-			<p className="mt-1 text-sm text-muted-foreground">
-				Step {run.current_step} — awaiting approval
-			</p>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+			<div className="max-h-[90vh] max-w-4xl overflow-hidden rounded-lg bg-white">
+				{/* Header */}
+				<div className="border-b p-4">
+					<h2 className="text-xl font-semibold">
+						{gateType === "blueprint_approval"
+							? "Review Lesson Plan"
+							: "Review Generated Content"}
+					</h2>
+				</div>
 
-			<div className="mt-4 flex gap-2">
-				<button
-					type="button"
-					onClick={() => approve.mutate(run.run_id)}
-					disabled={approve.isPending}
-					className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-				>
-					Approve
-				</button>
-				<button
-					type="button"
-					onClick={() => {
-						if (feedback.trim()) {
-							reject.mutate({ runId: run.run_id, feedback });
-						}
-					}}
-					disabled={reject.isPending || !feedback.trim()}
-					className="rounded-md border border-destructive px-4 py-2 text-sm text-destructive hover:bg-destructive/10"
-				>
-					Reject
-				</button>
+				{/* Tabs */}
+				<div className="flex border-b">
+					<button
+						type="button"
+						className={`px-4 py-2 ${activeTab === "preview" ? "border-b-2 border-blue-500" : ""}`}
+						onClick={() => setActiveTab("preview")}
+					>
+						Preview
+					</button>
+					<button
+						type="button"
+						className={`px-4 py-2 ${activeTab === "feedback" ? "border-b-2 border-blue-500" : ""}`}
+						onClick={() => setActiveTab("feedback")}
+					>
+						Feedback
+					</button>
+				</div>
+
+				{/* Content */}
+				<div className="max-h-[60vh] overflow-y-auto p-4">
+					{activeTab === "preview" && (
+						<div>
+							{gateType === "blueprint_approval" && data.lesson_plan && (
+								<pre className="overflow-auto rounded bg-gray-100 p-4">
+									{JSON.stringify(data.lesson_plan, null, 2)}
+								</pre>
+							)}
+							{gateType === "content_approval" && data.artifacts && (
+								<div className="space-y-4">
+									{data.artifacts.map((artifact, i) => (
+										<div key={i} className="rounded border p-4">
+											<h3 className="font-medium">
+												{typeof artifact["title"] === "string"
+													? artifact["title"]
+													: `Artifact ${i + 1}`}
+											</h3>
+											<pre className="mt-2 overflow-auto rounded bg-gray-100 p-2 text-sm">
+												{JSON.stringify(artifact, null, 2)}
+											</pre>
+										</div>
+									))}
+								</div>
+							)}
+						</div>
+					)}
+
+					{activeTab === "feedback" && (
+						<div>
+							<label className="mb-2 block font-medium">
+								Feedback (required for rejection)
+							</label>
+							<textarea
+								className="h-32 w-full rounded border p-2"
+								value={feedback}
+								onChange={(e) => setFeedback(e.target.value)}
+								placeholder="Provide feedback for rejection..."
+							/>
+						</div>
+					)}
+				</div>
+
+				{/* Footer */}
+				<div className="flex justify-end gap-2 border-t p-4">
+					<button
+						type="button"
+						className="rounded border px-4 py-2 hover:bg-gray-100"
+						onClick={onClose}
+					>
+						Cancel
+					</button>
+					<button
+						type="button"
+						className="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-50"
+						onClick={handleReject}
+						disabled={rejectMutation.isPending}
+					>
+						{rejectMutation.isPending ? "Rejecting..." : "Reject"}
+					</button>
+					<button
+						type="button"
+						className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
+						onClick={handleApprove}
+						disabled={approveMutation.isPending}
+					>
+						{approveMutation.isPending ? "Approving..." : "Approve"}
+					</button>
+				</div>
 			</div>
-
-			<textarea
-				value={feedback}
-				onChange={(e) => setFeedback(e.target.value)}
-				placeholder="Feedback for revision (required for rejection)..."
-				className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-				rows={3}
-			/>
-		</motion.div>
+		</div>
 	);
 }
