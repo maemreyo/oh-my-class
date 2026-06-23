@@ -15,6 +15,7 @@ from common.contracts.errors import (
 from common.contracts.judge_output import JudgeOutput, LayerScore
 from common.contracts.lesson_plan import AssessmentCheckpoint, LearningObjective, LessonPlan
 from common.contracts.log_context import LogContext
+from common.contracts.research_bundle import ResearchBundle, ResearchSource
 
 __all__ = [
     "ArtifactContent",
@@ -27,6 +28,8 @@ __all__ = [
     "LearningObjective",
     "LogContext",
     "PipelineErrorResponse",
+    "ResearchBundle",
+    "ResearchSource",
     "Role",
     "TeachingPack",
     "Token",

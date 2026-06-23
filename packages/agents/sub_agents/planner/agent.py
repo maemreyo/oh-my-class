@@ -9,7 +9,10 @@ Uses deepseek-v4-flash via 9Router combo: f.light (fast free tier)
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Any
+
+from common.contracts.lesson_plan import LessonPlan
 
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
@@ -32,10 +35,57 @@ async def design_lesson_plan(state: OhMyClassState) -> dict[str, Any]:
         learning_objectives (≥2 Bloom levels), prerequisite_knowledge,
         learning_plan (Gagné 9-event), assessment_checkpoints.
     """
-    # TODO: Implement with LangGraph agent
-    # 1. Format prompt from state
-    # 2. Call LLM via LiteLLM (deepseek-v4-flash)
-    # 3. Parse response into LessonPlan schema
-    # 4. Validate via Pydantic (common.contracts.lesson_plan.LessonPlan)
-    # 5. Return {"lesson_plan": plan.model_dump()}
-    raise NotImplementedError("design_lesson_plan() stub — implement with Planner agent")
+    import litellm
+
+    from packages.agents.sub_agents.planner.prompts import PLANNER_SYSTEM_PROMPT
+
+    user_prompt = f"""
+Teacher request: {state['raw_request']}
+
+Class information:
+- Grade: {state['class_info'].get('grade', 'Unknown')}
+- Subject: {state['class_info'].get('subject', 'Unknown')}
+- Student count: {state['class_info'].get('student_count', 'Unknown')}
+- Language: {state['class_info'].get('language', 'en')}
+"""
+
+    messages = [
+        {"role": "system", "content": PLANNER_SYSTEM_PROMPT},
+        {"role": "user", "content": user_prompt},
+    ]
+
+    try:
+        response = await litellm.acompletion(
+            model="deepseek-v4-flash",
+            messages=messages,
+            temperature=0.7,
+            extra_body={
+                "metadata": {
+                    "tags": [
+                        "agent:planner",
+                        f"step:{state.get('current_step', 3)}",
+                        f"run:{state['run_id']}",
+                        "pipeline:oh-my-class",
+                    ]
+                }
+            },
+        )
+
+        content = response.choices[0].message.content
+
+        # Strip markdown code fences if present
+        if "```json" in content:
+            json_str = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            json_str = content.split("```")[1].split("```")[0].strip()
+        else:
+            json_str = content.strip()
+
+        plan_data = json.loads(json_str)
+        plan = LessonPlan.model_validate(plan_data)
+        return {"lesson_plan": plan.model_dump()}
+
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON from LLM: {e}") from e
+    except Exception as e:
+        raise ValueError(f"Planner agent failed: {e}") from e
