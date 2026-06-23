@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  db:
+    environment:
+      POSTGRES_PASSWORD: ${PROD_DB_PASSWORD}
+    # No port mapping in production
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  redis:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  gateway:
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+
+  proxy:
+    restart: always
+
+  router:
+    restart: always
+
+  web:
+    restart: always
+    deploy:
+      replicas: 2
+
+  langfuse:
+    restart: always
+    environment:
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET}
+      SALT: ${LANGFUSE_SALT}
+    deploy:
+      resources:
+        limits:
+          memory: 1G

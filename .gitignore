@@ -1,1 +1,43 @@
 .omo/run-continuation/**.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Node
+node_modules/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Checkpoints
+*.db
+omc_checkpoints.db
+
+# 9Router
+9router-data/
+
+# Turborepo
+.turbo

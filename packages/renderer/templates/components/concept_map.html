@@ -1,0 +1,8 @@
+<div class="omc-concept-map">
+  <h3><%= title || 'Concept Map' %></h3>
+  <div class="concept-nodes">
+    <% nodes.forEach(function(node) { %>
+      <div class="concept-node" data-id="<%= node.id %>"><%= node.label %></div>
+    <% }); %>
+  </div>
+</div>

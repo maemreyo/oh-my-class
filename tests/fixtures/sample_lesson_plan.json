@@ -1,0 +1,31 @@
+{
+  "topic": "Phân số — Lớp 5",
+  "grade_level": "Grade 5",
+  "subject": "math",
+  "duration_minutes": 45,
+  "learning_objectives": [
+    {
+      "description": "Nhận diện phân số với mẫu số khác 0",
+      "bloom_level": "remember",
+      "assessment_method": "Câu hỏi nhanh"
+    },
+    {
+      "description": "So sánh hai phân số có cùng mẫu số",
+      "bloom_level": "understand",
+      "assessment_method": "Bài tập trên lớp"
+    }
+  ],
+  "prerequisite_knowledge": ["Phép cộng cơ bản", "Khái niệm phần"],
+  "learning_plan": {
+    "event_1": "Thu hút sự chú ý",
+    "event_2": "Mục tiêu bài học",
+    "event_3": "Liên kết kiến thức cũ"
+  },
+  "assessment_checkpoints": [
+    {
+      "type": "formative",
+      "description": "Câu hỏi nhanh sau phần giới thiệu",
+      "trigger": "end_of_event_3"
+    }
+  ]
+}

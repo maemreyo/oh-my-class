@@ -1,0 +1,43 @@
+# oh-my-class quality gate configuration
+# Thresholds, weights, and enable/disable flags per layer.
+#
+# This file is the single source of truth for gate behavior.
+# Code reads these values at runtime; do not hardcode thresholds.
+
+layers:
+  layer1_schema:
+    enabled: true
+    max_retries: 3
+    circuit_breaker_threshold: 3
+  layer2_content:
+    enabled: true
+    min_sources: 2
+    required_bloom_levels: 2
+  layer3_html:
+    enabled: true
+    check_responsive: true
+    viewports: [375, 768, 1280, 1920]
+  layer4_judge:
+    enabled: true
+    pass_threshold: 7.0
+    num_judges: 3
+    weights:
+      format_compliance: 0.15
+      content_quality: 0.55
+      presentation: 0.30
+  layer5_human:
+    enabled: true
+    timeout_hours: 24
+    max_revisions: 3
+  layer6_export:
+    enabled: true
+    required_pass_rate: 0.67
+    skip_threshold: 0.20
+
+hard_blocks:
+  - missing_doctype
+  - external_assets
+  - answer_key_leakage
+  - native_radio_inputs
+  - unmanaged_js_runtime
+  - missing_brand_string

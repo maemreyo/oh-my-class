@@ -1,0 +1,7 @@
+<div class="omc-feedback <%= correct ? 'correct' : 'incorrect' %>">
+  <span class="icon"><%= correct ? '✓' : '✗' %></span>
+  <span class="message"><%= message %></span>
+  <% if (explanation) { %>
+    <div class="explanation"><%= explanation %></div>
+  <% } %>
+</div>

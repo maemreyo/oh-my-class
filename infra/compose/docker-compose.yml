@@ -1,0 +1,83 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: oh_my_class
+      POSTGRES_USER: omc_dev
+      POSTGRES_PASSWORD: omc_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.gateway
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://omc_dev:omc_dev@db:5432/oh_my_class
+      REDIS_URL: redis://redis:6379
+      LITELLM_PROXY_URL: http://proxy:4000
+    depends_on:
+      - db
+      - redis
+      - proxy
+      - langfuse
+
+  langfuse:
+    image: langfuse/langfuse:latest
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgresql://omc_dev:omc_dev@db:5432/langfuse
+      NEXTAUTH_URL: http://localhost:3001
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-changeme}
+      SALT: ${LANGFUSE_SALT:-changeme}
+    depends_on:
+      - db
+    volumes:
+      - langfuse_data:/app/data
+
+  proxy:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.proxy
+    ports:
+      - "4000:4000"
+    env_file:
+      - ../services/proxy/.env
+    depends_on:
+      - redis
+      - router
+
+  router:
+    image: 9router/9router:latest  # TODO: replace with actual image
+    ports:
+      - "20128:20128"
+    volumes:
+      - routerdata:/app/data
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_GATEWAY_URL: http://localhost:8001
+    depends_on:
+      - gateway
+
+volumes:
+  pgdata:
+  routerdata:
+  langfuse_data:

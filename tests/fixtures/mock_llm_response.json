@@ -1,0 +1,19 @@
+{
+  "id": "mock-response-001",
+  "model": "f.light",
+  "actual_model": "deepseek-v4-flash via 9Router combo f.light",
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "Mock response for testing pipeline"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 150,
+    "completion_tokens": 50,
+    "total_tokens": 200
+  }
+}

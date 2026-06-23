@@ -1,0 +1,10 @@
+<div class="omc-question omc-ordering" data-type="ordering">
+  <p class="instructions"><%= instructions %></p>
+  <ol class="ordering-list">
+    <% items.forEach(function(item) { %>
+      <li draggable="true" data-id="<%= item.id %>" data-correct="<%= item.correctPosition %>">
+        <%= item.text %>
+      </li>
+    <% }); %>
+  </ol>
+</div>

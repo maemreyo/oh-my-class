@@ -1,0 +1,11 @@
+<div class="omc-timeline">
+  <h3><%= title || 'Timeline' %></h3>
+  <div class="timeline-track">
+    <% events.forEach(function(event) { %>
+      <div class="timeline-event" data-time="<%= event.time %>">
+        <div class="event-marker"></div>
+        <div class="event-label"><%= event.label %></div>
+      </div>
+    <% }); %>
+  </div>
+</div>

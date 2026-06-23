@@ -1,0 +1,21 @@
+<div class="omc-comparison">
+  <h3><%= title || 'Comparison' %></h3>
+  <table class="comparison-table">
+    <thead>
+      <tr>
+        <% columns.forEach(function(col) { %>
+          <th><%= col %></th>
+        <% }); %>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(function(row) { %>
+        <tr>
+          <% row.forEach(function(cell) { %>
+            <td><%= cell %></td>
+          <% }); %>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>

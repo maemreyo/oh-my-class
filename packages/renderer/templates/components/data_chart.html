@@ -1,0 +1,16 @@
+<div class="omc-chart" data-type="<%= chartType %>">
+  <h3><%= title %></h3>
+  <% if (chartType === 'bar') { %>
+    <div class="bar-chart">
+      <% data.forEach(function(d) { %>
+        <div class="bar-item">
+          <div class="bar-label"><%= d.label %></div>
+          <div class="bar-fill" style="height: <%= (d.value / maxValue * 100) %>%"></div>
+          <div class="bar-value"><%= d.value %></div>
+        </div>
+      <% }); %>
+    </div>
+  <% } else if (chartType === 'pie') { %>
+    <div class="pie-chart-placeholder">[Pie Chart: <%= title %>]</div>
+  <% } %>
+</div>

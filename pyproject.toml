@@ -1,0 +1,87 @@
+[project]
+name = "oh-my-class"
+version = "0.1.0"
+description = "AI-powered teaching pack generator for K-12 education — agents, quality gates, contracts, gateway"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+
+[tool.uv.workspace]
+members = [
+    "packages/agents",
+    "packages/quality",
+    "common/contracts",
+    "services/gateway",
+]
+
+[tool.uv.sources]
+"packages.agents" = { workspace = true }
+"packages.quality" = { workspace = true }
+"common.contracts" = { workspace = true }
+"services.gateway" = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["packages/agents/tests", "packages/quality/tests", "common/contracts/tests", "services/gateway/tests", "tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "SIM", "TCH"]
+
+[tool.basedpyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+include = ["packages", "common", "services"]
+exclude = ["**/__pycache__", "**/node_modules", "**/*.pyi", "**/alembic/**"]
+
+# Report rules
+# reportMissingImports OFF — uv workspace means packages resolve via venv, not global env.
+# The editor's language server can't see the venv, so these are false positives.
+# CI uses scripts/typecheck.sh which filters reportMissingImports separately.
+reportMissingImports = false
+reportMissingTypeArgument = true
+reportUntypedFunctionDecorator = true
+reportUnknownVariableType = false  # Too noisy with untyped third-party libs
+reportUnknownParameterType = false
+reportUnknownMemberType = false
+reportUnusedImport = true
+reportImplicitRelativeImport = true  # Critical — catches broken imports
+
+[tool.mypy]
+# Optional: basedpyright is the primary type checker
+# mypy kept as alternative for teams that prefer it
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.importlinter]
+root_packages = [
+    "packages.agents",
+    "packages.quality",
+    "common.contracts",
+    "services.gateway",
+]
+
+[[tool.importlinter.contracts]]
+name = "packages-no-import-services"
+type = "forbidden"
+source_modules = ["packages.agents", "packages.quality", "common.contracts"]
+forbidden_modules = ["services.gateway"]
+
+[[tool.importlinter.contracts]]
+name = "common-is-the-floor"
+type = "forbidden"
+source_modules = ["common.contracts"]
+forbidden_modules = ["packages.agents", "packages.quality", "services.gateway"]
+
+[[tool.importlinter.contracts]]
+name = "layered-architecture"
+type = "layers"
+layers = [
+    "services.gateway",
+    "packages.agents",
+    "packages.quality",
+    "common.contracts",
+]

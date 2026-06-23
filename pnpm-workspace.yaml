@@ -1,0 +1,6 @@
+packages:
+  - "packages/renderer"
+  - "packages/exporters"
+  - "packages/schemas"
+  - "common/schemas"
+  - "apps/web"

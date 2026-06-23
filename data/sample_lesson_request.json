@@ -1,0 +1,11 @@
+{
+  "raw_request": "Dạy bài Phân số cho lớp 5, thời lượng 45 phút",
+  "class_info": {
+    "grade": 5,
+    "subject": "math",
+    "student_count": 35,
+    "language": "vi"
+  },
+  "teacher_id": "teacher-001",
+  "export_formats": ["html"]
+}

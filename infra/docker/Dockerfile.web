@@ -1,0 +1,14 @@
+FROM node:22-alpine AS builder
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/schemas/package.json ./packages/schemas/
+COPY packages/renderer/package.json ./packages/renderer/
+COPY packages/exporters/package.json ./packages/exporters/
+COPY common/schemas/package.json ./common/schemas/
+RUN pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm --filter @oh-my-class/web build
+EXPOSE 3000
+CMD ["pnpm", "--filter", "@oh-my-class/web", "start"]

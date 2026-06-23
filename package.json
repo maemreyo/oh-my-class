@@ -1,0 +1,28 @@
+{
+  "name": "oh-my-class",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered teaching pack generator for K-12 education",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "lint:deps": "depcruise --validate .dependency-cruiser.cjs .",
+    "lint:knip": "knip",
+    "generate:schemas": "python scripts/generate_zod_schemas.py",
+    "verify:schemas": "python scripts/verify_schema_parity.py"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.1",
+    "@types/node": "^22.0.0",
+    "dependency-cruiser": "^16.0.0",
+    "knip": "^5.0.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0"
+  },
+  "pnpm": {
+    "overrides": {}
+  }
+}

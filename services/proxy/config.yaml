@@ -1,0 +1,121 @@
+# ════════════════════════════════════════════════════════════════════
+# LiteLLM Proxy Configuration — oh-my-class
+# ════════════════════════════════════════════════════════════════════
+#
+# RULING: 100% 9Router. NO paid fallbacks. Budget cap = $0 for any paid model.
+#
+# MODEL NAME → 9Router COMBO MAPPING:
+# ┌─────────────────────┬─────────────────┬─────────────────────────────┐
+# │ LiteLLM Model Name  │ 9Router Combo   │ Description                 │
+# ├─────────────────────┼─────────────────┼─────────────────────────────┤
+# │ gpt-5.4             │ f.pro           │ Best free model via fusion  │
+# │ deepseek-v4-flash   │ f.light         │ Fast free tier models       │
+# │ deepseek-free       │ f.light         │ Zero-cost drafting          │
+# │ content-fusion      │ f.pro (fusion)  │ Parallel providers + judge  │
+# │ deepseek-compressed │ f.light (RTK)   │ Token compression via free  │
+# └─────────────────────┴─────────────────┴─────────────────────────────┘
+#
+# ALL traffic routes through 9Router sidecar (port 20128).
+# Model names are LiteLLM virtual routes — NOT direct API calls.
+# When 9Router is unreachable → fail safely (queue/run or error).
+# See AGENTS.md §6 for model assignments.
+# ════════════════════════════════════════════════════════════════════
+
+model_list:
+  # ── 9Router Routes ──────────────────────────────────────────────
+  # All traffic routes through 9Router sidecar at http://router:20128/v1
+  # Model names are LiteLLM virtual routes, NOT direct API calls.
+
+  # Lead Agent — 9Router combo: f.pro (best free model)
+  - model_name: gpt-5.4
+    litellm_params:
+      model: openai/gpt-5.4
+      api_base: http://router:20128/v1
+      api_key: os.environ/NINEROUTER_API_KEY
+    model_info:
+      id: gpt-5.4-lead
+      max_budget: 0  # HARD CAP — 9Router combo f.pro, NOT direct OpenAI
+
+  # Planner & Researcher — 9Router combo: f.light (fast free tier)
+  - model_name: deepseek-v4-flash
+    litellm_params:
+      model: openai/deepseek-v4-flash
+      api_base: http://router:20128/v1
+      api_key: os.environ/NINEROUTER_API_KEY
+    model_info:
+      id: deepseek-v4-flash
+      max_budget: 0  # 9Router combo f.light
+
+  # Content Creator — 9Router combo: f.light (zero-cost priority)
+  - model_name: deepseek-free
+    litellm_params:
+      model: openai/deepseek-free
+      api_base: http://router:20128/v1
+      api_key: os.environ/NINEROUTER_API_KEY
+    model_info:
+      id: deepseek-free-cc
+      max_budget: 0  # 9Router combo f.light
+
+  # Reviewer — 9Router combo: f.pro (fusion: parallel providers + judge)
+  - model_name: content-fusion
+    litellm_params:
+      model: openai/content-fusion
+      api_base: http://router:20128/v1
+      api_key: os.environ/NINEROUTER_API_KEY
+    model_info:
+      id: content-fusion-reviewer
+      max_budget: 0  # 9Router combo f.pro (fusion)
+
+  # ── DEAD entries kept ONLY for schema compatibility — never routed to ──
+  # These exist so agent configs referencing model names don't break,
+  # but they point to 9Router (which will return an error if unavailable)
+
+  # Content Creator fallback — 9Router combo: f.light (RTK compression)
+  - model_name: deepseek-compressed
+    litellm_params:
+      model: openai/deepseek-compressed
+      api_base: http://router:20128/v1
+      api_key: os.environ/NINEROUTER_API_KEY
+    model_info:
+      id: deepseek-compressed
+      max_budget: 0  # 9Router combo f.light (RTK)
+
+  - model_name: deepseek-direct
+    litellm_params:
+      model: openai/deepseek-direct
+      api_base: http://router:20128/v1
+      api_key: os.environ/NINEROUTER_API_KEY
+    model_info:
+      id: deepseek-direct
+      max_budget: 0
+
+litellm_settings:
+  # NO PAID FALLBACKS — all fallbacks route through 9Router
+  # If 9Router is down, LiteLLM returns error (safe failure)
+  fallbacks:
+    - gpt-5.4: ["deepseek-v4-flash"]        # f.pro → f.light fallback
+    - deepseek-v4-flash: ["deepseek-free"]   # f.light → f.light fallback
+    - deepseek-free: ["deepseek-compressed"]  # f.light → f.light (RTK)
+    - content-fusion: ["deepseek-free"]       # f.pro (fusion) → f.light fallback
+  context_window_fallbacks:
+    - deepseek-v4-flash: ["deepseek-free"]   # f.light → f.light
+  num_retries: 2
+  request_timeout: 60
+  allowed_fails: 3
+  cooldown_time: 60
+  cache: true
+  cache_params:
+    type: redis
+    host: redis
+    port: 6379
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 2
+
+# SAFETY: Any model NOT in this list that somehow gets routed will hit
+# 9Router first. 9Router returns error if provider unavailable.
+# System fails safely — never silently charges money.

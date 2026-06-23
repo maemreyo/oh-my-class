@@ -1,0 +1,46 @@
+{
+  "artifact_type": "worksheet",
+  "theme": "ocean",
+  "title": "Worksheet — Present Perfect Tense",
+  "sections": [
+    {
+      "type": "grammar_transformation",
+      "questions": [
+        {
+          "id": "q1",
+          "type": "grammar_transformation",
+          "sourceSentence": "I haven't been to the cinema for months. (since)",
+          "expectedAnswer": "It has been months since I last went to the cinema.",
+          "grammarPoint": "present_perfect_since",
+          "difficulty": "apply",
+          "metadata": { "subject": "english", "grade": 9, "topic": "Present Perfect" }
+        }
+      ]
+    },
+    {
+      "type": "error_correction",
+      "questions": [
+        {
+          "id": "q2",
+          "type": "error_correction",
+          "subtype": "identification",
+          "sentence": "The students (A) [was] (B) [excited] about the (C) [upcoming] (D) [field trip].",
+          "errorLocation": "A",
+          "correction": "were",
+          "grammarPoint": "subject_verb_agreement",
+          "difficulty": "analyze",
+          "metadata": { "subject": "english", "grade": 9, "topic": "Subject-Verb Agreement" }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "subject": "english",
+    "grade": 9,
+    "duration_minutes": 20
+  },
+  "accessibility": {
+    "language": "en",
+    "reading_level": "B1"
+  }
+}

@@ -1,0 +1,5 @@
+FROM ghcr.io/berriai/litellm:main-latest
+WORKDIR /app
+COPY services/proxy/config.yaml .
+EXPOSE 4000
+CMD ["litellm", "--config", "config.yaml", "--port", "4000"]

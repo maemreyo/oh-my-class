@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck-python:
+    name: "Python Type Check (basedpyright)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install basedpyright
+      - run: bash scripts/typecheck.sh
+
+  lint-imports-python:
+    name: "Python Import Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install import-linter
+      - run: lint-imports
+
+  lint-deps-typescript:
+    name: "TypeScript Dependency Cruise"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install -g dependency-cruiser
+      - run: depcruise --validate .dependency-cruiser.cjs .
+
+  verify-schema-parity:
+    name: "Schema Parity (Pydantic → Zod)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e common/contracts
+      - run: python scripts/verify_schema_parity.py
+
+  test-python:
+    name: "Python Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e packages/agents -e packages/quality -e common/contracts -e services/gateway
+      - run: pytest --tb=short
+
+  test-typescript:
+    name: "TypeScript Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install -g pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+
+  build-docker:
+    name: "Docker Build"
+    runs-on: ubuntu-latest
+    needs: [lint-imports-python, lint-deps-typescript, test-python, test-typescript]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose -f infra/compose/docker-compose.yml build
