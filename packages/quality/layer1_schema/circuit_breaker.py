@@ -7,6 +7,7 @@ further attempts for a cooldown period.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -43,27 +44,24 @@ class CircuitBreaker:
     @property
     def state(self) -> CircuitState:
         """Current circuit state, with automatic transition logic."""
-        # TODO: If OPEN and cooldown elapsed, transition to HALF_OPEN
+        if self._state == CircuitState.OPEN and self._last_failure_time is not None:
+            elapsed = time.monotonic() - self._last_failure_time
+            if elapsed >= self.cooldown_seconds:
+                self._state = CircuitState.HALF_OPEN
         return self._state
 
     def record_success(self) -> None:
-        """Record a successful validation. Resets failure count.
-
-        TODO: Reset _failure_count and transition to CLOSED if HALF_OPEN.
-        """
-        # TODO: self._failure_count = 0
-        # TODO: self._state = CircuitState.CLOSED
-        pass
+        """Record a successful validation. Resets failure count."""
+        self._failure_count = 0
+        self._state = CircuitState.CLOSED
+        self._last_failure_time = None
 
     def record_failure(self) -> None:
-        """Record a failed validation. Increments failure count.
-
-        TODO: Increment _failure_count. If >= threshold, open circuit.
-        """
-        # TODO: self._failure_count += 1
-        # TODO: if self._failure_count >= self.threshold:
-        # TODO:     self._state = CircuitState.OPEN
-        pass
+        """Record a failed validation. Increments failure count."""
+        self._failure_count += 1
+        self._last_failure_time = time.monotonic()
+        if self._failure_count >= self.threshold:
+            self._state = CircuitState.OPEN
 
     def allow_request(self) -> bool:
         """Check if a request is allowed through the circuit.
@@ -72,5 +70,4 @@ class CircuitBreaker:
             True if the circuit is CLOSED or HALF_OPEN.
             False if the circuit is OPEN (blocked).
         """
-        # TODO: Implement state-based logic
-        return True
+        return self.state in (CircuitState.CLOSED, CircuitState.HALF_OPEN)
