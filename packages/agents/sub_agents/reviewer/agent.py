@@ -42,11 +42,15 @@ async def quality_review(state: OhMyClassState) -> dict[str, Any]:
         JudgeOutput with overall_score, layer_scores, critical_issues,
         passed flag, and rationale.
     """
-    # TODO: Implement with LangGraph agent
-    # 1. Extract artifacts from state
-    # 2. Format review prompt with artifacts + scoring rubric
-    # 3. Call LLM (gpt-5.4 — different from generator model)
-    # 4. Parse into JudgeOutput schema
-    # 5. Run majority_vote across 3 independent calls
-    # 6. Return {"quality_scores": output.model_dump(), "quality_passed": output.passed}
-    raise NotImplementedError("quality_review() stub — implement with Reviewer agent")
+    from packages.quality.layer4_judge.geval import GEvalScorer
+
+    artifacts = state.get("artifacts") or []
+    lesson_plan = state.get("lesson_plan")
+
+    scorer = GEvalScorer()
+    judge_output = await scorer.score(artifacts, lesson_plan=lesson_plan)
+
+    return {
+        "quality_scores": judge_output.model_dump(),
+        "quality_passed": judge_output.passed,
+    }

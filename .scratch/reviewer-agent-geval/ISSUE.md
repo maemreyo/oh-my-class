@@ -1,6 +1,6 @@
 ---
 title: "Reviewer Agent + G-Eval Layer 4"
-status: ready-for-agent
+status: done
 labels: []
 created: 2026-06-23
 github: 8

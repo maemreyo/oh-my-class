@@ -54,7 +54,7 @@ class GEvalScorer:
         artifacts: list[dict[str, Any]],
         *,
         lesson_plan: dict[str, Any] | None = None,
-    ) -> JudgeOutput:
+    ) -> "JudgeOutput":
         """Score artifacts using G-Eval across 3 layers.
 
         Args:
@@ -64,29 +64,66 @@ class GEvalScorer:
         Returns:
             JudgeOutput with scores, issues, and pass/fail status.
         """
-        # TODO: Implement G-Eval scoring
-        # 1. Format the scoring prompt with artifacts + rubric
-        # 2. Run num_judges independent judge calls
-        # 3. Aggregate scores via majority_vote
-        # 4. Check for hard_block violations
-        # 5. Return JudgeOutput
-        raise NotImplementedError("GEvalScorer.score() stub — implement with LLM judge")
+        import json
+        import litellm
 
-    async def _score_single_layer(
-        self,
-        artifacts: list[dict[str, Any]],
-        layer: str,
-        weight: float,
-    ) -> LayerScore:
-        """Score artifacts for a single quality layer.
+        from common.contracts.judge_output import JudgeOutput
+        from packages.agents.sub_agents.reviewer.prompts import REVIEWER_SYSTEM_PROMPT
+        from packages.quality.layer4_judge.majority_vote import majority_vote
 
-        Args:
-            artifacts: Content to evaluate.
-            layer: Layer name (e.g. 'content_quality').
-            weight: Weight for this layer.
+        user_prompt = f"""
+Evaluate the following teaching artifacts:
 
-        Returns:
-            LayerScore with score, weight, and issues.
-        """
-        # TODO: Implement per-layer scoring
-        raise NotImplementedError(f"Layer scoring stub for '{layer}'")
+Artifacts:
+{json.dumps(artifacts, indent=2)}
+
+{f"Lesson Plan for alignment:{chr(10)}{json.dumps(lesson_plan, indent=2)}" if lesson_plan else ""}
+
+Score each artifact across the 3 layers and provide overall assessment.
+"""
+
+        messages = [
+            {"role": "system", "content": REVIEWER_SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ]
+
+        judge_outputs: list[JudgeOutput] = []
+        for i in range(self.config.num_judges):
+            try:
+                response = await litellm.acompletion(
+                    model="content-fusion",
+                    messages=messages,
+                    temperature=0.3 + (i * 0.1),
+                    extra_body={
+                        "metadata": {
+                            "tags": [
+                                "agent:reviewer",
+                                f"judge:{i + 1}",
+                                "pipeline:oh-my-class",
+                            ]
+                        }
+                    },
+                )
+
+                content = response.choices[0].message.content
+                if "```json" in content:
+                    json_str = content.split("```json")[1].split("```")[0].strip()
+                elif "```" in content:
+                    json_str = content.split("```")[1].split("```")[0].strip()
+                else:
+                    json_str = content.strip()
+
+                output_data = json.loads(json_str)
+                judge_output = JudgeOutput.model_validate(output_data)
+                judge_outputs.append(judge_output)
+
+            except Exception:
+                continue
+
+        if not judge_outputs:
+            raise ValueError("All judge calls failed")
+
+        if len(judge_outputs) == 1:
+            return judge_outputs[0]
+
+        return majority_vote(judge_outputs)

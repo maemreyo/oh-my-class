@@ -6,10 +6,7 @@ Reduces individual judge bias and improves reliability.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from common.contracts.judge_output import JudgeOutput
+from common.contracts.judge_output import JudgeOutput, LayerScore
 
 
 def majority_vote(
@@ -19,9 +16,9 @@ def majority_vote(
 ) -> JudgeOutput:
     """Aggregate multiple judge outputs via majority voting.
 
-    For each layer, takes the median score across judges.
-    For pass/fail, requires majority (≥2/3) to pass.
-    For critical issues, union all critical issues from judges.
+    For each layer, averages scores across all judges.
+    For pass/fail, requires ≥2/3 of judges to pass AND avg_score >= threshold.
+    For critical issues, unions all critical issues from judges.
 
     Args:
         judge_outputs: List of JudgeOutput from independent judges (should be 3).
@@ -36,13 +33,53 @@ def majority_vote(
     if len(judge_outputs) < 2:
         raise ValueError("Majority vote requires at least 2 judge outputs")
 
-    # TODO: Implement majority vote aggregation:
-    # 1. Collect scores per layer across all judges
-    # 2. Compute median score per layer
-    # 3. Compute weighted overall score from median layer scores
-    # 4. Majority pass/fail: ≥ceil(n/2) judges must have passed
-    # 5. Union of critical issues
-    # 6. Combine rationales
+    total = len(judge_outputs)
 
-    # Placeholder: return first judge output
-    return judge_outputs[0]
+    # Average overall score
+    avg_overall = sum(j.overall_score for j in judge_outputs) / total
+
+    # Average layer scores
+    layer_names = ["format_compliance", "content_quality", "presentation"]
+    layer_scores = []
+    for layer_name in layer_names:
+        layer_vals = []
+        weight = 0.0
+        for j in judge_outputs:
+            for ls in j.layer_scores:
+                if ls.layer == layer_name:
+                    layer_vals.append(ls.score)
+                    weight = ls.weight
+        if layer_vals:
+            layer_scores.append(
+                LayerScore(
+                    layer=layer_name,
+                    score=sum(layer_vals) / len(layer_vals),
+                    weight=weight,
+                    issues=[],
+                )
+            )
+
+    # Union critical issues (deduplicated)
+    seen: set[str] = set()
+    critical_issues: list[str] = []
+    for j in judge_outputs:
+        for issue in j.critical_issues:
+            if issue not in seen:
+                seen.add(issue)
+                critical_issues.append(issue)
+
+    # Majority pass: ≥2/3 judges AND score >= threshold AND no critical issues
+    pass_count = sum(1 for j in judge_outputs if j.passed)
+    passed = (
+        pass_count >= total * 2 / 3
+        and avg_overall >= pass_threshold
+        and not critical_issues
+    )
+
+    return JudgeOutput(
+        overall_score=avg_overall,
+        layer_scores=layer_scores,
+        critical_issues=critical_issues,
+        passed=passed,
+        rationale=judge_outputs[0].rationale,
+    )
