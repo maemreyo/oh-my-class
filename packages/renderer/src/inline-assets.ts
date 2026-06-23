@@ -3,15 +3,23 @@
  * INVARIANT-04: HTML output MUST NOT contain any http(s):// asset reference.
  */
 
-const _EXTERNAL_URL_PATTERN = /(?:href|src)\s*=\s*["']https?:\/\//gi;
+const EXTERNAL_URL_PATTERN = /(?:href|src)\s*=\s*["']https?:\/\/[^"']+["']/gi;
 
-export function inlineCss(html: string, _cssContent: string): string {
-	// TODO: Inject CSS into <style> tag within HTML
-	return html;
+export function inlineCss(html: string, cssContent: string): string {
+	const styleTag = `<style>\n${cssContent}\n</style>`;
+	// Inject before </head> if present, otherwise prepend
+	if (html.includes("</head>")) {
+		return html.replace("</head>", `${styleTag}\n</head>`);
+	}
+	return `${styleTag}\n${html}`;
 }
 
-export function validateNoExternalUrls(_html: string): string[] {
+export function validateNoExternalUrls(html: string): string[] {
 	const violations: string[] = [];
-	// TODO: Scan html for EXTERNAL_URL_PATTERN matches
+	let match: RegExpExecArray | null;
+	const re = new RegExp(EXTERNAL_URL_PATTERN.source, "gi");
+	while ((match = re.exec(html)) !== null) {
+		violations.push(match[0]);
+	}
 	return violations;
 }
