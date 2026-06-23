@@ -16,8 +16,8 @@ async def read_file(path: str) -> str:
     Returns:
         File contents as string.
     """
-    # TODO: Delegate to packages.agents.tools.read_file
-    raise NotImplementedError("content_creator read_file stub")
+    with open(path) as f:
+        return f.read()
 
 
 async def write_file(path: str, content: str, *, overwrite: bool = False) -> bool:
@@ -31,5 +31,10 @@ async def write_file(path: str, content: str, *, overwrite: bool = False) -> boo
     Returns:
         True on success.
     """
-    # TODO: Delegate to packages.agents.tools.write_file
-    raise NotImplementedError("content_creator write_file stub")
+    import os
+
+    if not overwrite and os.path.exists(path):
+        return False
+    with open(path, "w") as f:
+        f.write(content)
+    return True
