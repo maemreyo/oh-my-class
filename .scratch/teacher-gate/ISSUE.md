@@ -1,6 +1,6 @@
 ---
 title: "Teacher Gate (Layer 5) + Approvals Router"
-status: ready-for-agent
+status: done
 labels: []
 created: 2026-06-23
 github: 9

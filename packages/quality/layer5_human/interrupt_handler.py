@@ -57,15 +57,32 @@ class InterruptHandler:
             state: Current pipeline state to present to teacher.
 
         Returns:
-            Dict with gate details for LangGraph interrupt().
+            Dict with action/feedback/edits from teacher response.
         """
-        # TODO: Implement with langgraph.interrupt()
-        # 1. Format state for teacher presentation
-        # 2. Send webhook notification
-        # 3. Call interrupt() and wait for response
-        # 4. Parse teacher response
-        # 5. Return GateResponse
-        raise NotImplementedError("create_gate() stub — implement with LangGraph interrupt()")
+        from langgraph.types import interrupt
+
+        gate_data: dict[str, Any] = {
+            "gate": gate_type,
+            "actions": ["approve", "edit", "reject"],
+            "timestamp": None,
+        }
+
+        if gate_type == "blueprint_approval":
+            gate_data["lesson_plan"] = state.get("lesson_plan")
+        elif gate_type == "content_approval":
+            gate_data["artifacts"] = state.get("artifacts")
+            gate_data["quality_scores"] = state.get("quality_scores")
+
+        if self.config.webhook_url:
+            await self._send_webhook(gate_type, gate_data)
+
+        response = interrupt(gate_data)
+
+        return {
+            "action": response.get("action", "reject"),
+            "feedback": response.get("feedback"),
+            "edits": response.get("edits"),
+        }
 
     async def handle_timeout(self, gate_type: str) -> dict[str, Any]:
         """Handle gate timeout — auto-escalate to admin.
@@ -76,8 +93,31 @@ class InterruptHandler:
         Returns:
             Escalation response dict.
         """
-        # TODO: Implement timeout handling
-        # 1. Log timeout event
-        # 2. Send escalation notification to admin
-        # 3. Return escalation response
-        raise NotImplementedError("handle_timeout() stub — implement admin escalation")
+        print(f"Gate timeout: {gate_type} after {self.config.timeout_hours} hours")
+
+        if self.config.webhook_url:
+            await self._send_webhook(f"{gate_type}_timeout", {"escalated": True})
+
+        return {
+            "action": "escalate",
+            "reason": f"Gate {gate_type} timed out after {self.config.timeout_hours} hours",
+            "auto_approved": True,
+        }
+
+    async def _send_webhook(self, gate_type: str, data: dict[str, Any]) -> None:
+        """Send webhook notification for teacher gate."""
+        import httpx
+
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    self.config.webhook_url,
+                    json={
+                        "event": "teacher_gate",
+                        "gate_type": gate_type,
+                        "data": data,
+                    },
+                    timeout=10.0,
+                )
+        except Exception as e:
+            print(f"Webhook notification failed: {e}")
