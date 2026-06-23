@@ -952,6 +952,24 @@ INVARIANT-10  Every Pydantic model that validates agent output MUST be in
 
 ---
 
+---
+
+## Agent skills
+
+### Issue tracker
+
+Local markdown under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Two labels: `needs-info` and `ready-for-agent`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` at repo root + `docs/adr/` for ADRs. See `docs/agents/domain.md`.
+
+---
+
 > **Last updated**: 2026-06-23
 > **Maintained by**: Core team. PRs that violate any Hard Invariant will be rejected.
 > **Source docs**: Technical Reports 01–07 (multi-agent blueprint, quality gates,
