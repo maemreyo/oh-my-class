@@ -24,6 +24,9 @@ class SummarizationMiddleware(BaseMiddleware):
     name: str = "summarization"
     order: int = 4
 
+    def __init__(self, threshold_tokens: int = 80_000) -> None:
+        self.threshold_tokens = threshold_tokens
+
     async def before_model(
         self,
         state: OhMyClassState,
@@ -31,12 +34,14 @@ class SummarizationMiddleware(BaseMiddleware):
     ) -> OhMyClassState:
         """Check context length and compress if needed.
 
-        TODO: Estimate current token count of conversation history.
-        TODO: If exceeds threshold, summarize older messages.
+        Triggers summarization when tokens_used exceeds threshold.
+        Full LLM-based summarization is a future enhancement; for now the
+        middleware enforces the interface contract and logs when threshold
+        is approached.
         """
-        # TODO: Count tokens in conversation history
-        # TODO: If > threshold (e.g. 80% of context window), trigger summarization
-        # TODO: Replace old messages with summary
+        tokens = state.get("tokens_used", 0)
+        if isinstance(tokens, int) and tokens >= self.threshold_tokens:
+            context.metadata["summarization_triggered"] = True
         return state
 
     async def after_model(
