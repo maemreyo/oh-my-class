@@ -38,13 +38,30 @@ def get_checkpointer(environment: str = "development", **kwargs: Any) -> Any:
             f"Must be one of: {', '.join(_CHECKPOINTER_MAP)}"
         )
 
-    # TODO: Implement dynamic import and instantiation
-    # module_path = _CHECKPOINTER_MAP[environment]
-    # module_name, class_name = module_path.rsplit(".", 1)
-    # module = importlib.import_module(module_name)
-    # cls = getattr(module, class_name)
-    # return cls(**kwargs)
-    raise NotImplementedError(
-        f"get_checkpointer() stub for '{environment}' — "
-        f"implement with dynamic import of {_CHECKPOINTER_MAP[environment]}"
-    )
+    import importlib
+
+    module_path = _CHECKPOINTER_MAP[environment]
+    module_name, class_name = module_path.rsplit(".", 1)
+
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as e:
+        raise ImportError(
+            f"Cannot import {module_name}. "
+            f"Install the required package for '{environment}' environment."
+        ) from e
+
+    cls = getattr(module, class_name)
+
+    if environment == "development":
+        return cls()
+    elif environment == "staging":
+        db_path = kwargs.get("db_path", "omc_checkpoints.db")
+        return cls(db_path=db_path)
+    elif environment == "production":
+        connection_string = kwargs.get("connection_string")
+        if not connection_string:
+            raise ValueError("connection_string required for production environment")
+        return cls.from_conn_string(connection_string)
+
+    return cls(**kwargs)
