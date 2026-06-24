@@ -1,62 +1,58 @@
-"""Lead Agent — factory function and node implementation.
+"""Lead Agent factory — B2 Tool Sequencer with Semantic Recovery.
 
-The Lead Agent orchestrates the entire pipeline. It decomposes the teacher's
-request into subtasks, delegates to sub-agents via task(), and synthesizes
-results. It never generates educational content directly.
+The Lead Agent uses create_react_agent (B2 pattern):
+- deterministic tool sequencing for the standard path
+- LLM-driven recovery guidance on retry (D3 hybrid)
+- system prompt loaded from prompts/system.md (G2)
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from langchain_core.messages import SystemMessage
+from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph.state import CompiledStateGraph
+from langgraph.prebuilt import create_react_agent
+
+from packages.agents.lead_agent.prompts import load_system_prompt
+from packages.agents.lead_agent.state import LeadAgentState
+from packages.agents.lead_agent.tools import SUB_AGENT_TOOLS
 
 
-# The Lead Agent uses gpt-5.4 via 9Router combo: f.pro
-# (NOT direct OpenAI API — all traffic routes through 9Router sidecar)
 def make_lead_agent(
-    *,
-    model: str | None = None,
-    tools: list[str] | None = None,
-) -> Any:
-    """Create and configure the Lead Agent.
+    model: Any = None,
+    checkpointer: Any = None,
+    tools: list | None = None,
+) -> CompiledStateGraph:
+    """Factory — returns a compiled ReAct graph for the Lead Agent.
 
-    The Lead Agent uses gpt-5.4 via LiteLLM → 9Router combo f.pro.
-    Access to:
-    - task: delegate to sub-agents
-    - ask_clarification: request clarification from teacher
-    - read_file: read workspace files
-    - write_file: write workspace files
+    Routes through 9Router sidecar at NINEROUTER_BASE_URL (default: http://localhost:20128/v1).
+    Model: gpt-5.4 → 9Router combo f.pro.
 
     Args:
-        model: Override the configured model (default: from LEAD_AGENT_CONFIG).
-        tools: Override the tool list (default: from LEAD_AGENT_CONFIG).
+        model: LangChain-compatible chat model. Defaults to ChatOpenAI via 9Router.
+        checkpointer: LangGraph checkpointer. Defaults to MemorySaver.
+        tools: Sub-agent tool list. Defaults to SUB_AGENT_TOOLS.
 
     Returns:
-        Compiled LangGraph agent ready for invocation.
+        Compiled ReAct graph ready for invocation.
     """
-    # TODO: Implement with langgraph prebuilt.create_react_agent or custom graph
-    # config = LEAD_AGENT_CONFIG
-    # resolved_model = model or config["model"]
-    # resolved_tools = tools or config["tools"]
-    # return create_react_agent(model=resolved_model, tools=resolved_tools, ...)
-    raise NotImplementedError("make_lead_agent() stub — implement with LangGraph")
+    import os
 
+    llm = model or ChatOpenAI(
+        model="gpt-5.4",
+        base_url=os.environ.get("NINEROUTER_BASE_URL", "http://localhost:20128/v1"),
+        api_key=os.environ.get("NINEROUTER_API_KEY", "no-key"),
+        temperature=0,
+    )
+    system_prompt = load_system_prompt()
 
-async def lead_agent_node(state: OhMyClassState) -> dict[str, Any]:
-    """LangGraph node function for the Lead Agent.
-
-    Reads the current pipeline state, determines the next action,
-    and returns the state update.
-
-    Args:
-        state: Current pipeline state.
-
-    Returns:
-        Partial state update dict.
-    """
-    # TODO: Implement step routing logic based on state["current_step"]
-    # TODO: Delegate to sub-agents via task() — never generate content directly
-    # TODO: Return partial state update
-    raise NotImplementedError("lead_agent_node() stub — implement pipeline routing")
+    return create_react_agent(
+        model=llm,
+        tools=tools if tools is not None else SUB_AGENT_TOOLS,
+        state_schema=LeadAgentState,
+        prompt=SystemMessage(content=system_prompt),
+        checkpointer=checkpointer if checkpointer is not None else MemorySaver(),
+    )

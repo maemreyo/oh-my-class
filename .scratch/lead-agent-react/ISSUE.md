@@ -1,6 +1,6 @@
 ---
 title: "Lead Agent ReAct: B2 Pattern — Tool Sequencer with Semantic Recovery"
-status: ready
+status: done
 labels: [architecture, agents, langgraph]
 created: 2026-06-24
 priority: p0
