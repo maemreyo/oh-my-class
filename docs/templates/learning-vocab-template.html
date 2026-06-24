@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giáo án — Unit 2: Travel and Transport (Destination B2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,500&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF4F0; --paper-deep:#F3E2D9; --card:#FFFFFF;
+  --ink:#22273A; --ink-soft:#5C6275; --ink-faint:#8B8FA0;
+  --line:#E8D8CD; --line-soft:#EFE3DA;
+  --red:#B23A2E; --red-deep:#8C2C22; --red-tint:rgba(178,58,46,0.07);
+  --gold:#A8782E; --gold-tint:rgba(168,120,46,0.09);
+  --green:#2E6F4E; --green-tint:rgba(46,111,78,0.08);
+  --c-a:#33508F; --c-a-tint:rgba(51,80,143,0.08);
+  --c-b:#B9762A; --c-b-tint:rgba(185,118,42,0.09);
+  --c-c:#3C7A4E; --c-c-tint:rgba(60,122,78,0.08);
+  --c-d:#1F7A8C; --c-d-tint:rgba(31,122,140,0.08);
+  --c-e:#8A4F7E; --c-e-tint:rgba(138,79,126,0.08);
+  --radius:12px;
+  --shadow:0 1px 2px rgba(40,20,10,0.04), 0 8px 24px -16px rgba(40,20,10,0.25);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:'Be Vietnam Pro',sans-serif; line-height:1.65; font-size:15.5px;}
+h1,h2,h3,h4{font-family:'Spectral',serif; margin:0; color:var(--ink); font-weight:700;}
+a{color:var(--c-a); text-decoration:none;}
+p{margin:0 0 10px;}
+ul,ol{margin:0; padding-left:20px;}
+li{margin-bottom:5px;}
+body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:repeating-linear-gradient(180deg, transparent 0 38px, rgba(140,90,70,0.035) 38px 39px); opacity:0.6;}
+
+.shell{position:relative; z-index:1; display:flex; max-width:1280px; margin:0 auto; min-height:100vh;}
+.sidebar{width:252px; flex-shrink:0; position:sticky; top:0; align-self:flex-start; height:100vh; overflow-y:auto; padding:26px 18px 40px 26px; border-right:1px solid var(--line);}
+.main{flex:1; min-width:0; padding:38px 46px 110px;}
+
+.logo{display:flex; align-items:center; gap:6px; margin-bottom:18px;}
+.logo .dot{width:25px;height:25px;border-radius:50%; display:flex;align-items:center;justify-content:center; font-family:'IBM Plex Mono'; font-size:12px; font-weight:700; color:#fff; box-shadow:inset 0 -2px 3px rgba(0,0,0,0.15);}
+.logo .dot.h{background:#9AA0AE;} .logo .dot.s{background:var(--green);} .logo .dot.a{background:var(--red);}
+.logo .lt{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-faint); letter-spacing:.06em; text-transform:uppercase; margin-left:4px;}
+.side-title{font-family:'Spectral',serif; font-weight:700; font-size:16px; line-height:1.3; margin-bottom:4px;}
+.side-sub{font-size:12.5px; color:var(--ink-soft); margin-bottom:18px;}
+
+.side-stat{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;}
+.side-stat .k{font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); margin-bottom:3px;}
+.side-stat .v{font-family:'Spectral',serif; font-weight:700; font-size:16.5px; color:var(--ink);}
+
+.side-nav{display:flex; flex-direction:column; gap:2px; margin:18px 0;}
+.side-nav a{display:flex; align-items:baseline; gap:8px; padding:7px 9px; border-radius:7px; font-size:12.8px; color:var(--ink);}
+.side-nav a:hover{background:var(--card);}
+.side-nav a .nn{font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--ink-faint); flex-shrink:0;}
+
+.linkback{margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); font-size:12px; color:var(--ink-soft);}
+.linkback b{color:var(--ink);}
+
+.hero{margin-bottom:32px;}
+.hero .eyebrow{font-family:'IBM Plex Mono'; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--red-deep); font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+.hero .eyebrow::before{content:"✎"; font-size:14px;}
+.hero h1{font-size:27px; line-height:1.28; max-width:680px;}
+.hero p.lede{max-width:680px; color:var(--ink-soft); font-size:14.6px; margin-top:12px;}
+.note-box{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--gold); border-radius:10px; padding:13px 17px; margin-top:18px; font-size:13.4px; color:var(--ink-soft); max-width:700px;}
+.note-box b{color:var(--ink);}
+
+.stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:11px; margin-top:20px; max-width:840px;}
+.stat-card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; box-shadow:var(--shadow);}
+.stat-card .k{font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); margin-bottom:5px;}
+.stat-card .v{font-family:'Spectral',serif; font-weight:700; font-size:18px; line-height:1.2;}
+.stat-card .v small{font-family:'Be Vietnam Pro'; font-weight:600; font-size:12px; color:var(--ink-soft);}
+@media (max-width:820px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+
+.obj-card{background:var(--c-a-tint); border:1px solid rgba(51,80,143,0.2); border-radius:10px; padding:14px 18px; margin-top:18px; max-width:760px;}
+.obj-card .ot{font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase; letter-spacing:.04em; font-weight:700; color:var(--c-a); margin-bottom:8px;}
+.obj-card ol{padding-left:20px;}
+.obj-card li{font-size:13.6px; color:var(--ink); margin-bottom:6px;}
+
+.section{margin-bottom:46px;}
+.section-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; padding-bottom:11px; margin-bottom:16px; border-bottom:1px solid var(--line);}
+.section-head h2{font-size:19.5px;}
+.section-head .time{margin-left:auto; font-family:'IBM Plex Mono'; font-size:12px; font-weight:700; color:#fff; background:var(--ink); padding:3px 10px; border-radius:20px;}
+.section-intro{font-size:13.8px; color:var(--ink-soft); margin-bottom:14px; max-width:780px;}
+.section-intro b{color:var(--ink);}
+h3.h3{font-size:15.5px; margin:22px 0 11px; color:var(--ink);}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:15px 19px; box-shadow:var(--shadow); margin-bottom:13px;}
+
+/* film hunt sheet */
+.film-opt{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:14px;}
+@media (max-width:760px){.film-opt{grid-template-columns:1fr;}}
+.film-card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:13px 16px;}
+.film-card .ft{font-family:'Spectral',serif; font-weight:700; font-size:14.5px; margin-bottom:4px;}
+.film-card p{font-size:13px; color:var(--ink-soft); margin:0;}
+.huntsheet{background:var(--paper-deep); border:1px dashed var(--ink-faint); border-radius:10px; padding:13px 17px; font-size:13.3px; color:var(--ink-soft);}
+.huntsheet b{color:var(--ink);}
+.chiplist{display:flex; flex-wrap:wrap; gap:7px; margin-top:8px;}
+.chip{font-family:'IBM Plex Mono'; font-size:11.5px; background:#fff; border:1px solid var(--line); border-radius:20px; padding:4px 11px; color:var(--ink);}
+
+/* concept map */
+.concept-box{background:var(--card); border:1px solid var(--line); border-left:5px solid var(--c-a); border-radius:10px; padding:16px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+.concept-box .cb-title{font-family:'Spectral',serif; font-weight:700; font-size:15.5px; margin-bottom:3px;}
+.concept-box .cb-link{font-size:12px; color:var(--red-deep); font-family:'IBM Plex Mono'; margin-bottom:10px; display:block;}
+.tri{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:10px 0;}
+@media (max-width:760px){.tri{grid-template-columns:1fr;}}
+.tri-card{background:var(--paper-deep); border-radius:9px; padding:10px 13px;}
+.tri-card b{display:block; font-family:'IBM Plex Mono'; font-size:13px; color:var(--c-a); margin-bottom:4px;}
+.tri-card span{font-size:12.6px; color:var(--ink-soft);}
+.tri-card em{display:block; margin-top:5px; font-size:12.2px; color:var(--ink); font-style:italic;}
+
+.fiveset{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:10px 0;}
+@media (max-width:900px){.fiveset{grid-template-columns:repeat(2,1fr);}}
+.fiveset .fcard{background:var(--paper-deep); border-radius:8px; padding:9px 10px; font-size:12.3px; color:var(--ink-soft);}
+.fiveset .fcard b{display:block; font-family:'IBM Plex Mono'; color:var(--c-a); margin-bottom:3px; font-size:12.8px;}
+
+.quickpairs{width:100%; border-collapse:collapse; font-size:13.2px; margin-top:6px;}
+.quickpairs th{background:var(--ink); color:#fff; text-align:left; padding:7px 11px; font-family:'IBM Plex Mono'; font-size:10.5px; text-transform:uppercase;}
+.quickpairs td{padding:7px 11px; border-bottom:1px solid var(--line-soft);}
+.quickpairs tr:nth-child(even) td{background:rgba(140,90,70,0.025);}
+
+/* phrasal verb clusters */
+.pv-clusters{display:grid; grid-template-columns:repeat(2,1fr); gap:11px; margin:10px 0;}
+@media (max-width:760px){.pv-clusters{grid-template-columns:1fr;}}
+.pv-cluster{border-radius:10px; padding:12px 15px;}
+.pv-cluster .pvt{font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase; letter-spacing:.03em; font-weight:700; margin-bottom:7px; display:block;}
+.pv-cluster .pv-item{font-size:13px; margin-bottom:3px; color:var(--ink);}
+.pv-cluster .pv-item b{font-family:'IBM Plex Mono'; font-weight:700;}
+.pv1{background:var(--c-b-tint);} .pv1 .pvt{color:var(--c-b);}
+.pv2{background:var(--c-d-tint);} .pv2 .pvt{color:var(--c-d);}
+.pv3{background:var(--c-c-tint);} .pv3 .pvt{color:var(--c-c);}
+.pv4{background:var(--c-a-tint);} .pv4 .pvt{color:var(--c-a);}
+.pv5{background:var(--red-tint);} .pv5 .pvt{color:var(--red-deep);}
+
+/* practice question */
+.pq{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 16px; margin-bottom:10px; border-left:4px solid var(--c-a);}
+.pq .pq-n{font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; color:var(--c-a); margin-right:6px;}
+.pq .pq-text{font-size:13.8px; color:var(--ink);}
+.pq .pq-opts{display:flex; flex-wrap:wrap; gap:10px; margin:6px 0 6px 0; font-size:13px; color:var(--ink-soft);}
+.pq .pq-opts b{color:var(--ink-faint); font-family:'IBM Plex Mono'; margin-right:3px;}
+.pq .pq-ans{font-size:12.6px; background:var(--green-tint); color:var(--green); border-radius:6px; padding:5px 10px; display:inline-block; font-weight:600;}
+.pq .pq-why{font-size:12.6px; color:var(--ink-soft); margin-top:5px;}
+
+/* roleplay */
+.script{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; box-shadow:var(--shadow);}
+.script .line{display:flex; gap:12px; margin-bottom:9px; font-size:13.6px;}
+.script .who{font-family:'IBM Plex Mono'; font-weight:700; font-size:12px; flex-shrink:0; width:84px; padding-top:1px;}
+.script .who.A{color:var(--c-b);} .script .who.B{color:var(--c-d);}
+.script .what{flex:1; color:var(--ink);}
+.script .blank{font-family:'IBM Plex Mono'; background:var(--paper-deep); border-radius:4px; padding:1px 6px; color:var(--ink-faint);}
+.script-key{margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-size:12.6px; color:var(--ink-soft);}
+.script-key b{color:var(--green); font-family:'IBM Plex Mono';}
+
+.note-callout{background:var(--gold-tint); border:1px solid rgba(168,120,46,0.3); border-radius:10px; padding:12px 16px; font-size:13.2px; color:var(--ink); margin:13px 0;}
+.note-callout b{color:var(--gold);}
+
+.hw-list{list-style:none; padding:0;}
+.hw-list li{display:flex; gap:10px; align-items:flex-start; margin-bottom:8px; font-size:13.4px; color:var(--ink-soft);}
+.hw-list li .hwtag{font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:700; color:#fff; background:var(--c-a); border-radius:5px; padding:2px 7px; flex-shrink:0; margin-top:2px;}
+
+footer{margin-top:46px; padding-top:20px; border-top:1px solid var(--line); font-size:12.3px; color:var(--ink-faint); max-width:680px;}
+.totop{position:fixed; bottom:22px; right:22px; z-index:5; width:42px; height:42px; border-radius:50%; background:var(--ink); color:#fff; border:none; cursor:pointer; font-size:16px; box-shadow:0 4px 14px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center;}
+
+@media (max-width:880px){
+  .shell{flex-direction:column;}
+  .sidebar{position:static; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:18px 18px 14px;}
+  .main{padding:26px 18px 90px;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo"><span class="dot h">H</span><span class="dot s">S</span><span class="dot a">A</span><span class="lt">Giáo án buổi học</span></div>
+    <div class="side-title">Unit 2 — Travel and Transport</div>
+    <div class="side-sub">Destination B2 · Buổi vocab đầu tiên</div>
+
+    <div class="side-stat"><div class="k">Thời lượng</div><div class="v">~100 phút</div></div>
+    <div class="side-stat"><div class="k">Giai đoạn lộ trình</div><div class="v">GĐ1 · Tuần 3–4</div></div>
+    <div class="side-stat"><div class="k">Lỗi gốc liên quan</div><div class="v">Câu 2</div></div>
+
+    <nav class="side-nav">
+      <a href="#warmup"><span class="nn">1</span> Khởi động — phim</a>
+      <a href="#concept"><span class="nn">2</span> Bản đồ đối chiếu</a>
+      <a href="#practice"><span class="nn">3</span> Luyện tập hướng dẫn</a>
+      <a href="#quiz"><span class="nn">4</span> Quiz theo format thi</a>
+      <a href="#roleplay"><span class="nn">5</span> Roleplay sân bay</a>
+      <a href="#hw"><span class="nn">6</span> BTVN &amp; theo dõi lỗi</a>
+    </nav>
+
+    <div class="linkback">Buổi học này cụ thể hoá <b>Giai đoạn 1</b> (Mục 6) và áp đúng 4 nguyên tắc giảng dạy
+      (Mục 4) + cấu trúc buổi học (Mục 7.1) trong file lộ trình tổng.</div>
+  </aside>
+
+  <main class="main">
+    <div class="hero">
+      <div class="eyebrow">Buổi học mẫu #1 · Áp dụng phương pháp đối chiếu + phim + roleplay nhẹ</div>
+      <h1>Unit 2: Travel and Transport — Destination B2</h1>
+      <p class="lede">Đây đúng là unit vocab đầu tiên của sách (Unit 1 là grammar, Unit 2 là vocab) — phù hợp làm buổi
+        vocab khởi đầu Giai đoạn 1. Giáo án được thiết kế lại theo đúng 4 nguyên tắc đã đề xuất: dạy theo
+        <b>bản đồ đối chiếu</b> thay vì liệt kê từ rời, dùng <b>phim</b> làm ngữ liệu khởi động, để học sinh tự giải
+        thích lý do đáp án sai, và khép lại bằng <b>roleplay 1-1 có sẵn lời</b> để không tạo áp lực nói.</p>
+      <div class="note-box"><b>Điểm đặc biệt của unit này:</b> bảng "Topic vocabulary in contrast" có sẵn cặp
+        <b>arrive / reach</b> — đúng chính kỹ năng học sinh đã sai ở <b>câu 2</b> (nhầm enter/arrive at/reach trong bài
+        kiểm tra đầu vào). Mục 2.1 dưới đây dạy lại đúng điểm này trước tiên.</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="k">Trọng tâm từ vựng</div><div class="v">6 cặp <small>đối chiếu</small></div></div>
+        <div class="stat-card"><div class="k">Phrasal verbs</div><div class="v">15 <small>theo 5 cụm nghĩa</small></div></div>
+        <div class="stat-card"><div class="k">Luyện tập mới</div><div class="v">10+5 <small>câu tự soạn</small></div></div>
+        <div class="stat-card"><div class="k">Khép lại</div><div class="v">Roleplay <small>sân bay 1-1</small></div></div>
+      </div>
+      <div class="obj-card">
+        <div class="ot">Mục tiêu buổi học</div>
+        <ol>
+          <li>Phân biệt chính xác <b>arrive / reach / enter</b> và <b>voyage / journey / trip / travel / excursion</b> — sửa đúng lỗi gốc ở câu 2.</li>
+          <li>Nhận diện &amp; dùng đúng 15 phrasal verbs của unit theo 5 cụm nghĩa (rời đi · đến nơi · tốc độ · thủ tục/tạm biệt · sự cố).</li>
+          <li>Tự giải thích được vì sao 3 phương án nhiễu trong câu trắc nghiệm là sai — không chỉ chọn đúng đáp án.</li>
+          <li>Dùng được tối thiểu 5 từ/cụm vừa học trong 1 đoạn hội thoại ngắn, ở mức áp lực thấp nhất (đọc theo script).</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 1. KHỞI ĐỘNG -->
+    <section class="section" id="warmup">
+      <div class="section-head"><h2>1. Khởi động bằng phim</h2><span class="time">10–12 phút</span></div>
+      <p class="section-intro">Mục tiêu: biến việc xem phim thành một <b>nhiệm vụ săn từ có chủ đích</b>, không phải
+        xem giải trí đơn thuần — và làm "mồi" ngữ cảnh thật cho các phrasal verb/collocation sẽ học ở Mục 2.</p>
+
+      <div class="film-opt">
+        <div class="film-card"><div class="ft">🎬 Up in the Air (2009)</div><p>Cảnh mở đầu ở sân bay — dày đặc từ vựng
+          thủ tục bay (check-in, an ninh, lên máy bay), phù hợp trình độ B2, lời thoại rõ, tốc độ vừa.</p></div>
+        <div class="film-card"><div class="ft">🎬 The Holiday (2006)</div><p>Đoạn mở đầu nói về việc đổi nhà đi du lịch
+          — giới thiệu tự nhiên các từ journey/trip/travel trong lời dẫn chuyện, tốc độ nói chậm, dễ nghe.</p></div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-soft);">Nếu học sinh có phim yêu thích thuộc chủ đề đi lại/sân bay/du
+        lịch (đã biết qua các buổi trước), nên ưu tiên thay bằng phim đó — ngữ liệu quen sẽ giảm áp lực nghe hơn.</p>
+
+      <div class="huntsheet">
+        <b>Phiếu săn từ (giao trước khi xem):</b> tích vào ô khi nghe/thấy đúng từ hoặc hành động tương ứng xuất hiện
+        trong đoạn phim. Không cần hiểu hết lời thoại — chỉ cần "bắt" được đúng các tín hiệu này.
+        <div class="chiplist">
+          <span class="chip">check in</span><span class="chip">see off</span><span class="chip">set off</span>
+          <span class="chip">take off</span><span class="chip">arrive</span><span class="chip">a trip</span>
+          <span class="chip">go on holiday</span><span class="chip">a ticket</span>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-soft);margin-top:8px;">Sau khi xem: chỉ hỏi 1–2 câu mở, không ép nói
+        nhiều — ví dụ "Cảnh nào em thấy quen nhất?" — học sinh có thể chỉ cần trỏ vào ô đã tích trên phiếu để trả lời,
+        phù hợp với học sinh nhút nhát.</p>
+    </section>
+
+    <!-- 2. CONCEPT MAP -->
+    <section class="section" id="concept">
+      <div class="section-head"><h2>2. Bản đồ đối chiếu &amp; cụm nghĩa</h2><span class="time">25–30 phút</span></div>
+      <p class="section-intro">Không dạy 15 cặp từ "Topic vocabulary in contrast" cùng lúc — chỉ tập trung sâu vào
+        <b>6 cặp giá trị cao nhất</b> (dễ nhầm nhất / liên quan trực tiếp lỗi đã đo được). Các cặp còn lại trong sách
+        (world/earth, area/territory, season/period, take/bring/go, book/keep, live/stay, border/edge/line,
+        length/distance, guide/lead, native/home) giao đọc thêm ở trang 12 + làm Exercise B như BTVN (Mục 6).</p>
+
+      <h3 class="h3">2.1 Trọng tâm: arrive / reach / enter — sửa đúng lỗi câu 2</h3>
+      <div class="concept-box">
+        <div class="cb-title">Vì sao học sinh sai câu 2?</div>
+        <span class="cb-link">Lỗi gốc: "The boy delayed ___ the classroom" — chọn nhầm vì không phân biệt 3 động từ chỉ "đến/vào một nơi"</span>
+        <div class="tri">
+          <div class="tri-card"><b>ENTER</b><span>Đi VÀO một không gian có ranh giới rõ (phòng, toà nhà, đất nước) — không cần giới từ.</span><em>"He entered the room quietly."</em></div>
+          <div class="tri-card"><b>ARRIVE (at/in)</b><span>Đến MỘT ĐIỂM, nhấn vào thời điểm đến nơi — cần giới từ "at" (nơi cụ thể) hoặc "in" (thành phố/nước).</span><em>"We arrived at the station at 6pm."</em></div>
+          <div class="tri-card"><b>REACH</b><span>Đến được nơi nào đó SAU một quá trình/khoảng cách — không cần giới từ, thường nhấn nỗ lực hoặc hành trình.</span><em>"It took us all day to reach the village."</em></div>
+        </div>
+        <p style="font-size:13px;color:var(--ink-soft);margin-top:4px;">Câu hỏi cho học sinh tự trả lời (không phải
+          giáo viên giải thích trước): "Nếu nói về việc bước vào MỘT PHÒNG CỤ THỂ, ta dùng từ nào trong 3 từ này? Vì
+          sao 2 từ còn lại sai?" — đúng phương pháp "tự giải thích lý do sai" ở Mục 4 của lộ trình.</p>
+      </div>
+
+      <h3 class="h3">2.2 voyage / journey / trip / travel / excursion</h3>
+      <div class="concept-box">
+        <div class="cb-title">Phân biệt theo 2 trục: thời gian/phương tiện và đếm được hay không</div>
+        <div class="fiveset">
+          <div class="fcard"><b>travel</b>Danh từ KHÔNG đếm được — nói chung về việc đi lại, không chỉ 1 lần cụ thể.</div>
+          <div class="fcard"><b>journey</b>1 lần đi cụ thể, thường khá dài, nhấn vào QUÁ TRÌNH di chuyển (đường bộ, qua nhiều chặng).</div>
+          <div class="fcard"><b>trip</b>1 lần đi cụ thể, có đi VÀ về, thường ngắn hơn journey (công việc, du lịch ngắn).</div>
+          <div class="fcard"><b>voyage</b>1 chuyến đi dài bằng ĐƯỜNG BIỂN (hoặc đường không tầm rất xa, mang sắc thái cổ điển).</div>
+          <div class="fcard"><b>excursion</b>1 chuyến đi NGẮN, có tổ chức, thường để tham quan/giải trí trong ngày.</div>
+        </div>
+      </div>
+
+      <h3 class="h3">2.3 Đối chiếu nhanh (rapid-fire)</h3>
+      <table class="quickpairs">
+        <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
+        <tbody>
+          <tr><td><b>fare</b> / ticket / fee</td><td>fare = giá vé phương tiện công cộng (xe bus, taxi) · ticket = tấm vé vật lý · fee = phí dịch vụ nói chung (không phải đi lại)</td></tr>
+          <tr><td><b>miss</b> / lose</td><td>miss = trễ/không bắt được phương tiện (miss the bus) · lose = làm mất đồ vật (lose your passport)</td></tr>
+          <tr><td><b>view</b> / sight</td><td>view = cảnh nhìn thấy TỪ một vị trí (a view of the city) · sight = điểm/cảnh đáng để đi xem (a tourist sight)</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="h3">2.4 Phrasal verbs theo 5 cụm nghĩa</h3>
+      <p style="font-size:13.4px;color:var(--ink-soft);">Không học 15 phrasal verb theo thứ tự bảng chữ cái — nhóm lại
+        theo nghĩa để học sinh nhớ theo "tình huống" thay vì từng từ rời rạc.</p>
+      <div class="pv-clusters">
+        <div class="pv-cluster pv1"><span class="pvt">Rời đi</span>
+          <div class="pv-item"><b>set out/off</b> — bắt đầu hành trình</div>
+          <div class="pv-item"><b>go away</b> — đi nghỉ/đi xa</div>
+          <div class="pv-item"><b>take off</b> — (máy bay) rời mặt đất</div>
+        </div>
+        <div class="pv-cluster pv2"><span class="pvt">Đến nơi / di chuyển</span>
+          <div class="pv-item"><b>get back</b> — trở về</div>
+          <div class="pv-item"><b>pick up</b> — đón ai đó lên xe</div>
+          <div class="pv-item"><b>drop off</b> — thả ai đó xuống xe</div>
+          <div class="pv-item"><b>pull in</b> — (xe) dừng lại bên đường</div>
+          <div class="pv-item"><b>turn round</b> — quay đầu lại</div>
+        </div>
+        <div class="pv-cluster pv3"><span class="pvt">Theo kịp tốc độ</span>
+          <div class="pv-item"><b>catch up with</b> — bắt kịp (đang chậm hơn)</div>
+          <div class="pv-item"><b>keep up with</b> — giữ ngang tốc độ (không bị tụt lại)</div>
+        </div>
+        <div class="pv-cluster pv4"><span class="pvt">Thủ tục / tạm biệt</span>
+          <div class="pv-item"><b>check in</b> — làm thủ tục nhận phòng/lên máy bay</div>
+          <div class="pv-item"><b>check out</b> — làm thủ tục trả phòng; (nghĩa khác: tìm hiểu)</div>
+          <div class="pv-item"><b>see off</b> — đi tiễn ai đó</div>
+        </div>
+        <div class="pv-cluster pv5"><span class="pvt">Sự cố</span>
+          <div class="pv-item"><b>run over</b> — (xe) đâm/cán phải ai/cái gì</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. LUYỆN TẬP CÓ HƯỚNG DẪN -->
+    <section class="section" id="practice">
+      <div class="section-head"><h2>3. Luyện tập có hướng dẫn</h2><span class="time">30–35 phút</span></div>
+      <p class="section-intro">10 câu trắc nghiệm <b>tự soạn mới</b> (không lấy nguyên câu trong sách) theo đúng 6 cặp
+        đối chiếu + phrasal verbs vừa dạy, theo format 4 lựa chọn giống đề thi HSA. <b>Quy tắc bắt buộc:</b> học sinh
+        phải nói ra lý do 3 phương án còn lại sai TRƯỚC khi giáo viên xác nhận đáp án — không chỉ chọn đáp án đúng rồi
+        dừng lại.</p>
+      <div class="note-callout">Sau khi luyện xong 10 câu này, có thể bổ sung thêm bằng <b>Exercise A, C, F, H</b>
+        sẵn có trong sách (trang 13–15) — không cần soạn lại, chỉ cần áp đúng quy tắc "tự giải thích lý do sai" khi
+        chữa.</div>
+
+      <div class="pq"><span class="pq-n">1</span><span class="pq-text">By the time we ________ the summit, the sun had already started to set.</span>
+        <div class="pq-opts"><span><b>A</b>arrived</span><span><b>B</b>reached</span><span><b>C</b>entered</span><span><b>D</b>arrived at</span></div>
+        <span class="pq-ans">Đáp án: B</span><div class="pq-why">"Reach" + nơi (không giới từ) cho cảm giác "đến được sau một quá trình leo núi" — đúng sắc thái "by the time".</div></div>
+
+      <div class="pq"><span class="pq-n">2</span><span class="pq-text">She knocked twice before she ________ the meeting room.</span>
+        <div class="pq-opts"><span><b>A</b>arrived</span><span><b>B</b>reached</span><span><b>C</b>entered</span><span><b>D</b>arrived in</span></div>
+        <span class="pq-ans">Đáp án: C</span><div class="pq-why">Đúng cấu trúc câu 2 trong bài kiểm tra đầu vào — "vào" một không gian kín cụ thể (phòng họp) dùng "enter", không cần giới từ.</div></div>
+
+      <div class="pq"><span class="pq-n">3</span><span class="pq-text">Magellan's ________ around the world took almost three years to complete.</span>
+        <div class="pq-opts"><span><b>A</b>trip</span><span><b>B</b>excursion</span><span><b>C</b>voyage</span><span><b>D</b>travel</span></div>
+        <span class="pq-ans">Đáp án: C</span><div class="pq-why">Chuyến đi dài bằng đường biển, mang sắc thái lịch sử/cổ điển — đúng nghĩa "voyage".</div></div>
+
+      <div class="pq"><span class="pq-n">4</span><span class="pq-text">We're thinking of going on a day ________ to the old town this weekend.</span>
+        <div class="pq-opts"><span><b>A</b>journey</span><span><b>B</b>trip</span><span><b>C</b>voyage</span><span><b>D</b>travel</span></div>
+        <span class="pq-ans">Đáp án: B</span><div class="pq-why">1 lần đi cụ thể, ngắn, có đi và về trong ngày — đúng nghĩa "trip", không phải "journey" (thường dài/nhấn quá trình).</div></div>
+
+      <div class="pq"><span class="pq-n">5</span><span class="pq-text">The bus ________ has gone up again this month.</span>
+        <div class="pq-opts"><span><b>A</b>fare</span><span><b>B</b>ticket</span><span><b>C</b>fee</span><span><b>D</b>cost</span></div>
+        <span class="pq-ans">Đáp án: A</span><div class="pq-why">Giá vé phương tiện công cộng = "fare", không phải "fee" (phí dịch vụ nói chung).</div></div>
+
+      <div class="pq"><span class="pq-n">6</span><span class="pq-text">Hurry, or we'll ________ the last train!</span>
+        <div class="pq-opts"><span><b>A</b>lose</span><span><b>B</b>miss</span><span><b>C</b>drop</span><span><b>D</b>leave</span></div>
+        <span class="pq-ans">Đáp án: B</span><div class="pq-why">"Miss" dùng cho việc trễ/không bắt được phương tiện; "lose" chỉ dùng cho việc làm mất đồ vật.</div></div>
+
+      <div class="pq"><span class="pq-n">7</span><span class="pq-text">From the rooftop café, you get a stunning ________ of the entire old quarter.</span>
+        <div class="pq-opts"><span><b>A</b>sight</span><span><b>B</b>look</span><span><b>C</b>view</span><span><b>D</b>scene</span></div>
+        <span class="pq-ans">Đáp án: C</span><div class="pq-why">"View" = cảnh nhìn thấy từ một vị trí cụ thể; "sight" là điểm đáng đi xem, không phải cảnh nhìn từ đâu đó.</div></div>
+
+      <div class="pq"><span class="pq-n">8</span><span class="pq-text">All her relatives came to the airport to ________ her ________ before her flight to Canada.</span>
+        <div class="pq-opts"><span><b>A</b>see / off</span><span><b>B</b>send / away</span><span><b>C</b>drop / off</span><span><b>D</b>pick / up</span></div>
+        <span class="pq-ans">Đáp án: A</span><div class="pq-why">"See sb off" = đi tiễn ai đó; "drop off/pick up" là hành động chở bằng xe, không phải tiễn ở sân bay.</div></div>
+
+      <div class="pq"><span class="pq-n">9</span><span class="pq-text">He started ten minutes late but managed to ________ ________ ________ the rest of the group by lunchtime.</span>
+        <div class="pq-opts"><span><b>A</b>keep up with</span><span><b>B</b>catch up with</span><span><b>C</b>turn round on</span><span><b>D</b>pick up with</span></div>
+        <span class="pq-ans">Đáp án: B</span><div class="pq-why">"Catch up with" = bắt kịp khi đang chậm hơn (vì xuất phát muộn); "keep up with" chỉ dùng khi đang đi CÙNG tốc độ từ đầu.</div></div>
+
+      <div class="pq"><span class="pq-n">10</span><span class="pq-text">Passengers must complete a customs form upon ________. (ARRIVE)</span>
+        <div class="pq-opts"><span><b>A</b>arrive</span><span><b>B</b>arrival</span><span><b>C</b>arriving</span><span><b>D</b>arrived</span></div>
+        <span class="pq-ans">Đáp án: B</span><div class="pq-why">Sau giới từ "upon" cần danh từ — word formation: arrive → arrival, đúng mảng "Word formation" của unit.</div></div>
+    </section>
+
+    <!-- 4. QUIZ -->
+    <section class="section" id="quiz">
+      <div class="section-head"><h2>4. Quiz ngắn theo format đề thi</h2><span class="time">12–15 phút</span></div>
+      <p class="section-intro">5 câu, bấm giờ <b>5 phút</b> (đúng nhịp ~1 phút/câu của đề thi thật) — chấm ngay, ghi
+        kết quả vào error-tracker theo tag <span class="tag" style="background:var(--c-a-tint);color:var(--c-a);font-family:'IBM Plex Mono';font-size:11px;padding:3px 8px;border-radius:20px;">[a] Travel vocab</span>.</p>
+
+      <div class="pq"><span class="pq-n">1</span><span class="pq-text">It took the rescue team several hours to ________ the climbers stranded on the mountain.</span>
+        <div class="pq-opts"><span><b>A</b>arrive</span><span><b>B</b>reach</span><span><b>C</b>enter</span><span><b>D</b>arrive at</span></div><span class="pq-ans">Đáp án: B</span></div>
+      <div class="pq"><span class="pq-n">2</span><span class="pq-text">If you don't ________ a hotel room in advance, you might not find one during peak season.</span>
+        <div class="pq-opts"><span><b>A</b>book</span><span><b>B</b>keep</span><span><b>C</b>order</span><span><b>D</b>hold</span></div><span class="pq-ans">Đáp án: A</span></div>
+      <div class="pq"><span class="pq-n">3</span><span class="pq-text">I'm so tired I can barely ________ ________ with my own kids running around the park.</span>
+        <div class="pq-opts"><span><b>A</b>catch up</span><span><b>B</b>keep up</span><span><b>C</b>get back</span><span><b>D</b>set off</span></div><span class="pq-ans">Đáp án: B</span></div>
+      <div class="pq"><span class="pq-n">4</span><span class="pq-text">Could you check the bus ________ before we leave? (TIME)</span>
+        <div class="pq-opts"><span><b>A</b>time</span><span><b>B</b>timely</span><span><b>C</b>timetable</span><span><b>D</b>timing</span></div><span class="pq-ans">Đáp án: C</span></div>
+      <div class="pq"><span class="pq-n">5</span><span class="pq-text">Maya has lived in Singapore since she was two, but Manila is still officially her ________ country.</span>
+        <div class="pq-opts"><span><b>A</b>native</span><span><b>B</b>home</span><span><b>C</b>origin</span><span><b>D</b>birth</span></div><span class="pq-ans">Đáp án: B</span></div>
+    </section>
+
+    <!-- 5. ROLEPLAY -->
+    <section class="section" id="roleplay">
+      <div class="section-head"><h2>5. Khép lại: roleplay sân bay</h2><span class="time">10–12 phút</span></div>
+      <p class="section-intro">Học sinh nhút nhát → script có sẵn lời, chỉ cần điền đúng từ rồi đọc lên, không phải
+        ứng tác. Giáo viên đọc mẫu vai A một lượt trước, sau đó đổi vai.</p>
+      <div class="script">
+        <div class="line"><span class="who A">Người tiễn (A)</span><span class="what">We should <span class="blank">________ (1)</span> soon — the traffic to the airport can be terrible at this hour.</span></div>
+        <div class="line"><span class="who B">Người đi (B)</span><span class="what">I know, I really don't want to <span class="blank">________ (2)</span> my flight again like last time!</span></div>
+        <div class="line"><span class="who A">Người tiễn (A)</span><span class="what">Don't worry, we still have plenty of time. Have you already <span class="blank">________ (3)</span> online?</span></div>
+        <div class="line"><span class="who B">Người đi (B)</span><span class="what">Yes, I did it last night. I just need to drop my suitcase off at the counter.</span></div>
+        <div class="line"><span class="who A">Người tiễn (A)</span><span class="what">Good. I'll come inside with you to <span class="blank">________ (4)</span> you <span class="blank">________ (5)</span> before you go through security.</span></div>
+        <div class="line"><span class="who B">Người đi (B)</span><span class="what">Thanks, I really appreciate it. Text me the moment I <span class="blank">________ (6)</span> in Singapore, okay?</span></div>
+        <div class="line"><span class="who A">Người tiễn (A)</span><span class="what">Sure. Have a safe <span class="blank">________ (7)</span>!</span></div>
+        <div class="script-key">Đáp án: (1) <b>set off</b> · (2) <b>miss</b> · (3) <b>checked in</b> · (4)+(5) <b>see ... off</b> · (6) <b>arrive</b> · (7) <b>trip / journey</b></div>
+      </div>
+    </section>
+
+    <!-- 6. BTVN -->
+    <section class="section" id="hw">
+      <div class="section-head"><h2>6. BTVN qua Google Classroom &amp; theo dõi lỗi</h2></div>
+      <ul class="hw-list">
+        <li><span class="hwtag">[a]</span> Exercise B, D, E, G, I trong sách (trang 13–15) — giao nguyên, không cần soạn lại.</li>
+        <li><span class="hwtag">[a]</span> Viết đoạn ngắn 5–6 câu kể về 1 chuyến đi gần đây, dùng tối thiểu 5 từ/cụm vừa học (sản xuất chủ động, không chỉ nhận diện).</li>
+        <li><span class="hwtag">[a]</span> Đọc thêm bảng 9 cặp từ đối chiếu còn lại (trang 12) cho buổi ôn nhanh tuần sau.</li>
+      </ul>
+      <div class="note-callout">Đặt tên bài trên Classroom theo đúng tag <b>[a] Travel vocab — contrast</b> và
+        <b>[a] Travel vocab — phrasal verbs</b>. Ghi kết quả Quiz Mục 4 vào error-tracker theo đúng schema đã thiết kế
+        ở Mục 7.2 của lộ trình tổng — đây là output đầu tiên cho mini-test 20 câu cuối Giai đoạn 1.</div>
+    </section>
+
+    <footer>Giáo án do Claude soạn dựa trên nội dung Unit 2 (Travel and transport) — Destination B2: Grammar &amp;
+      Vocabulary (Mann &amp; Taylore-Knowles, Macmillan) bạn cung cấp, áp dụng đúng phương pháp đề xuất trong file lộ
+      trình ôn thi HSA tổng thể. Các câu luyện tập/quiz/roleplay là nội dung tự soạn mới, không sao chép nguyên văn từ sách.</footer>
+  </main>
+</div>
+<button class="totop" id="toTop" title="Về đầu trang">↑</button>
+<script>document.getElementById('toTop').addEventListener('click', ()=>window.scrollTo({top:0, behavior:'smooth'}));</script>
+</body>
+</html>
