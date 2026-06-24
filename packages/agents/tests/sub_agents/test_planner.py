@@ -198,7 +198,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_returns_valid_lesson_plan(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -210,7 +210,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_parses_json_code_fence(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -220,7 +220,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_parses_generic_code_fence(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_GENERIC_FENCE))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -230,7 +230,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_parses_bare_json(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_JSON))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -240,7 +240,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_invalid_json(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json at all"))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -249,7 +249,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -258,7 +258,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_schema_mismatch(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         bad_plan = json.dumps({"topic": "T"})  # Missing required fields
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_plan))
@@ -268,7 +268,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_state_missing_class_info_fields_uses_defaults(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -279,18 +279,18 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_calls_litellm_with_correct_model(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
             await design_lesson_plan(self._make_state())
 
         call_kwargs = mock_litellm.acompletion.call_args
-        assert call_kwargs.kwargs["model"] == "deepseek-v4-flash"
+        assert call_kwargs.kwargs["model"] == "f.light"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -303,7 +303,7 @@ class TestPlannerAgent:
 
     @pytest.mark.asyncio
     async def test_lesson_plan_has_correct_bloom_levels(self):
-        from packages.agents.sub_agents.planner.agent import design_lesson_plan
+        from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):

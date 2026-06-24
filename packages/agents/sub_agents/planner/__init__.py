@@ -1,9 +1,6 @@
-"""Planner Agent — backward design (UbD) lesson planning.
+"""Planner Agent — backward design (UbD) lesson planning."""
 
-Delegates to deepseek-v4-flash via LiteLLM.
-Output: LessonPlan JSON (see common.contracts.lesson_plan).
-"""
+from packages.agents.sub_agents.planner.agent import make_planner_agent, planner_graph_node
+from packages.agents.sub_agents.planner.nodes import planner_node
 
-from packages.agents.sub_agents.planner.agent import design_lesson_plan
-
-__all__ = ["design_lesson_plan"]
+__all__ = ["make_planner_agent", "planner_node", "planner_graph_node"]

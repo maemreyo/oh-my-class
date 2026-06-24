@@ -1,17 +1,13 @@
-"""Sub-agents package — all specialized agents for the oh-my-class pipeline.
+"""Sub-agents package — compiled graph factories for the oh-my-class pipeline."""
 
-Contains planner, researcher, content_creator, and reviewer agents.
-Each agent is a standalone module with its own tools, prompts, and config.
-"""
-
-from packages.agents.sub_agents.content_creator import generate_artifacts
-from packages.agents.sub_agents.planner import design_lesson_plan
-from packages.agents.sub_agents.researcher import research_sources
-from packages.agents.sub_agents.reviewer import quality_review
+from packages.agents.sub_agents.planner.agent import make_planner_agent
+from packages.agents.sub_agents.researcher.agent import make_researcher_agent
+from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent
+from packages.agents.sub_agents.reviewer.agent import make_reviewer_agent
 
 __all__ = [
-    "design_lesson_plan",
-    "research_sources",
-    "generate_artifacts",
-    "quality_review",
+    "make_planner_agent",
+    "make_researcher_agent",
+    "make_content_creator_agent",
+    "make_reviewer_agent",
 ]

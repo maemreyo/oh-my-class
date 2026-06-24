@@ -1,6 +1,6 @@
 ---
 title: "Sub-Agent Compiled Graphs: C2 Pattern — Each Agent as Standalone CompiledGraph"
-status: ready
+status: done
 labels: [architecture, agents, langgraph]
 created: 2026-06-24
 priority: p0

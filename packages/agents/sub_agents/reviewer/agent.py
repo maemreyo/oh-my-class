@@ -1,67 +1,40 @@
-"""Reviewer Agent — node implementation.
-
-LLM-as-Judge with 3-layer G-Eval scoring:
-- Format compliance (15%): DOCTYPE, no CDN, brand strings, responsive
-- Content quality (55%): accuracy, completeness, relevance, reasoning
-- Presentation (30%): readability, engagement, accessibility
-
-Pass threshold: overall_score >= 7.0 AND no critical issues.
-Majority vote: 3 independent judge calls.
-
-Bias mitigations:
-- Rationale written before score (think-before-score)
-- 3 independent judge calls → majority vote
-- Generator model ≠ judge model
-- Explicit guard: "Do not rate longer answers higher"
-
-Uses content-fusion via 9Router combo: f.pro (fusion: parallel providers + judge)
-Different model from generator for bias mitigation
-"""
+"""Reviewer Agent — compiled graph factory and main pipeline adapter."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
     from packages.agents.state import OhMyClassState
 
-from packages.agents.sub_agents.reviewer.state import ReviewerState
 
+def make_reviewer_agent(checkpointer=None) -> "CompiledStateGraph":
+    """Return a compiled LangGraph for the Reviewer Agent.
 
-async def quality_review(state: ReviewerState) -> dict[str, Any]:
-    """LangGraph node for the Reviewer Agent.
-
-    Takes generated artifacts and produces quality scores via G-Eval.
-    Runs 3 independent judge calls and takes majority vote.
-
-    Args:
-        state: Current pipeline state with artifacts and lesson_plan.
-
-    Returns:
-        Partial state update containing 'quality_scores' and 'quality_passed'.
-
-    Output contract:
-        JudgeOutput with overall_score, layer_scores, critical_issues,
-        passed flag, and rationale.
+    Can be run standalone:
+        agent = make_reviewer_agent()
+        result = await agent.ainvoke({
+            "messages": [], "artifacts": [...], "lesson_plan": {...},
+            "quality_scores": None, "quality_passed": None,
+        })
     """
-    from packages.quality.layer4_judge.geval import GEvalScorer
+    from langgraph.graph import END, StateGraph
 
-    artifacts = state.get("artifacts") or []
-    lesson_plan = state.get("lesson_plan")
+    from packages.agents.sub_agents.reviewer.nodes import reviewer_node
+    from packages.agents.sub_agents.reviewer.state import ReviewerState
 
-    scorer = GEvalScorer()
-    judge_output = await scorer.score(artifacts, lesson_plan=lesson_plan)
-
-    return {
-        "quality_scores": judge_output.model_dump(),
-        "quality_passed": judge_output.passed,
-    }
+    builder = StateGraph(ReviewerState)
+    builder.add_node("reviewer", reviewer_node)
+    builder.set_entry_point("reviewer")
+    builder.add_edge("reviewer", END)
+    return builder.compile(checkpointer=checkpointer)
 
 
-async def reviewer_node(state: "OhMyClassState") -> dict[str, Any]:
-    """LangGraph graph node — extracts from graph state, runs reviewer, injects result."""
+async def reviewer_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+    """Main pipeline graph node — adapter for the reviewer compiled sub-graph."""
     from packages.agents.sub_agents.reviewer.adapters import extract_reviewer_state
+    from packages.agents.sub_agents.reviewer.nodes import reviewer_node
 
     reviewer_state = extract_reviewer_state(state)
-    result = await quality_review(reviewer_state)
-    return result
+    return await reviewer_node(reviewer_state)

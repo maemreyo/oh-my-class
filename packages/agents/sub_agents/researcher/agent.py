@@ -1,106 +1,40 @@
-"""Researcher Agent — node implementation.
-
-Gathers, cross-references, and synthesizes sources for lesson content.
-Follows the FACT protocol (Find → Assess → Cross-reference → Tag).
-Minimum verification: 2 independent sources for every HIGH-risk claim.
-
-Uses deepseek-v4-flash via 9Router combo: f.light (fast free tier)
-"""
+"""Researcher Agent — compiled graph factory and main pipeline adapter."""
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING, Any
 
-from common.contracts.research_bundle import ResearchBundle
-
 if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
     from packages.agents.state import OhMyClassState
 
-from packages.agents.sub_agents.researcher.state import ResearcherState
 
+def make_researcher_agent(checkpointer=None) -> "CompiledStateGraph":
+    """Return a compiled LangGraph for the Researcher Agent.
 
-async def research_sources(state: ResearcherState) -> dict[str, Any]:
-    """LangGraph node for the Researcher Agent.
-
-    Takes the approved lesson plan and gathers research sources.
-    Verifies factual claims against ≥2 independent sources.
-
-    Args:
-        state: Current pipeline state with lesson_plan and research_policy.
-
-    Returns:
-        Partial state update containing 'research_bundle' dict.
-
-    Research policies:
-        - basic: 2-3 sources, factual accuracy only
-        - standard: 5+ sources, citations required
-        - rigorous: 10+ sources, peer-reviewed preferred
+    Can be run standalone:
+        agent = make_researcher_agent()
+        result = await agent.ainvoke({
+            "messages": [], "lesson_plan": {...}, "research_policy": "standard",
+            "run_id": "r1", "current_step": 7, "research_bundle": None,
+        })
     """
-    import litellm
+    from langgraph.graph import END, StateGraph
 
-    from packages.agents.sub_agents.researcher.prompts import RESEARCHER_SYSTEM_PROMPT
+    from packages.agents.sub_agents.researcher.nodes import researcher_node
+    from packages.agents.sub_agents.researcher.state import ResearcherState
 
-    lesson_plan = state.get("lesson_plan") or {}
-    research_policy = state.get("research_policy", "standard")
-    topic = lesson_plan.get("topic", "General topic")
-
-    user_prompt = f"""
-Research topic: {topic}
-
-Research policy: {research_policy}
-
-Learning objectives:
-{json.dumps(lesson_plan.get('learning_objectives', []), indent=2)}
-
-Please gather and verify sources following the FACT protocol.
-"""
-
-    messages = [
-        {"role": "system", "content": RESEARCHER_SYSTEM_PROMPT},
-        {"role": "user", "content": user_prompt},
-    ]
-
-    try:
-        response = await litellm.acompletion(
-            model="deepseek-v4-flash",
-            messages=messages,
-            temperature=0.7,
-            extra_body={
-                "metadata": {
-                    "tags": [
-                        "agent:researcher",
-                        f"step:{state.get('current_step', 7)}",
-                        f"run:{state['run_id']}",
-                        "pipeline:oh-my-class",
-                    ]
-                }
-            },
-        )
-
-        content = response.choices[0].message.content
-
-        if "```json" in content:
-            json_str = content.split("```json")[1].split("```")[0].strip()
-        elif "```" in content:
-            json_str = content.split("```")[1].split("```")[0].strip()
-        else:
-            json_str = content.strip()
-
-        bundle_data = json.loads(json_str)
-        bundle = ResearchBundle.model_validate(bundle_data)
-        return {"research_bundle": bundle.model_dump()}
-
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON from LLM: {e}") from e
-    except Exception as e:
-        raise ValueError(f"Researcher agent failed: {e}") from e
+    builder = StateGraph(ResearcherState)
+    builder.add_node("researcher", researcher_node)
+    builder.set_entry_point("researcher")
+    builder.add_edge("researcher", END)
+    return builder.compile(checkpointer=checkpointer)
 
 
-async def researcher_node(state: "OhMyClassState") -> dict[str, Any]:
-    """LangGraph graph node — extracts from graph state, runs researcher, injects result."""
+async def researcher_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+    """Main pipeline graph node — adapter for the researcher compiled sub-graph."""
     from packages.agents.sub_agents.researcher.adapters import extract_researcher_state
+    from packages.agents.sub_agents.researcher.nodes import researcher_node
 
     researcher_state = extract_researcher_state(state)
-    result = await research_sources(researcher_state)
-    return result
+    return await researcher_node(researcher_state)

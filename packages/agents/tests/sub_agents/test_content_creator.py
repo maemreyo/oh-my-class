@@ -8,8 +8,8 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from common.contracts.artifact import ArtifactContent
-from packages.agents.sub_agents.content_creator.agent import (
-    generate_artifacts,
+from packages.agents.sub_agents.content_creator.nodes import (
+    content_creator_node as generate_artifacts,
     validate_no_cdn,
     validate_no_pii,
 )
@@ -128,7 +128,7 @@ class TestContentCreatorAgent:
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
             await generate_artifacts(_make_state())
 
-        assert mock_litellm.acompletion.call_args.kwargs["model"] == "deepseek-free"
+        assert mock_litellm.acompletion.call_args.kwargs["model"] == "f.light"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):

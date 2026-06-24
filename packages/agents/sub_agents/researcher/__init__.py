@@ -1,9 +1,6 @@
-"""Researcher Agent — source gathering and cross-referencing.
+"""Researcher Agent — source gathering and cross-referencing."""
 
-Delegates to deepseek-v4-flash via LiteLLM.
-Output: ResearchBundle JSON with verified sources and citations.
-"""
+from packages.agents.sub_agents.researcher.agent import make_researcher_agent, researcher_graph_node
+from packages.agents.sub_agents.researcher.nodes import researcher_node
 
-from packages.agents.sub_agents.researcher.agent import research_sources
-
-__all__ = ["research_sources"]
+__all__ = ["make_researcher_agent", "researcher_node", "researcher_graph_node"]

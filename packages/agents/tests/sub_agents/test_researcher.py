@@ -56,7 +56,7 @@ VALID_BUNDLE_GENERIC_FENCE = f"```\n{VALID_BUNDLE_JSON}\n```"
 class TestResearcherAgent:
     @pytest.mark.asyncio
     async def test_returns_valid_research_bundle(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -69,7 +69,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_parses_json_code_fence(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -79,7 +79,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_parses_generic_code_fence(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_GENERIC_FENCE))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -89,7 +89,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_parses_bare_json(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_JSON))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -99,7 +99,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_invalid_json(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -108,7 +108,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -117,7 +117,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_raises_on_too_few_sources(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         bad_bundle = json.dumps({
             "topic": "T",
@@ -130,7 +130,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_missing_lesson_plan_uses_default_topic(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -141,17 +141,17 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_calls_litellm_with_correct_model(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
             await research_sources(_make_state())
 
-        assert mock_litellm.acompletion.call_args.kwargs["model"] == "deepseek-v4-flash"
+        assert mock_litellm.acompletion.call_args.kwargs["model"] == "f.light"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -164,7 +164,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_research_policy_forwarded_to_prompt(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
@@ -175,7 +175,7 @@ class TestResearcherAgent:
 
     @pytest.mark.asyncio
     async def test_bundle_sources_have_verification_status(self):
-        from packages.agents.sub_agents.researcher.agent import research_sources
+        from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
