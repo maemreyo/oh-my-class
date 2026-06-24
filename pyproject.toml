@@ -14,6 +14,7 @@ dependencies = [
 [tool.uv.workspace]
 members = [
     "packages/agents",
+    "packages/notifications",
     "packages/quality",
     "common/contracts",
     "services/gateway",
@@ -21,12 +22,13 @@ members = [
 
 [tool.uv.sources]
 "packages.agents" = { workspace = true }
+"packages.notifications" = { workspace = true }
 "packages.quality" = { workspace = true }
 "common.contracts" = { workspace = true }
 "services.gateway" = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["packages/agents/tests", "packages/quality/tests", "common/contracts/tests", "common/branding/tests", "services/gateway/tests", "tests"]
+testpaths = ["packages/agents/tests", "packages/notifications/tests", "packages/quality/tests", "common/contracts/tests", "common/branding/tests", "services/gateway/tests", "tests"]
 asyncio_mode = "auto"
 
 [tool.ruff]

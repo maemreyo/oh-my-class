@@ -232,15 +232,20 @@ class TestFactCheck:
     def test_extracts_percentage_claims(self):
         from packages.agents.gates.fact_check.extractor import extract_claims
         claims = extract_claims("About 50% of the Earth's surface is ocean.")
-        assert any("50%" in c["text"] for c in claims)
+        assert any("50%" in c.text for c in claims)
 
     def test_classifies_high_risk(self):
+        from packages.agents.gates.fact_check.extractor import Claim
         from packages.agents.gates.fact_check.risk_classifier import classify_risk
-        assert classify_risk({"text": "Alexander Graham Bell invented the telephone"}) == "HIGH"
+        claim = Claim(text="Alexander Graham Bell", claim_type="named_entity",
+                      context="Alexander Graham Bell invented the telephone")
+        assert classify_risk(claim) == "HIGH"
 
     def test_classifies_low_risk(self):
+        from packages.agents.gates.fact_check.extractor import Claim
         from packages.agents.gates.fact_check.risk_classifier import classify_risk
-        assert classify_risk({"text": "15% of students"}) == "LOW"
+        claim = Claim(text="42", claim_type="number", context="42 students in the class")
+        assert classify_risk(claim) == "LOW"
 
 
 class TestHTMLValidator:
