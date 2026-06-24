@@ -17,8 +17,10 @@ from common.contracts.research_bundle import ResearchBundle
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
+from packages.agents.sub_agents.researcher.state import ResearcherState
 
-async def research_sources(state: OhMyClassState) -> dict[str, Any]:
+
+async def research_sources(state: ResearcherState) -> dict[str, Any]:
     """LangGraph node for the Researcher Agent.
 
     Takes the approved lesson plan and gathers research sources.
@@ -93,3 +95,12 @@ Please gather and verify sources following the FACT protocol.
         raise ValueError(f"Invalid JSON from LLM: {e}") from e
     except Exception as e:
         raise ValueError(f"Researcher agent failed: {e}") from e
+
+
+async def researcher_node(state: "OhMyClassState") -> dict[str, Any]:
+    """LangGraph graph node — extracts from graph state, runs researcher, injects result."""
+    from packages.agents.sub_agents.researcher.adapters import extract_researcher_state
+
+    researcher_state = extract_researcher_state(state)
+    result = await research_sources(researcher_state)
+    return result

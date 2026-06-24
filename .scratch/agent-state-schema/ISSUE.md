@@ -1,6 +1,6 @@
 ---
 title: "Agent State Schema: F2 Separation — Graph State vs Agent States"
-status: ready
+status: done
 labels: [architecture, agents, state]
 created: 2026-06-24
 priority: p0

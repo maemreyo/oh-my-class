@@ -76,6 +76,13 @@ class OhMyClassState(TypedDict):
     teacher_approved: bool
     revision_count: int
 
+    # ── HITL Gate ───────────────────────────────────────────
+    teacher_decision: NotRequired[str]   # "approve" | "reject" | "edit"
+    gate_payload: NotRequired[dict[str, Any]]   # data shown to teacher at gate
+
+    # ── Error ───────────────────────────────────────────────
+    error: NotRequired[str]   # set by any node on unrecoverable failure
+
     # ── Export ──────────────────────────────────────────────
     export_formats: list[str]  # ["html", "gift", "h5p"]
     exported_files: Annotated[list[dict[str, Any]], merge_exported_files]

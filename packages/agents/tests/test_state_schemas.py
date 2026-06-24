@@ -1,0 +1,345 @@
+"""Tests for F2 per-agent state schemas.
+
+Each sub-agent has its own state — independently instantiable, no OhMyClassState dependency.
+"""
+
+from __future__ import annotations
+
+import pytest
+
+
+class TestPlannerState:
+    def test_instantiates_with_required_fields(self):
+        from packages.agents.sub_agents.planner.state import PlannerState
+
+        state = PlannerState(
+            messages=[],
+            raw_request="Teach photosynthesis to grade 5",
+            class_info={"grade": 5, "subject": "science"},
+            run_id="run-001",
+            current_step=3,
+            lesson_plan=None,
+        )
+        assert state["raw_request"] == "Teach photosynthesis to grade 5"
+        assert state["lesson_plan"] is None
+
+    def test_has_messages_from_messages_state(self):
+        from packages.agents.sub_agents.planner.state import PlannerState
+
+        state = PlannerState(
+            messages=[],
+            raw_request="req",
+            class_info={},
+            run_id="r",
+            current_step=3,
+            lesson_plan=None,
+        )
+        assert "messages" in state
+        assert state["messages"] == []
+
+    def test_lesson_plan_can_be_set(self):
+        from packages.agents.sub_agents.planner.state import PlannerState
+
+        plan = {"topic": "Photosynthesis", "grade_level": "Grade 5"}
+        state = PlannerState(
+            messages=[],
+            raw_request="req",
+            class_info={},
+            run_id="r",
+            current_step=3,
+            lesson_plan=plan,
+        )
+        assert state["lesson_plan"] == plan
+
+    def test_independent_of_ohmy_class_state(self):
+        import inspect
+        import packages.agents.sub_agents.planner.state as mod
+
+        # No import of OhMyClassState — graph coupling must stay in adapters
+        source = inspect.getsource(mod)
+        assert "from packages.agents.state import" not in source
+        assert "import OhMyClassState" not in source
+
+
+class TestResearcherState:
+    def test_instantiates_with_required_fields(self):
+        from packages.agents.sub_agents.researcher.state import ResearcherState
+
+        state = ResearcherState(
+            messages=[],
+            lesson_plan={"topic": "Photosynthesis"},
+            research_policy="standard",
+            run_id="run-001",
+            current_step=7,
+            research_bundle=None,
+        )
+        assert state["lesson_plan"]["topic"] == "Photosynthesis"
+        assert state["research_policy"] == "standard"
+        assert state["research_bundle"] is None
+
+    def test_has_messages_from_messages_state(self):
+        from packages.agents.sub_agents.researcher.state import ResearcherState
+
+        state = ResearcherState(
+            messages=[],
+            lesson_plan={},
+            research_policy="basic",
+            run_id="r",
+            current_step=7,
+            research_bundle=None,
+        )
+        assert "messages" in state
+
+    def test_independent_of_ohmy_class_state(self):
+        import inspect
+        import packages.agents.sub_agents.researcher.state as mod
+
+        source = inspect.getsource(mod)
+        assert "from packages.agents.state import" not in source
+        assert "import OhMyClassState" not in source
+
+
+class TestContentCreatorState:
+    def test_instantiates_with_required_fields(self):
+        from packages.agents.sub_agents.content_creator.state import ContentCreatorState
+
+        state = ContentCreatorState(
+            messages=[],
+            lesson_plan={"topic": "X"},
+            research_bundle={"topic": "X", "sources": []},
+            artifact_types=["lesson", "quiz"],
+            theme="default",
+            run_id="run-001",
+            current_step=8,
+            artifacts=None,
+        )
+        assert state["artifact_types"] == ["lesson", "quiz"]
+        assert state["theme"] == "default"
+        assert state["artifacts"] is None
+
+    def test_artifacts_can_be_set(self):
+        from packages.agents.sub_agents.content_creator.state import ContentCreatorState
+
+        arts = [{"artifact_type": "lesson", "title": "Lesson 1"}]
+        state = ContentCreatorState(
+            messages=[],
+            lesson_plan={},
+            research_bundle={},
+            artifact_types=["lesson"],
+            theme="default",
+            run_id="r",
+            current_step=8,
+            artifacts=arts,
+        )
+        assert state["artifacts"] == arts
+
+    def test_independent_of_ohmy_class_state(self):
+        import inspect
+        import packages.agents.sub_agents.content_creator.state as mod
+
+        source = inspect.getsource(mod)
+        assert "from packages.agents.state import" not in source
+        assert "import OhMyClassState" not in source
+
+
+class TestReviewerState:
+    def test_instantiates_with_required_fields(self):
+        from packages.agents.sub_agents.reviewer.state import ReviewerState
+
+        state = ReviewerState(
+            messages=[],
+            artifacts=[{"artifact_type": "lesson", "title": "L1"}],
+            lesson_plan={"topic": "Photosynthesis"},
+            quality_scores=None,
+            quality_passed=None,
+        )
+        assert len(state["artifacts"]) == 1
+        assert state["quality_scores"] is None
+        assert state["quality_passed"] is None
+
+    def test_quality_scores_can_be_set(self):
+        from packages.agents.sub_agents.reviewer.state import ReviewerState
+
+        scores = {"overall": 8.5, "passed": True}
+        state = ReviewerState(
+            messages=[],
+            artifacts=[],
+            lesson_plan={},
+            quality_scores=scores,
+            quality_passed=True,
+        )
+        assert state["quality_scores"] == scores
+        assert state["quality_passed"] is True
+
+    def test_independent_of_ohmy_class_state(self):
+        import inspect
+        import packages.agents.sub_agents.reviewer.state as mod
+
+        source = inspect.getsource(mod)
+        assert "from packages.agents.state import" not in source
+        assert "import OhMyClassState" not in source
+
+
+class TestLeadAgentState:
+    def test_instantiates_with_required_fields(self):
+        from packages.agents.lead_agent.state import LeadAgentState
+
+        state = LeadAgentState(
+            messages=[],
+            task="Generate a lesson on photosynthesis",
+            context={"raw_request": "Teach photosynthesis", "run_id": "r1"},
+            result=None,
+            recovery_guidance=None,
+        )
+        assert state["task"] == "Generate a lesson on photosynthesis"
+        assert state["result"] is None
+        assert state["recovery_guidance"] is None
+
+    def test_result_can_be_set(self):
+        from packages.agents.lead_agent.state import LeadAgentState
+
+        state = LeadAgentState(
+            messages=[],
+            task="task",
+            context={},
+            result={"lesson_plan": {"topic": "X"}},
+            recovery_guidance=None,
+        )
+        assert state["result"]["lesson_plan"]["topic"] == "X"
+
+    def test_recovery_guidance_can_be_set(self):
+        from packages.agents.lead_agent.state import LeadAgentState
+
+        state = LeadAgentState(
+            messages=[],
+            task="task",
+            context={},
+            result=None,
+            recovery_guidance="Try with simpler vocabulary",
+        )
+        assert state["recovery_guidance"] == "Try with simpler vocabulary"
+
+    def test_has_messages_from_messages_state(self):
+        from packages.agents.lead_agent.state import LeadAgentState
+
+        state = LeadAgentState(
+            messages=[],
+            task="task",
+            context={},
+            result=None,
+            recovery_guidance=None,
+        )
+        assert "messages" in state
+
+    def test_independent_of_ohmy_class_state(self):
+        import inspect
+        import packages.agents.lead_agent.state as mod
+
+        source = inspect.getsource(mod)
+        assert "from packages.agents.state import" not in source
+        assert "import OhMyClassState" not in source
+
+
+class TestOhMyClassStateGateFields:
+    """OhMyClassState must have gate/error fields for HITL and error routing."""
+
+    def test_has_teacher_decision_field(self):
+        import inspect
+        import packages.agents.state as mod
+
+        source = inspect.getsource(mod)
+        assert "teacher_decision" in source
+
+    def test_has_gate_payload_field(self):
+        import inspect
+        import packages.agents.state as mod
+
+        source = inspect.getsource(mod)
+        assert "gate_payload" in source
+
+    def test_has_error_field(self):
+        import inspect
+        import packages.agents.state as mod
+
+        source = inspect.getsource(mod)
+        assert "error" in source
+
+    def test_graph_state_instantiates(self):
+        from packages.agents.state import OhMyClassState
+
+        state: OhMyClassState = {
+            "raw_request": "Teach photosynthesis",
+            "teacher_id": "teacher-001",
+            "class_info": {"grade": 5},
+            "run_id": "run-001",
+            "blueprint_approved": False,
+            "research_policy": "standard",
+            "artifact_types": ["lesson"],
+            "theme": "default",
+            "artifacts": [],
+            "quality_passed": False,
+            "teacher_approved": False,
+            "revision_count": 0,
+            "export_formats": ["html"],
+            "exported_files": [],
+            "current_step": 1,
+            "tokens_used": 0,
+            "cost_usd": 0.0,
+        }
+        assert state["run_id"] == "run-001"
+
+
+class TestNodeAdapters:
+    """Node adapter functions extract/inject between graph and agent states."""
+
+    def test_planner_extract_from_graph_state(self):
+        from packages.agents.sub_agents.planner.adapters import extract_planner_state
+
+        graph_state = {
+            "raw_request": "Teach X",
+            "class_info": {"grade": 5},
+            "run_id": "r1",
+            "current_step": 3,
+        }
+        planner_state = extract_planner_state(graph_state)
+        assert planner_state["raw_request"] == "Teach X"
+        assert planner_state["lesson_plan"] is None
+
+    def test_researcher_extract_from_graph_state(self):
+        from packages.agents.sub_agents.researcher.adapters import extract_researcher_state
+
+        graph_state = {
+            "lesson_plan": {"topic": "X"},
+            "research_policy": "standard",
+            "run_id": "r1",
+            "current_step": 7,
+        }
+        researcher_state = extract_researcher_state(graph_state)
+        assert researcher_state["lesson_plan"] == {"topic": "X"}
+        assert researcher_state["research_bundle"] is None
+
+    def test_content_creator_extract_from_graph_state(self):
+        from packages.agents.sub_agents.content_creator.adapters import extract_content_creator_state
+
+        graph_state = {
+            "lesson_plan": {"topic": "X"},
+            "research_bundle": {"topic": "X", "sources": []},
+            "artifact_types": ["lesson"],
+            "theme": "default",
+            "run_id": "r1",
+            "current_step": 8,
+        }
+        cc_state = extract_content_creator_state(graph_state)
+        assert cc_state["artifact_types"] == ["lesson"]
+        assert cc_state["artifacts"] is None
+
+    def test_reviewer_extract_from_graph_state(self):
+        from packages.agents.sub_agents.reviewer.adapters import extract_reviewer_state
+
+        graph_state = {
+            "artifacts": [{"artifact_type": "lesson", "title": "L1"}],
+            "lesson_plan": {"topic": "X"},
+        }
+        reviewer_state = extract_reviewer_state(graph_state)
+        assert len(reviewer_state["artifacts"]) == 1
+        assert reviewer_state["quality_scores"] is None

@@ -24,8 +24,10 @@ from common.contracts.artifact import ArtifactContent
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
+from packages.agents.sub_agents.content_creator.state import ContentCreatorState
 
-async def generate_artifacts(state: OhMyClassState) -> dict[str, Any]:
+
+async def generate_artifacts(state: ContentCreatorState) -> dict[str, Any]:
     """LangGraph node for the Content Creator Agent.
 
     Takes the lesson plan, research bundle, and pack scope,
@@ -118,6 +120,15 @@ Return a JSON array of artifacts.
         raise ValueError(f"Invalid JSON from LLM: {e}") from e
     except Exception as e:
         raise ValueError(f"Content creator agent failed: {e}") from e
+
+
+async def content_creator_node(state: "OhMyClassState") -> dict[str, Any]:
+    """LangGraph graph node — extracts from graph state, runs content creator, injects result."""
+    from packages.agents.sub_agents.content_creator.adapters import extract_content_creator_state
+
+    cc_state = extract_content_creator_state(state)
+    result = await generate_artifacts(cc_state)
+    return result
 
 
 def validate_no_cdn(artifacts: list[dict[str, Any]]) -> list[str]:

@@ -17,8 +17,10 @@ from common.contracts.lesson_plan import LessonPlan
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
+from packages.agents.sub_agents.planner.state import PlannerState
 
-async def design_lesson_plan(state: OhMyClassState) -> dict[str, Any]:
+
+async def design_lesson_plan(state: PlannerState) -> dict[str, Any]:
     """LangGraph node for the Planner Agent.
 
     Takes the teacher's raw request and class info, produces a structured
@@ -89,3 +91,12 @@ Class information:
         raise ValueError(f"Invalid JSON from LLM: {e}") from e
     except Exception as e:
         raise ValueError(f"Planner agent failed: {e}") from e
+
+
+async def planner_node(state: "OhMyClassState") -> dict[str, Any]:
+    """LangGraph graph node — extracts from graph state, runs planner, injects result."""
+    from packages.agents.sub_agents.planner.adapters import extract_planner_state
+
+    planner_state = extract_planner_state(state)
+    result = await design_lesson_plan(planner_state)
+    return result

@@ -25,8 +25,10 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
+from packages.agents.sub_agents.reviewer.state import ReviewerState
 
-async def quality_review(state: OhMyClassState) -> dict[str, Any]:
+
+async def quality_review(state: ReviewerState) -> dict[str, Any]:
     """LangGraph node for the Reviewer Agent.
 
     Takes generated artifacts and produces quality scores via G-Eval.
@@ -54,3 +56,12 @@ async def quality_review(state: OhMyClassState) -> dict[str, Any]:
         "quality_scores": judge_output.model_dump(),
         "quality_passed": judge_output.passed,
     }
+
+
+async def reviewer_node(state: "OhMyClassState") -> dict[str, Any]:
+    """LangGraph graph node — extracts from graph state, runs reviewer, injects result."""
+    from packages.agents.sub_agents.reviewer.adapters import extract_reviewer_state
+
+    reviewer_state = extract_reviewer_state(state)
+    result = await quality_review(reviewer_state)
+    return result

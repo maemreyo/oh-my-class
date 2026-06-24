@@ -4,6 +4,12 @@ version = "0.1.0"
 description = "AI-powered teaching pack generator for K-12 education — agents, quality gates, contracts, gateway"
 requires-python = ">=3.12"
 license = { text = "MIT" }
+dependencies = [
+    "anyio>=4.14.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+]
 
 [tool.uv.workspace]
 members = [
