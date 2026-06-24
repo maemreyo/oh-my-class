@@ -1,0 +1,36 @@
+# Local development: 9router + app
+# Run with: docker compose up
+# LLM_CLIENT_BASE_URL points directly to 9Router — no LiteLLM needed locally
+
+services:
+  9router:
+    image: decolua/9router:latest
+    restart: unless-stopped
+    ports:
+      - "20128:20128"
+    volumes:
+      - routerdata:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:20128/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.gateway
+    restart: unless-stopped
+    depends_on:
+      9router:
+        condition: service_healthy
+    env_file: .env.local
+    environment:
+      LLM_CLIENT_BASE_URL: http://9router:20128   # direct to 9Router locally
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/app
+
+volumes:
+  routerdata:

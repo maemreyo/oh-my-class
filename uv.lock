@@ -7,6 +7,7 @@ members = [
     "common-contracts",
     "oh-my-class",
     "packages-agents",
+    "packages-llm-client",
     "packages-notifications",
     "packages-quality",
     "services-gateway",
@@ -711,6 +712,21 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=1.3.3" },
     { name = "langgraph", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pydantic-settings", specifier = ">=2.14.2" },
+]
+
+[[package]]
+name = "packages-llm-client"
+version = "0.1.0"
+source = { editable = "packages/llm_client" }
+dependencies = [
+    { name = "openai" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "openai", specifier = ">=1.0.0" },
     { name = "pydantic-settings", specifier = ">=2.14.2" },
 ]
 
