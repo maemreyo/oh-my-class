@@ -38,3 +38,23 @@ async def reviewer_graph_node(state: "OhMyClassState") -> dict[str, Any]:
 
     reviewer_state = extract_reviewer_state(state)
     return await reviewer_node(reviewer_state)
+
+
+async def quality_review(state: dict[str, Any]) -> dict[str, Any]:
+    """Thin adapter: run the G-Eval quality review on state and return scores.
+
+    Accepts any dict with optional 'artifacts', 'lesson_plan', 'run_id' keys.
+    Returns {'quality_scores': {...}, 'quality_passed': bool}.
+    """
+    from packages.quality.layer4_judge.geval import GEvalScorer
+
+    artifacts = state.get("artifacts") or []
+    lesson_plan = state.get("lesson_plan")
+
+    scorer = GEvalScorer()
+    judge_output = await scorer.score(artifacts, lesson_plan=lesson_plan)
+
+    return {
+        "quality_scores": judge_output.model_dump() if hasattr(judge_output, "model_dump") else dict(judge_output),
+        "quality_passed": bool(judge_output.passed),
+    }

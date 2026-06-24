@@ -68,8 +68,9 @@ class GEvalScorer:
         import litellm
 
         from common.contracts.judge_output import JudgeOutput
-        from packages.agents.sub_agents.reviewer.prompts import REVIEWER_SYSTEM_PROMPT
+        from packages.agents.sub_agents.reviewer.prompts import load_system_prompt
         from packages.quality.layer4_judge.majority_vote import majority_vote
+        REVIEWER_SYSTEM_PROMPT = load_system_prompt()
 
         user_prompt = f"""
 Evaluate the following teaching artifacts:
