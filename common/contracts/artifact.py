@@ -20,7 +20,8 @@ class ArtifactContent(BaseModel):
     """
 
     artifact_type: Literal[
-        "lesson", "worksheet", "quiz", "drill", "recap", "infographic"
+        "lesson", "worksheet", "quiz", "drill", "recap", "infographic",
+        "answer_key", "roadmap",
     ]
     theme: str = Field(default="default", description="Visual theme name")
     title: str = Field(..., min_length=3, max_length=200)
