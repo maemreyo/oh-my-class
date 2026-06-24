@@ -16,7 +16,7 @@ async def read_file(path: str) -> str:
     Returns:
         File contents as string.
     """
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
@@ -35,6 +35,6 @@ async def write_file(path: str, content: str, *, overwrite: bool = False) -> boo
 
     if not overwrite and os.path.exists(path):
         return False
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(content)
     return True

@@ -22,7 +22,7 @@ def generate_theme(theme_name: str, kit_dir: str) -> str:
     if not theme_path.exists():
         raise FileNotFoundError(f"Theme not found: {theme_path}")
 
-    with open(theme_path) as f:
+    with open(theme_path, encoding="utf-8") as f:
         theme_data = json.load(f)
 
     colors = theme_data.get("colors", {})
@@ -82,7 +82,7 @@ body {{
 """
 
     output_path = Path(kit_dir) / theme_name / f"theme_{theme_name}.css"
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(css)
 
     return css

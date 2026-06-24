@@ -53,5 +53,5 @@ async def read_file(path: str) -> str:
     Returns:
         File contents as string.
     """
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return f.read()

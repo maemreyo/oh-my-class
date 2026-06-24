@@ -45,10 +45,10 @@ def main() -> None:
         if kit_dir.is_dir():
             theme_json = kit_dir / "theme.json"
             if theme_json.exists():
-                data = json.loads(theme_json.read_text())
+                data = json.loads(theme_json.read_text(encoding="utf-8"))
                 css = generate_css(kit_dir.name, data)
                 output_file = OUTPUT_DIR / f"theme_{kit_dir.name}.css"
-                output_file.write_text(css)
+                output_file.write_text(css, encoding="utf-8")
                 print(f"Generated {output_file}")
 
 
