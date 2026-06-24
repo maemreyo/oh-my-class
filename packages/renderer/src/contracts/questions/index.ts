@@ -44,6 +44,8 @@ export type {
   ConditionalBuilder,
   ErrorCorrection,
   SentenceManipulation,
+  ReadingPassage,
+  ReadingComprehension,
   TextEntryQuestion,
 } from './types/text-entry.js'
 

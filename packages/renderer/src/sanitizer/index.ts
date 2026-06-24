@@ -14,16 +14,17 @@ import { READING_PASSAGE_CONFIG } from "./configs/reading_passage.js";
 import { EXIT_TICKET_CONFIG } from "./configs/exit_ticket.js";
 
 const CONFIG_MAP: Record<ArtifactType, IOptions> = {
-  lesson: LESSON_CONFIG,
-  quiz: QUIZ_CONFIG,
-  drill: DRILL_CONFIG,
-  worksheet: WORKSHEET_CONFIG,
-  recap: RECAP_CONFIG,
-  infographic: INFOGRAPHIC_CONFIG,
-  answer_key: ANSWER_KEY_CONFIG,
-  flashcard_deck: FLASHCARD_DECK_CONFIG,
+  lesson:          LESSON_CONFIG,
+  quiz:            QUIZ_CONFIG,
+  drill:           DRILL_CONFIG,
+  worksheet:       WORKSHEET_CONFIG,
+  recap:           RECAP_CONFIG,
+  infographic:     INFOGRAPHIC_CONFIG,
+  answer_key:      ANSWER_KEY_CONFIG,
+  flashcard_deck:  FLASHCARD_DECK_CONFIG,
   reading_passage: READING_PASSAGE_CONFIG,
-  exit_ticket: EXIT_TICKET_CONFIG,
+  exit_ticket:     EXIT_TICKET_CONFIG,
+  teaching_pack:   BASE_CONFIG,   // teaching_pack is a bundle — sanitize each artifact independently
 };
 
 /**

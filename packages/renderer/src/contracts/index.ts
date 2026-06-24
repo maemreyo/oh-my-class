@@ -16,18 +16,20 @@ import type { AnswerKeyData } from "./answer_key.js";
 import type { FlashcardDeckData } from "./flashcard_deck.js";
 import type { ReadingPassageData } from "./reading_passage.js";
 import type { ExitTicketData } from "./exit_ticket.js";
+import type { TeachingPackData } from "./schemas/teaching-pack.js";
 
 export type ArtifactDataMap = {
-  lesson: LessonData;
-  quiz: QuizData;
-  drill: DrillData;
-  worksheet: WorksheetData;
-  recap: RecapData;
-  infographic: InfographicData;
-  answer_key: AnswerKeyData;
-  flashcard_deck: FlashcardDeckData;
+  lesson:          LessonData;
+  quiz:            QuizData;
+  drill:           DrillData;
+  worksheet:       WorksheetData;
+  recap:           RecapData;
+  infographic:     InfographicData;
+  answer_key:      AnswerKeyData;
+  flashcard_deck:  FlashcardDeckData;
   reading_passage: ReadingPassageData;
-  exit_ticket: ExitTicketData;
+  exit_ticket:     ExitTicketData;
+  teaching_pack:   TeachingPackData;   // TP1: type 11 — bundle artifact
 };
 
 export type ArtifactType = keyof ArtifactDataMap;
@@ -43,3 +45,23 @@ export type { AnswerKeyData } from "./answer_key.js";
 export type { FlashcardDeckData, Flashcard } from "./flashcard_deck.js";
 export type { ReadingPassageData, ComprehensionQuestion } from "./reading_passage.js";
 export type { ExitTicketData, ExitTicketQuestion } from "./exit_ticket.js";
+export type { TeachingPackData } from "./schemas/teaching-pack.js";
+
+// ── New schemas (Report 07) ───────────────────────────────────────────────────
+export type { CurriculumFramework, CurriculumStandard } from "./curriculum-standard.js";
+export type {
+  LessonPlan, LessonPhase, GagneEvent,
+  LearningObjective, DesiredResults, AssessmentEvidence,
+  PerformanceTask, VocabularyTerm, DifferentiationGuide,
+} from "./schemas/lesson-plan.js";
+export type {
+  Worksheet as WorksheetSchema, WorksheetSection as WorksheetSectionSchema,
+  WorksheetBlock, MediaAttachment,
+} from "./schemas/worksheet.js";
+export type {
+  QualityScore, TechnicalScore, PedagogicalScore,
+} from "./schemas/teaching-pack.js";
+export type {
+  FullInfographic, FullInfographicSection, ColorTheme, DiagramData,
+  DiagramNode, DiagramEdge,
+} from "./schemas/infographic.js";

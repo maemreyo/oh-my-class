@@ -42,6 +42,9 @@
       font-size: 0.8rem;
     }
 
+    /* WCAG 2.2 AA — ensure focused/targeted elements are not obscured by sticky header */
+    :target, :focus { scroll-margin-top: 4rem; }
+
     @media print {
       .no-print { display: none !important; }
       body { background: white; }
