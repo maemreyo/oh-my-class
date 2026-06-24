@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đáp án & Giải thích — Tiếng Anh HSA 2025 (Câu 601–650)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,500&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF4F0;
+  --paper-deep:#F3E2D9;
+  --card:#FFFFFF;
+  --ink:#22273A;
+  --ink-soft:#5C6275;
+  --ink-faint:#8B8FA0;
+  --line:#E8D8CD;
+  --line-soft:#EFE3DA;
+  --red:#B23A2E;
+  --red-deep:#8C2C22;
+  --red-tint:rgba(178,58,46,0.07);
+  --gold:#A8782E;
+  --green:#2E6F4E;
+
+  --c-a:#33508F;   /* ngữ pháp - từ vựng */
+  --c-a-tint:rgba(51,80,143,0.08);
+  --c-b:#B9762A;   /* hội thoại */
+  --c-b-tint:rgba(185,118,42,0.09);
+  --c-c:#3C7A4E;   /* viết lại / kết hợp câu */
+  --c-c-tint:rgba(60,122,78,0.08);
+  --c-d:#1F7A8C;   /* điền từ & đọc hiểu */
+  --c-d-tint:rgba(31,122,140,0.08);
+  --c-e:#8A4F7E;   /* tư duy logic */
+  --c-e-tint:rgba(138,79,126,0.08);
+
+  --radius:12px;
+  --shadow:0 1px 2px rgba(40,20,10,0.04), 0 8px 24px -16px rgba(40,20,10,0.25);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Be Vietnam Pro',sans-serif;
+  line-height:1.65;
+  font-size:15.5px;
+}
+h1,h2,h3,h4{font-family:'Spectral',serif; margin:0; color:var(--ink); font-weight:700;}
+::selection{background:rgba(178,58,46,0.2);}
+
+a{color:var(--c-a); text-decoration:none;}
+
+/* ---------- background paper texture ---------- */
+body::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    repeating-linear-gradient(180deg, transparent 0 38px, rgba(140,90,70,0.035) 38px 39px);
+  opacity:0.6;
+}
+
+/* ---------- shell layout ---------- */
+.shell{
+  position:relative; z-index:1;
+  display:flex;
+  max-width:1280px;
+  margin:0 auto;
+  min-height:100vh;
+}
+.sidebar{
+  width:268px; flex-shrink:0;
+  position:sticky; top:0; align-self:flex-start;
+  height:100vh; overflow-y:auto;
+  padding:26px 18px 40px 26px;
+  border-right:1px solid var(--line);
+}
+.main{
+  flex:1; min-width:0;
+  padding:38px 44px 100px;
+}
+
+/* ---------- HSA logo motif ---------- */
+.logo{display:flex; align-items:center; gap:6px; margin-bottom:18px;}
+.logo .dot{
+  width:25px;height:25px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono'; font-size:12px; font-weight:700; color:#fff;
+  box-shadow:inset 0 -2px 3px rgba(0,0,0,0.15);
+}
+.logo .dot.h{background:#9AA0AE;}
+.logo .dot.s{background:var(--green);}
+.logo .dot.a{background:var(--red);}
+.logo .lt{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-faint); letter-spacing:.06em; text-transform:uppercase; margin-left:4px;}
+
+.side-title{font-family:'Spectral',serif; font-weight:700; font-size:16px; line-height:1.3; margin-bottom:4px;}
+.side-sub{font-size:12.5px; color:var(--ink-soft); margin-bottom:22px;}
+
+.side-nav{display:flex; flex-direction:column; gap:3px; margin-bottom:24px;}
+.side-nav a{
+  display:flex; align-items:center; gap:8px;
+  padding:7px 9px; border-radius:7px;
+  font-size:13.5px; color:var(--ink);
+  border-left:3px solid transparent;
+}
+.side-nav a:hover{background:var(--card);}
+.side-nav a .sw{width:8px;height:8px;border-radius:50%; flex-shrink:0;}
+.side-nav a .rng{margin-left:auto; font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-faint);}
+
+.jumpbox{margin-bottom:20px;}
+.jumpbox label{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:6px; font-weight:700;}
+.jump-form{display:flex; gap:6px;}
+.jump-form input{
+  width:70px; padding:6px 8px; border:1px solid var(--line); border-radius:7px;
+  font-family:'IBM Plex Mono'; font-size:13px; background:#fff;
+}
+.jump-form button{
+  padding:6px 10px; border:1px solid var(--ink); background:var(--ink); color:#fff;
+  border-radius:7px; font-size:12.5px; cursor:pointer; font-weight:600;
+}
+
+.qgrid{display:grid; grid-template-columns:repeat(5,1fr); gap:4px;}
+.qgrid button{
+  font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:600;
+  border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+  border-radius:5px; padding:4px 0; cursor:pointer;
+}
+.qgrid button:hover{border-color:var(--ink);}
+
+.mode-toggle{
+  margin-top:24px; padding-top:18px; border-top:1px dashed var(--line);
+}
+.switch-row{display:flex; align-items:center; gap:10px; font-size:12.8px; color:var(--ink-soft);}
+.switch{
+  position:relative; width:38px; height:21px; flex-shrink:0;
+  background:var(--line); border-radius:11px; cursor:pointer; transition:.15s;
+}
+.switch::after{
+  content:""; position:absolute; top:2px; left:2px; width:17px; height:17px;
+  background:#fff; border-radius:50%; transition:.15s; box-shadow:0 1px 2px rgba(0,0,0,0.2);
+}
+.switch.on{background:var(--red);}
+.switch.on::after{left:19px;}
+
+/* ---------- header / hero ---------- */
+.hero{margin-bottom:34px;}
+.hero .eyebrow{
+  font-family:'IBM Plex Mono'; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--red-deep); font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.hero .eyebrow::before{content:"✎"; font-size:14px;}
+.hero h1{font-size:30px; line-height:1.25; max-width:680px;}
+.hero p.lede{max-width:640px; color:var(--ink-soft); font-size:15px; margin-top:12px;}
+.hero .stamp{
+  position:absolute; top:32px; right:50px;
+  width:96px; height:96px; border:2.5px solid var(--red); border-radius:50%;
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  transform:rotate(-9deg); opacity:0.85;
+  font-family:'IBM Plex Mono'; font-weight:700; color:var(--red); font-size:11px; line-height:1.25;
+}
+.note-box{
+  background:var(--card); border:1px solid var(--line); border-left:4px solid var(--gold);
+  border-radius:10px; padding:14px 18px; margin-top:20px; font-size:13.8px; color:var(--ink-soft);
+  max-width:680px;
+}
+.note-box b{color:var(--ink);}
+
+/* ---------- section ---------- */
+.section{margin-bottom:46px; position:relative;}
+.section-head{
+  display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  padding-bottom:12px; margin-bottom:18px; border-bottom:1px solid var(--line);
+}
+.section-head h2{font-size:21px;}
+.section-head .sub{font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-faint); font-style:italic;}
+.section-head .rng{
+  margin-left:auto; font-family:'IBM Plex Mono'; font-size:12px; font-weight:700;
+  padding:3px 10px; border-radius:20px; color:#fff;
+}
+.section-instr{font-size:13.6px; color:var(--ink-soft); margin-bottom:16px; font-style:italic;}
+
+.summary{
+  background:var(--card); border:1px solid var(--line); border-radius:10px;
+  padding:14px 18px; margin-bottom:20px; font-size:13.8px; color:var(--ink-soft);
+}
+.summary b{color:var(--ink); font-style:normal;}
+.summary .lbl{
+  font-family:'IBM Plex Mono'; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;
+  font-weight:700; color:var(--gold); display:block; margin-bottom:4px;
+}
+
+/* ---------- question card ---------- */
+.qcard{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 22px 20px; margin-bottom:16px; box-shadow:var(--shadow);
+  border-left-width:5px;
+}
+.qhead{display:flex; align-items:flex-start; gap:10px; margin-bottom:10px;}
+.qnum{
+  font-family:'IBM Plex Mono'; font-weight:700; font-size:12.5px; color:#fff;
+  padding:3px 9px; border-radius:6px; flex-shrink:0; margin-top:1px;
+}
+.qtext{font-size:15.3px; color:var(--ink); flex:1;}
+.qtext i{color:var(--ink-soft);}
+.qlines{margin:2px 0 4px 0; padding-left:0; list-style:none; font-size:14.6px; color:var(--ink-soft);}
+.qlines li{padding:2px 0;}
+.qlines li b{
+  font-family:'IBM Plex Mono'; color:var(--ink); margin-right:6px;
+}
+
+.options{display:grid; grid-template-columns:1fr 1fr; gap:7px; margin:12px 0 4px;}
+@media (max-width:560px){.options{grid-template-columns:1fr;}}
+.option{
+  border:1px solid var(--line-soft); border-radius:8px; padding:7px 10px;
+  font-size:13.8px; color:var(--ink-soft); display:flex; gap:7px; position:relative;
+}
+.option b.letter{font-family:'IBM Plex Mono'; color:var(--ink-faint); flex-shrink:0;}
+.option.correct{
+  border-color:var(--red); background:var(--red-tint); color:var(--red-deep); font-weight:600;
+}
+.option.correct b.letter{color:var(--red-deep);}
+.option.correct::after{
+  content:"✓"; position:absolute; right:9px; top:50%; transform:translateY(-50%) rotate(-6deg);
+  color:var(--red); font-weight:700; font-size:14px;
+}
+
+.reveal-btn{
+  display:none; align-items:center; gap:6px;
+  margin-top:8px; padding:7px 13px; border-radius:7px; border:1px dashed var(--ink-faint);
+  background:transparent; color:var(--ink-soft); font-size:12.8px; cursor:pointer; font-weight:600;
+}
+.reveal-btn:hover{border-color:var(--ink); color:var(--ink);}
+
+.panel{margin-top:13px; border-top:1px dashed var(--line); padding-top:13px; display:flex; flex-direction:column; gap:9px;}
+.prow{display:flex; gap:11px; align-items:flex-start;}
+.prow .plabel{
+  flex-shrink:0; width:108px; font-family:'IBM Plex Mono'; font-size:10.8px;
+  text-transform:uppercase; letter-spacing:.04em; font-weight:700; padding-top:2px;
+}
+.prow .ptext{font-size:13.9px; color:var(--ink); flex:1;}
+.prow.explain .plabel{color:var(--ink-soft);}
+.prow.essence .plabel{color:var(--gold);}
+.prow.tip .plabel{color:var(--green);}
+.prow.essence .ptext, .prow.tip .ptext{color:var(--ink-soft);}
+
+/* ── wrong-answer breakdown ── */
+.wrong-section{
+  margin-top:11px; border-top:1px dashed var(--line); padding-top:11px;
+}
+.wrong-section-label{
+  font-family:'IBM Plex Mono'; font-size:10.8px; text-transform:uppercase;
+  letter-spacing:.04em; font-weight:700; color:var(--red-deep); margin-bottom:8px; display:block;
+}
+.wrong-list{display:flex; flex-direction:column; gap:7px;}
+.wrong-item{
+  display:flex; gap:10px; align-items:flex-start;
+  border:1px solid rgba(178,58,46,0.15); border-radius:8px;
+  padding:8px 11px; background:rgba(178,58,46,0.03);
+}
+.wrong-item .wletter{
+  font-family:'IBM Plex Mono'; font-weight:700; font-size:12px;
+  color:var(--red-deep); flex-shrink:0; width:18px; padding-top:1px;
+}
+.wrong-item .wbody{flex:1;}
+.wrong-item .woption{font-size:13px; color:var(--ink-soft); font-style:italic; margin-bottom:3px;}
+.wrong-item .wreason{font-size:13.5px; color:var(--ink); line-height:1.55;}
+.wrong-item .wtag{
+  display:inline-block; font-family:'IBM Plex Mono'; font-size:9.5px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.04em;
+  background:rgba(178,58,46,0.1); color:var(--red-deep);
+  padding:2px 7px; border-radius:4px; margin-bottom:4px;
+}
+
+/* group color application */
+.g-a{border-left-color:var(--c-a);}
+.g-a .qnum{background:var(--c-a);}
+.g-b{border-left-color:var(--c-b);}
+.g-b .qnum{background:var(--c-b);}
+.g-c{border-left-color:var(--c-c);}
+.g-c .qnum{background:var(--c-c);}
+.g-d{border-left-color:var(--c-d);}
+.g-d .qnum{background:var(--c-d);}
+.g-e{border-left-color:var(--c-e);}
+.g-e .qnum{background:var(--c-e);}
+
+.sw-a{background:var(--c-a);} .sw-b{background:var(--c-b);} .sw-c{background:var(--c-c);} .sw-d{background:var(--c-d);} .sw-e{background:var(--c-e);}
+.rng-a{background:var(--c-a);} .rng-b{background:var(--c-b);} .rng-c{background:var(--c-c);} .rng-d{background:var(--c-d);} .rng-e{background:var(--c-e);}
+.qgrid button.g-a{background:var(--c-a-tint); border-color:var(--c-a);}
+.qgrid button.g-b{background:var(--c-b-tint); border-color:var(--c-b);}
+.qgrid button.g-c{background:var(--c-c-tint); border-color:var(--c-c);}
+.qgrid button.g-d{background:var(--c-d-tint); border-color:var(--c-d);}
+.qgrid button.g-e{background:var(--c-e-tint); border-color:var(--c-e);}
+
+/* hide-answers mode */
+body.hide-answers .panel{display:none;}
+body.hide-answers .option.correct{
+  border-color:var(--line-soft); background:transparent; color:var(--ink-soft); font-weight:400;
+}
+body.hide-answers .option.correct::after{display:none;}
+body.hide-answers .reveal-btn{display:inline-flex;}
+body.hide-answers .qcard.force-show .panel{display:flex;}
+body.hide-answers .qcard.force-show .option.correct{
+  border-color:var(--red); background:var(--red-tint); color:var(--red-deep); font-weight:600;
+}
+body.hide-answers .qcard.force-show .option.correct::after{display:block;}
+body.hide-answers .qcard.force-show .reveal-btn{display:none;}
+
+.qcard.flash{animation:flash 1.1s ease;}
+@keyframes flash{0%{box-shadow:0 0 0 3px rgba(178,58,46,0.45), var(--shadow);}100%{box-shadow:var(--shadow);}}
+
+footer{
+  margin-top:50px; padding-top:22px; border-top:1px solid var(--line);
+  font-size:12.5px; color:var(--ink-faint); max-width:680px;
+}
+
+.totop{
+  position:fixed; bottom:22px; right:22px; z-index:5;
+  width:42px; height:42px; border-radius:50%; background:var(--ink); color:#fff;
+  border:none; cursor:pointer; font-size:16px; box-shadow:0 4px 14px rgba(0,0,0,0.25);
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* ---------- mobile ---------- */
+.mobile-bar{display:none;}
+@media (max-width:880px){
+  .shell{flex-direction:column;}
+  .sidebar{
+    position:static; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--line);
+    padding:18px 18px 14px;
+  }
+  .qgrid{grid-template-columns:repeat(10,1fr);}
+  .main{padding:28px 20px 80px;}
+  .hero .stamp{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="dot h">H</span><span class="dot s">S</span><span class="dot a">A</span>
+      <span class="lt">Đáp án &amp; giải thích</span>
+    </div>
+    <div class="side-title">Tiếng Anh — Đề tham khảo HSA 2025</div>
+    <div class="side-sub">Câu 601 – 650 · Trung tâm Khảo thí ĐHQG Hà Nội</div>
+
+    <nav class="side-nav" id="sideNav"></nav>
+
+    <div class="jumpbox">
+      <label>Đi tới câu số</label>
+      <form class="jump-form" id="jumpForm">
+        <input type="number" min="601" max="650" placeholder="VD: 624" id="jumpInput">
+        <button type="submit">Đi</button>
+      </form>
+    </div>
+
+    <div class="jumpbox">
+      <label>Bảng câu hỏi nhanh</label>
+      <div class="qgrid" id="qGrid"></div>
+    </div>
+
+    <div class="mode-toggle">
+      <div class="switch-row">
+        <div class="switch" id="modeSwitch"></div>
+        <span id="modeLabel">Hiện đáp án ngay (đang bật)</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+    <div class="hero" style="position:relative;">
+      <div class="eyebrow">Tài liệu tự học · 50 câu trắc nghiệm</div>
+      <h1>Đáp án và giải thích chi tiết<br>phần Tiếng Anh (601–650)</h1>
+      <p class="lede">Mỗi câu đều có đáp án đúng, giải thích vì sao đúng / vì sao các phương án còn lại sai, phần
+        <b style="color:var(--gold)">"Bản chất"</b> chỉ ra đúng điểm kiến thức đang được kiểm tra, và phần
+        <b style="color:var(--green)">"Mẹo làm bài"</b> để xử lý nhanh các câu cùng dạng khi đi thi thật.</p>
+      <div class="note-box">
+        <b>Lưu ý khi dùng tài liệu này:</b> với 3 đoạn đọc (Cloze 631–635, Đọc hiểu 1: 636–640, Đọc hiểu 2: 641–645),
+        mình không in lại toàn văn đoạn văn gốc vì lý do bản quyền (thuộc Trung tâm Khảo thí ĐHQG Hà Nội) —
+        bạn mở lại đề bài gốc song song để đối chiếu, mỗi mục đều có phần tóm tắt ngắn gọn để bạn nắm bối cảnh trước khi đọc giải thích.
+        Một số câu (612, 627, 633, 637…) có nhiều cách lập luận hợp lý; đáp án & lý giải dưới đây là kết quả phân tích kỹ theo ngữ pháp – ngữ nghĩa,
+        nên nếu bạn có đáp án chính thức từ trung tâm khảo thí, hãy đối chiếu thêm.
+      </div>
+      <div class="stamp">ĐÃ<br>CHẤM<br>✓ 50/50</div>
+    </div>
+
+    <div id="sections"></div>
+
+    <footer>
+      Tài liệu do Claude tổng hợp dựa trên đề tham khảo Tiếng Anh (câu 601–650) trích từ
+      "Đề thi tham khảo HSA năm 2025" — Bản quyền nội dung đề thi thuộc về Trung tâm Khảo thí Đại học Quốc gia Hà Nội.
+      Tài liệu này phục vụ mục đích tự học, không thay thế đề thi gốc.
+    </footer>
+  </main>
+</div>
+
+<button class="totop" id="toTop" title="Về đầu trang">↑</button>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const SECTIONS = [
+{
+  key:'sc', group:'a', title:'Hoàn thành câu', sub:'Sentence completion', range:'601–610',
+  instruction:'Chọn A, B, C hoặc D để hoàn thành mỗi câu sao cho đúng ngữ pháp và hợp logic.',
+  items:[
+    {id:601, text:`We admire Mr. Lam _______ is a great firefighter.`,
+     options:{A:'who',B:'whose',C:'which',D:'whom'}, answer:'A',
+     explain:`Mệnh đề quan hệ "...is a great firefighter" thiếu hẳn chủ ngữ, nên đại từ quan hệ phải đóng vai trò chủ ngữ thay cho người — đó là <b>who</b>. "Whose" cần một danh từ đi kèm ngay sau (sở hữu), "which" chỉ vật, còn "whom" thay cho người nhưng làm <i>tân ngữ</i> (không thể đứng trước động từ chính của mệnh đề như ở đây).`,
+     wrongReasons:{
+       B:`<b>Whose</b> diễn tả quan hệ sở hữu và luôn cần một danh từ đứng ngay sau nó (VD: "Mr. Lam, <i>whose job</i> is..."). Ở đây, sau chỗ trống là động từ "is" — không có danh từ nào cả, nên "whose" sai hoàn toàn về cấu trúc.`,
+       C:`<b>Which</b> chỉ dùng cho vật hoặc sự vật (VD: the book <i>which</i> I read), không dùng cho người. Mr. Lam là người, nên "which" không thể thay thế được.`,
+       D:`<b>Whom</b> thay cho người nhưng đóng vai trò <i>tân ngữ</i> trong mệnh đề quan hệ (VD: the man <i>whom</i> we admire). Ở đây mệnh đề "...is a great firefighter" đã có đủ cấu trúc chủ-vị, cần chủ ngữ — không phải tân ngữ, nên "whom" sai chức năng.`
+     },
+     essence:`Phân biệt chức năng chủ ngữ / tân ngữ và đối tượng người / vật của các đại từ quan hệ who – whom – whose – which.`,
+     tip:`Nhìn ngay sau chỗ trống: nếu là động từ (không có chủ ngữ chen vào) → đại từ quan hệ phải làm chủ ngữ; đối tượng là người → chọn "who".`},
+    {id:602, text:`The boy delayed _______ the classroom despite being late.`,
+     options:{A:'arriving at',B:'entering',C:'joining at',D:'reaching'}, answer:'B',
+     explain:`"Delay" luôn đi với V-ing. Cả 3 phương án A, B, D đều đúng dạng nhưng "joining at" sai vì <b>join</b> không kết hợp với giới từ "at". Trong ngữ cảnh "dù đã trễ giờ vẫn còn nấn ná", <b>entering</b> ("bước vào lớp") diễn tả đúng nhất hành động chần chừ trước khi bước hẳn vào không gian lớp học.`,
+     wrongReasons:{
+       A:`<b>Arriving at</b> có cấu trúc đúng (arrive at + địa điểm) nhưng nghĩa không phù hợp: "arrive at the classroom" nghĩa là đến nơi lớp học, tức là chưa bước vào. Câu gốc nói cậu bé nấn ná chưa chịu <i>vào lớp</i> — hai hành động này khác nhau về nghĩa.`,
+       C:`<b>Joining at</b> sai về mặt ngữ pháp: động từ "join" không đi kèm giới từ "at" (không có cụm "join at a place"). Đây là lỗi giới từ cơ bản — "join a class/team" không có "at".`,
+       D:`<b>Reaching</b> nghĩa là "đến nơi, tiếp cận tới" — tương tự "arriving", nó diễn tả việc đến chỗ lớp học chứ không phải hành động bước vào bên trong. Ngữ cảnh yêu cầu diễn tả sự nấn ná trước khi <i>bước vào</i> lớp.`
+     },
+     essence:`Cấu trúc "delay + V-ing" kết hợp với collocation đúng của các động từ chỉ "đi vào một nơi" (enter / arrive at / reach + place).`,
+     tip:`Loại ngay phương án có giới từ sai sau động từ chuyển tiếp (join không đi với "at"), rồi chọn động từ khớp nhất với hành động "bước vào".`},
+    {id:603, text:`People _______ eat a balanced diet to stay healthy.`,
+     options:{A:'would',B:'hoped to',C:'had to',D:'should'}, answer:'D',
+     explain:`Câu đưa ra một lời khuyên mang tính phổ quát cho mọi người về việc ăn uống lành mạnh → dùng <b>should</b> diễn tả lời khuyên. "Would" không hợp logic ở đây, "hoped to" sai thì/nghĩa (mong muốn đã qua), "had to" diễn tả sự bắt buộc khách quan, không phù hợp với một lời khuyên chung.`,
+     wrongReasons:{
+       A:`<b>Would</b> thường diễn tả thói quen trong quá khứ (VD: "He would eat slowly") hoặc giả định (If I were you, I would...). Trong câu khuyên chung về sức khỏe ở hiện tại, "would" hoàn toàn không hợp logic.`,
+       B:`<b>Hoped to</b> diễn tả mong muốn trong quá khứ ("họ đã hy vọng được ăn...") — vừa sai thì (câu gốc nói về lời khuyên chung, không phải chuyện đã qua), vừa sai nghĩa (hy vọng ≠ nên làm).`,
+       C:`<b>Had to</b> diễn tả sự bắt buộc từ bên ngoài, do hoàn cảnh ép buộc (VD: "I had to work late"). Câu này là lời khuyên tự nguyện vì lợi ích bản thân, không phải nghĩa vụ bắt buộc — dùng "had to" làm câu nghe cứng nhắc, sai sắc thái.`
+     },
+     essence:`Phân biệt modal verb diễn tả lời khuyên (should) với các modal/cấu trúc diễn tả khả năng, bắt buộc hay mong muốn.`,
+     tip:`Câu mang nghĩa "nên làm gì để tốt cho sức khỏe" luôn là dấu hiệu nhận biết should / ought to.`},
+    {id:604, text:`What is the most _______ city in the world?`,
+     options:{A:'lifelike',B:'livable',C:'alive',D:'lasting'}, answer:'B',
+     explain:`"The most <b>livable</b> city" (thành phố đáng sống nhất) là cụm rất phổ biến khi nói về xếp hạng chất lượng sống đô thị. "Lifelike" nghĩa là "giống như có sự sống thật" (dùng cho tranh, mô hình), "alive" là tính từ chỉ trạng thái còn sống (không dùng theo cách này), "lasting" nghĩa là lâu bền — không liên quan đến việc đánh giá một thành phố.`,
+     wrongReasons:{
+       A:`<b>Lifelike</b> có nghĩa là "trông như thật, giống thật" — thường dùng cho tranh vẽ, tượng, mô hình (VD: "a lifelike portrait"). Nó không diễn tả chất lượng cuộc sống tại một đô thị và không ghép tự nhiên với "city".`,
+       C:`<b>Alive</b> là tính từ dạng vị ngữ, nghĩa là "còn sống" — không dùng được trực tiếp trước danh từ theo kiểu "the most alive city". Ngoài ra, ngữ nghĩa của nó không liên quan đến việc đánh giá thành phố đáng sống.`,
+       D:`<b>Lasting</b> nghĩa là "bền lâu, lâu dài" (VD: "a lasting impression"). Trong ngữ cảnh hỏi về thành phố nào tốt nhất để sinh sống, "lasting" không mang nghĩa đánh giá chất lượng sống đô thị mà nói về tính bền vững về thời gian.`
+     },
+     essence:`Phân biệt các tính từ có hình thức gần giống nhau (lifelike / livable / alive / lasting) nhưng nghĩa khác hẳn.`,
+     tip:`Gặp các từ dễ nhầm hình thức, hãy nhớ lại cụm quen thuộc đã từng đọc — "most livable city" là cụm rất hay xuất hiện trên báo, tạp chí xếp hạng.`},
+    {id:605, text:`Mai _______ taking vocational training after finishing high school next month.`,
+     options:{A:'is thinking of',B:'will think of',C:'thinks of',D:'thought of'}, answer:'A',
+     explain:`Cấu trúc <b>be thinking of + V-ing</b> diễn tả một dự định đang được cân nhắc, rất hợp với ngữ cảnh "sau khi tốt nghiệp cấp 3 vào tháng tới" — một kế hoạch sắp tới còn đang xem xét. Ba phương án còn lại đều sai về sắc thái "đang cân nhắc / có ý định".`,
+     wrongReasons:{
+       B:`<b>Will think of</b> nghĩa là "sẽ nghĩ đến (trong tương lai)" — diễn tả việc cân nhắc sẽ xảy ra sau này, không phải đang diễn ra ngay lúc nói. Câu gốc muốn nói Mai đang có ý định/đang cân nhắc kế hoạch này rồi.`,
+       C:`<b>Thinks of</b> dùng thì hiện tại đơn — diễn tả thói quen hoặc sự thật chung chung, không phải một dự định cụ thể đang được cân nhắc. "Think of" ở thì hiện tại đơn cũng không mang nghĩa "có kế hoạch".`,
+       D:`<b>Thought of</b> dùng thì quá khứ đơn — nghĩa là "đã từng nghĩ đến (trước đây)". Câu gốc nói về kế hoạch cho tương lai (next month), không phải suy nghĩ trong quá khứ, nên sai thì hoàn toàn.`
+     },
+     essence:`Cấu trúc "be thinking of doing st" diễn tả dự định / ý định, dễ bị nhầm với thì tương lai đơn thông thường.`,
+     tip:`Hễ thấy ngữ cảnh nói về một dự định/kế hoạch còn đang cân nhắc, nghĩ ngay đến "be thinking of + V-ing".`},
+    {id:606, text:`Her speech was _________ to all students in the hall yesterday.`,
+     options:{A:'encourage',B:'encouragement',C:'encouraging',D:'encouraged'}, answer:'C',
+     explain:`Chủ ngữ "Her speech" là sự việc <i>gây ra</i> cảm xúc, nên cần tính từ đuôi -ing: <b>encouraging</b> (có tính khích lệ). "Encouraged" (-ed) chỉ dùng cho người/vật <i>cảm nhận được</i> sự khích lệ. "Encourage" là động từ, "encouragement" là danh từ — cả hai không hợp làm bổ ngữ tính từ sau "was" trong câu này.`,
+     wrongReasons:{
+       A:`<b>Encourage</b> là động từ nguyên thể — không thể đứng sau động từ "was" làm bổ ngữ tính từ. Cấu trúc "was encourage" sai hoàn toàn về ngữ pháp.`,
+       B:`<b>Encouragement</b> là danh từ — câu "was encouragement" tạo ra mệnh đề "bài phát biểu là một sự khuyến khích", nghe vụng và không tự nhiên trong tiếng Anh; hơn nữa, cấu trúc chuẩn cần tính từ sau "was" để mô tả tính chất của chủ ngữ.`,
+       D:`<b>Encouraged</b> là tính từ -ed, dùng cho <i>người/vật cảm nhận cảm xúc</i> (VD: "The students felt encouraged"). Bài phát biểu là thứ <i>gây ra</i> cảm xúc, không phải thứ cảm nhận cảm xúc — nên phải dùng -ing, không phải -ed.`
+     },
+     essence:`Phân biệt tính từ -ing (chủ động, gây ra cảm xúc) và -ed (bị động, cảm nhận cảm xúc).`,
+     tip:`Hỏi: chủ ngữ là thứ gây ra cảm xúc hay là người cảm nhận cảm xúc? Vật/sự việc gây ra luôn đi với -ing.`},
+    {id:607, text:`If Mike ________ taller, he would be admitted to the basketball team.`,
+     options:{A:'is',B:'has been',C:'were',D:'will be'}, answer:'C',
+     explain:`Mệnh đề chính có "would be admitted" → đây là câu điều kiện loại 2 (giả định không có thật ở hiện tại): If + S + <b>were</b>/V2, S + would + V. Với động từ "to be", câu điều kiện loại 2 luôn chia "were" cho mọi chủ ngữ.`,
+     wrongReasons:{
+       A:`<b>Is</b> là thì hiện tại đơn — dùng trong câu điều kiện loại 1 (có thể xảy ra: If + S + V hiện tại, S + will + V). Ở đây mệnh đề chính dùng "would" → phải là điều kiện loại 2, không dùng thì hiện tại đơn.`,
+       B:`<b>Has been</b> là thì hiện tại hoàn thành — không dùng trong mệnh đề "if" của câu điều kiện loại 2. Điều kiện loại 2 yêu cầu thì quá khứ đơn (hoặc "were" với "to be"), không phải hoàn thành.`,
+       D:`<b>Will be</b> là thì tương lai — không bao giờ được dùng trong mệnh đề "if" của câu điều kiện (một lỗi rất phổ biến). Câu điều kiện loại 1 dùng hiện tại đơn, loại 2 dùng quá khứ đơn — không dùng tương lai trong mệnh đề "if".`
+     },
+     essence:`Cấu trúc câu điều kiện loại 2 với "to be" — luôn dùng "were", không phân biệt chủ ngữ.`,
+     tip:`Thấy "would" ở mệnh đề chính → mệnh đề "if" lùi một thì so với hiện tại; riêng "to be" luôn là "were".`},
+    {id:608, text:`Households are advised to replace current lightbulbs with more_________ ones.`,
+     options:{A:'reliable',B:'economic',C:'dynamic',D:'efficient'}, answer:'D',
+     explain:`Cụm rất quen trong chủ đề tiết kiệm năng lượng là "energy-<b>efficient</b> lightbulbs" (bóng đèn hiệu suất cao, tiết kiệm điện). "Reliable" và "dynamic" không hợp ngữ cảnh bóng đèn; "economic" (thuộc về kinh tế) khác nghĩa với "economical" (tiết kiệm) nên cũng không phù hợp.`,
+     wrongReasons:{
+       A:`<b>Reliable</b> nghĩa là "đáng tin cậy, hoạt động ổn định" — thường dùng cho thiết bị/người đáng tin. Câu này khuyến nghị thay bóng đèn vì lý do tiết kiệm điện, không phải vì bóng cũ không đáng tin, nên "reliable" không phù hợp ngữ cảnh.`,
+       B:`<b>Economic</b> nghĩa là "thuộc về kinh tế/nền kinh tế" (VD: "economic growth"). Từ đúng để nói "tiết kiệm" là <i>economical</i>. Đây là cặp từ dễ nhầm — "economic" không mang nghĩa "tiết kiệm năng lượng" nên sai hoàn toàn trong ngữ cảnh này.`,
+       C:`<b>Dynamic</b> nghĩa là "năng động, đầy năng lượng" — thường dùng cho người hoặc hệ thống phức tạp (VD: "dynamic personality"). Không có nghĩa nào của "dynamic" phù hợp khi nói về bóng đèn tiết kiệm điện.`
+     },
+     essence:`Collocation chủ đề năng lượng/môi trường, đồng thời phân biệt cặp dễ nhầm "economic" vs "economical".`,
+     tip:`Hễ nói về thay bóng đèn/thiết bị để bảo vệ môi trường, liên tưởng ngay "energy-efficient" — efficient là từ khoá hay gặp nhất.`},
+    {id:609, text:`The government will get city dwellers________ 20% of their carbon footprint.`,
+     options:{A:'reduce',B:'reducing',C:'reduced',D:'to reduce'}, answer:'D',
+     explain:`Cấu trúc câu sai khiến với "get" là <b>get + somebody + to + V</b> (khiến/làm cho ai đó làm gì) — khác với "make/have + sb + V" (không "to"). Vậy chỗ trống cần "to reduce".`,
+     wrongReasons:{
+       A:`<b>Reduce</b> (động từ nguyên thể không "to") đúng sau "make/have" trong câu sai khiến (VD: "make them reduce"), nhưng sai sau "get". Đây là bẫy rất phổ biến — "get" là ngoại lệ duy nhất trong nhóm causative bắt buộc phải có "to".`,
+       B:`<b>Reducing</b> (V-ing) không phù hợp sau bất kỳ cấu trúc causative nào khi nói về việc khiến người khác làm điều gì đó một cách chủ động. V-ing ở đây sẽ tạo ra cấu trúc sai ngữ pháp.`,
+       C:`<b>Reduced</b> (V3/p.p) dùng trong cấu trúc "get + vật + V3" (VD: "get the work reduced" — để vật được làm). Tuy nhiên "city dwellers" là <i>người</i>, không phải vật — cấu trúc đúng cho người sau "get" phải là "to V", không phải V3.`
+     },
+     essence:`Cấu trúc câu sai khiến (causative) đặc biệt với "get" — duy nhất trong nhóm causative cần "to V".`,
+     tip:`Ghi nhớ riêng "get" là ngoại lệ: make/have + V nguyên thể, nhưng get + to V.`},
+    {id:610, text:`Students had better _________ future employment opportunities when choosing their major in college.`,
+     options:{A:'make the best of',B:'take into account',C:'require attention from',D:'be of assistance to'}, answer:'B',
+     explain:`<b>Take into account</b> nghĩa là "cân nhắc, xem xét đến" — đúng với việc học sinh nên cân nhắc cơ hội việc làm tương lai khi chọn ngành. "Make the best of" nghĩa là tận dụng tối đa cái đã có (không hợp vì cơ hội chưa xảy ra), hai phương án còn lại sai cả cấu trúc và nghĩa khi đặt vào câu.`,
+     wrongReasons:{
+       A:`<b>Make the best of</b> nghĩa là "tận dụng tối đa điều gì đó đã có/đang có" (VD: "make the best of the situation"). Cơ hội việc làm tương lai chưa xảy ra — không thể "tận dụng" thứ chưa tồn tại. Câu yêu cầu hành động "xem xét/cân nhắc" trước khi quyết định, không phải tận dụng.`,
+       C:`<b>Require attention from</b> nghĩa là "đòi hỏi sự chú ý từ ai đó" — cấu trúc này đảo ngược chủ thể: cơ hội việc làm sẽ là chủ thể yêu cầu học sinh chú ý, nhưng trong câu, học sinh mới là người chủ động "cân nhắc" cơ hội đó. Nghĩa và cấu trúc đều không phù hợp.`,
+       D:`<b>Be of assistance to</b> nghĩa là "có ích cho, giúp đỡ được cho" — câu sẽ thành "học sinh nên giúp đỡ các cơ hội việc làm", hoàn toàn vô nghĩa về mặt logic. Cụm này dùng để nói ai/cái gì trợ giúp cho người khác, không dùng trong ngữ cảnh này.`
+     },
+     essence:`Cụm động từ học thuật quen dùng để diễn tả "cân nhắc một yếu tố nào đó khi quyết định".`,
+     tip:`"Take into account/consideration" rất hay gặp khi nói về việc cân nhắc một yếu tố trước khi ra quyết định (chọn ngành, đầu tư...).`},
+  ]
+},
+{
+  key:'syn', group:'a', title:'Từ đồng nghĩa', sub:'Synonyms', range:'611–612',
+  instruction:'Chọn phương án có nghĩa GẦN NHẤT với từ/cụm từ được gạch chân.',
+  items:[
+    {id:611, text:`Marie Curie was recognized as an important figure in the field of radioactivity.`,
+     options:{A:'considered',B:'named',C:'agreed',D:'chosen'}, answer:'A',
+     explain:`"Recognized as" ở đây nghĩa là "được nhìn nhận/coi là" — gần nghĩa nhất với <b>considered</b> (được coi là). "Named" (được đặt tên/chỉ định), "agreed" (đồng ý), "chosen" (được chọn) đều không khớp nghĩa "được công nhận là".`,
+     wrongReasons:{
+       B:`<b>Named</b> có thể mang nghĩa "được gọi là/được bổ nhiệm là" (VD: "She was named director"), nhưng nó thường chỉ hành động đặt tên/chỉ định chính thức, không mang sắc thái "được cộng đồng nhìn nhận, đánh giá" như "recognized as". Trong bối cảnh nói về đóng góp của Marie Curie, "considered" phản ánh đúng hơn ý nghĩa "được đánh giá, được coi là" dựa trên công nhận của cộng đồng.`,
+       C:`<b>Agreed</b> nghĩa là "đồng ý" — không có nghĩa nào của "agreed" phù hợp với cấu trúc "was agreed as an important figure". Đây là động từ chỉ sự đồng thuận giữa các bên, không dùng để diễn tả việc ai đó được công nhận là nhân vật quan trọng.`,
+       D:`<b>Chosen</b> nghĩa là "được lựa chọn/tuyển chọn" — ngụ ý có sự chọn lựa có chủ đích từ một nhóm (VD: "She was chosen for the award"). "Recognized as" không mang nghĩa tuyển chọn mà mang nghĩa đánh giá/thừa nhận tự nhiên dựa trên thành tích thực tế.`
+     },
+     essence:`"Recognize" có nhiều nghĩa (nhận ra, công nhận, thừa nhận); ở đây mang nghĩa "công nhận một vai trò/danh tiếng" = "consider as".`,
+     tip:`Khi "recognize" đi với "as + danh từ chỉ vai trò/danh hiệu", nó luôn mang nghĩa "được coi là/công nhận là".`},
+    {id:612, text:`To save money, he decided to cut down on dining at restaurants.`,
+     options:{A:'minimize',B:'underestimate',C:'lessen',D:'abolish'}, answer:'C',
+     explain:`"Cut down on" nghĩa là giảm bớt (mức độ/tần suất) — gần nghĩa nhất với <b>lessen</b> (làm giảm đi, ở mức thông thường). "Minimize" mang nghĩa giảm xuống mức tối thiểu (mạnh hơn ý "giảm bớt"), "underestimate" nghĩa là đánh giá thấp (khác hẳn), "abolish" nghĩa là loại bỏ hoàn toàn (quá mạnh so với "giảm bớt").`,
+     wrongReasons:{
+       A:`<b>Minimize</b> nghĩa là "giảm xuống mức tối thiểu có thể" — mạnh hơn "cut down on" đáng kể. "Cut down on" chỉ giảm bớt ở mức độ vừa phải, không nhất thiết phải đến mức tối thiểu. Chọn "minimize" sẽ làm câu dịch sai: không phải "giảm tối thiểu" mà chỉ là "giảm bớt".`,
+       B:`<b>Underestimate</b> nghĩa là "đánh giá thấp hơn thực tế" — hoàn toàn khác nghĩa với "giảm bớt". Đây là từ gây nhiễu vì có tiền tố "under-" nghe có vẻ liên quan đến "giảm", nhưng thực chất nó chỉ sự đánh giá sai lệch, không phải hành động làm giảm tần suất/mức độ.`,
+       D:`<b>Abolish</b> nghĩa là "xóa bỏ hoàn toàn, bãi bỏ" — thường dùng cho luật lệ, chính sách, hoặc thói quen được loại trừ vĩnh viễn (VD: "abolish slavery"). Câu gốc chỉ nói anh ta giảm bớt số lần đi ăn nhà hàng, không phải ngừng hẳn — "abolish" quá mạnh và sai nghĩa.`
+     },
+     essence:`Phân biệt các từ cùng nhóm nghĩa "giảm" nhưng khác sắc thái mức độ: lessen (giảm thông thường) – minimize (giảm tối đa) – abolish (xóa bỏ hoàn toàn).`,
+     tip:`Khi tìm từ đồng nghĩa cho một từ chỉ "giảm", luôn để ý mức độ giảm trong câu gốc để chọn từ có sắc thái tương đương, đừng vội chọn từ "nghe mạnh tay" hơn.`},
+  ]
+},
+{
+  key:'ant', group:'a', title:'Từ trái nghĩa', sub:'Antonyms', range:'613–614',
+  instruction:'Chọn phương án có nghĩa TRÁI NGƯỢC với từ/cụm từ được gạch chân.',
+  items:[
+    {id:613, text:`They visited the ancient site to enquire about the origins of the artifacts.`,
+     options:{A:'question',B:'investigate',C:'observe',D:'ignore'}, answer:'D',
+     explain:`"Enquire about" nghĩa là hỏi thăm/tìm hiểu thông tin. Trái nghĩa với "tìm hiểu" là <b>ignore</b> (bỏ qua, không quan tâm tìm hiểu). "Question" và "investigate" đều là từ gần nghĩa với "enquire" (dễ gây nhiễu), còn "observe" (quan sát) không phải trái nghĩa rõ ràng.`,
+     wrongReasons:{
+       A:`<b>Question</b> là từ <i>đồng nghĩa</i> với "enquire" (cùng nghĩa hỏi/tìm hiểu), không phải trái nghĩa. Đây là bẫy phổ biến trong bài antonym — phương án dễ loại nhất vì nghe quen, nhưng lại có nghĩa giống từ gốc, không phải ngược lại.`,
+       B:`<b>Investigate</b> cũng là từ <i>gần nghĩa</i> (điều tra, tìm hiểu kỹ hơn "enquire"). Tuy mức độ có khác nhau đôi chút, nhưng cả hai đều chỉ hành động TÌM HIỂU thông tin — vẫn là cùng hướng với từ gốc, không phải đối lập.`,
+       C:`<b>Observe</b> nghĩa là "quan sát, chú ý" — có thể nói là liên quan đến việc chú ý đến vật, nhưng không phải trái nghĩa của "enquire". Quan sát và hỏi thăm là hai hành động khác nhau, không đối lập trực tiếp. Trái nghĩa đúng phải là hành động hoàn toàn ngược lại: không chú ý, bỏ qua = "ignore".`
+     },
+     essence:`Phân biệt từ đồng nghĩa gây nhiễu với từ trái nghĩa thực sự trong bài antonym.`,
+     tip:`Loại trước các phương án có nghĩa gần giống từ gạch dưới (dễ khiến bạn chọn nhầm vì "nghe quen"), rồi tìm từ mang nghĩa đối lập hoàn toàn về hành động.`},
+    {id:614, text:`This project brings together researchers to study how confusion can assist digital learning.`,
+     options:{A:'sense of clarity',B:'lack of certainty',C:'moment of suspicion',D:'state of calmness'}, answer:'A',
+     explain:`"Confusion" là trạng thái mơ hồ, bối rối, không rõ ràng. Trái nghĩa là <b>sense of clarity</b> (cảm giác rõ ràng, sáng tỏ). "Lack of certainty" thực chất là một cách diễn đạt khác của chính "confusion" (đồng nghĩa, không phải trái nghĩa) — đây là phương án gây nhiễu rất tinh vi. "Moment of suspicion" và "state of calmness" cũng không phải trái nghĩa chính xác.`,
+     wrongReasons:{
+       B:`<b>Lack of certainty</b> (thiếu sự chắc chắn) thực chất là <i>đồng nghĩa</i> với "confusion" — khi bạn bối rối, bạn không chắc chắn về điều gì. Đây là bẫy tinh vi nhất của câu này: phương án trông như trái nghĩa (vì có "lack of") nhưng thực ra diễn tả đúng bản chất của "confusion".`,
+       C:`<b>Moment of suspicion</b> (khoảnh khắc nghi ngờ) không phải trái nghĩa của "confusion". Nghi ngờ và bối rối là hai trạng thái khác nhau — nghi ngờ không phải là đối lập của sự mơ hồ/bối rối. Phương án này lạc nghĩa so với từ gốc.`,
+       D:`<b>State of calmness</b> (trạng thái bình tĩnh) gần là trái nghĩa của trạng thái kích động/lo lắng, không phải của "confusion". Trái nghĩa của bối rối/mơ hồ phải là sự rõ ràng/minh bạch — "calmness" chỉ nói về mức độ bình tĩnh về cảm xúc, không phải về sự rõ ràng trong tư duy.`
+     },
+     essence:`Bài antonym khó hơn: nhận diện phương án nhiễu là từ đồng nghĩa được diễn đạt lại khác đi (lack of certainty ≈ confusion).`,
+     tip:`Cẩn thận với phương án "nghe có vẻ trái nghĩa" nhưng thực chất diễn giải lại đúng nghĩa gốc — dịch từng phương án ra tiếng Việt rồi đối chiếu trực tiếp với từ gạch dưới.`},
+  ]
+},
+{
+  key:'dc', group:'b', title:'Hoàn thành hội thoại', sub:'Dialogue completion', range:'615–618',
+  instruction:'Chọn phương án phù hợp nhất để hoàn thành mỗi đoạn hội thoại.',
+  items:[
+    {id:615, text:`Lan: How was your weekend? — John: _____________`,
+     options:{A:'I was feeling good.',B:"I didn't remember.",C:'It was great!',D:'It would be okay.'}, answer:'C',
+     explain:`"How was your weekend?" hỏi về tính chất/cảm nhận của ngày nghỉ đã qua → câu trả lời tự nhiên là <b>"It was great!"</b> (ở quá khứ, mô tả cả kỳ nghỉ). "I was feeling good" lệch trọng tâm (nói cảm giác cá nhân hơn là về kỳ nghỉ), hai phương án còn lại sai logic/thì.`,
+     essence:`Phản xạ giao tiếp xã giao — cách trả lời câu hỏi thăm hỏi "How was...?".`,
+     tip:`Với câu hỏi "How was...?", câu trả lời chuẩn luôn ở dạng "It was + adj" để mô tả trải nghiệm đã qua.`},
+    {id:616, text:`James: Thank you for driving me home. — Minh: _____________`,
+     options:{A:'I appreciate that.',B:"You're welcome.",C:'Please, allow me!',D:"Don't worry about it!"}, answer:'B',
+     explain:`<b>"You're welcome."</b> là phản hồi chuẩn mực và tự nhiên nhất cho lời cảm ơn. "I appreciate that" thường dùng khi chính người nói là người được cảm ơn lại, "Please, allow me!" dùng khi ngỏ ý giúp đỡ (trước khi giúp, không phải sau khi được cảm ơn), "Don't worry about it!" thường hợp hơn cho tình huống xin lỗi/trấn an.`,
+     essence:`Mẫu câu giao tiếp xã giao cố định — cách đáp lại lời cảm ơn.`,
+     tip:`"You're welcome" luôn là phản hồi an toàn và tự nhiên nhất cho "Thank you" trong văn cảnh thường ngày.`},
+    {id:617, text:`Tracy: Do you want to try driving my car, to see how you like it? — Carly: Yeah, sure, ___________`,
+     options:{A:"I'll give it a gun.",B:"I'll give it a rest.",C:"I'll give it a think.",D:"I'll give it a shot."}, answer:'D',
+     explain:`<b>"Give it a shot"</b> là thành ngữ nghĩa "thử làm điều gì đó" — đúng với việc Carly đồng ý thử lái xe. "Give it a gun" không có nghĩa (gây nhiễu vì gợi liên tưởng tốc độ), "give it a rest" nghĩa là nghỉ ngơi/dừng lại, "give it a think" nghĩa là suy nghĩ về điều đó — đều không khớp hành động "đồng ý thử ngay".`,
+     essence:`Thành ngữ thông dụng "give something a shot/try" trong tiếng Anh giao tiếp.`,
+     tip:`Ghi nhớ các thành ngữ "give it a..." theo nghĩa cố định, không suy luận theo nghĩa đen của từng từ.`},
+    {id:618, text:`Ann: Would you like to talk about it, or would you rather I gave you space? — Thuy: _____________`,
+     options:{
+        A:"I'm not sure how to approach addressing it yet.",
+        B:"I'd rather keep it to myself for now, if that's alright.",
+        C:"I appreciate your sympathy, but I'm handling it internally.",
+        D:"It's a bit complex, so I prefer ignoring any questions about it."
+     }, answer:'B',
+     explain:`Ann đưa ra hai lựa chọn rõ ràng: nói chuyện, hoặc được cho không gian riêng. Phản hồi hợp lý nhất là chọn trực tiếp một lựa chọn và diễn đạt lịch sự, tự nhiên — <b>"I'd rather keep it to myself for now, if that's alright"</b> chọn thẳng phương án "space" mà Ann đề xuất. Các phương án khác vòng vo hoặc không trả lời thẳng vào câu hỏi lựa chọn.`,
+     essence:`Kỹ năng chọn phản hồi tự nhiên, lịch sự và đúng trọng tâm cho câu hỏi có hai lựa chọn ("would you like X, or would you rather Y").`,
+     tip:`Với câu hỏi dạng "X hay Y?", câu trả lời tốt nhất nên phản hồi rõ ràng một trong hai lựa chọn bằng ngôn từ tự nhiên, không né tránh.`},
+  ]
+},
+{
+  key:'da', group:'b', title:'Sắp xếp hội thoại', sub:'Dialogue arrangement', range:'619–622',
+  instruction:'Sắp xếp các câu cho sẵn thành một đoạn hội thoại hoàn chỉnh, hợp logic.',
+  items:[
+    {id:619, arrange:true,
+     lines:[
+        "a. In that case, I'll draw you a map.",
+        "b. If you can wait five minutes, I'll walk you there.",
+        "c. Where can I get good pho around here?",
+        "d. I'm in a hurry and need to leave now."
+     ],
+     options:{A:'c-b-d-a',B:'c-a-d-b',C:'d-b-c-a',D:'d-c-a-b'}, answer:'A',
+     explain:`Hội thoại mở đầu bằng câu hỏi <b>(c)</b> "Where can I get good pho around here?", được đáp bằng đề nghị <b>(b)</b> "If you can wait five minutes, I'll walk you there", người hỏi từ chối vì đang vội <b>(d)</b> "I'm in a hurry and need to leave now", và cuối cùng là giải pháp thay thế <b>(a)</b> "In that case, I'll draw you a map".`,
+     essence:`Sắp xếp hội thoại theo logic hỏi – đáp và quan hệ nhân quả (lý do dẫn đến giải pháp thay thế).`,
+     tip:`Tìm câu có dấu hỏi để xác định câu mở đầu; chú ý các từ nối ngữ cảnh như "In that case" — câu này luôn đứng sau một tình huống/lý do vừa được nêu.`},
+    {id:620, arrange:true,
+     lines:[
+        "a. Right, people on floating markets advertise in this special way.",
+        "b. Why do people hang fruits in front of their boats?",
+        "c. Oh, fruits are sold on these boats, aren't they?",
+        "d. By doing so, sellers don't have to shout aloud."
+     ],
+     options:{A:'c-d-b-a',B:'c-a-b-d',C:'b-a-c-d',D:'b-d-c-a'}, answer:'B',
+     explain:`Mở đầu bằng câu hỏi xác nhận <b>(c)</b> "Oh, fruits are sold on these boats, aren't they?", được xác nhận <b>(a)</b> "Right, people on floating markets advertise in this special way", dẫn đến câu hỏi tiếp theo về lý do <b>(b)</b> "Why do people hang fruits...?", và câu giải thích <b>(d)</b> "By doing so, sellers don't have to shout aloud".`,
+     essence:`Nhận diện từ liên kết hồi đáp (câu hỏi đuôi "aren't they?" luôn được đáp lại bằng "Right/Yes") và quan hệ nhân quả "why... → by doing so".`,
+     tip:`Câu hỏi đuôi (tag question) luôn đi liền với một câu xác nhận ngay sau nó — tìm cặp câu này trước để định vị 2 câu liên tiếp.`},
+    {id:621, arrange:true,
+     lines:[
+        "a. I suppose you could always tell the truth.",
+        "b. What excuse will you give for not finishing your report?",
+        "c. Oh, yeah, you're right.",
+        "d. I think I'll say I got sick last night from bad seafood.",
+        "e. Didn't that happen to you last month?",
+        "f. I can't do that. I'll fail for sure."
+     ],
+     options:{A:'b-f-e-a-d-c',B:'b-f-c-d-e-a',C:'b-d-e-c-a-f',D:'b-d-a-f-c-e'}, answer:'C',
+     explain:`Mở đầu bằng câu hỏi <b>(b)</b>, trả lời bằng lời nói dối dự kiến <b>(d)</b> "I think I'll say I got sick...", người nghe chỉ ra điều đó đã từng dùng <b>(e)</b> "Didn't that happen to you last month?", người nói thừa nhận <b>(c)</b> "Oh, yeah, you're right", được gợi ý giải pháp khác <b>(a)</b> "I suppose you could always tell the truth", và bị bác bỏ vì sợ hậu quả <b>(f)</b> "I can't do that. I'll fail for sure."`,
+     essence:`Chuỗi lập luận 3 lớp: hỏi–đáp, phản bác–thừa nhận, gợi ý–bác bỏ — cần theo mạch logic dài hơn các câu trước.`,
+     tip:`Với hội thoại dài, hãy tìm các "cặp câu" liên kết chặt (hỏi–đáp trực tiếp, phản đối–thừa nhận) trước, rồi ráp các cặp đó theo logic tổng thể.`},
+    {id:622, arrange:true,
+     lines:[
+        "a. Well, as someone who drives a car, I'm acutely aware of it.",
+        "b. Then I propose joining me in using public transportation. Cars only contribute to the problem.",
+        "c. No. I redeem my commute time by reading a book, so I'm not paying attention to traffic.",
+        "d. Does the congestion seem worse to you today?",
+        "e. Surely you noticed that traffic was bumper to bumper.",
+        "f. I'm not the right person to ask, as I take the bus."
+     ],
+     options:{A:'e-f-a-d-c-b',B:'d-c-a-f-e-b',C:'e-c-a-b-d-f',D:'d-f-e-c-a-b'}, answer:'D',
+     explain:`Bắt đầu bằng câu hỏi mở đầu chủ đề <b>(d)</b>, được đáp bằng việc từ chối nhận định vì không lái xe <b>(f)</b> "I'm not the right person to ask, as I take the bus", người hỏi phản biện <b>(e)</b> "Surely you noticed that traffic was bumper to bumper", người trả lời giải thích lý do không chú ý <b>(c)</b>, người hỏi chuyển sang nhận định về bản thân là người lái xe <b>(a)</b>, và đề xuất giải pháp cuối <b>(b)</b> "Then I propose joining me in using public transportation."`,
+     essence:`Cấu trúc tranh luận (nêu vấn đề – phản hồi – phản biện – giải thích – kết luận/đề xuất), cần nắm vững quan hệ ngữ nghĩa giữa các câu chuyển tiếp.`,
+     tip:`Từ "Then" trong một câu là tín hiệu mạnh cho biết đây là câu kết luận/đề xuất — gần như luôn đứng cuối chuỗi hội thoại.`},
+  ]
+},
+{
+  key:'sr', group:'c', title:'Viết lại câu', sub:'Sentence rewriting', range:'623–626',
+  instruction:'Chọn phương án có nghĩa GẦN NHẤT với câu cho sẵn.',
+  items:[
+    {id:623, text:`Digital reading may be better for students than print reading.`,
+     options:{
+        A:'Print reading is likely not as bad for students as digital reading.',
+        B:'Print reading is probably not as good for students as digital reading.',
+        C:'Print reading is definitely better for students than digital reading.',
+        D:'Print reading is certainly worse for students than digital reading.'
+     }, answer:'B',
+     explain:`"May" trong câu gốc diễn tả khả năng, không chắc chắn tuyệt đối. Phương án <b>(B)</b> "probably not as good" giữ đúng cả hướng so sánh (đọc sách in kém hơn đọc điện tử) và đúng mức độ không chắc chắn ("probably" ≈ "may"). (A) đổi ngược hướng so sánh (ngụ ý in tốt hơn — sai). (C) và (D) dùng "definitely/certainly" làm tăng mức độ chắc chắn so với "may" trong câu gốc — sai về mức độ tình thái.`,
+     essence:`Viết lại câu phải giữ đúng cả nghĩa logic (ai hơn ai) VÀ mức độ chắc chắn (modality) của câu gốc — lỗi rất phổ biến là chỉ giữ nghĩa mà quên giữ đúng modal.`,
+     tip:`Khi câu gốc có "may/might/could", câu viết lại đúng phải dùng từ tương đương về xác suất như "probably/perhaps/possibly" — tránh các từ chỉ chắc chắn tuyệt đối "definitely/certainly/surely".`},
+    {id:624, text:`The cake was so delicious that everyone asked for a second serving.`,
+     options:{
+        A:'It was such a delicious cake that everyone asked for a second serving.',
+        B:'The cake was too delicious for everyone to ask for a second serving.',
+        C:'Everyone asked for a second delicious cake to be served.',
+        D:'Everyone was given a second serving of the delicious cake.'
+     }, answer:'A',
+     explain:`Đây là phép chuyển đổi cấu trúc "so + adj + that" sang <b>"such a + adj + N + that"</b> — hai cấu trúc tương đương hoàn toàn về nghĩa, và (A) giữ nguyên nội dung, chỉ đổi cấu trúc ngữ pháp. (B) đổi nghĩa thành "quá ngon đến nỗi không ai xin thêm" (ngược nghĩa với câu gốc). (C) và (D) làm thay đổi chủ thể hành động hoặc thêm thông tin không có trong câu gốc.`,
+     essence:`Cấu trúc tương đương "so + adj/adv + that" = "such (a/an) + adj + N + that" diễn tả kết quả.`,
+     tip:`Khi đổi "so...that" sang "such...that", chỉ cần thêm mạo từ phù hợp trước danh từ và giữ nguyên toàn bộ phần còn lại của câu — không đổi nghĩa.`},
+    {id:625, text:`The results of her hard work brought my little sister great joy.`,
+     options:{
+        A:'The results of her hard work pleasantly surprised my little sister.',
+        B:'My little sister learned the value of hard work from her results.',
+        C:'My little sister was thrilled with the results of her hard work.',
+        D:"What my little sister achieved through hard work is fantastic."
+     }, answer:'C',
+     explain:`(C) "My little sister was <b>thrilled</b> with the results of her hard work" diễn đạt chính xác: em gái (chủ thể cảm nhận) cảm thấy vô cùng vui sướng ("thrilled" = niềm vui lớn) với kết quả đó. (A) đổi nghĩa thành "ngạc nhiên" (surprised) — sai loại cảm xúc. (B) chuyển hướng sang "học được giá trị của sự chăm chỉ" — không có trong câu gốc. (D) chỉ nói "thành quả đó thật tuyệt" mà không nhấn vào cảm xúc của em gái.`,
+     essence:`Viết lại câu cần giữ đúng chủ thể cảm xúc (ai vui) và đúng loại cảm xúc (vui sướng, không phải ngạc nhiên hay học hỏi).`,
+     tip:`Xác định "ai cảm thấy gì" trong câu gốc trước, sau đó tìm phương án giữ đúng cả chủ thể và loại cảm xúc đó — loại ngay phương án đổi loại cảm xúc.`},
+    {id:626, text:`Immediately after the last bell chimed, the students hastily left the classroom for summer vacation.`,
+     options:{
+        A:'Hardly had the students heard the last bell than they promptly commenced packing for their summer vacation.',
+        B:'The students wasted no time in the classroom once the last bell heralded the beginning of summer vacation.',
+        C:'Following the toll of the final bell, the students eagerly assembled outside the classroom to plan for summer vacation.',
+        D:'No sooner had the final bell sounded than the students dashed out of the classroom to enjoy their summer vacation.'
+     }, answer:'D',
+     explain:`(D) dùng đúng cấu trúc đảo ngữ <b>"No sooner had + S + Vp2 ... than + S + V-ed"</b>, đúng nghĩa "dashed out" (≈ hastily left) và đúng mục đích "to enjoy their summer vacation" (≈ for summer vacation). (A) dùng sai liên từ sau "Hardly" (phải là "when", không phải "than") và thêm hành động "packing" không có trong câu gốc. (B) và (C) đều làm lệch nghĩa hành động (ở lại lớp / tập trung ngoài lớp để lên kế hoạch) so với "rời khỏi lớp".`,
+     essence:`Cấu trúc đảo ngữ diễn tả hai hành động nối tiếp gần như đồng thời, với cặp liên từ cố định "Hardly/Scarcely... when" và "No sooner... than" — rất dễ nhầm nếu đổi chéo hai liên từ này.`,
+     tip:`Ghi nhớ chắc cặp liên từ cố định, và luôn kiểm tra nghĩa của động từ thay thế ("dashed out" = hastily left) có đúng không trước khi chọn.`},
+  ]
+},
+{
+  key:'scomb', group:'c', title:'Kết hợp câu', sub:'Sentence combination', range:'627–630',
+  instruction:'Chọn phương án kết hợp đúng nghĩa nhất của hai câu cho sẵn.',
+  items:[
+    {id:627, text:`The clouds are gathering. It's going to rain.`,
+     options:{
+        A:'Perhaps the rain is on the way as clouds are gathering.',
+        B:'When the clouds come together, the rain might worsen.',
+        C:'Rain is the certain result of clouds coming together.',
+        D:"Maybe it's going to rain as soon as the clouds gather."
+     }, answer:'A',
+     explain:`(A) giữ đúng thì hiện tại tiếp diễn của việc mây đang kéo đến ("are gathering" – đang diễn ra) và diễn đạt lại "going to rain" bằng "rain is on the way" (cùng sắc thái dự đoán dựa trên dấu hiệu hiện tại). (D) cũng hợp lý về nghĩa nhưng đổi "are gathering" (đang diễn ra) thành "as soon as the clouds gather" (một mốc tương lai), làm sai lệch thời điểm — ngụ ý mây chưa kéo đến. (B) và (C) làm sai nghĩa hoàn toàn ("worsen" ngụ ý mưa đã đang xảy ra; "certain result" biến câu thành một quy luật tự nhiên tuyệt đối, không phải dự đoán tình huống cụ thể).`,
+     essence:`Khi kết hợp câu, phải giữ đúng cả mối quan hệ ngữ nghĩa (nguyên nhân – dự đoán) VÀ đúng thời điểm/thể của động từ (đang diễn ra vs. sẽ diễn ra).`,
+     tip:`Chú ý kỹ thì của động từ trong câu đã cho khi đối chiếu với các phương án — một phương án đổi thì/thể dù nghĩa gần đúng vẫn là phương án sai.`},
+    {id:628, text:`I can ask someone to take me there or use public transport. I prefer the latter choice.`,
+     options:{
+        A:"I can use public transport, so I don't need to ask anyone to take me there.",
+        B:"I'd rather get there by public transport than ask someone to take me there.",
+        C:'I will try using public transport before asking someone to take me there.',
+        D:'I decide to use public transport without asking anyone to take me there.'
+     }, answer:'B',
+     explain:`Cấu trúc <b>"would rather A than B"</b> diễn tả sự ưu tiên lựa chọn — đúng với việc câu gốc nói có hai lựa chọn và thích lựa chọn sau hơn (xe công cộng). (A) biến nó thành quan hệ nhân quả/đủ điều kiện — sai logic so sánh ưu tiên. (C) ngụ ý sẽ thử trước rồi mới nhờ (một trình tự, không phải một lựa chọn dứt khoát). (D) chỉ nói quyết định, không thể hiện rõ đây là sự so sánh ưu tiên giữa hai lựa chọn.`,
+     essence:`Cấu trúc "would rather + V than + V" diễn tả sở thích/ưu tiên giữa hai lựa chọn — phù hợp khi câu gốc có "lựa chọn A hoặc B, tôi thích cái sau/trước hơn".`,
+     tip:`Khi câu gốc có "I prefer the latter/former", nghĩ ngay đến "would rather...than" hoặc "prefer...to" để giữ đúng sắc thái so sánh ưu tiên.`},
+    {id:629, text:`They did not have access to education. It restricted their ability to reach their career targets.`,
+     options:{
+        A:'They could overcome the restriction of career opportunities when they had access to education.',
+        B:'It was evident that access to education could enable them to achieve their career dreams.',
+        C:'If they had access to education, they would be able to work towards their career aims.',
+        D:'It was the lack of access to education that hindered their ability to meet their career goals.'
+     }, answer:'D',
+     explain:`Câu gốc là hai câu <i>khẳng định</i> một thực tế đã xảy ra. (D) dùng cấu trúc nhấn mạnh <b>"It was... that..."</b> diễn đạt lại chính xác quan hệ nhân quả này dưới dạng khẳng định, không đổi sang giả định. (C) tuy giữ được mối liên hệ nhân quả nhưng đổi sang câu điều kiện loại 2 (giả định không thực ở hiện tại) — làm thay đổi tính chất khẳng định của câu gốc. (A) và (B) đều ngụ ý sai rằng họ ĐÃ CÓ cơ hội tiếp cận giáo dục — trái với thông tin gốc.`,
+     essence:`Phân biệt câu khẳng định một sự thật đã xảy ra (cleft sentence "It was X that...") với câu điều kiện giả định — hai cấu trúc có thể gần nghĩa nhưng khác nhau về tính xác thực.`,
+     tip:`Nếu câu gốc là hai câu khẳng định ở thì quá khứ (không phải câu điều kiện), ưu tiên phương án giữ nguyên tính khẳng định thay vì phương án chuyển thành câu điều kiện giả định.`},
+    {id:630, text:`She eventually earned the opportunity to join the national debate competition on behalf of her school. It took years of effort.`,
+     options:{
+        A:'Working hard for years contributed to her ultimate success in the national debate competition as the representative of her school.',
+        B:'It took her years of effort to finally get a chance to participate in the national debate competition hosted by her school.',
+        C:'After years of working hard, she finally got selected to stand for her school in the national debate competition.',
+        D:"Through constant effort, she ultimately competed in the national debate competition as her school's representative for years."
+     }, answer:'C',
+     explain:`(C) diễn đạt chính xác cả mốc thời gian ("years of working hard" = "years of effort") và kết quả ("got selected to stand for her school" = "earned the opportunity... on behalf of her school"), không thêm thông tin sai. (A) đổi nghĩa thành "thành công TRONG cuộc thi" (ngụ ý thắng cuộc) — câu gốc chỉ nói cô có cơ hội tham gia. (B) sai vì nói cuộc thi "do trường cô tổ chức" — câu gốc nói cô đại diện CHO trường, không phải trường tổ chức. (D) đặt "for years" sai vị trí, ngụ ý cô làm đại diện trong nhiều năm — sai, "years" trong câu gốc chỉ thời gian nỗ lực trước đó.`,
+     essence:`Nhận diện lỗi tinh vi khi diễn đạt lại câu — thay đổi nghĩa do đặt sai vị trí cụm chỉ thời gian, hoặc suy diễn thêm thông tin không có trong câu gốc.`,
+     tip:`Đọc kỹ từng chi tiết nhỏ (ai làm gì, cho ai, trong bao lâu) và đối chiếu cẩn thận với từng phương án — đáp án sai thường chỉ lệch một chi tiết rất nhỏ nhưng làm đổi cả nghĩa câu.`},
+  ]
+},
+{
+  key:'cloze', group:'d', title:'Điền từ vào đoạn văn', sub:'Cloze text', range:'631–635',
+  instruction:'Đọc đoạn văn và chọn từ/cụm từ phù hợp nhất cho mỗi chỗ trống.',
+  summary:`<span class="lbl">Tóm tắt nhanh (không phải nguyên văn đề)</span>Đoạn văn giới thiệu <b>AYVP – ASEAN Youth Volunteer Program</b>: một chương trình kết nối thanh niên các nước ASEAN để cùng làm tình nguyện, phát triển kỹ năng lãnh đạo, sự hiểu biết liên văn hoá, và cùng giải quyết các vấn đề xã hội chung trong khu vực.`,
+  items:[
+    {id:631, text:`"It helps them get (631) ____________ and make a difference."`,
+     options:{A:'involve',B:'involved',C:'involving',D:'involves'}, answer:'B',
+     explain:`Cấu trúc <b>get + involved</b> ("trở nên tham gia/dấn thân vào") là cụm cố định: "involved" đóng vai trò tính từ/phân từ đi sau "get" (get + adj/p.p), song hành với "make a difference" ngay sau để tạo cấu trúc song song.`,
+     essence:`Cụm cố định "get involved" (tham gia, dấn thân) — collocation rất phổ biến khi viết về hoạt động xã hội, tình nguyện.`,
+     tip:`"Get + V3/ed" là mẫu rất quen (get married, get involved, get worried...) — khi "get" đứng trước chỗ trống và liên từ "and" nối với một động từ nguyên thể khác, nghĩ ngay đến phân từ/tính từ cố định sau "get".`},
+    {id:632, text:`"This program (632) ____________ together young people from different ASEAN countries to work together..."`,
+     options:{A:'gathers',B:'collects',C:'brings',D:'meets'}, answer:'C',
+     explain:`<b>Bring together</b> là cụm động từ cố định nghĩa là "tập hợp, kết nối lại với nhau", rất phù hợp khi một chương trình tập hợp thanh niên từ nhiều nước. "Gathers", "collects", "meets" không tạo thành collocation tự nhiên với "together" trong ngữ cảnh này.`,
+     essence:`Collocation cố định "bring + người + together" diễn tả việc kết nối/tập hợp con người.`,
+     tip:`Khi chủ ngữ là một chương trình/tổ chức và tân ngữ là con người, "bring together" luôn là lựa chọn tự nhiên nhất để diễn tả việc kết nối nhiều người từ các nơi khác nhau.`},
+    {id:633, text:`"...encourage them to work together to solve problems. (633) ____________ helps them not only gain valuable hands-on experience..."`,
+     options:{A:'This connection with participants',B:'The solution to those problems',C:'Such a goal of AYVP',D:'Such ASEAN encouragement'}, answer:'C',
+     explain:`Câu ngay trước nêu rõ "mục tiêu chính của AYVP" (giúp thanh niên kết nối, cùng giải quyết vấn đề). Chủ ngữ câu sau cần nhắc lại chính ý "mục tiêu" đó để duy trì mạch ý — <b>"Such a goal of AYVP"</b> đóng vai trò chủ ngữ hợp lý nhất cho việc "giúp họ có kinh nghiệm thực tế và xây tình bạn lâu dài". Các phương án khác đưa vào danh từ chưa được nêu rõ trước đó, khiến mạch liên kết lỏng lẻo.`,
+     essence:`Kỹ năng đọc hiểu liên kết ý (cohesion) — chủ ngữ của câu hiện tại cần tham chiếu lại đúng ý/khái niệm đã nêu ở câu ngay trước.`,
+     tip:`Với dạng điền từ ở đầu câu, luôn đọc lại câu/ý ngay trước chỗ trống để tìm khái niệm cần được nhắc lại — đáp án đúng thường là cụm từ tóm lại chính ý vừa nêu.`},
+    {id:634, text:`"...also build lasting friendships and networks with their (634) ____________ from neighboring countries."`,
+     options:{A:'competitors',B:'members',C:'assistants',D:'peers'}, answer:'D',
+     explain:`<b>Peers</b> nghĩa là những người cùng vai trò/cùng vị trí ngang hàng — rất phù hợp để chỉ những thanh niên khác từ các nước ASEAN láng giềng cùng tham gia chương trình. "Competitors" (đối thủ) sai vì đây không phải một cuộc thi cạnh tranh, "members" quá chung, "assistants" (trợ lý) sai hẳn vai trò.`,
+     essence:`Từ vựng chỉ quan hệ giữa người với người trong môi trường hợp tác — "peers" dùng cho người có vị trí/vai trò tương đương.`,
+     tip:`Khi ngữ cảnh nói về "xây tình bạn và mạng lưới" giữa các thanh niên cùng tham gia một chương trình (không phải thi đấu), "peers" luôn là lựa chọn tự nhiên nhất.`},
+    {id:635, text:`"Overall, the ASEAN Youth Volunteer Program shows (635) ____________ for young people to solve big problems."`,
+     options:{A:'how essential it is',B:'they find it significant',C:'it has turned urgent',D:'it has become interesting'}, answer:'A',
+     explain:`Động từ "shows" cần một mệnh đề danh từ (noun clause) làm tân ngữ. <b>"How essential it is for young people to solve big problems"</b> tạo thành mệnh đề danh từ hoàn chỉnh, đúng ngữ pháp sau "shows". Ba phương án còn lại không tạo thành mệnh đề danh từ hợp lý có thể đứng làm tân ngữ trực tiếp.`,
+     essence:`Kiến thức ngữ pháp về mệnh đề danh từ (noun clause) bắt đầu bằng từ hỏi (how/what/why...) làm tân ngữ cho động từ.`,
+     tip:`Khi động từ chính của câu (shows, explains, reveals...) cần một tân ngữ là cả một ý, kiểm tra phương án nào tạo thành cấu trúc "wh-word + S + V" hoàn chỉnh, có thể đứng độc lập làm mệnh đề danh từ.`},
+  ]
+},
+{
+  key:'rc1', group:'d', title:'Đọc hiểu 1', sub:'Reading comprehension', range:'636–640',
+  instruction:'Đọc đoạn văn và chọn A, B, C hoặc D để trả lời mỗi câu hỏi.',
+  summary:`<span class="lbl">Tóm tắt nhanh (không phải nguyên văn đề)</span>Bài đọc giới thiệu <b>Musashi</b> — robot hình người do nhóm nghiên cứu tại Đại học Tokyo (Kawaharazuka dẫn đầu) phát triển, có thể lái xe gần giống con người (khung xương, "cơ", camera ở mắt, cảm biến lực ở tay/chân). Hiện robot chỉ thực hiện được vài tác vụ lái xe đơn giản, tốc độ rất chậm, trên đường thử nghiệm không công cộng; theo tác giả, có thể còn vài chục năm nữa mới có robot lái xe an toàn trong điều kiện giao thông thật.`,
+  items:[
+    {id:636, text:`What does "it" in paragraph 2 refer to?`,
+     options:{A:'A robot',B:'This approach',C:'The steering wheel',D:'Artificial intelligence'}, answer:'B',
+     explain:`Câu liên quan có cấu trúc: nói về cách dùng AI và hệ thống cơ khí riêng cho xe tự lái, sau đó nhận xét rằng dù cách này hiệu quả, đơn giản hơn việc dùng robot để lái, nó vẫn phải được làm riêng cho từng loại xe. Đại từ "it" ở vế sau (nối bằng "but") lặp lại đúng chủ ngữ <b>"this approach"</b> (cách tiếp cận ấy) của vế trước.`,
+     essence:`Xác định từ mà đại từ (it/this/they...) thay thế — tìm danh từ gần nhất phía trước khớp về số lượng và nghĩa logic.`,
+     tip:`Với câu ghép nối bằng "but" có cùng chủ ngữ ở cả hai vế, đại từ ở vế sau thường chỉ ngay chủ ngữ của vế trước — đọc lại toàn câu để kiểm tra tính hợp lý logic.`},
+    {id:637, text:`What is mentioned about driverless cars in paragraph 2?`,
+     options:{A:'They need a flexible system to operate.',B:'They cannot be produced in large quantities.',C:'They work in an efficient and simple way.',D:'They make use of artificial intelligence.'}, answer:'D',
+     explain:`Đoạn 2 nêu trực tiếp rằng hầu hết xe tự lái vận hành khác con người vì dựa vào <b>trí tuệ nhân tạo (AI)</b> và hệ thống máy cơ khí riêng để điều khiển vô lăng, bàn đạp — đây là dữ kiện được nói rõ, không cần suy luận. (A) sai vì bài nói hệ thống được làm <i>riêng cho từng xe</i> (không "linh hoạt"). (B) là suy luận quá xa, bài không nói gì về quy mô sản xuất. (C) diễn đạt lại một phép so sánh tương đối ("hiệu quả, đơn giản hơn so với dùng robot") thành một khẳng định tuyệt đối — làm sai mức độ thông tin gốc.`,
+     essence:`Câu hỏi chi tiết (detail question) — tìm thông tin được nêu trực tiếp, tránh nhầm với phương án suy luận quá xa hoặc làm sai mức độ so sánh gốc.`,
+     tip:`Với câu hỏi "what is mentioned", ưu tiên phương án được nêu trực tiếp nhất; cảnh giác với phương án "nghe có lý" nhưng đòi hỏi suy luận thêm hoặc đổi mức độ so sánh.`},
+    {id:638, text:`What is the main topic of paragraph 3?`,
+     options:{A:"Musashi's construction and operation",B:'Actions that Musashi can do as a car driver',C:"Kawaharazuka and his colleagues' latest invention",D:'How a human-like robot was developed'}, answer:'A',
+     explain:`Đoạn 3 mô tả cả <i>cấu tạo vật lý</i> của Musashi (khung, "cơ", camera, cảm biến lực) VÀ <i>cách nó hoạt động</i> (hệ thống AI, các tác vụ lái xe, tốc độ) — (A) bao quát đầy đủ cả hai khía cạnh này. (B) chỉ nói phần "hoạt động", bỏ sót phần cấu tạo. (C) quá chung, không nêu nội dung cụ thể. (D) sai vì đoạn không nói về quá trình phát triển/lịch sử nghiên cứu, chỉ miêu tả đặc điểm hiện tại.`,
+     essence:`Xác định ý chính (main idea) của một đoạn — chọn phương án bao quát đủ các nội dung chính, không chỉ một phần.`,
+     tip:`Đọc nhanh toàn đoạn và liệt kê các "cụm ý" chính (ở đây: cấu tạo + khả năng hoạt động) — đáp án đúng phải gói được tất cả các cụm ý đó.`},
+    {id:639, text:`What can Musashi NOT do?`,
+     options:{A:'Drive and turn right',B:'Drive without turning',C:'Move slowly in traffic',D:'Recognize red traffic lights'}, answer:'C',
+     explain:`Bài cho biết Musashi hiện chỉ thực hiện được một số tác vụ hạn chế: đi thẳng, rẽ phải, di chuyển khoảng 5km/h — nhưng <b>chỉ trên đường không công cộng</b>, chưa phải đường có giao thông thực tế; đoạn cuối bài còn khẳng định việc robot vận hành trong điều kiện giao thông thật chưa phải điều sẽ thấy sớm. Vậy "di chuyển trong giao thông thực tế" là điều nó CHƯA làm được. (A) sai vì nó rẽ phải được. (B) sai vì đi thẳng chính là lái không cần rẽ — nó làm được. (D) sai vì đoạn 3 cho biết AI của nó có phản ứng với đèn giao thông đổi màu.`,
+     essence:`Câu hỏi dạng NOT/EXCEPT — phân biệt rạch ròi giữa "đường không công cộng, tốc độ thấp" (đã làm được) và "giao thông thực tế" (chưa làm được).`,
+     tip:`Với câu hỏi "NOT/cannot do", gạch chân từng việc robot ĐÃ làm được trong bài và loại các phương án đó trước — phương án còn lại chính là đáp án.`},
+    {id:640, text:`Which of the following would the author most likely support?`,
+     options:{
+        A:'Using robot drivers in reality is risky as they cannot react to all road situations.',
+        B:'While years away from realization, robot drivers could outperform human drivers.',
+        C:'Robot drivers are feasible but will never completely replace human drivers.',
+        D:'Robot drivers have shown impressive progress but still need much improvement.'
+     }, answer:'D',
+     explain:`Toàn bài cho thấy Musashi có thiết kế tinh vi, giống người (cấu tạo, cảm biến, AI phản ứng tình huống) nhưng năng lực vận hành còn rất hạn chế (tốc độ chậm, chỉ vài tác vụ cơ bản, chỉ trên đường không công cộng, có thể mất hàng chục năm mới sẵn sàng) — khớp với <b>"impressive progress but still need much improvement"</b>. (A) quá tiêu cực, một chiều. (B) không có cơ sở — bài không gợi ý robot vượt trội hơn người. (C) đưa ra khẳng định tuyệt đối ("never") mà bài không đề cập.`,
+     essence:`Câu hỏi suy luận quan điểm/giọng văn tổng thể — cần tổng hợp cả mặt "đã đạt được" và "còn hạn chế" xuyên suốt bài, tránh phương án chỉ phản ánh một mặt hoặc kết luận tuyệt đối.`,
+     tip:`Với câu hỏi "tác giả có thể đồng tình với điều gì", ưu tiên phương án có giọng điệu trung lập, cân bằng cả ưu và nhược điểm; loại ngay phương án dùng từ tuyệt đối (never, risky, outperform) nếu bài không có cơ sở rõ ràng.`},
+  ]
+},
+{
+  key:'rc2', group:'d', title:'Đọc hiểu 2', sub:'Reading comprehension', range:'641–645',
+  instruction:'Đọc đoạn văn và chọn A, B, C hoặc D để trả lời mỗi câu hỏi.',
+  summary:`<span class="lbl">Tóm tắt nhanh (không phải nguyên văn đề)</span>Bài đọc nói về quyền riêng tư dữ liệu cá nhân: các luật như <b>GDPR</b> (châu Âu) và <b>CCPA</b> (California) trao cho người dùng một số quyền với dữ liệu của họ; bài cũng đưa lời khuyên thực tế để bảo vệ thông tin cá nhân trên mạng (mật khẩu mạnh, xác thực hai yếu tố, cẩn trọng với lừa đảo, cập nhật phần mềm, dùng antivirus...), và kết luận rằng bảo vệ dữ liệu cá nhân là trách nhiệm chung của tất cả mọi người.`,
+  items:[
+    {id:641, text:`What is "grants" in paragraph 2 closest in meaning to?`,
+     options:{A:'respects',B:'permits',C:'protects',D:'claims'}, answer:'B',
+     explain:`Ở đây, GDPR cho phép các cá nhân có một số quyền cụ thể (quyền truy cập dữ liệu, quyền yêu cầu xóa, quyền biết cách dữ liệu được dùng) — nghĩa là "trao cho/cho phép có" những quyền này, gần nghĩa nhất với <b>permits</b>. "Respects" (tôn trọng quyền đã có từ trước), "protects" (bảo vệ quyền đã có) và "claims" (tuyên bố) đều không mang nghĩa "trao quyền mới".`,
+     essence:`Phân biệt các động từ liên quan đến "quyền" có sắc thái khác nhau: grant/permit (trao/cho phép có quyền mới) khác với respect/protect (tôn trọng/bảo vệ quyền đã tồn tại).`,
+     tip:`Khi từ cần tìm nghĩa đi cùng "rights", xác định rõ động từ gốc đang nói về việc TẠO RA quyền mới hay BẢO VỆ quyền đã có — đây là chìa khóa chọn đúng từ đồng nghĩa.`},
+    {id:642, text:`What does "their" in paragraph 2 refer to?`,
+     options:{A:'people',B:'companies',C:'rights',D:'laws'}, answer:'A',
+     explain:`Câu chứa từ "their" nói rằng việc biết các luật này giúp mọi người hiểu quyền của mình và biết các công ty phải làm gì để giữ an toàn cho dữ liệu của họ. "Their data" ở đây là dữ liệu của <b>những người dùng (people)</b> — những người mà công ty có trách nhiệm bảo vệ dữ liệu cho họ, không phải dữ liệu của chính các công ty.`,
+     essence:`Xác định từ tham chiếu của đại từ sở hữu trong câu có nhiều danh từ số nhiều — cần dựa vào nghĩa logic toàn câu, không chỉ dựa vào danh từ đứng gần nhất.`,
+     tip:`Đừng vội chọn danh từ đứng gần đại từ nhất về vị trí — luôn kiểm tra lại bằng cách thay đại từ vào câu và xem nghĩa có hợp lý không.`},
+    {id:643, text:`Which of the following best paraphrases this sentence: "Reading and understanding privacy policies allows individuals to make informed decisions about sharing their personal information."?`,
+     options:{
+        A:'Reading and understanding privacy policies informs individuals about the decision-making process regarding their personal information.',
+        B:'Individuals who want to know how to share their personal information wisely should read and understand privacy policies.',
+        C:'Individuals can make reasoned choices about sharing their personal information thanks to reading and understanding privacy policies.',
+        D:"Reading and understanding privacy policies raises individuals' awareness of their responsibilities for sharing personal information."
+     }, answer:'C',
+     explain:`Câu gốc nói việc đọc/hiểu chính sách bảo mật CHO PHÉP cá nhân đưa ra quyết định có cơ sở. (C) giữ đúng quan hệ nhân quả này ("nhờ đọc/hiểu → có thể đưa ra quyết định hợp lý") với "reasoned choices" tương đương "informed decisions". (A) làm sai nghĩa khi nói chính sách "thông báo về QUY TRÌNH ra quyết định" thay vì "cho phép đưa ra quyết định". (B) đổi thành câu khuyên ("should") thay vì khẳng định một lợi ích đã có. (D) đổi "decisions" thành "nhận thức về trách nhiệm" — sai lệch nghĩa.`,
+     essence:`Kỹ năng paraphrase — giữ đúng quan hệ nhân quả và đúng loại "kết quả" (năng lực ra quyết định, không phải nhận thức về trách nhiệm hay quy trình).`,
+     tip:`Khi paraphrase câu dạng "X allows Y to do Z", phương án đúng phải giữ Y làm chủ thể có NĂNG LỰC làm Z nhờ X — loại ngay phương án đổi Z thành một khái niệm khác.`},
+    {id:644, text:`What is paragraph 3 mainly about?`,
+     options:{
+        A:'Basic techniques to keep personal devices safe from attack',
+        B:'The importance of online security and managing information',
+        C:'Possible disadvantages of sharing personal information online',
+        D:'Strategies to protect personal information and stay safe online'
+     }, answer:'D',
+     explain:`Đoạn 3 liệt kê hàng loạt biện pháp cụ thể: dùng mật khẩu mạnh, xác thực hai yếu tố, cẩn trọng với email/tin nhắn lừa đảo, cập nhật phần mềm, dùng antivirus, cùng lời khuyên chuyên gia về việc cẩn trọng khi chia sẻ dữ liệu — tất cả là các <b>chiến lược bảo vệ thông tin cá nhân và an toàn trực tuyến</b>, khớp với (D). (A) chỉ là một phần (bảo vệ thiết bị), bỏ sót các biện pháp khác. (B) quá chung, không phản ánh tính "hành động cụ thể". (C) sai hoàn toàn vì đoạn không nói về nhược điểm của việc chia sẻ thông tin.`,
+     essence:`Câu hỏi ý chính đoạn văn — đáp án cần bao quát đủ rộng để chứa mọi biện pháp được liệt kê, nhưng không quá hẹp hay quá rộng.`,
+     tip:`Với đoạn liệt kê nhiều biện pháp cùng một mục đích, ý chính thường có dạng "cách để [đạt mục đích đó]" — tìm phương án bao quát được tất cả các mục đã liệt kê.`},
+    {id:645, text:`Which of the following does the author probably support?`,
+     options:{
+        A:'Protecting personal data is not only an individual choice but a collective responsibility.',
+        B:'Personal data protection is an inevitable action to ensure positive online interactions.',
+        C:'A safer online environment requires collaboration between users and service providers.',
+        D:'Cooperation among individuals is likely to enhance global digital security and privacy.'
+     }, answer:'A',
+     explain:`Câu kết bài nhấn mạnh rằng bảo vệ dữ liệu cá nhân là điều mà <b>tất cả mọi người cần cùng nhau thực hiện</b> để tạo ra một môi trường mạng an toàn và văn minh hơn — tức là một trách nhiệm chung, không chỉ của riêng từng cá nhân. (A) diễn đạt chính xác tinh thần này. (B) nói về tính "tất yếu" hơn là khía cạnh tập thể. (C) thêm yếu tố "service providers" mà bài không đề cập. (D) nói về "an ninh số toàn cầu" — phạm vi rộng hơn và lệch trọng tâm so với câu kết nhấn vào trách nhiệm của mỗi người.`,
+     essence:`Câu hỏi suy luận quan điểm tác giả dựa vào câu kết bài — cần bám sát từ khóa và cấu trúc lập luận của câu kết, tránh phương án thêm thông tin không có hoặc lệch trọng tâm.`,
+     tip:`Câu hỏi "tác giả ủng hộ điều gì" thường có câu trả lời nằm ngay ở câu kết đoạn/kết bài — đọc kỹ câu cuối và tìm phương án diễn đạt sát nhất với cấu trúc lập luận đó.`},
+  ]
+},
+{
+  key:'logic', group:'e', title:'Tư duy logic & giải quyết vấn đề', sub:'Logical thinking and problem solving', range:'646–650',
+  instruction:'Chọn phương án phù hợp nhất cho mỗi tình huống.',
+  items:[
+    {id:646, text:`You are attending a friend's birthday party where many of his friends are playing a lively game with balloons. You are quite shy and don't know those friends. However, you want to be part of the game. What can you say to play the game?`,
+     options:{
+        A:'Would it be okay if everyone joined in the activity?',
+        B:'Balloons seem like a fantastic addition to the party!',
+        C:'Could I have a chance to join in this activity, please?',
+        D:'Wow! Those bright balloons really caught my attention.'
+     }, answer:'C',
+     explain:`Bạn nhút nhát, không quen ai, nhưng muốn tham gia trò chơi → câu nói phù hợp nhất phải là một lời <b>đề nghị trực tiếp, lịch sự</b> để được tham gia — "Could I have a chance to join in this activity, please?" đúng mục đích này. (A) hỏi liệu "mọi người" có muốn tham gia (sai chủ thể — bạn muốn chính mình tham gia). (B) và (D) chỉ là lời nhận xét/khen về bóng bay, không thể hiện mong muốn tham gia.`,
+     essence:`Chọn câu nói phù hợp với MỤC ĐÍCH giao tiếp cụ thể (xin phép tham gia) — phân biệt với câu chỉ mang tính nhận xét/quan sát.`,
+     tip:`Luôn bám sát "mục đích" được nêu trong đề (ở đây: "muốn tham gia trò chơi") để loại các phương án chỉ là nhận xét/khen ngợi chứ không thực sự đề nghị điều cần đạt được.`},
+    {id:647, text:`Kate, the manager, is asking David, her assistant, about a report. Kate: "Can you send me the report this weekend?" David: ________`,
+     options:{
+        A:"Don't mention it! I'll need it for the meeting on Sunday.",
+        B:"That's no big deal. I'll have it done by Saturday.",
+        C:'That sounds great. Why don\'t you send me all the details?',
+        D:"I'm not surprised. The manager is going to check it on Monday."
+     }, answer:'B',
+     explain:`Đây là một yêu cầu công việc thông thường từ quản lý. Phản hồi phù hợp nhất của nhân viên là xác nhận đồng ý và cam kết thời hạn cụ thể — <b>"That's no big deal. I'll have it done by Saturday."</b> (A) dùng sai cụm "Don't mention it" (chỉ dùng để đáp lại lời cảm ơn) và nội dung sau cũng không hợp vai trò. (C) đảo ngược vai trò, yêu cầu chính Kate gửi thông tin — không hợp lý khi David là người được giao việc. (D) là câu trả lời lạc đề, không xác nhận hay từ chối yêu cầu.`,
+     essence:`Nhận diện phản hồi phù hợp với VAI TRÒ xã hội/công việc của người nói — câu trả lời phải khớp logic vai trò, không đảo ngược trách nhiệm.`,
+     tip:`Khi đề bài chỉ rõ vai trò hai người (quản lý–nhân viên, khách–chủ...), kiểm tra phương án trả lời có còn giữ đúng vai trò đó không — loại ngay phương án khiến vai trò bị đảo lộn hoặc vô lý.`},
+    {id:648, text:`Following are statements about a movie. Which statement can be a fact?`,
+     options:{A:'The movie is the greatest ever made.',B:"The movie is the director's best so far.",C:'The movie feels too long to sit through.',D:'The movie won three Oscars last year.'}, answer:'D',
+     explain:`Một "fact" (sự thật) là điều có thể kiểm chứng khách quan, không phụ thuộc cảm nhận cá nhân. <b>"The movie won three Oscars last year"</b> là thông tin có thể kiểm tra được qua kết quả giải thưởng thực tế. Ba phương án còn lại đều là OPINION (quan điểm cá nhân): "greatest ever made", "director's best so far", "feels too long" đều là đánh giá chủ quan, không thể kiểm chứng bằng dữ kiện khách quan.`,
+     essence:`Phân biệt FACT (sự thật khách quan, kiểm chứng được) và OPINION (quan điểm/cảm nhận chủ quan) — kỹ năng tư duy phản biện cơ bản.`,
+     tip:`Tự hỏi "câu này có thể đúng/sai một cách khách quan, kiểm tra được bằng dữ liệu, hay phụ thuộc vào cảm nhận từng người?" — câu chứa từ đánh giá (best/greatest/too long) thường là OPINION; số liệu/sự kiện cụ thể tra cứu được là FACT.`},
+    {id:649, text:"You've noticed that whenever the heater in your house is turned on, the lights in the living room flicker. What is the likely cause?",
+     options:{
+        A:'The heater and the lights are malfunctioning.',
+        B:"There is an issue with the living room's light system.",
+        C:"The living room's lights need more electrical power.",
+        D:'The heater and the lights are on the same electrical circuit.'
+     }, answer:'D',
+     explain:`Hiện tượng "bật máy sưởi thì đèn phòng khách nhấp nháy" là dấu hiệu điển hình của việc hai thiết bị đang dùng <b>chung một đường dây điện (electrical circuit)</b> — khi máy sưởi khởi động, nó kéo dòng điện lớn làm sụt áp tạm thời trên đường dây chung, khiến đèn nhấp nháy. (A) giả định cả hai cùng hỏng một cách trùng hợp — không hợp lý cho một hiện tượng lặp lại có quy luật. (B) và (C) không giải thích được TẠI SAO việc bật máy sưởi lại liên quan trực tiếp đến đèn.`,
+     essence:`Suy luận nhân quả (causal reasoning) trong tình huống thực tế — tìm nguyên nhân hợp lý nhất khi hai hiện tượng luôn xảy ra cùng nhau một cách có quy luật.`,
+     tip:`Khi hai hiện tượng luôn xảy ra ĐỒNG THỜI và CÓ QUY LUẬT (cứ A thì B), tìm nguyên nhân chung kết nối trực tiếp cả hai, thay vì giả định chúng độc lập hoặc hỏng hóc ngẫu nhiên.`},
+    {id:650, text:`Which of the following situations best exemplifies "compensation" where someone makes up for a loss or damage they caused?`,
+     options:{
+        A:"Sarah forgets to return her friend's borrowed jacket on time. She apologizes and assures her friend that she will return it the next day.",
+        B:"Sarah accidentally spills juice on her friend's favorite book. She invites her friend for coffee and presents him a new copy of the book.",
+        C:"Sarah breaks a plate while washing dishes at her friend's house. She takes the time to carefully clean up the mess and apologizes sincerely.",
+        D:"Sarah borrows her friend's bicycle and returns it with a flat tire. She promises to return the bicycle promptly after fixing the tire herself."
+     }, answer:'B',
+     explain:`"Compensation" (đền bù) nghĩa là CHỦ ĐỘNG bù đắp lại một giá trị tương đương cho thiệt hại đã gây ra. Trong (B), Sarah làm hỏng sách của bạn và <b>đền bù bằng một cuốn sách mới</b> (giá trị tương đương) kèm một cử chỉ thiện chí (mời cà phê) — ví dụ rõ ràng và đầy đủ nhất về "đền bù". (A) chỉ là xin lỗi và hứa trả đúng hạn (chưa có thiệt hại thực sự, chỉ trễ hẹn). (C) chỉ dọn dẹp và xin lỗi, không có giá trị bù đắp tương đương cho cái đĩa đã vỡ. (D) chỉ là khắc phục/sửa lại đúng vật đã mượn (đưa về trạng thái ban đầu), khác với việc trao một giá trị thay thế tương đương như (B).`,
+     essence:`Phân biệt "compensation" (đền bù bằng giá trị tương đương) với các hành vi liên quan nhưng khác bản chất như "apologizing" (xin lỗi) hay "fixing/repairing" (sửa chữa lại).`,
+     tip:`Tìm tình huống mà người gây thiệt hại CHỦ ĐỘNG TRAO LẠI một giá trị/vật thay thế tương đương cho thiệt hại đã gây ra (không chỉ xin lỗi hay sửa chữa đơn thuần) — đó chính là bản chất của "compensation".`},
+  ]
+},
+];
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const groupName = {a:'Ngữ pháp – Từ vựng', b:'Hội thoại', c:'Viết lại / Kết hợp câu', d:'Điền từ & Đọc hiểu', e:'Tư duy logic'};
+
+function renderSideNav(){
+  const nav = document.getElementById('sideNav');
+  nav.innerHTML = SECTIONS.map(s=>`
+    <a href="#sec-${s.key}">
+      <span class="sw sw-${s.group}"></span>
+      ${s.title}
+      <span class="rng">${s.range}</span>
+    </a>`).join('');
+}
+
+function renderQuickGrid(){
+  const grid = document.getElementById('qGrid');
+  let html = '';
+  SECTIONS.forEach(s=>{
+    s.items.forEach(it=>{
+      html += `<button class="g-${s.group}" data-id="${it.id}">${it.id}</button>`;
+    });
+  });
+  grid.innerHTML = html;
+  grid.addEventListener('click', e=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    goTo(btn.dataset.id);
+  });
+}
+
+function goTo(id){
+  const el = document.getElementById('q'+id);
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.classList.add('force-show');
+  el.classList.add('flash');
+  setTimeout(()=>el.classList.remove('flash'), 1200);
+}
+
+function optionHTML(letter, text, isCorrect){
+  return `<div class="option${isCorrect?' correct':''}"><b class="letter">${letter}.</b><span>${text}</span></div>`;
+}
+
+function wrongReasonHTML(it){
+  if(!it.wrongReasons) return '';
+  const letters = ['A','B','C','D'].filter(L=>L!==it.answer);
+  const items = letters.map(L=>{
+    const reason = it.wrongReasons[L];
+    if(!reason) return '';
+    const optText = it.options[L] || '';
+    return `<div class="wrong-item">
+      <span class="wletter">${L}</span>
+      <div class="wbody">
+        <div class="woption">"${optText}"</div>
+        <div class="wreason">${reason}</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="wrong-section">
+    <span class="wrong-section-label">❌ Tại sao các đáp án sai không đúng</span>
+    <div class="wrong-list">${items}</div>
+  </div>`;
+}
+
+function questionHTML(sec, it){
+  let bodyHtml = '';
+  if(it.arrange){
+    bodyHtml = `<ul class="qlines">${it.lines.map(l=>{
+      const m = l.match(/^([a-f])\.\s(.*)$/);
+      return `<li><b>${m[1]}.</b>${m[2]}</li>`;
+    }).join('')}</ul>`;
+  } else {
+    bodyHtml = `<div class="qtext">${it.text}</div>`;
+  }
+  const opts = ['A','B','C','D'].map(L=>optionHTML(L, it.options[L], L===it.answer)).join('');
+  return `
+  <div class="qcard g-${sec.group}" id="q${it.id}">
+    <div class="qhead">
+      <span class="qnum">#${it.id}</span>
+      ${bodyHtml}
+    </div>
+    <div class="options">${opts}</div>
+    <button class="reveal-btn" type="button">👁 Xem đáp án &amp; giải thích</button>
+    <div class="panel">
+      <div class="prow explain"><span class="plabel">Giải thích</span><span class="ptext">${it.explain}</span></div>
+      ${wrongReasonHTML(it)}
+      <div class="prow essence"><span class="plabel">Bản chất</span><span class="ptext">${it.essence}</span></div>
+      <div class="prow tip"><span class="plabel">Mẹo làm bài</span><span class="ptext">${it.tip}</span></div>
+    </div>
+  </div>`;
+}
+
+function sectionHTML(sec){
+  const summary = sec.summary ? `<div class="summary">${sec.summary}</div>` : '';
+  return `
+  <section class="section" id="sec-${sec.key}">
+    <div class="section-head">
+      <h2>${sec.title}</h2>
+      <span class="sub">${sec.sub} · ${groupName[sec.group]}</span>
+      <span class="rng rng-${sec.group}">Câu ${sec.range}</span>
+    </div>
+    <p class="section-instr">${sec.instruction}</p>
+    ${summary}
+    ${sec.items.map(it=>questionHTML(sec, it)).join('')}
+  </section>`;
+}
+
+function renderSections(){
+  document.getElementById('sections').innerHTML = SECTIONS.map(sectionHTML).join('');
+}
+
+/* ============================================================
+   INTERACTIONS
+   ============================================================ */
+function initRevealButtons(){
+  document.querySelectorAll('.qcard').forEach(card=>{
+    const btn = card.querySelector('.reveal-btn');
+    btn.addEventListener('click', ()=>card.classList.add('force-show'));
+  });
+}
+
+function initModeSwitch(){
+  const sw = document.getElementById('modeSwitch');
+  const label = document.getElementById('modeLabel');
+  sw.addEventListener('click', ()=>{
+    const hiding = document.body.classList.toggle('hide-answers');
+    sw.classList.toggle('on', hiding);
+    label.textContent = hiding ? 'Ẩn đáp án để tự luyện trước' : 'Hiện đáp án ngay (đang bật)';
+    if(hiding){ document.querySelectorAll('.qcard.force-show').forEach(c=>c.classList.remove('force-show')); }
+  });
+}
+
+function initJumpForm(){
+  document.getElementById('jumpForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const v = document.getElementById('jumpInput').value;
+    if(v) goTo(v);
+  });
+}
+
+function initToTop(){
+  document.getElementById('toTop').addEventListener('click', ()=>window.scrollTo({top:0, behavior:'smooth'}));
+}
+
+renderSideNav();
+renderQuickGrid();
+renderSections();
+initRevealButtons();
+initModeSwitch();
+initJumpForm();
+initToTop();
+</script>
+</body>
+</html>
