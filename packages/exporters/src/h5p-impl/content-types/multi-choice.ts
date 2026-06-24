@@ -1,4 +1,4 @@
-import type { MultipleChoiceSingle, MultipleChoiceMultiple, MCOption } from '../../../contracts/questions/types/choice.js'
+import type { MultipleChoiceSingle, MultipleChoiceMultiple, MCOption } from '@oh-my-class/renderer/contracts/questions/types/choice.js'
 
 export interface H5PMultiChoiceContent {
   question: string

@@ -1,4 +1,4 @@
-import type { TrueFalse4Item } from '../../../contracts/questions/types/choice.js'
+import type { TrueFalse4Item } from '@oh-my-class/renderer/contracts/questions/types/choice.js'
 
 export interface H5PTrueFalseContent {
   question: string

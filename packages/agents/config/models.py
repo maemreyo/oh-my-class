@@ -27,6 +27,8 @@ class ModelConfig(BaseSettings):
     lead_agent: str = "f.pro"
     llm_judge: str = "f.pro"
     fact_verification: str = "f.pro"
+    # Alias: spec QG2 references MODELS.quality_gate → resolves to same f.pro combo
+    quality_gate: str = "f.pro"
 
     # f.light — fast generation (deepseek-v4-flash / deepseek-free per §6.1)
     blueprint_design: str = "f.light"

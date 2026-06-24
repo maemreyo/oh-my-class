@@ -1,4 +1,4 @@
-import type { Cloze, FillBlankWordBank } from '../../../contracts/questions/types/fill-gap.js'
+import type { Cloze, FillBlankWordBank } from '@oh-my-class/renderer/contracts/questions/types/fill-gap.js'
 
 export interface H5PBlanksContent {
   text:     string   // passage with *blank* markers like: "Hello *world*!"

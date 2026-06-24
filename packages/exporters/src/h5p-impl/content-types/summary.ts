@@ -1,4 +1,4 @@
-import type { RecapData } from '../../../contracts/recap.js'
+import type { RecapData } from '@oh-my-class/renderer/contracts/recap.js'
 
 export interface H5PSummaryContent {
   intro:      string

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { FlashcardTSVExporter } from '../../src/exporters/flashcard-tsv/index.js'
-import type { Flashcard, FlashcardDeckData } from '../../src/contracts/flashcard_deck.js'
+import { FlashcardTSVExporter } from '../src/flashcard-tsv/index.js'
+import type { Flashcard, FlashcardDeckData } from '@oh-my-class/renderer/contracts/flashcard_deck.js'
 
 const exporter = new FlashcardTSVExporter()
 

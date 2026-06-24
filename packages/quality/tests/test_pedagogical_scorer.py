@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 class TestPedagogicalScoreDataclass:
     def test_passed_true_when_total_gte_threshold(self):
-        from packages.agents.quality.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
+        from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
         score = PedagogicalScore(
             clarity=4.0, integrity=4.0, depth=3.5,
             practicality=4.0, pertinence=3.5,
@@ -17,7 +17,7 @@ class TestPedagogicalScoreDataclass:
         assert score.total >= PASS_THRESHOLD
 
     def test_passed_false_when_total_below_threshold(self):
-        from packages.agents.quality.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
+        from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
         score = PedagogicalScore(
             clarity=2.0, integrity=2.0, depth=3.0,
             practicality=2.0, pertinence=3.0,
@@ -27,11 +27,11 @@ class TestPedagogicalScoreDataclass:
         assert score.total < PASS_THRESHOLD
 
     def test_pass_threshold_is_3_5(self):
-        from packages.agents.quality.pedagogical_scorer import PASS_THRESHOLD
+        from packages.quality.layer4_judge.pedagogical_scorer import PASS_THRESHOLD
         assert PASS_THRESHOLD == 3.5
 
     def test_score_has_all_5_dimensions(self):
-        from packages.agents.quality.pedagogical_scorer import PedagogicalScore
+        from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore
         score = PedagogicalScore(
             clarity=4.0, integrity=3.5, depth=4.0,
             practicality=3.5, pertinence=4.0,
@@ -44,7 +44,7 @@ class TestPedagogicalScoreDataclass:
         assert score.pertinence == 4.0
 
     def test_total_is_rounded(self):
-        from packages.agents.quality.pedagogical_scorer import PedagogicalScore
+        from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore
         score = PedagogicalScore(
             clarity=4.0, integrity=3.0, depth=4.0,
             practicality=3.0, pertinence=4.0,
@@ -58,7 +58,7 @@ class TestPedagogicalScoreDataclass:
 class TestScorePedagogical:
     @pytest.mark.asyncio
     async def test_returns_pedagogical_score_from_llm(self):
-        from packages.agents.quality.pedagogical_scorer import score_pedagogical
+        from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical
 
         mock_response = MagicMock()
         mock_response.content = '{"clarity": 4, "integrity": 4, "depth": 4, "practicality": 4, "pertinence": 4, "rationale": "good"}'
@@ -78,7 +78,7 @@ class TestScorePedagogical:
 
     @pytest.mark.asyncio
     async def test_passed_false_when_avg_below_threshold(self):
-        from packages.agents.quality.pedagogical_scorer import score_pedagogical
+        from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical
 
         mock_response = MagicMock()
         mock_response.content = '{"clarity": 2, "integrity": 2, "depth": 3, "practicality": 2, "pertinence": 3, "rationale": "needs work"}'
@@ -93,7 +93,7 @@ class TestScorePedagogical:
 
     @pytest.mark.asyncio
     async def test_raises_on_invalid_json(self):
-        from packages.agents.quality.pedagogical_scorer import score_pedagogical
+        from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical
         import json
 
         mock_response = MagicMock()
@@ -107,7 +107,7 @@ class TestScorePedagogical:
 
     @pytest.mark.asyncio
     async def test_content_truncated_to_6000_chars(self):
-        from packages.agents.quality.pedagogical_scorer import score_pedagogical, _MAX_CONTENT_CHARS
+        from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical, _MAX_CONTENT_CHARS
 
         mock_response = MagicMock()
         mock_response.content = '{"clarity": 3, "integrity": 3, "depth": 3, "practicality": 3, "pertinence": 3, "rationale": "ok"}'

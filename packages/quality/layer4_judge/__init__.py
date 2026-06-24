@@ -6,5 +6,6 @@ Generator model ≠ judge model for bias mitigation.
 
 from packages.quality.layer4_judge.geval import GEvalScorer
 from packages.quality.layer4_judge.majority_vote import majority_vote
+from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, score_pedagogical
 
-__all__ = ["GEvalScorer", "majority_vote"]
+__all__ = ["GEvalScorer", "majority_vote", "PedagogicalScore", "score_pedagogical"]

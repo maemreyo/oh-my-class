@@ -1,7 +1,7 @@
-import type { BaseQuestion } from '../../contracts/questions/base.js'
-import type { MultipleChoiceSingle, MultipleChoiceMultiple, TrueFalse4Item } from '../../contracts/questions/types/choice.js'
-import type { ShortAnswer } from '../../contracts/questions/types/text-entry.js'
-import type { Essay } from '../../contracts/questions/types/open.js'
+import type { BaseQuestion } from '@oh-my-class/renderer/contracts/questions/base.js'
+import type { MultipleChoiceSingle, MultipleChoiceMultiple, TrueFalse4Item } from '@oh-my-class/renderer/contracts/questions/types/choice.js'
+import type { ShortAnswer } from '@oh-my-class/renderer/contracts/questions/types/text-entry.js'
+import type { Essay } from '@oh-my-class/renderer/contracts/questions/types/open.js'
 
 // Google Forms API — batchUpdate request item shape
 export interface FormsItem {

@@ -1,5 +1,5 @@
-import type { BaseQuestion } from '../../contracts/questions/base.js'
-import type { QuizData } from '../../contracts/quiz.js'
+import type { BaseQuestion } from '@oh-my-class/renderer/contracts/questions/base.js'
+import type { QuizData } from '@oh-my-class/renderer/contracts/quiz.js'
 import { questionToFormsItem, type FormsItem } from './question-mapper.js'
 import { createGoogleFormsClient, type BatchUpdateRequest } from './client.js'
 

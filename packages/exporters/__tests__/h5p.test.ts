@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { unzipSync, strFromU8 } from 'fflate'
-import { H5PExporter } from '../../src/exporters/h5p/index.js'
-import { buildH5PPackage } from '../../src/exporters/h5p/packager.js'
-import type { MultipleChoiceSingle, TrueFalse4Item } from '../../src/contracts/questions/types/choice.js'
-import type { FlashcardDeckData } from '../../src/contracts/flashcard_deck.js'
-import type { RecapData } from '../../src/contracts/recap.js'
+import { H5PExporter } from '../src/h5p-impl/index.js'
+import { buildH5PPackage } from '../src/h5p-impl/packager.js'
+import type { MultipleChoiceSingle, TrueFalse4Item } from '@oh-my-class/renderer/contracts/questions/types/choice.js'
+import type { FlashcardDeckData } from '@oh-my-class/renderer/contracts/flashcard_deck.js'
+import type { RecapData } from '@oh-my-class/renderer/contracts/recap.js'
 
 function readZip(pkg: Uint8Array): { h5pJson: Record<string, unknown>; contentJson: unknown } {
   const files = unzipSync(pkg)

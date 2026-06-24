@@ -1,4 +1,4 @@
-import type { FlashcardDeckData, Flashcard } from '../../contracts/flashcard_deck.js'
+import type { FlashcardDeckData, Flashcard } from '@oh-my-class/renderer/contracts/flashcard_deck.js'
 
 /**
  * FlashcardTSVExporter — tab-separated values for Quizlet and Anki import.

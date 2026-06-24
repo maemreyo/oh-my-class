@@ -47,13 +47,16 @@ class PedagogicalScore:
 async def score_pedagogical(
     content: str,
     llm: object | None = None,
+    run_id: str | None = None,
+    step: int | None = None,
 ) -> PedagogicalScore:
     """Score content on 5 pedagogical dimensions using an f.pro LLM judge.
 
     Args:
         content: The educational content to evaluate (plain text or markdown)
         llm:     Optional LLMClient instance. If None, creates a new one.
-                 Must have: async chat(model, messages, ...) → response with .content
+        run_id:  Pipeline run ID for cost attribution (INVARIANT-07)
+        step:    Pipeline step index for cost attribution (INVARIANT-07)
 
     Returns:
         PedagogicalScore with 5 dimension scores (1-5) and a total average.
@@ -66,10 +69,12 @@ async def score_pedagogical(
     prompt = SCORE_PROMPT.format(content=truncated)
 
     response = await llm.chat(  # type: ignore[union-attr]
-        model=MODELS.llm_judge,   # "f.pro"
+        model=MODELS.llm_judge,
         messages=[ChatMessage(role="user", content=prompt)],
         agent="pedagogical_scorer",
         task="quality_gate",
+        run_id=run_id,
+        step=step,
         response_format={"type": "json_object"},
     )
 

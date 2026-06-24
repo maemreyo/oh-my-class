@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { GoogleFormsExporter, questionToFormsItem } from '../../src/exporters/google-forms/index.js'
-import type { MultipleChoiceSingle, MultipleChoiceMultiple, TrueFalse4Item } from '../../src/contracts/questions/types/choice.js'
-import type { ShortAnswer } from '../../src/contracts/questions/types/text-entry.js'
-import type { Essay } from '../../src/contracts/questions/types/open.js'
+import { GoogleFormsExporter, questionToFormsItem } from '../src/google-forms/index.js'
+import type { MultipleChoiceSingle, MultipleChoiceMultiple, TrueFalse4Item } from '@oh-my-class/renderer/contracts/questions/types/choice.js'
+import type { ShortAnswer } from '@oh-my-class/renderer/contracts/questions/types/text-entry.js'
+import type { Essay } from '@oh-my-class/renderer/contracts/questions/types/open.js'
 
 const baseMeta = {
   difficulty: 'remember' as const,

@@ -1,11 +1,11 @@
-import type { BaseQuestion } from '../../contracts/questions/base.js'
+import type { BaseQuestion } from '@oh-my-class/renderer/contracts/questions/base.js'
 import type {
   MultipleChoiceSingle, MultipleChoiceMultiple, TrueFalse4Item,
-} from '../../contracts/questions/types/choice.js'
-import type { ShortAnswer, Cloze } from '../../contracts/questions/types/text-entry.js'
-import type { Matching } from '../../contracts/questions/types/match.js'
-import type { Essay } from '../../contracts/questions/types/open.js'
-import type { QuizData } from '../../contracts/quiz.js'
+} from '@oh-my-class/renderer/contracts/questions/types/choice.js'
+import type { ShortAnswer, Cloze } from '@oh-my-class/renderer/contracts/questions/types/text-entry.js'
+import type { Matching } from '@oh-my-class/renderer/contracts/questions/types/match.js'
+import type { Essay } from '@oh-my-class/renderer/contracts/questions/types/open.js'
+import type { QuizData } from '@oh-my-class/renderer/contracts/quiz.js'
 
 function escapeGift(s: string): string {
   return s
