@@ -109,4 +109,4 @@ class TestGuardrail:
 
     def test_name_and_order(self):
         assert GuardrailMiddleware.name == "guardrail"
-        assert GuardrailMiddleware.order == 5
+        assert GuardrailMiddleware.order == 8
