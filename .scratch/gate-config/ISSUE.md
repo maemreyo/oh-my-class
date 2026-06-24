@@ -1,6 +1,6 @@
 ---
 title: "Gate Config: L2 Pattern — Pydantic Settings, Type-safe, Env-overridable"
-status: ready
+status: done
 labels: [architecture, config]
 created: 2026-06-24
 priority: p0
