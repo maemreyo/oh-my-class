@@ -1,2 +1,2 @@
-<% /* Eta page template: infographic */ %>
-<%- await include('../base.html', { title, content: 'TODO: infographic content' }) %>
+<% /* Page: infographic */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="infographic"><h2>' + it.title + '</h2><p>Infographic — ' + (it.sections ? it.sections.length : 0) + ' sections</p></div>' }) %>

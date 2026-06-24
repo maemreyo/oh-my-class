@@ -1,2 +1,2 @@
-<% /* Eta page template: recap */ %>
-<%- await include('../base.html', { title, content: 'TODO: recap content' }) %>
+<% /* Page: recap */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="recap"><h2>' + it.title + '</h2><p>Recap — ' + (it.items ? it.items.length : 0) + ' items</p></div>' }) %>

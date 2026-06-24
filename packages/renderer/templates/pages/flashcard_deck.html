@@ -1,0 +1,2 @@
+<% /* Page: flashcard_deck */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<section class="flashcard-deck"><h2>Thẻ học</h2><div class="cards-grid">' + (it.cards || []).map(function(card) { return '<div class="flashcard"><div class="card-front">' + card.front + '</div><div class="card-back">' + card.back + '</div></div>'; }).join('') + '</div></section>' }) %>

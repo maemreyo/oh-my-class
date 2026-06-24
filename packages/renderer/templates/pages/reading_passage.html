@@ -1,0 +1,2 @@
+<% /* Page: reading_passage */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<section class="reading-passage"><h2>Đọc hiểu</h2><div class="passage-text">' + it.passage + '</div><h3>Câu hỏi</h3>' + (it.questions || []).map(function(q, i) { return '<div class="question-card"><div class="question-number">Câu ' + (i + 1) + '</div><div class="question-prompt">' + q.prompt + '</div></div>'; }).join('') + '</section>' }) %>

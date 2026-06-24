@@ -1,2 +1,2 @@
-<% /* Eta page template: drill */ %>
-<%- await include('../base.html', { title, content: 'TODO: drill content' }) %>
+<% /* Page: drill */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="drill"><h2>' + it.title + '</h2><p>Drill — ' + (it.questions ? it.questions.length : 0) + ' questions</p></div>' }) %>

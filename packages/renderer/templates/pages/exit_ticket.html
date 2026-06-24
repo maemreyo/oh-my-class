@@ -1,0 +1,2 @@
+<% /* Page: exit_ticket */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<section class="exit-ticket"><h2>Vé ra</h2>' + (it.questions || []).map(function(q, i) { return '<div class="exit-question"><div class="question-number">Câu ' + (i + 1) + '</div><div class="question-prompt">' + q.prompt + '</div></div>'; }).join('') + '</section>' }) %>

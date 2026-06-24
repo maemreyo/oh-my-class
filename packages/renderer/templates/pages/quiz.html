@@ -1,2 +1,2 @@
-<% /* Eta page template: quiz */ %>
-<%- await include('../base.html', { title, content: 'TODO: quiz content' }) %>
+<% /* Page: quiz */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="quiz"><h2>' + it.title + '</h2><p>Quiz — ' + (it.questions ? it.questions.length : 0) + ' questions</p></div>' }) %>

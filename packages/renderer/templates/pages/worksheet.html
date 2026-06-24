@@ -1,2 +1,2 @@
-<% /* Eta page template: worksheet */ %>
-<%- await include('../base.html', { title, content: 'TODO: worksheet content' }) %>
+<% /* Page: worksheet */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="worksheet"><h2>' + it.title + '</h2><p>Worksheet — ' + (it.sections ? it.sections.length : 0) + ' sections</p></div>' }) %>

@@ -1,2 +1,2 @@
-<% /* Eta page template: lesson */ %>
-<%- await include('../base.html', { title, content: 'TODO: lesson content' }) %>
+<% /* Page: lesson */ %>
+<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="lesson"><h2>' + it.title + '</h2><p>Lesson — ' + (it.objectives ? it.objectives.length : 0) + ' objectives</p></div>' }) %>
