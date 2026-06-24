@@ -1,2 +1,41 @@
-<% /* Page: drill */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="drill"><h2>' + it.title + '</h2><p>Drill — ' + (it.questions ? it.questions.length : 0) + ' questions</p></div>' }) %>
+<%
+  /* Drill page: practice exercises with progressive difficulty.
+     it = DrillData + { themeCSS, lang } */
+  const questions = it.questions || [];
+
+  let content = '<div class="drill-page">';
+  content += '<p class="drill-instructions">L&#224;m c&#225;c b&#224;i t&#7853;p sau. &#272;&#7885;c k&#7929; t&#7915;ng c&#226;u tr&#432;&#7899;c khi tr&#7843; l&#7901;i.</p>';
+  content += '<ol class="question-list" aria-label="Drill questions">';
+
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    content += '<li class="question-item">';
+    if (q.type === 'mc' || q.options) {
+      content += '<article class="component-question-mc" id="dq-' + q.id + '">';
+      content += '<p class="question-prompt" id="dprompt-' + q.id + '">';
+      content += '<span class="question-number" aria-hidden="true">' + (i + 1) + '.</span> ' + q.prompt;
+      content += '</p>';
+      content += '<div class="options-grid" role="radiogroup" aria-labelledby="dprompt-' + q.id + '">';
+      for (const opt of (q.options || [])) {
+        content += '<label class="option"><input type="radio" name="dq-' + q.id + '" value="' + opt.label + '">';
+        content += '<span class="option-label" aria-hidden="true">' + opt.label + '</span>';
+        content += '<span class="option-text">' + opt.text + '</span></label>';
+      }
+      content += '</div></article>';
+    } else {
+      content += '<article class="component-question-open" id="dq-' + q.id + '">';
+      content += '<p class="question-prompt"><span class="question-number" aria-hidden="true">' + (i + 1) + '.</span> ' + q.prompt + '</p>';
+      content += '<div class="open-response-area"><div class="answer-lines">';
+      content += '<div class="answer-line"></div><div class="answer-line"></div><div class="answer-line"></div>';
+      content += '</div></div></article>';
+    }
+    content += '</li>';
+  }
+
+  content += '</ol></div>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'drill', content: content
+}) %>

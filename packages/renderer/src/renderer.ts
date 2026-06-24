@@ -11,6 +11,7 @@ import { eta } from "./eta-engine.js";
 import type { ArtifactDataMap, ArtifactType } from "./contracts/index.js";
 import { loadTheme } from "./theme/loader.js";
 import { sanitizeHtml } from "./sanitizer.js";
+import { sanitize } from "./sanitizer/index.js";
 
 /**
  * Render typed artifact data to a sanitized, standalone HTML string.
@@ -42,7 +43,7 @@ export async function renderArtifact<T extends ArtifactType>(
     lang,
   });
 
-  return sanitizeHtml(html);
+  return sanitize(html, type);
 }
 
 /**

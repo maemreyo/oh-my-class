@@ -1,2 +1,51 @@
-<% /* Page: worksheet */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="worksheet"><h2>' + it.title + '</h2><p>Worksheet — ' + (it.sections ? it.sections.length : 0) + ' sections</p></div>' }) %>
+<%
+  /* Worksheet page: printable, fill-in + open response.
+     it = WorksheetData + { themeCSS, lang } */
+  const sections = it.sections || [];
+
+  let content = '<div class="worksheet-page">';
+  content += '<div class="worksheet-header">';
+  content += '<div class="worksheet-name-line"><span>H&#7885; t&#234;n:</span> <span class="blank-line" aria-label="Student name"></span></div>';
+  content += '<div class="worksheet-date-line"><span>Ng&#224;y:</span> <span class="blank-line" aria-label="Date"></span></div>';
+  content += '</div>';
+
+  for (let si = 0; si < sections.length; si++) {
+    const section = sections[si];
+    content += '<section class="worksheet-section">';
+    if (section.title) {
+      content += '<h2 class="section-title">Ph&#7847;n ' + (si + 1) + ': ' + section.title + '</h2>';
+    }
+    if (section.instructions) {
+      content += '<p class="section-instructions">' + section.instructions + '</p>';
+    }
+    const questions = section.questions || [];
+    content += '<ol class="question-list">';
+    for (let qi = 0; qi < questions.length; qi++) {
+      const q = questions[qi];
+      content += '<li class="question-item">';
+      content += '<article class="component-worksheet-q" id="wq-' + q.id + '">';
+      content += '<p class="question-prompt">' + q.prompt + '</p>';
+      if (q.type === 'short_answer' || !q.type) {
+        content += '<div class="answer-lines">';
+        content += '<div class="answer-line"></div><div class="answer-line"></div>';
+        content += '</div>';
+      } else if (q.type === 'long_answer') {
+        content += '<div class="answer-lines">';
+        for (let l = 0; l < 5; l++) content += '<div class="answer-line"></div>';
+        content += '</div>';
+      } else if (q.type === 'fill_blank' && q.blanks) {
+        for (let b = 0; b < q.blanks.length; b++) {
+          content += '<div class="fill-blank-slot">(' + (b + 1) + ') <span class="blank-line"></span></div>';
+        }
+      }
+      content += '</article></li>';
+    }
+    content += '</ol></section>';
+  }
+  content += '</div>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'worksheet', content: content
+}) %>

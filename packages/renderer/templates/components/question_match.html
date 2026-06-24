@@ -1,4 +1,40 @@
-<% /* Component: question_match — Matching pairs */ %>
-<div class="component-question-match">
-  <!-- TODO: implement matching component -->
-</div>
+<%
+  /* Matching pairs question — select-based (no drag-and-drop for print compat).
+     it = { id, prompt, pairs: { left: string, right: string }[], index?, showAnswer? } */
+  const qid = it.id || 'match0';
+  const idx = it.index != null ? it.index : '';
+  const showAnswer = it.showAnswer || false;
+  const pairs = it.pairs || [];
+  const shuffledRights = showAnswer ? pairs.map(p => p.right) :
+    [...pairs.map(p => p.right)].sort(() => 0.5 - 0.5);
+%>
+<article class="component-question-match" id="q-<%= qid %>">
+  <p class="question-prompt" id="prompt-match-<%= qid %>">
+    <span class="question-number" aria-hidden="true"><%= idx %>.</span>
+    <%~ it.prompt %>
+  </p>
+
+  <div class="match-grid" aria-labelledby="prompt-match-<%= qid %>">
+    <% for (let i = 0; i < pairs.length; i++) { %>
+      <div class="match-row">
+        <span class="match-left">
+          <span class="match-key" aria-hidden="true"><%= i + 1 %>.</span>
+          <%= pairs[i].left %>
+        </span>
+        <% if (showAnswer) { %>
+          <span class="match-arrow" aria-hidden="true">&#8594;</span>
+          <span class="match-right match-right--answer"><%= pairs[i].right %></span>
+        <% } else { %>
+          <span class="match-arrow" aria-hidden="true">&#8594;</span>
+          <select class="match-select"
+                  aria-label="Match for: <%= pairs[i].left %>">
+            <option value="">-- ch&#7885;n --</option>
+            <% for (const r of shuffledRights) { %>
+              <option value="<%= r %>"><%= r %></option>
+            <% } %>
+          </select>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</article>

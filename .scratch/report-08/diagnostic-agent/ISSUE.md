@@ -160,3 +160,32 @@ common/contracts/tests/test_diagnostic_report.py
 - Blocked by: `agent-state-schema` (OhMyClassState extensions)
 - Blocks: `roadmap-agent` (needs DiagnosticReport as input)
 - Priority: p1
+
+## Research Findings
+
+**Source**: Report 08 Section 10 — AI-Powered Diagnostic Agents
+
+### Error Taxonomy (Production)
+The Eedi/MathTutor 9-code taxonomy provides a concrete error classification:
+- E01: SIGN_ARITHMETIC_ERROR, E02: COEFFICIENT_OMISSION, E03: DOMAIN_CONDITION_IGNORED
+- E04: OPERATOR_MISAPPLICATION, E05: UNIT_CONVERSION, E06: LOGICAL_REASONING
+- E07: READING_COMPREHENSION, E08: VOCABULARY_KNOWLEDGE, E09: FORMULA_MEMORIZATION
+
+### Verification Pipeline (Research-Backed)
+4-level verification: L1 Symbolic (SymPy) → L2 Numerical (sampling) → L3 LLM escalation (confidence < 0.9) → L4 Teacher review
+
+### Bloom Auto-Classification
+- CNN+fastText: 88% macro-F1 (Neural Comput & Applic 2026)
+- DistilBERT + synonym augmentation: 96% accuracy (Electronics 2025)
+- Zero-shot LLM: 82% correctness (no fine-tuning needed)
+
+### Multi-Agent Pattern (LangGraph)
+Production repos: stem-tutor-agent, MathTutor, Adaptive-Personalized-Learning-System
+Architecture: parse_student_solution → verify_steps → diagnose_error → generate_feedback
+Checkpointer: MemorySaver or RedisSaver, human-in-the-loop via interrupt()
+
+### Key References
+- "The Correct Answer Trap" (arXiv 2606.23205): 57%→84% with LLM verification
+- MiRAGE (arXiv 2602.02414): 0.82 MAP@3 on algebra misconception detection
+- stem-tutor-agent (GitHub): https://github.com/ZelinZhou-THU/stem-tutor-agent
+- MathTutor (GitHub): https://github.com/dikshant182004/MathTutor

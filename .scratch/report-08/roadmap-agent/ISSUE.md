@@ -111,3 +111,37 @@ common/contracts/tests/test_student_profile.py
 
 - Blocked by: `diagnostic-agent` (needs DiagnosticReport), `roadmap-template` (renders output)
 - Priority: p1
+
+## Research Findings
+
+**Source**: Report 08 Section 11 — Learning Roadmap Generation
+
+### Knowledge Tracing Recommendation
+Start with BKT (pyBKT library, 2-4 weeks). Move to DKT only with 50K+ learner sequences. Most platforms never need DKT.
+
+### Pxplore Framework (WWW 2026)
+4-dimension learner state: st = (OL(t), OS(t), MI(t), ME(t)) — long-term objectives, short-term objectives, implicit motivations, explicit motivations
+4 personas: Momentum Learner, Consolidator, Explorer, Struggler
+65.47% pedagogical alignment (outperforms GPT-4o at 58.48%)
+
+### LEARNERCOMPASS (ACL 2026)
+Hybrid KG via Graph-RAG reduces hallucination from 31.5% to 4.1%
+AB-MCTS-M tree search for path planning
+Reflexion mechanism for post-path critique
+
+### Khan Academy 3-Agent System
+Diagnostic Agent → Curriculum Agent (dynamic resequencing) → Instruction Agent (Socratic)
+6.1% improvement with structured learning history
+
+### Book Recommendation
+KG-based + CEFR difficulty matching for EFL (85%+ accuracy)
+Destination B2/C1 → HSA topic weight mapping → prerequisite sequencing
+
+### Spaced Repetition
+SM-2 algorithm: EF' = EF + (0.1 - (5-q) × (0.08 + (5-q) × 0.02))
+6-month spacing: Month 1 foundation → Month 2-3 new+review → Month 4-5 new+review+assessment → Month 6 simulation
+
+### Key References
+- Pxplore: https://arxiv.org/abs/2510.13215 | https://github.com/Pxplore/pxplore-algo
+- LEARNERCOMPASS: https://aclanthology.org/2026.acl-long.408.pdf
+- PATS (personality-aware): https://aclanthology.org/2026.findings-eacl.219.pdf

@@ -1,2 +1,54 @@
-<% /* Page: lesson */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="lesson"><h2>' + it.title + '</h2><p>Lesson — ' + (it.objectives ? it.objectives.length : 0) + ' objectives</p></div>' }) %>
+<%
+  /* Lesson page: structured lesson with learning objectives + sections + vocabulary.
+     it = LessonData + { themeCSS, lang } */
+  const sections = it.sections || [];
+  const objectives = it.objectives || [];
+  const vocabulary = it.vocabulary || [];
+
+  let content = '';
+
+  if (objectives.length > 0) {
+    content += '<aside class="component-learning-objective" role="note" aria-label="Learning objectives">';
+    content += '<h2 class="objective-heading"><span aria-hidden="true">&#127919;</span> M&#7909;c ti&#234;u b&#224;i h&#7885;c</h2>';
+    content += '<p class="objective-lead">Sau b&#224;i h&#7885;c n&#224;y, h&#7885;c sinh c&#243; th&#7875;:</p>';
+    content += '<ul class="objective-list">';
+    for (const obj of objectives) {
+      content += '<li class="objective-item">' + obj + '</li>';
+    }
+    content += '</ul></aside>';
+  }
+
+  for (const section of sections) {
+    content += '<section class="lesson-section">';
+    if (section.heading) {
+      content += '<h2 class="section-heading">' + section.heading + '</h2>';
+    }
+    if (section.body) {
+      content += '<div class="section-body">' + section.body + '</div>';
+    }
+    if (section.components && section.components.length > 0) {
+      for (const comp of section.components) {
+        content += comp;
+      }
+    }
+    content += '</section>';
+  }
+
+  if (vocabulary.length > 0) {
+    content += '<section class="lesson-vocabulary"><h2 class="section-heading">T&#7915; v&#7921;ng</h2><div class="vocab-grid">';
+    for (const entry of vocabulary) {
+      content += '<article class="component-vocabulary-card">';
+      content += '<header class="vocab-header"><span class="vocab-term">' + entry.term + '</span>';
+      if (entry.partOfSpeech) content += '<span class="vocab-pos">' + entry.partOfSpeech + '</span>';
+      content += '</header><p class="vocab-definition">' + entry.definition + '</p>';
+      if (entry.example) content += '<p class="vocab-example"><em>' + entry.example + '</em></p>';
+      content += '</article>';
+    }
+    content += '</div></section>';
+  }
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'lesson', content: content
+}) %>

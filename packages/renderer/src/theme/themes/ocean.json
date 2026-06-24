@@ -1,0 +1,59 @@
+{
+  "name": "ocean",
+  "primitives": {
+    "colorPalette": {
+      "foam": "#F0F6FB",
+      "wave": "#E3EFF7",
+      "deep": "#1A2E45",
+      "tide": "#3A5B7A",
+      "mist": "#7A9BB5",
+      "shore": "#C5D9E8",
+      "seafoam": "#D5E8F5",
+      "coral": "#2A7A9B",
+      "coralDeep": "#1A5A7A",
+      "sand": "#9B7A2A",
+      "kelp": "#2A6B5A"
+    },
+    "spacing": {
+      "1": "4px", "2": "8px", "3": "12px", "4": "16px",
+      "5": "20px", "6": "24px", "8": "32px", "10": "40px", "12": "48px"
+    },
+    "fontFamilyHeading": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "fontFamilyBody": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "fontFamilyMono": "'IBM Plex Mono', 'Courier New', monospace",
+    "fontSizeScale": {
+      "xs": "11px", "sm": "13px", "base": "15.5px",
+      "lg": "18px", "xl": "22px", "2xl": "27px", "3xl": "34px"
+    },
+    "fontWeightScale": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "borderRadius": { "sm": "8px", "md": "12px", "lg": "16px", "xl": "20px", "full": "9999px" },
+    "shadow": {
+      "sm": "0 1px 3px rgba(26,46,69,0.08)",
+      "md": "0 2px 8px rgba(26,46,69,0.10)",
+      "lg": "0 4px 20px rgba(26,46,69,0.12)"
+    }
+  },
+  "semantic": {
+    "colorBg": "#F0F6FB",
+    "colorBgCard": "#FFFFFF",
+    "colorBgDeep": "#E3EFF7",
+    "colorText": "#1A2E45",
+    "colorTextSoft": "#3A5B7A",
+    "colorTextFaint": "#7A9BB5",
+    "colorBorder": "#C5D9E8",
+    "colorBorderSoft": "#D5E8F5",
+    "colorAccent": "#2A7A9B",
+    "colorAccentDeep": "#1A5A7A",
+    "colorAccentTint": "rgba(42,122,155,0.08)",
+    "colorSuccess": "#2A6B5A",
+    "colorWarning": "#9B7A2A",
+    "colorError": "#9B3A2A",
+    "categoryColors": {
+      "a": { "base": "#2A5A9B", "tint": "rgba(42,90,155,0.08)" },
+      "b": { "base": "#9B5A2A", "tint": "rgba(155,90,42,0.09)" },
+      "c": { "base": "#2A9B7A", "tint": "rgba(42,155,122,0.08)" },
+      "d": { "base": "#7A2A9B", "tint": "rgba(122,42,155,0.08)" },
+      "e": { "base": "#9B2A5A", "tint": "rgba(155,42,90,0.08)" }
+    }
+  }
+}

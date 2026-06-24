@@ -1,4 +1,43 @@
-<% /* Component: question_mc — Multiple choice, custom radio, WCAG 2.2 AA */ %>
-<div class="component-question-mc" role="radiogroup" aria-label="<%= prompt %>">
-  <!-- TODO: implement multiple choice component -->
-</div>
+<%
+  /* Multiple choice question. WCAG 2.2 AA: custom radio with keyboard nav.
+     it = { id, prompt, options, answer, explain?, index?, showAnswer? } */
+  const qid = it.id || 'q0';
+  const idx = it.index != null ? it.index : '';
+  const showAnswer = it.showAnswer || false;
+%>
+<article class="component-question-mc" id="q-<%= qid %>">
+  <p class="question-prompt" id="prompt-<%= qid %>">
+    <span class="question-number" aria-hidden="true"><%= idx %>.</span>
+    <%~ it.prompt %>
+  </p>
+
+  <div class="options-grid"
+       role="radiogroup"
+       aria-labelledby="prompt-<%= qid %>">
+    <% for (const opt of (it.options || [])) { %>
+      <%
+        const isCorrect = showAnswer && opt.label === it.answer;
+        const isWrong = showAnswer && opt.label !== it.answer;
+      %>
+      <label class="option<%= isCorrect ? ' option--correct' : '' %><%= isWrong ? ' option--neutral' : '' %>"
+             aria-checked="<%= isCorrect ? 'true' : 'false' %>">
+        <input type="radio"
+               name="q-<%= qid %>"
+               value="<%= opt.label %>"
+               <%= showAnswer ? 'disabled' : '' %>>
+        <span class="option-label" aria-hidden="true"><%= opt.label %></span>
+        <span class="option-text"><%= opt.text %></span>
+        <% if (isCorrect) { %>
+          <span class="option-check" aria-label="Correct answer">&#10003;</span>
+        <% } %>
+      </label>
+    <% } %>
+  </div>
+
+  <% if (showAnswer && it.explain) { %>
+    <div class="question-explanation" role="note">
+      <span class="explanation-label">Gi&#7843;i th&#237;ch:</span>
+      <%~ it.explain %>
+    </div>
+  <% } %>
+</article>

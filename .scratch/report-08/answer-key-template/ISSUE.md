@@ -95,3 +95,34 @@ Test: output contains question text, correct answer has `.correct` class, explai
 
 - Blocked by: `template-engine` (dispatcher.eta must exist), `component-schema` (QuestionCard model)
 - Priority: p0
+
+## Research Findings
+
+**Source**: Report 08 Section 12 — Answer Key Wrong Reasoning
+
+### DiVERT (arXiv 2406.19356)
+Variational model: generates error description → generates distractor from that error
+7B params outperforms GPT-4o on distractor generation quality
+Human evaluation: error labels "comparable in quality to human-authored ones"
+
+### Eedi Misconception Taxonomy
+2587 misconception categories in K-12 math
+1st place Kaggle solution: synthetic data (10.6k) + Claude reasoning traces + 3-model ensemble
+
+### Distractor Assessment Framework (DAF)
+3 automatic quality metrics: Incorrectness (binary MRC), Plausibility (system confidence), Diversity (BERT Equivalence Metric)
+
+### Recommended LLM Prompt Pattern
+Two-stage: First identify misconception → Then generate distractor that embodies it
+Zero-shot CoT template for distractor + feedback generation
+5 distractor strategies: Overcorrection, Outdated Practice, Wrong Context, Incomplete Solution, Reasonable Misunderstanding
+
+### VN Platform Gap
+Sitori: manual explanations, no per-distractor rationale
+MegaEdu.AI: error patterns but no per-option breakdown
+→ oh-my-class can differentiate with full wrongReasons + essence + tip
+
+### Key References
+- DiVERT: https://arxiv.org/html/2406.19356v1
+- UMass ML4Ed: https://github.com/umass-ml4ed/prompt_distractor_generation_naacl
+- Eedi: https://www.eedi.com/news/from-wrong-answers-to-real-insights

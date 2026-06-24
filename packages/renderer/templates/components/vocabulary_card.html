@@ -1,0 +1,19 @@
+<%
+  /* Single vocabulary entry.
+     it = { term, definition, partOfSpeech?, example?, termLang?, id } */
+%>
+<article class="component-vocabulary-card" id="vocab-<%= it.id || it.term %>">
+  <header class="vocab-header">
+    <span class="vocab-term" lang="<%= it.termLang || 'en' %>"><%= it.term %></span>
+    <% if (it.partOfSpeech) { %>
+      <span class="vocab-pos" aria-label="Part of speech"><%= it.partOfSpeech %></span>
+    <% } %>
+  </header>
+  <p class="vocab-definition"><%= it.definition %></p>
+  <% if (it.example) { %>
+    <p class="vocab-example">
+      <span class="vocab-example-label" aria-hidden="true">V&#237; d&#7909;:</span>
+      <em><%= it.example %></em>
+    </p>
+  <% } %>
+</article>

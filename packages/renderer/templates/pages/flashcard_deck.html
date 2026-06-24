@@ -1,2 +1,50 @@
-<% /* Page: flashcard_deck */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<section class="flashcard-deck"><h2>Thẻ học</h2><div class="cards-grid">' + (it.cards || []).map(function(card) { return '<div class="flashcard"><div class="card-front">' + card.front + '</div><div class="card-back">' + card.back + '</div></div>'; }).join('') + '</div></section>' }) %>
+<%
+  /* Flashcard deck: flip animation via CSS + minimal inline JS. Keyboard navigable.
+     it = FlashcardDeckData + { themeCSS, lang } */
+  const cards = it.cards || [];
+
+  let content = '<section class="flashcard-deck" aria-label="Flashcard deck: ' + it.title + '">';
+  content += '<div class="deck-progress">';
+  content += '<span aria-live="polite" id="card-counter">1 / ' + cards.length + '</span>';
+  content += '</div>';
+  content += '<div class="deck-container" role="list">';
+
+  for (let i = 0; i < cards.length; i++) {
+    const card = cards[i];
+    content += '<article class="flashcard' + (i === 0 ? ' flashcard--active' : '') + '"';
+    content += ' role="listitem"';
+    content += ' aria-label="Card ' + (i + 1) + ': ' + card.front + '"';
+    content += ' style="' + (i === 0 ? '' : 'display:none') + '">';
+    content += '<button class="flashcard__inner"';
+    content += ' aria-pressed="false"';
+    content += ' aria-label="Flip card to see back"';
+    content += ' onclick="this.classList.toggle(\'flipped\');this.setAttribute(\'aria-pressed\',this.classList.contains(\'flipped\'))">';
+    content += '<div class="flashcard__front"><span class="flashcard__term">' + card.front + '</span>';
+    if (card.hint) content += '<span class="flashcard__hint">' + card.hint + '</span>';
+    content += '</div>';
+    content += '<div class="flashcard__back" aria-hidden="true">';
+    content += '<span class="flashcard__definition">' + card.back + '</span>';
+    content += '</div></button></article>';
+  }
+
+  content += '</div>';
+  content += '<nav class="deck-nav no-print" aria-label="Card navigation">';
+  content += '<button id="btn-prev" aria-label="Previous card" onclick="(function(){';
+  content += 'var cards=document.querySelectorAll(\'.flashcard\');';
+  content += 'var cur=Array.from(cards).findIndex(function(c){return c.style.display!==\'none\'});';
+  content += 'if(cur>0){cards[cur].style.display=\'none\';cards[cur-1].style.display=\'\';';
+  content += 'document.getElementById(\'card-counter\').textContent=(cur)+\' / \'+cards.length;}';
+  content += '})()">&#8592; Tr&#432;&#7899;c</button>';
+  content += '<button id="btn-next" aria-label="Next card" onclick="(function(){';
+  content += 'var cards=document.querySelectorAll(\'.flashcard\');';
+  content += 'var cur=Array.from(cards).findIndex(function(c){return c.style.display!==\'none\'});';
+  content += 'if(cur<cards.length-1){cards[cur].style.display=\'none\';cards[cur+1].style.display=\'\';';
+  content += 'document.getElementById(\'card-counter\').textContent=(cur+2)+\' / \'+cards.length;}';
+  content += '})()">Ti&#7871;p &#8594;</button>';
+  content += '</nav></section>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'flashcard_deck', content: content
+}) %>

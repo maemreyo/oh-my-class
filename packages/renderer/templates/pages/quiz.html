@@ -1,2 +1,59 @@
-<% /* Page: quiz */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="quiz"><h2>' + it.title + '</h2><p>Quiz — ' + (it.questions ? it.questions.length : 0) + ' questions</p></div>' }) %>
+<%
+  /* Quiz page: multiple-choice test with answer reveal toggle.
+     it = QuizData + { themeCSS, lang, showAnswers? } */
+  const questions = it.questions || [];
+  const showAnswers = it.showAnswers || false;
+
+  let content = '<div class="quiz-page">';
+
+  if (it.timeLimit) {
+    content += '<p class="quiz-meta no-print" aria-label="Time limit">';
+    content += '<span class="meta-icon" aria-hidden="true">&#9201;</span> Th&#7901;i gian: <strong>' + it.timeLimit + ' ph&#250;t</strong></p>';
+  }
+
+  content += '<ol class="question-list" aria-label="Questions">';
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    content += '<li class="question-item">';
+    // Inline question_mc component
+    content += '<article class="component-question-mc" id="q-' + q.id + '">';
+    content += '<p class="question-prompt" id="prompt-' + q.id + '">';
+    content += '<span class="question-number" aria-hidden="true">' + (i + 1) + '.</span> ' + q.prompt;
+    content += '</p>';
+    content += '<div class="options-grid" role="radiogroup" aria-labelledby="prompt-' + q.id + '">';
+    for (const opt of (q.options || [])) {
+      const isCorrect = showAnswers && opt.label === q.answer;
+      const isWrong = showAnswers && opt.label !== q.answer;
+      content += '<label class="option' + (isCorrect ? ' option--correct' : '') + (isWrong ? ' option--neutral' : '') + '"';
+      if (isCorrect) content += ' aria-checked="true"';
+      content += '>';
+      content += '<input type="radio" name="q-' + q.id + '" value="' + opt.label + '"' + (showAnswers ? ' disabled' : '') + '>';
+      content += '<span class="option-label" aria-hidden="true">' + opt.label + '</span>';
+      content += '<span class="option-text">' + opt.text + '</span>';
+      if (isCorrect) content += '<span class="option-check" aria-label="Correct answer">&#10003;</span>';
+      content += '</label>';
+    }
+    content += '</div>';
+    if (!showAnswers) {
+      // Reveal toggle
+      content += '<button class="reveal-btn no-print" aria-expanded="false" aria-controls="reveal-' + q.id + '"';
+      content += ' onclick="(function(b){var e=b.getAttribute(\'aria-expanded\')===\'true\';';
+      content += 'b.setAttribute(\'aria-expanded\',e?\'false\':\'true\');';
+      content += 'document.getElementById(\'reveal-' + q.id + '\').hidden=e;})(this)">';
+      content += 'Xem &#273;&#225;p &#225;n</button>';
+      content += '<div id="reveal-' + q.id + '" class="reveal-content" hidden role="region">';
+      content += '<strong>&#272;&#225;p &#225;n: ' + q.answer + '</strong>';
+      if (q.explain) content += '<p class="reveal-explain">' + q.explain + '</p>';
+      content += '</div>';
+    } else if (q.explain) {
+      content += '<div class="question-explanation" role="note"><span class="explanation-label">Gi&#7843;i th&#237;ch:</span> ' + q.explain + '</div>';
+    }
+    content += '</article></li>';
+  }
+  content += '</ol></div>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'quiz', content: content
+}) %>

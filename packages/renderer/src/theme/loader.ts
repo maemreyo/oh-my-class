@@ -1,60 +1,50 @@
 /**
- * Runtime theme CSS loader — reads generated theme_*.css from branding/.
+ * Runtime theme CSS loader — reads theme.json → generates CSS custom properties.
  *
  * TH2 decision: runtime generation (not build-time) so teachers can define
- * custom themes without a build step. Falls back to inline defaults when
- * the CSS file is not found.
+ * custom themes without a build step. Falls back to default.json when the
+ * named theme is not found.
  */
 
-import fs from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ThemeCSSGenerator } from "./generator.js";
+import type { ThemeTokens } from "./tokens.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const BRANDING_DIR = path.resolve(__dirname, "../../branding");
+const THEMES_DIR = path.resolve(__dirname, "themes");
 
-const cache = new Map<string, string>();
+const generator = new ThemeCSSGenerator();
+const _cache = new Map<string, string>();
 
-const DEFAULT_CSS = `:root {
-  --color-primary: #3b82f6;
-  --color-secondary: #64748b;
-  --color-accent: #f59e0b;
-  --color-background: #ffffff;
-  --color-surface: #f8fafc;
-  --color-text: #1e293b;
-  --color-text-muted: #64748b;
-  --color-border: #e2e8f0;
-  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-size-base: 16px;
-  --font-size-sm: 0.875rem;
-  --font-size-lg: 1.125rem;
-  --radius: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.1);
-}`;
+function loadTokens(name: string): ThemeTokens {
+  const filePath = path.join(THEMES_DIR, `${name}.json`);
+  try {
+    return JSON.parse(readFileSync(filePath, "utf-8")) as ThemeTokens;
+  } catch {
+    return JSON.parse(
+      readFileSync(path.join(THEMES_DIR, "default.json"), "utf-8"),
+    ) as ThemeTokens;
+  }
+}
 
 /**
- * Load theme CSS by name. Returns cached result after first read.
- * Falls back to inline default CSS when the theme file doesn't exist.
+ * Load theme by name and return a CSS custom-properties string.
+ * Result is cached — same name returns the same string reference.
+ * Falls back to default theme for unknown names.
  */
-export function loadTheme(themeName: string): string {
-  if (cache.has(themeName)) return cache.get(themeName)!;
-
-  const filePath = path.join(BRANDING_DIR, `theme_${themeName}.css`);
-  let css: string;
-
-  try {
-    css = fs.readFileSync(filePath, "utf-8");
-  } catch {
-    css = DEFAULT_CSS;
-  }
-
-  cache.set(themeName, css);
+export function loadTheme(name: string): string {
+  if (_cache.has(name)) return _cache.get(name)!;
+  const tokens = loadTokens(name);
+  const css = generator.generate(tokens);
+  _cache.set(name, css);
   return css;
 }
 
 /**
- * Clear the theme cache (useful for tests).
+ * Clear the theme cache (used in tests to avoid cross-test state).
  */
 export function clearThemeCache(): void {
-  cache.clear();
+  _cache.clear();
 }

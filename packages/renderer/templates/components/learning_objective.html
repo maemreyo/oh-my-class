@@ -1,0 +1,19 @@
+<%
+  /* SWBAT box: "By the end of this lesson, students will be able to..."
+     it = { objectives: string[], gradeLevel?: string } */
+%>
+<aside class="component-learning-objective" role="note" aria-label="Learning objectives">
+  <h2 class="objective-heading">
+    <span class="objective-icon" aria-hidden="true">&#127919;</span>
+    M&#7909;c ti&#234;u b&#224;i h&#7885;c
+  </h2>
+  <p class="objective-lead">Sau b&#224;i h&#7885;c n&#224;y, h&#7885;c sinh c&#243; th&#7875;:</p>
+  <ul class="objective-list">
+    <% for (const obj of (it.objectives || [])) { %>
+      <li class="objective-item"><%= obj %></li>
+    <% } %>
+  </ul>
+  <% if (it.gradeLevel) { %>
+    <p class="objective-grade">L&#7899;p: <strong><%= it.gradeLevel %></strong></p>
+  <% } %>
+</aside>

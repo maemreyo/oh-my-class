@@ -1,0 +1,22 @@
+<%
+  /* Figure with caption. src must be SVG string or base64 data URI — no CDN.
+     it = { src, alt, caption?, attribution? } */
+%>
+<figure class="component-image-figure">
+  <% if (it.src && it.src.startsWith('<svg')) { %>
+    <%~ it.src %>
+  <% } else { %>
+    <img src="<%= it.src %>"
+         alt="<%= it.alt || '' %>"
+         loading="lazy"
+         decoding="async">
+  <% } %>
+  <% if (it.caption) { %>
+    <figcaption class="figure-caption">
+      <%= it.caption %>
+      <% if (it.attribution) { %>
+        <span class="figure-attribution"> &mdash; <%= it.attribution %></span>
+      <% } %>
+    </figcaption>
+  <% } %>
+</figure>

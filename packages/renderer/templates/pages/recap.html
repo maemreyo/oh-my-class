@@ -1,2 +1,29 @@
-<% /* Page: recap */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="recap"><h2>' + it.title + '</h2><p>Recap — ' + (it.items ? it.items.length : 0) + ' items</p></div>' }) %>
+<%
+  /* Recap page: summary card with key concepts + vocabulary.
+     it = RecapData + { themeCSS, lang } */
+  const items = it.items || [];
+
+  let content = '<div class="recap-page">';
+  content += '<p class="recap-intro">T&#243;m t&#7855;t nh&#7919;ng &#273;i&#7875;m quan tr&#7885;ng c&#7911;a b&#224;i h&#7885;c.</p>';
+  content += '<div class="recap-grid">';
+
+  for (const item of items) {
+    content += '<article class="recap-card" id="recap-' + item.id + '">';
+    content += '<h3 class="recap-concept">' + item.concept + '</h3>';
+    content += '<p class="recap-summary">' + item.summary + '</p>';
+    if (item.example) {
+      content += '<p class="recap-example"><span class="example-label" aria-hidden="true">V&#237; d&#7909;:</span> <em>' + item.example + '</em></p>';
+    }
+    if (item.category) {
+      content += '<span class="recap-category">' + item.category + '</span>';
+    }
+    content += '</article>';
+  }
+
+  content += '</div></div>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'recap', content: content
+}) %>

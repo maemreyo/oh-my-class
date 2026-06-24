@@ -1,0 +1,32 @@
+<%
+  /* Open-ended response question with lined area and word count hint.
+     it = { id, prompt, index, wordLimit?, showAnswer?, answer? } */
+%>
+<article class="component-question-open" id="q-<%= it.id %>">
+  <p class="question-prompt" id="prompt-<%= it.id %>">
+    <span class="question-number" aria-hidden="true"><%= it.index || '' %>.</span>
+    <%~ it.prompt %>
+  </p>
+  <% if (!it.showAnswer) { %>
+    <div class="open-response-area"
+         role="region"
+         aria-labelledby="prompt-<%= it.id %>">
+      <div class="answer-lines">
+        <% const lines = it.wordLimit ? Math.ceil(it.wordLimit / 8) : 4; %>
+        <% for (let i = 0; i < lines; i++) { %>
+          <div class="answer-line"></div>
+        <% } %>
+      </div>
+      <% if (it.wordLimit) { %>
+        <p class="word-limit" aria-label="Word limit">
+          (~<%= it.wordLimit %> t&#7915;)
+        </p>
+      <% } %>
+    </div>
+  <% } %>
+  <% if (it.showAnswer && it.answer) { %>
+    <div class="question-answer" role="note">
+      <strong>G&#7907;i &#253;:</strong> <%~ it.answer %>
+    </div>
+  <% } %>
+</article>

@@ -1,2 +1,45 @@
-<% /* Page: answer_key — teacher-only view */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<section class="answer-key"><h2>Đáp án chi tiết</h2>' + (it.questions || []).map(function(q, i) { return '<div class="question-card"><div class="question-number">Câu ' + (i + 1) + '</div><div class="question-prompt">' + q.prompt + '</div><div class="answer">Đáp án: <strong>' + q.answer + '</strong></div>' + (q.explain ? '<div class="explain"><strong>Giải thích:</strong> ' + q.explain + '</div>' : '') + '</div>'; }).join('') + '</section>' }) %>
+<%
+  /* Answer key: teacher-only view — all answers always visible, no hide/reveal toggle.
+     it = AnswerKeyData + { themeCSS, lang } */
+  const questions = it.questions || [];
+
+  let content = '<section class="answer-key-page">';
+  content += '<div class="answer-key-banner" role="note" aria-label="Teacher view">';
+  content += '<span aria-hidden="true">&#128274;</span> D&#224;nh cho gi&#225;o vi&#234;n — Kh&#244;ng ph&#225;t cho h&#7885;c sinh';
+  content += '</div>';
+
+  if (it.rubric) {
+    content += '<div class="rubric-section"><h2>H&#432;&#7899;ng d&#7851;n ch&#7845;m</h2><p>' + it.rubric + '</p></div>';
+  }
+
+  content += '<ol class="answer-list" aria-label="Answer key">';
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    content += '<li class="answer-item"><article class="component-question-mc answer-key-q" id="ak-' + q.id + '">';
+    content += '<p class="question-prompt"><span class="question-number" aria-hidden="true">' + (i + 1) + '.</span> ' + q.prompt + '</p>';
+    content += '<div class="options-grid" role="radiogroup" aria-labelledby="ak-' + q.id + '">';
+    for (const opt of (q.options || [])) {
+      const isCorrect = opt.label === q.answer;
+      content += '<label class="option' + (isCorrect ? ' option--correct' : ' option--neutral') + '">';
+      content += '<input type="radio" name="ak-' + q.id + '" value="' + opt.label + '" disabled' + (isCorrect ? ' checked' : '') + '>';
+      content += '<span class="option-label" aria-hidden="true">' + opt.label + '</span>';
+      content += '<span class="option-text">' + opt.text + '</span>';
+      if (isCorrect) content += '<span class="option-check" aria-label="Correct answer">&#10003;</span>';
+      content += '</label>';
+    }
+    content += '</div>';
+    if (q.explain) {
+      content += '<div class="question-explanation" role="note"><span class="explanation-label">Gi&#7843;i th&#237;ch:</span> ' + q.explain + '</div>';
+    }
+    if (it.teachingNotes && it.teachingNotes[i]) {
+      content += '<div class="teaching-note" role="note"><span aria-hidden="true">&#128203;</span> ' + it.teachingNotes[i] + '</div>';
+    }
+    content += '</article></li>';
+  }
+  content += '</ol></section>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'answer_key', content: content
+}) %>

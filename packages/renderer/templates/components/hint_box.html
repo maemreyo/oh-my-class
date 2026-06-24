@@ -1,4 +1,26 @@
-<% /* Component: hint_box — Expandable hint for exercises */ %>
-<div class="component-hint-box">
-  <!-- TODO: implement hint box component -->
+<%
+  /* Collapsible hint — hidden by default. Different from note_callout (always visible).
+     it = { hint: string, id?: string, label?: string } */
+  const hid = it.id || 'hint-' + Math.floor(Math.random() * 99999);
+%>
+<div class="component-hint-box no-print">
+  <button class="hint-toggle"
+          aria-expanded="false"
+          aria-controls="hint-body-<%= hid %>"
+          onclick="(function(btn){
+            var expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            document.getElementById('hint-body-<%= hid %>').hidden = expanded;
+            btn.querySelector('.hint-toggle-label').textContent = expanded ? 'Xem g&#7907;i &#253;' : '&#7848;n g&#7907;i &#253;';
+          })(this)">
+    <span class="hint-icon" aria-hidden="true">&#128161;</span>
+    <span class="hint-toggle-label"><%= it.label || 'Xem g&#7907;i &#253;' %></span>
+  </button>
+  <div id="hint-body-<%= hid %>"
+       class="hint-body"
+       hidden
+       role="region"
+       aria-label="Hint">
+    <%~ it.hint %>
+  </div>
 </div>

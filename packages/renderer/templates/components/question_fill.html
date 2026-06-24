@@ -1,4 +1,36 @@
-<% /* Component: question_fill — Fill-in-blank with word bank */ %>
-<div class="component-question-fill">
-  <!-- TODO: implement fill-in-blank component -->
-</div>
+<%
+  /* Fill-in-the-blank with underline slots and optional word bank.
+     it = { id, prompt, blanks: string[], wordBank?: string[], index?, showAnswer? } */
+  const qid = it.id || 'fill0';
+  const idx = it.index != null ? it.index : '';
+  const showAnswer = it.showAnswer || false;
+%>
+<article class="component-question-fill" id="q-<%= qid %>">
+  <p class="question-prompt" id="prompt-fill-<%= qid %>">
+    <span class="question-number" aria-hidden="true"><%= idx %>.</span>
+    <%~ it.prompt %>
+  </p>
+
+  <% if (it.wordBank && it.wordBank.length > 0 && !showAnswer) { %>
+    <div class="word-bank" aria-label="Word bank">
+      <span class="word-bank-label">T&#7915; g&#7907;i &#253;:</span>
+      <% for (const word of it.wordBank) { %>
+        <span class="word-chip"><%= word %></span>
+      <% } %>
+    </div>
+  <% } %>
+
+  <div class="fill-blanks">
+    <% for (let i = 0; i < (it.blanks || []).length; i++) { %>
+      <div class="blank-slot">
+        <span class="blank-number" aria-hidden="true">(<%= i + 1 %>)</span>
+        <% if (showAnswer) { %>
+          <span class="blank-answer"><%= it.blanks[i] %></span>
+        <% } else { %>
+          <span class="blank-line" role="textbox" aria-labelledby="prompt-fill-<%= qid %>"
+                aria-label="Blank <%= i + 1 %>"></span>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</article>

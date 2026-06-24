@@ -1,2 +1,49 @@
-<% /* Page: exit_ticket */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<section class="exit-ticket"><h2>Vé ra</h2>' + (it.questions || []).map(function(q, i) { return '<div class="exit-question"><div class="question-number">Câu ' + (i + 1) + '</div><div class="question-prompt">' + q.prompt + '</div></div>'; }).join('') + '</section>' }) %>
+<%
+  /* Exit ticket: compact 3-question quick check, single-page, print-ready.
+     it = ExitTicketData + { themeCSS, lang } */
+  const questions = (it.questions || []).slice(0, 3);
+
+  let content = '<section class="exit-ticket-page">';
+  content += '<div class="exit-ticket-header">';
+  content += '<h2 class="exit-ticket-title">V&#233; Ra L&#7899;p</h2>';
+  content += '<div class="exit-ticket-student">';
+  content += '<span>H&#7885; t&#234;n: <span class="blank-line" aria-label="Student name" style="display:inline-block;min-width:150px;border-bottom:1px solid currentColor"></span></span>';
+  content += '</div></div>';
+
+  content += '<ol class="exit-ticket-questions">';
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    content += '<li class="exit-ticket-question">';
+    content += '<p class="question-prompt"><span class="question-number" aria-hidden="true">' + (i + 1) + '.</span> ' + q.prompt + '</p>';
+
+    if (q.type === 'mc' && q.options && q.options.length > 0) {
+      content += '<div class="options-grid" role="radiogroup">';
+      for (const opt of q.options) {
+        content += '<label class="option"><input type="radio" name="et-' + q.id + '" value="' + opt.label + '">';
+        content += '<span class="option-label" aria-hidden="true">' + opt.label + '</span>';
+        content += '<span class="option-text">' + opt.text + '</span></label>';
+      }
+      content += '</div>';
+    } else if (q.type === 'rating') {
+      content += '<div class="rating-scale" role="radiogroup" aria-label="Rating 1-5">';
+      for (let r = 1; r <= 5; r++) {
+        content += '<label class="rating-option"><input type="radio" name="et-' + q.id + '" value="' + r + '">';
+        content += '<span>' + r + '</span></label>';
+      }
+      content += '</div>';
+    } else {
+      content += '<div class="answer-line" style="border-bottom:1px solid var(--color-border,#ccc);min-height:32px;margin-top:8px"></div>';
+    }
+    content += '</li>';
+  }
+  content += '</ol>';
+
+  content += '<footer class="exit-ticket-footer no-print">';
+  content += '<span>Ho&#224;n th&#224;nh tr&#432;&#7899;c khi ra v&#7873;</span>';
+  content += '</footer></section>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'exit_ticket', content: content
+}) %>

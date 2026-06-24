@@ -1,2 +1,61 @@
-<% /* Page: reading_passage */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<section class="reading-passage"><h2>Đọc hiểu</h2><div class="passage-text">' + it.passage + '</div><h3>Câu hỏi</h3>' + (it.questions || []).map(function(q, i) { return '<div class="question-card"><div class="question-number">Câu ' + (i + 1) + '</div><div class="question-prompt">' + q.prompt + '</div></div>'; }).join('') + '</section>' }) %>
+<%
+  /* Reading passage: long text with numbered paragraphs + comprehension questions.
+     it = ReadingPassageData + { themeCSS, lang } */
+  const questions = it.questions || [];
+  const paragraphs = (it.passage || '').split(/\n\n+/).filter(Boolean);
+
+  let content = '<section class="reading-passage-page">';
+
+  // Passage
+  content += '<div class="passage-block" role="article" aria-label="Reading passage">';
+  if (it.author || it.source) {
+    content += '<p class="passage-source">';
+    if (it.author) content += '<span class="passage-author">' + it.author + '</span>';
+    if (it.source) content += (it.author ? ' — ' : '') + '<cite>' + it.source + '</cite>';
+    content += '</p>';
+  }
+  content += '<div class="passage-text">';
+  if (paragraphs.length > 1) {
+    for (let i = 0; i < paragraphs.length; i++) {
+      content += '<p class="passage-paragraph">';
+      content += '<span class="paragraph-number" aria-label="Paragraph ' + (i + 1) + '">[' + (i + 1) + ']</span> ';
+      content += paragraphs[i];
+      content += '</p>';
+    }
+  } else {
+    content += '<p>' + it.passage + '</p>';
+  }
+  content += '</div></div>';
+
+  // Questions
+  if (questions.length > 0) {
+    content += '<div class="passage-questions">';
+    content += '<h2 class="questions-heading">C&#226;u h&#7887;i</h2>';
+    content += '<ol class="question-list" aria-label="Comprehension questions">';
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      content += '<li class="question-item"><article class="component-passage-q" id="pq-' + q.id + '">';
+      content += '<p class="question-prompt"><span class="question-number" aria-hidden="true">' + (i + 1) + '.</span> ' + q.prompt + '</p>';
+      if (q.type === 'mc' && q.options) {
+        content += '<div class="options-grid" role="radiogroup">';
+        for (const opt of q.options) {
+          content += '<label class="option"><input type="radio" name="pq-' + q.id + '" value="' + opt.label + '">';
+          content += '<span class="option-label" aria-hidden="true">' + opt.label + '</span>';
+          content += '<span class="option-text">' + opt.text + '</span></label>';
+        }
+        content += '</div>';
+      } else {
+        content += '<div class="answer-lines"><div class="answer-line"></div><div class="answer-line"></div></div>';
+      }
+      content += '</article></li>';
+    }
+    content += '</ol></div>';
+  }
+
+  content += '</section>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'reading_passage', content: content
+}) %>

@@ -1,0 +1,27 @@
+<%
+  /* Toggleable answer reveal — teacher or self-study mode.
+     it = { answer: string, explain?: string, id: string } */
+%>
+<div class="component-answer-reveal" data-reveal-id="<%= it.id %>">
+  <button class="reveal-btn no-print"
+          aria-expanded="false"
+          aria-controls="reveal-content-<%= it.id %>"
+          onclick="(function(btn){
+            var expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            document.getElementById('reveal-content-<%= it.id %>').hidden = expanded;
+            btn.textContent = expanded ? 'Xem đáp án' : 'Ẩn đáp án';
+          })(this)">
+    Xem &#273;&#225;p &#225;n
+  </button>
+  <div id="reveal-content-<%= it.id %>"
+       class="reveal-content"
+       hidden
+       role="region"
+       aria-label="Answer">
+    <span class="reveal-answer"><strong>&#272;&#225;p &#225;n:</strong> <%= it.answer %></span>
+    <% if (it.explain) { %>
+      <p class="reveal-explain"><%~ it.explain %></p>
+    <% } %>
+  </div>
+</div>

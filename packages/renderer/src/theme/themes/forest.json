@@ -1,0 +1,59 @@
+{
+  "name": "forest",
+  "primitives": {
+    "colorPalette": {
+      "moss": "#F2F7F2",
+      "bark": "#E8F0E8",
+      "fern": "#1E3A2B",
+      "sage": "#4A6B56",
+      "mist": "#8BA090",
+      "branch": "#C8DBC8",
+      "twigSoft": "#D9E8D9",
+      "cedar": "#5C8A3A",
+      "cedarDeep": "#3D5F27",
+      "amber": "#8A6B2E",
+      "pine": "#1E5C3A"
+    },
+    "spacing": {
+      "1": "4px", "2": "8px", "3": "12px", "4": "16px",
+      "5": "20px", "6": "24px", "8": "32px", "10": "40px", "12": "48px"
+    },
+    "fontFamilyHeading": "Georgia, 'Times New Roman', serif",
+    "fontFamilyBody": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "fontFamilyMono": "'Courier New', monospace",
+    "fontSizeScale": {
+      "xs": "11px", "sm": "13px", "base": "15.5px",
+      "lg": "18px", "xl": "22px", "2xl": "27px", "3xl": "34px"
+    },
+    "fontWeightScale": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "borderRadius": { "sm": "6px", "md": "9px", "lg": "12px", "xl": "16px", "full": "9999px" },
+    "shadow": {
+      "sm": "0 1px 3px rgba(30,58,43,0.08)",
+      "md": "0 2px 8px rgba(30,58,43,0.10)",
+      "lg": "0 4px 20px rgba(30,58,43,0.12)"
+    }
+  },
+  "semantic": {
+    "colorBg": "#F2F7F2",
+    "colorBgCard": "#FFFFFF",
+    "colorBgDeep": "#E8F0E8",
+    "colorText": "#1E3A2B",
+    "colorTextSoft": "#4A6B56",
+    "colorTextFaint": "#8BA090",
+    "colorBorder": "#C8DBC8",
+    "colorBorderSoft": "#D9E8D9",
+    "colorAccent": "#5C8A3A",
+    "colorAccentDeep": "#3D5F27",
+    "colorAccentTint": "rgba(92,138,58,0.08)",
+    "colorSuccess": "#1E5C3A",
+    "colorWarning": "#8A6B2E",
+    "colorError": "#8C3A2E",
+    "categoryColors": {
+      "a": { "base": "#2E6B5C", "tint": "rgba(46,107,92,0.08)" },
+      "b": { "base": "#6B8A2E", "tint": "rgba(107,138,46,0.09)" },
+      "c": { "base": "#3A5C8A", "tint": "rgba(58,92,138,0.08)" },
+      "d": { "base": "#7A3A8A", "tint": "rgba(122,58,138,0.08)" },
+      "e": { "base": "#8A5C2E", "tint": "rgba(138,92,46,0.08)" }
+    }
+  }
+}

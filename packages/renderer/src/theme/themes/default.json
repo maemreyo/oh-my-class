@@ -1,0 +1,88 @@
+{
+  "name": "default",
+  "primitives": {
+    "colorPalette": {
+      "paper": "#FBF4F0",
+      "paperDeep": "#F3E2D9",
+      "ink": "#22273A",
+      "inkSoft": "#5C6275",
+      "inkFaint": "#8B8FA0",
+      "line": "#E8D8CD",
+      "lineSoft": "#EFE3DA",
+      "red": "#B23A2E",
+      "redDeep": "#8C2C22",
+      "redTint": "rgba(178,58,46,0.07)",
+      "gold": "#A8782E",
+      "green": "#2E6F4E",
+      "catA": "#33508F",
+      "catB": "#B9762A",
+      "catC": "#3C7A4E",
+      "catD": "#1F7A8C",
+      "catE": "#8A4F7E"
+    },
+    "spacing": {
+      "1": "4px",
+      "2": "8px",
+      "3": "12px",
+      "4": "16px",
+      "5": "20px",
+      "6": "24px",
+      "8": "32px",
+      "10": "40px",
+      "12": "48px"
+    },
+    "fontFamilyHeading": "'Spectral', Georgia, 'Times New Roman', serif",
+    "fontFamilyBody": "-apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif",
+    "fontFamilyMono": "'IBM Plex Mono', 'Fira Code', 'Courier New', monospace",
+    "fontSizeScale": {
+      "xs": "11px",
+      "sm": "13px",
+      "base": "15.5px",
+      "lg": "18px",
+      "xl": "22px",
+      "2xl": "27px",
+      "3xl": "34px"
+    },
+    "fontWeightScale": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "borderRadius": {
+      "sm": "7px",
+      "md": "10px",
+      "lg": "12px",
+      "xl": "16px",
+      "full": "9999px"
+    },
+    "shadow": {
+      "sm": "0 1px 3px rgba(34,39,58,0.08)",
+      "md": "0 2px 8px rgba(34,39,58,0.10)",
+      "lg": "0 4px 20px rgba(34,39,58,0.12)"
+    }
+  },
+  "semantic": {
+    "colorBg": "#FBF4F0",
+    "colorBgCard": "#FFFFFF",
+    "colorBgDeep": "#F3E2D9",
+    "colorText": "#22273A",
+    "colorTextSoft": "#5C6275",
+    "colorTextFaint": "#8B8FA0",
+    "colorBorder": "#E8D8CD",
+    "colorBorderSoft": "#EFE3DA",
+    "colorAccent": "#B23A2E",
+    "colorAccentDeep": "#8C2C22",
+    "colorAccentTint": "rgba(178,58,46,0.07)",
+    "colorSuccess": "#2E6F4E",
+    "colorWarning": "#A8782E",
+    "colorError": "#B23A2E",
+    "categoryColors": {
+      "a": { "base": "#33508F", "tint": "rgba(51,80,143,0.08)" },
+      "b": { "base": "#B9762A", "tint": "rgba(185,118,42,0.09)" },
+      "c": { "base": "#3C7A4E", "tint": "rgba(60,122,78,0.08)" },
+      "d": { "base": "#1F7A8C", "tint": "rgba(31,122,140,0.08)" },
+      "e": { "base": "#8A4F7E", "tint": "rgba(138,79,126,0.08)" }
+    }
+  }
+}

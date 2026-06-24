@@ -69,3 +69,34 @@ packages/renderer/src/__tests__/
 
 - Blocked by: `template-engine`, `component-schema`, `answer-key-template` (shared sidebar/hero partials)
 - Priority: p1
+
+## Research Findings
+
+**Source**: Report 08 Section 11 — Learning Roadmap Generation
+
+### Phase Timeline Visualization
+Goal Cascade pattern: Summit Goal → Annual → Quarterly → Monthly → Weekly → Daily
+Sestara (GitHub): 8 edge functions, streak tracking, topic-level status transitions (not started → in progress → completed)
+
+### Milestone Schema (Research-Backed)
+```json
+{
+  "phase": 1,
+  "week_range": "1-8",
+  "label": "Foundation: Destination B2",
+  "verification": {"diagnostic_score": ">30/50"},
+  "resources": ["Destination B2 Units 1-6"],
+  "deliverables": ["3 practice essays", "Mini-test 20 questions"]
+}
+```
+
+### Gamification Mechanics
+XP per milestone (20-150), streak tracking, level progression, badges (4 rarities), confetti effects
+
+### Spacing in Timeline
+Review weeks should explicitly RE-ENGAGE prior content (not just test it) — re-encoding strengthens neural representation (7T fMRI evidence, Cell Reports 2025)
+
+### Key References
+- Sestara: https://github.com/VittoriaLanzo/sestara/
+- Goal Cascade: Goals and Progress system (2026)
+- DRL-SRS: https://www.mdpi.com/2076-3417/14/13/5591

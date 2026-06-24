@@ -28,7 +28,7 @@ members = [
 "services.gateway" = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["packages/agents/tests", "packages/notifications/tests", "packages/quality/tests", "common/contracts/tests", "common/branding/tests", "services/gateway/tests", "tests"]
+testpaths = ["packages/agents/tests", "packages/agents/skills/tests", "packages/notifications/tests", "packages/quality/tests", "common/contracts/tests", "common/branding/tests", "services/gateway/tests", "tests"]
 asyncio_mode = "auto"
 
 [tool.ruff]

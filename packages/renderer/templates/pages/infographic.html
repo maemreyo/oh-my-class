@@ -1,2 +1,41 @@
-<% /* Page: infographic */ %>
-<%~ include('../base.html', { title: it.title, subject: it.subject, gradeLevel: it.gradeLevel, lang: it.lang, theme: it.theme, themeCSS: it.themeCSS, content: '<div class="infographic"><h2>' + it.title + '</h2><p>Infographic — ' + (it.sections ? it.sections.length : 0) + ' sections</p></div>' }) %>
+<%
+  /* Infographic page: visual-first layout with sections and optional SVG content.
+     it = InfographicData + { themeCSS, lang } */
+  const sections = it.sections || [];
+
+  let content = '<div class="infographic-page">';
+
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i];
+    content += '<section class="infographic-section">';
+    if (section.title) {
+      content += '<h2 class="infographic-section-title">' + section.title + '</h2>';
+    }
+    if (section.content) {
+      content += '<div class="infographic-content">' + section.content + '</div>';
+    }
+    if (section.svgContent) {
+      content += '<div class="infographic-visual" aria-label="' + (section.title || 'Chart') + '">' + section.svgContent + '</div>';
+    }
+    if (section.items && section.items.length > 0) {
+      content += '<ul class="infographic-items">';
+      for (const item of section.items) {
+        content += '<li class="infographic-item">';
+        if (item.icon) content += '<span class="item-icon" aria-hidden="true">' + item.icon + '</span>';
+        content += '<div class="item-body">';
+        if (item.label) content += '<strong class="item-label">' + item.label + '</strong>';
+        if (item.value) content += '<span class="item-value">' + item.value + '</span>';
+        content += '</div></li>';
+      }
+      content += '</ul>';
+    }
+    content += '</section>';
+  }
+
+  content += '</div>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'infographic', content: content
+}) %>

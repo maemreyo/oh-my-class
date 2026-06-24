@@ -1,4 +1,14 @@
-<% /* Component: math_block — LaTeX inline via KaTeX (inlined) */ %>
-<div class="component-math-block">
-  <!-- TODO: implement KaTeX math rendering -->
+<%
+  /* Math formula block using MathML (inline) or pre-rendered LaTeX.
+     No CDN — MathML is native HTML5.
+     it = { formula: string, type?: 'mathml' | 'latex' | 'text', display?: boolean } */
+  const display = it.display !== false;
+%>
+<div class="component-math-block<%= display ? ' component-math-block--display' : '' %>"
+     aria-label="Math formula">
+  <% if (it.type === 'mathml' && it.formula.startsWith('<math')) { %>
+    <%~ it.formula %>
+  <% } else { %>
+    <code class="math-formula<%= display ? ' math-formula--display' : '' %>"><%= it.formula %></code>
+  <% } %>
 </div>

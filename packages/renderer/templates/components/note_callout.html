@@ -1,0 +1,16 @@
+<%
+  /* Always-visible callout box.
+     it = { type: 'note' | 'tip' | 'warning', title?: string, body: string } */
+  const icons = { note: 'ℹ️', tip: '💡', warning: '⚠️' };
+  const labels = { note: 'Lưu ý', tip: 'Mẹo', warning: 'Cảnh báo' };
+  const calloutType = it.type || 'note';
+%>
+<aside class="component-note-callout component-note-callout--<%= calloutType %>"
+       role="note"
+       aria-label="<%= labels[calloutType] || calloutType %>">
+  <span class="callout-icon" aria-hidden="true"><%= icons[calloutType] || 'ℹ️' %></span>
+  <div class="callout-body">
+    <strong class="callout-title"><%= it.title || labels[calloutType] || calloutType %></strong>
+    <p class="callout-text"><%~ it.body %></p>
+  </div>
+</aside>
