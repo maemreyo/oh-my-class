@@ -33,12 +33,12 @@ def make_state(**overrides):
 
 
 class TestMiddlewareList:
-    def test_ordered_list_has_5_items(self):
-        assert len(ORDERED_MIDDLEWARE_LIST) == 5
+    def test_ordered_list_has_30_items(self):
+        assert len(ORDERED_MIDDLEWARE_LIST) == 30
 
     def test_order_is_correct(self):
         orders = [m.order for m in ORDERED_MIDDLEWARE_LIST]
-        assert orders == [1, 2, 3, 4, 5]
+        assert orders == list(range(1, 31))
 
     def test_all_items_are_classes(self):
         for m in ORDERED_MIDDLEWARE_LIST:
@@ -84,7 +84,7 @@ class TestDanglingToolCall:
 
     def test_name_and_order(self):
         assert DanglingToolCallMiddleware.name == "dangling_tool_call"
-        assert DanglingToolCallMiddleware.order == 3
+        assert DanglingToolCallMiddleware.order == 6
 
 
 class TestSummarization:
@@ -118,4 +118,4 @@ class TestSummarization:
 
     def test_name_and_order(self):
         assert SummarizationMiddleware.name == "summarization"
-        assert SummarizationMiddleware.order == 4
+        assert SummarizationMiddleware.order == 15

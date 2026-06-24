@@ -114,4 +114,4 @@ class TestLoopDetection:
 
     def test_name_and_order(self):
         assert LoopDetectionMiddleware.name == "loop_detection"
-        assert LoopDetectionMiddleware.order == 1
+        assert LoopDetectionMiddleware.order == 11
