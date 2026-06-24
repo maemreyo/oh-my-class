@@ -61,10 +61,26 @@ export interface ConditionalBuilder extends BaseQuestion {
 }
 
 export interface ErrorCorrection extends BaseQuestion {
-  type:            'error_correction'
-  originalText:    string
-  errorTypes:      string[]
-  correctedAnswer: string
+  type:          'error_correction'
+  subtype:       'identification' | 'correction'
+  sentence:      string
+  errorLocation: string
+  correction:    string
+  grammarPoint:  string
+}
+
+export interface ReadingPassage {
+  text:       string
+  source?:    string
+  wordCount?: number
+  cefr?:      string
+}
+
+export interface ReadingComprehension extends BaseQuestion {
+  type:             'reading_comprehension'
+  passage:          ReadingPassage
+  annotationTools?: Array<'highlight' | 'underline' | 'comment'>
+  questions:        Array<Record<string, unknown>>
 }
 
 export interface SentenceManipulation extends BaseQuestion {
@@ -84,3 +100,4 @@ export type TextEntryQuestion =
   | ConditionalBuilder
   | ErrorCorrection
   | SentenceManipulation
+  | ReadingComprehension

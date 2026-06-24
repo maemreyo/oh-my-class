@@ -1,6 +1,20 @@
 import { z } from "zod";
 import { BaseQuestionSchema, RubricSchema } from "./base.js";
 
+// ── Submission info (MM1: platform footer for all multimedia types) ──
+
+export const SubmissionPlatformSchema = z.enum([
+	"google_classroom",
+	"seesaw",
+	"microsoft_teams",
+	"email",
+]);
+
+export const SubmissionInfoSchema = z.object({
+	platforms: z.array(SubmissionPlatformSchema),
+	customNote: z.string().optional(),
+});
+
 // ── 4.1 Video Recording ──
 
 export const MultimediaVideoSchema = BaseQuestionSchema.extend({
@@ -9,6 +23,7 @@ export const MultimediaVideoSchema = BaseQuestionSchema.extend({
 	maxDuration: z.number().int(),
 	rubric: RubricSchema.optional(),
 	aiCheatMitigation: z.string().optional(),
+	submission: SubmissionInfoSchema.optional(),
 });
 
 // ── 4.2 Audio Recording ──
@@ -18,6 +33,7 @@ export const MultimediaAudioSchema = BaseQuestionSchema.extend({
 	instructions: z.string(),
 	maxDuration: z.number().int(),
 	rubric: RubricSchema.optional(),
+	submission: SubmissionInfoSchema.optional(),
 });
 
 // ── 4.3 Photo Documentation ──
@@ -29,6 +45,7 @@ export const MultimediaPhotoSchema = BaseQuestionSchema.extend({
 	maxPhotos: z.number().int().default(10),
 	allowAnnotations: z.boolean().default(true),
 	questions: z.array(z.string()),
+	submission: SubmissionInfoSchema.optional(),
 });
 
 // ── 4.4 Experiment Documentation ──
@@ -49,6 +66,7 @@ export const ExperimentDocumentationSchema = BaseQuestionSchema.extend({
 			})
 			.optional(),
 	}),
+	submission: SubmissionInfoSchema.optional(),
 });
 
 // ── 4.5 Parent-Child Activity ──
@@ -67,6 +85,7 @@ export const ParentChildActivitySchema = BaseQuestionSchema.extend({
 			task: z.string(),
 		}),
 	),
+	submission: SubmissionInfoSchema.optional(),
 });
 
 // ── 4.6 Field Trip Journal ──
@@ -82,6 +101,7 @@ export const FieldTripJournalSchema = BaseQuestionSchema.extend({
 			maxEntries: z.number().int().optional(),
 		}),
 	),
+	submission: SubmissionInfoSchema.optional(),
 });
 
 // ── 4.7 Art Project ──
@@ -99,4 +119,5 @@ export const ArtProjectSchema = BaseQuestionSchema.extend({
 			.optional(),
 	}),
 	rubric: RubricSchema.optional(),
+	submission: SubmissionInfoSchema.optional(),
 });

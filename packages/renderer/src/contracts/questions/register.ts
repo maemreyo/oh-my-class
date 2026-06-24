@@ -197,6 +197,21 @@ const types: Meta[] = [
     complexity: 'medium',
     qtiInteraction: 'textEntryInteraction',
   },
+  {
+    type: 'reading_comprehension',
+    family: 'text-entry',
+    label: 'Reading Comprehension',
+    labelVi: 'Đọc hiểu',
+    artifacts: ['quiz', 'worksheet'],
+    bloomLevels: ['understand', 'apply', 'analyze'] as B[],
+    moetLevels: ['thong_hieu', 'van_dung', 'van_dung_cao'] as M[],
+    subjects: ['english', 'literature'],
+    examFormats: [...ALL_FORMATS] as F[],
+    requiresMedia: false,
+    isInteractive: false,
+    complexity: 'high',
+    qtiInteraction: 'textEntryInteraction',
+  },
   // ── fill-gap family ────────────────────────────────────────────────────────
   {
     type: 'fill_blank_wordbank',

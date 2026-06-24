@@ -28,14 +28,15 @@ export const FAMILY_MAP: Record<string, RenderingFamily> = {
   phonics:                  'choice',
 
   // ── text-entry ───────────────────────────────────────────────────────────
-  cloze:                'text-entry',
-  short_answer:         'text-entry',
+  cloze:                  'text-entry',
+  short_answer:           'text-entry',
   grammar_transformation: 'text-entry',
-  reported_speech:      'text-entry',
-  passive_voice:        'text-entry',
-  conditional_builder:  'text-entry',
-  error_correction:     'text-entry',
-  sentence_manipulation: 'text-entry',
+  reported_speech:        'text-entry',
+  passive_voice:          'text-entry',
+  conditional_builder:    'text-entry',
+  error_correction:       'text-entry',
+  sentence_manipulation:  'text-entry',
+  reading_comprehension:  'text-entry',
 
   // ── fill-gap ─────────────────────────────────────────────────────────────
   fill_blank_wordbank: 'fill-gap',

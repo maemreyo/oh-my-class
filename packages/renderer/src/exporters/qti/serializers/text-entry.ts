@@ -25,7 +25,8 @@ function getStem(q: TextEntryQuestion): string {
     case 'reported_speech':        return q.directSpeech
     case 'passive_voice':          return q.activeSentence ?? q.passiveSentence ?? ''
     case 'conditional_builder':    return q.activities[0]?.stem ?? ''
-    case 'error_correction':       return q.originalText
+    case 'error_correction':       return q.sentence
+    case 'reading_comprehension':  return q.passage.text
     case 'sentence_manipulation':  return q.inputSentences.join(' / ')
     default:                       return ''
   }
@@ -42,7 +43,7 @@ function getCorrectAnswers(q: TextEntryQuestion): string[] {
     case 'passive_voice':
       return [q.expectedPassive ?? q.expectedActive ?? '']
     case 'error_correction':
-      return [q.correctedAnswer]
+      return [q.correction]
     case 'sentence_manipulation':
       return [q.expectedOutput]
     default:

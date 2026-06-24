@@ -1,9 +1,10 @@
 """9Router model assignments for oh-my-class.
 
-Rule: f.pro for heavy reasoning/generation/judgment,
-      f.light for fast/cheap/repetitive tasks.
+Combos match AGENTS.md §6.1 model assignment table:
+  f.pro   → gpt-5.4 / content-fusion (Lead, Judge, Fact-check)
+  f.light → deepseek-v4-flash / deepseek-free (Planner, Researcher, Content Creator)
 
-Override via env: MODEL_CONTENT_GENERATION=f.light
+Override via env: MODEL_BLUEPRINT_DESIGN=f.pro
 """
 
 from __future__ import annotations
@@ -22,14 +23,15 @@ class ModelConfig(BaseSettings):
         extra="ignore",
     )
 
-    # Heavy tasks (f.pro — best quality free tier)
-    blueprint_design: str = "f.pro"
-    content_generation: str = "f.pro"
+    # f.pro — judgment / synthesis (gpt-5.4 / content-fusion per §6.1)
+    lead_agent: str = "f.pro"
     llm_judge: str = "f.pro"
     fact_verification: str = "f.pro"
-    researcher: str = "f.pro"
 
-    # Light tasks (f.light — fast/cheap)
+    # f.light — fast generation (deepseek-v4-flash / deepseek-free per §6.1)
+    blueprint_design: str = "f.light"
+    researcher: str = "f.light"
+    content_generation: str = "f.light"
     schema_rewrite: str = "f.light"
     summarization: str = "f.light"
     title_generation: str = "f.light"

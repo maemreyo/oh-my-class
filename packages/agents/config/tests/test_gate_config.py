@@ -103,21 +103,25 @@ class TestModelConfig:
         from packages.agents.config.models import MODELS
         assert MODELS.summarization == "f.light"
 
-    def test_content_generation_is_f_pro(self):
+    def test_content_generation_is_f_light(self):
         from packages.agents.config.models import MODELS
-        assert MODELS.content_generation == "f.pro"
+        assert MODELS.content_generation == "f.light"
 
-    def test_blueprint_design_is_f_pro(self):
+    def test_blueprint_design_is_f_light(self):
         from packages.agents.config.models import MODELS
-        assert MODELS.blueprint_design == "f.pro"
+        assert MODELS.blueprint_design == "f.light"
 
     def test_schema_rewrite_is_f_light(self):
         from packages.agents.config.models import MODELS
         assert MODELS.schema_rewrite == "f.light"
 
-    def test_researcher_is_f_pro(self):
+    def test_researcher_is_f_light(self):
         from packages.agents.config.models import MODELS
-        assert MODELS.researcher == "f.pro"
+        assert MODELS.researcher == "f.light"
+
+    def test_lead_agent_is_f_pro(self):
+        from packages.agents.config.models import MODELS
+        assert MODELS.lead_agent == "f.pro"
 
     def test_env_override_model(self, monkeypatch):
         monkeypatch.setenv("MODEL_CONTENT_GENERATION", "f.light")

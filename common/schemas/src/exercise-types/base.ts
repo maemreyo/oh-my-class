@@ -32,6 +32,12 @@ export const MetadataSchema = z.object({
 	updatedAt: z.string().optional(),
 });
 
+export const ScoringConfigSchema = z.object({
+	type: z.enum(["all_or_nothing", "partial_credit", "vietnamese_tf_2025"]),
+	pointsTotal: z.number().optional(),
+	penaltyPerWrong: z.number().optional(),
+});
+
 export const BaseQuestionSchema = z.object({
 	id: z.string(),
 	type: z.string(),
@@ -39,12 +45,7 @@ export const BaseQuestionSchema = z.object({
 	bloomLevel: BloomLevelVNSchema.optional(),
 	tags: z.array(z.string()).default([]),
 	metadata: MetadataSchema,
-});
-
-export const ScoringConfigSchema = z.object({
-	type: z.enum(["all_or_nothing", "partial_credit", "vietnamese_tf_2025"]),
-	pointsTotal: z.number().optional(),
-	penaltyPerWrong: z.number().optional(),
+	scoring: ScoringConfigSchema.optional(),
 });
 
 export const RubricCriterionSchema = z.object({
