@@ -18,7 +18,7 @@ def test_build_tags_with_run_id():
     tag_list = tags["metadata"]["tags"]
     assert "agent:content_creator" in tag_list
     assert "task:content_generation" in tag_list
-    assert "run_id:run-123" in tag_list
+    assert "run:run-123" in tag_list          # AGENTS.md §6.5: run: not run_id:
     assert "pipeline:oh-my-class" in tag_list
 
 
@@ -28,13 +28,26 @@ def test_build_tags_no_run_id():
     assert "agent:llm_judge" in tag_list
     assert "task:quality_gate" in tag_list
     assert "pipeline:oh-my-class" in tag_list
-    assert not any(t.startswith("run_id:") for t in tag_list)
+    assert not any(t.startswith("run:") for t in tag_list)
 
 
 def test_build_tags_run_id_none():
     tags = build_tags("researcher", "fact_verification", run_id=None)
     tag_list = tags["metadata"]["tags"]
-    assert not any(t.startswith("run_id:") for t in tag_list)
+    assert not any(t.startswith("run:") for t in tag_list)
+
+
+def test_build_tags_with_step():
+    tags = build_tags("content_creator", "content_generation", "run-1", step=5)
+    tag_list = tags["metadata"]["tags"]
+    assert "step:5" in tag_list
+    assert "run:run-1" in tag_list
+
+
+def test_build_tags_step_none_not_included():
+    tags = build_tags("content_creator", "content_generation")
+    tag_list = tags["metadata"]["tags"]
+    assert not any(t.startswith("step:") for t in tag_list)
 
 
 def test_build_tags_pipeline_always_present():

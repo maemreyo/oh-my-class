@@ -59,12 +59,13 @@ class LLMClient:
         agent: str = "unknown",
         task: str = "unknown",
         run_id: str | None = None,
+        step: int | None = None,
         max_tokens: int | None = None,
         temperature: float | None = None,
         response_format: dict | None = None,
     ) -> ChatResponse:
         """Send chat request. Returns ChatResponse with usage stats."""
-        extra = build_tags(agent, task, run_id)
+        extra = build_tags(agent, task, run_id, step)
 
         # Budget: use configured hard limit for bounded tasks; None lets model generate freely
         budget_hard_limit = _budget.get_hard_limit(task)
@@ -107,9 +108,10 @@ class LLMClient:
         agent: str = "unknown",
         task: str = "unknown",
         run_id: str | None = None,
+        step: int | None = None,
     ) -> AsyncIterator[str]:
         """Stream chat response token by token."""
-        extra = build_tags(agent, task, run_id)
+        extra = build_tags(agent, task, run_id, step)
         stream = await self._client.chat.completions.create(
             model=model,
             messages=[{"role": m.role, "content": m.content} for m in messages],

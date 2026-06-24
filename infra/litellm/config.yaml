@@ -50,7 +50,7 @@ router_settings:
 
 # === LITELLM SETTINGS ===
 litellm_settings:
-  num_retries: 2
+  num_retries: 3
   request_timeout: 120
   drop_params: true          # ignore unknown params (e.g. extra_body) gracefully
   json_logs: true
