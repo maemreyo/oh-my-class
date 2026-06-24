@@ -16,6 +16,10 @@ from packages.agents.graph import (
     route_after_human_review,
     route_after_blueprint_gate,
     route_after_content_gate,
+    route_after_schema,
+    route_after_content_review,
+    route_after_judge,
+    route_after_export,
 )
 from packages.agents.checkpointer import get_checkpointer
 
@@ -200,14 +204,14 @@ class TestGraphStructure:
             graph = build_oh_my_class_graph()
         assert graph is not None
 
-    def test_graph_has_13_user_nodes(self):
+    def test_graph_has_16_user_nodes(self):
         from packages.agents.graph import build_oh_my_class_graph
 
         mocks, _, nodes = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             build_oh_my_class_graph()
-        # nodes dict is populated by add_node calls
-        assert len(nodes) == 13
+        # 12 pipeline + 2 gates + healing_node + escalate_node
+        assert len(nodes) == 16
 
     def test_graph_has_all_step_names(self):
         from packages.agents.graph import build_oh_my_class_graph
@@ -215,11 +219,11 @@ class TestGraphStructure:
         mocks, _, nodes = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             build_oh_my_class_graph()
-        # Gate nodes replace step_04 and step_11
         expected_nodes = [
             "step_01", "step_02", "step_03", "gate_01",
             "step_05", "step_06", "step_07", "step_08",
-            "step_09", "step_10", "gate_02", "step_12", "step_13",
+            "step_09", "step_10", "step_10b", "gate_02",
+            "step_11", "step_12", "healing_node", "escalate_node",
         ]
         for prefix in expected_nodes:
             assert any(n.startswith(prefix) for n in nodes), f"Missing {prefix}"
@@ -230,8 +234,8 @@ class TestGraphStructure:
         mocks, _, _ = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             graph = build_oh_my_class_graph()
-        # Compiled graph has __start__ + 13 user nodes + __end__ = 15
-        assert len(graph.get_graph().nodes) == 15
+        # Compiled graph has __start__ + 16 user nodes + __end__ = 18
+        assert len(graph.get_graph().nodes) == 18
 
     def test_graph_accepts_custom_checkpointer(self):
         from packages.agents.graph import build_oh_my_class_graph
@@ -240,3 +244,55 @@ class TestGraphStructure:
         with patch.dict(sys.modules, mocks):
             graph = build_oh_my_class_graph(checkpointer=MagicMock())
         assert graph is not None
+
+
+# ── Quality gate router functions ─────────────────────────────────────────────
+
+class TestRouteAfterSchema:
+    def test_passes_when_schema_valid(self):
+        assert route_after_schema({"schema_valid": True}) == "step_10_content_review"
+
+    def test_heals_when_schema_invalid(self):
+        assert route_after_schema({"schema_valid": False}) == "healing_node"
+
+    def test_heals_when_schema_valid_missing(self):
+        assert route_after_schema({}) == "healing_node"
+
+
+class TestRouteAfterContentReview:
+    def test_passes_when_review_passed(self):
+        assert route_after_content_review({"content_review_passed": True}) == "step_10b_llm_judge"
+
+    def test_heals_when_review_failed(self):
+        assert route_after_content_review({"content_review_passed": False}) == "healing_node"
+
+    def test_heals_when_review_missing(self):
+        assert route_after_content_review({}) == "healing_node"
+
+
+class TestRouteAfterJudge:
+    def test_passes_when_score_at_threshold(self):
+        assert route_after_judge({"judge_score": 7.0}) == "gate_02_content_approval"
+
+    def test_passes_when_score_above_threshold(self):
+        assert route_after_judge({"judge_score": 9.5}) == "gate_02_content_approval"
+
+    def test_heals_when_score_below_threshold(self):
+        assert route_after_judge({"judge_score": 6.9}) == "healing_node"
+
+    def test_heals_when_score_missing(self):
+        assert route_after_judge({}) == "healing_node"
+
+    def test_heals_when_score_zero(self):
+        assert route_after_judge({"judge_score": 0.0}) == "healing_node"
+
+
+class TestRouteAfterExport:
+    def test_finalizes_when_ready(self):
+        assert route_after_export({"export_ready": True}) == "step_12_finalize"
+
+    def test_escalates_when_not_ready(self):
+        assert route_after_export({"export_ready": False}) == "escalate_node"
+
+    def test_escalates_when_missing(self):
+        assert route_after_export({}) == "escalate_node"

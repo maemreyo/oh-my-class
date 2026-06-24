@@ -76,6 +76,26 @@ class OhMyClassState(TypedDict):
     teacher_approved: bool
     revision_count: int
 
+    # ── Gate tracking (written by gate nodes) ───────────────────────────────────
+    fail_layer: NotRequired[str | None]       # "schema" | "content" | "judge" | "human"
+    fail_count: NotRequired[int]              # incremented by healing_node
+    fail_type: NotRequired[str | None]        # "validation" | "content" | "score" | "timeout"
+    fail_context: NotRequired[dict | None]    # error details for healing strategy
+
+    # ── Gate scores ──────────────────────────────────────────────────────────────
+    schema_valid: NotRequired[bool | None]
+    content_review_passed: NotRequired[bool | None]
+    judge_score: NotRequired[float | None]    # overall G-Eval score
+    export_ready: NotRequired[bool | None]
+
+    # ── Healing / model override ─────────────────────────────────────────────────
+    escalate: NotRequired[bool]              # set True to trigger escalation
+    escalate_reason: NotRequired[str | None]
+    healing_strategy: NotRequired[str | None]  # "retry" | "rewrite" | "reroute" | "replan" | "escalate"
+    healing_note: NotRequired[str | None]
+    healing_context: NotRequired[dict | None]
+    generation_model: NotRequired[str | None]  # overrides default model for generation
+
     # ── HITL Gate ───────────────────────────────────────────
     teacher_decision: NotRequired[str]   # "approve" | "reject" | "edit"
     gate_payload: NotRequired[dict[str, Any]]   # data shown to teacher at gate

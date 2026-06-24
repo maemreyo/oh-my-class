@@ -1,14 +1,22 @@
 """LangGraph graph builder for the oh-my-class pipeline.
 
-Constructs the StateGraph with all 13 steps, conditional routing,
-and interrupt() gates for teacher approval.
+Constructs the StateGraph with all 16 nodes, quality gate chain,
+healing orchestrator, and interrupt() gates for teacher approval.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from packages.agents.gates import gate_01_blueprint_approval, gate_02_content_approval
+from packages.agents.gates import (
+    gate_01_blueprint_approval,
+    gate_02_content_approval,
+    step_09_schema_validate,
+    step_10_content_review,
+    step_10b_llm_judge,
+    step_11_export_readiness,
+)
+from packages.agents.healing import healing_node, route_after_healing
 from packages.agents.state import OhMyClassState
 
 
@@ -20,6 +28,14 @@ def _make_dummy_node(step: int, name: str):
     return dummy_node
 
 
+def escalate_node(state: OhMyClassState) -> dict[str, Any]:
+    """Terminal node for escalated failures — marks run as failed."""
+    return {
+        "error": state.get("escalate_reason") or state.get("error") or "Escalated",
+        "escalate": True,
+    }
+
+
 def build_oh_my_class_graph(
     *,
     environment: str = "development",
@@ -27,32 +43,26 @@ def build_oh_my_class_graph(
 ) -> Any:
     """Build and compile the oh-my-class LangGraph pipeline.
 
-    Creates a StateGraph with 13 sequential steps, two interrupt() gates
-    (blueprint approval at Step 04, content approval at Step 11), and
-    conditional routing for the quality review loop.
-
-    Args:
-        environment: One of 'development', 'staging', 'production'.
-        checkpointer: Pre-configured checkpointer instance. If None,
-            uses get_checkpointer() with the given environment.
-
-    Returns:
-        Compiled LangGraph graph ready for invocation.
+    Creates a StateGraph with 16 nodes: 12 pipeline steps, 2 HITL gates,
+    healing_node, and escalate_node.
 
     Pipeline steps:
         01. Preflight — validate raw teacher input
         02. Quickstart — initialize run, create thread/dirs/metadata
         03. Blueprint — Planner Agent → LessonPlan JSON
-        04. Teacher Gate 1 — interrupt() for blueprint approval
+        04. Gate 1 — interrupt() for blueprint approval
         05. Pack Scope — determine artifact types
         06. Visual Engine — choose theme/layout/visual treatments
         07. Research — Researcher Agent → ResearchBundle JSON
         08. Generate — ContentCreator Agent → ArtifactContent[] JSON
-        09. Import — assemble raw artifacts; run Layer 1–3 gates
-        10. Review — LLM-as-Judge (Layer 4); self-heal loop
-        11. Teacher Gate 2 — interrupt() for content approval
-        12. Validate — Layer 6 multi-judge; schema + contract check
-        13. Export — package to requested format(s) and persist
+        09. Schema Validate — Layer 1: Pydantic schema check
+        10. Content Review — Layer 2-3: fact-check, HTML, age, answer-key
+        10b. LLM Judge — Layer 4: G-Eval scoring
+        11. Gate 2 — interrupt() for content approval
+        12. Export Readiness — Layer 6: pre-export validation
+        13. Finalize — package to requested format(s) and persist
+        H. Healing Node — select + apply recovery strategy
+        E. Escalate Node — terminal failure node
     """
     from langgraph.graph import StateGraph, END
     from packages.agents.state import OhMyClassState
@@ -63,6 +73,7 @@ def build_oh_my_class_graph(
 
     graph = StateGraph(OhMyClassState)
 
+    # ── Pipeline nodes ─────────────────────────────────────────────────────────
     graph.add_node("step_01_preflight", _make_dummy_node(1, "preflight"))
     graph.add_node("step_02_quickstart", _make_dummy_node(2, "quickstart"))
     graph.add_node("step_03_blueprint", _make_dummy_node(3, "blueprint"))
@@ -71,12 +82,16 @@ def build_oh_my_class_graph(
     graph.add_node("step_06_visual_engine", _make_dummy_node(6, "visual_engine"))
     graph.add_node("step_07_research", _make_dummy_node(7, "research"))
     graph.add_node("step_08_generate", _make_dummy_node(8, "generate"))
-    graph.add_node("step_09_import", _make_dummy_node(9, "import"))
-    graph.add_node("step_10_review", _make_dummy_node(10, "review"))
+    graph.add_node("step_09_schema_validate", step_09_schema_validate)
+    graph.add_node("step_10_content_review", step_10_content_review)
+    graph.add_node("step_10b_llm_judge", step_10b_llm_judge)
     graph.add_node("gate_02_content_approval", gate_02_content_approval)
-    graph.add_node("step_12_validate", _make_dummy_node(12, "validate"))
-    graph.add_node("step_13_export", _make_dummy_node(13, "export"))
+    graph.add_node("step_11_export_readiness", step_11_export_readiness)
+    graph.add_node("step_12_finalize", _make_dummy_node(12, "finalize"))
+    graph.add_node("healing_node", healing_node)
+    graph.add_node("escalate_node", escalate_node)
 
+    # ── Edges ──────────────────────────────────────────────────────────────────
     graph.set_entry_point("step_01_preflight")
     graph.add_edge("step_01_preflight", "step_02_quickstart")
     graph.add_edge("step_02_quickstart", "step_03_blueprint")
@@ -94,16 +109,32 @@ def build_oh_my_class_graph(
     graph.add_edge("step_05_pack_scope", "step_06_visual_engine")
     graph.add_edge("step_06_visual_engine", "step_07_research")
     graph.add_edge("step_07_research", "step_08_generate")
-    graph.add_edge("step_08_generate", "step_09_import")
-    graph.add_edge("step_09_import", "step_10_review")
+    graph.add_edge("step_08_generate", "step_09_schema_validate")
 
     graph.add_conditional_edges(
-        "step_10_review",
-        route_after_review,
+        "step_09_schema_validate",
+        route_after_schema,
         {
-            "human_review": "gate_02_content_approval",
-            "escalate": END,
-            "repair": "step_08_generate",
+            "step_10_content_review": "step_10_content_review",
+            "healing_node": "healing_node",
+        },
+    )
+
+    graph.add_conditional_edges(
+        "step_10_content_review",
+        route_after_content_review,
+        {
+            "step_10b_llm_judge": "step_10b_llm_judge",
+            "healing_node": "healing_node",
+        },
+    )
+
+    graph.add_conditional_edges(
+        "step_10b_llm_judge",
+        route_after_judge,
+        {
+            "gate_02_content_approval": "gate_02_content_approval",
+            "healing_node": "healing_node",
         },
     )
 
@@ -111,42 +142,74 @@ def build_oh_my_class_graph(
         "gate_02_content_approval",
         route_after_content_gate,
         {
-            "approve": "step_12_validate",
+            "approve": "step_11_export_readiness",
             "reject": "step_08_generate",
         },
     )
 
-    graph.add_edge("step_12_validate", "step_13_export")
-    graph.add_edge("step_13_export", END)
+    graph.add_conditional_edges(
+        "step_11_export_readiness",
+        route_after_export,
+        {
+            "step_12_finalize": "step_12_finalize",
+            "escalate_node": "escalate_node",
+        },
+    )
+
+    graph.add_conditional_edges(
+        "healing_node",
+        route_after_healing,
+        {
+            "step_08_generate": "step_08_generate",
+            "escalate_node": "escalate_node",
+        },
+    )
+
+    graph.add_edge("step_12_finalize", END)
+    graph.add_edge("escalate_node", END)
 
     return graph.compile(checkpointer=checkpointer)
 
 
-def route_after_blueprint_gate(state: OhMyClassState) -> str:
-    """Route after Gate 01 (blueprint approval).
+# ── Router functions ────────────────────────────────────────────────────────────
 
-    approve/edit → proceed to pack scope; reject → re-run planner.
-    """
+def route_after_blueprint_gate(state: OhMyClassState) -> str:
+    """Route after Gate 01: approve/edit → pack scope; reject → re-run planner."""
     decision = state.get("teacher_decision", "approve")
     return "approve" if decision in ("approve", "edit") else "reject"
 
 
 def route_after_content_gate(state: OhMyClassState) -> str:
-    """Route after Gate 02 (content approval).
-
-    approve → finalize; reject → regenerate artifacts.
-    """
+    """Route after Gate 02: approve → export readiness; reject → regenerate."""
     decision = state.get("teacher_decision", "approve")
     return "approve" if decision == "approve" else "reject"
 
 
-def route_after_review(state: OhMyClassState) -> str:
-    """Route after quality review (Step 10).
+def route_after_schema(state: OhMyClassState) -> str:
+    """Route after schema validation: pass → content review; fail → healing."""
+    return "step_10_content_review" if state.get("schema_valid") else "healing_node"
 
-    Returns:
-        'human_review' if score >= 7.0, 'escalate' if revision_count >= 3,
-        'repair' otherwise.
-    """
+
+def route_after_content_review(state: OhMyClassState) -> str:
+    """Route after content review: pass → LLM judge; fail → healing."""
+    return "step_10b_llm_judge" if state.get("content_review_passed") else "healing_node"
+
+
+def route_after_judge(state: OhMyClassState) -> str:
+    """Route after LLM judge: score ≥ 7.0 → gate 02; below → healing."""
+    score = state.get("judge_score", 0.0) or 0.0
+    return "gate_02_content_approval" if score >= 7.0 else "healing_node"
+
+
+def route_after_export(state: OhMyClassState) -> str:
+    """Route after export readiness: pass → finalize; fail → escalate."""
+    return "step_12_finalize" if state.get("export_ready") else "escalate_node"
+
+
+# ── Legacy router functions (kept for test compatibility) ───────────────────────
+
+def route_after_review(state: OhMyClassState) -> str:
+    """Legacy: route after quality review node (pre-quality-gate-nodes)."""
     scores = state.get("quality_scores", {})
     overall = scores.get("overall", 0.0) if scores else 0.0
     if overall >= 7.0:
@@ -157,9 +220,5 @@ def route_after_review(state: OhMyClassState) -> str:
 
 
 def route_after_human_review(state: OhMyClassState) -> str:
-    """Route after teacher gate 2 (Step 11).
-
-    Returns:
-        'validate' if teacher approved, 'generate' to loop back.
-    """
+    """Legacy: route after teacher gate 2 (pre-quality-gate-nodes)."""
     return "validate" if state.get("teacher_approved", False) else "generate"
