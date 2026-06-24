@@ -29,10 +29,27 @@
 #   make check-schemas Verify schema parity (Pydantic ↔ Zod)
 # ════════════════════════════════════════════════════════════════════
 
-.PHONY: up down logs test test-python test-ts test-integration lint lint-python lint-ts fmt setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
+.PHONY: dev dev-frontend dev-all prod-up prod-down up down logs test test-python test-ts test-integration lint lint-python lint-ts fmt setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
 
 # ── Docker compose path ──
 COMPOSE := docker compose -f infra/compose/docker-compose.yml
+
+# ── Local dev (no Docker — assumes 9Router on :20128) ──────────────────────
+dev: ## Start Python gateway (port 8001 — 9Router must be running on :20128)
+	uv run uvicorn services.gateway.main:app --reload --port 8001
+
+dev-frontend: ## Start teacher dashboard (Next.js on port 3000)
+	cd apps/web && npm run dev
+
+dev-all: ## Start Python gateway + frontend concurrently
+	$(MAKE) -j2 dev dev-frontend
+
+# ── Production ──────────────────────────────────────────────────────────────
+prod-up: ## Start full production stack (LiteLLM + Postgres + Redis + app)
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+prod-down: ## Stop production stack
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 
 # ── Default target ──
 .DEFAULT_GOAL := help
