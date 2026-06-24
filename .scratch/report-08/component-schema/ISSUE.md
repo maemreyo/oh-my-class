@@ -354,3 +354,32 @@ Test each component type instantiation, discriminated union parsing, and invalid
 
 - Blocks: `template-engine`, `answer-key-template`, `roadmap-template`, `diagnostic-agent`, `roadmap-agent`
 - Priority: p0
+
+## Research Findings
+
+**Source**: Report 08 Section 13 — Template Engine & Component Dispatch
+
+### Strapi Dynamic Zone Pattern
+__component discriminator field for typed component maps
+Type-safe rendering: BlockRegistry[K in DynamicZoneBlock['__component']]
+Full TypeScript inference of union types
+
+### Discriminated Union Best Practices
+Each component type gets a literal `type` field as discriminator
+Pydantic Field(discriminator="type") for Python validation
+Zod .discriminatedUnion("type") for TypeScript validation
+
+### Component Registry Pattern (All Systems)
+Khan: registerWidget(type, widget)
+Vercel: defineRegistry(catalog, { components: {...} })
+Strapi: BlockRegistry = { "hero-block": HeroBlock, ... }
+oh-my-class: dispatcher.eta switch(component.type) → include(partial)
+
+### Validation Hierarchy
+1. Schema validation (Zod/Pydantic) — catches structural errors
+2. Rendering validation (Eta) — catches template errors
+3. HTML validation (DOMPurify) — catches security issues
+
+### Key References
+- Strapi dynamic zones: https://strapi.io/blog/dynamic-zones-an-advanced-new-component-system
+- VizuLLM: https://arxiv.org/html/2602.03704v1

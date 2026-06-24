@@ -131,3 +131,30 @@ Test: `generate_core_tokens` outputs all color variables; `generate_group_tokens
 - Blocked by: nothing (standalone)
 - Blocks: `answer-key-template`, `roadmap-template` (need group colors at runtime)
 - Priority: p2
+
+## Research Findings
+
+**Source**: Report 08 Section 13 — Template Engine & Component Dispatch
+
+### Standalone HTML Requirements (All Systems)
+- All CSS inlined within components
+- No external CDN references (INVARIANT-04)
+- System font stacks only (no custom web fonts)
+- Media queries for responsive + print + dark mode
+
+### Dark Mode Pattern
+@media (prefers-color-scheme: dark) { :root { --paper: #1a1a2e; ... } }
+All color tokens must have dark variants
+Group colors need tint adjustments for dark backgrounds
+
+### Print Styles (Moodle Pattern)
+@media print { .sidebar, .no-print { display: none; } .shell { display: block; } }
+body { background: white; color: black; }
+
+### Quality Gate Integration
+Layer 3 HTML validator checks: DOCTYPE, no CDN, brand strings, responsive
+Hard blocks: missing_doctype, external_assets, answer_key_leakage, native_radio_inputs
+
+### Key References
+- Moodle Output API: https://docs.moodle.org/dev/Output_API
+- WCAG 2.1 contrast requirements: https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum

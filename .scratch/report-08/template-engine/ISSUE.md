@@ -207,3 +207,39 @@ Test: all 8 artifact types render without throwing; unknown type throws; sanitiz
 - Blocked by: `component-schema` (needs artifact types enum)
 - Blocks: `answer-key-template`, `roadmap-template`
 - Priority: p0
+
+## Research Findings
+
+**Source**: Report 08 Section 13 — Template Engine & Component Dispatch
+
+### Khan Academy Perseus Pattern
+registerWidget() → WidgetExports<T> → getWidget() rendering
+Editor registration with bidirectional data binding
+Error Boundary: widget failures silently disappear (don't crash)
+
+### Vercel json-render Pattern
+defineCatalog() + defineRegistry() with Zod-backed schemas
+ActionProvider for event handling
+Sub-200ms hydration via fine-grained component hydration
+
+### Eta.js Production Patterns
+layout() + block() system for page composition
+include() / includeAsync() for partials
+Whitespace control via ~> and ~ delimiters
+Custom tags for component-like elements
+
+### LLM→JSON→Template Pipeline
+autoFixSpec() distinguishes lossy vs lossless fixes
+retry_prompt informed by validation errors
+3 retries before full pipeline restart
+
+### Performance Benchmarks
+Perseus: LCP sub-500ms
+json-render: sub-200ms hydration
+Moodle: JS bundle <50KB
+End-to-end (LLM→HTML): 2100-5200ms
+
+### Key References
+- Perseus: https://github.com/Khan/perseus
+- json-render: https://github.com/vercel-labs/json-render
+- Eta.js: https://eta.js.org/
