@@ -18,7 +18,8 @@ async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
     """
     import litellm
 
-    from packages.agents.sub_agents.content_creator.prompts import CONTENT_CREATOR_SYSTEM_PROMPT
+    from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
+    CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
 
     lesson_plan = state.get("lesson_plan") or {}
     research_bundle = state.get("research_bundle") or {}

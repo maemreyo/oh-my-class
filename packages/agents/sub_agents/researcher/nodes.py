@@ -21,7 +21,8 @@ async def researcher_node(state: ResearcherState) -> dict[str, Any]:
     """
     import litellm
 
-    from packages.agents.sub_agents.researcher.prompts import RESEARCHER_SYSTEM_PROMPT
+    from packages.agents.sub_agents.researcher.prompts import load_system_prompt
+    RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
 
     lesson_plan = state.get("lesson_plan") or {}
     research_policy = state.get("research_policy", "standard")

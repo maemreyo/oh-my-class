@@ -226,7 +226,7 @@ class TestResearcherTools:
 
 class TestResearcherPrompts:
     def test_prompt_contains_fact_protocol(self):
-        from packages.agents.sub_agents.researcher.prompts import RESEARCHER_SYSTEM_PROMPT
+        from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
 
         assert "FACT" in RESEARCHER_SYSTEM_PROMPT
         assert "Find" in RESEARCHER_SYSTEM_PROMPT
@@ -235,20 +235,20 @@ class TestResearcherPrompts:
         assert "Tag" in RESEARCHER_SYSTEM_PROMPT
 
     def test_prompt_contains_verification_statuses(self):
-        from packages.agents.sub_agents.researcher.prompts import RESEARCHER_SYSTEM_PROMPT
+        from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
 
         for status in ("VERIFIED", "MODIFIED", "REMOVED", "UNCERTAIN"):
             assert status in RESEARCHER_SYSTEM_PROMPT
 
     def test_prompt_contains_research_policies(self):
-        from packages.agents.sub_agents.researcher.prompts import RESEARCHER_SYSTEM_PROMPT
+        from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
 
         assert "basic" in RESEARCHER_SYSTEM_PROMPT
         assert "standard" in RESEARCHER_SYSTEM_PROMPT
         assert "rigorous" in RESEARCHER_SYSTEM_PROMPT
 
     def test_prompt_contains_output_schema(self):
-        from packages.agents.sub_agents.researcher.prompts import RESEARCHER_SYSTEM_PROMPT
+        from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
 
         assert "credibility_score" in RESEARCHER_SYSTEM_PROMPT
         assert "verification_status" in RESEARCHER_SYSTEM_PROMPT

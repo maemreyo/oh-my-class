@@ -1,6 +1,6 @@
 ---
 title: "Prompt Management: G2 Pattern — Markdown Files per Agent + SkillActivation"
-status: ready
+status: done
 labels: [architecture, agents, prompts]
 created: 2026-06-24
 priority: p1

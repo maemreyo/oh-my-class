@@ -296,22 +296,22 @@ class TestContentCreatorTools:
 
 class TestContentCreatorPrompts:
     def test_prompt_contains_artifact_types(self):
-        from packages.agents.sub_agents.content_creator.prompts import CONTENT_CREATOR_SYSTEM_PROMPT
+        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
 
         for artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic"):
             assert artifact_type in CONTENT_CREATOR_SYSTEM_PROMPT
 
     def test_prompt_mentions_no_html(self):
-        from packages.agents.sub_agents.content_creator.prompts import CONTENT_CREATOR_SYSTEM_PROMPT
+        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
 
         assert "HTML" in CONTENT_CREATOR_SYSTEM_PROMPT
 
     def test_prompt_mentions_teacher_only(self):
-        from packages.agents.sub_agents.content_creator.prompts import CONTENT_CREATOR_SYSTEM_PROMPT
+        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
 
         assert "teacher_only" in CONTENT_CREATOR_SYSTEM_PROMPT
 
     def test_prompt_mentions_no_cdn(self):
-        from packages.agents.sub_agents.content_creator.prompts import CONTENT_CREATOR_SYSTEM_PROMPT
+        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
 
         assert "CDN" in CONTENT_CREATOR_SYSTEM_PROMPT

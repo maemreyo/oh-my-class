@@ -21,7 +21,8 @@ async def planner_node(state: PlannerState) -> dict[str, Any]:
     """
     import litellm
 
-    from packages.agents.sub_agents.planner.prompts import PLANNER_SYSTEM_PROMPT
+    from packages.agents.sub_agents.planner.prompts import load_system_prompt
+    PLANNER_SYSTEM_PROMPT = load_system_prompt()
 
     user_prompt = f"""
 Teacher request: {state['raw_request']}
