@@ -11,7 +11,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from packages.agents.graph import route_after_review, route_after_human_review
+from packages.agents.graph import (
+    route_after_review,
+    route_after_human_review,
+    route_after_blueprint_gate,
+    route_after_content_gate,
+)
 from packages.agents.checkpointer import get_checkpointer
 
 
@@ -210,9 +215,14 @@ class TestGraphStructure:
         mocks, _, nodes = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             build_oh_my_class_graph()
-        for step in range(1, 14):
-            step_prefix = f"step_{step:02d}"
-            assert any(n.startswith(step_prefix) for n in nodes), f"Missing {step_prefix}"
+        # Gate nodes replace step_04 and step_11
+        expected_nodes = [
+            "step_01", "step_02", "step_03", "gate_01",
+            "step_05", "step_06", "step_07", "step_08",
+            "step_09", "step_10", "gate_02", "step_12", "step_13",
+        ]
+        for prefix in expected_nodes:
+            assert any(n.startswith(prefix) for n in nodes), f"Missing {prefix}"
 
     def test_graph_total_nodes_including_start_end(self):
         from packages.agents.graph import build_oh_my_class_graph

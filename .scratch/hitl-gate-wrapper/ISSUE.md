@@ -1,6 +1,6 @@
 ---
 title: "HITL Gate Wrapper Nodes: E3 Pattern — Gates as Transparent Graph Nodes"
-status: ready
+status: done
 labels: [architecture, agents, langgraph, hitl]
 created: 2026-06-24
 priority: p0
