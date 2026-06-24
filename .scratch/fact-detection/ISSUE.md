@@ -4,6 +4,7 @@ status: ready
 labels: [quality, agents, gates]
 created: 2026-06-24
 priority: p1
+report: "02"
 ---
 
 ## What to build

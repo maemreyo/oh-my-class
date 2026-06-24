@@ -4,6 +4,7 @@ status: ready
 labels: [architecture, agents, prompts]
 created: 2026-06-24
 priority: p1
+report: "01"
 ---
 
 ## What to build

@@ -4,6 +4,7 @@ status: ready
 labels: [architecture, agents, quality, langgraph]
 created: 2026-06-24
 priority: p0
+report: "02"
 ---
 
 ## What to build

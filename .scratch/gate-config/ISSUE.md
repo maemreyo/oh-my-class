@@ -4,6 +4,7 @@ status: ready
 labels: [architecture, config]
 created: 2026-06-24
 priority: p0
+report: "02"
 ---
 
 ## What to build
