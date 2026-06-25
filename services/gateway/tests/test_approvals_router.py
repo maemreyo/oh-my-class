@@ -26,7 +26,11 @@ from services.gateway.routers.approvals import (  # noqa: E402
     ApprovalResponse,
     router,
 )
-from services.gateway.routers.runs import _derive_status, _event_store, _event_subscribers  # noqa: E402
+from services.gateway.routers.runs import (  # noqa: E402
+    _derive_status,
+    _event_store,
+    _event_subscribers,
+)
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -501,7 +505,7 @@ class TestContentApproval:
         graph = _make_mock_graph(CONTENT_APPROVED_STATE)
         client = _make_app(graph=graph, runs=runs)
         client.post("/run/test-run-123/approve", json={"action": "approve"})
-        assert runs["test-run-123"]["status"] == "exporting"
+        assert runs["test-run-123"]["status"] in ("export_ready", "exporting")
 
     def test_approve_content_gate_emits_correct_event(self):
         runs: dict[str, Any] = {}
@@ -592,6 +596,133 @@ class TestContentApproval:
         assert response.status_code == 422
 
 
+# ── Ownership guard ─────────────────────────────────────────────────────────
+
+
+def _make_teacher2() -> User:
+    return User(user_id="t-002", username="teacher2", role=Role.TEACHER)
+
+
+def _make_admin_user() -> User:
+    return User(user_id="admin-001", username="admin1", role=Role.ADMIN)
+
+
+def _make_app_with_user(user: User) -> TestClient:
+    from services.gateway.auth.dependencies import require_teacher
+
+    app = FastAPI()
+    app.include_router(router, prefix="/run")
+    register_exception_handlers(app)
+    app.state.graph = _make_mock_graph()
+    app.state.runs = {}
+    app.dependency_overrides[require_teacher] = lambda: user
+    return TestClient(app)
+
+
+class TestOwnershipGuard:
+    def test_approve_denied_for_other_teacher(self):
+        runs: dict[str, Any] = {}
+        _seed_run(runs)
+
+        teacher2_client = _make_app_with_user(_make_teacher2())
+        teacher2_client.app.state.runs = runs
+
+        response = teacher2_client.post(
+            "/run/test-run-123/approve",
+            json={"action": "approve"},
+        )
+        assert response.status_code == 403
+        assert response.json()["error_code"] == "AUTHORIZATION_ERROR"
+
+    def test_reject_denied_for_other_teacher(self):
+        runs: dict[str, Any] = {}
+        _seed_run(runs)
+
+        teacher2_client = _make_app_with_user(_make_teacher2())
+        teacher2_client.app.state.runs = runs
+
+        response = teacher2_client.post(
+            "/run/test-run-123/reject",
+            json={"action": "reject", "feedback": "bad"},
+        )
+        assert response.status_code == 403
+
+    def test_approve_allowed_for_admin(self):
+        runs: dict[str, Any] = {}
+        _seed_run(runs)
+
+        admin_client = _make_app_with_user(_make_admin_user())
+        admin_client.app.state.runs = runs
+
+        response = admin_client.post(
+            "/run/test-run-123/approve",
+            json={"action": "approve"},
+        )
+        assert response.status_code == 200
+
+
+# ── ApprovalRequest action enum ─────────────────────────────────────────────
+
+
+class TestApprovalActionEnum:
+    def test_invalid_action_rejected(self):
+        from pydantic import ValidationError as PydanticValidationError
+
+        with pytest.raises(PydanticValidationError):
+            ApprovalRequest(action="invalid_action")
+
+    def test_approve_action_accepted(self):
+        req = ApprovalRequest(action="approve")
+        assert req.action == "approve"
+
+    def test_reject_action_accepted(self):
+        req = ApprovalRequest(action="reject")
+        assert req.action == "reject"
+
+
+class TestActionEndpointConsistency:
+    def test_approve_endpoint_rejects_wrong_action(self):
+        runs: dict[str, Any] = {}
+        _seed_run(runs)
+        client = _make_app(runs=runs)
+        response = client.post(
+            "/run/test-run-123/approve",
+            json={"action": "reject", "feedback": "bad"},
+        )
+        assert response.status_code == 422
+
+    def test_reject_endpoint_rejects_wrong_action(self):
+        runs: dict[str, Any] = {}
+        _seed_run(runs)
+        client = _make_app(runs=runs)
+        response = client.post(
+            "/run/test-run-123/reject",
+            json={"action": "approve"},
+        )
+        assert response.status_code == 422
+
+    def test_approve_endpoint_accepts_correct_action(self):
+        runs: dict[str, Any] = {}
+        _seed_run(runs)
+        client = _make_app(runs=runs)
+        response = client.post(
+            "/run/test-run-123/approve",
+            json={"action": "approve"},
+        )
+        assert response.status_code == 200
+
+    def test_reject_endpoint_accepts_correct_action(self):
+        runs: dict[str, Any] = {}
+        _seed_run(runs)
+        graph = _make_mock_graph(REJECTED_STATE)
+        client = _make_app(graph=graph, runs=runs)
+        response = client.post(
+            "/run/test-run-123/reject",
+            json={"action": "reject", "feedback": "Needs more examples"},
+        )
+        assert response.status_code == 200
+
+
 class TestDeriveStatus:
     def test_content_approval_gate_returns_awaiting_content_approval(self):
         state = {"gate_payload": {"gate": "content_approval"}, "artifacts": [{}]}
@@ -601,8 +732,17 @@ class TestDeriveStatus:
         state = {"gate_payload": {"gate": "blueprint_approval"}, "lesson_plan": {}}
         assert _derive_status(state) == "awaiting_approval"
 
-    def test_teacher_approved_returns_exporting(self):
+    def test_teacher_approved_returns_export_ready(self):
         state = {"teacher_approved": True, "lesson_plan": {}, "artifacts": [{}]}
+        assert _derive_status(state) == "export_ready"
+
+    def test_teacher_approved_with_files_returns_exporting(self):
+        state = {
+            "teacher_approved": True,
+            "lesson_plan": {},
+            "artifacts": [{}],
+            "exported_files": [{"artifact_id": "a-1", "format": "html"}],
+        }
         assert _derive_status(state) == "exporting"
 
     def test_export_ready_returns_completed(self):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import re
 from typing import Any
 
 from packages.agents.state import (
@@ -13,6 +14,8 @@ _SYSTEM_FONT_STACK = (
     "system-ui, -apple-system, 'Segoe UI', Roboto, "
     "'Helvetica Neue', Arial, sans-serif"
 )
+
+_EXTERNAL_URL_PATTERN = re.compile(r"https?://", re.IGNORECASE)
 
 
 def _render_artifact_to_html(artifact: dict[str, Any]) -> str:
@@ -104,16 +107,40 @@ def _render_artifact_to_html(artifact: dict[str, Any]) -> str:
     )
 
 
+def _check_no_external_urls(artifact: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    sections = artifact.get("sections") or []
+    for i, section in enumerate(sections):
+        if not isinstance(section, dict):
+            continue
+        if section.get("teacher_only"):
+            continue
+        content = section.get("content", "")
+        if isinstance(content, str):
+            match = _EXTERNAL_URL_PATTERN.search(content)
+            if match:
+                errors.append(
+                    f"Section[{i}] contains external URL: {match.group()}"
+                )
+    return errors
+
+
 def step_12_finalize(state: OhMyClassState) -> dict[str, Any]:
     """Render artifacts to standalone HTML and record exported files."""
     artifacts = state.get("artifacts") or []
     export_formats = state.get("export_formats") or ["html"]
 
     exported_files: list[dict[str, Any]] = []
+    errors: list[str] = []
 
     if "html" in export_formats:
         for i, artifact in enumerate(artifacts):
             if artifact.get("teacher_only"):
+                continue
+
+            invariant_violations = _check_no_external_urls(artifact)
+            if invariant_violations:
+                errors.extend(invariant_violations)
                 continue
 
             rendered_html = _render_artifact_to_html(artifact)
@@ -132,6 +159,17 @@ def step_12_finalize(state: OhMyClassState) -> dict[str, Any]:
                 ),
                 "theme": artifact.get("theme", "default"),
             })
+
+    if errors:
+        return {
+            "exported_files": exported_files,
+            "current_step": 12,
+            "export_ready": False,
+            "fail_layer": "export",
+            "fail_type": "invariant",
+            "fail_count": state.get("fail_count", 0),
+            "fail_context": {"errors": errors},
+        }
 
     return {
         "exported_files": exported_files,

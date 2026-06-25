@@ -8,10 +8,17 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from ..auth.dependencies import require_teacher
-from ..auth.models import User  # noqa: TC001  needed at runtime for dependency injection
-from ..exceptions import NotFoundError
+from ..auth.models import Role, User  # noqa: TC001  needed at runtime for dependency injection
+from ..exceptions import AuthorizationError, NotFoundError
 
 router = APIRouter()
+
+
+def _require_owner(run_data: dict[str, Any], user: User) -> None:
+    if user.role == Role.ADMIN:
+        return
+    if run_data.get("teacher_id") != user.user_id:
+        raise AuthorizationError(message="You do not have access to this run")
 
 
 class ArtifactResponse(BaseModel):
@@ -58,11 +65,12 @@ async def list_artifacts(
     http_request: Request,
     current_user: Annotated[User, Depends(require_teacher)],
 ) -> list[ArtifactResponse]:
-    """GET /run/{id}/artifacts — List all artifacts for a run."""
     runs = http_request.app.state.runs
     run_data = runs.get(run_id)
     if not run_data:
         raise NotFoundError(message=f"Run {run_id} not found")
+
+    _require_owner(run_data, current_user)
 
     state = run_data.get("state", {})
     artifacts = _extract_artifacts_from_state(state)
@@ -77,11 +85,12 @@ async def get_artifact(
     http_request: Request,
     current_user: Annotated[User, Depends(require_teacher)],
 ) -> ArtifactResponse:
-    """GET /run/{id}/artifacts/{id} — Get specific artifact content."""
     runs = http_request.app.state.runs
     run_data = runs.get(run_id)
     if not run_data:
         raise NotFoundError(message=f"Run {run_id} not found")
+
+    _require_owner(run_data, current_user)
 
     state = run_data.get("state", {})
     artifacts = _extract_artifacts_from_state(state)

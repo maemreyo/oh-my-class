@@ -9,12 +9,23 @@ if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
 
+def _extract_text_content(artifact: dict[str, Any]) -> str:
+    """Extract concatenated text from an artifact's sections list."""
+    sections = artifact.get("sections") or []
+    parts: list[str] = []
+    for section in sections:
+        text = section.get("content", "")
+        if isinstance(text, str) and text.strip():
+            parts.append(text.strip())
+    return "\n".join(parts)
+
+
 def _score_artifact(artifact: dict[str, Any], lesson_plan: dict[str, Any] | None) -> float:
     """Stub: score an artifact. Returns 8.0 in MVP (real impl calls f.pro).
 
     Dimensions: relevance, accuracy, clarity, age_appropriateness, curriculum_alignment.
     """
-    content = artifact.get("content", "")
+    content = _extract_text_content(artifact)
     if not content or not content.strip():
         return 0.0
     return 8.0

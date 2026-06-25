@@ -279,3 +279,75 @@ class TestRedactTeacherOnly:
         artifact = {"sections": original_sections}
         _redact_teacher_only(artifact)
         assert len(original_sections) == 2  # original unchanged
+
+
+# ── Ownership guard ─────────────────────────────────────────────────────────
+
+
+def _make_teacher2() -> User:
+    return User(user_id="t-002", username="teacher2", role=Role.TEACHER)
+
+
+def _make_admin_user() -> User:
+    return User(user_id="admin-001", username="admin1", role=Role.ADMIN)
+
+
+def _make_app_with_user(user: User) -> TestClient:
+    from services.gateway.auth.dependencies import require_teacher
+
+    app = FastAPI()
+    app.include_router(router, prefix="/run")
+    register_exception_handlers(app)
+    app.state.runs = {}
+    app.dependency_overrides[require_teacher] = lambda: user
+    return TestClient(app)
+
+
+def _seed_run_for_user(
+    client: TestClient,
+    run_id: str,
+    artifacts: list[dict[str, Any]],
+    teacher_id: str,
+) -> None:
+    app: FastAPI = client.app  # type: ignore[assignment]
+    app.state.runs[run_id] = {
+        "run_id": run_id,
+        "status": "completed",
+        "state": {"artifacts": artifacts, "current_step": 13},
+        "teacher_id": teacher_id,
+        "created_at": "2026-01-01T00:00:00",
+    }
+
+
+class TestOwnershipGuard:
+    def test_list_artifacts_denied_for_other_teacher(self) -> None:
+        teacher1_client = _make_app_with_auth()
+        _seed_run_for_user(teacher1_client, "run-own", [SAMPLE_ARTIFACT], "t-001")
+
+        teacher2_client = _make_app_with_user(_make_teacher2())
+        teacher2_client.app.state.runs = teacher1_client.app.state.runs
+
+        response = teacher2_client.get("/run/run-own/artifacts")
+        assert response.status_code == 403
+        assert response.json()["error_code"] == "AUTHORIZATION_ERROR"
+
+    def test_get_artifact_denied_for_other_teacher(self) -> None:
+        teacher1_client = _make_app_with_auth()
+        _seed_run_for_user(teacher1_client, "run-own2", [SAMPLE_ARTIFACT], "t-001")
+
+        teacher2_client = _make_app_with_user(_make_teacher2())
+        teacher2_client.app.state.runs = teacher1_client.app.state.runs
+
+        response = teacher2_client.get("/run/run-own2/artifacts/artifact-0")
+        assert response.status_code == 403
+
+    def test_list_artifacts_allowed_for_admin(self) -> None:
+        teacher1_client = _make_app_with_auth()
+        _seed_run_for_user(teacher1_client, "run-admin", [SAMPLE_ARTIFACT], "t-001")
+
+        admin_client = _make_app_with_user(_make_admin_user())
+        admin_client.app.state.runs = teacher1_client.app.state.runs
+
+        response = admin_client.get("/run/run-admin/artifacts")
+        assert response.status_code == 200
+        assert len(response.json()) == 1

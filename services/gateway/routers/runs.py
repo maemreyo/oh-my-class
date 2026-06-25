@@ -16,13 +16,13 @@ from pydantic import BaseModel
 
 from ..auth.dependencies import require_teacher
 from ..auth.models import Role, User
-from ..exceptions import NotFoundError, PipelineError
+from ..exceptions import AuthorizationError, NotFoundError, PipelineError
 
 router = APIRouter()
 
 # ── In-memory event store ──────────────────────────────────────────────────
 
-_TERMINAL_EVENTS = {"step_completed", "run_failed", "gate_waiting"}
+_TERMINAL_EVENTS = {"step_completed", "run_failed", "interrupt"}
 _event_store: dict[str, list[dict[str, Any]]] = defaultdict(list)
 _event_subscribers: dict[str, list[asyncio.Queue[dict[str, Any] | None]]] = defaultdict(list)
 
@@ -162,12 +162,22 @@ def _to_run_response(run_data: dict[str, Any]) -> RunResponse:
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 
+def _require_owner(run_data: dict[str, Any], user: User) -> None:
+    """Raise AuthorizationError if user is not the run owner or an admin."""
+    if user.role == Role.ADMIN:
+        return
+    if run_data.get("teacher_id") != user.user_id:
+        raise AuthorizationError(
+            message="You do not have access to this run",
+        )
+
+
 def _derive_status(state: dict[str, Any]) -> str:
     """Derive a human-readable pipeline status from the current state.
 
     Status progression:
-        running → awaiting_approval → planning → awaiting_content_approval
-        → exporting → completed
+        running → awaiting_approval → generating → reviewing
+        → awaiting_content_approval → exporting → completed
 
     The ``gate_payload.gate`` field is the most reliable indicator of which
     gate the run is currently blocked on.
@@ -176,6 +186,8 @@ def _derive_status(state: dict[str, Any]) -> str:
         return "failed"
     if state.get("export_ready") and state.get("exported_files"):
         return "completed"
+    if state.get("teacher_approved") and not state.get("exported_files"):
+        return "export_ready"
     if state.get("teacher_approved"):
         return "exporting"
     gate = (state.get("gate_payload") or {}).get("gate")
@@ -184,7 +196,11 @@ def _derive_status(state: dict[str, Any]) -> str:
     if gate == "blueprint_approval":
         return "awaiting_approval"
     if state.get("blueprint_approved"):
-        return "planning"
+        if state.get("judge_score") is not None:
+            return "reviewing"
+        if state.get("artifacts"):
+            return "generating"
+        return "generating"
     if state.get("lesson_plan"):
         return "awaiting_approval"
     return "running"
@@ -216,18 +232,21 @@ async def list_runs(
 async def create_run(
     http_request: Request,
     run_request: RunRequest,
-    current_user: Annotated[object, Depends(require_teacher)],
+    current_user: Annotated[User, Depends(require_teacher)],
 ) -> RunResponse:
     """POST /run — Start a new teaching pack generation run.
 
     Creates an OhMyClassState, invokes the compiled LangGraph graph,
     persists the run, and returns a structured RunResponse.
+    Teacher ID is always derived from the authenticated user —
+    request.body teacher_id is ignored.
     """
     run_id = str(uuid.uuid4())
     request_id = getattr(http_request.state, "request_id", None)
 
     graph = http_request.app.state.graph
     initial_state = build_initial_state(run_request, run_id)
+    initial_state["teacher_id"] = current_user.user_id
 
     emit_run_event(run_id, "run_created", {
         "status": "running",
@@ -256,27 +275,28 @@ async def create_run(
     })
 
     if state.get("gate_payload"):
-        emit_run_event(run_id, "gate_waiting", {
+        emit_run_event(run_id, "interrupt", {
             "gate": state["gate_payload"].get("gate", "unknown"),
             "current_step": state.get("current_step"),
+            **{k: v for k, v in state["gate_payload"].items() if k != "gate"},
         })
 
     http_request.app.state.runs[run_id] = {
         "run_id": run_id,
         "status": status,
         "state": state,
-        "teacher_id": run_request.teacher_id,
+        "teacher_id": current_user.user_id,
         "created_at": datetime.now(UTC).isoformat(),
     }
 
-    return RunResponse(run_id=run_id, status=status, state=state)
+    return _to_run_response(http_request.app.state.runs[run_id])
 
 
 @router.get("/{run_id}", response_model=RunResponse)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def get_run(
     run_id: str,
     http_request: Request,
-    current_user: Annotated[object, Depends(require_teacher)],
+    current_user: Annotated[User, Depends(require_teacher)],
 ) -> RunResponse:
     """GET /run/{id} — Get run state and current step."""
     run_data = http_request.app.state.runs.get(run_id)
@@ -286,6 +306,7 @@ async def get_run(
             request_id=getattr(http_request.state, "request_id", None),
         )
 
+    _require_owner(run_data, current_user)
     return _to_run_response(run_data)
 
 
@@ -293,14 +314,17 @@ async def get_run(
 async def get_run_status(
     run_id: str,
     http_request: Request,
-    current_user: Annotated[object, Depends(require_teacher)],
+    current_user: Annotated[User, Depends(require_teacher)],
 ) -> StreamingResponse:
     """GET /run/{id}/status — SSE stream of real pipeline progress."""
-    if run_id not in http_request.app.state.runs:
+    run_data = http_request.app.state.runs.get(run_id)
+    if run_data is None:
         raise NotFoundError(
             message=f"Run {run_id} not found",
             request_id=getattr(http_request.state, "request_id", None),
         )
+
+    _require_owner(run_data, current_user)
 
     queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
     _event_subscribers[run_id].append(queue)
@@ -349,6 +373,8 @@ async def list_exports(
             request_id=getattr(http_request.state, "request_id", None),
         )
 
+    _require_owner(run_data, current_user)
+
     state = run_data.get("state", {})
     exported = state.get("exported_files", [])
 
@@ -377,6 +403,8 @@ async def download_export(
             message=f"Run {run_id} not found",
             request_id=getattr(http_request.state, "request_id", None),
         )
+
+    _require_owner(run_data, current_user)
 
     state = run_data.get("state", {})
     exported = state.get("exported_files", [])

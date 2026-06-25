@@ -8,18 +8,22 @@ from packages.agents.config.gate_config import GateConfig
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
-REQUIRED_EXPORT_FORMATS = {"html"}
+SUPPORTED_EXPORT_FORMATS = {"html"}
+FORMAT_REQUIRED_ARTIFACT_TYPES = {
+    "html": {"lesson", "worksheet", "quiz", "drill", "recap", "infographic"},
+}
 
 
 def step_11_export_readiness(state: OhMyClassState) -> dict[str, Any]:
     """Layer 6: Validate that artifacts are ready for export.
 
-    Checks: export_formats requested, artifacts non-empty, all required formats covered.
+    Checks: export_formats requested, artifacts non-empty, requested formats
+    are supported, artifact types cover format requirements.
     """
     config = GateConfig()
     artifacts = state.get("artifacts") or []
     export_formats = state.get("export_formats") or []
-    errors = []
+    errors: list[str] = []
 
     if not artifacts:
         errors.append("No artifacts available for export")
@@ -27,11 +31,23 @@ def step_11_export_readiness(state: OhMyClassState) -> dict[str, Any]:
     if not export_formats:
         errors.append("No export formats specified")
 
-    # Check that judge_score passed before export
+    for fmt in export_formats:
+        if fmt not in SUPPORTED_EXPORT_FORMATS:
+            errors.append(f"Unsupported export format: {fmt!r}")
+
+    artifact_types = {a.get("artifact_type", "") for a in artifacts}
+    for fmt in export_formats:
+        required = FORMAT_REQUIRED_ARTIFACT_TYPES.get(fmt, set())
+        if required and not artifact_types.intersection(required):
+            errors.append(
+                f"No artifacts with compatible types for format {fmt!r}"
+            )
+
     judge_score = state.get("judge_score")
     if judge_score is not None and judge_score < config.export_min_score:
         errors.append(
-            f"Judge score {judge_score:.1f} below export threshold {config.export_min_score}"
+            f"Judge score {judge_score:.1f} below export threshold "
+            f"{config.export_min_score}"
         )
 
     if errors:

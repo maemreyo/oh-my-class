@@ -62,7 +62,12 @@ export function useRunStatus(runId: string | null) {
 			`${process.env.NEXT_PUBLIC_GATEWAY_URL}/run/${runId}/status`,
 		);
 
-		eventSource.onmessage = callback;
+		eventSource.addEventListener("interrupt", callback as EventListener);
+		eventSource.addEventListener("gate_approved", callback as EventListener);
+		eventSource.addEventListener("gate_rejected", callback as EventListener);
+		eventSource.addEventListener("run_created", callback as EventListener);
+		eventSource.addEventListener("step_completed", callback as EventListener);
+		eventSource.addEventListener("run_failed", callback as EventListener);
 		eventSource.onerror = (error) => {
 			console.error("SSE error:", error);
 		};

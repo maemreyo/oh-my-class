@@ -2,7 +2,7 @@
 > oh-my-class@0.1.0 format:reports /Users/trung.ngo/Documents/zaob-dev/oh-my-class
 > prettier --write "docs/plans/**/*.{md,html,yml,yaml,json}" "artifacts/**/*.{md,html,yml,yaml,json}"
 
-docs/plans/full-system-test-plan-2026-06-25.md 25ms (unchanged)
+docs/plans/full-system-test-plan-2026-06-25.md 22ms (unchanged)
 artifacts/full-system-rerun-2026-06-25/gateway-docs.html 6ms (unchanged)
 artifacts/full-system-rerun-2026-06-25/summary.md 9ms (unchanged)
-artifacts/full-system-rerun-2026-06-25/triage.md 13ms (unchanged)
+artifacts/full-system-rerun-2026-06-25/triage.md 10ms (unchanged)

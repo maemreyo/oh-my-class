@@ -24,6 +24,7 @@ from services.gateway.middleware.error_handler import register_exception_handler
 from services.gateway.routers.runs import (  # noqa: E402
     RunRequest,
     RunResponse,
+    _derive_status,
     _event_store,
     _event_subscribers,
     _to_run_response,
@@ -917,3 +918,200 @@ class TestDownloadExport:
         response = client.get(f"/run/{run_id}/exports/a-2")
         assert response.status_code == 200
         assert "Quiz" in response.text
+
+
+# ── Ownership guard ─────────────────────────────────────────────────────────
+
+
+class TestOwnershipGuard:
+    def test_get_run_denied_for_other_teacher(self):
+        teacher1 = _make_teacher(user_id="t-001", username="teacher1")
+        teacher2 = _make_teacher(user_id="t-002", username="teacher2")
+
+        client1 = _make_app_with_auth(teacher1)
+        create_resp = client1.post("/run", json={
+            "raw_request": "Teach X",
+            "class_info": {},
+            "teacher_id": "t-001",
+        })
+        run_id = create_resp.json()["run_id"]
+        client1.app.state.runs[run_id]["teacher_id"] = "t-001"
+
+        client2 = _make_app_with_auth(teacher2)
+        client2.app.state.runs = client1.app.state.runs
+
+        response = client2.get(f"/run/{run_id}")
+        assert response.status_code == 403
+        assert response.json()["error_code"] == "AUTHORIZATION_ERROR"
+
+    def test_get_run_allowed_for_admin(self):
+        admin = _make_admin()
+        teacher = _make_teacher()
+
+        teacher_client = _make_app_with_auth(teacher)
+        create_resp = teacher_client.post("/run", json={
+            "raw_request": "Teach X",
+            "class_info": {},
+            "teacher_id": "t-001",
+        })
+        run_id = create_resp.json()["run_id"]
+
+        admin_client = _make_app_with_auth(admin)
+        admin_client.app.state.runs = teacher_client.app.state.runs
+
+        response = admin_client.get(f"/run/{run_id}")
+        assert response.status_code == 200
+
+    def test_sse_denied_for_other_teacher(self):
+        teacher1 = _make_teacher(user_id="t-001", username="teacher1")
+        teacher2 = _make_teacher(user_id="t-002", username="teacher2")
+
+        client1 = _make_app_with_auth(teacher1)
+        create_resp = client1.post("/run", json={
+            "raw_request": "Teach X",
+            "class_info": {},
+            "teacher_id": "t-001",
+        })
+        run_id = create_resp.json()["run_id"]
+
+        client2 = _make_app_with_auth(teacher2)
+        client2.app.state.runs = client1.app.state.runs
+
+        response = client2.get(f"/run/{run_id}/status")
+        assert response.status_code == 403
+
+    def test_exports_denied_for_other_teacher(self):
+        teacher1 = _make_teacher(user_id="t-001", username="teacher1")
+        teacher2 = _make_teacher(user_id="t-002", username="teacher2")
+
+        client1 = _make_app_with_auth(teacher1)
+        run_id = _seed_run_with_exports(client1)
+        client1.app.state.runs[run_id]["teacher_id"] = "t-001"
+
+        client2 = _make_app_with_auth(teacher2)
+        client2.app.state.runs = client1.app.state.runs
+
+        response = client2.get(f"/run/{run_id}/exports")
+        assert response.status_code == 403
+
+    def test_export_download_denied_for_other_teacher(self):
+        teacher1 = _make_teacher(user_id="t-001", username="teacher1")
+        teacher2 = _make_teacher(user_id="t-002", username="teacher2")
+
+        client1 = _make_app_with_auth(teacher1)
+        run_id = _seed_run_with_exports(client1)
+        client1.app.state.runs[run_id]["teacher_id"] = "t-001"
+
+        client2 = _make_app_with_auth(teacher2)
+        client2.app.state.runs = client1.app.state.runs
+
+        response = client2.get(f"/run/{run_id}/exports/a-1")
+        assert response.status_code == 403
+
+
+# ── Create response read model ──────────────────────────────────────────────
+
+
+class TestCreateResponseReadModel:
+    def test_create_returns_read_model_response(self):
+        client = _make_app_with_auth()
+        response = client.post("/run", json={
+            "raw_request": "Teach photosynthesis",
+            "class_info": {"grade": 5},
+            "teacher_id": "t-001",
+        })
+        data = response.json()
+        assert "run_id" in data
+        assert "status" in data
+        assert "topic" in data
+        assert "current_step" in data
+        assert "artifact_types" in data
+
+    def test_create_response_has_state(self):
+        client = _make_app_with_auth()
+        response = client.post("/run", json={
+            "raw_request": "Teach X",
+            "class_info": {},
+            "teacher_id": "t-001",
+        })
+        data = response.json()
+        assert data["state"] is not None
+        assert "raw_request" in data["state"]
+
+
+class TestTeacherIdSpoofing:
+    def test_create_uses_auth_user_not_request_teacher_id(self):
+        teacher = _make_teacher(user_id="t-real", username="real")
+        client = _make_app_with_auth(teacher)
+        response = client.post("/run", json={
+            "raw_request": "Teach X",
+            "class_info": {},
+            "teacher_id": "t-spoofed",
+        })
+        run_id = response.json()["run_id"]
+        app: FastAPI = client.app  # type: ignore[assignment]
+        assert app.state.runs[run_id]["teacher_id"] == "t-real"
+
+    def test_create_state_has_auth_user_id(self):
+        teacher = _make_teacher(user_id="t-real", username="real")
+        client = _make_app_with_auth(teacher)
+        response = client.post("/run", json={
+            "raw_request": "Teach X",
+            "class_info": {},
+            "teacher_id": "t-spoofed",
+        })
+        data = response.json()
+        assert data["state"]["teacher_id"] == "t-real"
+
+
+# ── Status derivation (new statuses) ────────────────────────────────────────
+
+
+_ARTIFACT_LESSON = {
+    "artifact_type": "lesson",
+    "title": "T",
+    "sections": [{"content": "C"}],
+}
+
+
+class TestDeriveStatusNew:
+    def test_generating_when_artifacts_present(self):
+        state = {
+            "blueprint_approved": True,
+            "artifacts": [_ARTIFACT_LESSON],
+        }
+        assert _derive_status(state) == "generating"
+
+    def test_generating_when_no_artifacts_yet(self):
+        state = {"blueprint_approved": True, "artifacts": []}
+        assert _derive_status(state) == "generating"
+
+    def test_reviewing_when_judge_score_present(self):
+        state = {
+            "blueprint_approved": True,
+            "judge_score": 8.0,
+            "artifacts": [_ARTIFACT_LESSON],
+        }
+        assert _derive_status(state) == "reviewing"
+
+    def test_export_ready_when_approved_no_files(self):
+        state = {
+            "teacher_approved": True,
+            "artifacts": [_ARTIFACT_LESSON],
+        }
+        assert _derive_status(state) == "export_ready"
+
+    def test_exporting_when_approved_with_files(self):
+        state = {
+            "teacher_approved": True,
+            "exported_files": [{"artifact_id": "a-1", "format": "html"}],
+        }
+        assert _derive_status(state) == "exporting"
+
+    def test_completed_when_export_ready_with_files(self):
+        state = {
+            "export_ready": True,
+            "teacher_approved": True,
+            "exported_files": [{"artifact_id": "a-1", "format": "html"}],
+        }
+        assert _derive_status(state) == "completed"

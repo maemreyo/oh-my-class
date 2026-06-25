@@ -32,8 +32,13 @@ def step_10_content_review(state: OhMyClassState) -> dict[str, Any]:
     methodology_tags = (lesson_plan.get("methodology") or {}).get("tags") or []
 
     for artifact in artifacts:
-        content = artifact.get("content", "")
-        artifact_type = artifact.get("type", "")
+        # Extract text content from sections (ArtifactContent contract)
+        sections = artifact.get("sections") or []
+        content = "\n".join(
+            s.get("content", "") for s in sections
+            if isinstance(s, dict) and s.get("content", "").strip()
+        )
+        artifact_type = artifact.get("artifact_type", "")
 
         # Fact check
         fact_result = run_fact_check(content)
