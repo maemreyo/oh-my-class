@@ -1,0 +1,74 @@
+
+> oh-my-class@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class
+> turbo run build
+
+• turbo 2.9.18
+
+   • Packages in scope: @oh-my-class/exporters, @oh-my-class/renderer, @oh-my-class/schemas, @oh-my-class/web
+   • Running build in 4 packages
+   • Remote caching disabled
+
+@oh-my-class/schemas:build: cache hit, replaying logs e80939a2c5a0febe
+@oh-my-class/schemas:build: 
+@oh-my-class/schemas:build: > @oh-my-class/schemas@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/schemas
+@oh-my-class/schemas:build: > tsc
+@oh-my-class/schemas:build: 
+@oh-my-class/renderer:build: cache hit, replaying logs 35379dc8a9f153f5
+@oh-my-class/web:build: cache hit, replaying logs a4610b88bd9bbed2
+@oh-my-class/renderer:build: 
+@oh-my-class/renderer:build: > @oh-my-class/renderer@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/renderer
+@oh-my-class/renderer:build: > tsc
+@oh-my-class/renderer:build: 
+@oh-my-class/web:build: 
+@oh-my-class/web:build: > @oh-my-class/web@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web
+@oh-my-class/web:build: > next build
+@oh-my-class/web:build: 
+@oh-my-class/web:build: ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+@oh-my-class/web:build:  We detected multiple lockfiles and selected the directory of /Users/trung.ngo/bun.lock as the root directory.
+@oh-my-class/web:build:  To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+@oh-my-class/web:build:    See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+@oh-my-class/web:build:  Detected additional lockfiles: 
+@oh-my-class/web:build:    * /Users/trung.ngo/Documents/zaob-dev/oh-my-class/pnpm-workspace.yaml
+@oh-my-class/web:build: 
+@oh-my-class/web:build: ▲ Next.js 16.2.9 (Turbopack)
+@oh-my-class/web:build: - Experiments (use with caution):
+@oh-my-class/web:build:   · serverActions
+@oh-my-class/web:build: 
+@oh-my-class/web:build:   Creating an optimized production build ...
+@oh-my-class/web:build: (node:44641) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
+@oh-my-class/web:build: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+@oh-my-class/web:build: To eliminate this warning, add "type": "module" to /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/package.json.
+@oh-my-class/web:build: (Use `node --trace-warnings ...` to show where the warning was created)
+@oh-my-class/web:build: ✓ Compiled successfully in 2.6s
+@oh-my-class/web:build:   Running TypeScript ...
+@oh-my-class/web:build:   Finished TypeScript in 2.4s ...
+@oh-my-class/web:build:   Collecting page data using 6 workers ...
+@oh-my-class/web:build:   Generating static pages using 6 workers (0/4) ...
+@oh-my-class/web:build:   Generating static pages using 6 workers (1/4) 
+@oh-my-class/web:build:   Generating static pages using 6 workers (2/4) 
+@oh-my-class/web:build:   Generating static pages using 6 workers (3/4) 
+@oh-my-class/web:build: ✓ Generating static pages using 6 workers (4/4) in 226ms
+@oh-my-class/web:build:   Finalizing page optimization ...
+@oh-my-class/web:build: 
+@oh-my-class/web:build: Route (app)
+@oh-my-class/web:build: ┌ ○ /_not-found
+@oh-my-class/web:build: ├ ○ /approvals
+@oh-my-class/web:build: ├ ○ /runs
+@oh-my-class/web:build: └ ƒ /runs/[runId]
+@oh-my-class/web:build: 
+@oh-my-class/web:build: 
+@oh-my-class/web:build: ƒ Proxy (Middleware)
+@oh-my-class/web:build: 
+@oh-my-class/web:build: ○  (Static)   prerendered as static content
+@oh-my-class/web:build: ƒ  (Dynamic)  server-rendered on demand
+@oh-my-class/web:build: 
+@oh-my-class/exporters:build: cache hit, replaying logs 0509c09063dd5e5d
+@oh-my-class/exporters:build: 
+@oh-my-class/exporters:build: > @oh-my-class/exporters@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/exporters
+@oh-my-class/exporters:build: > tsc
+@oh-my-class/exporters:build: 
+
+ Tasks:    4 successful, 4 total
+Cached:    4 cached, 4 total
+  Time:    36ms >>> FULL TURBO
+

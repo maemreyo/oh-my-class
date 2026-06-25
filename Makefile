@@ -6,11 +6,13 @@
 # All commands assume you've run `make setup` first.
 #
 # ── Daily commands ──
-#   make up           Start dev stack (db, redis, litellm, 9router, gateway, web)
-#   make down         Stop all services
+#   make dev          Start local dev: infra in Docker + gateway + web locally
+#   make docker       Start full Docker dev stack
+#   make stop         Stop Docker services
 #   make logs         Tail service logs
 #   make test         Run all tests (Python + TypeScript)
-#   make lint         Run all linters + boundary checks
+#   make check        Run tests + build + linters + report format check
+#   make lint         Run linters + boundary checks
 #   make fmt          Format all code
 #
 # ── Setup ──
@@ -29,20 +31,26 @@
 #   make check-schemas Verify schema parity (Pydantic ↔ Zod)
 # ════════════════════════════════════════════════════════════════════
 
-.PHONY: dev dev-frontend dev-all prod-up prod-down up down logs test test-python test-ts test-integration lint lint-python lint-ts fmt setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
+.PHONY: dev infra dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
 
 # ── Docker compose path ──
 COMPOSE := docker compose -f infra/compose/docker-compose.yml
 
-# ── Local dev (no Docker — assumes 9Router on :20128) ──────────────────────
-dev: ## Start Python gateway (port 8001 — 9Router must be running on :20128)
+# ── Local dev ────────────────────────────────────────────────────────────────
+dev: ## Start local dev: infra in Docker + gateway + web locally
+	$(MAKE) infra
+	$(MAKE) -j2 dev-gateway dev-web
+
+infra: ## Start local infrastructure only (db, redis, proxy, langfuse)
+	$(COMPOSE) up -d db redis proxy langfuse
+
+dev-gateway: ## Start Python gateway locally on port 8001
 	uv run uvicorn services.gateway.main:app --reload --port 8001
 
-dev-frontend: ## Start teacher dashboard (Next.js on port 3000)
-	cd apps/web && npm run dev
+dev-web: ## Start teacher dashboard locally on port 3000
+	pnpm --filter @oh-my-class/web dev
 
-dev-all: ## Start Python gateway + frontend concurrently
-	$(MAKE) -j2 dev dev-frontend
+dev-all: dev ## Alias for make dev
 
 # ── Production ──────────────────────────────────────────────────────────────
 prod-up: ## Start full production stack (LiteLLM + Postgres + Redis + app)
@@ -55,14 +63,18 @@ prod-down: ## Stop production stack
 .DEFAULT_GOAL := help
 
 # ── Docker ──
-up: ## Start dev stack (db, redis, litellm, 9router, gateway, web)
+docker: ## Start full Docker dev stack
 	$(COMPOSE) up -d
 	@echo ""
 	@echo "Services started:"
 	@echo "   Gateway:    http://localhost:8001"
 	@echo "   Dashboard:  http://localhost:3000"
 	@echo "   LiteLLM:    http://localhost:4000"
-	@echo "   9Router:    http://localhost:20128"
+	@echo "   Langfuse:   http://localhost:3001"
+
+up: docker ## Alias for make docker
+
+stop: down ## Stop Docker services
 
 down: ## Stop all services
 	$(COMPOSE) down
@@ -114,10 +126,25 @@ lint-ts: ## TypeScript linting only
 typecheck: ## Run basedpyright type check
 	bash scripts/typecheck.sh
 
+check: ## Run tests + build + linters + report format check
+	$(MAKE) test
+	pnpm build
+	ruff check .
+	uv run lint-imports
+	bash scripts/typecheck.sh
+	pnpm check:reports
+
 # ── Formatting ──
 fmt: ## Format all code
 	ruff format .
 	pnpm -r format
+	pnpm format:reports
+
+fmt-reports: ## Format generated reports and plans
+	pnpm format:reports
+
+check-reports: ## Check generated report and plan formatting
+	pnpm check:reports
 
 # ── Setup ──
 setup: ## Bootstrap dev environment (first time)
@@ -135,7 +162,7 @@ setup: ## Bootstrap dev environment (first time)
 	pnpm install
 	@echo ""
 	@echo "Generating theme CSS..."
-	python scripts/generate_theme.py
+	uv run python scripts/generate_theme.py
 	@echo ""
 	@echo "Setup complete! Run 'make up' to start services."
 
@@ -158,10 +185,10 @@ calibrate: ## Cohen's kappa calibration for Layer 4 judge
 
 # ── Schema ──
 gen-schemas: ## Generate Zod schemas from Pydantic
-	python scripts/generate_zod_schemas.py
+	uv run python scripts/generate_zod_schemas.py
 
 check-schemas: ## Verify schema parity (Pydantic <-> Zod)
-	python scripts/verify_schema_parity.py
+	uv run python scripts/verify_schema_parity.py
 
 # ── Help ──
 help: ## Show this help message
@@ -170,4 +197,4 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 	@echo ""
-	@echo "Run 'make setup' first, then 'make up' to start."
+	@echo "Run 'make setup' first, then 'make dev' for local dev or 'make docker' for Docker."

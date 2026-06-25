@@ -64,7 +64,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         # Bind context — include teacher_id if JWT middleware already ran.
         teacher_id = getattr(request.state, "user_id", None)
         bound = bind_context(_logger, request_id=request_id, teacher_id=teacher_id)
-        bound.info("request.received", path=request.url.path, method=request.method)
+        bound.info("request.received path=%s method=%s", request.url.path, request.method)
 
         response = await call_next(request)
         response.headers[_HEADER_NAME] = request_id

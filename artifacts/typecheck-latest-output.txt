@@ -1,0 +1,5 @@
+🔍 Running basedpyright type check...
+0 errors, 0 warnings, 0 notes
+
+📊 Summary: 0 errors, 0 warnings
+✅ No real type errors (missing-import warnings are expected without full deps)

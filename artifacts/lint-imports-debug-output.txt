@@ -1,0 +1,81 @@
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲ 
+      ╚╝────────────────────┘
+
+Traceback (most recent call last):
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/bin/lint-imports", line 10, in <module>
+    sys.exit(lint_imports_command())
+             ~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/click/core.py", line 1524, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/click/core.py", line 1445, in main
+    rv = self.invoke(ctx)
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/click/core.py", line 1308, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/click/core.py", line 877, in invoke
+    return callback(*args, **kwargs)
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/importlinter/cli.py", line 72, in lint_imports_command
+    _run_check(**kwargs)
+    ~~~~~~~~~~^^^^^^^^^^
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/importlinter/cli.py", line 55, in _run_check
+    exit_code = lint_imports(
+        config_filename=config,
+    ...<5 lines>...
+        verbose=verbose,
+    )
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/importlinter/cli.py", line 181, in lint_imports
+    passed = use_cases.lint_imports(
+        config_filename=config_filename,
+    ...<4 lines>...
+        verbose=verbose,
+    )
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/importlinter/application/use_cases.py", line 70, in lint_imports
+    raise e
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/importlinter/application/use_cases.py", line 67, in lint_imports
+    report = create_report(user_options, limit_to_contracts, cache_dir, show_timings, verbose)
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/importlinter/application/use_cases.py", line 126, in create_report
+    graph = _build_graph(
+        root_package_names=user_options.session_options["root_packages"],
+    ...<3 lines>...
+        verbose=verbose,
+    )
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/importlinter/application/use_cases.py", line 240, in _build_graph
+    return settings.GRAPH_BUILDER.build(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        root_package_names=root_package_names,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        cache_dir=cache_dir,
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/importlinter/adapters/building.py", line 19, in build
+    return grimp.build_graph(
+           ~~~~~~~~~~~~~~~~~^
+        *root_package_names,
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        cache_dir=cache_dir,
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/grimp/application/usecases.py", line 54, in build_graph
+    found_packages = _find_packages(
+        file_system=file_system,
+        package_names=[package_name] + list(additional_package_names),
+    )
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/grimp/application/usecases.py", line 83, in _find_packages
+    package_directories = package_finder.determine_package_directories(
+        package_name=package_name, file_system=file_system
+    )
+  File "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/grimp/adaptors/packagefinder.py", line 26, in determine_package_directories
+    raise exceptions.NotATopLevelModule
+grimp.exceptions.NotATopLevelModule

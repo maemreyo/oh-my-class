@@ -1,0 +1,6 @@
+
+> oh-my-class@0.1.0 check:reports /Users/trung.ngo/Documents/zaob-dev/oh-my-class
+> prettier --check "docs/plans/**/*.{md,html,yml,yaml,json}" "artifacts/**/*.{md,html,yml,yaml,json}"
+
+Checking formatting...
+All matched files use Prettier code style!

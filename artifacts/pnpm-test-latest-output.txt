@@ -1,0 +1,353 @@
+Scope: 4 of 5 workspace projects
+common/schemas test$ vitest run
+common/schemas test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/schemas
+common/schemas test:  ✓ src/run.test.ts (2 tests) 2ms
+common/schemas test:  Test Files  1 passed (1)
+common/schemas test:       Tests  2 passed (2)
+common/schemas test:    Start at  15:25:09
+common/schemas test:    Duration  368ms (transform 92ms, setup 0ms, collect 95ms, tests 2ms, environment 0ms, prepare 58ms)
+common/schemas test: Done
+apps/web test$ vitest run
+packages/renderer test$ vitest run
+apps/web test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+apps/web test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web
+apps/web test: (node:45462) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
+apps/web test: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+apps/web test: To eliminate this warning, add "type": "module" to /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/package.json.
+apps/web test: (Use `node --trace-warnings ...` to show where the warning was created)
+packages/renderer test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/renderer
+apps/web test:  ✓ src/lib/logger.test.ts (5 tests) 10ms
+apps/web test:  ✓ tests/approval-modal.test.tsx (11 tests) 14ms
+apps/web test:  ✓ tests/hooks.test.ts (12 tests) 8ms
+apps/web test:  ✓ src/hooks/use-error-logger.test.ts (7 tests) 24ms
+apps/web test:  ✓ src/components/error-boundary.test.tsx (6 tests) 5ms
+apps/web test:  Test Files  5 passed (5)
+apps/web test:       Tests  41 passed (41)
+apps/web test:    Start at  15:25:10
+apps/web test:    Duration  989ms (transform 426ms, setup 0ms, collect 850ms, tests 60ms, environment 1ms, prepare 993ms)
+apps/web test: Done
+packages/renderer test:  ✓ __tests__/scoring/strategies.test.ts (17 tests) 4ms
+packages/renderer test:  ✓ __tests__/questions/registry.test.ts (18 tests) 10ms
+packages/renderer test:  ✓ __tests__/exporters/variant-generator.test.ts (16 tests) 9ms
+packages/renderer test:  ✓ __tests__/preview-server.test.ts (20 tests) 28ms
+packages/renderer test:  ✓ __tests__/exporters/qti.test.ts (8 tests) 7ms
+packages/renderer test:  ✓ __tests__/theme.test.ts (16 tests) 5ms
+packages/renderer test:  ✓ __tests__/schemas/lesson-plan.test.ts (7 tests) 4ms
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — script blocking > strips script tags from lesson
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — script blocking > strips script tags from quiz
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — external URL blocking > blocks external image src
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — external URL blocking > allows data URI images
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — external URL blocking > blocks external href
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > quiz config allows radio inputs
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > lesson config blocks input elements
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > worksheet config allows textarea
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > lesson config blocks textarea
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > infographic config allows SVG tags
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > lesson config strips SVG
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > answer_key config allows radio inputs (extends quiz)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > drill config allows radio inputs (extends quiz)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — event handler stripping > strips onclick from div (not in allowedAttributes)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — safe content preservation > preserves class attributes
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — safe content preservation > preserves aria-label attributes
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — safe content preservation > preserves style tags (theme CSS injection)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test:  ✓ __tests__/sanitizer.test.ts (20 tests) 9ms
+packages/renderer test:  ✓ __tests__/design-kit.test.ts (11 tests) 7ms
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — quiz page > renders question prompt
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — quiz page > renders question options as radio inputs
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — quiz page > has no external URLs
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — lesson page > renders learning objectives
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — lesson page > renders section content
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — lesson page > renders vocabulary section
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — answer_key page > shows all answers (no hide/reveal toggle)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — answer_key page > renders answer key eyebrow and title
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — flashcard_deck page > renders card fronts and backs
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — flashcard_deck page > includes navigation buttons
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — exit_ticket page > limits to 3 questions
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — reading_passage page > renders the passage text
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — reading_passage page > renders comprehension questions
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders sidebar title and nav links when sidebar is provided
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders hero with eyebrow, lede, note-box, stat-cards, and objectives
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders section with time badge
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders film_clip_activity component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders vocab_cluster component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders phrasal_verb_cluster component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders roleplay_script component via dispatcher with blanks and answer key
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders contrastive_pairs component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders hw_list component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > has no external URLs in full vocab lesson output
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > returns a promise
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > produces valid HTML with DOCTYPE for quiz
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > includes oh-my-class brand string
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > renders the artifact title
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > has no external CDN links (INVARIANT-04)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > inlines theme CSS (no external link tags)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > renders correct lang attribute
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > renders English lang when specified
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders lesson to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders quiz to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders drill to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders worksheet to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders recap to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders infographic to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders answer_key to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders flashcard_deck to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders reading_passage to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders exit_ticket to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders roadmap to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test:  ✓ __tests__/template-library.test.ts (24 tests) 55ms
+packages/renderer test:  ✓ __tests__/renderer.test.ts (46 tests) 44ms
+packages/renderer test:  ✓ __tests__/schemas/teaching-pack.test.ts (9 tests) 3ms
+packages/renderer test:  ✓ __tests__/diagrams/svg-sanitizer.test.ts (9 tests) 8ms
+packages/renderer test:  Test Files  13 passed (13)
+packages/renderer test:       Tests  221 passed (221)
+packages/renderer test:    Start at  15:25:10
+packages/renderer test:    Duration  1.44s (transform 1.28s, setup 0ms, collect 2.87s, tests 192ms, environment 2ms, prepare 1.50s)
+packages/renderer test: Done
+packages/exporters test$ vitest run
+packages/exporters test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/exporters
+packages/exporters test:  ✓ __tests__/flashcard-tsv.test.ts (7 tests) 4ms
+packages/exporters test:  ✓ __tests__/gift.test.ts (11 tests) 3ms
+packages/exporters test:  ✓ __tests__/google-forms.test.ts (9 tests) 10ms
+packages/exporters test:  ✓ __tests__/h5p.test.ts (7 tests) 16ms
+packages/exporters test:  ✓ __tests__/anki-apkg.test.ts (7 tests) 132ms
+packages/exporters test:  Test Files  5 passed (5)
+packages/exporters test:       Tests  41 passed (41)
+packages/exporters test:    Start at  15:25:12
+packages/exporters test:    Duration  520ms (transform 182ms, setup 0ms, collect 375ms, tests 165ms, environment 1ms, prepare 343ms)
+packages/exporters test: Done

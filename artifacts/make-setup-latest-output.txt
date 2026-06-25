@@ -1,0 +1,24 @@
+Setting up oh-my-class development environment...
+
+Setting up Python workspace...
+uv sync || pip install -e packages/agents -e packages/quality -e common/contracts -e services/gateway
+Resolved 71 packages in 6ms
+Audited 66 packages in 1ms
+
+Installing TypeScript dependencies...
+pnpm install
+Scope: all 5 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮│                                                                              ││   Ignored build scripts: esbuild, sharp, unrs-resolver.                      ││   Run "pnpm approve-builds" to pick which dependencies should be allowed     ││   to run scripts.                                                            ││                                                                              │╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 600ms using pnpm v10.6.0
+
+Generating theme CSS...
+uv run python scripts/generate_theme.py
+Generated packages/renderer/branding/theme_forest.css
+Generated packages/renderer/branding/theme_ocean.css
+Generated packages/renderer/branding/theme_default.css
+
+Setup complete! Run 'make up' to start services.

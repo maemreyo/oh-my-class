@@ -1,2 +1,40 @@
-/* Auto-generated from theme.json — DO NOT EDIT MANUALLY */
+/* Auto-generated from ocean/theme.json — DO NOT EDIT MANUALLY */
 /* Theme: ocean */
+
+:root {
+  --omc-colors-primary: #0284C7;
+  --omc-colors-primary-light: #38BDF8;
+  --omc-colors-secondary: #06B6D4;
+  --omc-colors-accent: #F97316;
+  --omc-colors-success: #10B981;
+  --omc-colors-warning: #F59E0B;
+  --omc-colors-error: #EF4444;
+  --omc-colors-background: #F0F9FF;
+  --omc-colors-surface: #E0F2FE;
+  --omc-colors-text: #0C4A6E;
+  --omc-colors-text-secondary: #0369A1;
+  --omc-typography-font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --omc-typography-font-size-base: 16px;
+  --omc-typography-font-size-sm: 14px;
+  --omc-typography-font-size-lg: 18px;
+  --omc-typography-font-size-xl: 24px;
+  --omc-typography-line-height: 1.6;
+  --omc-spacing-xs: 4px;
+  --omc-spacing-sm: 8px;
+  --omc-spacing-md: 16px;
+  --omc-spacing-lg: 24px;
+  --omc-spacing-xl: 32px;
+  --omc-border-radius-sm: 4px;
+  --omc-border-radius-md: 8px;
+  --omc-border-radius-lg: 12px;
+  --omc-a-color: #33508F;
+  --omc-a-label: Ngữ pháp – Từ vựng;
+  --omc-b-color: #B9762A;
+  --omc-b-label: Hội thoại;
+  --omc-c-color: #3C7A4E;
+  --omc-c-label: Viết lại / Kết hợp câu;
+  --omc-d-color: #1F7A8C;
+  --omc-d-label: Điền từ & Đọc hiểu;
+  --omc-e-color: #8A4F7E;
+  --omc-e-label: Tư duy logic;
+}

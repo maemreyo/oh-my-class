@@ -8,20 +8,20 @@ Requested cleanup completed: `.claude/worktrees/` was deleted before this rerun.
 
 The rerun is still not green. Removing `.claude/worktrees/` reduced the scan scope, and Docker is now reachable, but multiple repo/tooling gates remain red.
 
-| Wave | Surface | Result | Evidence |
-|---|---|---:|---|
-| 0 | Preflight | FAIL | `preflight-output.txt` |
-| 1a | Ruff | FAIL | `ruff-output.txt` |
-| 1b | Python import boundaries | FAIL / tool unavailable | `lint-imports-output.txt` |
-| 1c | Python typecheck | FAIL | `typecheck-python-output.txt` |
-| 1d | TypeScript lint | FAIL | `lint-ts-output.txt` |
-| 1e | TypeScript dependency boundaries | PASS | `depcruise-output.txt` |
-| 2a | Python tests | FAIL at collection | `pytest-output.txt` |
-| 2b | TypeScript build/tests | FAIL at build; tests skipped | `pnpm-build-output.txt` |
-| 3 | Schema parity | FAIL with real parity drift | `schema-parity-output.txt` |
-| 4 | Docker build | FAIL with compose path error | `docker-build-output.txt` |
-| 5 | Runtime smoke | FAIL / stack did not start | `docker-up-output.txt`, `docker-ps.txt`, `gateway-health.txt`, `frontend-health.txt` |
-| Cleanup | Docker down | PASS | `docker-down-output.txt` |
+| Wave    | Surface                          |                       Result | Evidence                                                                             |
+| ------- | -------------------------------- | ---------------------------: | ------------------------------------------------------------------------------------ |
+| 0       | Preflight                        |                         FAIL | `preflight-output.txt`                                                               |
+| 1a      | Ruff                             |                         FAIL | `ruff-output.txt`                                                                    |
+| 1b      | Python import boundaries         |      FAIL / tool unavailable | `lint-imports-output.txt`                                                            |
+| 1c      | Python typecheck                 |                         FAIL | `typecheck-python-output.txt`                                                        |
+| 1d      | TypeScript lint                  |                         FAIL | `lint-ts-output.txt`                                                                 |
+| 1e      | TypeScript dependency boundaries |                         PASS | `depcruise-output.txt`                                                               |
+| 2a      | Python tests                     |           FAIL at collection | `pytest-output.txt`                                                                  |
+| 2b      | TypeScript build/tests           | FAIL at build; tests skipped | `pnpm-build-output.txt`                                                              |
+| 3       | Schema parity                    |  FAIL with real parity drift | `schema-parity-output.txt`                                                           |
+| 4       | Docker build                     | FAIL with compose path error | `docker-build-output.txt`                                                            |
+| 5       | Runtime smoke                    |   FAIL / stack did not start | `docker-up-output.txt`, `docker-ps.txt`, `gateway-health.txt`, `frontend-health.txt` |
+| Cleanup | Docker down                      |                         PASS | `docker-down-output.txt`                                                             |
 
 ## Changes Versus First Run
 

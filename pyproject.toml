@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 license = { text = "MIT" }
 dependencies = [
     "anyio>=4.14.0",
+    "services.gateway",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
@@ -34,6 +35,7 @@ members = [
 testpaths = ["packages/agents/tests", "packages/agents/skills/tests", "packages/llm_client/tests", "packages/llm_client/budget/tests", "packages/notifications/tests", "packages/quality/tests", "common/contracts/tests", "common/branding/tests", "services/gateway/tests", "tests"]
 asyncio_mode = "auto"
 pythonpath = ["."]
+addopts = ["--import-mode=importlib"]
 
 [tool.ruff]
 target-version = "py312"
@@ -70,10 +72,9 @@ plugins = ["pydantic.mypy"]
 
 [tool.importlinter]
 root_packages = [
-    "packages.agents",
-    "packages.quality",
-    "common.contracts",
-    "services.gateway",
+    "packages",
+    "common",
+    "services",
 ]
 
 [[tool.importlinter.contracts]]

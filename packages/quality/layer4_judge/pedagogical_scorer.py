@@ -62,15 +62,15 @@ async def score_pedagogical(
     Returns:
         PedagogicalScore with 5 dimension scores (1-5) and a total average.
     """
-    from packages.agents.config import MODELS
     from packages.llm_client.client import ChatMessage, LLMClient
+    from packages.quality.layer4_judge.config import QUALITY_MODELS
 
     llm = llm or LLMClient()
     truncated = content[:_MAX_CONTENT_CHARS]
     prompt = SCORE_PROMPT.format(content=truncated)
 
     response = await llm.chat(  # type: ignore[union-attr]
-        model=MODELS.llm_judge,
+        model=QUALITY_MODELS.llm_judge,
         messages=[ChatMessage(role="user", content=prompt)],
         agent="pedagogical_scorer",
         task="quality_gate",

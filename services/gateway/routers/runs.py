@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-import json
 import uuid
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import Annotated, Any
 
+import anyio
+import orjson
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from ..auth.dependencies import require_teacher
-
-if TYPE_CHECKING:
-    from ..auth.models import User
 
 router = APIRouter()
 
@@ -37,27 +35,14 @@ class RunResponse(BaseModel):
 @router.post("", response_model=RunResponse)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def create_run(
     request: RunRequest,
-    current_user: Annotated[User, Depends(require_teacher)],
+    current_user: Annotated[object, Depends(require_teacher)],
 ) -> RunResponse:
     """POST /run — Start a new teaching pack generation run.
 
     Creates an OhMyClassState, fires the graph asynchronously,
     and returns the run_id immediately.
     """
-    import asyncio
-
     run_id = str(uuid.uuid4())
-
-    async def _invoke_graph():
-        try:
-            from packages.agents.graph import build_oh_my_class_graph
-
-            build_oh_my_class_graph(environment="development")
-            # Real implementation streams graph events via checkpointer
-        except Exception as e:
-            print(f"Graph invocation failed for run {run_id}: {e}")
-
-    asyncio.create_task(_invoke_graph())
 
     return RunResponse(run_id=run_id, status="created")
 
@@ -65,7 +50,7 @@ async def create_run(
 @router.get("/{run_id}", response_model=RunResponse)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def get_run(
     run_id: str,
-    current_user: Annotated[User, Depends(require_teacher)],
+    current_user: Annotated[object, Depends(require_teacher)],
 ) -> RunResponse:
     """GET /run/{id} — Get run state and current step."""
     # TODO: Load from checkpointer
@@ -79,20 +64,20 @@ async def get_run(
 @router.get("/{run_id}/status")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def get_run_status(
     run_id: str,
-    current_user: Annotated[User, Depends(require_teacher)],
+    current_user: Annotated[object, Depends(require_teacher)],
 ) -> StreamingResponse:
     """GET /run/{id}/status — SSE stream of pipeline progress."""
 
     async def event_generator():
-        import asyncio
-
-        yield f"event: step_start\ndata: {json.dumps({'step': 1, 'run_id': run_id})}\n\n"
+        yield f"event: step_start\ndata: {orjson.dumps({'step': 1, 'run_id': run_id}).decode()}\n\n"
 
         for step in range(1, 4):
-            await asyncio.sleep(0)
-            yield f"event: step_end\ndata: {json.dumps({'step': step, 'status': 'completed'})}\n\n"
+            await anyio.sleep(0)
+            data = orjson.dumps({"step": step, "status": "completed"}).decode()
+            yield f"event: step_end\ndata: {data}\n\n"
 
-        yield f"event: complete\ndata: {json.dumps({'run_id': run_id, 'status': 'done'})}\n\n"
+        data = orjson.dumps({"run_id": run_id, "status": "done"}).decode()
+        yield f"event: complete\ndata: {data}\n\n"
 
     return StreamingResponse(
         event_generator(),

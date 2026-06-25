@@ -9,19 +9,22 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "format": "turbo run format",
-    "lint:deps": "depcruise --validate .dependency-cruiser.cjs .",
-    "lint:knip": "knip",
-    "generate:schemas": "python scripts/generate_zod_schemas.py",
-    "verify:schemas": "python scripts/verify_schema_parity.py"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.5.1",
-    "@types/node": "^22.0.0",
-    "dependency-cruiser": "^16.0.0",
-    "knip": "^5.0.0",
-    "turbo": "^2.0.0",
-    "typescript": "^5.5.0"
-  },
+		"lint:deps": "depcruise --validate .dependency-cruiser.cjs .",
+		"lint:knip": "knip",
+		"format:reports": "prettier --write \"docs/plans/**/*.{md,html,yml,yaml,json}\" \"artifacts/**/*.{md,html,yml,yaml,json}\"",
+		"check:reports": "prettier --check \"docs/plans/**/*.{md,html,yml,yaml,json}\" \"artifacts/**/*.{md,html,yml,yaml,json}\"",
+		"generate:schemas": "python scripts/generate_zod_schemas.py",
+		"verify:schemas": "python scripts/verify_schema_parity.py"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.1",
+		"@types/node": "^22.0.0",
+		"dependency-cruiser": "^16.0.0",
+		"knip": "^5.0.0",
+		"prettier": "^3.4.0",
+		"turbo": "^2.0.0",
+		"typescript": "^5.5.0"
+	},
   "packageManager": "pnpm@10.6.0",
   "pnpm": {
     "overrides": {}

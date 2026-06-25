@@ -20,6 +20,9 @@ importers:
       knip:
         specifier: ^5.0.0
         version: 5.88.1(@types/node@22.20.0)(typescript@5.9.3)
+      prettier:
+        specifier: ^3.4.0
+        version: 3.8.4
       turbo:
         specifier: ^2.0.0
         version: 2.9.18

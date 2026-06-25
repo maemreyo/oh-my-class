@@ -54,10 +54,21 @@ _REQUEST_ID_HEADER = "X-Request-ID"
 
 
 def _resolve_request_id(request: Request, exc: OMCError | None = None) -> str | None:
-    """Pull request-id from exception, request state, or return None."""
     if exc is not None and exc.request_id:
         return exc.request_id
-    return getattr(request.state, "request_id", None)
+    state_request_id = getattr(request.state, "request_id", None)
+    if state_request_id is not None:
+        return state_request_id
+    return request.headers.get(_REQUEST_ID_HEADER)
+
+
+def _format_omc_error_response(exc: OMCError) -> dict[str, object]:
+    body = format_error_response(exc)
+    for field in ("run_id", "step", "agent", "layer", "export_format"):
+        value = getattr(exc, field, None)
+        if value is not None:
+            body[field] = value
+    return body
 
 
 async def omc_exception_handler(
@@ -69,7 +80,7 @@ async def omc_exception_handler(
         exc.request_id = request_id
 
     status_code = _CODE_TO_STATUS.get(exc.error_code, 500)
-    body = format_error_response(exc)
+    body = _format_omc_error_response(exc)
 
     log = get_logger("omc.error")
     bind_context(log, request_id=request_id)

@@ -1,0 +1,1436 @@
+/Library/Developer/CommandLineTools/usr/bin/make test
+Running Python tests...
+uv run pytest packages/agents packages/quality common/contracts services/gateway tests/ -v
+============================= test session starts ==============================
+platform darwin -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- /Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/trung.ngo/Documents/zaob-dev/oh-my-class
+configfile: pyproject.toml
+plugins: anyio-4.14.0, cov-7.1.0, asyncio-1.4.0, langsmith-0.9.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 934 items
+
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_judge_min_score_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_judge_n_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_max_retries_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_hitl_max_revisions_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_schema_max_retries_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_fact_min_sources_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_age_check_enabled_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_responsive_check_disabled_by_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigDefaults::test_export_min_score_default PASSED [  0%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigHardBlocks::test_block_external_assets_default_true PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigHardBlocks::test_block_missing_doctype_default_true PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigHardBlocks::test_block_answer_key_leakage_default_true PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigHardBlocks::test_block_missing_brand_default_true PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigEnvOverride::test_env_override_judge_min_score PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigEnvOverride::test_env_override_max_retries PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigEnvOverride::test_env_override_judge_n PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigEnvOverride::test_env_override_responsive_check PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestGateConfigEnvOverride::test_invalid_env_raises_validation_error PASSED [  1%]
+packages/agents/config/tests/test_gate_config.py::TestModelConfig::test_llm_judge_is_f_pro PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::TestModelConfig::test_summarization_is_f_light PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::TestModelConfig::test_content_generation_is_f_light PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::TestModelConfig::test_blueprint_design_is_f_light PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::TestModelConfig::test_schema_rewrite_is_f_light PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::TestModelConfig::test_researcher_is_f_light PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::TestModelConfig::test_lead_agent_is_f_pro PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::TestModelConfig::test_env_override_model PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::test_config_package_exports_gate_config PASSED [  2%]
+packages/agents/config/tests/test_gate_config.py::test_config_package_exports_models PASSED [  2%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestExtractor::test_extracts_year PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestExtractor::test_extracts_percentage PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestExtractor::test_extracts_named_entity PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestExtractor::test_includes_context_sentence PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestExtractor::test_empty_text_returns_empty PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestExtractor::test_pure_text_no_claims PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestExtractor::test_claim_has_required_fields PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestRiskClassifier::test_date_is_high_risk PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestRiskClassifier::test_statistic_is_high_risk PASSED [  3%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestRiskClassifier::test_formula_is_high_risk PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestRiskClassifier::test_named_entity_near_keyword_is_high_risk PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestRiskClassifier::test_named_entity_without_keyword_is_medium PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestRiskClassifier::test_number_is_low_risk PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestRiskClassifier::test_filter_high_risk PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_clean_text_passes_no_llm PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_no_high_risk_skips_llm PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_high_risk_triggers_llm_when_provided PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_high_risk_no_llm_still_passes PASSED [  4%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_skip_llm_flag PASSED [  5%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_incorrect_claim_fails PASSED [  5%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_uncertain_claim_still_passes PASSED [  5%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_result_has_total_claims_count PASSED [  5%]
+packages/agents/gates/fact_check/tests/test_fact_detection.py::TestFactChecker::test_run_fact_check_compat_wrapper PASSED [  5%]
+packages/agents/gates/tests/test_gates.py::TestGate01BlueprintApproval::test_raises_without_lesson_plan PASSED [  5%]
+packages/agents/gates/tests/test_gates.py::TestGate01BlueprintApproval::test_calls_interrupt_with_gate_info PASSED [  5%]
+packages/agents/gates/tests/test_gates.py::TestGate01BlueprintApproval::test_approve_sets_teacher_decision PASSED [  5%]
+packages/agents/gates/tests/test_gates.py::TestGate01BlueprintApproval::test_approve_returns_gate_payload PASSED [  5%]
+packages/agents/gates/tests/test_gates.py::TestGate01BlueprintApproval::test_reject_sets_teacher_decision PASSED [  5%]
+packages/agents/gates/tests/test_gates.py::TestGate01BlueprintApproval::test_edit_updates_lesson_plan PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestGate01BlueprintApproval::test_edit_without_edited_plan_does_not_update_plan PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestGate01BlueprintApproval::test_approve_stores_feedback_in_revision_feedback PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestGate02ContentApproval::test_raises_without_artifacts PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestGate02ContentApproval::test_calls_interrupt_with_gate_info PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestGate02ContentApproval::test_approve_sets_teacher_decision PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestGate02ContentApproval::test_reject_sets_teacher_decision PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestGate02ContentApproval::test_returns_gate_payload PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestGate02ContentApproval::test_includes_review_results_in_interrupt_payload PASSED [  6%]
+packages/agents/gates/tests/test_gates.py::TestRouteFunctions::test_blueprint_route_approve PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::TestRouteFunctions::test_blueprint_route_edit_proceeds PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::TestRouteFunctions::test_blueprint_route_reject_reruns_planner PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::TestRouteFunctions::test_blueprint_route_defaults_to_approve PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::TestRouteFunctions::test_content_route_approve PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::TestRouteFunctions::test_content_route_reject_regenerates PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::TestRouteFunctions::test_content_route_defaults_to_approve PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::test_lead_agent_node_does_not_call_interrupt PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::test_gates_module_is_importable PASSED [  7%]
+packages/agents/gates/tests/test_gates.py::test_gates_are_callable PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestSchemaValidator::test_passes_with_valid_artifacts PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestSchemaValidator::test_fails_with_no_artifacts PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestSchemaValidator::test_fails_with_missing_content_key PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestSchemaValidator::test_fails_with_empty_content PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestSchemaValidator::test_fails_with_missing_type_key PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestSchemaValidator::test_preserves_fail_count PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestSchemaValidator::test_multiple_valid_artifacts_pass PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestContentReviewer::test_passes_with_clean_content PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestContentReviewer::test_fails_with_blocked_content PASSED [  8%]
+packages/agents/gates/tests/test_quality_gates.py::TestContentReviewer::test_passes_with_valid_html_artifact PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestContentReviewer::test_fails_html_with_external_assets PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestContentReviewer::test_fails_worksheet_with_answer_key PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestContentReviewer::test_no_artifacts_passes PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestContentReviewer::test_fail_context_has_errors PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestLLMJudge::test_passes_with_valid_artifacts PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestLLMJudge::test_fails_with_no_artifacts PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestLLMJudge::test_score_is_float PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestLLMJudge::test_empty_content_artifact_scores_zero PASSED [  9%]
+packages/agents/gates/tests/test_quality_gates.py::TestExportReadiness::test_passes_when_ready PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestExportReadiness::test_fails_with_no_artifacts PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestExportReadiness::test_fails_with_no_export_formats PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestExportReadiness::test_fails_when_judge_score_too_low PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestExportReadiness::test_passes_when_judge_score_none PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestExportReadiness::test_fail_context_has_errors PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestFactCheck::test_clean_text_passes PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestFactCheck::test_extracts_percentage_claims PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestFactCheck::test_classifies_high_risk PASSED [ 10%]
+packages/agents/gates/tests/test_quality_gates.py::TestFactCheck::test_classifies_low_risk PASSED [ 11%]
+packages/agents/gates/tests/test_quality_gates.py::TestHTMLValidator::test_valid_html_passes PASSED [ 11%]
+packages/agents/gates/tests/test_quality_gates.py::TestHTMLValidator::test_missing_doctype_fails PASSED [ 11%]
+packages/agents/gates/tests/test_quality_gates.py::TestHTMLValidator::test_external_asset_fails PASSED [ 11%]
+packages/agents/gates/tests/test_quality_gates.py::TestHTMLValidator::test_no_doctype_check_when_disabled PASSED [ 11%]
+packages/agents/gates/tests/test_quality_gates.py::TestAnswerKeyGuard::test_worksheet_with_answer_key_fails PASSED [ 11%]
+packages/agents/gates/tests/test_quality_gates.py::TestAnswerKeyGuard::test_lesson_plan_passes_with_answer_key PASSED [ 11%]
+packages/agents/gates/tests/test_quality_gates.py::TestAnswerKeyGuard::test_clean_worksheet_passes PASSED [ 11%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_rewrite_on_first_validation_fail PASSED [ 11%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_rewrite_on_first_content_fail PASSED [ 11%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_retry_on_first_transient_fail PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_reroute_on_second_fail PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_replan_on_third_fail PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_escalate_after_max_retries PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_escalate_at_exactly_max_retries_plus_one PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_healing_node_is_callable PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_route_after_healing_escalate PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_route_after_healing_generate PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestRetryStrategy::test_returns_retry_strategy PASSED [ 12%]
+packages/agents/healing/tests/test_orchestrator.py::TestRetryStrategy::test_includes_fail_count PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRetryStrategy::test_sleep_is_called PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRewriteStrategy::test_returns_rewrite_strategy PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRewriteStrategy::test_clears_artifacts PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRewriteStrategy::test_injects_error_context PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRewriteStrategy::test_top_3_errors_only PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRerouteStrategy::test_upgrades_light_to_pro PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRerouteStrategy::test_downgrades_pro_to_light PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRerouteStrategy::test_defaults_to_light_when_no_model PASSED [ 13%]
+packages/agents/healing/tests/test_orchestrator.py::TestRerouteStrategy::test_clears_artifacts PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestReplanStrategy::test_clears_all_downstream_state PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestReplanStrategy::test_returns_replan_strategy PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestEscalateStrategy::test_sets_escalate_true PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestEscalateStrategy::test_includes_reason PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestEscalateStrategy::test_sets_error_field PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestCircuitBreaker::test_allows_calls_when_closed PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestCircuitBreaker::test_opens_after_threshold_failures PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestCircuitBreaker::test_resets_on_success PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestCircuitBreaker::test_tracks_failure_count PASSED [ 14%]
+packages/agents/healing/tests/test_orchestrator.py::TestHTMLHealer::test_injects_missing_doctype PASSED [ 15%]
+packages/agents/healing/tests/test_orchestrator.py::TestHTMLHealer::test_does_not_duplicate_doctype PASSED [ 15%]
+packages/agents/healing/tests/test_orchestrator.py::TestHTMLHealer::test_removes_external_assets PASSED [ 15%]
+packages/agents/healing/tests/test_orchestrator.py::TestHTMLHealer::test_no_changes_when_valid PASSED [ 15%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_make_lead_agent_returns_compiled_graph PASSED [ 15%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_make_lead_agent_accepts_model_override PASSED [ 15%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_make_lead_agent_accepts_tools_override PASSED [ 15%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_make_lead_agent_is_create_react_agent PASSED [ 15%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_system_prompt_loads PASSED [ 15%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_system_prompt_contains_lead_agent_reference PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_system_prompt_mentions_run_planner PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_system_prompt_mentions_recovery PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_system_prompt_loaded_from_file_not_hardcoded PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_build_recovery_context_includes_score PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_build_recovery_context_includes_feedback PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_build_recovery_context_identifies_weak_artifacts PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_build_recovery_context_excludes_passing_artifacts PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_build_recovery_context_includes_revision_count PASSED [ 16%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_build_recovery_context_handles_missing_feedback PASSED [ 17%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_build_recovery_context_handles_empty_per_artifact PASSED [ 17%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_lead_agent_node_is_importable PASSED [ 17%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_lead_agent_node_is_async PASSED [ 17%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_lead_agent_node_injects_recovery_on_retry PASSED [ 17%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_recovery_py_exists PASSED [ 17%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_node_py_exists PASSED [ 17%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_prompts_package_exists PASSED [ 17%]
+packages/agents/lead_agent/tests/test_lead_agent.py::test_tools_sub_agent_tools_list PASSED [ 17%]
+packages/agents/skills/tests/test_loader.py::test_build_skills_block_structure PASSED [ 17%]
+packages/agents/skills/tests/test_loader.py::test_empty_skills_returns_empty_string PASSED [ 18%]
+packages/agents/skills/tests/test_loader.py::test_unknown_skill_raises_key_error PASSED [ 18%]
+packages/agents/skills/tests/test_loader.py::test_missing_file_raises_file_not_found PASSED [ 18%]
+packages/agents/skills/tests/test_loader.py::test_multiple_skills_all_present PASSED [ 18%]
+packages/agents/skills/tests/test_loader.py::test_list_available_returns_all_registered PASSED [ 18%]
+packages/agents/skills/tests/test_loader.py::test_skill_content_is_non_empty PASSED [ 18%]
+packages/agents/skills/tests/test_loader.py::test_ccss_math_loads PASSED [ 18%]
+packages/agents/skills/tests/test_loader.py::test_hsa_exam_format_in_block PASSED [ 18%]
+packages/agents/skills/tests/test_loader.py::test_zamery_pack_loads PASSED [ 18%]
+packages/agents/tests/middleware/test_content_safety.py::test_blocked_keyword_raises PASSED [ 19%]
+packages/agents/tests/middleware/test_content_safety.py::test_clean_content_passes PASSED [ 19%]
+packages/agents/tests/middleware/test_content_safety.py::test_after_model_blocked_artifact_raises PASSED [ 19%]
+packages/agents/tests/middleware/test_content_safety.py::test_after_model_clean_artifact_passes PASSED [ 19%]
+packages/agents/tests/middleware/test_content_safety.py::test_nsfw_keyword_blocked PASSED [ 19%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_blocks_email_in_input PASSED [ 19%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_blocks_phone_in_input PASSED [ 19%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_allows_safe_content PASSED [ 19%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_allows_empty_request PASSED [ 19%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_blocks_email_in_output_artifacts PASSED [ 20%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_blocks_phone_in_output_artifacts PASSED [ 20%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_allows_clean_output PASSED [ 20%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_empty_artifacts_no_crash PASSED [ 20%]
+packages/agents/tests/middleware/test_guardrail.py::TestGuardrail::test_name_and_order PASSED [ 20%]
+packages/agents/tests/middleware/test_input_sanitization.py::test_empty_request_raises PASSED [ 20%]
+packages/agents/tests/middleware/test_input_sanitization.py::test_valid_request_passes PASSED [ 20%]
+packages/agents/tests/middleware/test_input_sanitization.py::test_invalid_grade_raises PASSED [ 20%]
+packages/agents/tests/middleware/test_input_sanitization.py::test_valid_grade_passes PASSED [ 20%]
+packages/agents/tests/middleware/test_input_sanitization.py::test_kindergarten_grade_passes PASSED [ 20%]
+packages/agents/tests/middleware/test_input_sanitization.py::test_after_model_noop PASSED [ 21%]
+packages/agents/tests/middleware/test_loop_detection.py::TestLoopDetection::test_allows_different_states PASSED [ 21%]
+packages/agents/tests/middleware/test_loop_detection.py::TestLoopDetection::test_breaks_after_threshold PASSED [ 21%]
+packages/agents/tests/middleware/test_loop_detection.py::TestLoopDetection::test_does_not_break_before_threshold PASSED [ 21%]
+packages/agents/tests/middleware/test_loop_detection.py::TestLoopDetection::test_threshold_one PASSED [ 21%]
+packages/agents/tests/middleware/test_loop_detection.py::TestLoopDetection::test_resets_on_different_state PASSED [ 21%]
+packages/agents/tests/middleware/test_loop_detection.py::TestLoopDetection::test_sliding_window_trims PASSED [ 21%]
+packages/agents/tests/middleware/test_loop_detection.py::TestLoopDetection::test_name_and_order PASSED [ 21%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestMiddlewareList::test_ordered_list_has_30_items PASSED [ 21%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestMiddlewareList::test_order_is_correct PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestMiddlewareList::test_all_items_are_classes PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestMiddlewareList::test_names_are_unique PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestDanglingToolCall::test_pass_through_before_model PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestDanglingToolCall::test_pass_through_after_model PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestDanglingToolCall::test_clears_pending_tool_calls PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestDanglingToolCall::test_name_and_order PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestSummarization::test_pass_through_below_threshold PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestSummarization::test_triggers_above_threshold PASSED [ 22%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestSummarization::test_after_model_noop PASSED [ 23%]
+packages/agents/tests/middleware/test_middleware_suite.py::TestSummarization::test_name_and_order PASSED [ 23%]
+packages/agents/tests/middleware/test_skill_activation.py::test_unknown_subject_noop PASSED [ 23%]
+packages/agents/tests/middleware/test_skill_activation.py::test_no_class_info_noop PASSED [ 23%]
+packages/agents/tests/middleware/test_skill_activation.py::test_math_subject_mapping PASSED [ 23%]
+packages/agents/tests/middleware/test_skill_activation.py::test_after_model_noop PASSED [ 23%]
+packages/agents/tests/middleware/test_subagent_limit.py::test_under_limit_passes PASSED [ 23%]
+packages/agents/tests/middleware/test_subagent_limit.py::test_at_limit_raises PASSED [ 23%]
+packages/agents/tests/middleware/test_subagent_limit.py::test_over_limit_raises PASSED [ 23%]
+packages/agents/tests/middleware/test_subagent_limit.py::test_zero_subagents_passes PASSED [ 23%]
+packages/agents/tests/middleware/test_subagent_limit.py::test_after_model_noop PASSED [ 24%]
+packages/agents/tests/middleware/test_token_budget.py::TestTokenBudget::test_allows_within_budget PASSED [ 24%]
+packages/agents/tests/middleware/test_token_budget.py::TestTokenBudget::test_blocks_when_exceeded PASSED [ 24%]
+packages/agents/tests/middleware/test_token_budget.py::TestTokenBudget::test_blocks_at_exact_budget PASSED [ 24%]
+packages/agents/tests/middleware/test_token_budget.py::TestTokenBudget::test_budget_zero_always_blocked PASSED [ 24%]
+packages/agents/tests/middleware/test_token_budget.py::TestTokenBudget::test_after_model_syncs_usage PASSED [ 24%]
+packages/agents/tests/middleware/test_token_budget.py::TestTokenBudget::test_before_model_syncs_from_state PASSED [ 24%]
+packages/agents/tests/middleware/test_token_budget.py::TestTokenBudget::test_empty_state_no_crash PASSED [ 24%]
+packages/agents/tests/middleware/test_token_budget.py::TestTokenBudget::test_name_and_order PASSED [ 24%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_returns_valid_artifact_content PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_parses_json_code_fence PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_parses_generic_code_fence PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_parses_bare_json_array PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_wraps_single_artifact_dict_in_list PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_raises_value_error_on_invalid_json PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_raises_value_error_on_llm_error PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_calls_litellm_with_correct_model PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_metadata_tags_include_run_id PASSED [ 25%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_missing_lesson_plan_uses_empty_dict PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_missing_artifact_types_defaults_to_lesson PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_theme_forwarded_to_prompt PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_artifact_validates_against_schema PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoCdn::test_detects_cdn_dot PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoCdn::test_detects_cloudflare PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoCdn::test_detects_jsdelivr PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoCdn::test_detects_unpkg PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoCdn::test_clean_artifact_returns_empty PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoCdn::test_multiple_artifacts_reported_with_index PASSED [ 26%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoPii::test_detects_email PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoPii::test_detects_phone_dashes PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoPii::test_detects_phone_dots PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoPii::test_clean_artifact_returns_empty PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestValidateNoPii::test_multiple_violations_reported PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorTools::test_read_file_returns_content PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorTools::test_write_file_creates_file PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorTools::test_write_file_no_overwrite_by_default PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorTools::test_write_file_overwrite_flag PASSED [ 27%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorPrompts::test_prompt_contains_artifact_types PASSED [ 28%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorPrompts::test_prompt_mentions_no_html PASSED [ 28%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorPrompts::test_prompt_mentions_teacher_only PASSED [ 28%]
+packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorPrompts::test_prompt_mentions_no_cdn PASSED [ 28%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestStudentAnswerItem::test_valid_correct_answer PASSED [ 28%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestStudentAnswerItem::test_valid_wrong_answer PASSED [ 28%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestStudentAnswerItem::test_unanswered_question PASSED [ 28%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestStudentAnswerItem::test_string_question_id PASSED [ 28%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestStudentResponse::test_minimal_valid PASSED [ 28%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestStudentResponse::test_with_answers PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestStudentResponse::test_context_dict PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestStudentResponse::test_model_dump_roundtrip PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestKnowledgeGap::test_valid PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestKnowledgeGap::test_empty_question_ids PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestBloomGap::test_valid PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestBloomGap::test_all_bloom_levels PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestMisconceptionPattern::test_valid PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestMisconceptionPattern::test_groups_a_through_e PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticReport::test_minimal_defaults PASSED [ 29%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticReport::test_with_all_fields PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticReport::test_model_dump_roundtrip PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticReport::test_exported_from_contracts PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticReport::test_rejects_invalid_recommended_level PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticReport::test_rejects_out_of_range_error_rate PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticReport::test_rejects_negative_error_rate PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestKnowledgeGapLiterals::test_rejects_invalid_severity PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestKnowledgeGapLiterals::test_rejects_out_of_range_error_rate PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestBloomGapLiterals::test_rejects_invalid_bloom_level PASSED [ 30%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestBloomGapLiterals::test_rejects_out_of_range_error_rate PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestMisconceptionPatternLiterals::test_rejects_invalid_group PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestMisconceptionPatternLiterals::test_accepts_all_valid_groups PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestBloomTaxonomyLookup::test_valid_level_remember PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestBloomTaxonomyLookup::test_all_six_levels PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestBloomTaxonomyLookup::test_case_insensitive PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestBloomTaxonomyLookup::test_unknown_level_returns_fallback PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestQuestionTypeClassifier::test_classifies_by_section PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestQuestionTypeClassifier::test_unmapped_questions_go_to_unknown PASSED [ 31%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestQuestionTypeClassifier::test_empty_input PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianNode::test_returns_diagnostic_report PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianNode::test_parses_json_code_fence PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianNode::test_parses_generic_fence PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianNode::test_parses_bare_json PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianNode::test_raises_value_error_on_invalid_json PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianNode::test_raises_value_error_on_llm_error PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianNode::test_handles_empty_student_responses PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestMakeDiagnosticianAgent::test_returns_compiled_graph PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestMakeDiagnosticianAgent::test_agent_module_exports PASSED [ 32%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianGraphNode::test_skips_when_no_student_responses PASSED [ 33%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianGraphNode::test_skips_when_empty_dict PASSED [ 33%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianGraphNode::test_skips_when_key_absent PASSED [ 33%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianGraphNode::test_fails_closed_on_llm_error PASSED [ 33%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestDiagnosticianGraphNode::test_fails_closed_on_invalid_student_response PASSED [ 33%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestExtractDiagnosticianState::test_validates_student_response_schema PASSED [ 33%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestExtractDiagnosticianState::test_raises_on_invalid_student_response PASSED [ 33%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestExtractDiagnosticianState::test_empty_dict_passes_through PASSED [ 33%]
+packages/agents/tests/sub_agents/test_diagnostician.py::TestExtractDiagnosticianState::test_raises_on_invalid_field_types PASSED [ 33%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchSource::test_valid_source PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchSource::test_source_with_url PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchSource::test_credibility_score_bounds PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchSource::test_verification_status_enum PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchSource::test_all_verification_statuses PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_valid_with_2_sources PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_invalid_with_1_source PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_invalid_with_0_sources PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_default_policy_is_standard PASSED [ 34%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_explicit_policy_basic PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_explicit_policy_rigorous PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_invalid_policy PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_key_findings_default_empty PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_key_findings_populated PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_cross_references_default_empty PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_topic_min_length PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestResearchBundle::test_exported_from_contracts PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_returns_valid_lesson_plan PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_parses_json_code_fence PASSED [ 35%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_parses_generic_code_fence PASSED [ 36%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_parses_bare_json PASSED [ 36%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_raises_value_error_on_invalid_json PASSED [ 36%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_raises_value_error_on_llm_error PASSED [ 36%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_raises_value_error_on_schema_mismatch PASSED [ 36%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_state_missing_class_info_fields_uses_defaults PASSED [ 36%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_calls_litellm_with_correct_model PASSED [ 36%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_metadata_tags_include_run_id PASSED [ 36%]
+packages/agents/tests/sub_agents/test_planner.py::TestPlannerAgent::test_lesson_plan_has_correct_bloom_levels PASSED [ 36%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_returns_valid_research_bundle PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_parses_json_code_fence PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_parses_generic_code_fence PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_parses_bare_json PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_raises_value_error_on_invalid_json PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_raises_value_error_on_llm_error PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_raises_on_too_few_sources PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_missing_lesson_plan_uses_default_topic PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_calls_litellm_with_correct_model PASSED [ 37%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_metadata_tags_include_run_id PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_research_policy_forwarded_to_prompt PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherAgent::test_bundle_sources_have_verification_status PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherTools::test_web_search_returns_results PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherTools::test_web_search_respects_num_results PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherTools::test_web_fetch_returns_string PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherTools::test_web_fetch_includes_url PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherPrompts::test_prompt_contains_fact_protocol PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherPrompts::test_prompt_contains_verification_statuses PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherPrompts::test_prompt_contains_research_policies PASSED [ 38%]
+packages/agents/tests/sub_agents/test_researcher.py::TestResearcherPrompts::test_prompt_contains_output_schema PASSED [ 39%]
+packages/agents/tests/sub_agents/test_reviewer.py::TestQualityReview::test_returns_quality_scores_and_passed PASSED [ 39%]
+packages/agents/tests/sub_agents/test_reviewer.py::TestQualityReview::test_quality_scores_is_judge_output_dict PASSED [ 39%]
+packages/agents/tests/sub_agents/test_reviewer.py::TestQualityReview::test_missing_artifacts_uses_empty_list PASSED [ 39%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestLearningStyle::test_valid_visual PASSED [ 39%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestLearningStyle::test_with_all_fields PASSED [ 39%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestLearningStyle::test_film_learner PASSED [ 39%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestPersonalityTrait::test_valid PASSED [ 39%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestPersonalityTrait::test_depth_oriented PASSED [ 39%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfile::test_minimal_defaults PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfile::test_with_all_fields PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfile::test_model_dump_roundtrip PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfile::test_exported_from_contracts PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfileLiterals::test_rejects_invalid_learning_style_primary PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfileLiterals::test_rejects_invalid_target_exam PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfileLiterals::test_accepts_all_valid_target_exams PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfileLiterals::test_accepts_none_target_exam PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfileLiterals::test_rejects_study_duration_below_minimum PASSED [ 40%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestStudentProfileLiterals::test_rejects_study_duration_above_maximum PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestBookRecommender::test_b2_level_returns_core_books PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestBookRecommender::test_b1_level PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestBookRecommender::test_c1_level PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestBookRecommender::test_with_weak_skills_adds_supplements PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestBookRecommender::test_unknown_level_falls_back_to_b2 PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestBookRecommender::test_no_duplicate_supplements PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestMilestoneCalculator::test_returns_correct_month_count PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestMilestoneCalculator::test_month_numbers_sequential PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestMilestoneCalculator::test_final_score_reaches_target PASSED [ 41%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestMilestoneCalculator::test_scores_are_non_decreasing PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestMilestoneCalculator::test_each_milestone_has_focus PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestMilestoneCalculator::test_low_error_rate_starts_higher PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNode::test_returns_roadmap_artifact PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNode::test_roadmap_artifact_has_sections PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNode::test_artifact_type_set_to_roadmap PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNode::test_raises_value_error_on_invalid_json PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNode::test_raises_value_error_on_llm_error PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNode::test_works_without_student_profile PASSED [ 42%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNode::test_artifact_entry_has_student_id_in_id PASSED [ 43%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestMakeRoadmapAgent::test_returns_compiled_graph PASSED [ 43%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestMakeRoadmapAgent::test_agent_module_exports PASSED [ 43%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapGraphNode::test_skips_when_no_diagnostic_report PASSED [ 43%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapGraphNode::test_skips_when_diagnostic_report_absent PASSED [ 43%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapGraphNode::test_fails_closed_on_llm_error PASSED [ 43%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNodeValidation::test_valid_output_passes_pydantic PASSED [ 43%]
+packages/agents/tests/sub_agents/test_roadmap_agent.py::TestRoadmapNodeValidation::test_invalid_output_raises_schema_error PASSED [ 43%]
+packages/agents/tests/test_compiled_graphs.py::TestPlannerAgentFactory::test_returns_compiled_graph PASSED [ 43%]
+packages/agents/tests/test_compiled_graphs.py::TestPlannerAgentFactory::test_compiled_graph_without_checkpointer PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestPlannerAgentFactory::test_ainvoke_returns_lesson_plan PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestPlannerAgentFactory::test_standalone_without_main_graph PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestResearcherAgentFactory::test_returns_compiled_graph PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestResearcherAgentFactory::test_ainvoke_returns_research_bundle PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestContentCreatorAgentFactory::test_returns_compiled_graph PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestContentCreatorAgentFactory::test_ainvoke_returns_artifacts PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestReviewerAgentFactory::test_returns_compiled_graph PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestNodesModuleExists::test_planner_nodes_importable PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestNodesModuleExists::test_researcher_nodes_importable PASSED [ 44%]
+packages/agents/tests/test_compiled_graphs.py::TestNodesModuleExists::test_content_creator_nodes_importable PASSED [ 45%]
+packages/agents/tests/test_compiled_graphs.py::TestNodesModuleExists::test_reviewer_nodes_importable PASSED [ 45%]
+packages/agents/tests/test_compiled_graphs.py::TestLeadAgentTools::test_run_planner_is_tool PASSED [ 45%]
+packages/agents/tests/test_compiled_graphs.py::TestLeadAgentTools::test_run_researcher_is_tool PASSED [ 45%]
+packages/agents/tests/test_compiled_graphs.py::TestLeadAgentTools::test_run_content_creator_is_tool PASSED [ 45%]
+packages/agents/tests/test_compiled_graphs.py::TestLeadAgentTools::test_run_reviewer_is_tool PASSED [ 45%]
+packages/agents/tests/test_compiled_graphs.py::TestLeadAgentTools::test_tools_list_exports_all_four PASSED [ 45%]
+packages/agents/tests/test_graph.py::TestCheckpointerErrors::test_unknown_env_raises_value_error PASSED [ 45%]
+packages/agents/tests/test_graph.py::TestCheckpointerErrors::test_error_message_lists_valid_envs PASSED [ 45%]
+packages/agents/tests/test_graph.py::TestCheckpointerErrors::test_production_raises_without_connection_string PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestCheckpointerDevelopment::test_development_returns_memory_saver_instance PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestCheckpointerDevelopment::test_development_creates_no_arg_instance PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestRouteAfterReview::test_human_review_when_score_above_threshold PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestRouteAfterReview::test_human_review_at_exactly_threshold PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestRouteAfterReview::test_escalate_when_revision_count_at_limit PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestRouteAfterReview::test_escalate_when_revision_count_exceeds_limit PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestRouteAfterReview::test_repair_when_score_low_and_revisions_remaining PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestRouteAfterReview::test_repair_when_quality_scores_none PASSED [ 46%]
+packages/agents/tests/test_graph.py::TestRouteAfterReview::test_repair_when_quality_scores_empty_dict PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestRouteAfterHumanReview::test_validate_when_teacher_approved PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestRouteAfterHumanReview::test_generate_when_teacher_rejected PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestRouteAfterHumanReview::test_generate_when_teacher_approved_missing PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestGraphStructure::test_graph_compiles PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestGraphStructure::test_graph_has_18_user_nodes PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestGraphStructure::test_graph_has_all_step_names PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestGraphStructure::test_graph_total_nodes_including_start_end PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestGraphStructure::test_graph_accepts_custom_checkpointer PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestRouteAfterSchema::test_passes_when_schema_valid PASSED [ 47%]
+packages/agents/tests/test_graph.py::TestRouteAfterSchema::test_heals_when_schema_invalid PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterSchema::test_heals_when_schema_valid_missing PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterContentReview::test_passes_when_review_passed PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterContentReview::test_heals_when_review_failed PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterContentReview::test_heals_when_review_missing PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterJudge::test_passes_when_score_at_threshold PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterJudge::test_passes_when_score_above_threshold PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterJudge::test_heals_when_score_below_threshold PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterJudge::test_heals_when_score_missing PASSED [ 48%]
+packages/agents/tests/test_graph.py::TestRouteAfterJudge::test_heals_when_score_zero PASSED [ 49%]
+packages/agents/tests/test_graph.py::TestRouteAfterExport::test_finalizes_when_ready PASSED [ 49%]
+packages/agents/tests/test_graph.py::TestRouteAfterExport::test_escalates_when_not_ready PASSED [ 49%]
+packages/agents/tests/test_graph.py::TestRouteAfterExport::test_escalates_when_missing PASSED [ 49%]
+packages/agents/tests/test_lead_agent.py::TestLeadAgent::test_placeholder PASSED [ 49%]
+packages/agents/tests/test_prompt_management.py::TestPlannerPrompt::test_loads_without_error PASSED [ 49%]
+packages/agents/tests/test_prompt_management.py::TestPlannerPrompt::test_contains_role PASSED [ 49%]
+packages/agents/tests/test_prompt_management.py::TestPlannerPrompt::test_mentions_bloom PASSED [ 49%]
+packages/agents/tests/test_prompt_management.py::TestPlannerPrompt::test_missing_name_raises_file_not_found PASSED [ 49%]
+packages/agents/tests/test_prompt_management.py::TestResearcherPrompt::test_loads_without_error PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestResearcherPrompt::test_contains_fact_protocol PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestResearcherPrompt::test_contains_research_policies PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestContentCreatorPrompt::test_loads_without_error PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestContentCreatorPrompt::test_mentions_json_only PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestContentCreatorPrompt::test_mentions_hard_constraints PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestReviewerPrompt::test_loads_without_error PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestReviewerPrompt::test_mentions_geval PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestReviewerPrompt::test_mentions_hard_blocks PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::test_lead_agent_prompt_loads PASSED [ 50%]
+packages/agents/tests/test_prompt_management.py::TestSkillsDirectory::test_ccss_math_exists PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::TestSkillsDirectory::test_ccss_ela_exists PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::TestSkillsDirectory::test_vn_ministry_exists PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::TestSkillsDirectory::test_bloom_taxonomy_exists PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::TestSkillsDirectory::test_differentiation_exists PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::TestSkillsDirectory::test_ccss_math_mentions_grade_bands PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::TestSkillsDirectory::test_bloom_taxonomy_has_six_levels PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::test_planner_nodes_uses_load_system_prompt PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::test_researcher_nodes_uses_load_system_prompt PASSED [ 51%]
+packages/agents/tests/test_prompt_management.py::test_content_creator_nodes_uses_load_system_prompt PASSED [ 52%]
+packages/agents/tests/test_state_quality_fields.py::test_state_has_fail_layer PASSED [ 52%]
+packages/agents/tests/test_state_quality_fields.py::test_state_has_schema_valid PASSED [ 52%]
+packages/agents/tests/test_state_quality_fields.py::test_state_has_judge_score PASSED [ 52%]
+packages/agents/tests/test_state_quality_fields.py::test_state_has_escalate PASSED [ 52%]
+packages/agents/tests/test_state_schemas.py::TestPlannerState::test_instantiates_with_required_fields PASSED [ 52%]
+packages/agents/tests/test_state_schemas.py::TestPlannerState::test_has_messages_from_messages_state PASSED [ 52%]
+packages/agents/tests/test_state_schemas.py::TestPlannerState::test_lesson_plan_can_be_set PASSED [ 52%]
+packages/agents/tests/test_state_schemas.py::TestPlannerState::test_independent_of_ohmy_class_state PASSED [ 52%]
+packages/agents/tests/test_state_schemas.py::TestResearcherState::test_instantiates_with_required_fields PASSED [ 52%]
+packages/agents/tests/test_state_schemas.py::TestResearcherState::test_has_messages_from_messages_state PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestResearcherState::test_independent_of_ohmy_class_state PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestContentCreatorState::test_instantiates_with_required_fields PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestContentCreatorState::test_artifacts_can_be_set PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestContentCreatorState::test_independent_of_ohmy_class_state PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestReviewerState::test_instantiates_with_required_fields PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestReviewerState::test_quality_scores_can_be_set PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestReviewerState::test_independent_of_ohmy_class_state PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestLeadAgentState::test_instantiates_with_required_fields PASSED [ 53%]
+packages/agents/tests/test_state_schemas.py::TestLeadAgentState::test_result_can_be_set PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestLeadAgentState::test_recovery_guidance_can_be_set PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestLeadAgentState::test_has_messages_from_messages_state PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestLeadAgentState::test_independent_of_ohmy_class_state PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestOhMyClassStateGateFields::test_has_teacher_decision_field PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestOhMyClassStateGateFields::test_has_gate_payload_field PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestOhMyClassStateGateFields::test_has_error_field PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestOhMyClassStateGateFields::test_graph_state_instantiates PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestNodeAdapters::test_planner_extract_from_graph_state PASSED [ 54%]
+packages/agents/tests/test_state_schemas.py::TestNodeAdapters::test_researcher_extract_from_graph_state PASSED [ 55%]
+packages/agents/tests/test_state_schemas.py::TestNodeAdapters::test_content_creator_extract_from_graph_state PASSED [ 55%]
+packages/agents/tests/test_state_schemas.py::TestNodeAdapters::test_reviewer_extract_from_graph_state PASSED [ 55%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_get_age_band_grade_0_is_early_childhood PASSED [ 55%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_get_age_band_grade_1_is_lower_primary PASSED [ 55%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_get_age_band_grade_3_is_lower_primary PASSED [ 55%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_get_age_band_grade_4_is_upper_primary PASSED [ 55%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_get_age_band_grade_6_is_lower_secondary PASSED [ 55%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_get_age_band_grade_10_is_upper_secondary PASSED [ 55%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_get_age_band_grade_13_is_pre_tertiary PASSED [ 55%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_get_age_band_above_13_falls_back_to_pre_tertiary PASSED [ 56%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_age_bands_has_6_entries PASSED [ 56%]
+packages/quality/tests/test_age_band.py::TestAgeBand::test_age_band_is_frozen_immutable PASSED [ 56%]
+packages/quality/tests/test_age_band.py::TestBuildGradePromptSection::test_includes_grade_number PASSED [ 56%]
+packages/quality/tests/test_age_band.py::TestBuildGradePromptSection::test_includes_lexile PASSED [ 56%]
+packages/quality/tests/test_age_band.py::TestBuildGradePromptSection::test_includes_bloom_ceiling PASSED [ 56%]
+packages/quality/tests/test_age_band.py::TestBuildGradePromptSection::test_includes_sensitive_topic_tier PASSED [ 56%]
+packages/quality/tests/test_age_band.py::TestBuildGradePromptSection::test_grade_12_has_evaluate_bloom_ceiling PASSED [ 56%]
+packages/quality/tests/test_age_band.py::TestBuildGradePromptSection::test_grade_13_has_create_bloom_ceiling PASSED [ 56%]
+packages/quality/tests/test_layer1_schema.py::TestValidateSchema::test_valid_schema_passes PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestValidateSchema::test_invalid_schema_retries_then_fails PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestValidateSchema::test_empty_dict_raises_validation_gate_error PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestValidateSchema::test_max_retries_respected PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_catches_tbd PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_catches_todo PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_catches_lorem_ipsum PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_catches_placeholder PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_catches_insert PASSED [ 57%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_catches_nested_dict PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_catches_deeply_nested PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_catches_nested_list_in_dict PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_clean_data_passes PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_none_values_skip_gracefully PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_case_insensitive PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckPlaceholderContent::test_placeholder_patterns_list PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckBloomCoverage::test_sufficient_coverage PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckBloomCoverage::test_insufficient_coverage_single_level PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckBloomCoverage::test_empty_objectives PASSED [ 58%]
+packages/quality/tests/test_layer1_schema.py::TestCheckBloomCoverage::test_missing_bloom_level_key PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckBloomCoverage::test_three_levels_passes_min_two PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckBloomCoverage::test_custom_min_levels PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckAnswerKeySeparation::test_answer_in_student_section PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckAnswerKeySeparation::test_correct_in_student_section PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckAnswerKeySeparation::test_solution_in_student_section PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckAnswerKeySeparation::test_answer_in_teacher_section_ok PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckAnswerKeySeparation::test_no_sections_returns_empty PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckAnswerKeySeparation::test_section_without_teacher_only_defaults_to_student PASSED [ 59%]
+packages/quality/tests/test_layer1_schema.py::TestCheckAnswerKeySeparation::test_multiple_issues_detected PASSED [ 60%]
+packages/quality/tests/test_layer1_schema.py::TestCircuitBreaker::test_starts_closed PASSED [ 60%]
+packages/quality/tests/test_layer1_schema.py::TestCircuitBreaker::test_trips_after_threshold PASSED [ 60%]
+packages/quality/tests/test_layer1_schema.py::TestCircuitBreaker::test_resets_on_success PASSED [ 60%]
+packages/quality/tests/test_layer1_schema.py::TestCircuitBreaker::test_threshold_one_trips_immediately PASSED [ 60%]
+packages/quality/tests/test_layer1_schema.py::TestCircuitBreaker::test_success_after_trip_resets PASSED [ 60%]
+packages/quality/tests/test_layer1_schema.py::TestCircuitBreaker::test_failure_count_increments PASSED [ 60%]
+packages/quality/tests/test_layer1_schema.py::TestCircuitBreaker::test_success_clears_failure_count PASSED [ 60%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_no_tags_always_passes PASSED [ 60%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_no_tags_with_sections_still_passes PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_full_vocab_lesson_passes_all_tags PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_film_based_tag_satisfied_by_film_clip_activity PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_film_based_tag_fails_without_film_component PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_concept_map_tag_satisfied_by_vocab_cluster PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_concept_map_tag_satisfied_by_contrastive_pairs PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_shy_student_1on1_satisfied_by_roleplay_script PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_shy_student_1on1_fails_without_roleplay PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_active_recall_satisfied_by_active_recall_prompt PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_active_recall_fails_without_component PASSED [ 61%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_why_wrong_reasoning_passes_when_all_cards_have_reasons PASSED [ 62%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_why_wrong_reasoning_fails_when_card_missing_wrong_reasons PASSED [ 62%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_why_wrong_reasoning_passes_vacuously_when_no_questions PASSED [ 62%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_multiple_violations_reported PASSED [ 62%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_unknown_tag_ignored PASSED [ 62%]
+packages/quality/tests/test_layer2_content.py::TestMethodologyCompliance::test_returns_methodology_gate_result_type PASSED [ 62%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_valid_html_passes PASSED [ 62%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_returns_html_validation_result PASSED [ 62%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_missing_doctype_fails PASSED [ 62%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_cdn_link_external_asset_fails PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_external_image_fails PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_missing_viewport_is_warning_not_block PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_missing_brand_string_fails PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_native_radio_input_fails PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_external_script_fails PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_answer_key_in_html_fails PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_multiple_violations_collected PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_check_doctype_present PASSED [ 63%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_check_doctype_case_insensitive PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_check_doctype_missing PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_check_doctype_empty PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_external_href_detected PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_external_src_detected PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_external_import_detected PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_no_external_assets_clean PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_brand_present PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_brand_case_insensitive PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_brand_missing PASSED [ 64%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_viewport_present PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_viewport_missing PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_radio_input_detected PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_radio_single_quotes_detected PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_radio_multiple_detected PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_no_radio_clean PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_radio_case_insensitive PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_external_script_src_detected PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_tailwind_cdn_detected PASSED [ 65%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_cloudflare_cdn_detected PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_jsdelivr_detected PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_unpkg_detected PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_inline_script_clean PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_no_script_clean PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_answer_colon_detected PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_correct_answer_detected PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_solution_colon_detected PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_answer_key_phrase_detected PASSED [ 66%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_clean_html_passes PASSED [ 67%]
+packages/quality/tests/test_layer3_html.py::TestHTMLValidator::test_case_insensitive_answer PASSED [ 67%]
+packages/quality/tests/test_layer3_html.py::TestResponsiveCheck::test_skips_in_development PASSED [ 67%]
+packages/quality/tests/test_layer3_html.py::TestResponsiveCheck::test_dev_returns_empty_viewport_results PASSED [ 67%]
+packages/quality/tests/test_layer3_html.py::TestResponsiveCheck::test_staging_returns_viewport_results PASSED [ 67%]
+packages/quality/tests/test_layer3_html.py::TestResponsiveCheck::test_staging_passes_all_viewports PASSED [ 67%]
+packages/quality/tests/test_layer3_html.py::TestResponsiveCheck::test_custom_viewports PASSED [ 67%]
+packages/quality/tests/test_layer3_html.py::TestResponsiveCheck::test_prod_environment_runs PASSED [ 67%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_all_pass PASSED [ 67%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_two_pass_one_fail PASSED [ 67%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_one_pass_two_fail PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_score_below_threshold PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_score_at_threshold_passes PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_critical_issues_force_fail PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_averages_overall_score PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_deduplicates_critical_issues PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_unions_distinct_critical_issues PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_raises_on_fewer_than_two PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_averages_layer_scores PASSED [ 68%]
+packages/quality/tests/test_layer4_judge.py::TestMajorityVote::test_uses_rationale_from_first_judge PASSED [ 69%]
+packages/quality/tests/test_layer4_judge.py::TestGEvalScorer::test_score_returns_judge_output PASSED [ 69%]
+packages/quality/tests/test_layer4_judge.py::TestGEvalScorer::test_calls_litellm_num_judges_times PASSED [ 69%]
+packages/quality/tests/test_layer4_judge.py::TestGEvalScorer::test_raises_when_all_judges_fail PASSED [ 69%]
+packages/quality/tests/test_layer4_judge.py::TestGEvalScorer::test_continues_on_single_judge_failure PASSED [ 69%]
+packages/quality/tests/test_layer4_judge.py::TestGEvalScorer::test_uses_different_temperatures PASSED [ 69%]
+packages/quality/tests/test_layer4_judge.py::TestGEvalScorer::test_metadata_tags_include_reviewer PASSED [ 69%]
+packages/quality/tests/test_layer5_human.py::TestCreateGate::test_returns_approve_response PASSED [ 69%]
+packages/quality/tests/test_layer5_human.py::TestCreateGate::test_returns_reject_response_with_feedback PASSED [ 69%]
+packages/quality/tests/test_layer5_human.py::TestCreateGate::test_blueprint_gate_includes_lesson_plan PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestCreateGate::test_content_gate_includes_artifacts_and_scores PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestCreateGate::test_no_webhook_when_url_not_set PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestCreateGate::test_sends_webhook_when_url_configured PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestCreateGate::test_includes_actions_in_gate_data PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestHandleTimeout::test_returns_escalation_response PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestHandleTimeout::test_auto_approved_is_true PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestHandleTimeout::test_reason_includes_gate_type PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestHandleTimeout::test_reason_includes_timeout_hours PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestHandleTimeout::test_sends_timeout_webhook_when_configured PASSED [ 70%]
+packages/quality/tests/test_layer5_human.py::TestHandleTimeout::test_no_webhook_when_url_not_set PASSED [ 71%]
+packages/quality/tests/test_layer6_export.py::TestLayer6Export::test_placeholder PASSED [ 71%]
+packages/quality/tests/test_pedagogical_scorer.py::TestPedagogicalScoreDataclass::test_passed_true_when_total_gte_threshold PASSED [ 71%]
+packages/quality/tests/test_pedagogical_scorer.py::TestPedagogicalScoreDataclass::test_passed_false_when_total_below_threshold PASSED [ 71%]
+packages/quality/tests/test_pedagogical_scorer.py::TestPedagogicalScoreDataclass::test_pass_threshold_is_3_5 PASSED [ 71%]
+packages/quality/tests/test_pedagogical_scorer.py::TestPedagogicalScoreDataclass::test_score_has_all_5_dimensions PASSED [ 71%]
+packages/quality/tests/test_pedagogical_scorer.py::TestPedagogicalScoreDataclass::test_total_is_rounded PASSED [ 71%]
+packages/quality/tests/test_pedagogical_scorer.py::TestScorePedagogical::test_returns_pedagogical_score_from_llm PASSED [ 71%]
+packages/quality/tests/test_pedagogical_scorer.py::TestScorePedagogical::test_passed_false_when_avg_below_threshold PASSED [ 71%]
+packages/quality/tests/test_pedagogical_scorer.py::TestScorePedagogical::test_raises_on_invalid_json PASSED [ 72%]
+packages/quality/tests/test_pedagogical_scorer.py::TestScorePedagogical::test_content_truncated_to_6000_chars PASSED [ 72%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_empty_text_passes PASSED [ 72%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_whitespace_only_text_passes PASSED [ 72%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_simple_text_passes_for_low_grade PASSED [ 72%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_complex_text_fails_for_low_grade PASSED [ 72%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_result_has_all_fields PASSED [ 72%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_deviation_equals_fk_minus_target PASSED [ 72%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_warning_is_none_when_passed PASSED [ 72%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_warning_is_set_when_failed PASSED [ 73%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_max_deviation_constant PASSED [ 73%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_passes_when_deviation_exactly_at_limit PASSED [ 73%]
+packages/quality/tests/test_readability_checker.py::TestCheckReadability::test_fails_when_deviation_exceeds_limit PASSED [ 73%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeyMetadata::test_defaults PASSED [ 73%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeyMetadata::test_with_groups PASSED [ 73%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeySection::test_minimal PASSED [ 73%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeySection::test_with_components PASSED [ 73%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeySection::test_all_optional_fields PASSED [ 73%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeyContent::test_minimal PASSED [ 73%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeyContent::test_with_sections PASSED [ 74%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeyContent::test_accessibility_default PASSED [ 74%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeyContent::test_artifact_type_locked PASSED [ 74%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeyContent::test_invalid_artifact_type_rejected PASSED [ 74%]
+common/contracts/tests/test_answer_key.py::TestAnswerKeyContent::test_json_roundtrip PASSED [ 74%]
+common/contracts/tests/test_artifact.py::TestArtifact::test_placeholder PASSED [ 74%]
+common/contracts/tests/test_components.py::TestHeading::test_valid_h2 PASSED [ 74%]
+common/contracts/tests/test_components.py::TestHeading::test_valid_with_id PASSED [ 74%]
+common/contracts/tests/test_components.py::TestHeading::test_invalid_level_0 PASSED [ 74%]
+common/contracts/tests/test_components.py::TestHeading::test_invalid_level_5 PASSED [ 75%]
+common/contracts/tests/test_components.py::TestHeading::test_all_valid_levels PASSED [ 75%]
+common/contracts/tests/test_components.py::TestHeading::test_discriminated_union_roundtrip PASSED [ 75%]
+common/contracts/tests/test_components.py::TestParagraph::test_valid PASSED [ 75%]
+common/contracts/tests/test_components.py::TestParagraph::test_discriminated_union PASSED [ 75%]
+common/contracts/tests/test_components.py::TestParagraph::test_empty_text_valid PASSED [ 75%]
+common/contracts/tests/test_components.py::TestCallout::test_note_variant PASSED [ 75%]
+common/contracts/tests/test_components.py::TestCallout::test_all_variants PASSED [ 75%]
+common/contracts/tests/test_components.py::TestCallout::test_invalid_variant PASSED [ 75%]
+common/contracts/tests/test_components.py::TestCallout::test_with_title PASSED [ 76%]
+common/contracts/tests/test_components.py::TestCallout::test_discriminated_union PASSED [ 76%]
+common/contracts/tests/test_components.py::TestLists::test_ordered_list PASSED [ 76%]
+common/contracts/tests/test_components.py::TestLists::test_unordered_list PASSED [ 76%]
+common/contracts/tests/test_components.py::TestLists::test_empty_items PASSED [ 76%]
+common/contracts/tests/test_components.py::TestLists::test_discriminated_union_ol PASSED [ 76%]
+common/contracts/tests/test_components.py::TestLists::test_discriminated_union_ul PASSED [ 76%]
+common/contracts/tests/test_components.py::TestTable::test_valid PASSED  [ 76%]
+common/contracts/tests/test_components.py::TestTable::test_caption_optional PASSED [ 76%]
+common/contracts/tests/test_components.py::TestTable::test_with_caption PASSED [ 76%]
+common/contracts/tests/test_components.py::TestTable::test_discriminated_union PASSED [ 77%]
+common/contracts/tests/test_components.py::TestStatGrid::test_valid PASSED [ 77%]
+common/contracts/tests/test_components.py::TestStatGrid::test_stat_card_default_variant PASSED [ 77%]
+common/contracts/tests/test_components.py::TestStatGrid::test_stat_card_variants PASSED [ 77%]
+common/contracts/tests/test_components.py::TestStatGrid::test_invalid_variant PASSED [ 77%]
+common/contracts/tests/test_components.py::TestStatGrid::test_discriminated_union PASSED [ 77%]
+common/contracts/tests/test_components.py::TestPatternGrid::test_valid PASSED [ 77%]
+common/contracts/tests/test_components.py::TestPatternGrid::test_empty_patterns PASSED [ 77%]
+common/contracts/tests/test_components.py::TestPatternGrid::test_discriminated_union PASSED [ 77%]
+common/contracts/tests/test_components.py::TestTraitGrid::test_valid PASSED [ 78%]
+common/contracts/tests/test_components.py::TestTraitGrid::test_discriminated_union PASSED [ 78%]
+common/contracts/tests/test_components.py::TestTaxonomyGrid::test_valid PASSED [ 78%]
+common/contracts/tests/test_components.py::TestTaxonomyGrid::test_discriminated_union PASSED [ 78%]
+common/contracts/tests/test_components.py::TestPhaseTimeline::test_valid PASSED [ 78%]
+common/contracts/tests/test_components.py::TestPhaseTimeline::test_phase_defaults PASSED [ 78%]
+common/contracts/tests/test_components.py::TestPhaseTimeline::test_phase_block PASSED [ 78%]
+common/contracts/tests/test_components.py::TestPhaseTimeline::test_discriminated_union PASSED [ 78%]
+common/contracts/tests/test_components.py::TestFlowStep::test_valid PASSED [ 78%]
+common/contracts/tests/test_components.py::TestFlowStep::test_discriminated_union PASSED [ 79%]
+common/contracts/tests/test_components.py::TestQuestionCard::test_valid_basic PASSED [ 79%]
+common/contracts/tests/test_components.py::TestQuestionCard::test_with_optional_fields PASSED [ 79%]
+common/contracts/tests/test_components.py::TestQuestionCard::test_string_id PASSED [ 79%]
+common/contracts/tests/test_components.py::TestQuestionCard::test_discriminated_union PASSED [ 79%]
+common/contracts/tests/test_components.py::TestQuestionList::test_valid PASSED [ 79%]
+common/contracts/tests/test_components.py::TestQuestionList::test_with_all_fields PASSED [ 79%]
+common/contracts/tests/test_components.py::TestQuestionList::test_discriminated_union PASSED [ 79%]
+common/contracts/tests/test_components.py::TestConceptMap::test_valid PASSED [ 79%]
+common/contracts/tests/test_components.py::TestConceptMap::test_discriminated_union PASSED [ 79%]
+common/contracts/tests/test_components.py::TestTimelineComponent::test_valid PASSED [ 80%]
+common/contracts/tests/test_components.py::TestTimelineComponent::test_discriminated_union PASSED [ 80%]
+common/contracts/tests/test_components.py::TestUnknownTypeRejection::test_unknown_type_raises PASSED [ 80%]
+common/contracts/tests/test_components.py::TestUnknownTypeRejection::test_missing_type_raises PASSED [ 80%]
+common/contracts/tests/test_components.py::TestConceptMapEdges::test_edges_default_empty PASSED [ 80%]
+common/contracts/tests/test_components.py::TestConceptMapEdges::test_valid_edge PASSED [ 80%]
+common/contracts/tests/test_components.py::TestConceptMapEdges::test_invalid_relation PASSED [ 80%]
+common/contracts/tests/test_components.py::TestConceptMapEdges::test_all_valid_relations PASSED [ 80%]
+common/contracts/tests/test_components.py::TestVocabCluster::test_valid PASSED [ 80%]
+common/contracts/tests/test_components.py::TestVocabCluster::test_discriminated_union PASSED [ 81%]
+common/contracts/tests/test_components.py::TestVocabCluster::test_optional_fields PASSED [ 81%]
+common/contracts/tests/test_components.py::TestContrastivePairs::test_valid PASSED [ 81%]
+common/contracts/tests/test_components.py::TestContrastivePairs::test_discriminated_union PASSED [ 81%]
+common/contracts/tests/test_components.py::TestPhrasalVerbCluster::test_valid PASSED [ 81%]
+common/contracts/tests/test_components.py::TestPhrasalVerbCluster::test_invalid_color PASSED [ 81%]
+common/contracts/tests/test_components.py::TestPhrasalVerbCluster::test_discriminated_union PASSED [ 81%]
+common/contracts/tests/test_components.py::TestFilmClipActivity::test_valid PASSED [ 81%]
+common/contracts/tests/test_components.py::TestFilmClipActivity::test_discriminated_union PASSED [ 81%]
+common/contracts/tests/test_components.py::TestRoleplayScript::test_valid PASSED [ 82%]
+common/contracts/tests/test_components.py::TestRoleplayScript::test_discriminated_union PASSED [ 82%]
+common/contracts/tests/test_components.py::TestActiveRecallPrompt::test_valid PASSED [ 82%]
+common/contracts/tests/test_components.py::TestActiveRecallPrompt::test_default_time PASSED [ 82%]
+common/contracts/tests/test_components.py::TestActiveRecallPrompt::test_time_bounds PASSED [ 82%]
+common/contracts/tests/test_components.py::TestActiveRecallPrompt::test_discriminated_union PASSED [ 82%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentResponse::test_valid_instantiation PASSED [ 82%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentResponse::test_with_all_fields PASSED [ 82%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentResponse::test_missing_student_id_raises PASSED [ 82%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentResponse::test_missing_wrong_question_ids_raises PASSED [ 82%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentResponse::test_wrong_question_ids_mixed_types PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentResponse::test_with_answers PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentAnswerItem::test_all_fields PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentAnswerItem::test_optional_fields_default_to_none PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestStudentAnswerItem::test_unanswered_question PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestKnowledgeGap::test_valid_instantiation PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestKnowledgeGap::test_severity_values PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestKnowledgeGap::test_empty_question_ids PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestBloomGap::test_valid_instantiation PASSED [ 83%]
+common/contracts/tests/test_diagnostic_report.py::TestBloomGap::test_all_bloom_levels PASSED [ 84%]
+common/contracts/tests/test_diagnostic_report.py::TestBloomGap::test_zero_errors PASSED [ 84%]
+common/contracts/tests/test_diagnostic_report.py::TestMisconceptionPattern::test_valid_instantiation PASSED [ 84%]
+common/contracts/tests/test_diagnostic_report.py::TestMisconceptionPattern::test_string_question_ids PASSED [ 84%]
+common/contracts/tests/test_diagnostic_report.py::TestDiagnosticReport::test_valid_instantiation PASSED [ 84%]
+common/contracts/tests/test_diagnostic_report.py::TestDiagnosticReport::test_with_all_fields PASSED [ 84%]
+common/contracts/tests/test_diagnostic_report.py::TestDiagnosticReport::test_missing_student_id_raises PASSED [ 84%]
+common/contracts/tests/test_diagnostic_report.py::TestDiagnosticReport::test_json_roundtrip PASSED [ 84%]
+common/contracts/tests/test_errors.py::TestErrorCode::test_error_code_values PASSED [ 84%]
+common/contracts/tests/test_errors.py::TestValidationErrorDetail::test_validation_error_detail PASSED [ 85%]
+common/contracts/tests/test_errors.py::TestErrorResponse::test_error_response_serialization PASSED [ 85%]
+common/contracts/tests/test_errors.py::TestErrorResponse::test_error_response_optional_fields PASSED [ 85%]
+common/contracts/tests/test_errors.py::TestErrorResponse::test_error_response_validation PASSED [ 85%]
+common/contracts/tests/test_errors.py::TestPipelineErrorResponse::test_pipeline_error_response PASSED [ 85%]
+common/contracts/tests/test_judge_output.py::TestJudgeOutput::test_placeholder PASSED [ 85%]
+common/contracts/tests/test_lesson_plan.py::TestLearningObjective::test_valid_bloom_levels PASSED [ 85%]
+common/contracts/tests/test_lesson_plan.py::TestLearningObjective::test_invalid_bloom_level PASSED [ 85%]
+common/contracts/tests/test_lesson_plan.py::TestLearningObjective::test_description_max_length PASSED [ 85%]
+common/contracts/tests/test_lesson_plan.py::TestLessonPlan::test_valid_minimal PASSED [ 85%]
+common/contracts/tests/test_lesson_plan.py::TestLessonPlan::test_duration_bounds PASSED [ 86%]
+common/contracts/tests/test_lesson_plan.py::TestLessonPlan::test_requires_at_least_one_objective PASSED [ 86%]
+common/contracts/tests/test_lesson_plan.py::TestLessonPlan::test_methodology_none_by_default PASSED [ 86%]
+common/contracts/tests/test_lesson_plan.py::TestLessonPlan::test_methodology_with_tags PASSED [ 86%]
+common/contracts/tests/test_lesson_plan.py::TestLessonPlan::test_methodology_invalid_tag PASSED [ 86%]
+common/contracts/tests/test_lesson_plan.py::TestLessonPlan::test_methodology_all_valid_tags PASSED [ 86%]
+common/contracts/tests/test_log_context.py::TestLogContext::test_log_context_defaults PASSED [ 86%]
+common/contracts/tests/test_log_context.py::TestLogContext::test_log_context_creation PASSED [ 86%]
+common/contracts/tests/test_log_context.py::TestLogContext::test_log_context_bind PASSED [ 86%]
+common/contracts/tests/test_log_context.py::TestLogContext::test_log_context_bind_returns_new_instance PASSED [ 87%]
+common/contracts/tests/test_log_context.py::TestLogContext::test_log_context_serialization PASSED [ 87%]
+common/contracts/tests/test_roadmap.py::TestNavItem::test_valid PASSED   [ 87%]
+common/contracts/tests/test_roadmap.py::TestNavItem::test_custom_group PASSED [ 87%]
+common/contracts/tests/test_roadmap.py::TestLegendItem::test_valid PASSED [ 87%]
+common/contracts/tests/test_roadmap.py::TestRoadmapHero::test_defaults PASSED [ 87%]
+common/contracts/tests/test_roadmap.py::TestRoadmapHero::test_with_stats PASSED [ 87%]
+common/contracts/tests/test_roadmap.py::TestRoadmapSidebar::test_minimal PASSED [ 87%]
+common/contracts/tests/test_roadmap.py::TestRoadmapSidebar::test_with_all_fields PASSED [ 87%]
+common/contracts/tests/test_roadmap.py::TestRoadmapSection::test_minimal PASSED [ 88%]
+common/contracts/tests/test_roadmap.py::TestRoadmapSection::test_with_timeline PASSED [ 88%]
+common/contracts/tests/test_roadmap.py::TestRoadmapContent::test_minimal PASSED [ 88%]
+common/contracts/tests/test_roadmap.py::TestRoadmapContent::test_accessibility_default PASSED [ 88%]
+common/contracts/tests/test_roadmap.py::TestRoadmapContent::test_artifact_type_locked PASSED [ 88%]
+common/contracts/tests/test_roadmap.py::TestRoadmapContent::test_invalid_artifact_type_rejected PASSED [ 88%]
+common/contracts/tests/test_roadmap.py::TestRoadmapContent::test_with_sections PASSED [ 88%]
+common/contracts/tests/test_roadmap.py::TestRoadmapContent::test_json_roundtrip PASSED [ 88%]
+common/contracts/tests/test_student_profile.py::TestLearningStyle::test_valid_instantiation PASSED [ 88%]
+common/contracts/tests/test_student_profile.py::TestLearningStyle::test_missing_primary_raises PASSED [ 88%]
+common/contracts/tests/test_student_profile.py::TestLearningStyle::test_with_all_fields PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestLearningStyle::test_primary_values PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestLearningStyle::test_rejects_invalid_primary PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestPersonalityTrait::test_all_fields PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestPersonalityTrait::test_missing_field_raises PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestPersonalityTrait::test_various_traits PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_valid_instantiation PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_list_fields_default_empty PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_optional_scalar_fields_default_none PASSED [ 89%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_scalar_defaults PASSED [ 90%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_missing_student_id_raises PASSED [ 90%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_missing_learning_style_raises PASSED [ 90%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_with_personality_traits PASSED [ 90%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_with_all_fields PASSED [ 90%]
+common/contracts/tests/test_student_profile.py::TestStudentProfile::test_json_roundtrip PASSED [ 90%]
+services/gateway/tests/test_approvals_router.py::TestApproveEndpoint::test_approve_returns_200 PASSED [ 90%]
+services/gateway/tests/test_approvals_router.py::TestApproveEndpoint::test_approve_returns_approval_response PASSED [ 90%]
+services/gateway/tests/test_approvals_router.py::TestApproveEndpoint::test_approve_requires_auth PASSED [ 90%]
+services/gateway/tests/test_approvals_router.py::TestApproveEndpoint::test_approve_accepts_optional_feedback PASSED [ 91%]
+services/gateway/tests/test_approvals_router.py::TestRejectEndpoint::test_reject_with_feedback_returns_200 PASSED [ 91%]
+services/gateway/tests/test_approvals_router.py::TestRejectEndpoint::test_reject_returns_approval_response PASSED [ 91%]
+services/gateway/tests/test_approvals_router.py::TestRejectEndpoint::test_reject_without_feedback_returns_400 PASSED [ 91%]
+services/gateway/tests/test_approvals_router.py::TestRejectEndpoint::test_reject_with_empty_feedback_returns_400 PASSED [ 91%]
+services/gateway/tests/test_approvals_router.py::TestRejectEndpoint::test_reject_requires_auth PASSED [ 91%]
+services/gateway/tests/test_approvals_router.py::TestApprovalModels::test_approval_request_requires_action PASSED [ 91%]
+services/gateway/tests/test_approvals_router.py::TestApprovalModels::test_approval_response_has_required_fields PASSED [ 91%]
+services/gateway/tests/test_artifacts_router.py::TestArtifactsRouter::test_placeholder PASSED [ 91%]
+services/gateway/tests/test_error_handler.py::TestOMCExceptionHandler::test_validation_error_returns_422 PASSED [ 91%]
+services/gateway/tests/test_error_handler.py::TestOMCExceptionHandler::test_notfound_returns_404 PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestOMCExceptionHandler::test_auth_returns_401 PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestOMCExceptionHandler::test_pipeline_error_returns_500 PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestOMCExceptionHandler::test_omc_error_includes_request_id_header PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestHTTPExceptionHandler::test_http_403_maps_to_authorization_error PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestHTTPExceptionHandler::test_http_404_maps_to_not_found PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestCodeStatusMappings::test_all_codes_have_status PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestCodeStatusMappings::test_common_statuses_have_code PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestRegisterHandlers::test_register_does_not_crash PASSED [ 92%]
+services/gateway/tests/test_error_handler.py::TestRegisterHandlers::test_register_is_idempotent PASSED [ 93%]
+services/gateway/tests/test_error_handler.py::TestCleanRequest::test_clean_returns_200 PASSED [ 93%]
+services/gateway/tests/test_error_handler.py::TestFormatHelper::test_format_returns_all_fields PASSED [ 93%]
+services/gateway/tests/test_exceptions.py::TestOMCErrorBase::test_create_omc_error PASSED [ 93%]
+services/gateway/tests/test_exceptions.py::TestOMCErrorBase::test_str_representation PASSED [ 93%]
+services/gateway/tests/test_exceptions.py::TestOMCErrorBase::test_str_without_request_id PASSED [ 93%]
+services/gateway/tests/test_exceptions.py::TestOMCErrorBase::test_repr_shows_all_fields PASSED [ 93%]
+services/gateway/tests/test_exceptions.py::TestOMCErrorBase::test_details_default_to_empty_list PASSED [ 93%]
+services/gateway/tests/test_exceptions.py::TestOMCErrorBase::test_is_exception_subclass PASSED [ 93%]
+services/gateway/tests/test_exceptions.py::TestValidationError::test_custom_message PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestValidationError::test_default_message PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestPipelineErrorHasRunId::test_run_id_and_step PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestPipelineErrorHasRunId::test_defaults_are_none PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestAgentErrorHasAgent::test_agent_field PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestAgentErrorHasAgent::test_agent_default_is_none PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestFormatErrorResponse::test_returns_correct_dict_shape PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestFormatErrorResponse::test_with_none_request_id PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestFormatErrorResponse::test_with_empty_details PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestExceptionHierarchy::test_all_subclasses_inherit_from_omc_error PASSED [ 94%]
+services/gateway/tests/test_exceptions.py::TestExceptionHierarchy::test_all_subclasses_inherit_from_exception PASSED [ 95%]
+services/gateway/tests/test_exceptions.py::TestExceptionHierarchy::test_all_subclasses_are_catchable_as_omc_error PASSED [ 95%]
+services/gateway/tests/test_logging_config.py::TestConfigureLogging::test_configure_logging_no_crash PASSED [ 95%]
+services/gateway/tests/test_logging_config.py::TestConfigureLogging::test_configure_logging_sets_level PASSED [ 95%]
+services/gateway/tests/test_logging_config.py::TestGetLogger::test_get_logger_returns_logger PASSED [ 95%]
+services/gateway/tests/test_logging_config.py::TestGetLogger::test_get_logger_default_name PASSED [ 95%]
+services/gateway/tests/test_logging_config.py::TestGetLogger::test_get_logger_actually_logs PASSED [ 95%]
+services/gateway/tests/test_logging_config.py::TestBindContext::test_bind_context_no_crash PASSED [ 95%]
+services/gateway/tests/test_logging_config.py::TestBindContext::test_bind_context_partial_fields PASSED [ 95%]
+services/gateway/tests/test_logging_config.py::TestBindContext::test_constants_defined PASSED [ 96%]
+services/gateway/tests/test_main.py::TestMain::test_placeholder PASSED   [ 96%]
+services/gateway/tests/test_request_id.py::TestRequestIDMiddleware::test_request_id_middleware_generates_when_missing PASSED [ 96%]
+services/gateway/tests/test_request_id.py::TestRequestIDMiddleware::test_request_id_middleware_propagates_existing PASSED [ 96%]
+services/gateway/tests/test_request_id.py::TestRequestIDMiddleware::test_request_id_middleware_rejects_invalid_format PASSED [ 96%]
+services/gateway/tests/test_request_id.py::TestRequestIDMiddleware::test_generate_request_id_returns_uuid PASSED [ 96%]
+services/gateway/tests/test_request_id.py::TestRequestIDMiddleware::test_request_id_stored_in_state PASSED [ 96%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_accepts_uuid_shaped[abc-123-xyz-deadbeef] PASSED [ 96%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_accepts_uuid_shaped[550e8400-e29b-41d4-a716-446655440000] PASSED [ 96%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_accepts_uuid_shaped[12345678] PASSED [ 97%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_accepts_uuid_shaped[DEADBEEF-CAFE-BABE-0000-111122223333] PASSED [ 97%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_rejects_invalid[invalid$$$] PASSED [ 97%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_rejects_invalid[short] PASSED [ 97%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_rejects_invalid[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] PASSED [ 97%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_rejects_invalid[contains spaces!] PASSED [ 97%]
+services/gateway/tests/test_request_id.py::TestIsValidRequestId::test_rejects_invalid[] PASSED [ 97%]
+services/gateway/tests/test_runs_router.py::TestCreateRun::test_create_run_returns_200 PASSED [ 97%]
+services/gateway/tests/test_runs_router.py::TestCreateRun::test_create_run_returns_run_id PASSED [ 97%]
+services/gateway/tests/test_runs_router.py::TestCreateRun::test_create_run_returns_created_status PASSED [ 97%]
+services/gateway/tests/test_runs_router.py::TestCreateRun::test_create_run_generates_unique_ids PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestCreateRun::test_create_run_requires_auth PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestGetRun::test_get_run_returns_200 PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestGetRun::test_get_run_returns_run_id PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestGetRun::test_get_run_returns_state PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestGetRun::test_get_run_requires_auth PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestGetRunStatus::test_sse_returns_200 PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestGetRunStatus::test_sse_content_type_is_event_stream PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestGetRunStatus::test_sse_has_cache_control_header PASSED [ 98%]
+services/gateway/tests/test_runs_router.py::TestGetRunStatus::test_sse_body_contains_step_start PASSED [ 99%]
+services/gateway/tests/test_runs_router.py::TestGetRunStatus::test_sse_body_contains_complete PASSED [ 99%]
+services/gateway/tests/test_runs_router.py::TestGetRunStatus::test_sse_requires_auth PASSED [ 99%]
+services/gateway/tests/test_runs_router.py::TestRunModels::test_run_request_has_required_fields PASSED [ 99%]
+services/gateway/tests/test_runs_router.py::TestRunModels::test_run_response_has_required_fields PASSED [ 99%]
+services/gateway/tests/test_webhooks_error.py::TestFrontendErrorEndpoint::test_frontend_error_endpoint_accepts_valid_report PASSED [ 99%]
+services/gateway/tests/test_webhooks_error.py::TestFrontendErrorEndpoint::test_frontend_error_endpoint_rejects_empty_message PASSED [ 99%]
+services/gateway/tests/test_webhooks_error.py::TestFrontendErrorEndpoint::test_frontend_error_endpoint_handles_missing_optional_fields PASSED [ 99%]
+services/gateway/tests/test_webhooks_error.py::TestFrontendErrorEndpoint::test_frontend_error_endpoint_returns_dict PASSED [ 99%]
+tests/integration/test_full_pipeline.py::TestFullPipeline::test_placeholder PASSED [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+packages/agents/lead_agent/tests/test_lead_agent.py::test_make_lead_agent_returns_compiled_graph
+packages/agents/lead_agent/tests/test_lead_agent.py::test_make_lead_agent_accepts_model_override
+packages/agents/lead_agent/tests/test_lead_agent.py::test_make_lead_agent_accepts_tools_override
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/agent.py:55: LangGraphDeprecatedSinceV10: create_react_agent has been moved to `langchain.agents`. Please update your import to `from langchain.agents import create_agent`. Deprecated in LangGraph V1.0 to be removed in V2.0.
+    return create_react_agent(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 934 passed, 4 warnings in 1.65s ========================
+
+Running TypeScript tests...
+pnpm -r test
+Scope: 4 of 5 workspace projects
+common/schemas test$ vitest run
+common/schemas test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/schemas
+common/schemas test:  ✓ src/run.test.ts (2 tests) 3ms
+common/schemas test:  Test Files  1 passed (1)
+common/schemas test:       Tests  2 passed (2)
+common/schemas test:    Start at  15:40:04
+common/schemas test:    Duration  347ms (transform 85ms, setup 0ms, collect 92ms, tests 3ms, environment 0ms, prepare 56ms)
+common/schemas test: Done
+apps/web test$ vitest run
+packages/renderer test$ vitest run
+packages/renderer test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/renderer
+apps/web test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+apps/web test: (node:53165) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
+apps/web test: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+apps/web test: To eliminate this warning, add "type": "module" to /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/package.json.
+apps/web test: (Use `node --trace-warnings ...` to show where the warning was created)
+apps/web test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web
+packages/renderer test:  ✓ __tests__/preview-server.test.ts (20 tests) 35ms
+packages/renderer test:  ✓ __tests__/questions/registry.test.ts (18 tests) 11ms
+packages/renderer test:  ✓ __tests__/exporters/variant-generator.test.ts (16 tests) 15ms
+packages/renderer test:  ✓ __tests__/scoring/strategies.test.ts (17 tests) 4ms
+apps/web test:  ✓ tests/approval-modal.test.tsx (11 tests) 20ms
+packages/renderer test:  ✓ __tests__/exporters/qti.test.ts (8 tests) 5ms
+apps/web test:  ✓ src/lib/logger.test.ts (5 tests) 8ms
+apps/web test:  ✓ tests/hooks.test.ts (12 tests) 8ms
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — quiz page > renders question prompt
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — quiz page > renders question options as radio inputs
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — quiz page > has no external URLs
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — lesson page > renders learning objectives
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — lesson page > renders section content
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — lesson page > renders vocabulary section
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — answer_key page > shows all answers (no hide/reveal toggle)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — answer_key page > renders answer key eyebrow and title
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — flashcard_deck page > renders card fronts and backs
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — flashcard_deck page > includes navigation buttons
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — exit_ticket page > limits to 3 questions
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — reading_passage page > renders the passage text
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — reading_passage page > renders comprehension questions
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders sidebar title and nav links when sidebar is provided
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders hero with eyebrow, lede, note-box, stat-cards, and objectives
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders section with time badge
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders film_clip_activity component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders vocab_cluster component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders phrasal_verb_cluster component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders roleplay_script component via dispatcher with blanks and answer key
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders contrastive_pairs component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > renders hw_list component via dispatcher
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — vocab lesson page (Report 09) > has no external URLs in full vocab lesson output
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > returns a promise
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > produces valid HTML with DOCTYPE for quiz
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > includes oh-my-class brand string
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > renders the artifact title
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > has no external CDN links (INVARIANT-04)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > inlines theme CSS (no external link tags)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > renders correct lang attribute
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > renders English lang when specified
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders lesson to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders quiz to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders drill to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders worksheet to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders recap to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders infographic to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders answer_key to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders flashcard_deck to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders reading_passage to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders exit_ticket to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/renderer.test.ts > all artifact types render without throwing > renders roadmap to valid HTML
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test:  ✓ __tests__/template-library.test.ts (24 tests) 57ms
+apps/web test:  ✓ src/hooks/use-error-logger.test.ts (7 tests) 23ms
+packages/renderer test:  ✓ __tests__/renderer.test.ts (46 tests) 43ms
+packages/renderer test:  ✓ __tests__/theme.test.ts (16 tests) 10ms
+apps/web test:  ✓ src/components/error-boundary.test.tsx (6 tests) 9ms
+apps/web test:  Test Files  5 passed (5)
+apps/web test:       Tests  41 passed (41)
+apps/web test:    Start at  15:40:05
+apps/web test:    Duration  854ms (transform 168ms, setup 0ms, collect 572ms, tests 69ms, environment 1ms, prepare 1.01s)
+packages/renderer test:  ✓ __tests__/schemas/teaching-pack.test.ts (9 tests) 3ms
+apps/web test: Done
+packages/renderer test:  ✓ __tests__/schemas/lesson-plan.test.ts (7 tests) 3ms
+packages/renderer test:  ✓ __tests__/design-kit.test.ts (11 tests) 7ms
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — script blocking > strips script tags from lesson
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — script blocking > strips script tags from quiz
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — external URL blocking > blocks external image src
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — external URL blocking > allows data URI images
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — external URL blocking > blocks external href
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > quiz config allows radio inputs
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > lesson config blocks input elements
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > worksheet config allows textarea
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > lesson config blocks textarea
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > infographic config allows SVG tags
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > lesson config strips SVG
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > answer_key config allows radio inputs (extends quiz)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — per-type configs > drill config allows radio inputs (extends quiz)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — event handler stripping > strips onclick from div (not in allowedAttributes)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — safe content preservation > preserves class attributes
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — safe content preservation > preserves aria-label attributes
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — safe content preservation > preserves style tags (theme CSS injection)
+packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
+packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
+packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
+packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test:  ✓ __tests__/sanitizer.test.ts (20 tests) 9ms
+packages/renderer test:  ✓ __tests__/diagrams/svg-sanitizer.test.ts (9 tests) 9ms
+packages/renderer test:  Test Files  13 passed (13)
+packages/renderer test:       Tests  221 passed (221)
+packages/renderer test:    Start at  15:40:05
+packages/renderer test:    Duration  1.37s (transform 1.13s, setup 0ms, collect 3.31s, tests 211ms, environment 1ms, prepare 1.36s)
+packages/renderer test: Done
+packages/exporters test$ vitest run
+packages/exporters test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/exporters
+packages/exporters test:  ✓ __tests__/flashcard-tsv.test.ts (7 tests) 3ms
+packages/exporters test:  ✓ __tests__/gift.test.ts (11 tests) 5ms
+packages/exporters test:  ✓ __tests__/google-forms.test.ts (9 tests) 16ms
+packages/exporters test:  ✓ __tests__/h5p.test.ts (7 tests) 19ms
+packages/exporters test:  ✓ __tests__/anki-apkg.test.ts (7 tests) 177ms
+packages/exporters test:  Test Files  5 passed (5)
+packages/exporters test:       Tests  41 passed (41)
+packages/exporters test:    Start at  15:40:06
+packages/exporters test:    Duration  531ms (transform 265ms, setup 0ms, collect 418ms, tests 220ms, environment 0ms, prepare 379ms)
+packages/exporters test: Done
+
+All tests passed
+pnpm build
+
+> oh-my-class@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class
+> turbo run build
+
+• turbo 2.9.18
+
+   • Packages in scope: @oh-my-class/exporters, @oh-my-class/renderer, @oh-my-class/schemas, @oh-my-class/web
+   • Running build in 4 packages
+   • Remote caching disabled
+
+@oh-my-class/schemas:build: cache hit, replaying logs e80939a2c5a0febe
+@oh-my-class/schemas:build: 
+@oh-my-class/schemas:build: > @oh-my-class/schemas@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/schemas
+@oh-my-class/schemas:build: > tsc
+@oh-my-class/schemas:build: 
+@oh-my-class/web:build: cache miss, executing 2ed55825fe7bab7f
+@oh-my-class/renderer:build: cache hit, replaying logs 4d3c90ab62ac92ca
+@oh-my-class/renderer:build: 
+@oh-my-class/renderer:build: > @oh-my-class/renderer@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/renderer
+@oh-my-class/renderer:build: > tsc
+@oh-my-class/renderer:build: 
+@oh-my-class/exporters:build: cache hit, replaying logs 486692d04f45c2e8
+@oh-my-class/exporters:build: 
+@oh-my-class/exporters:build: > @oh-my-class/exporters@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/exporters
+@oh-my-class/exporters:build: > tsc
+@oh-my-class/exporters:build: 
+@oh-my-class/web:build: 
+@oh-my-class/web:build: > @oh-my-class/web@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web
+@oh-my-class/web:build: > next build
+@oh-my-class/web:build: 
+@oh-my-class/web:build: ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+@oh-my-class/web:build:  We detected multiple lockfiles and selected the directory of /Users/trung.ngo/bun.lock as the root directory.
+@oh-my-class/web:build:  To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+@oh-my-class/web:build:    See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+@oh-my-class/web:build:  Detected additional lockfiles: 
+@oh-my-class/web:build:    * /Users/trung.ngo/Documents/zaob-dev/oh-my-class/pnpm-workspace.yaml
+@oh-my-class/web:build: 
+@oh-my-class/web:build: ▲ Next.js 16.2.9 (Turbopack)
+@oh-my-class/web:build: - Experiments (use with caution):
+@oh-my-class/web:build:   · serverActions
+@oh-my-class/web:build: 
+@oh-my-class/web:build:   Creating an optimized production build ...
+@oh-my-class/web:build: (node:53573) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
+@oh-my-class/web:build: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+@oh-my-class/web:build: To eliminate this warning, add "type": "module" to /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/package.json.
+@oh-my-class/web:build: (Use `node --trace-warnings ...` to show where the warning was created)
+@oh-my-class/web:build: (node:53574) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
+@oh-my-class/web:build: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+@oh-my-class/web:build: To eliminate this warning, add "type": "module" to /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/package.json.
+@oh-my-class/web:build: (Use `node --trace-warnings ...` to show where the warning was created)
+@oh-my-class/web:build: ✓ Compiled successfully in 2.0s
+@oh-my-class/web:build:   Running TypeScript ...
+@oh-my-class/web:build:   Finished TypeScript in 2.8s ...
+@oh-my-class/web:build:   Collecting page data using 6 workers ...
+@oh-my-class/web:build:   Generating static pages using 6 workers (0/4) ...
+@oh-my-class/web:build:   Generating static pages using 6 workers (1/4) 
+@oh-my-class/web:build:   Generating static pages using 6 workers (2/4) 
+@oh-my-class/web:build:   Generating static pages using 6 workers (3/4) 
+@oh-my-class/web:build: ✓ Generating static pages using 6 workers (4/4) in 225ms
+@oh-my-class/web:build:   Finalizing page optimization ...
+@oh-my-class/web:build: 
+@oh-my-class/web:build: Route (app)
+@oh-my-class/web:build: ┌ ○ /_not-found
+@oh-my-class/web:build: ├ ○ /approvals
+@oh-my-class/web:build: ├ ○ /runs
+@oh-my-class/web:build: └ ƒ /runs/[runId]
+@oh-my-class/web:build: 
+@oh-my-class/web:build: 
+@oh-my-class/web:build: ƒ Proxy (Middleware)
+@oh-my-class/web:build: 
+@oh-my-class/web:build: ○  (Static)   prerendered as static content
+@oh-my-class/web:build: ƒ  (Dynamic)  server-rendered on demand
+@oh-my-class/web:build: 
+
+ Tasks:    4 successful, 4 total
+Cached:    3 cached, 4 total
+  Time:    6.945s 
+
+ruff check .
+All checks passed!
+uv run lint-imports
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲ 
+      ╚╝────────────────────┘
+
+
+---------
+Contracts
+---------
+
+Analyzed 306 files, 550 dependencies.
+-------------------------------------
+
+packages-no-import-services KEPT
+common-is-the-floor KEPT
+layered-architecture KEPT
+
+Contracts: 3 kept, 0 broken.
+bash scripts/typecheck.sh
+🔍 Running basedpyright type check...
+0 errors, 0 warnings, 0 notes
+
+📊 Summary: 0 errors, 0 warnings
+✅ No real type errors (missing-import warnings are expected without full deps)
+pnpm check:reports
+
+> oh-my-class@0.1.0 check:reports /Users/trung.ngo/Documents/zaob-dev/oh-my-class
+> prettier --check "docs/plans/**/*.{md,html,yml,yaml,json}" "artifacts/**/*.{md,html,yml,yaml,json}"
+
+Checking formatting...
+All matched files use Prettier code style!
