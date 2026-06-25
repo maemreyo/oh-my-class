@@ -1,0 +1,1417 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tuyến học: Connectivity for Many, Not Speed for Few</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #182329;
+        --ink-soft: #535d66;
+        --paper: #f7f7f3;
+        --card: #ffffff;
+        --line-track: #dbdcd4;
+        --c1: #d98e2b; /* GA01 Khởi động */
+        --c2: #2c7a75; /* GA02 Nghe lần 1 */
+        --c3: #bd4f3b; /* GA03 Nghe lần 2 */
+        --c4: #6b5ca0; /* GA04 Từ vựng */
+        --c5: #3568a8; /* GA05 Viết */
+        --c6: #1e8f6f; /* GA06 Nói */
+        --c7: #182329; /* GA07 Tự đánh giá */
+        --radius: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.55;
+        padding-bottom: 120px;
+      }
+      h1,
+      h2,
+      h3,
+      .station-code,
+      .line-name {
+        font-family: "Space Grotesk", sans-serif;
+      }
+      .mono {
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      a {
+        color: var(--c5);
+      }
+
+      /* ===== Wrapper ===== */
+      .wrap {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 28px 20px 0;
+      }
+
+      /* ===== Header / Ticket ===== */
+      .ticket {
+        background: var(--ink);
+        color: #f4f4f0;
+        border-radius: var(--radius);
+        padding: 28px 26px;
+        position: relative;
+        overflow: hidden;
+      }
+      .ticket::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.035) 0 2px,
+          transparent 2px 14px
+        );
+      }
+      .line-name {
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #b9c2c8;
+        margin: 0 0 6px;
+      }
+      .ticket h1 {
+        font-size: clamp(22px, 4vw, 32px);
+        line-height: 1.2;
+        margin: 0 0 10px;
+        font-weight: 700;
+      }
+      .ticket p.sub {
+        margin: 0 0 18px;
+        color: #cbd2d6;
+        font-size: 14.5px;
+        max-width: 560px;
+      }
+      .video-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 13.5px;
+        color: #e7e9e4;
+        margin-bottom: 18px;
+      }
+      .video-row a {
+        color: #ffd79a;
+      }
+      .pill {
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 999px;
+        padding: 3px 11px;
+        font-size: 12.5px;
+        color: #e7e9e4;
+      }
+      .boarding {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.25);
+        padding-top: 16px;
+      }
+      .boarding label {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #9fb0b6;
+        margin-bottom: 4px;
+      }
+      .boarding .fillable {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+        padding: 4px 2px 6px;
+        min-height: 22px;
+        color: #fff;
+        font-weight: 600;
+      }
+      .boarding .fillable:empty::before {
+        color: #7e8b91;
+      }
+
+      .video-embed {
+        margin-top: 18px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 16/9;
+      }
+      .video-embed iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+      }
+
+      /* ===== Mini route map ===== */
+      .miniroute {
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        margin: 22px 0 6px;
+        padding: 14px 4px;
+        scrollbar-width: thin;
+      }
+      .miniroute a {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--ink-soft);
+        width: 104px;
+        font-size: 11.5px;
+        text-align: center;
+        position: relative;
+      }
+      .miniroute a .dot {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        border: 3px solid var(--paper);
+        box-shadow: 0 0 0 2px var(--line-track);
+      }
+      .miniroute a::before {
+        content: "";
+        position: absolute;
+        top: 15px;
+        left: -52%;
+        width: 104%;
+        height: 3px;
+        background: var(--line-track);
+        z-index: 0;
+      }
+      .miniroute a:first-child::before {
+        display: none;
+      }
+      .miniroute a .dot {
+        position: relative;
+        z-index: 1;
+      }
+      .miniroute a span.lbl {
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .timebox {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        align-items: center;
+        background: var(--card);
+        border: 1px solid var(--line-track);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13.5px;
+        color: var(--ink-soft);
+        margin-bottom: 8px;
+      }
+      .timebox strong {
+        color: var(--ink);
+      }
+
+      /* ===== Route / Stations ===== */
+      .route {
+        position: relative;
+        margin-top: 36px;
+      }
+      .route::before {
+        content: "";
+        position: absolute;
+        left: 27px;
+        top: 42px;
+        bottom: 60px;
+        width: 3px;
+        background: var(--line-track);
+        z-index: 0;
+      }
+      .station {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 0 18px;
+        margin-bottom: 46px;
+        position: relative;
+        --accent: #999;
+      }
+      .station-marker {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .station-dot {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 0 0 6px var(--paper);
+      }
+      .station-body {
+        background: var(--card);
+        border: 1px solid var(--line-track);
+        border-left: 5px solid var(--accent);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+      }
+      .station-head {
+        margin-bottom: 14px;
+      }
+      .station-code {
+        font-size: 11.5px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 700;
+        margin: 0 0 2px;
+      }
+      .station-title {
+        font-size: 19px;
+        margin: 0 0 2px;
+        font-weight: 700;
+      }
+      .station-sub {
+        font-size: 13px;
+        color: var(--ink-soft);
+        margin: 0;
+      }
+
+      .hint {
+        font-size: 13.5px;
+        color: var(--ink-soft);
+        margin: 0 0 14px;
+      }
+
+      /* ===== Reference tables (read-only) ===== */
+      table.ref {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        margin-bottom: 14px;
+      }
+      table.ref th,
+      table.ref td {
+        padding: 7px 9px;
+        border-bottom: 1px solid var(--line-track);
+        text-align: left;
+        vertical-align: top;
+      }
+      table.ref th {
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+      .tablewrap {
+        overflow-x: auto;
+        margin-bottom: 10px;
+      }
+
+      /* ===== Fillable tables ===== */
+      table.fillable-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        min-width: 560px;
+      }
+      table.fillable-table thead th {
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+        font-weight: 600;
+        padding: 8px 9px;
+        text-align: left;
+        border-bottom: 2px solid var(--accent);
+      }
+      table.fillable-table td.cell {
+        border: 1px solid var(--line-track);
+        padding: 8px 9px;
+        min-width: 110px;
+        min-height: 20px;
+      }
+      td.cell:empty::before,
+      .fillable:empty::before {
+        content: attr(data-placeholder);
+        color: #a9ada4;
+        font-style: italic;
+      }
+      td.cell:focus,
+      .fillable:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+        background: #fbfbf8;
+      }
+      .addrow-btn {
+        margin-top: 8px;
+        border: 1px dashed var(--accent);
+        background: transparent;
+        color: var(--accent);
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .addrow-btn:hover {
+        background: color-mix(in srgb, var(--accent) 10%, transparent);
+      }
+
+      /* ===== Single fillable fields ===== */
+      .qa {
+        margin-bottom: 14px;
+      }
+      .qa-q {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+      .qa .fillable,
+      .field.fillable {
+        border: 1px solid var(--line-track);
+        border-radius: 8px;
+        padding: 9px 11px;
+        min-height: 22px;
+        background: #fcfcfa;
+      }
+      .field-label {
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ink-soft);
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+
+      .formula-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 10px 0;
+      }
+      .formula-row .fillable {
+        min-width: 120px;
+        text-align: center;
+        font-weight: 600;
+      }
+      .formula-text {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+
+      .cue-card {
+        background: #fbf8f1;
+        border: 1px dashed var(--c6);
+        border-radius: 10px;
+        padding: 16px 18px;
+        font-size: 14px;
+        margin-bottom: 14px;
+      }
+      .cue-card p {
+        margin: 0 0 8px;
+      }
+      .cue-card ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      .cue-card li {
+        margin-bottom: 4px;
+      }
+
+      .summary-box {
+        min-height: 160px;
+      }
+      .counter-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+        font-size: 12.5px;
+      }
+      .counter {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 6px;
+      }
+      .count-low {
+        background: #fbe6e1;
+        color: #a3402b;
+      }
+      .count-ok {
+        background: #e2f1e9;
+        color: #1e7a55;
+      }
+      .count-high {
+        background: #fcefd9;
+        color: #a36f1a;
+      }
+
+      /* ===== Checklist ===== */
+      .check-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+      .check-item input {
+        margin-top: 3px;
+        width: 17px;
+        height: 17px;
+        accent-color: var(--c7);
+      }
+
+      /* ===== Footer ===== */
+      .footnote {
+        max-width: 880px;
+        margin: 0 auto 60px;
+        padding: 0 20px;
+        font-size: 13px;
+        color: var(--ink-soft);
+        text-align: center;
+      }
+
+      .fab-bar {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        display: flex;
+        gap: 10px;
+        z-index: 40;
+      }
+      .fab {
+        border: none;
+        border-radius: 999px;
+        padding: 12px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        color: #fff;
+        font-family: "Inter", sans-serif;
+      }
+      .fab.print {
+        background: var(--ink);
+      }
+      .fab.export {
+        background: var(--c6);
+      }
+      .fab:hover {
+        filter: brightness(1.08);
+      }
+
+      :focus-visible {
+        outline: 3px solid #3568a8;
+        outline-offset: 2px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        * {
+          transition: none !important;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .boarding {
+          grid-template-columns: 1fr;
+        }
+        .station {
+          grid-template-columns: 34px 1fr;
+          gap: 0 12px;
+        }
+        .station-dot {
+          width: 32px;
+          height: 32px;
+          font-size: 11px;
+        }
+        .route::before {
+          left: 21px;
+        }
+        .station-body {
+          padding: 16px;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+          padding-bottom: 0;
+        }
+        .fab-bar,
+        .addrow-btn,
+        .miniroute a::after {
+          display: none !important;
+        }
+        .ticket {
+          background: #fff;
+          color: #000;
+          border: 1px solid #ccc;
+        }
+        .ticket::before {
+          display: none;
+        }
+        .video-embed {
+          display: none;
+        }
+        .ticket p.sub,
+        .video-row,
+        .pill {
+          color: #333;
+          border-color: #999;
+        }
+        .boarding .fillable {
+          color: #000;
+        }
+        .route::before {
+          background: #ccc;
+        }
+        .station-body {
+          border-color: #ccc;
+          box-shadow: none;
+        }
+        a {
+          color: #000;
+          text-decoration: underline;
+        }
+        .fillable,
+        td.cell {
+          background: #fff !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- ===== HEADER / TICKET ===== -->
+      <div class="ticket">
+        <p class="line-name">Tuyến học · IELTS Speaking &amp; Vocabulary</p>
+        <h1>Connectivity for many, not speed for few</h1>
+        <p class="sub">
+          Bài tập nghe TED Talk &amp; xây từ vựng chủ đề Cities / Transportation, áp dụng vào IELTS
+          Speaking Part 2 &amp; 3.
+        </p>
+
+        <div class="video-row">
+          <span class="pill">▶ TED Talk · ~18 phút</span>
+          <span class="pill">Antonella Mei-Pochtler</span>
+          <span class="pill">Trình độ: B2+ (mục tiêu 6.0–7.5)</span>
+          <a href="https://www.youtube.com/watch?v=Wq1P32MH2zA" target="_blank" rel="noopener"
+            >Mở video trên YouTube ↗</a
+          >
+        </div>
+
+        <div class="boarding">
+          <div>
+            <label>Họ và tên học sinh</label>
+            <div
+              id="student-name"
+              class="fillable"
+              contenteditable="true"
+              role="textbox"
+              data-label="Họ và tên"
+              data-placeholder="Điền tên của em…"
+            ></div>
+          </div>
+          <div>
+            <label>Ngày làm bài</label>
+            <div
+              class="fillable"
+              contenteditable="true"
+              role="textbox"
+              data-label="Ngày làm bài"
+              data-placeholder="dd / mm / yyyy"
+            ></div>
+          </div>
+        </div>
+
+        <div class="video-embed">
+          <iframe
+            src="https://www.youtube.com/embed/Wq1P32MH2zA"
+            title="How better transportation can reinvigorate a city"
+            allowfullscreen
+            loading="lazy"
+          ></iframe>
+        </div>
+      </div>
+
+      <!-- ===== MINI ROUTE MAP ===== -->
+      <div class="miniroute">
+        <a href="#ga01"
+          ><span class="dot" style="background: var(--c1)">01</span
+          ><span class="lbl">Khởi động</span></a
+        >
+        <a href="#ga02"
+          ><span class="dot" style="background: var(--c2)">02</span
+          ><span class="lbl">Nghe lần 1</span></a
+        >
+        <a href="#ga03"
+          ><span class="dot" style="background: var(--c3)">03</span
+          ><span class="lbl">Nghe lần 2</span></a
+        >
+        <a href="#ga04"
+          ><span class="dot" style="background: var(--c4)">04</span
+          ><span class="lbl">Từ vựng</span></a
+        >
+        <a href="#ga05"
+          ><span class="dot" style="background: var(--c5)">05</span
+          ><span class="lbl">Viết tóm tắt</span></a
+        >
+        <a href="#ga06"
+          ><span class="dot" style="background: var(--c6)">06</span
+          ><span class="lbl">Luyện nói</span></a
+        >
+        <a href="#ga07"
+          ><span class="dot" style="background: var(--c7)">07</span
+          ><span class="lbl">Tự đánh giá</span></a
+        >
+      </div>
+
+      <div class="timebox">
+        <span>⏱ <strong>Tổng thời gian ước tính:</strong> 90–100 phút (có thể chia 2 buổi)</span>
+        <span
+          >📩 <strong>Nộp bài:</strong> bấm "Xuất bài làm" rồi gửi file kèm bản ghi âm phần
+          Nói</span
+        >
+      </div>
+
+      <!-- ===== ROUTE ===== -->
+      <div class="route">
+        <!-- GA 01 -->
+        <section class="station" id="ga01" style="--accent: var(--c1)">
+          <div class="station-marker"><span class="station-dot">01</span></div>
+          <div class="station-body">
+            <div class="station-head">
+              <p class="station-code">GA 01</p>
+              <h2 class="station-title">Khởi động</h2>
+              <p class="station-sub">Trước khi xem · ~10 phút</p>
+            </div>
+
+            <p class="hint">
+              Lướt qua 8 từ khoá dưới đây trước khi xem video — tick vào ô "Đã biết" nếu em đã quen
+              từ đó.
+            </p>
+
+            <div class="tablewrap">
+              <table class="ref">
+                <thead>
+                  <tr>
+                    <th>Từ / cụm</th>
+                    <th>Nghĩa</th>
+                    <th>Collocation</th>
+                    <th>Đã biết</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>urbanization</td>
+                    <td>đô thị hóa</td>
+                    <td class="mono">rapid urbanization</td>
+                    <td><input type="checkbox" /></td>
+                  </tr>
+                  <tr>
+                    <td>infrastructure</td>
+                    <td>hạ tầng</td>
+                    <td class="mono">invest in infrastructure</td>
+                    <td><input type="checkbox" /></td>
+                  </tr>
+                  <tr>
+                    <td>connectivity</td>
+                    <td>tính kết nối</td>
+                    <td class="mono">improve connectivity</td>
+                    <td><input type="checkbox" /></td>
+                  </tr>
+                  <tr>
+                    <td>informal settlement / slum</td>
+                    <td>khu định cư tự phát / ổ chuột</td>
+                    <td class="mono">the spread of slums</td>
+                    <td><input type="checkbox" /></td>
+                  </tr>
+                  <tr>
+                    <td>commute / commuter</td>
+                    <td>đi làm hàng ngày / người đi làm</td>
+                    <td class="mono">daily commuters</td>
+                    <td><input type="checkbox" /></td>
+                  </tr>
+                  <tr>
+                    <td>congestion</td>
+                    <td>tình trạng tắc nghẽn</td>
+                    <td class="mono">traffic congestion</td>
+                    <td><input type="checkbox" /></td>
+                  </tr>
+                  <tr>
+                    <td>affordable</td>
+                    <td>có giá hợp lý</td>
+                    <td class="mono">an affordable solution</td>
+                    <td><input type="checkbox" /></td>
+                  </tr>
+                  <tr>
+                    <td>to reinvigorate</td>
+                    <td>làm hồi sinh, tiếp sinh lực</td>
+                    <td class="mono">reinvigorate a city</td>
+                    <td><input type="checkbox" /></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="qa">
+              <p class="qa-q">
+                Vấn đề giao thông lớn nhất ở thành phố nơi em sống là gì? Vì sao lại xảy ra vấn đề
+                đó?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                aria-multiline="true"
+                data-label="Câu hỏi khởi động"
+                data-placeholder="Viết câu trả lời của em ở đây…"
+              ></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GA 02 -->
+        <section class="station" id="ga02" style="--accent: var(--c2)">
+          <div class="station-marker"><span class="station-dot">02</span></div>
+          <div class="station-body">
+            <div class="station-head">
+              <p class="station-code">GA 02</p>
+              <h2 class="station-title">Nghe lần 1 — Ý chính</h2>
+              <p class="station-sub">Xem toàn bộ video, có phụ đề Anh, không dừng · ~20 phút</p>
+            </div>
+            <p class="hint">
+              Sau khi xem hết, trả lời ngắn gọn 4 câu dưới đây (không cần câu hoàn chỉnh).
+            </p>
+
+            <div class="qa">
+              <p class="qa-q">
+                1. What problem does the speaker identify about fast-growing cities?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Câu 1"
+                data-placeholder="Trả lời…"
+              ></div>
+            </div>
+            <div class="qa">
+              <p class="qa-q">2. What does she believe is the best tool to solve this problem?</p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Câu 2"
+                data-placeholder="Trả lời…"
+              ></div>
+            </div>
+            <div class="qa">
+              <p class="qa-q">
+                3. What does the phrase "connectivity for many, not speed for few" mean, in your own
+                words?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Câu 3"
+                data-placeholder="Trả lời…"
+              ></div>
+            </div>
+            <div class="qa">
+              <p class="qa-q">4. Name ONE example or case the speaker mentions.</p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Câu 4"
+                data-placeholder="Trả lời…"
+              ></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GA 03 -->
+        <section class="station" id="ga03" style="--accent: var(--c3)">
+          <div class="station-marker"><span class="station-dot">03</span></div>
+          <div class="station-body">
+            <div class="station-head">
+              <p class="station-code">GA 03</p>
+              <h2 class="station-title">Nghe lần 2 — Ghi chú</h2>
+              <p class="station-sub">Xem lại theo đoạn, được dừng/tua · ~25–30 phút</p>
+            </div>
+            <p class="hint">
+              Điền bảng ghi chú dưới đây — tối thiểu <strong>5 dòng</strong>. Bấm "+ Thêm dòng" nếu
+              cần nhiều hơn.
+            </p>
+
+            <div class="tablewrap">
+              <table class="fillable-table" id="note-table">
+                <thead>
+                  <tr>
+                    <th>Vấn đề được nêu</th>
+                    <th>Giải pháp / ví dụ</th>
+                    <th>Từ vựng nghe được</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="cell" contenteditable="true" data-placeholder="Vấn đề…"></td>
+                    <td
+                      class="cell"
+                      contenteditable="true"
+                      data-placeholder="Giải pháp / ví dụ…"
+                    ></td>
+                    <td class="cell" contenteditable="true" data-placeholder="Từ vựng…"></td>
+                  </tr>
+                  <tr>
+                    <td class="cell" contenteditable="true" data-placeholder="Vấn đề…"></td>
+                    <td
+                      class="cell"
+                      contenteditable="true"
+                      data-placeholder="Giải pháp / ví dụ…"
+                    ></td>
+                    <td class="cell" contenteditable="true" data-placeholder="Từ vựng…"></td>
+                  </tr>
+                  <tr>
+                    <td class="cell" contenteditable="true" data-placeholder="Vấn đề…"></td>
+                    <td
+                      class="cell"
+                      contenteditable="true"
+                      data-placeholder="Giải pháp / ví dụ…"
+                    ></td>
+                    <td class="cell" contenteditable="true" data-placeholder="Từ vựng…"></td>
+                  </tr>
+                  <tr>
+                    <td class="cell" contenteditable="true" data-placeholder="Vấn đề…"></td>
+                    <td
+                      class="cell"
+                      contenteditable="true"
+                      data-placeholder="Giải pháp / ví dụ…"
+                    ></td>
+                    <td class="cell" contenteditable="true" data-placeholder="Từ vựng…"></td>
+                  </tr>
+                  <tr>
+                    <td class="cell" contenteditable="true" data-placeholder="Vấn đề…"></td>
+                    <td
+                      class="cell"
+                      contenteditable="true"
+                      data-placeholder="Giải pháp / ví dụ…"
+                    ></td>
+                    <td class="cell" contenteditable="true" data-placeholder="Từ vựng…"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button class="addrow-btn" type="button" onclick="addNoteRow()">+ Thêm dòng</button>
+
+            <div
+              style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line-track)"
+            >
+              <p class="qa-q">
+                Diễn giả dùng cấu trúc:
+                <span class="formula-text">"___ for many, not ___ for few"</span>. Hãy thử áp dụng
+                cấu trúc này cho một chủ đề khác (giáo dục, y tế, công nghệ…).
+              </p>
+              <div class="formula-row">
+                <span class="formula-text">"</span>
+                <div
+                  class="fillable"
+                  contenteditable="true"
+                  role="textbox"
+                  data-label="X trong công thức"
+                  data-placeholder="X…"
+                  style="min-width: 90px"
+                ></div>
+                <span class="formula-text">for many, not</span>
+                <div
+                  class="fillable"
+                  contenteditable="true"
+                  role="textbox"
+                  data-label="Y trong công thức"
+                  data-placeholder="Y…"
+                  style="min-width: 90px"
+                ></div>
+                <span class="formula-text">for few."</span>
+              </div>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                aria-multiline="true"
+                data-label="Câu hoàn chỉnh áp dụng công thức"
+                data-placeholder="Viết câu hoàn chỉnh của em ở đây…"
+              ></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GA 04 -->
+        <section class="station" id="ga04" style="--accent: var(--c4)">
+          <div class="station-marker"><span class="station-dot">04</span></div>
+          <div class="station-body">
+            <div class="station-head">
+              <p class="station-code">GA 04</p>
+              <h2 class="station-title">Từ vựng</h2>
+              <p class="station-sub">~15–20 phút</p>
+            </div>
+
+            <p class="hint">Gợi ý nếu em chưa đủ 10 từ từ video:</p>
+            <div class="tablewrap">
+              <table class="ref">
+                <thead>
+                  <tr>
+                    <th>Từ / cụm</th>
+                    <th>Nghĩa</th>
+                    <th>Collocation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>urban sprawl</td>
+                    <td>sự phình rộng đô thị không kiểm soát</td>
+                    <td class="mono">uncontrolled urban sprawl</td>
+                  </tr>
+                  <tr>
+                    <td>megacity</td>
+                    <td>siêu đô thị</td>
+                    <td class="mono">a rapidly growing megacity</td>
+                  </tr>
+                  <tr>
+                    <td>to the detriment of</td>
+                    <td>gây tổn hại đến</td>
+                    <td class="mono">to the detriment of public health</td>
+                  </tr>
+                  <tr>
+                    <td>mobility</td>
+                    <td>khả năng di chuyển</td>
+                    <td class="mono">improve urban mobility</td>
+                  </tr>
+                  <tr>
+                    <td>public transit / mass transit</td>
+                    <td>giao thông công cộng quy mô lớn</td>
+                    <td class="mono">invest in mass transit</td>
+                  </tr>
+                  <tr>
+                    <td>bottleneck</td>
+                    <td>điểm nghẽn</td>
+                    <td class="mono">a major traffic bottleneck</td>
+                  </tr>
+                  <tr>
+                    <td>to bridge the gap</td>
+                    <td>thu hẹp khoảng cách</td>
+                    <td class="mono">bridge the gap between rich and poor</td>
+                  </tr>
+                  <tr>
+                    <td>cost-effective</td>
+                    <td>hiệu quả về chi phí</td>
+                    <td class="mono">a cost-effective solution</td>
+                  </tr>
+                  <tr>
+                    <td>to scale up</td>
+                    <td>mở rộng quy mô</td>
+                    <td class="mono">scale up the project nationwide</td>
+                  </tr>
+                  <tr>
+                    <td>trade-off</td>
+                    <td>sự đánh đổi</td>
+                    <td class="mono">a trade-off between speed and access</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class="hint">
+              Chọn <strong>10 từ/cụm</strong> em thấy hữu ích nhất (từ video hoặc từ gợi ý trên) và
+              điền đầy đủ — mỗi từ phải có <strong>câu liên hệ Việt Nam riêng</strong> của em.
+            </p>
+
+            <div class="tablewrap">
+              <table class="fillable-table" id="vocab-table">
+                <thead>
+                  <tr>
+                    <th>Từ / cụm</th>
+                    <th>Loại từ</th>
+                    <th>Nghĩa tiếng Việt</th>
+                    <th>Collocation</th>
+                    <th>Câu liên hệ Việt Nam</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <button class="addrow-btn" type="button" onclick="addVocabRow()">+ Thêm dòng</button>
+          </div>
+        </section>
+
+        <!-- GA 05 -->
+        <section class="station" id="ga05" style="--accent: var(--c5)">
+          <div class="station-marker"><span class="station-dot">05</span></div>
+          <div class="station-body">
+            <div class="station-head">
+              <p class="station-code">GA 05</p>
+              <h2 class="station-title">Viết tóm tắt</h2>
+              <p class="station-sub">~15 phút</p>
+            </div>
+            <p class="hint">
+              Viết tóm tắt nội dung video trong <strong>120–150 từ</strong>. KHÔNG chép lại câu của
+              diễn giả — diễn đạt lại bằng từ của chính em. Dùng tối thiểu
+              <strong>8/10 từ</strong> ở GA 04.
+            </p>
+
+            <div
+              id="summary-field"
+              class="fillable summary-box"
+              contenteditable="true"
+              role="textbox"
+              aria-multiline="true"
+              data-label="Bài tóm tắt"
+              data-placeholder="Viết bài tóm tắt của em ở đây…"
+            ></div>
+            <div class="counter-row">
+              <span id="summary-counter" class="counter count-low">0 từ</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- GA 06 -->
+        <section class="station" id="ga06" style="--accent: var(--c6)">
+          <div class="station-marker"><span class="station-dot">06</span></div>
+          <div class="station-body">
+            <div class="station-head">
+              <p class="station-code">GA 06</p>
+              <h2 class="station-title">Luyện nói</h2>
+              <p class="station-sub">
+                ~15–20 phút · chỉ cần viết dàn ý — câu trả lời đầy đủ ghi âm bằng điện thoại
+              </p>
+            </div>
+
+            <div class="cue-card">
+              <p><strong>Part 2 — Cue Card</strong></p>
+              <p>Describe a change you would like to see to improve transportation in your city.</p>
+              <p>You should say:</p>
+              <ul>
+                <li>what the change is</li>
+                <li>why this change is needed</li>
+                <li>how it could be achieved</li>
+                <li>and explain how this change would affect people's lives</li>
+              </ul>
+            </div>
+            <div class="field-label">Dàn ý nhanh (Part 2)</div>
+            <div
+              class="fillable"
+              contenteditable="true"
+              role="textbox"
+              aria-multiline="true"
+              data-label="Dàn ý Part 2"
+              data-placeholder="Gạch đầu dòng ý chính + từ vựng dự kiến dùng…"
+              style="min-height: 80px; margin-bottom: 18px"
+            ></div>
+
+            <p style="font-weight: 600; margin-bottom: 10px">Part 3 — Discussion</p>
+
+            <div class="qa">
+              <p class="qa-q">
+                1. What are the most common transportation problems in cities in Vietnam today?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Part 3 - Câu 1 (từ vựng/ý dự kiến)"
+                data-placeholder="Từ vựng / ý dự kiến dùng…"
+              ></div>
+            </div>
+            <div class="qa">
+              <p class="qa-q">
+                2. Why do you think public transport in fast-growing cities often struggles to keep
+                up with demand?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Part 3 - Câu 2 (từ vựng/ý dự kiến)"
+                data-placeholder="Từ vựng / ý dự kiến dùng…"
+              ></div>
+            </div>
+            <div class="qa">
+              <p class="qa-q">
+                3. The speaker argues transport systems should prioritise "connectivity for many"
+                rather than "speed for few." Do you agree or disagree?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Part 3 - Câu 3 (từ vựng/ý dự kiến)"
+                data-placeholder="Từ vựng / ý dự kiến dùng…"
+              ></div>
+            </div>
+            <div class="qa">
+              <p class="qa-q">
+                4. How can poor transportation infrastructure affect economic opportunities for
+                people in low-income areas?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Part 3 - Câu 4 (từ vựng/ý dự kiến)"
+                data-placeholder="Từ vựng / ý dự kiến dùng…"
+              ></div>
+            </div>
+            <div class="qa">
+              <p class="qa-q">
+                5. What role should governments versus private companies play in improving urban
+                transportation?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Part 3 - Câu 5 (từ vựng/ý dự kiến)"
+                data-placeholder="Từ vựng / ý dự kiến dùng…"
+              ></div>
+            </div>
+            <div class="qa">
+              <p class="qa-q">
+                6. How do you think new technologies will change the way people commute in the next
+                10 years?
+              </p>
+              <div
+                class="fillable"
+                contenteditable="true"
+                role="textbox"
+                data-label="Part 3 - Câu 6 (từ vựng/ý dự kiến)"
+                data-placeholder="Từ vựng / ý dự kiến dùng…"
+              ></div>
+            </div>
+
+            <p class="hint" style="margin-top: 6px">
+              🎙 Ghi âm riêng: Part 2 (≥1 phút) + đủ 6 câu Part 3, gửi file âm thanh kèm bài này.
+            </p>
+          </div>
+        </section>
+
+        <!-- GA 07 -->
+        <section class="station" id="ga07" style="--accent: var(--c7)">
+          <div class="station-marker"><span class="station-dot">07</span></div>
+          <div class="station-body">
+            <div class="station-head">
+              <p class="station-code">GA 07 · Ga cuối</p>
+              <h2 class="station-title">Tự đánh giá</h2>
+            </div>
+
+            <label class="check-item"
+              ><input type="checkbox" /><span>Bảng ghi chú (GA 03) có tối thiểu 5 dòng</span></label
+            >
+            <label class="check-item"
+              ><input type="checkbox" /><span
+                >Bảng từ vựng (GA 04) đủ 10 từ, mỗi từ có câu liên hệ Việt Nam riêng</span
+              ></label
+            >
+            <label class="check-item"
+              ><input type="checkbox" /><span
+                >Bài tóm tắt (GA 05) đạt 120–150 từ, dùng tối thiểu 8 từ mục tiêu</span
+              ></label
+            >
+            <label class="check-item"
+              ><input type="checkbox" /><span
+                >Đã ghi âm Part 2 (≥1 phút) và đủ 6 câu Part 3</span
+              ></label
+            >
+            <label class="check-item"
+              ><input type="checkbox" /><span
+                >Đã tự nghe lại bản ghi âm, gạch chân chỗ ấp úng / dùng từ sai để buổi sau sửa cùng
+                giáo viên</span
+              ></label
+            >
+          </div>
+        </section>
+      </div>
+
+      <p class="footnote">
+        Làm xong, bấm "Xuất bài làm" để lưu file, rồi gửi lại cho giáo viên kèm bản ghi âm phần Nói.
+      </p>
+    </div>
+
+    <div class="fab-bar">
+      <button class="fab print" type="button" onclick="window.print()">🖨️ In / Lưu PDF</button>
+      <button class="fab export" type="button" onclick="exportSubmission()">⬇️ Xuất bài làm</button>
+    </div>
+
+    <script>
+      // ----- Clean up empty contenteditable so :empty placeholder CSS works -----
+      document.addEventListener("input", function (e) {
+        if (e.target.matches(".fillable, .cell")) {
+          if (e.target.textContent.trim() === "") {
+            e.target.innerHTML = "";
+          }
+        }
+      });
+
+      // ----- Dynamic rows: note-taking table -----
+      function addNoteRow() {
+        var tbody = document.querySelector("#note-table tbody");
+        var tr = document.createElement("tr");
+        ["Vấn đề…", "Giải pháp / ví dụ…", "Từ vựng…"].forEach(function (ph) {
+          var td = document.createElement("td");
+          td.className = "cell";
+          td.contentEditable = "true";
+          td.setAttribute("data-placeholder", ph);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
+
+      // ----- Dynamic rows: vocabulary table -----
+      function addVocabRow() {
+        var tbody = document.querySelector("#vocab-table tbody");
+        var tr = document.createElement("tr");
+        ["từ/cụm…", "loại từ", "nghĩa tiếng Việt", "collocation", "câu liên hệ Việt Nam…"].forEach(
+          function (ph) {
+            var td = document.createElement("td");
+            td.className = "cell";
+            td.contentEditable = "true";
+            td.setAttribute("data-placeholder", ph);
+            tr.appendChild(td);
+          },
+        );
+        tbody.appendChild(tr);
+      }
+
+      // Pre-fill vocab table with 10 starting rows
+      for (var i = 0; i < 10; i++) {
+        addVocabRow();
+      }
+
+      // ----- Word counter for summary -----
+      var summaryEl = document.getElementById("summary-field");
+      var counterEl = document.getElementById("summary-counter");
+      summaryEl.addEventListener("input", function () {
+        var text = summaryEl.textContent.trim();
+        var words = text.length ? text.split(/\s+/).filter(Boolean).length : 0;
+        counterEl.textContent = words + " từ";
+        counterEl.classList.remove("count-ok", "count-low", "count-high");
+        if (words >= 120 && words <= 150) counterEl.classList.add("count-ok");
+        else if (words > 150) counterEl.classList.add("count-high");
+        else counterEl.classList.add("count-low");
+      });
+
+      // ----- Export submission as a plain-text file -----
+      function exportSubmission() {
+        var lines = [];
+        lines.push("BÀI LÀM: Connectivity for Many, Not Speed for Few");
+        lines.push("TED Talk Listening -> IELTS Speaking & Vocabulary Worksheet");
+        lines.push("Xuất file lúc: " + new Date().toLocaleString("vi-VN"));
+        lines.push("");
+
+        document.querySelectorAll(".station, .ticket").forEach(function (section) {
+          var titleEl = section.querySelector(".station-title");
+          var title = titleEl ? titleEl.textContent.trim() : "Thông tin chung";
+          lines.push("=== " + title + " ===");
+
+          section.querySelectorAll(".fillable").forEach(function (f) {
+            var label = f.getAttribute("data-label") || "";
+            var val = f.textContent.trim() || "(chưa trả lời)";
+            lines.push("- " + label + ": " + val);
+          });
+
+          section.querySelectorAll("table.fillable-table").forEach(function (table) {
+            var headers = Array.from(table.querySelectorAll("thead th")).map(function (th) {
+              return th.textContent.trim();
+            });
+            var rows = table.querySelectorAll("tbody tr");
+            var any = false;
+            rows.forEach(function (row, idx) {
+              var cells = Array.from(row.querySelectorAll("td.cell")).map(function (td) {
+                return td.textContent.trim();
+              });
+              var hasContent = cells.some(function (c) {
+                return c !== "";
+              });
+              if (hasContent) {
+                any = true;
+                var parts = headers.map(function (h, i) {
+                  return h + ": " + (cells[i] || "(trống)");
+                });
+                lines.push("  Dòng " + (idx + 1) + " -> " + parts.join(" | "));
+              }
+            });
+            if (!any) {
+              lines.push("  (chưa điền dòng nào)");
+            }
+          });
+
+          section.querySelectorAll(".check-item").forEach(function (item) {
+            var checked = item.querySelector("input").checked;
+            var label = item.querySelector("span").textContent.trim();
+            lines.push("  [" + (checked ? "x" : " ") + "] " + label);
+          });
+
+          lines.push("");
+        });
+
+        var blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        var name = (document.getElementById("student-name").textContent.trim() || "hoc-sinh")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/gi, "d")
+          .replace(/[^a-zA-Z0-9\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .toLowerCase();
+        a.href = url;
+        a.download = "bai-lam-" + (name || "hoc-sinh") + ".txt";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+    </script>
+  </body>
+</html>
