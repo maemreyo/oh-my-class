@@ -6,7 +6,7 @@ healing orchestrator, and interrupt() gates for teacher approval.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from packages.agents.gates import (
     gate_01_blueprint_approval,
@@ -17,12 +17,19 @@ from packages.agents.gates import (
     step_11_export_readiness,
 )
 from packages.agents.healing import healing_node, route_after_healing
+from packages.agents.nodes.finalize import step_12_finalize
+from packages.agents.nodes.pack_scope import step_05_pack_scope
+from packages.agents.nodes.preflight import step_01_preflight
+from packages.agents.nodes.quickstart import step_02_quickstart
+from packages.agents.nodes.visual_engine import step_06_visual_engine
+from packages.agents.state import (
+    OhMyClassState,  # noqa: TC001  needed at runtime for LangGraph get_type_hints
+)
 from packages.agents.sub_agents.content_creator.agent import content_creator_graph_node
 from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
+from packages.agents.sub_agents.planner.agent import planner_graph_node
+from packages.agents.sub_agents.researcher.agent import researcher_graph_node
 from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
 
 
 def _make_dummy_node(step: int, name: str):
@@ -81,21 +88,21 @@ def build_oh_my_class_graph(
 
     # ── Pipeline nodes ─────────────────────────────────────────────────────────
     graph.add_node("step_00_diagnostic", diagnostician_graph_node)
-    graph.add_node("step_01_preflight", _make_dummy_node(1, "preflight"))
-    graph.add_node("step_02_quickstart", _make_dummy_node(2, "quickstart"))
-    graph.add_node("step_03_blueprint", _make_dummy_node(3, "blueprint"))
+    graph.add_node("step_01_preflight", step_01_preflight)
+    graph.add_node("step_02_quickstart", step_02_quickstart)
+    graph.add_node("step_03_blueprint", planner_graph_node)
     graph.add_node("gate_01_blueprint_approval", gate_01_blueprint_approval)
     graph.add_node("step_04b_roadmap", roadmap_graph_node)
-    graph.add_node("step_05_pack_scope", _make_dummy_node(5, "pack_scope"))
-    graph.add_node("step_06_visual_engine", _make_dummy_node(6, "visual_engine"))
-    graph.add_node("step_07_research", _make_dummy_node(7, "research"))
+    graph.add_node("step_05_pack_scope", step_05_pack_scope)
+    graph.add_node("step_06_visual_engine", step_06_visual_engine)
+    graph.add_node("step_07_research", researcher_graph_node)
     graph.add_node("step_08_generate", content_creator_graph_node)
     graph.add_node("step_09_schema_validate", step_09_schema_validate)
     graph.add_node("step_10_content_review", step_10_content_review)
     graph.add_node("step_10b_llm_judge", step_10b_llm_judge)
     graph.add_node("gate_02_content_approval", gate_02_content_approval)
     graph.add_node("step_11_export_readiness", step_11_export_readiness)
-    graph.add_node("step_12_finalize", _make_dummy_node(12, "finalize"))
+    graph.add_node("step_12_finalize", step_12_finalize)
     graph.add_node("healing_node", healing_node)
     graph.add_node("escalate_node", escalate_node)
 

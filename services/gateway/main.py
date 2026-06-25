@@ -18,16 +18,21 @@ from .routers import approvals, artifacts, auth_router, runs, webhooks
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup/shutdown lifecycle — initialize checkpointer, LLM clients."""
+    """Startup/shutdown lifecycle — initialize checkpointer, graph, LLM clients."""
     import os
 
     configure_logging(log_level="INFO", json_output=True)
 
     from packages.agents.checkpointer import get_checkpointer
+    from packages.agents.graph import build_oh_my_class_graph
 
     environment = os.getenv("OMC_ENVIRONMENT", "development")
     app.state.checkpointer = get_checkpointer(environment)
     app.state.runs = {}
+    app.state.graph = build_oh_my_class_graph(
+        environment=environment,
+        checkpointer=app.state.checkpointer,
+    )
 
     yield
 

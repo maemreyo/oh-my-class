@@ -1,12 +1,12 @@
 """H3 pattern: Central healing orchestrator — one place for all recovery logic."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from packages.agents.healing.strategies import escalate, replan, reroute, retry, rewrite
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.state import (
+    OhMyClassState,  # noqa: TC001  needed at runtime for LangGraph get_type_hints
+)
 
 
 class HealingOrchestrator:
