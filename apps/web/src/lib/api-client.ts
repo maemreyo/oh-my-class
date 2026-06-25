@@ -4,7 +4,7 @@
  */
 
 const GATEWAY_URL =
-	process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:8001";
+	process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:8101";
 
 class APIClient {
 	private baseUrl: string;

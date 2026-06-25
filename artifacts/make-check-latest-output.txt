@@ -957,36 +957,44 @@ packages/agents/lead_agent/tests/test_lead_agent.py::test_make_lead_agent_accept
     return create_react_agent(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================= 934 passed, 4 warnings in 1.65s ========================
+======================= 934 passed, 4 warnings in 1.64s ========================
 
 Running TypeScript tests...
 pnpm -r test
 Scope: 4 of 5 workspace projects
 common/schemas test$ vitest run
 common/schemas test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/schemas
-common/schemas test:  ✓ src/run.test.ts (2 tests) 3ms
+common/schemas test:  ✓ src/run.test.ts (2 tests) 2ms
 common/schemas test:  Test Files  1 passed (1)
 common/schemas test:       Tests  2 passed (2)
-common/schemas test:    Start at  15:40:04
-common/schemas test:    Duration  347ms (transform 85ms, setup 0ms, collect 92ms, tests 3ms, environment 0ms, prepare 56ms)
+common/schemas test:    Start at  15:46:30
+common/schemas test:    Duration  607ms (transform 95ms, setup 0ms, collect 102ms, tests 2ms, environment 0ms, prepare 66ms)
 common/schemas test: Done
-apps/web test$ vitest run
 packages/renderer test$ vitest run
+apps/web test$ vitest run
 packages/renderer test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/renderer
 apps/web test: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
-apps/web test: (node:53165) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
+apps/web test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web
+apps/web test: (node:57232) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
 apps/web test: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
 apps/web test: To eliminate this warning, add "type": "module" to /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/package.json.
 apps/web test: (Use `node --trace-warnings ...` to show where the warning was created)
-apps/web test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web
-packages/renderer test:  ✓ __tests__/preview-server.test.ts (20 tests) 35ms
-packages/renderer test:  ✓ __tests__/questions/registry.test.ts (18 tests) 11ms
-packages/renderer test:  ✓ __tests__/exporters/variant-generator.test.ts (16 tests) 15ms
-packages/renderer test:  ✓ __tests__/scoring/strategies.test.ts (17 tests) 4ms
-apps/web test:  ✓ tests/approval-modal.test.tsx (11 tests) 20ms
-packages/renderer test:  ✓ __tests__/exporters/qti.test.ts (8 tests) 5ms
-apps/web test:  ✓ src/lib/logger.test.ts (5 tests) 8ms
 apps/web test:  ✓ tests/hooks.test.ts (12 tests) 8ms
+packages/renderer test:  ✓ __tests__/exporters/variant-generator.test.ts (16 tests) 20ms
+apps/web test:  ✓ tests/approval-modal.test.tsx (11 tests) 14ms
+packages/renderer test:  ✓ __tests__/preview-server.test.ts (20 tests) 27ms
+packages/renderer test:  ✓ __tests__/questions/registry.test.ts (18 tests) 23ms
+packages/renderer test:  ✓ __tests__/scoring/strategies.test.ts (17 tests) 10ms
+apps/web test:  ✓ src/lib/logger.test.ts (5 tests) 11ms
+packages/renderer test:  ✓ __tests__/exporters/qti.test.ts (8 tests) 6ms
+apps/web test:  ✓ src/components/error-boundary.test.tsx (6 tests) 8ms
+apps/web test:  ✓ src/hooks/use-error-logger.test.ts (7 tests) 69ms
+apps/web test:  Test Files  5 passed (5)
+apps/web test:       Tests  41 passed (41)
+apps/web test:    Start at  15:46:30
+apps/web test:    Duration  1.23s (transform 379ms, setup 0ms, collect 723ms, tests 110ms, environment 1ms, prepare 574ms)
+apps/web test: Done
+packages/renderer test:  ✓ __tests__/theme.test.ts (16 tests) 19ms
 packages/renderer test: stderr | __tests__/template-library.test.ts > template-library — quiz page > renders question prompt
 packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
 packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
@@ -1102,6 +1110,8 @@ packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, whic
 packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
 packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
 packages/renderer test: and ensure you are accounting for this risk.
+packages/renderer test:  ✓ __tests__/schemas/lesson-plan.test.ts (7 tests) 4ms
+packages/renderer test:  ✓ __tests__/template-library.test.ts (24 tests) 44ms
 packages/renderer test: stderr | __tests__/renderer.test.ts > renderArtifact (async, typed) > returns a promise
 packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
 packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
@@ -1197,19 +1207,8 @@ packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, whic
 packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
 packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
 packages/renderer test: and ensure you are accounting for this risk.
-packages/renderer test:  ✓ __tests__/template-library.test.ts (24 tests) 57ms
-apps/web test:  ✓ src/hooks/use-error-logger.test.ts (7 tests) 23ms
-packages/renderer test:  ✓ __tests__/renderer.test.ts (46 tests) 43ms
-packages/renderer test:  ✓ __tests__/theme.test.ts (16 tests) 10ms
-apps/web test:  ✓ src/components/error-boundary.test.tsx (6 tests) 9ms
-apps/web test:  Test Files  5 passed (5)
-apps/web test:       Tests  41 passed (41)
-apps/web test:    Start at  15:40:05
-apps/web test:    Duration  854ms (transform 168ms, setup 0ms, collect 572ms, tests 69ms, environment 1ms, prepare 1.01s)
-packages/renderer test:  ✓ __tests__/schemas/teaching-pack.test.ts (9 tests) 3ms
-apps/web test: Done
-packages/renderer test:  ✓ __tests__/schemas/lesson-plan.test.ts (7 tests) 3ms
-packages/renderer test:  ✓ __tests__/design-kit.test.ts (11 tests) 7ms
+packages/renderer test:  ✓ __tests__/renderer.test.ts (46 tests) 38ms
+packages/renderer test:  ✓ __tests__/schemas/teaching-pack.test.ts (9 tests) 6ms
 packages/renderer test: stderr | __tests__/sanitizer.test.ts > sanitize — script blocking > strips script tags from lesson
 packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, which is inherently
 packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
@@ -1295,24 +1294,25 @@ packages/renderer test: ⚠️ Your `allowedTags` option includes, `style`, whic
 packages/renderer test: vulnerable to XSS attacks. Please remove it from `allowedTags`.
 packages/renderer test: Or, to disable this warning, add the `allowVulnerableTags` option
 packages/renderer test: and ensure you are accounting for this risk.
-packages/renderer test:  ✓ __tests__/sanitizer.test.ts (20 tests) 9ms
-packages/renderer test:  ✓ __tests__/diagrams/svg-sanitizer.test.ts (9 tests) 9ms
+packages/renderer test:  ✓ __tests__/sanitizer.test.ts (20 tests) 39ms
+packages/renderer test:  ✓ __tests__/design-kit.test.ts (11 tests) 4ms
+packages/renderer test:  ✓ __tests__/diagrams/svg-sanitizer.test.ts (9 tests) 6ms
 packages/renderer test:  Test Files  13 passed (13)
 packages/renderer test:       Tests  221 passed (221)
-packages/renderer test:    Start at  15:40:05
-packages/renderer test:    Duration  1.37s (transform 1.13s, setup 0ms, collect 3.31s, tests 211ms, environment 1ms, prepare 1.36s)
+packages/renderer test:    Start at  15:46:30
+packages/renderer test:    Duration  1.63s (transform 1.66s, setup 0ms, collect 4.18s, tests 247ms, environment 8ms, prepare 2.25s)
 packages/renderer test: Done
 packages/exporters test$ vitest run
 packages/exporters test:  RUN  v2.1.9 /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/exporters
+packages/exporters test:  ✓ __tests__/gift.test.ts (11 tests) 4ms
 packages/exporters test:  ✓ __tests__/flashcard-tsv.test.ts (7 tests) 3ms
-packages/exporters test:  ✓ __tests__/gift.test.ts (11 tests) 5ms
-packages/exporters test:  ✓ __tests__/google-forms.test.ts (9 tests) 16ms
-packages/exporters test:  ✓ __tests__/h5p.test.ts (7 tests) 19ms
-packages/exporters test:  ✓ __tests__/anki-apkg.test.ts (7 tests) 177ms
+packages/exporters test:  ✓ __tests__/google-forms.test.ts (9 tests) 5ms
+packages/exporters test:  ✓ __tests__/h5p.test.ts (7 tests) 10ms
+packages/exporters test:  ✓ __tests__/anki-apkg.test.ts (7 tests) 74ms
 packages/exporters test:  Test Files  5 passed (5)
 packages/exporters test:       Tests  41 passed (41)
-packages/exporters test:    Start at  15:40:06
-packages/exporters test:    Duration  531ms (transform 265ms, setup 0ms, collect 418ms, tests 220ms, environment 0ms, prepare 379ms)
+packages/exporters test:    Start at  15:46:32
+packages/exporters test:    Duration  436ms (transform 215ms, setup 0ms, collect 368ms, tests 95ms, environment 1ms, prepare 361ms)
 packages/exporters test: Done
 
 All tests passed
@@ -1332,7 +1332,6 @@ pnpm build
 @oh-my-class/schemas:build: > @oh-my-class/schemas@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/schemas
 @oh-my-class/schemas:build: > tsc
 @oh-my-class/schemas:build: 
-@oh-my-class/web:build: cache miss, executing 2ed55825fe7bab7f
 @oh-my-class/renderer:build: cache hit, replaying logs 4d3c90ab62ac92ca
 @oh-my-class/renderer:build: 
 @oh-my-class/renderer:build: > @oh-my-class/renderer@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/renderer
@@ -1343,6 +1342,7 @@ pnpm build
 @oh-my-class/exporters:build: > @oh-my-class/exporters@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/exporters
 @oh-my-class/exporters:build: > tsc
 @oh-my-class/exporters:build: 
+@oh-my-class/web:build: cache hit, replaying logs c437b20f44b9a619
 @oh-my-class/web:build: 
 @oh-my-class/web:build: > @oh-my-class/web@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web
 @oh-my-class/web:build: > next build
@@ -1359,23 +1359,19 @@ pnpm build
 @oh-my-class/web:build:   · serverActions
 @oh-my-class/web:build: 
 @oh-my-class/web:build:   Creating an optimized production build ...
-@oh-my-class/web:build: (node:53573) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
+@oh-my-class/web:build: (node:56020) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
 @oh-my-class/web:build: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
 @oh-my-class/web:build: To eliminate this warning, add "type": "module" to /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/package.json.
 @oh-my-class/web:build: (Use `node --trace-warnings ...` to show where the warning was created)
-@oh-my-class/web:build: (node:53574) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/postcss.config.js is not specified and it doesn't parse as CommonJS.
-@oh-my-class/web:build: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
-@oh-my-class/web:build: To eliminate this warning, add "type": "module" to /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/package.json.
-@oh-my-class/web:build: (Use `node --trace-warnings ...` to show where the warning was created)
-@oh-my-class/web:build: ✓ Compiled successfully in 2.0s
+@oh-my-class/web:build: ✓ Compiled successfully in 2.1s
 @oh-my-class/web:build:   Running TypeScript ...
-@oh-my-class/web:build:   Finished TypeScript in 2.8s ...
+@oh-my-class/web:build:   Finished TypeScript in 2.5s ...
 @oh-my-class/web:build:   Collecting page data using 6 workers ...
 @oh-my-class/web:build:   Generating static pages using 6 workers (0/4) ...
 @oh-my-class/web:build:   Generating static pages using 6 workers (1/4) 
 @oh-my-class/web:build:   Generating static pages using 6 workers (2/4) 
 @oh-my-class/web:build:   Generating static pages using 6 workers (3/4) 
-@oh-my-class/web:build: ✓ Generating static pages using 6 workers (4/4) in 225ms
+@oh-my-class/web:build: ✓ Generating static pages using 6 workers (4/4) in 215ms
 @oh-my-class/web:build:   Finalizing page optimization ...
 @oh-my-class/web:build: 
 @oh-my-class/web:build: Route (app)
@@ -1392,8 +1388,8 @@ pnpm build
 @oh-my-class/web:build: 
 
  Tasks:    4 successful, 4 total
-Cached:    3 cached, 4 total
-  Time:    6.945s 
+Cached:    4 cached, 4 total
+  Time:    147ms >>> FULL TURBO
 
 ruff check .
 All checks passed!

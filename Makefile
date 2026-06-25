@@ -6,7 +6,7 @@
 # All commands assume you've run `make setup` first.
 #
 # ── Daily commands ──
-#   make dev          Start local dev: infra in Docker + gateway + web locally
+#   make dev          Start local dev: db/redis in Docker + gateway + web locally
 #   make docker       Start full Docker dev stack
 #   make stop         Stop Docker services
 #   make logs         Tail service logs
@@ -31,24 +31,34 @@
 #   make check-schemas Verify schema parity (Pydantic ↔ Zod)
 # ════════════════════════════════════════════════════════════════════
 
-.PHONY: dev infra dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
+.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
 
 # ── Docker compose path ──
 COMPOSE := docker compose -f infra/compose/docker-compose.yml
+LOCAL_WEB_PORT := 3100
+LOCAL_GATEWAY_PORT := 8101
 
 # ── Local dev ────────────────────────────────────────────────────────────────
-dev: ## Start local dev: infra in Docker + gateway + web locally
+dev: ## Start local dev: db/redis in Docker + gateway + web locally
 	$(MAKE) infra
+	$(MAKE) clean-ports
 	$(MAKE) -j2 dev-gateway dev-web
 
-infra: ## Start local infrastructure only (db, redis, proxy, langfuse)
+clean-ports: ## Stop local dev servers on local dev ports
+	@lsof -tiTCP:$(LOCAL_WEB_PORT) -sTCP:LISTEN | xargs -r kill
+	@lsof -tiTCP:$(LOCAL_GATEWAY_PORT) -sTCP:LISTEN | xargs -r kill
+
+infra: ## Start local infrastructure only (db, redis)
+	$(COMPOSE) up -d db redis
+
+infra-full: ## Start optional infrastructure (db, redis, proxy, langfuse)
 	$(COMPOSE) up -d db redis proxy langfuse
 
-dev-gateway: ## Start Python gateway locally on port 8001
-	uv run uvicorn services.gateway.main:app --reload --port 8001
+dev-gateway: ## Start Python gateway locally on port 8101
+	uv run uvicorn services.gateway.main:app --reload --port $(LOCAL_GATEWAY_PORT)
 
-dev-web: ## Start teacher dashboard locally on port 3000
-	pnpm --filter @oh-my-class/web dev
+dev-web: ## Start teacher dashboard locally on port 3100
+	NEXT_PUBLIC_GATEWAY_URL=http://localhost:$(LOCAL_GATEWAY_PORT) pnpm --filter @oh-my-class/web exec next dev --turbopack -p $(LOCAL_WEB_PORT)
 
 dev-all: dev ## Alias for make dev
 
