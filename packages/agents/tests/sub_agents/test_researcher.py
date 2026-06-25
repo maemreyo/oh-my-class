@@ -148,7 +148,7 @@ class TestResearcherAgent:
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
             await research_sources(cast("ResearcherState", _make_state()))
 
-        assert mock_litellm.acompletion.call_args.kwargs["model"] == "f.light"
+        assert mock_litellm.acompletion.call_args.kwargs["model"] == "openai/f.light"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):

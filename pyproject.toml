@@ -11,6 +11,10 @@ dependencies = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
     "import-linter>=2.0",
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
+    "sqlalchemy[asyncio]>=2.0.51",
+    "litellm>=1.89.4",
 ]
 
 [tool.uv.workspace]

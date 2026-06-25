@@ -13,7 +13,7 @@ from alembic import context
 
 # Import all models so Alembic can detect them
 from models import Base  # noqa: F401
-from sqlalchemy import pool
+from sqlalchemy import pool, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -51,10 +51,10 @@ def do_run_migrations(connection: Connection) -> None:
     with context.begin_transaction():
         # Create schemas if they don't exist
         connection.execute(
-            "CREATE SCHEMA IF NOT EXISTS langgraph"
+            text("CREATE SCHEMA IF NOT EXISTS langgraph")
         )
         connection.execute(
-            "CREATE SCHEMA IF NOT EXISTS litellm"
+            text("CREATE SCHEMA IF NOT EXISTS litellm")
         )
         context.run_migrations()
 

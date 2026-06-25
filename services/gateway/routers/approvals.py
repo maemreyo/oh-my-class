@@ -44,6 +44,23 @@ class ApprovalResponse(BaseModel):
 
 def _require_gate(run_data: dict[str, Any]) -> str:
     state = run_data.get("state", {})
+
+    # Check __interrupt__ first (LangGraph Interrupt objects)
+    interrupt_list = state.get("__interrupt__")
+    if interrupt_list and isinstance(interrupt_list, list):
+        interrupt_data = interrupt_list[0]
+        # Interrupt objects have .value attr; serialized dicts have ["value"] key
+        if hasattr(interrupt_data, "value"):
+            value = interrupt_data.value
+        elif isinstance(interrupt_data, dict):
+            value = interrupt_data.get("value", interrupt_data)
+        else:
+            value = None
+        gate_type = value.get("gate") if isinstance(value, dict) else None
+        if gate_type in _VALID_GATES:
+            return gate_type
+
+    # Fallback: check gate_payload (legacy format)
     gate_payload = state.get("gate_payload")
     gate_type = gate_payload.get("gate") if gate_payload else None
     if gate_type not in _VALID_GATES:

@@ -48,11 +48,16 @@ Return a JSON array of artifacts.
         {"role": "user", "content": user_prompt},
     ]
 
+    from packages.agents.llm import get_llm_config, resolve_model
+
+    llm_config = get_llm_config()
     try:
         response = await litellm.acompletion(
-            model="f.light",
+            model=resolve_model("f.light"),
             messages=messages,
             temperature=0.7,
+            api_base=llm_config["api_base"],
+            api_key=llm_config["api_key"],
             extra_body={
                 "metadata": {
                     "tags": [
@@ -65,15 +70,13 @@ Return a JSON array of artifacts.
             },
         )
 
-        content = response.choices[0].message.content
+        msg = response.choices[0].message
+        reasoning = getattr(msg, "reasoning_content", None)
+        content = msg.content
 
-        if "```json" in content:
-            json_str = content.split("```json")[1].split("```")[0].strip()
-        elif "```" in content:
-            json_str = content.split("```")[1].split("```")[0].strip()
-        else:
-            json_str = content.strip()
+        from packages.agents.llm import extract_json_text
 
+        json_str = extract_json_text(content, reasoning)
         artifacts_data = json.loads(json_str)
 
         if isinstance(artifacts_data, dict):
