@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ── GateConfig ────────────────────────────────────────────────────────────────
 
 class TestGateConfigDefaults:
@@ -132,8 +131,10 @@ class TestModelConfig:
 # ── Package __init__ ──────────────────────────────────────────────────────────
 
 def test_config_package_exports_gate_config():
-    from packages.agents.config import GateConfig  # noqa: F401
+    from packages.agents.config import (
+        GateConfig,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+    )
 
 
 def test_config_package_exports_models():
-    from packages.agents.config import MODELS  # noqa: F401
+    from packages.agents.config import MODELS  # noqa: F401  # pyright: ignore[reportUnusedImport]

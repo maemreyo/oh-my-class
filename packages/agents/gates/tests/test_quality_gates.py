@@ -1,8 +1,14 @@
 """Tests for quality gate nodes — schema, content review, LLM judge, export readiness."""
 from __future__ import annotations
-import pytest
 
-def make_base_state(**overrides) -> dict:
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
+
+
+
+def make_base_state(**overrides) -> OhMyClassState:
     base = {
         "raw_request": "Teach photosynthesis",
         "teacher_id": "t-001",
@@ -24,7 +30,7 @@ def make_base_state(**overrides) -> dict:
         "fail_count": 0,
     }
     base.update(overrides)
-    return base
+    return cast("OhMyClassState", base)
 
 
 VALID_ARTIFACT = {"type": "lesson", "content": "Plants use sunlight to make food."}

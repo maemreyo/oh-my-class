@@ -2,11 +2,15 @@
 
 import json
 import sys
-import pytest
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from common.contracts.research_bundle import ResearchBundle
 
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.researcher.state import ResearcherState
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -26,7 +30,7 @@ def _make_litellm_mock(return_value=None, side_effect=None) -> MagicMock:
     return mock_module
 
 
-def _make_state(**overrides) -> dict:
+def _make_state(**overrides) -> dict[str, Any]:
     base = {
         "lesson_plan": {"topic": "Photosynthesis", "learning_objectives": []},
         "research_policy": "standard",
@@ -60,7 +64,7 @@ class TestResearcherAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await research_sources(_make_state())
+            result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
         bundle = ResearchBundle.model_validate(result["research_bundle"])
@@ -73,7 +77,7 @@ class TestResearcherAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await research_sources(_make_state())
+            result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert result["research_bundle"]["topic"] == "Photosynthesis"
 
@@ -81,9 +85,9 @@ class TestResearcherAgent:
     async def test_parses_generic_code_fence(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_GENERIC_FENCE))
+        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_GENERIC_FENCE))  # noqa: E501
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await research_sources(_make_state())
+            result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
 
@@ -93,7 +97,7 @@ class TestResearcherAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_JSON))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await research_sources(_make_state())
+            result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
 
@@ -102,18 +106,16 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Invalid JSON"):
-                await research_sources(_make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+            await research_sources(cast("ResearcherState", _make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Researcher agent failed"):
-                await research_sources(_make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Researcher agent failed"):  # noqa: E501
+            await research_sources(cast("ResearcherState", _make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_on_too_few_sources(self):
@@ -121,12 +123,11 @@ class TestResearcherAgent:
 
         bad_bundle = json.dumps({
             "topic": "T",
-            "sources": [{"title": "Only one", "credibility_score": 0.9, "verification_status": "VERIFIED"}],
+            "sources": [{"title": "Only one", "credibility_score": 0.9, "verification_status": "VERIFIED"}],  # noqa: E501
         })
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_bundle))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Researcher agent failed"):
-                await research_sources(_make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Researcher agent failed"):  # noqa: E501
+            await research_sources(cast("ResearcherState", _make_state()))
 
     @pytest.mark.asyncio
     async def test_missing_lesson_plan_uses_default_topic(self):
@@ -134,7 +135,7 @@ class TestResearcherAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await research_sources(_make_state(lesson_plan=None))
+            result = await research_sources(cast("ResearcherState", _make_state(lesson_plan=None)))
 
         mock_litellm.acompletion.assert_awaited_once()
         assert "research_bundle" in result
@@ -145,7 +146,7 @@ class TestResearcherAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            await research_sources(_make_state())
+            await research_sources(cast("ResearcherState", _make_state()))
 
         assert mock_litellm.acompletion.call_args.kwargs["model"] == "f.light"
 
@@ -155,7 +156,7 @@ class TestResearcherAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            await research_sources(_make_state(run_id="run-abc"))
+            await research_sources(cast("ResearcherState", _make_state(run_id="run-abc")))
 
         tags = mock_litellm.acompletion.call_args.kwargs["extra_body"]["metadata"]["tags"]
         assert any("run-abc" in t for t in tags)
@@ -168,7 +169,7 @@ class TestResearcherAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            await research_sources(_make_state(research_policy="rigorous"))
+            await research_sources(cast("ResearcherState", _make_state(research_policy="rigorous")))
 
         user_msg = mock_litellm.acompletion.call_args.kwargs["messages"][1]["content"]
         assert "rigorous" in user_msg
@@ -179,7 +180,7 @@ class TestResearcherAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await research_sources(_make_state())
+            result = await research_sources(cast("ResearcherState", _make_state()))
 
         bundle = ResearchBundle.model_validate(result["research_bundle"])
         for source in bundle.sources:
@@ -226,29 +227,33 @@ class TestResearcherTools:
 
 class TestResearcherPrompts:
     def test_prompt_contains_fact_protocol(self):
-        from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+        from packages.agents.sub_agents.researcher.prompts import load_system_prompt
+        researcher_system_prompt = load_system_prompt()
 
-        assert "FACT" in RESEARCHER_SYSTEM_PROMPT
-        assert "Find" in RESEARCHER_SYSTEM_PROMPT
-        assert "Assess" in RESEARCHER_SYSTEM_PROMPT
-        assert "Cross-reference" in RESEARCHER_SYSTEM_PROMPT
-        assert "Tag" in RESEARCHER_SYSTEM_PROMPT
+        assert "FACT" in researcher_system_prompt
+        assert "Find" in researcher_system_prompt
+        assert "Assess" in researcher_system_prompt
+        assert "Cross-reference" in researcher_system_prompt
+        assert "Tag" in researcher_system_prompt
 
     def test_prompt_contains_verification_statuses(self):
-        from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+        from packages.agents.sub_agents.researcher.prompts import load_system_prompt
+        researcher_system_prompt = load_system_prompt()
 
         for status in ("VERIFIED", "MODIFIED", "REMOVED", "UNCERTAIN"):
-            assert status in RESEARCHER_SYSTEM_PROMPT
+            assert status in researcher_system_prompt
 
     def test_prompt_contains_research_policies(self):
-        from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+        from packages.agents.sub_agents.researcher.prompts import load_system_prompt
+        researcher_system_prompt = load_system_prompt()
 
-        assert "basic" in RESEARCHER_SYSTEM_PROMPT
-        assert "standard" in RESEARCHER_SYSTEM_PROMPT
-        assert "rigorous" in RESEARCHER_SYSTEM_PROMPT
+        assert "basic" in researcher_system_prompt
+        assert "standard" in researcher_system_prompt
+        assert "rigorous" in researcher_system_prompt
 
     def test_prompt_contains_output_schema(self):
-        from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+        from packages.agents.sub_agents.researcher.prompts import load_system_prompt
+        researcher_system_prompt = load_system_prompt()
 
-        assert "credibility_score" in RESEARCHER_SYSTEM_PROMPT
-        assert "verification_status" in RESEARCHER_SYSTEM_PROMPT
+        assert "credibility_score" in researcher_system_prompt
+        assert "verification_status" in researcher_system_prompt

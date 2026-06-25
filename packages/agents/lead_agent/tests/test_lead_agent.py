@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, patch
 
-import pytest
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
 
 
 # ── make_lead_agent ────────────────────────────────────────────────────────────
@@ -80,6 +82,7 @@ def test_system_prompt_mentions_recovery():
 def test_system_prompt_loaded_from_file_not_hardcoded():
     """Prompt must come from a .md file, not a hardcoded string in agent.py."""
     import inspect
+
     from packages.agents.lead_agent import agent as agent_module
     source = inspect.getsource(agent_module)
     assert "run_planner" not in source or "load_system_prompt" in source
@@ -163,12 +166,14 @@ def test_build_recovery_context_handles_empty_per_artifact():
 # ── node.py — graph adapter ────────────────────────────────────────────────────
 
 def test_lead_agent_node_is_importable():
-    from packages.agents.lead_agent.node import lead_agent_node  # noqa: F401
+    from packages.agents.lead_agent.node import (
+        lead_agent_node,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+    )
 
 
 def test_lead_agent_node_is_async():
-    import asyncio
     import inspect
+
     from packages.agents.lead_agent.node import lead_agent_node
     assert inspect.iscoroutinefunction(lead_agent_node)
 
@@ -176,11 +181,11 @@ def test_lead_agent_node_is_async():
 def test_lead_agent_node_injects_recovery_on_retry():
     """When revision_count > 0 and review_results present, recovery context is injected."""
     import asyncio
-    from unittest.mock import AsyncMock, patch
+    from unittest.mock import patch
 
     from packages.agents.lead_agent.node import lead_agent_node
 
-    state = {
+    state = cast("OhMyClassState", {
         "raw_request": "Teach fractions to Grade 4",
         "class_info": {"grade": 4, "subject": "math"},
         "run_id": "test-run",
@@ -194,7 +199,7 @@ def test_lead_agent_node_injects_recovery_on_retry():
         "lesson_plan": {"title": "Fractions"},
         "research_bundle": {},
         "artifacts": [],
-    }
+    })
 
     mock_agent = MagicMock()
     mock_agent.invoke.return_value = {
@@ -206,7 +211,7 @@ def test_lead_agent_node_injects_recovery_on_retry():
     }
 
     with patch("packages.agents.lead_agent.node._lead_agent", mock_agent):
-        result = asyncio.run(lead_agent_node(state))
+        asyncio.run(lead_agent_node(state))
 
     call_args = mock_agent.invoke.call_args[0][0]
     messages = call_args["messages"]
@@ -216,15 +221,19 @@ def test_lead_agent_node_injects_recovery_on_retry():
 # ── module structure ───────────────────────────────────────────────────────────
 
 def test_recovery_py_exists():
-    from packages.agents.lead_agent import recovery  # noqa: F401
+    from packages.agents.lead_agent import (
+        recovery,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+    )
 
 
 def test_node_py_exists():
-    from packages.agents.lead_agent import node  # noqa: F401
+    from packages.agents.lead_agent import node  # noqa: F401  # pyright: ignore[reportUnusedImport]
 
 
 def test_prompts_package_exists():
-    from packages.agents.lead_agent import prompts  # noqa: F401
+    from packages.agents.lead_agent import (
+        prompts,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+    )
 
 
 def test_tools_sub_agent_tools_list():

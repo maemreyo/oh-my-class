@@ -7,6 +7,6 @@ Backward-compatible re-exports are provided for the original flat-file paths.
 """
 
 from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-from packages.agents.middleware.registry import ORDERED_MIDDLEWARE_LIST, EXPECTED_MIDDLEWARE_COUNT
+from packages.agents.middleware.registry import EXPECTED_MIDDLEWARE_COUNT, ORDERED_MIDDLEWARE_LIST
 
-__all__ = ["BaseMiddleware", "MiddlewareContext", "ORDERED_MIDDLEWARE_LIST", "EXPECTED_MIDDLEWARE_COUNT"]
+__all__ = ["BaseMiddleware", "MiddlewareContext", "ORDERED_MIDDLEWARE_LIST", "EXPECTED_MIDDLEWARE_COUNT"]  # noqa: E501

@@ -62,9 +62,8 @@ def _questions_have_wrong_reasons(sections: list[dict[str, Any]]) -> bool:
     """Return True if every question_card has a non-empty wrong_reasons dict."""
     for section in sections:
         for comp in section.get("components", []):
-            if isinstance(comp, dict) and comp.get("type") == "question_card":
-                if not comp.get("wrong_reasons"):
-                    return False
+            if isinstance(comp, dict) and comp.get("type") == "question_card" and not comp.get("wrong_reasons"):  # noqa: E501
+                return False
     return True
 
 
@@ -103,9 +102,8 @@ def check_methodology_compliance(
             ))
 
     # R5: why_wrong_reasoning — every question_card must carry wrong_reasons
-    if "why_wrong_reasoning" in methodology_tags:
-        if _count_question_cards(sections) > 0 and not _questions_have_wrong_reasons(sections):
-            violations.append(MethodologyViolation(
+    if "why_wrong_reasoning" in methodology_tags and _count_question_cards(sections) > 0 and not _questions_have_wrong_reasons(sections):  # noqa: E501
+        violations.append(MethodologyViolation(
                 tag="why_wrong_reasoning",
                 message=(
                     "Methodology tag 'why_wrong_reasoning' requires every question_card "

@@ -108,6 +108,8 @@ class InterruptHandler:
         """Send webhook notification for teacher gate."""
         import httpx
 
+        if not self.config.webhook_url:
+            return
         try:
             async with httpx.AsyncClient() as client:
                 await client.post(

@@ -12,14 +12,14 @@ from ..webhooks.zalo import verify_zalo_signature
 router = APIRouter()
 
 
-@router.post("/notify")
+@router.post("/notify")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def send_notification():
     """POST /webhook/notify — Send gate approval notification."""
     # TODO: Dispatch notification via configured channel (Telegram/Zalo/email)
     raise NotImplementedError
 
 
-@router.post("/telegram")
+@router.post("/telegram")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def telegram_webhook(request: Request):
     """POST /webhook/telegram — Receive Telegram bot updates.
 
@@ -38,7 +38,7 @@ async def telegram_webhook(request: Request):
     return {"status": "ok"}
 
 
-@router.post("/zalo")
+@router.post("/zalo")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def zalo_webhook(request: Request):
     """POST /webhook/zalo — Receive Zalo webhook events.
 
@@ -75,7 +75,7 @@ class FrontendErrorReport(BaseModel):
     extra: dict[str, Any] = Field(default_factory=dict)
 
 
-@router.post("/error")
+@router.post("/error")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def frontend_error(report: FrontendErrorReport, request: Request):
     """POST /webhook/error — Receive frontend error reports.
 

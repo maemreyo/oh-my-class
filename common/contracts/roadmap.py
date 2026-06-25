@@ -4,11 +4,11 @@ Produced by the RoadmapAgent. Consumed by the renderer's roadmap.eta template.
 """
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from common.contracts.components import ContentComponent, StatCard
+from common.contracts.components import ContentComponent, StatCard  # noqa: TC001
 
 
 class NavItem(BaseModel):
@@ -53,4 +53,4 @@ class RoadmapContent(BaseModel):
     hero: RoadmapHero
     sections: list[RoadmapSection] = Field(default_factory=list)
     sidebar: RoadmapSidebar
-    accessibility: dict = Field(default_factory=lambda: {"language": "vi"})
+    accessibility: dict[str, Any] = Field(default_factory=lambda: {"language": "vi"})

@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
+
     from packages.agents.state import OhMyClassState
 
 
-def make_roadmap_agent(checkpointer=None) -> "CompiledStateGraph":
+def make_roadmap_agent(checkpointer=None) -> CompiledStateGraph[Any, Any]:
     """Return a compiled LangGraph for the Roadmap Agent.
 
     For standalone use:
@@ -31,7 +32,7 @@ def make_roadmap_agent(checkpointer=None) -> "CompiledStateGraph":
     return builder.compile(checkpointer=checkpointer)
 
 
-async def roadmap_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+async def roadmap_graph_node(state: OhMyClassState) -> dict[str, Any]:
     """Pipeline graph node for step_04b_roadmap.
 
     Skip policy:
@@ -45,5 +46,5 @@ async def roadmap_graph_node(state: "OhMyClassState") -> dict[str, Any]:
     from packages.agents.sub_agents.roadmap_agent.adapters import extract_roadmap_agent_state
     from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-    roadmap_state = extract_roadmap_agent_state(state)
+    roadmap_state = extract_roadmap_agent_state(state)  # type: ignore[arg-type]
     return await roadmap_node(roadmap_state)  # raises ValueError on LLM/schema error

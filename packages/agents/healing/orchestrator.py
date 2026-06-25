@@ -1,9 +1,9 @@
 """H3 pattern: Central healing orchestrator — one place for all recovery logic."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from packages.agents.healing.strategies import retry, rewrite, reroute, replan, escalate
+from packages.agents.healing.strategies import escalate, replan, reroute, retry, rewrite
 
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
@@ -23,36 +23,36 @@ class HealingOrchestrator:
     def __init__(self, max_retries: int = 3):
         self.max_retries = max_retries
 
-    def heal(self, state: "OhMyClassState") -> dict:
+    def heal(self, state: OhMyClassState) -> dict[str, Any]:
         fail_count = state.get("fail_count", 0) + 1
         fail_type = state.get("fail_type", "validation")
 
         if fail_count > self.max_retries:
-            return escalate.apply(state, fail_count)
+            return escalate.apply(state, fail_count)  # type: ignore[arg-type]
 
         if fail_count == 1 and fail_type == "transient":
-            return retry.apply(state, fail_count)
+            return retry.apply(state, fail_count)  # type: ignore[arg-type]
 
         if fail_count == 1 and fail_type in ("validation", "score", "content"):
-            return rewrite.apply(state, fail_count)
+            return rewrite.apply(state, fail_count)  # type: ignore[arg-type]
 
         if fail_count == 2:
-            return reroute.apply(state, fail_count)
+            return reroute.apply(state, fail_count)  # type: ignore[arg-type]
 
         if fail_count == 3:
-            return replan.apply(state, fail_count)
+            return replan.apply(state, fail_count)  # type: ignore[arg-type]
 
-        return escalate.apply(state, fail_count)
+        return escalate.apply(state, fail_count)  # type: ignore[arg-type]
 
 
-def healing_node(state: "OhMyClassState") -> dict:
+def healing_node(state: OhMyClassState) -> dict[str, Any]:
     """Graph node — delegates to HealingOrchestrator."""
     from packages.agents.config.gate_config import GateConfig
     config = GateConfig()
     return HealingOrchestrator(max_retries=config.max_retries).heal(state)
 
 
-def route_after_healing(state: "OhMyClassState") -> str:
+def route_after_healing(state: OhMyClassState) -> str:
     """Route: escalate if flagged, otherwise back to generate."""
     if state.get("escalate"):
         return "escalate_node"

@@ -19,7 +19,7 @@ _reviewer = None
 
 
 @tool
-def run_planner(raw_request: str, class_info: dict) -> dict:
+def run_planner(raw_request: str, class_info: dict[str, Any]) -> dict[str, Any]:
     """Design a lesson blueprint from the teacher's request and class info."""
     global _planner
     if _planner is None:
@@ -38,7 +38,7 @@ def run_planner(raw_request: str, class_info: dict) -> dict:
 
 
 @tool
-def run_researcher(lesson_plan: dict, research_policy: str = "standard") -> dict:
+def run_researcher(lesson_plan: dict[str, Any], research_policy: str = "standard") -> dict[str, Any]:  # noqa: E501
     """Research and synthesize sources for the lesson plan."""
     global _researcher
     if _researcher is None:
@@ -58,11 +58,11 @@ def run_researcher(lesson_plan: dict, research_policy: str = "standard") -> dict
 
 @tool
 def run_content_creator(
-    lesson_plan: dict,
-    research_bundle: dict,
+    lesson_plan: dict[str, Any],
+    research_bundle: dict[str, Any],
     artifact_types: list[str],
     theme: str = "default",
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Generate lesson artifacts (lesson, worksheet, quiz, etc.)."""
     global _creator
     if _creator is None:
@@ -83,7 +83,7 @@ def run_content_creator(
 
 
 @tool
-def run_reviewer(artifacts: list[dict], lesson_plan: dict) -> dict:
+def run_reviewer(artifacts: list[dict[str, Any]], lesson_plan: dict[str, Any]) -> dict[str, Any]:
     """Review artifacts using G-Eval criteria. Returns quality scores and pass/fail."""
     global _reviewer
     if _reviewer is None:

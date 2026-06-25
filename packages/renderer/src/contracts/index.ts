@@ -43,13 +43,12 @@ export type { DrillData, DrillQuestion } from "./drill.js";
 export type { WorksheetData, WorksheetSection } from "./worksheet.js";
 export type { RecapData, RecapItem } from "./recap.js";
 export type { InfographicData, InfographicSection } from "./infographic.js";
-export type { AnswerKeyData } from "./answer_key.js";
+export type { AnswerKeyData, AnswerKeySection, AnswerKeyMetadata } from "./answer_key.js";
 export type { FlashcardDeckData, Flashcard } from "./flashcard_deck.js";
 export type { ReadingPassageData, ComprehensionQuestion } from "./reading_passage.js";
 export type { ExitTicketData, ExitTicketQuestion } from "./exit_ticket.js";
 export type { TeachingPackData } from "./schemas/teaching-pack.js";
 export type { RoadmapData, RoadmapHero, RoadmapSidebar, RoadmapSection, StatCard as RoadmapStatCard } from "./roadmap.js";
-export type { AnswerKeyData, AnswerKeySection, AnswerKeyMetadata } from "./answer_key.js";
 export type { ContentComponent, QuestionCardComponent, QuestionListComponent } from "./components.js";
 
 // ── New schemas (Report 07) ───────────────────────────────────────────────────

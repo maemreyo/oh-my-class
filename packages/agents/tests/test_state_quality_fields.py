@@ -1,5 +1,9 @@
 """Tests for new quality gate state fields."""
-from packages.agents.state import OhMyClassState
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
+
 
 def test_state_has_fail_layer():
     state: OhMyClassState = {
@@ -14,7 +18,6 @@ def test_state_has_fail_layer():
     assert state["fail_count"] == 1
 
 def test_state_has_schema_valid():
-    from packages.agents.state import OhMyClassState
     state = {"schema_valid": True}
     assert state.get("schema_valid") is True
 

@@ -4,16 +4,22 @@ from __future__ import annotations
 
 import json
 import sys
-import pytest
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from common.contracts.artifact import ArtifactContent
 from packages.agents.sub_agents.content_creator.nodes import (
     content_creator_node as generate_artifacts,
+)
+from packages.agents.sub_agents.content_creator.nodes import (
     validate_no_cdn,
     validate_no_pii,
 )
 
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.content_creator.state import ContentCreatorState
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -33,7 +39,7 @@ def _make_litellm_mock(return_value=None, side_effect=None) -> MagicMock:
     return mock_module
 
 
-def _make_state(**overrides) -> dict:
+def _make_state(**overrides) -> dict[str, Any]:
     base = {
         "lesson_plan": {"topic": "Photosynthesis", "learning_objectives": []},
         "research_bundle": {"sources": [], "topic": "Photosynthesis"},
@@ -67,7 +73,7 @@ class TestContentCreatorAgent:
     async def test_returns_valid_artifact_content(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await generate_artifacts(_make_state())
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
         assert len(result["artifacts"]) == 1
@@ -78,7 +84,7 @@ class TestContentCreatorAgent:
     async def test_parses_json_code_fence(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await generate_artifacts(_make_state())
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert result["artifacts"][0]["title"] == "Photosynthesis Lesson"
 
@@ -87,16 +93,16 @@ class TestContentCreatorAgent:
         wrapped = f"```\n{VALID_ARTIFACT_ARRAY_JSON}\n```"
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(wrapped))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await generate_artifacts(_make_state())
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
         assert len(result["artifacts"]) == 1
 
     @pytest.mark.asyncio
     async def test_parses_bare_json_array(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_ARRAY_JSON))
+        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_ARRAY_JSON))  # noqa: E501
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await generate_artifacts(_make_state())
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
 
@@ -104,29 +110,27 @@ class TestContentCreatorAgent:
     async def test_wraps_single_artifact_dict_in_list(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_JSON))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await generate_artifacts(_make_state())
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert len(result["artifacts"]) == 1
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_invalid_json(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not valid json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Invalid JSON"):
-                await generate_artifacts(_make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+            await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
         mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Content creator agent failed"):
-                await generate_artifacts(_make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Content creator agent failed"):  # noqa: E501
+            await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
     @pytest.mark.asyncio
     async def test_calls_litellm_with_correct_model(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            await generate_artifacts(_make_state())
+            await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert mock_litellm.acompletion.call_args.kwargs["model"] == "f.light"
 
@@ -134,7 +138,7 @@ class TestContentCreatorAgent:
     async def test_metadata_tags_include_run_id(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            await generate_artifacts(_make_state(run_id="run-xyz"))
+            await generate_artifacts(cast("ContentCreatorState", _make_state(run_id="run-xyz")))
 
         tags = mock_litellm.acompletion.call_args.kwargs["extra_body"]["metadata"]["tags"]
         assert any("run-xyz" in t for t in tags)
@@ -145,7 +149,7 @@ class TestContentCreatorAgent:
     async def test_missing_lesson_plan_uses_empty_dict(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await generate_artifacts(_make_state(lesson_plan=None))
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state(lesson_plan=None)))  # noqa: E501
 
         mock_litellm.acompletion.assert_awaited_once()
         assert "artifacts" in result
@@ -154,7 +158,7 @@ class TestContentCreatorAgent:
     async def test_missing_artifact_types_defaults_to_lesson(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await generate_artifacts(_make_state(artifact_types=None))
+            await generate_artifacts(cast("ContentCreatorState", _make_state(artifact_types=None)))
 
         user_msg = mock_litellm.acompletion.call_args.kwargs["messages"][1]["content"]
         assert "lesson" in user_msg
@@ -163,7 +167,7 @@ class TestContentCreatorAgent:
     async def test_theme_forwarded_to_prompt(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            await generate_artifacts(_make_state(theme="ocean"))
+            await generate_artifacts(cast("ContentCreatorState", _make_state(theme="ocean")))
 
         user_msg = mock_litellm.acompletion.call_args.kwargs["messages"][1]["content"]
         assert "ocean" in user_msg
@@ -172,11 +176,11 @@ class TestContentCreatorAgent:
     async def test_artifact_validates_against_schema(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await generate_artifacts(_make_state())
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         for artifact_dict in result["artifacts"]:
             artifact = ArtifactContent.model_validate(artifact_dict)
-            assert artifact.artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic")
+            assert artifact.artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic")  # noqa: E501
             assert len(artifact.title) >= 3
 
 
@@ -269,7 +273,8 @@ class TestContentCreatorTools:
         path = str(tmp_path / "out.txt")
         result = await write_file(path, "artifact content")
         assert result is True
-        assert open(path).read() == "artifact content"
+        with open(path) as f:
+            assert f.read() == "artifact content"
 
     @pytest.mark.asyncio
     async def test_write_file_no_overwrite_by_default(self, tmp_path):
@@ -296,22 +301,26 @@ class TestContentCreatorTools:
 
 class TestContentCreatorPrompts:
     def test_prompt_contains_artifact_types(self):
-        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
+        content_creator_system_prompt = load_system_prompt()
 
         for artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic"):
-            assert artifact_type in CONTENT_CREATOR_SYSTEM_PROMPT
+            assert artifact_type in content_creator_system_prompt
 
     def test_prompt_mentions_no_html(self):
-        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
+        content_creator_system_prompt = load_system_prompt()
 
-        assert "HTML" in CONTENT_CREATOR_SYSTEM_PROMPT
+        assert "HTML" in content_creator_system_prompt
 
     def test_prompt_mentions_teacher_only(self):
-        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
+        content_creator_system_prompt = load_system_prompt()
 
-        assert "teacher_only" in CONTENT_CREATOR_SYSTEM_PROMPT
+        assert "teacher_only" in content_creator_system_prompt
 
     def test_prompt_mentions_no_cdn(self):
-        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+        from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
+        content_creator_system_prompt = load_system_prompt()
 
-        assert "CDN" in CONTENT_CREATOR_SYSTEM_PROMPT
+        assert "CDN" in content_creator_system_prompt

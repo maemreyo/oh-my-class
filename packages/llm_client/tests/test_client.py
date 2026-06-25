@@ -1,8 +1,6 @@
 """Tests for LLMClientConfig — env var reading and defaults."""
 from __future__ import annotations
 
-import pytest
-
 from packages.llm_client.config import LLMClientConfig
 
 

@@ -1,8 +1,13 @@
 """Telegram bot notification channel. Free, no SDK needed."""
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import httpx
-from packages.notifications.base import ApprovalEvent
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+if TYPE_CHECKING:
+    from packages.notifications.base import ApprovalEvent
 
 
 class TelegramConfig(BaseSettings):

@@ -2,12 +2,16 @@
 
 import json
 import sys
-import pytest
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from common.contracts.lesson_plan import LessonPlan
 from common.contracts.research_bundle import ResearchBundle, ResearchSource
 
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.planner.state import PlannerState
 
 # ── ResearchBundle ────────────────────────────────────────────────────────────
 
@@ -40,7 +44,7 @@ class TestResearchSource:
     def test_verification_status_enum(self):
         from pydantic import ValidationError
         with pytest.raises(ValidationError):
-            ResearchSource(title="X", credibility_score=0.5, verification_status="INVALID")
+            ResearchSource(title="X", credibility_score=0.5, verification_status="INVALID")  # pyright: ignore[reportArgumentType]
 
     def test_all_verification_statuses(self):
         for status in ("VERIFIED", "MODIFIED", "REMOVED", "UNCERTAIN"):
@@ -49,7 +53,7 @@ class TestResearchSource:
 
 
 class TestResearchBundle:
-    def _make_source(self, title: str = "Source", score: float = 0.9) -> dict:
+    def _make_source(self, title: str = "Source", score: float = 0.9) -> dict[str, Any]:
         return {"title": title, "credibility_score": score, "verification_status": "VERIFIED"}
 
     def test_valid_with_2_sources(self):
@@ -146,9 +150,10 @@ class TestResearchBundle:
             ResearchBundle.model_validate(data)
 
     def test_exported_from_contracts(self):
-        from common.contracts import ResearchBundle as RB, ResearchSource as RS
-        assert RB is ResearchBundle
-        assert RS is ResearchSource
+        from common.contracts import ResearchBundle as ResearchBundleAlias
+        from common.contracts import ResearchSource as ResearchSourceAlias
+        assert ResearchBundleAlias is ResearchBundle
+        assert ResearchSourceAlias is ResearchSource
 
 
 # ── Planner Agent ─────────────────────────────────────────────────────────────
@@ -186,7 +191,7 @@ VALID_PLAN_GENERIC_FENCE = f"```\n{VALID_PLAN_JSON}\n```"
 
 
 class TestPlannerAgent:
-    def _make_state(self, **overrides) -> dict:
+    def _make_state(self, **overrides) -> dict[str, Any]:
         base = {
             "raw_request": "Teach photosynthesis to grade 5",
             "class_info": {"grade": 5, "subject": "science", "student_count": 30},
@@ -202,7 +207,7 @@ class TestPlannerAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await design_lesson_plan(self._make_state())
+            result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
         plan = LessonPlan.model_validate(result["lesson_plan"])
@@ -214,7 +219,7 @@ class TestPlannerAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await design_lesson_plan(self._make_state())
+            result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert result["lesson_plan"]["topic"] == "Photosynthesis"
 
@@ -222,9 +227,9 @@ class TestPlannerAgent:
     async def test_parses_generic_code_fence(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_GENERIC_FENCE))
+        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_GENERIC_FENCE))  # noqa: E501
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await design_lesson_plan(self._make_state())
+            result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
 
@@ -234,7 +239,7 @@ class TestPlannerAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_JSON))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await design_lesson_plan(self._make_state())
+            result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
 
@@ -243,18 +248,16 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json at all"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Invalid JSON"):
-                await design_lesson_plan(self._make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+            await design_lesson_plan(cast("PlannerState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Planner agent failed"):
-                await design_lesson_plan(self._make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Planner agent failed"):  # noqa: E501
+            await design_lesson_plan(cast("PlannerState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_schema_mismatch(self):
@@ -262,9 +265,8 @@ class TestPlannerAgent:
 
         bad_plan = json.dumps({"topic": "T"})  # Missing required fields
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_plan))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Planner agent failed"):
-                await design_lesson_plan(self._make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Planner agent failed"):  # noqa: E501
+            await design_lesson_plan(cast("PlannerState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_state_missing_class_info_fields_uses_defaults(self):
@@ -272,7 +274,7 @@ class TestPlannerAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await design_lesson_plan(self._make_state(class_info={}))
+            result = await design_lesson_plan(cast("PlannerState", self._make_state(class_info={})))
 
         mock_litellm.acompletion.assert_awaited_once()
         assert "lesson_plan" in result
@@ -283,7 +285,7 @@ class TestPlannerAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            await design_lesson_plan(self._make_state())
+            await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         call_kwargs = mock_litellm.acompletion.call_args
         assert call_kwargs.kwargs["model"] == "f.light"
@@ -294,7 +296,7 @@ class TestPlannerAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            await design_lesson_plan(self._make_state(run_id="my-run-xyz"))
+            await design_lesson_plan(cast("PlannerState", self._make_state(run_id="my-run-xyz")))
 
         tags = mock_litellm.acompletion.call_args.kwargs["extra_body"]["metadata"]["tags"]
         assert any("my-run-xyz" in t for t in tags)
@@ -307,7 +309,7 @@ class TestPlannerAgent:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await design_lesson_plan(self._make_state())
+            result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         plan = LessonPlan.model_validate(result["lesson_plan"])
         levels = {obj.bloom_level for obj in plan.learning_objectives}

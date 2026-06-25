@@ -5,9 +5,12 @@ No network calls, no API keys needed. Inject in place of LLMClient.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import AsyncIterator
+from typing import TYPE_CHECKING, Any
 
 from packages.llm_client.client import ChatMessage, ChatResponse
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 
 class MockLLMClient:
@@ -22,7 +25,7 @@ class MockLLMClient:
 
     def __init__(self) -> None:
         self._responses: dict[tuple[str, str], list[str]] = defaultdict(list)
-        self._calls: list[dict] = []
+        self._calls: list[dict[str, Any]] = []
         self._default_response = '{"result": "mock response"}'
 
     def set_response(self, model: str, task: str, response: str) -> None:
@@ -75,7 +78,7 @@ class MockLLMClient:
             calls = [c for c in calls if c["task"] == task]
         return len(calls)
 
-    def last_call(self) -> dict | None:
+    def last_call(self) -> dict[str, Any] | None:
         return self._calls[-1] if self._calls else None
 
     def reset(self) -> None:

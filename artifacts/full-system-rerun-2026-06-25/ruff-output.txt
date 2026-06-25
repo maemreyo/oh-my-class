@@ -1,0 +1,4148 @@
+F401 [*] `os` imported but unused
+ --> common/branding/tests/test_generate_theme.py:6:8
+  |
+5 | import json
+6 | import os
+  |        ^^
+7 | import sys
+8 | import tempfile
+  |
+help: Remove unused import: `os`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> common/branding/tests/test_generate_theme.py:17:1
+   |
+15 |       sys.path.insert(0, str(_PROJECT_ROOT))
+16 |
+17 | / from common.branding.generate_theme import (  # noqa: E402
+18 | |     generate_all_themes,
+19 | |     generate_group_tokens,
+20 | |     generate_theme,
+21 | |     generate_utility_classes,
+22 | | )
+   | |_^
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> common/contracts/__init__.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / from common.contracts.answer_key import AnswerKeyContent, AnswerKeySection, AnswerKeyMetadata
+ 8 | | from common.contracts.artifact import ArtifactContent, TeachingPack
+ 9 | | from common.contracts.auth import Role, Token, User
+10 | | from common.contracts.components import ContentComponent
+11 | | from common.contracts.errors import (
+12 | |     ErrorCode,
+13 | |     ErrorResponse,
+14 | |     PipelineErrorResponse,
+15 | |     ValidationErrorDetail,
+16 | | )
+17 | | from common.contracts.judge_output import JudgeOutput, LayerScore
+18 | | from common.contracts.lesson_plan import AssessmentCheckpoint, LearningObjective, LessonPlan
+19 | | from common.contracts.log_context import LogContext
+20 | | from common.contracts.diagnostic_report import (
+21 | |     BloomGap,
+22 | |     DiagnosticReport,
+23 | |     KnowledgeGap,
+24 | |     MisconceptionPattern,
+25 | | )
+26 | | from common.contracts.research_bundle import ResearchBundle, ResearchSource
+27 | | from common.contracts.roadmap import (
+28 | |     RoadmapContent,
+29 | |     RoadmapHero,
+30 | |     RoadmapSection,
+31 | |     RoadmapSidebar,
+32 | | )
+33 | | from common.contracts.student_profile import LearningStyle, PersonalityTrait, StudentProfile
+34 | | from common.contracts.student_response import StudentAnswerItem, StudentResponse
+   | |________________________________________________________________________________^
+35 |
+36 |   __all__ = [
+   |
+help: Organize imports
+
+TC001 Move application import `common.contracts.components.ContentComponent` into a type-checking block
+  --> common/contracts/answer_key.py:12:41
+   |
+10 | from pydantic import BaseModel, Field
+11 |
+12 | from common.contracts.components import ContentComponent
+   |                                         ^^^^^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+UP007 [*] Use `X | Y` for type annotations
+  --> common/contracts/components/__init__.py:61:5
+   |
+60 |   ContentComponent = Annotated[
+61 | /     Union[
+62 | |         Heading,
+63 | |         Paragraph,
+64 | |         Callout,
+65 | |         OrderedList,
+66 | |         UnorderedList,
+67 | |         Table,
+68 | |         StatGrid,
+69 | |         PatternGrid,
+70 | |         TraitGrid,
+71 | |         TaxonomyGrid,
+72 | |         PhaseTimeline,
+73 | |         FlowStep,
+74 | |         QuestionCard,
+75 | |         QuestionList,
+76 | |         ConceptMap,
+77 | |         TimelineComponent,
+78 | |         VocabCluster,
+79 | |         ContrastivePairs,
+80 | |         PhrasalVerbCluster,
+81 | |         FilmClipActivity,
+82 | |         RoleplayScript,
+83 | |         ActiveRecallPrompt,
+84 | |     ],
+   | |_____^
+85 |       Field(discriminator="type"),
+86 |   ]
+   |
+help: Convert to `X | Y`
+
+E501 Line too long (116 > 100)
+ --> common/contracts/components/concept.py:1:101
+  |
+1 | """Concept and timeline components — ConceptMap (with edges), VocabCluster, ContrastivePairs, PhrasalVerbCluster."""
+  |                                                                                                     ^^^^^^^^^^^^^^^^
+2 | from __future__ import annotations
+  |
+
+E501 Line too long (105 > 100)
+ --> common/contracts/components/concept.py:8:101
+  |
+6 | from pydantic import BaseModel, Field
+7 |
+8 | ConceptRelationType = Literal["synonymy", "contrast", "collocation", "register", "part_of", "example_of"]
+  |                                                                                                     ^^^^^
+9 | GroupColor = Literal["a", "b", "c", "d", "e"]
+  |
+
+E501 Line too long (102 > 100)
+ --> common/contracts/components/vocab_lesson.py:1:101
+  |
+1 | """Vocabulary lesson methodology components — FilmClipActivity, RoleplayScript, ActiveRecallPrompt."""
+  |                                                                                                     ^^
+2 | from __future__ import annotations
+  |
+
+F401 [*] `typing.Annotated` imported but unused
+  --> common/contracts/lesson_plan.py:9:20
+   |
+ 7 | from __future__ import annotations
+ 8 |
+ 9 | from typing import Annotated, Any, Literal
+   |                    ^^^^^^^^^
+10 |
+11 | from pydantic import BaseModel, Field
+   |
+help: Remove unused import: `typing.Annotated`
+
+TC001 Move application import `common.contracts.components.ContentComponent` into a type-checking block
+  --> common/contracts/roadmap.py:11:41
+   |
+ 9 | from pydantic import BaseModel, Field
+10 |
+11 | from common.contracts.components import ContentComponent, StatCard
+   |                                         ^^^^^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC001 Move application import `common.contracts.components.StatCard` into a type-checking block
+  --> common/contracts/roadmap.py:11:59
+   |
+ 9 | from pydantic import BaseModel, Field
+10 |
+11 | from common.contracts.components import ContentComponent, StatCard
+   |                                                           ^^^^^^^^
+   |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> common/contracts/tests/test_answer_key.py:2:1
+   |
+ 1 |   """Tests for AnswerKeyContent model."""
+ 2 | / from __future__ import annotations
+ 3 | |
+ 4 | | import pytest
+ 5 | | from pydantic import ValidationError
+ 6 | |
+ 7 | | from common.contracts.answer_key import (
+ 8 | |     AnswerKeyContent,
+ 9 | |     AnswerKeySection,
+10 | |     AnswerKeyMetadata,
+11 | | )
+12 | | from common.contracts.components import QuestionCard, QuestionList
+   | |__________________________________________________________________^
+   |
+help: Organize imports
+
+F401 [*] `common.contracts.components.QuestionList` imported but unused
+  --> common/contracts/tests/test_answer_key.py:12:55
+   |
+10 |     AnswerKeyMetadata,
+11 | )
+12 | from common.contracts.components import QuestionCard, QuestionList
+   |                                                       ^^^^^^^^^^^^
+   |
+help: Remove unused import: `common.contracts.components.QuestionList`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> common/contracts/tests/test_components.py:2:1
+   |
+ 1 |   """Tests for ContentComponent discriminated union — all 14 component types."""
+ 2 | / from __future__ import annotations
+ 3 | |
+ 4 | | import pytest
+ 5 | | from pydantic import ValidationError
+ 6 | |
+ 7 | | from common.contracts.components import (
+ 8 | |     ContentComponent,
+ 9 | |     Heading,
+10 | |     Paragraph,
+11 | |     Callout,
+12 | |     OrderedList,
+13 | |     UnorderedList,
+14 | |     Table,
+15 | |     StatGrid,
+16 | |     StatCard,
+17 | |     PatternGrid,
+18 | |     PatternCard,
+19 | |     TraitGrid,
+20 | |     TraitCard,
+21 | |     TaxonomyGrid,
+22 | |     TaxonomyItem,
+23 | |     PhaseTimeline,
+24 | |     RoadmapPhase,
+25 | |     PhaseBlock,
+26 | |     FlowStep,
+27 | |     FlowItem,
+28 | |     QuestionCard,
+29 | |     QuestionList,
+30 | |     ConceptMap,
+31 | |     TimelineComponent,
+32 | | )
+33 | | from pydantic import TypeAdapter
+34 | |
+35 | | from common.contracts.components.concept import (
+36 | |     ConceptEdge, ConceptNode, VocabCluster, VocabItem, ContrastivePairs, ContrastivePairRow,
+37 | |     PhrasalVerbCluster, PhrasalVerbGroup, PhrasalVerbItem, ConceptRelationType,
+38 | | )
+39 | | from common.contracts.components.vocab_lesson import (
+40 | |     FilmClip, FilmClipActivity, RoleplayLine, RoleplayScript, ActiveRecallPrompt,
+41 | | )
+   | |_^
+42 |
+43 |   _COMPONENT_ADAPTER = TypeAdapter(ContentComponent)
+   |
+help: Organize imports
+
+F401 [*] `common.contracts.components.concept.ConceptRelationType` imported but unused
+  --> common/contracts/tests/test_components.py:37:60
+   |
+35 | from common.contracts.components.concept import (
+36 |     ConceptEdge, ConceptNode, VocabCluster, VocabItem, ContrastivePairs, ContrastivePairRow,
+37 |     PhrasalVerbCluster, PhrasalVerbGroup, PhrasalVerbItem, ConceptRelationType,
+   |                                                            ^^^^^^^^^^^^^^^^^^^
+38 | )
+39 | from common.contracts.components.vocab_lesson import (
+   |
+help: Remove unused import: `common.contracts.components.concept.ConceptRelationType`
+
+E501 Line too long (105 > 100)
+   --> common/contracts/tests/test_components.py:443:101
+    |
+441 |             title="arrive / reach / enter",
+442 |             items=[
+443 |                 VocabItem(word="arrive", definition="reach a destination", example="We arrived at 6pm."),
+    |                                                                                                     ^^^^^
+444 |                 VocabItem(word="reach", definition="get to after effort"),
+445 |                 VocabItem(word="enter", definition="go into a space"),
+    |
+
+E501 Line too long (102 > 100)
+   --> common/contracts/tests/test_components.py:467:101
+    |
+465 |     def test_valid(self):
+466 |         cp = ContrastivePairs(rows=[
+467 |             ContrastivePairRow(terms="fare / ticket", distinction="fare=price, ticket=physical card"),
+    |                                                                                                     ^^
+468 |         ])
+469 |         assert cp.type == "contrastive_pairs"
+    |
+
+E501 Line too long (108 > 100)
+   --> common/contracts/tests/test_components.py:521:101
+    |
+519 |         rs = RoleplayScript(
+520 |             lines=[
+521 |                 RoleplayLine(speaker="Người tiễn (A)", speaker_class="A", text="We should [blank_1] soon."),
+    |                                                                                                     ^^^^^^^^
+522 |                 RoleplayLine(speaker="Người đi (B)", speaker_class="B", text="I don't want to [blank_2] the flight."),
+523 |             ],
+    |
+
+E501 Line too long (118 > 100)
+   --> common/contracts/tests/test_components.py:522:101
+    |
+520 |             lines=[
+521 |                 RoleplayLine(speaker="Người tiễn (A)", speaker_class="A", text="We should [blank_1] soon."),
+522 |                 RoleplayLine(speaker="Người đi (B)", speaker_class="B", text="I don't want to [blank_2] the flight."),
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^
+523 |             ],
+524 |             answer_key=["set off", "miss"],
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> common/contracts/tests/test_diagnostic_report.py:3:1
+   |
+ 1 |   """Tests for StudentResponse and DiagnosticReport models."""
+ 2 |
+ 3 | / from __future__ import annotations
+ 4 | |
+ 5 | | import pytest
+ 6 | | from pydantic import ValidationError
+ 7 | |
+ 8 | | from common.contracts.student_response import StudentAnswerItem, StudentResponse
+ 9 | | from common.contracts.diagnostic_report import (
+10 | |     BloomGap,
+11 | |     DiagnosticReport,
+12 | |     KnowledgeGap,
+13 | |     MisconceptionPattern,
+14 | | )
+   | |_^
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> common/contracts/tests/test_lesson_plan.py:2:1
+  |
+1 |   """Tests for LessonPlan contract and methodology extensions."""
+2 | / from __future__ import annotations
+3 | | import pytest
+4 | | from pydantic import ValidationError
+5 | | from common.contracts.lesson_plan import (
+6 | |     LessonPlan, LearningObjective, AssessmentCheckpoint, MethodologyMetadata,
+7 | | )
+  | |_^
+8 |
+9 |   class TestLearningObjective:
+  |
+help: Organize imports
+
+F401 [*] `common.contracts.lesson_plan.AssessmentCheckpoint` imported but unused
+ --> common/contracts/tests/test_lesson_plan.py:6:36
+  |
+4 | from pydantic import ValidationError
+5 | from common.contracts.lesson_plan import (
+6 |     LessonPlan, LearningObjective, AssessmentCheckpoint, MethodologyMetadata,
+  |                                    ^^^^^^^^^^^^^^^^^^^^
+7 | )
+  |
+help: Remove unused import: `common.contracts.lesson_plan.AssessmentCheckpoint`
+
+E501 Line too long (106 > 100)
+  --> common/contracts/tests/test_lesson_plan.py:29:101
+   |
+27 |             "duration_minutes": 60,
+28 |             "learning_objectives": [
+29 |                 LearningObjective(description="Distinguish arrive/reach/enter", bloom_level="understand"),
+   |                                                                                                     ^^^^^^
+30 |                 LearningObjective(description="Use phrasal verbs correctly", bloom_level="apply"),
+31 |             ],
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> common/contracts/tests/test_roadmap.py:2:1
+   |
+ 1 |   """Tests for RoadmapContent model."""
+ 2 | / from __future__ import annotations
+ 3 | |
+ 4 | | import pytest
+ 5 | | from pydantic import ValidationError
+ 6 | |
+ 7 | | from common.contracts.roadmap import (
+ 8 | |     RoadmapContent,
+ 9 | |     RoadmapSection,
+10 | |     RoadmapHero,
+11 | |     RoadmapSidebar,
+12 | |     NavItem,
+13 | |     LegendItem,
+14 | | )
+15 | | from common.contracts.components import StatCard, PhaseTimeline
+   | |_______________________________________________________________^
+   |
+help: Organize imports
+
+E501 Line too long (116 > 100)
+  --> common/contracts/tests/test_roadmap.py:48:101
+   |
+46 |             lede="Based on your diagnostic results",
+47 |             stamp="6 months",
+48 |             stats=[StatCard(label="Current", value="65%"), StatCard(label="Target", value="85%", variant="target")],
+   |                                                                                                     ^^^^^^^^^^^^^^^^
+49 |         )
+50 |         assert len(h.stats) == 2
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/config/tests/test_gate_config.py:3:1
+  |
+1 |   """Tests for GateConfig and ModelConfig — L2 Pydantic Settings pattern."""
+2 |
+3 | / from __future__ import annotations
+4 | |
+5 | | import pytest
+  | |_____________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/gates/__init__.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / from packages.agents.gates.gate_01_blueprint import gate_01_blueprint_approval
+ 8 | | from packages.agents.gates.gate_02_content_approval import gate_02_content_approval
+ 9 | | from packages.agents.gates.schema_validator import step_09_schema_validate
+10 | | from packages.agents.gates.content_reviewer import step_10_content_review
+11 | | from packages.agents.gates.llm_judge import step_10b_llm_judge
+12 | | from packages.agents.gates.export_readiness import step_11_export_readiness
+   | |___________________________________________________________________________^
+13 |
+14 |   __all__ = [
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/gates/content_reviewer.py:2:1
+   |
+ 1 |   """Layer 2-3: FACT hybrid + HTML validation + age-appropriateness."""
+ 2 | / from __future__ import annotations
+ 3 | |
+ 4 | | from typing import TYPE_CHECKING
+ 5 | |
+ 6 | | from packages.agents.gates.fact_check import run_fact_check
+ 7 | | from packages.agents.gates.presentation import validate_html, check_age_appropriateness, check_answer_key_leakage
+ 8 | | from packages.agents.config.gate_config import GateConfig
+ 9 | | from packages.quality.layer2_content.methodology import check_methodology_compliance
+   | |____________________________________________________________________________________^
+10 |
+11 |   if TYPE_CHECKING:
+   |
+help: Organize imports
+
+E501 Line too long (113 > 100)
+ --> packages/agents/gates/content_reviewer.py:7:101
+  |
+6 | from packages.agents.gates.fact_check import run_fact_check
+7 | from packages.agents.gates.presentation import validate_html, check_age_appropriateness, check_answer_key_leakage
+  |                                                                                                     ^^^^^^^^^^^^^
+8 | from packages.agents.config.gate_config import GateConfig
+9 | from packages.quality.layer2_content.methodology import check_methodology_compliance
+  |
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/gates/content_reviewer.py:15:35
+   |
+15 | def step_10_content_review(state: "OhMyClassState") -> dict:
+   |                                   ^^^^^^^^^^^^^^^^
+16 |     """Layer 2-3: Content review (fact-check, HTML, age-appropriateness, answer key).
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/gates/export_readiness.py:14:37
+   |
+14 | def step_11_export_readiness(state: "OhMyClassState") -> dict:
+   |                                     ^^^^^^^^^^^^^^^^
+15 |     """Layer 6: Validate that artifacts are ready for export.
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/fact_check/__init__.py:1:1
+  |
+1 | / from packages.agents.gates.fact_check.fact_checker import fact_check, run_fact_check, FactCheckResult
+2 | | from packages.agents.gates.fact_check.extractor import extract_claims, Claim
+3 | | from packages.agents.gates.fact_check.risk_classifier import classify_risk, filter_high_risk
+  | |____________________________________________________________________________________________^
+4 |
+5 |   __all__ = ["fact_check", "run_fact_check", "FactCheckResult", "extract_claims", "Claim", "classify_risk", "filter_high_risk"]
+  |
+help: Organize imports
+
+E501 Line too long (101 > 100)
+ --> packages/agents/gates/fact_check/__init__.py:1:101
+  |
+1 | from packages.agents.gates.fact_check.fact_checker import fact_check, run_fact_check, FactCheckResult
+  |                                                                                                     ^
+2 | from packages.agents.gates.fact_check.extractor import extract_claims, Claim
+3 | from packages.agents.gates.fact_check.risk_classifier import classify_risk, filter_high_risk
+  |
+
+E501 Line too long (125 > 100)
+ --> packages/agents/gates/fact_check/__init__.py:5:101
+  |
+3 | from packages.agents.gates.fact_check.risk_classifier import classify_risk, filter_high_risk
+4 |
+5 | __all__ = ["fact_check", "run_fact_check", "FactCheckResult", "extract_claims", "Claim", "classify_risk", "filter_high_risk"]
+  |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/fact_check/extractor.py:2:1
+  |
+1 |   """Extract factual claims from educational content using regex patterns."""
+2 | / from __future__ import annotations
+3 | | import re
+4 | | from dataclasses import dataclass
+  | |_________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/fact_check/fact_checker.py:2:1
+  |
+1 |   """FACT hybrid pipeline: heuristics → optionally LLM for high-risk."""
+2 | / from __future__ import annotations
+3 | | from dataclasses import dataclass, field
+4 | |
+5 | | from packages.agents.gates.fact_check.extractor import extract_claims
+6 | | from packages.agents.gates.fact_check.risk_classifier import classify_risk, filter_high_risk
+7 | | from packages.agents.gates.fact_check.llm_verifier import verify_high_risk_claims
+  | |_________________________________________________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `packages.agents.gates.fact_check.risk_classifier.classify_risk` imported but unused
+ --> packages/agents/gates/fact_check/fact_checker.py:6:62
+  |
+5 | from packages.agents.gates.fact_check.extractor import extract_claims
+6 | from packages.agents.gates.fact_check.risk_classifier import classify_risk, filter_high_risk
+  |                                                              ^^^^^^^^^^^^^
+7 | from packages.agents.gates.fact_check.llm_verifier import verify_high_risk_claims
+  |
+help: Remove unused import: `packages.agents.gates.fact_check.risk_classifier.classify_risk`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/fact_check/llm_verifier.py:2:1
+  |
+1 |   """LLM-based fact verification for high-risk claims only (f.pro)."""
+2 | / from __future__ import annotations
+3 | | import json
+4 | | from dataclasses import dataclass
+  | |_________________________________^
+  |
+help: Organize imports
+
+E501 Line too long (106 > 100)
+  --> packages/agents/gates/fact_check/llm_verifier.py:51:101
+   |
+50 |     raw = json.loads(response.content)
+51 |     return [VerificationResult(claim=r["claim"], status=r["status"], note=r.get("note", "")) for r in raw]
+   |                                                                                                     ^^^^^^
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/fact_check/risk_classifier.py:2:1
+  |
+1 |   """Classify factual claims by hallucination risk level."""
+2 | / from __future__ import annotations
+3 | | from packages.agents.gates.fact_check.extractor import Claim
+  | |____________________________________________________________^
+4 |
+5 |   HIGH_RISK_TYPES = {"date", "statistic", "formula"}
+  |
+help: Organize imports
+
+TC001 Move application import `packages.agents.gates.fact_check.extractor.Claim` into a type-checking block
+ --> packages/agents/gates/fact_check/risk_classifier.py:3:56
+  |
+1 | """Classify factual claims by hallucination risk level."""
+2 | from __future__ import annotations
+3 | from packages.agents.gates.fact_check.extractor import Claim
+  |                                                        ^^^^^
+4 |
+5 | HIGH_RISK_TYPES = {"date", "statistic", "formula"}
+  |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/fact_check/tests/test_fact_detection.py:2:1
+  |
+1 |   """Tests for I2 hybrid FACT detection — no LLM needed for extractor/classifier."""
+2 | / from __future__ import annotations
+3 | | import json
+4 | | import pytest
+5 | | from unittest.mock import MagicMock
+  | |___________________________________^
+  |
+help: Organize imports
+
+F401 [*] `pytest` imported but unused
+ --> packages/agents/gates/fact_check/tests/test_fact_detection.py:4:8
+  |
+2 | from __future__ import annotations
+3 | import json
+4 | import pytest
+  |        ^^^^^^
+5 | from unittest.mock import MagicMock
+  |
+help: Remove unused import: `pytest`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/gates/fact_check/tests/test_fact_detection.py:42:9
+   |
+41 |     def test_claim_has_required_fields(self):
+42 |         from packages.agents.gates.fact_check.extractor import extract_claims, Claim
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+43 |         claims = extract_claims("Water is H2O.")
+44 |         for c in claims:
+   |
+help: Organize imports
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/gates/gate_01_blueprint.py:17:39
+   |
+17 | def gate_01_blueprint_approval(state: "OhMyClassState") -> dict[str, Any]:
+   |                                       ^^^^^^^^^^^^^^^^
+18 |     """HITL gate: teacher reviews and approves the lesson blueprint.
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/gates/gate_02_content_approval.py:17:37
+   |
+17 | def gate_02_content_approval(state: "OhMyClassState") -> dict[str, Any]:
+   |                                     ^^^^^^^^^^^^^^^^
+18 |     """HITL gate: teacher reviews and approves the generated artifacts.
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/gates/llm_judge.py:23:31
+   |
+23 | def step_10b_llm_judge(state: "OhMyClassState") -> dict:
+   |                               ^^^^^^^^^^^^^^^^
+24 |     """Layer 4: LLM-as-Judge using G-Eval pattern.
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/presentation/__init__.py:1:1
+  |
+1 | / from packages.agents.gates.presentation.html_validator import validate_html
+2 | | from packages.agents.gates.presentation.age_checker import check_age_appropriateness
+3 | | from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
+  | |________________________________________________________________________________________^
+4 |   __all__ = ["validate_html", "check_age_appropriateness", "check_answer_key_leakage"]
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/presentation/age_checker.py:2:1
+  |
+1 |   """Age-appropriateness checker for K-12 content."""
+2 | / from __future__ import annotations
+3 | | import re
+  | |_________^
+4 |
+5 |   BLOCKED_FOR_K12 = [
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/presentation/answer_key_guard.py:2:1
+  |
+1 |   """Answer key leakage guard for student-facing artifacts."""
+2 | / from __future__ import annotations
+3 | | import re
+  | |_________^
+4 |
+5 |   ANSWER_LEAK_PATTERNS = [
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/presentation/html_validator.py:2:1
+  |
+1 |   """HTML structural validator for artifact content."""
+2 | / from __future__ import annotations
+3 | | import re
+  | |_________^
+4 |
+5 |   DOCTYPE_PATTERN = re.compile(r"<!DOCTYPE\s+html", re.IGNORECASE)
+  |
+help: Organize imports
+
+E501 Line too long (112 > 100)
+  --> packages/agents/gates/presentation/html_validator.py:9:101
+   |
+ 9 | def validate_html(html: str, *, block_external_assets: bool = True, block_missing_doctype: bool = True) -> dict:
+   |                                                                                                     ^^^^^^^^^^^^
+10 |     """Validate HTML artifact for structural issues.
+   |
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/gates/schema_validator.py:12:36
+   |
+12 | def step_09_schema_validate(state: "OhMyClassState") -> dict:
+   |                                    ^^^^^^^^^^^^^^^^
+13 |     """Layer 1: Validate artifacts against required schema.
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/gates/tests/test_gates.py:202:5
+    |
+200 |   def test_lead_agent_node_does_not_call_interrupt():
+201 |       """Lead Agent must not import or call interrupt() directly — E3 invariant."""
+202 | /     import inspect
+203 | |     from packages.agents.lead_agent import node as node_module
+    | |______________________________________________________________^
+204 |       source = inspect.getsource(node_module)
+205 |       assert "interrupt" not in source
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/gates/tests/test_gates.py:209:5
+    |
+208 | def test_gates_module_is_importable():
+209 |     from packages.agents.gates import gate_01_blueprint_approval, gate_02_content_approval  # noqa: F401
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/gates/tests/test_quality_gates.py:2:1
+  |
+1 |   """Tests for quality gate nodes — schema, content review, LLM judge, export readiness."""
+2 | / from __future__ import annotations
+3 | | import pytest
+  | |_____________^
+4 |
+5 |   def make_base_state(**overrides) -> dict:
+  |
+help: Organize imports
+
+F401 [*] `pytest` imported but unused
+ --> packages/agents/gates/tests/test_quality_gates.py:3:8
+  |
+1 | """Tests for quality gate nodes — schema, content review, LLM judge, export readiness."""
+2 | from __future__ import annotations
+3 | import pytest
+  |        ^^^^^^
+4 |
+5 | def make_base_state(**overrides) -> dict:
+  |
+help: Remove unused import: `pytest`
+
+TC001 Move application import `packages.agents.state.OhMyClassState` into a type-checking block
+  --> packages/agents/graph.py:20:35
+   |
+18 | )
+19 | from packages.agents.healing import healing_node, route_after_healing
+20 | from packages.agents.state import OhMyClassState
+   |                                   ^^^^^^^^^^^^^^
+21 | from packages.agents.sub_agents.content_creator.agent import content_creator_graph_node
+22 | from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
+   |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/graph.py:70:5
+   |
+68 |           E. Escalate Node — terminal failure node
+69 |       """
+70 | /     from langgraph.graph import StateGraph, END
+71 | |     from packages.agents.state import OhMyClassState
+72 | |     from packages.agents.checkpointer import get_checkpointer
+   | |_____________________________________________________________^
+73 |
+74 |       if checkpointer is None:
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/healing/__init__.py:1:1
+  |
+1 | from packages.agents.healing.orchestrator import healing_node, route_after_healing, HealingOrchestrator
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 | __all__ = ["healing_node", "route_after_healing", "HealingOrchestrator"]
+  |
+help: Organize imports
+
+E501 Line too long (103 > 100)
+ --> packages/agents/healing/__init__.py:1:101
+  |
+1 | from packages.agents.healing.orchestrator import healing_node, route_after_healing, HealingOrchestrator
+  |                                                                                                     ^^^
+2 | __all__ = ["healing_node", "route_after_healing", "HealingOrchestrator"]
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/healing/circuit_breaker.py:2:1
+  |
+1 |   """CircuitBreaker — prevents cascading failures."""
+2 | / from __future__ import annotations
+3 | | import time
+  | |___________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/healing/html_healer.py:2:1
+  |
+1 |   """HTML-specific healing — DOCTYPE injection, unclosed tag repair."""
+2 | / from __future__ import annotations
+3 | | import re
+  | |_________^
+4 |
+5 |   DOCTYPE_HEADER = "<!DOCTYPE html>\n"
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/healing/orchestrator.py:2:1
+  |
+1 |   """H3 pattern: Central healing orchestrator — one place for all recovery logic."""
+2 | / from __future__ import annotations
+3 | |
+4 | | from typing import TYPE_CHECKING
+5 | |
+6 | | from packages.agents.healing.strategies import retry, rewrite, reroute, replan, escalate
+  | |________________________________________________________________________________________^
+7 |
+8 |   if TYPE_CHECKING:
+  |
+help: Organize imports
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/healing/orchestrator.py:26:27
+   |
+24 |         self.max_retries = max_retries
+25 |
+26 |     def heal(self, state: "OhMyClassState") -> dict:
+   |                           ^^^^^^^^^^^^^^^^
+27 |         fail_count = state.get("fail_count", 0) + 1
+28 |         fail_type = state.get("fail_type", "validation")
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/healing/orchestrator.py:48:25
+   |
+48 | def healing_node(state: "OhMyClassState") -> dict:
+   |                         ^^^^^^^^^^^^^^^^
+49 |     """Graph node — delegates to HealingOrchestrator."""
+50 |     from packages.agents.config.gate_config import GateConfig
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/healing/orchestrator.py:55:32
+   |
+55 | def route_after_healing(state: "OhMyClassState") -> str:
+   |                                ^^^^^^^^^^^^^^^^
+56 |     """Route: escalate if flagged, otherwise back to generate."""
+57 |     if state.get("escalate"):
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/healing/strategies/__init__.py:1:1
+  |
+1 | from packages.agents.healing.strategies import retry, rewrite, reroute, replan, escalate
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 | __all__ = ["retry", "rewrite", "reroute", "replan", "escalate"]
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/healing/strategies/reroute.py:2:1
+  |
+1 | """Layer 2: Swap model — f.light → f.pro or vice versa."""
+2 | from __future__ import annotations
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/healing/strategies/retry.py:2:1
+  |
+1 |   """Layer 0: Exponential backoff with ±25% jitter."""
+2 | / from __future__ import annotations
+3 | | import random
+4 | | import time
+  | |___________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/healing/tests/test_orchestrator.py:2:1
+  |
+1 |   """Tests for HealingOrchestrator and strategy selection."""
+2 | / from __future__ import annotations
+3 | | import pytest
+4 | | from unittest.mock import patch
+  | |_______________________________^
+  |
+help: Organize imports
+
+TC002 Move third-party import `langgraph.graph.state.CompiledStateGraph` into a type-checking block
+  --> packages/agents/lead_agent/agent.py:16:35
+   |
+14 | from langchain_openai import ChatOpenAI
+15 | from langgraph.checkpoint.memory import MemorySaver
+16 | from langgraph.graph.state import CompiledStateGraph
+   |                                   ^^^^^^^^^^^^^^^^^^
+17 | from langgraph.prebuilt import create_react_agent
+   |
+help: Move into type-checking block
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/lead_agent/node.py:19:34
+   |
+19 | async def lead_agent_node(state: "OhMyClassState") -> dict[str, Any]:
+   |                                  ^^^^^^^^^^^^^^^^
+20 |     """LangGraph node — invokes the Lead Agent and writes results back to graph state.
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/lead_agent/tests/test_lead_agent.py:3:1
+  |
+1 |   """Tests for Lead Agent — make_lead_agent(), recovery, prompt loading."""
+2 |
+3 | / from __future__ import annotations
+4 | |
+5 | | from unittest.mock import MagicMock, patch
+6 | |
+7 | | import pytest
+  | |_____________^
+  |
+help: Organize imports
+
+F401 [*] `pytest` imported but unused
+ --> packages/agents/lead_agent/tests/test_lead_agent.py:7:8
+  |
+5 | from unittest.mock import MagicMock, patch
+6 |
+7 | import pytest
+  |        ^^^^^^
+  |
+help: Remove unused import: `pytest`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/lead_agent/tests/test_lead_agent.py:82:5
+   |
+80 |   def test_system_prompt_loaded_from_file_not_hardcoded():
+81 |       """Prompt must come from a .md file, not a hardcoded string in agent.py."""
+82 | /     import inspect
+83 | |     from packages.agents.lead_agent import agent as agent_module
+   | |________________________________________________________________^
+84 |       source = inspect.getsource(agent_module)
+85 |       assert "run_planner" not in source or "load_system_prompt" in source
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/lead_agent/tests/test_lead_agent.py:170:5
+    |
+169 |   def test_lead_agent_node_is_async():
+170 | /     import asyncio
+171 | |     import inspect
+172 | |     from packages.agents.lead_agent.node import lead_agent_node
+    | |_______________________________________________________________^
+173 |       assert inspect.iscoroutinefunction(lead_agent_node)
+    |
+help: Organize imports
+
+F401 [*] `asyncio` imported but unused
+   --> packages/agents/lead_agent/tests/test_lead_agent.py:170:12
+    |
+169 | def test_lead_agent_node_is_async():
+170 |     import asyncio
+    |            ^^^^^^^
+171 |     import inspect
+172 |     from packages.agents.lead_agent.node import lead_agent_node
+    |
+help: Remove unused import: `asyncio`
+
+F401 [*] `unittest.mock.AsyncMock` imported but unused
+   --> packages/agents/lead_agent/tests/test_lead_agent.py:179:31
+    |
+177 |     """When revision_count > 0 and review_results present, recovery context is injected."""
+178 |     import asyncio
+179 |     from unittest.mock import AsyncMock, patch
+    |                               ^^^^^^^^^
+180 |
+181 |     from packages.agents.lead_agent.node import lead_agent_node
+    |
+help: Remove unused import: `unittest.mock.AsyncMock`
+
+F841 Local variable `result` is assigned to but never used
+   --> packages/agents/lead_agent/tests/test_lead_agent.py:209:9
+    |
+208 |     with patch("packages.agents.lead_agent.node._lead_agent", mock_agent):
+209 |         result = asyncio.run(lead_agent_node(state))
+    |         ^^^^^^
+210 |
+211 |     call_args = mock_agent.invoke.call_args[0][0]
+    |
+help: Remove assignment to unused variable `result`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/middleware/__init__.py:9:1
+   |
+ 7 |   """
+ 8 |
+ 9 | / from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
+10 | | from packages.agents.middleware.registry import ORDERED_MIDDLEWARE_LIST, EXPECTED_MIDDLEWARE_COUNT
+   | |__________________________________________________________________________________________________^
+11 |
+12 |   __all__ = ["BaseMiddleware", "MiddlewareContext", "ORDERED_MIDDLEWARE_LIST", "EXPECTED_MIDDLEWARE_COUNT"]
+   |
+help: Organize imports
+
+E501 Line too long (105 > 100)
+  --> packages/agents/middleware/__init__.py:12:101
+   |
+10 | from packages.agents.middleware.registry import ORDERED_MIDDLEWARE_LIST, EXPECTED_MIDDLEWARE_COUNT
+11 |
+12 | __all__ = ["BaseMiddleware", "MiddlewareContext", "ORDERED_MIDDLEWARE_LIST", "EXPECTED_MIDDLEWARE_COUNT"]
+   |                                                                                                     ^^^^^
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/middleware/__init_all__.py:9:1
+   |
+ 7 |   """
+ 8 |
+ 9 | / from __future__ import annotations
+10 | |
+11 | | from packages.agents.middleware.registry import ORDERED_MIDDLEWARE_LIST, EXPECTED_MIDDLEWARE_COUNT
+   | |__________________________________________________________________________________________________^
+12 |
+13 |   __all__ = ["ORDERED_MIDDLEWARE_LIST", "EXPECTED_MIDDLEWARE_COUNT"]
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/middleware/context/__init__.py:3:1
+   |
+ 1 |   """Context tier middleware — dynamic context injection, summarization, and state enrichment."""
+ 2 |
+ 3 | / from packages.agents.middleware.context.dynamic_context import DynamicContextMiddleware
+ 4 | | from packages.agents.middleware.context.skill_activation import SkillActivationMiddleware
+ 5 | | from packages.agents.middleware.context.summarization import SummarizationMiddleware
+ 6 | | from packages.agents.middleware.context.todo_list import TodoListMiddleware
+ 7 | | from packages.agents.middleware.context.token_usage import TokenUsageMiddleware
+ 8 | | from packages.agents.middleware.context.title import TitleMiddleware
+ 9 | | from packages.agents.middleware.context.memory import MemoryMiddleware
+10 | | from packages.agents.middleware.context.view_image import ViewImageMiddleware
+11 | | from packages.agents.middleware.context.deferred_tool_filter import DeferredToolFilterMiddleware
+12 | | from packages.agents.middleware.context.system_message_coalescing import SystemMessageCoalescingMiddleware
+   | |__________________________________________________________________________________________________________^
+13 |
+14 |   __all__ = [
+   |
+help: Organize imports
+
+E501 Line too long (106 > 100)
+  --> packages/agents/middleware/context/__init__.py:12:101
+   |
+10 | from packages.agents.middleware.context.view_image import ViewImageMiddleware
+11 | from packages.agents.middleware.context.deferred_tool_filter import DeferredToolFilterMiddleware
+12 | from packages.agents.middleware.context.system_message_coalescing import SystemMessageCoalescingMiddleware
+   |                                                                                                     ^^^^^^
+13 |
+14 | __all__ = [
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/middleware/loop_detection.py:6:1
+  |
+4 | """
+5 |
+6 | from packages.agents.middleware.safety.loop_detection import LoopDetectedError, LoopDetectionMiddleware
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | __all__ = ["LoopDetectedError", "LoopDetectionMiddleware"]
+  |
+help: Organize imports
+
+E501 Line too long (103 > 100)
+ --> packages/agents/middleware/loop_detection.py:6:101
+  |
+4 | """
+5 |
+6 | from packages.agents.middleware.safety.loop_detection import LoopDetectedError, LoopDetectionMiddleware
+  |                                                                                                     ^^^
+7 |
+8 | __all__ = ["LoopDetectedError", "LoopDetectionMiddleware"]
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/middleware/quality/__init__.py:3:1
+   |
+ 1 |   """Quality tier middleware — curriculum alignment, readability, pedagogy, and bias checks."""
+ 2 |
+ 3 | / from packages.agents.middleware.quality.subagent_limit import SubagentLimitMiddleware, SubagentLimitExceededError
+ 4 | | from packages.agents.middleware.quality.curriculum_alignment import CurriculumAlignmentMiddleware
+ 5 | | from packages.agents.middleware.quality.readability_level import ReadabilityLevelMiddleware
+ 6 | | from packages.agents.middleware.quality.pedagogical_quality import PedagogicalQualityMiddleware
+ 7 | | from packages.agents.middleware.quality.bias_detection import BiasDetectionMiddleware
+ 8 | | from packages.agents.middleware.quality.artifact_coherence import ArtifactCoherenceMiddleware
+ 9 | | from packages.agents.middleware.quality.learning_objective_alignment import LearningObjectiveAlignmentMiddleware
+   | |________________________________________________________________________________________________________________^
+10 |
+11 |   __all__ = [
+   |
+help: Organize imports
+
+E501 Line too long (113 > 100)
+ --> packages/agents/middleware/quality/__init__.py:3:101
+  |
+1 | """Quality tier middleware — curriculum alignment, readability, pedagogy, and bias checks."""
+2 |
+3 | from packages.agents.middleware.quality.subagent_limit import SubagentLimitMiddleware, SubagentLimitExceededError
+  |                                                                                                     ^^^^^^^^^^^^^
+4 | from packages.agents.middleware.quality.curriculum_alignment import CurriculumAlignmentMiddleware
+5 | from packages.agents.middleware.quality.readability_level import ReadabilityLevelMiddleware
+  |
+
+E501 Line too long (112 > 100)
+  --> packages/agents/middleware/quality/__init__.py:9:101
+   |
+ 7 | from packages.agents.middleware.quality.bias_detection import BiasDetectionMiddleware
+ 8 | from packages.agents.middleware.quality.artifact_coherence import ArtifactCoherenceMiddleware
+ 9 | from packages.agents.middleware.quality.learning_objective_alignment import LearningObjectiveAlignmentMiddleware
+   |                                                                                                     ^^^^^^^^^^^^
+10 |
+11 | __all__ = [
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/middleware/registry.py:17:1
+   |
+15 |       from packages.agents.middleware.base import BaseMiddleware
+16 |
+17 | / from packages.agents.middleware.safety.input_sanitization import InputSanitizationMiddleware
+18 | | from packages.agents.middleware.safety.token_budget import TokenBudgetMiddleware
+19 | | from packages.agents.middleware.safety.thread_data import ThreadDataMiddleware
+20 | | from packages.agents.middleware.safety.uploads import UploadsMiddleware
+21 | | from packages.agents.middleware.safety.content_safety import ContentSafetyMiddleware
+22 | | from packages.agents.middleware.safety.dangling_tool_call import DanglingToolCallMiddleware
+23 | | from packages.agents.middleware.safety.llm_error_handling import LLMErrorHandlingMiddleware
+24 | | from packages.agents.middleware.safety.guardrail import GuardrailMiddleware
+25 | | from packages.agents.middleware.safety.teacher_audit_log import TeacherAuditLogMiddleware
+26 | | from packages.agents.middleware.safety.tool_error_handling import ToolErrorHandlingMiddleware
+27 | | from packages.agents.middleware.safety.loop_detection import LoopDetectionMiddleware
+28 | | from packages.agents.middleware.safety.safety_finish_reason import SafetyFinishReasonMiddleware
+29 | | from packages.agents.middleware.context.dynamic_context import DynamicContextMiddleware
+30 | | from packages.agents.middleware.context.skill_activation import SkillActivationMiddleware
+31 | | from packages.agents.middleware.context.summarization import SummarizationMiddleware
+32 | | from packages.agents.middleware.context.todo_list import TodoListMiddleware
+33 | | from packages.agents.middleware.context.token_usage import TokenUsageMiddleware
+34 | | from packages.agents.middleware.context.title import TitleMiddleware
+35 | | from packages.agents.middleware.context.memory import MemoryMiddleware
+36 | | from packages.agents.middleware.context.view_image import ViewImageMiddleware
+37 | | from packages.agents.middleware.context.deferred_tool_filter import DeferredToolFilterMiddleware
+38 | | from packages.agents.middleware.context.system_message_coalescing import SystemMessageCoalescingMiddleware
+39 | | from packages.agents.middleware.quality.subagent_limit import SubagentLimitMiddleware
+40 | | from packages.agents.middleware.quality.curriculum_alignment import CurriculumAlignmentMiddleware
+41 | | from packages.agents.middleware.quality.readability_level import ReadabilityLevelMiddleware
+42 | | from packages.agents.middleware.quality.pedagogical_quality import PedagogicalQualityMiddleware
+43 | | from packages.agents.middleware.quality.bias_detection import BiasDetectionMiddleware
+44 | | from packages.agents.middleware.quality.artifact_coherence import ArtifactCoherenceMiddleware
+45 | | from packages.agents.middleware.quality.learning_objective_alignment import LearningObjectiveAlignmentMiddleware
+46 | | from packages.agents.middleware.terminal.clarification import ClarificationMiddleware
+   | |_____________________________________________________________________________________^
+47 |
+48 |   ORDERED_MIDDLEWARE_LIST: list[type[BaseMiddleware]] = [
+   |
+help: Organize imports
+
+E501 Line too long (106 > 100)
+  --> packages/agents/middleware/registry.py:38:101
+   |
+36 | from packages.agents.middleware.context.view_image import ViewImageMiddleware
+37 | from packages.agents.middleware.context.deferred_tool_filter import DeferredToolFilterMiddleware
+38 | from packages.agents.middleware.context.system_message_coalescing import SystemMessageCoalescingMiddleware
+   |                                                                                                     ^^^^^^
+39 | from packages.agents.middleware.quality.subagent_limit import SubagentLimitMiddleware
+40 | from packages.agents.middleware.quality.curriculum_alignment import CurriculumAlignmentMiddleware
+   |
+
+E501 Line too long (112 > 100)
+  --> packages/agents/middleware/registry.py:45:101
+   |
+43 | from packages.agents.middleware.quality.bias_detection import BiasDetectionMiddleware
+44 | from packages.agents.middleware.quality.artifact_coherence import ArtifactCoherenceMiddleware
+45 | from packages.agents.middleware.quality.learning_objective_alignment import LearningObjectiveAlignmentMiddleware
+   |                                                                                                     ^^^^^^^^^^^^
+46 | from packages.agents.middleware.terminal.clarification import ClarificationMiddleware
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/middleware/safety/__init__.py:3:1
+   |
+ 1 |   """Safety tier middleware — input validation, token budgets, content safety, and guardrails."""
+ 2 |
+ 3 | / from packages.agents.middleware.safety.input_sanitization import InputSanitizationMiddleware, InputValidationError
+ 4 | | from packages.agents.middleware.safety.token_budget import TokenBudgetMiddleware, TokenBudgetExceededError
+ 5 | | from packages.agents.middleware.safety.thread_data import ThreadDataMiddleware
+ 6 | | from packages.agents.middleware.safety.uploads import UploadsMiddleware
+ 7 | | from packages.agents.middleware.safety.content_safety import ContentSafetyMiddleware, ContentSafetyError
+ 8 | | from packages.agents.middleware.safety.dangling_tool_call import DanglingToolCallMiddleware
+ 9 | | from packages.agents.middleware.safety.llm_error_handling import LLMErrorHandlingMiddleware
+10 | | from packages.agents.middleware.safety.guardrail import GuardrailMiddleware, GuardrailViolationError
+11 | | from packages.agents.middleware.safety.teacher_audit_log import TeacherAuditLogMiddleware
+12 | | from packages.agents.middleware.safety.tool_error_handling import ToolErrorHandlingMiddleware
+13 | | from packages.agents.middleware.safety.loop_detection import LoopDetectionMiddleware, LoopDetectedError
+14 | | from packages.agents.middleware.safety.safety_finish_reason import SafetyFinishReasonMiddleware
+   | |_______________________________________________________________________________________________^
+15 |
+16 |   __all__ = [
+   |
+help: Organize imports
+
+E501 Line too long (114 > 100)
+ --> packages/agents/middleware/safety/__init__.py:3:101
+  |
+1 | """Safety tier middleware — input validation, token budgets, content safety, and guardrails."""
+2 |
+3 | from packages.agents.middleware.safety.input_sanitization import InputSanitizationMiddleware, InputValidationError
+  |                                                                                                     ^^^^^^^^^^^^^^
+4 | from packages.agents.middleware.safety.token_budget import TokenBudgetMiddleware, TokenBudgetExceededError
+5 | from packages.agents.middleware.safety.thread_data import ThreadDataMiddleware
+  |
+
+E501 Line too long (106 > 100)
+ --> packages/agents/middleware/safety/__init__.py:4:101
+  |
+3 | from packages.agents.middleware.safety.input_sanitization import InputSanitizationMiddleware, InputValidationError
+4 | from packages.agents.middleware.safety.token_budget import TokenBudgetMiddleware, TokenBudgetExceededError
+  |                                                                                                     ^^^^^^
+5 | from packages.agents.middleware.safety.thread_data import ThreadDataMiddleware
+6 | from packages.agents.middleware.safety.uploads import UploadsMiddleware
+  |
+
+E501 Line too long (104 > 100)
+ --> packages/agents/middleware/safety/__init__.py:7:101
+  |
+5 | from packages.agents.middleware.safety.thread_data import ThreadDataMiddleware
+6 | from packages.agents.middleware.safety.uploads import UploadsMiddleware
+7 | from packages.agents.middleware.safety.content_safety import ContentSafetyMiddleware, ContentSafetyError
+  |                                                                                                     ^^^^
+8 | from packages.agents.middleware.safety.dangling_tool_call import DanglingToolCallMiddleware
+9 | from packages.agents.middleware.safety.llm_error_handling import LLMErrorHandlingMiddleware
+  |
+
+E501 Line too long (103 > 100)
+  --> packages/agents/middleware/safety/__init__.py:13:101
+   |
+11 | from packages.agents.middleware.safety.teacher_audit_log import TeacherAuditLogMiddleware
+12 | from packages.agents.middleware.safety.tool_error_handling import ToolErrorHandlingMiddleware
+13 | from packages.agents.middleware.safety.loop_detection import LoopDetectionMiddleware, LoopDetectedError
+   |                                                                                                     ^^^
+14 | from packages.agents.middleware.safety.safety_finish_reason import SafetyFinishReasonMiddleware
+   |
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+  --> packages/agents/middleware/safety/input_sanitization.py:41:9
+   |
+39 |               if not valid:
+40 |                   raise InputValidationError(f"Invalid grade: {grade}")
+41 | /         if "subject" in class_info:
+42 | |             if not class_info["subject"] or not str(class_info["subject"]).strip():
+   | |___________________________________________________________________________________^
+43 |                   raise InputValidationError("subject is empty")
+44 |           return state
+   |
+help: Combine `if` statements using `and`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/middleware/token_budget.py:6:1
+  |
+4 | """
+5 |
+6 | from packages.agents.middleware.safety.token_budget import TokenBudgetExceededError, TokenBudgetMiddleware
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | __all__ = ["TokenBudgetExceededError", "TokenBudgetMiddleware"]
+  |
+help: Organize imports
+
+E501 Line too long (106 > 100)
+ --> packages/agents/middleware/token_budget.py:6:101
+  |
+4 | """
+5 |
+6 | from packages.agents.middleware.safety.token_budget import TokenBudgetExceededError, TokenBudgetMiddleware
+  |                                                                                                     ^^^^^^
+7 |
+8 | __all__ = ["TokenBudgetExceededError", "TokenBudgetMiddleware"]
+  |
+
+TC003 Move standard library import `pathlib.Path` into a type-checking block
+ --> packages/agents/skills/loader.py:4:21
+  |
+2 | from __future__ import annotations
+3 |
+4 | from pathlib import Path
+  |                     ^^^^
+5 |
+6 | from packages.agents.skills.registry import SKILL_MAP
+  |
+help: Move into type-checking block
+
+TC003 Move standard library import `pathlib.Path` into a type-checking block
+ --> packages/agents/skills/tests/test_loader.py:4:21
+  |
+2 | from __future__ import annotations
+3 |
+4 | from pathlib import Path
+  |                     ^^^^
+5 |
+6 | import pytest
+  |
+help: Move into type-checking block
+
+E501 Line too long (104 > 100)
+  --> packages/agents/state.py:94:101
+   |
+92 |     escalate: NotRequired[bool]              # set True to trigger escalation
+93 |     escalate_reason: NotRequired[str | None]
+94 |     healing_strategy: NotRequired[str | None]  # "retry" | "rewrite" | "reroute" | "replan" | "escalate"
+   |                                                                                                     ^^^^
+95 |     healing_note: NotRequired[str | None]
+96 |     healing_context: NotRequired[dict | None]
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/__init__.py:3:1
+  |
+1 |   """Sub-agents package — compiled graph factories for the oh-my-class pipeline."""
+2 |
+3 | / from packages.agents.sub_agents.planner.agent import make_planner_agent
+4 | | from packages.agents.sub_agents.researcher.agent import make_researcher_agent
+5 | | from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent
+6 | | from packages.agents.sub_agents.reviewer.agent import make_reviewer_agent
+  | |_________________________________________________________________________^
+7 |
+8 |   __all__ = [
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/content_creator/__init__.py:3:1
+  |
+1 |   """Content Creator Agent — artifact content generation."""
+2 |
+3 | / from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent, content_creator_graph_node
+4 | | from packages.agents.sub_agents.content_creator.nodes import content_creator_node, validate_no_cdn, validate_no_pii
+  | |___________________________________________________________________________________________________________________^
+5 |
+6 |   __all__ = [
+  |
+help: Organize imports
+
+E501 Line too long (115 > 100)
+ --> packages/agents/sub_agents/content_creator/__init__.py:3:101
+  |
+1 | """Content Creator Agent — artifact content generation."""
+2 |
+3 | from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent, content_creator_graph_node
+  |                                                                                                     ^^^^^^^^^^^^^^^
+4 | from packages.agents.sub_agents.content_creator.nodes import content_creator_node, validate_no_cdn, validate_no_pii
+  |
+
+E501 Line too long (115 > 100)
+ --> packages/agents/sub_agents/content_creator/__init__.py:4:101
+  |
+3 | from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent, content_creator_graph_node
+4 | from packages.agents.sub_agents.content_creator.nodes import content_creator_node, validate_no_cdn, validate_no_pii
+  |                                                                                                     ^^^^^^^^^^^^^^^
+5 |
+6 | __all__ = [
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/content_creator/agent.py:8:5
+  |
+7 |   if TYPE_CHECKING:
+8 | /     from langgraph.graph.state import CompiledStateGraph
+9 | |     from packages.agents.state import OhMyClassState
+  | |____________________________________________________^
+  |
+help: Organize imports
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/content_creator/agent.py:12:54
+   |
+12 | def make_content_creator_agent(checkpointer=None) -> "CompiledStateGraph":
+   |                                                      ^^^^^^^^^^^^^^^^^^^^
+13 |     """Return a compiled LangGraph for the Content Creator Agent.
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/content_creator/agent.py:35:45
+   |
+35 | async def content_creator_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+   |                                             ^^^^^^^^^^^^^^^^
+36 |     """Main pipeline graph node — adapter for the content creator compiled sub-graph."""
+37 |     from packages.agents.sub_agents.content_creator.adapters import extract_content_creator_state
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/sub_agents/content_creator/nodes.py:3:1
+   |
+ 1 |   """Content Creator Agent — LangGraph node function and validators."""
+ 2 |
+ 3 | / from __future__ import annotations
+ 4 | |
+ 5 | | import json
+ 6 | | import re
+ 7 | | from typing import Any
+ 8 | |
+ 9 | | from common.contracts.artifact import ArtifactContent
+10 | |
+11 | | from packages.agents.sub_agents.content_creator.state import ContentCreatorState
+   | |________________________________________________________________________________^
+   |
+help: Organize imports
+
+TC001 Move application import `packages.agents.sub_agents.content_creator.state.ContentCreatorState` into a type-checking block
+  --> packages/agents/sub_agents/content_creator/nodes.py:11:62
+   |
+ 9 | from common.contracts.artifact import ArtifactContent
+10 |
+11 | from packages.agents.sub_agents.content_creator.state import ContentCreatorState
+   |                                                              ^^^^^^^^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+N806 Variable `CONTENT_CREATOR_SYSTEM_PROMPT` in function should be lowercase
+  --> packages/agents/sub_agents/content_creator/nodes.py:22:5
+   |
+21 |     from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
+22 |     CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23 |
+24 |     lesson_plan = state.get("lesson_plan") or {}
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/diagnostician/adapters.py:1:1
+  |
+1 | / from __future__ import annotations
+2 | |
+3 | | from typing import Any
+4 | |
+5 | | from common.contracts.student_response import StudentResponse
+6 | |
+7 | | from packages.agents.sub_agents.diagnostician.state import DiagnosticianState
+  | |_____________________________________________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/diagnostician/agent.py:8:5
+  |
+7 |   if TYPE_CHECKING:
+8 | /     from langgraph.graph.state import CompiledStateGraph
+9 | |     from packages.agents.state import OhMyClassState
+  | |____________________________________________________^
+  |
+help: Organize imports
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/diagnostician/agent.py:12:52
+   |
+12 | def make_diagnostician_agent(checkpointer=None) -> "CompiledStateGraph":
+   |                                                    ^^^^^^^^^^^^^^^^^^^^
+13 |     """Return a compiled LangGraph for the Diagnostician Agent.
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/diagnostician/agent.py:34:43
+   |
+34 | async def diagnostician_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+   |                                           ^^^^^^^^^^^^^^^^
+35 |     """Pipeline graph node for step_00_diagnostic.
+   |
+help: Remove quotes
+
+E501 Line too long (102 > 100)
+  --> packages/agents/sub_agents/diagnostician/agent.py:49:101
+   |
+48 |     diagnostician_state = extract_diagnostician_state(state)  # raises ValidationError on bad input
+49 |     return await diagnostician_node(diagnostician_state)       # raises ValueError on LLM/schema error
+   |                                                                                                     ^^
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/sub_agents/diagnostician/nodes.py:6:1
+   |
+ 4 |   """
+ 5 |
+ 6 | / from __future__ import annotations
+ 7 | |
+ 8 | | import json
+ 9 | | from typing import Any
+10 | |
+11 | | from common.contracts.diagnostic_report import DiagnosticReport
+12 | |
+13 | | from packages.agents.sub_agents.diagnostician.state import DiagnosticianState
+14 | | from packages.agents.sub_agents.diagnostician.tools import (
+15 | |     bloom_taxonomy_lookup,
+16 | |     question_type_classifier,
+17 | | )
+   | |_^
+   |
+help: Organize imports
+
+TC001 Move application import `packages.agents.sub_agents.diagnostician.state.DiagnosticianState` into a type-checking block
+  --> packages/agents/sub_agents/diagnostician/nodes.py:13:60
+   |
+11 | from common.contracts.diagnostic_report import DiagnosticReport
+12 |
+13 | from packages.agents.sub_agents.diagnostician.state import DiagnosticianState
+   |                                                            ^^^^^^^^^^^^^^^^^^
+14 | from packages.agents.sub_agents.diagnostician.tools import (
+15 |     bloom_taxonomy_lookup,
+   |
+help: Move into type-checking block
+
+E501 Line too long (143 > 100)
+  --> packages/agents/sub_agents/diagnostician/nodes.py:59:101
+   |
+58 | …
+59 | …: v["description"]} for k, v in bloom_reference.items()}, ensure_ascii=False, indent=2)}
+   |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+60 | …
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/planner/agent.py:8:5
+  |
+7 |   if TYPE_CHECKING:
+8 | /     from langgraph.graph.state import CompiledStateGraph
+9 | |     from packages.agents.state import OhMyClassState
+  | |____________________________________________________^
+  |
+help: Organize imports
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/planner/agent.py:12:46
+   |
+12 | def make_planner_agent(checkpointer=None) -> "CompiledStateGraph":
+   |                                              ^^^^^^^^^^^^^^^^^^^^
+13 |     """Return a compiled LangGraph for the Planner Agent.
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/planner/agent.py:34:37
+   |
+34 | async def planner_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+   |                                     ^^^^^^^^^^^^^^^^
+35 |     """Main pipeline graph node — adapter for the planner compiled sub-graph."""
+36 |     from packages.agents.sub_agents.planner.adapters import extract_planner_state
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/sub_agents/planner/nodes.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / from __future__ import annotations
+ 8 | |
+ 9 | | import json
+10 | | from typing import Any
+11 | |
+12 | | from common.contracts.lesson_plan import LessonPlan
+13 | |
+14 | | from packages.agents.sub_agents.planner.state import PlannerState
+   | |_________________________________________________________________^
+   |
+help: Organize imports
+
+TC001 Move application import `packages.agents.sub_agents.planner.state.PlannerState` into a type-checking block
+  --> packages/agents/sub_agents/planner/nodes.py:14:54
+   |
+12 | from common.contracts.lesson_plan import LessonPlan
+13 |
+14 | from packages.agents.sub_agents.planner.state import PlannerState
+   |                                                      ^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+N806 Variable `PLANNER_SYSTEM_PROMPT` in function should be lowercase
+  --> packages/agents/sub_agents/planner/nodes.py:25:5
+   |
+24 |     from packages.agents.sub_agents.planner.prompts import load_system_prompt
+25 |     PLANNER_SYSTEM_PROMPT = load_system_prompt()
+   |     ^^^^^^^^^^^^^^^^^^^^^
+26 |
+27 |     user_prompt = f"""
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/researcher/agent.py:8:5
+  |
+7 |   if TYPE_CHECKING:
+8 | /     from langgraph.graph.state import CompiledStateGraph
+9 | |     from packages.agents.state import OhMyClassState
+  | |____________________________________________________^
+  |
+help: Organize imports
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/researcher/agent.py:12:49
+   |
+12 | def make_researcher_agent(checkpointer=None) -> "CompiledStateGraph":
+   |                                                 ^^^^^^^^^^^^^^^^^^^^
+13 |     """Return a compiled LangGraph for the Researcher Agent.
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/researcher/agent.py:34:40
+   |
+34 | async def researcher_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+   |                                        ^^^^^^^^^^^^^^^^
+35 |     """Main pipeline graph node — adapter for the researcher compiled sub-graph."""
+36 |     from packages.agents.sub_agents.researcher.adapters import extract_researcher_state
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/sub_agents/researcher/nodes.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / from __future__ import annotations
+ 8 | |
+ 9 | | import json
+10 | | from typing import Any
+11 | |
+12 | | from common.contracts.research_bundle import ResearchBundle
+13 | |
+14 | | from packages.agents.sub_agents.researcher.state import ResearcherState
+   | |_______________________________________________________________________^
+   |
+help: Organize imports
+
+TC001 Move application import `packages.agents.sub_agents.researcher.state.ResearcherState` into a type-checking block
+  --> packages/agents/sub_agents/researcher/nodes.py:14:57
+   |
+12 | from common.contracts.research_bundle import ResearchBundle
+13 |
+14 | from packages.agents.sub_agents.researcher.state import ResearcherState
+   |                                                         ^^^^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+N806 Variable `RESEARCHER_SYSTEM_PROMPT` in function should be lowercase
+  --> packages/agents/sub_agents/researcher/nodes.py:25:5
+   |
+24 |     from packages.agents.sub_agents.researcher.prompts import load_system_prompt
+25 |     RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+26 |
+27 |     lesson_plan = state.get("lesson_plan") or {}
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/reviewer/agent.py:8:5
+  |
+7 |   if TYPE_CHECKING:
+8 | /     from langgraph.graph.state import CompiledStateGraph
+9 | |     from packages.agents.state import OhMyClassState
+  | |____________________________________________________^
+  |
+help: Organize imports
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/reviewer/agent.py:12:47
+   |
+12 | def make_reviewer_agent(checkpointer=None) -> "CompiledStateGraph":
+   |                                               ^^^^^^^^^^^^^^^^^^^^
+13 |     """Return a compiled LangGraph for the Reviewer Agent.
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/reviewer/agent.py:34:38
+   |
+34 | async def reviewer_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+   |                                      ^^^^^^^^^^^^^^^^
+35 |     """Main pipeline graph node — adapter for the reviewer compiled sub-graph."""
+36 |     from packages.agents.sub_agents.reviewer.adapters import extract_reviewer_state
+   |
+help: Remove quotes
+
+E501 Line too long (115 > 100)
+  --> packages/agents/sub_agents/reviewer/agent.py:58:101
+   |
+57 |     return {
+58 |         "quality_scores": judge_output.model_dump() if hasattr(judge_output, "model_dump") else dict(judge_output),
+   |                                                                                                     ^^^^^^^^^^^^^^^
+59 |         "quality_passed": bool(judge_output.passed),
+60 |     }
+   |
+
+TC001 Move application import `packages.agents.sub_agents.reviewer.state.ReviewerState` into a type-checking block
+  --> packages/agents/sub_agents/reviewer/nodes.py:11:55
+   |
+ 9 | from typing import Any
+10 |
+11 | from packages.agents.sub_agents.reviewer.state import ReviewerState
+   |                                                       ^^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/sub_agents/roadmap_agent/agent.py:8:5
+  |
+7 |   if TYPE_CHECKING:
+8 | /     from langgraph.graph.state import CompiledStateGraph
+9 | |     from packages.agents.state import OhMyClassState
+  | |____________________________________________________^
+  |
+help: Organize imports
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/roadmap_agent/agent.py:12:46
+   |
+12 | def make_roadmap_agent(checkpointer=None) -> "CompiledStateGraph":
+   |                                              ^^^^^^^^^^^^^^^^^^^^
+13 |     """Return a compiled LangGraph for the Roadmap Agent.
+   |
+help: Remove quotes
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/agents/sub_agents/roadmap_agent/agent.py:34:37
+   |
+34 | async def roadmap_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+   |                                     ^^^^^^^^^^^^^^^^
+35 |     """Pipeline graph node for step_04b_roadmap.
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/sub_agents/roadmap_agent/nodes.py:6:1
+   |
+ 4 |   """
+ 5 |
+ 6 | / from __future__ import annotations
+ 7 | |
+ 8 | | import json
+ 9 | | from typing import Any
+10 | |
+11 | | from common.contracts.roadmap import RoadmapContent
+12 | |
+13 | | from packages.agents.sub_agents.roadmap_agent.state import RoadmapAgentState
+14 | | from packages.agents.sub_agents.roadmap_agent.tools import book_recommender, milestone_calculator
+   | |_________________________________________________________________________________________________^
+   |
+help: Organize imports
+
+TC001 Move application import `packages.agents.sub_agents.roadmap_agent.state.RoadmapAgentState` into a type-checking block
+  --> packages/agents/sub_agents/roadmap_agent/nodes.py:13:60
+   |
+11 | from common.contracts.roadmap import RoadmapContent
+12 |
+13 | from packages.agents.sub_agents.roadmap_agent.state import RoadmapAgentState
+   |                                                            ^^^^^^^^^^^^^^^^^
+14 | from packages.agents.sub_agents.roadmap_agent.tools import book_recommender, milestone_calculator
+   |
+help: Move into type-checking block
+
+E501 Line too long (105 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:8:101
+   |
+ 6 |     "B1": [
+ 7 |         {"title": "Destination B1", "publisher": "Macmillan", "focus": "grammar + vocabulary"},
+ 8 |         {"title": "English Grammar in Use (Intermediate)", "publisher": "Cambridge", "focus": "grammar"},
+   |                                                                                                     ^^^^^
+ 9 |         {"title": "Vocabulary in Use (Pre-Intermediate)", "publisher": "Cambridge", "focus": "vocabulary"},
+10 |     ],
+   |
+
+E501 Line too long (107 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:9:101
+   |
+ 7 |         {"title": "Destination B1", "publisher": "Macmillan", "focus": "grammar + vocabulary"},
+ 8 |         {"title": "English Grammar in Use (Intermediate)", "publisher": "Cambridge", "focus": "grammar"},
+ 9 |         {"title": "Vocabulary in Use (Pre-Intermediate)", "publisher": "Cambridge", "focus": "vocabulary"},
+   |                                                                                                     ^^^^^^^
+10 |     ],
+11 |     "B2": [
+   |
+
+E501 Line too long (109 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:12:101
+   |
+10 |     ],
+11 |     "B2": [
+12 |         {"title": "Destination B2", "publisher": "Macmillan", "focus": "grammar + vocabulary for HSA/IELTS"},
+   |                                                                                                     ^^^^^^^^^
+13 |         {"title": "Advanced Grammar in Use", "publisher": "Cambridge", "focus": "grammar"},
+14 |         {"title": "Vocabulary in Use (Upper-Intermediate)", "publisher": "Cambridge", "focus": "vocabulary"},
+   |
+
+E501 Line too long (109 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:14:101
+   |
+12 |         {"title": "Destination B2", "publisher": "Macmillan", "focus": "grammar + vocabulary for HSA/IELTS"},
+13 |         {"title": "Advanced Grammar in Use", "publisher": "Cambridge", "focus": "grammar"},
+14 |         {"title": "Vocabulary in Use (Upper-Intermediate)", "publisher": "Cambridge", "focus": "vocabulary"},
+   |                                                                                                     ^^^^^^^^^
+15 |         {"title": "Common Mistakes at B2", "publisher": "Cambridge", "focus": "error correction"},
+16 |     ],
+   |
+
+E501 Line too long (109 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:18:101
+   |
+16 |     ],
+17 |     "C1": [
+18 |         {"title": "Destination C1 & C2", "publisher": "Macmillan", "focus": "advanced grammar + vocabulary"},
+   |                                                                                                     ^^^^^^^^^
+19 |         {"title": "English Collocations in Use (Advanced)", "publisher": "Cambridge", "focus": "collocations"},
+20 |         {"title": "Academic Vocabulary in Use", "publisher": "Cambridge", "focus": "academic vocabulary"},
+   |
+
+E501 Line too long (111 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:19:101
+   |
+17 |     "C1": [
+18 |         {"title": "Destination C1 & C2", "publisher": "Macmillan", "focus": "advanced grammar + vocabulary"},
+19 |         {"title": "English Collocations in Use (Advanced)", "publisher": "Cambridge", "focus": "collocations"},
+   |                                                                                                     ^^^^^^^^^^^
+20 |         {"title": "Academic Vocabulary in Use", "publisher": "Cambridge", "focus": "academic vocabulary"},
+21 |     ],
+   |
+
+E501 Line too long (106 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:20:101
+   |
+18 |         {"title": "Destination C1 & C2", "publisher": "Macmillan", "focus": "advanced grammar + vocabulary"},
+19 |         {"title": "English Collocations in Use (Advanced)", "publisher": "Cambridge", "focus": "collocations"},
+20 |         {"title": "Academic Vocabulary in Use", "publisher": "Cambridge", "focus": "academic vocabulary"},
+   |                                                                                                     ^^^^^^
+21 |     ],
+22 | }
+   |
+
+E501 Line too long (101 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:32:101
+   |
+30 |     ],
+31 |     "reading_comprehension": [
+32 |         {"title": "Reading Explorer", "publisher": "National Geographic", "focus": "reading skills"},
+   |                                                                                                     ^
+33 |     ],
+34 |     "grammar": [
+   |
+
+E501 Line too long (102 > 100)
+  --> packages/agents/sub_agents/roadmap_agent/tools.py:35:101
+   |
+33 |     ],
+34 |     "grammar": [
+35 |         {"title": "Murphy's English Grammar", "publisher": "Cambridge", "focus": "reference grammar"},
+   |                                                                                                     ^^
+36 |     ],
+37 | }
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/tests/middleware/test_content_safety.py:3:1
+  |
+1 |   """Tests for content_safety middleware."""
+2 |
+3 | / import pytest
+4 | |
+5 | | from packages.agents.middleware.base import MiddlewareContext
+6 | | from packages.agents.middleware.safety.content_safety import ContentSafetyMiddleware, ContentSafetyError
+  | |________________________________________________________________________________________________________^
+  |
+help: Organize imports
+
+E501 Line too long (104 > 100)
+ --> packages/agents/tests/middleware/test_content_safety.py:6:101
+  |
+5 | from packages.agents.middleware.base import MiddlewareContext
+6 | from packages.agents.middleware.safety.content_safety import ContentSafetyMiddleware, ContentSafetyError
+  |                                                                                                     ^^^^
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/tests/middleware/test_input_sanitization.py:3:1
+  |
+1 |   """Tests for input_sanitization middleware."""
+2 |
+3 | / import pytest
+4 | |
+5 | | from packages.agents.middleware.base import MiddlewareContext
+6 | | from packages.agents.middleware.safety.input_sanitization import InputSanitizationMiddleware, InputValidationError
+  | |__________________________________________________________________________________________________________________^
+  |
+help: Organize imports
+
+E501 Line too long (114 > 100)
+ --> packages/agents/tests/middleware/test_input_sanitization.py:6:101
+  |
+5 | from packages.agents.middleware.base import MiddlewareContext
+6 | from packages.agents.middleware.safety.input_sanitization import InputSanitizationMiddleware, InputValidationError
+  |                                                                                                     ^^^^^^^^^^^^^^
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/tests/middleware/test_subagent_limit.py:3:1
+  |
+1 |   """Tests for subagent_limit middleware."""
+2 |
+3 | / import pytest
+4 | |
+5 | | from packages.agents.middleware.base import MiddlewareContext
+6 | | from packages.agents.middleware.quality.subagent_limit import SubagentLimitMiddleware, SubagentLimitExceededError
+  | |_________________________________________________________________________________________________________________^
+  |
+help: Organize imports
+
+E501 Line too long (113 > 100)
+ --> packages/agents/tests/middleware/test_subagent_limit.py:6:101
+  |
+5 | from packages.agents.middleware.base import MiddlewareContext
+6 | from packages.agents.middleware.quality.subagent_limit import SubagentLimitMiddleware, SubagentLimitExceededError
+  |                                                                                                     ^^^^^^^^^^^^^
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/tests/sub_agents/test_content_creator.py:3:1
+   |
+ 1 |   """Tests for content_creator agent."""
+ 2 |
+ 3 | / from __future__ import annotations
+ 4 | |
+ 5 | | import json
+ 6 | | import sys
+ 7 | | import pytest
+ 8 | | from unittest.mock import AsyncMock, MagicMock, patch
+ 9 | |
+10 | | from common.contracts.artifact import ArtifactContent
+11 | | from packages.agents.sub_agents.content_creator.nodes import (
+12 | |     content_creator_node as generate_artifacts,
+13 | |     validate_no_cdn,
+14 | |     validate_no_pii,
+15 | | )
+   | |_^
+   |
+help: Organize imports
+
+E501 Line too long (102 > 100)
+  --> packages/agents/tests/sub_agents/test_content_creator.py:97:101
+   |
+95 |     @pytest.mark.asyncio
+96 |     async def test_parses_bare_json_array(self):
+97 |         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_ARRAY_JSON))
+   |                                                                                                     ^^
+98 |         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+99 |             result = await generate_artifacts(_make_state())
+   |
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_content_creator.py:114:9
+    |
+112 |       async def test_raises_value_error_on_invalid_json(self):
+113 |           mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not valid json"))
+114 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+115 | |             with pytest.raises(ValueError, match="Invalid JSON"):
+    | |_________________________________________________________________^
+116 |                   await generate_artifacts(_make_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_content_creator.py:121:9
+    |
+119 |       async def test_raises_value_error_on_llm_error(self):
+120 |           mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
+121 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+122 | |             with pytest.raises(ValueError, match="Content creator agent failed"):
+    | |_________________________________________________________________________________^
+123 |                   await generate_artifacts(_make_state())
+    |
+help: Combine `with` statements
+
+F841 Local variable `result` is assigned to but never used
+   --> packages/agents/tests/sub_agents/test_content_creator.py:157:13
+    |
+155 |         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
+156 |         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+157 |             result = await generate_artifacts(_make_state(artifact_types=None))
+    |             ^^^^^^
+158 |
+159 |         user_msg = mock_litellm.acompletion.call_args.kwargs["messages"][1]["content"]
+    |
+help: Remove assignment to unused variable `result`
+
+E501 Line too long (109 > 100)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:179:101
+    |
+177 |         for artifact_dict in result["artifacts"]:
+178 |             artifact = ArtifactContent.model_validate(artifact_dict)
+179 |             assert artifact.artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic")
+    |                                                                                                     ^^^^^^^^^
+180 |             assert len(artifact.title) >= 3
+    |
+
+SIM115 Use a context manager for opening files
+   --> packages/agents/tests/sub_agents/test_content_creator.py:272:16
+    |
+270 |         result = await write_file(path, "artifact content")
+271 |         assert result is True
+272 |         assert open(path).read() == "artifact content"
+    |                ^^^^
+273 |
+274 |     @pytest.mark.asyncio
+    |
+
+I001 Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_content_creator.py:299:9
+    |
+297 | class TestContentCreatorPrompts:
+298 |     def test_prompt_contains_artifact_types(self):
+299 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+300 |
+301 |         for artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic"):
+    |
+help: Organize imports
+
+E702 Multiple statements on one line (semicolon)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:299:90
+    |
+297 | class TestContentCreatorPrompts:
+298 |     def test_prompt_contains_artifact_types(self):
+299 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |                                                                                          ^
+300 |
+301 |         for artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic"):
+    |
+
+N806 Variable `CONTENT_CREATOR_SYSTEM_PROMPT` in function should be lowercase
+   --> packages/agents/tests/sub_agents/test_content_creator.py:299:92
+    |
+297 | class TestContentCreatorPrompts:
+298 |     def test_prompt_contains_artifact_types(self):
+299 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+300 |
+301 |         for artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic"):
+    |
+
+E501 Line too long (143 > 100)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:299:101
+    |
+297 | …
+298 | …
+299 | …prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+300 | …
+301 | …iz", "drill", "recap", "infographic"):
+    |
+
+I001 Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_content_creator.py:305:9
+    |
+304 |     def test_prompt_mentions_no_html(self):
+305 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+306 |
+307 |         assert "HTML" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+help: Organize imports
+
+E702 Multiple statements on one line (semicolon)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:305:90
+    |
+304 |     def test_prompt_mentions_no_html(self):
+305 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |                                                                                          ^
+306 |
+307 |         assert "HTML" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+
+N806 Variable `CONTENT_CREATOR_SYSTEM_PROMPT` in function should be lowercase
+   --> packages/agents/tests/sub_agents/test_content_creator.py:305:92
+    |
+304 |     def test_prompt_mentions_no_html(self):
+305 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+306 |
+307 |         assert "HTML" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+
+E501 Line too long (143 > 100)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:305:101
+    |
+304 | …
+305 | …prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+306 | …
+307 | …
+    |
+
+I001 Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_content_creator.py:310:9
+    |
+309 |     def test_prompt_mentions_teacher_only(self):
+310 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+311 |
+312 |         assert "teacher_only" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+help: Organize imports
+
+E702 Multiple statements on one line (semicolon)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:310:90
+    |
+309 |     def test_prompt_mentions_teacher_only(self):
+310 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |                                                                                          ^
+311 |
+312 |         assert "teacher_only" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+
+N806 Variable `CONTENT_CREATOR_SYSTEM_PROMPT` in function should be lowercase
+   --> packages/agents/tests/sub_agents/test_content_creator.py:310:92
+    |
+309 |     def test_prompt_mentions_teacher_only(self):
+310 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+311 |
+312 |         assert "teacher_only" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+
+E501 Line too long (143 > 100)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:310:101
+    |
+309 | …
+310 | …prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+311 | …
+312 | …PROMPT
+    |
+
+I001 Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_content_creator.py:315:9
+    |
+314 |     def test_prompt_mentions_no_cdn(self):
+315 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+316 |
+317 |         assert "CDN" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+help: Organize imports
+
+E702 Multiple statements on one line (semicolon)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:315:90
+    |
+314 |     def test_prompt_mentions_no_cdn(self):
+315 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |                                                                                          ^
+316 |
+317 |         assert "CDN" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+
+N806 Variable `CONTENT_CREATOR_SYSTEM_PROMPT` in function should be lowercase
+   --> packages/agents/tests/sub_agents/test_content_creator.py:315:92
+    |
+314 |     def test_prompt_mentions_no_cdn(self):
+315 |         from packages.agents.sub_agents.content_creator.prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_syste…
+    |                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+316 |
+317 |         assert "CDN" in CONTENT_CREATOR_SYSTEM_PROMPT
+    |
+
+E501 Line too long (143 > 100)
+   --> packages/agents/tests/sub_agents/test_content_creator.py:315:101
+    |
+314 | …
+315 | …prompts import load_system_prompt; CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+316 | …
+317 | …
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/tests/sub_agents/test_diagnostician.py:3:1
+   |
+ 1 |   """Tests for Diagnostician Agent and supporting tools."""
+ 2 |
+ 3 | / import json
+ 4 | | import sys
+ 5 | | import pytest
+ 6 | | from unittest.mock import AsyncMock, MagicMock, patch
+ 7 | |
+ 8 | | from common.contracts.diagnostic_report import (
+ 9 | |     BloomGap,
+10 | |     DiagnosticReport,
+11 | |     KnowledgeGap,
+12 | |     MisconceptionPattern,
+13 | | )
+14 | | from common.contracts.student_response import StudentAnswerItem, StudentResponse
+   | |________________________________________________________________________________^
+   |
+help: Organize imports
+
+N817 CamelCase `DiagnosticReport` imported as acronym `DR`
+   --> packages/agents/tests/sub_agents/test_diagnostician.py:229:38
+    |
+228 |     def test_exported_from_contracts(self):
+229 |         from common.contracts import DiagnosticReport as DR
+    |                                      ^^^^^^^^^^^^^^^^^^^^^^
+230 |         assert DR is DiagnosticReport
+    |
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_diagnostician.py:450:9
+    |
+449 |           mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
+450 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+451 | |             with pytest.raises(ValueError, match="Invalid JSON"):
+    | |_________________________________________________________________^
+452 |                   await diagnostician_node(self._make_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_diagnostician.py:459:9
+    |
+458 |           mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
+459 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+460 | |             with pytest.raises(ValueError, match="Diagnostician agent failed"):
+    | |_______________________________________________________________________________^
+461 |                   await diagnostician_node(self._make_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_diagnostician.py:527:9
+    |
+525 |           valid_sr = {"student_id": "s1", "wrong_question_ids": [1]}
+526 |           mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API down"))
+527 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+528 | |             with pytest.raises(ValueError, match="Diagnostician agent failed"):
+    | |_______________________________________________________________________________^
+529 |                   await diagnostician_graph_node({"student_responses": valid_sr})
+    |
+help: Combine `with` statements
+
+E501 Line too long (103 > 100)
+   --> packages/agents/tests/sub_agents/test_diagnostician.py:559:101
+    |
+558 |     def test_raises_on_invalid_student_response(self):
+559 |         """Invalid input (present but missing required fields) raises ValidationError — fail closed."""
+    |                                                                                                     ^^^
+560 |         from pydantic import ValidationError
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/tests/sub_agents/test_planner.py:3:1
+  |
+1 |   """Tests for planner agent and ResearchBundle contract."""
+2 |
+3 | / import json
+4 | | import sys
+5 | | import pytest
+6 | | from unittest.mock import AsyncMock, MagicMock, patch
+7 | |
+8 | | from common.contracts.lesson_plan import LessonPlan
+9 | | from common.contracts.research_bundle import ResearchBundle, ResearchSource
+  | |___________________________________________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_planner.py:149:9
+    |
+148 |     def test_exported_from_contracts(self):
+149 |         from common.contracts import ResearchBundle as RB, ResearchSource as RS
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+150 |         assert RB is ResearchBundle
+151 |         assert RS is ResearchSource
+    |
+help: Organize imports
+
+N817 CamelCase `ResearchBundle` imported as acronym `RB`
+   --> packages/agents/tests/sub_agents/test_planner.py:149:38
+    |
+148 |     def test_exported_from_contracts(self):
+149 |         from common.contracts import ResearchBundle as RB, ResearchSource as RS
+    |                                      ^^^^^^^^^^^^^^^^^^^^
+150 |         assert RB is ResearchBundle
+151 |         assert RS is ResearchSource
+    |
+
+N817 CamelCase `ResearchSource` imported as acronym `RS`
+   --> packages/agents/tests/sub_agents/test_planner.py:149:60
+    |
+148 |     def test_exported_from_contracts(self):
+149 |         from common.contracts import ResearchBundle as RB, ResearchSource as RS
+    |                                                            ^^^^^^^^^^^^^^^^^^^^
+150 |         assert RB is ResearchBundle
+151 |         assert RS is ResearchSource
+    |
+
+E501 Line too long (101 > 100)
+   --> packages/agents/tests/sub_agents/test_planner.py:225:101
+    |
+223 |         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
+224 |
+225 |         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_GENERIC_FENCE))
+    |                                                                                                     ^
+226 |         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+227 |             result = await design_lesson_plan(self._make_state())
+    |
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_planner.py:246:9
+    |
+245 |           mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json at all"))
+246 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+247 | |             with pytest.raises(ValueError, match="Invalid JSON"):
+    | |_________________________________________________________________^
+248 |                   await design_lesson_plan(self._make_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_planner.py:255:9
+    |
+254 |           mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
+255 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+256 | |             with pytest.raises(ValueError, match="Planner agent failed"):
+    | |_________________________________________________________________________^
+257 |                   await design_lesson_plan(self._make_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_planner.py:265:9
+    |
+263 |           bad_plan = json.dumps({"topic": "T"})  # Missing required fields
+264 |           mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_plan))
+265 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+266 | |             with pytest.raises(ValueError, match="Planner agent failed"):
+    | |_________________________________________________________________________^
+267 |                   await design_lesson_plan(self._make_state())
+    |
+help: Combine `with` statements
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/tests/sub_agents/test_researcher.py:3:1
+  |
+1 |   """Tests for researcher agent."""
+2 |
+3 | / import json
+4 | | import sys
+5 | | import pytest
+6 | | from unittest.mock import AsyncMock, MagicMock, patch
+7 | |
+8 | | from common.contracts.research_bundle import ResearchBundle
+  | |___________________________________________________________^
+  |
+help: Organize imports
+
+E501 Line too long (103 > 100)
+  --> packages/agents/tests/sub_agents/test_researcher.py:84:101
+   |
+82 |         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
+83 |
+84 |         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_GENERIC_FENCE))
+   |                                                                                                     ^^^
+85 |         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+86 |             result = await research_sources(_make_state())
+   |
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_researcher.py:105:9
+    |
+104 |           mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
+105 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+106 | |             with pytest.raises(ValueError, match="Invalid JSON"):
+    | |_________________________________________________________________^
+107 |                   await research_sources(_make_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_researcher.py:114:9
+    |
+113 |           mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
+114 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+115 | |             with pytest.raises(ValueError, match="Researcher agent failed"):
+    | |____________________________________________________________________________^
+116 |                   await research_sources(_make_state())
+    |
+help: Combine `with` statements
+
+E501 Line too long (108 > 100)
+   --> packages/agents/tests/sub_agents/test_researcher.py:124:101
+    |
+122 |         bad_bundle = json.dumps({
+123 |             "topic": "T",
+124 |             "sources": [{"title": "Only one", "credibility_score": 0.9, "verification_status": "VERIFIED"}],
+    |                                                                                                     ^^^^^^^^
+125 |         })
+126 |         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_bundle))
+    |
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_researcher.py:127:9
+    |
+125 |           })
+126 |           mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_bundle))
+127 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+128 | |             with pytest.raises(ValueError, match="Researcher agent failed"):
+    | |____________________________________________________________________________^
+129 |                   await research_sources(_make_state())
+    |
+help: Combine `with` statements
+
+I001 Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_researcher.py:229:9
+    |
+227 | class TestResearcherPrompts:
+228 |     def test_prompt_contains_fact_protocol(self):
+229 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+230 |
+231 |         assert "FACT" in RESEARCHER_SYSTEM_PROMPT
+    |
+help: Organize imports
+
+E702 Multiple statements on one line (semicolon)
+   --> packages/agents/tests/sub_agents/test_researcher.py:229:85
+    |
+227 | class TestResearcherPrompts:
+228 |     def test_prompt_contains_fact_protocol(self):
+229 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                     ^
+230 |
+231 |         assert "FACT" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+N806 Variable `RESEARCHER_SYSTEM_PROMPT` in function should be lowercase
+   --> packages/agents/tests/sub_agents/test_researcher.py:229:87
+    |
+227 | class TestResearcherPrompts:
+228 |     def test_prompt_contains_fact_protocol(self):
+229 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+230 |
+231 |         assert "FACT" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+E501 Line too long (133 > 100)
+   --> packages/agents/tests/sub_agents/test_researcher.py:229:101
+    |
+227 | class TestResearcherPrompts:
+228 |     def test_prompt_contains_fact_protocol(self):
+229 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+230 |
+231 |         assert "FACT" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+I001 Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_researcher.py:238:9
+    |
+237 |     def test_prompt_contains_verification_statuses(self):
+238 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+239 |
+240 |         for status in ("VERIFIED", "MODIFIED", "REMOVED", "UNCERTAIN"):
+    |
+help: Organize imports
+
+E702 Multiple statements on one line (semicolon)
+   --> packages/agents/tests/sub_agents/test_researcher.py:238:85
+    |
+237 |     def test_prompt_contains_verification_statuses(self):
+238 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                     ^
+239 |
+240 |         for status in ("VERIFIED", "MODIFIED", "REMOVED", "UNCERTAIN"):
+    |
+
+N806 Variable `RESEARCHER_SYSTEM_PROMPT` in function should be lowercase
+   --> packages/agents/tests/sub_agents/test_researcher.py:238:87
+    |
+237 |     def test_prompt_contains_verification_statuses(self):
+238 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+239 |
+240 |         for status in ("VERIFIED", "MODIFIED", "REMOVED", "UNCERTAIN"):
+    |
+
+E501 Line too long (133 > 100)
+   --> packages/agents/tests/sub_agents/test_researcher.py:238:101
+    |
+237 |     def test_prompt_contains_verification_statuses(self):
+238 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+239 |
+240 |         for status in ("VERIFIED", "MODIFIED", "REMOVED", "UNCERTAIN"):
+    |
+
+I001 Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_researcher.py:244:9
+    |
+243 |     def test_prompt_contains_research_policies(self):
+244 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+245 |
+246 |         assert "basic" in RESEARCHER_SYSTEM_PROMPT
+    |
+help: Organize imports
+
+E702 Multiple statements on one line (semicolon)
+   --> packages/agents/tests/sub_agents/test_researcher.py:244:85
+    |
+243 |     def test_prompt_contains_research_policies(self):
+244 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                     ^
+245 |
+246 |         assert "basic" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+N806 Variable `RESEARCHER_SYSTEM_PROMPT` in function should be lowercase
+   --> packages/agents/tests/sub_agents/test_researcher.py:244:87
+    |
+243 |     def test_prompt_contains_research_policies(self):
+244 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+245 |
+246 |         assert "basic" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+E501 Line too long (133 > 100)
+   --> packages/agents/tests/sub_agents/test_researcher.py:244:101
+    |
+243 |     def test_prompt_contains_research_policies(self):
+244 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+245 |
+246 |         assert "basic" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+I001 Import block is un-sorted or un-formatted
+   --> packages/agents/tests/sub_agents/test_researcher.py:251:9
+    |
+250 |     def test_prompt_contains_output_schema(self):
+251 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+252 |
+253 |         assert "credibility_score" in RESEARCHER_SYSTEM_PROMPT
+    |
+help: Organize imports
+
+E702 Multiple statements on one line (semicolon)
+   --> packages/agents/tests/sub_agents/test_researcher.py:251:85
+    |
+250 |     def test_prompt_contains_output_schema(self):
+251 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                     ^
+252 |
+253 |         assert "credibility_score" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+N806 Variable `RESEARCHER_SYSTEM_PROMPT` in function should be lowercase
+   --> packages/agents/tests/sub_agents/test_researcher.py:251:87
+    |
+250 |     def test_prompt_contains_output_schema(self):
+251 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+252 |
+253 |         assert "credibility_score" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+E501 Line too long (133 > 100)
+   --> packages/agents/tests/sub_agents/test_researcher.py:251:101
+    |
+250 |     def test_prompt_contains_output_schema(self):
+251 |         from packages.agents.sub_agents.researcher.prompts import load_system_prompt; RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+252 |
+253 |         assert "credibility_score" in RESEARCHER_SYSTEM_PROMPT
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/tests/sub_agents/test_roadmap_agent.py:3:1
+  |
+1 |   """Tests for Roadmap Agent and supporting tools."""
+2 |
+3 | / import json
+4 | | import sys
+5 | | import pytest
+6 | | from unittest.mock import AsyncMock, MagicMock, patch
+7 | |
+8 | | from common.contracts.student_profile import LearningStyle, PersonalityTrait, StudentProfile
+  | |____________________________________________________________________________________________^
+  |
+help: Organize imports
+
+N817 CamelCase `StudentProfile` imported as acronym `SP`
+   --> packages/agents/tests/sub_agents/test_roadmap_agent.py:103:38
+    |
+102 |     def test_exported_from_contracts(self):
+103 |         from common.contracts import StudentProfile as SP
+    |                                      ^^^^^^^^^^^^^^^^^^^^
+104 |         assert SP is StudentProfile
+    |
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_roadmap_agent.py:372:9
+    |
+371 |           mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
+372 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+373 | |             with pytest.raises(ValueError, match="Invalid JSON"):
+    | |_________________________________________________________________^
+374 |                   await roadmap_node(self._make_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_roadmap_agent.py:381:9
+    |
+380 |           mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
+381 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+382 | |             with pytest.raises(ValueError, match="Roadmap agent failed"):
+    | |_________________________________________________________________________^
+383 |                   await roadmap_node(self._make_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_roadmap_agent.py:474:9
+    |
+473 |           mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API down"))
+474 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+475 | |             with pytest.raises(ValueError, match="Roadmap agent failed"):
+    | |_________________________________________________________________________^
+476 |                   await roadmap_graph_node(self._make_full_state())
+    |
+help: Combine `with` statements
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/sub_agents/test_roadmap_agent.py:517:9
+    |
+515 |           bad_roadmap = json.dumps({"title": "test"})  # missing required hero + sidebar
+516 |           mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_roadmap))
+517 | /         with patch.dict(sys.modules, {"litellm": mock_litellm}):
+518 | |             with pytest.raises(ValueError, match="Roadmap agent failed"):
+    | |_________________________________________________________________________^
+519 |                   await roadmap_node(self._make_state())
+    |
+help: Combine `with` statements
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/tests/test_compiled_graphs.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / from __future__ import annotations
+ 8 | |
+ 9 | | import json
+10 | | import sys
+11 | | import pytest
+12 | | from unittest.mock import AsyncMock, MagicMock, patch
+   | |_____________________________________________________^
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/tests/test_compiled_graphs.py:63:9
+   |
+61 |   class TestPlannerAgentFactory:
+62 |       def test_returns_compiled_graph(self):
+63 | /         from langgraph.graph.state import CompiledStateGraph
+64 | |         from packages.agents.sub_agents.planner.agent import make_planner_agent
+   | |_______________________________________________________________________________^
+65 |
+66 |           agent = make_planner_agent()
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_compiled_graphs.py:116:9
+    |
+114 |   class TestResearcherAgentFactory:
+115 |       def test_returns_compiled_graph(self):
+116 | /         from langgraph.graph.state import CompiledStateGraph
+117 | |         from packages.agents.sub_agents.researcher.agent import make_researcher_agent
+    | |_____________________________________________________________________________________^
+118 |
+119 |           agent = make_researcher_agent()
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_compiled_graphs.py:144:9
+    |
+142 |   class TestContentCreatorAgentFactory:
+143 |       def test_returns_compiled_graph(self):
+144 | /         from langgraph.graph.state import CompiledStateGraph
+145 | |         from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent
+    | |_______________________________________________________________________________________________^
+146 |
+147 |           agent = make_content_creator_agent()
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_compiled_graphs.py:174:9
+    |
+172 |   class TestReviewerAgentFactory:
+173 |       def test_returns_compiled_graph(self):
+174 | /         from langgraph.graph.state import CompiledStateGraph
+175 | |         from packages.agents.sub_agents.reviewer.agent import make_reviewer_agent
+    | |_________________________________________________________________________________^
+176 |
+177 |           agent = make_reviewer_agent()
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_compiled_graphs.py:205:9
+    |
+203 |   class TestLeadAgentTools:
+204 |       def test_run_planner_is_tool(self):
+205 | /         from langchain_core.tools import BaseTool
+206 | |         from packages.agents.lead_agent.tools import run_planner
+    | |________________________________________________________________^
+207 |
+208 |           assert isinstance(run_planner, BaseTool)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_compiled_graphs.py:211:9
+    |
+210 |       def test_run_researcher_is_tool(self):
+211 | /         from langchain_core.tools import BaseTool
+212 | |         from packages.agents.lead_agent.tools import run_researcher
+    | |___________________________________________________________________^
+213 |
+214 |           assert isinstance(run_researcher, BaseTool)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_compiled_graphs.py:217:9
+    |
+216 |       def test_run_content_creator_is_tool(self):
+217 | /         from langchain_core.tools import BaseTool
+218 | |         from packages.agents.lead_agent.tools import run_content_creator
+    | |________________________________________________________________________^
+219 |
+220 |           assert isinstance(run_content_creator, BaseTool)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_compiled_graphs.py:223:9
+    |
+222 |       def test_run_reviewer_is_tool(self):
+223 | /         from langchain_core.tools import BaseTool
+224 | |         from packages.agents.lead_agent.tools import run_reviewer
+    | |_________________________________________________________________^
+225 |
+226 |           assert isinstance(run_reviewer, BaseTool)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/tests/test_graph.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / from __future__ import annotations
+ 8 | |
+ 9 | | import sys
+10 | | from unittest.mock import MagicMock, patch
+11 | |
+12 | | import pytest
+13 | |
+14 | | from packages.agents.graph import (
+15 | |     route_after_review,
+16 | |     route_after_human_review,
+17 | |     route_after_blueprint_gate,
+18 | |     route_after_content_gate,
+19 | |     route_after_schema,
+20 | |     route_after_content_review,
+21 | |     route_after_judge,
+22 | |     route_after_export,
+23 | | )
+24 | | from packages.agents.checkpointer import get_checkpointer
+   | |_________________________________________________________^
+   |
+help: Organize imports
+
+F401 [*] `packages.agents.graph.route_after_blueprint_gate` imported but unused
+  --> packages/agents/tests/test_graph.py:17:5
+   |
+15 |     route_after_review,
+16 |     route_after_human_review,
+17 |     route_after_blueprint_gate,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+18 |     route_after_content_gate,
+19 |     route_after_schema,
+   |
+help: Remove unused import
+
+F401 [*] `packages.agents.graph.route_after_content_gate` imported but unused
+  --> packages/agents/tests/test_graph.py:18:5
+   |
+16 |     route_after_human_review,
+17 |     route_after_blueprint_gate,
+18 |     route_after_content_gate,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+19 |     route_after_schema,
+20 |     route_after_content_review,
+   |
+help: Remove unused import
+
+SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+   --> packages/agents/tests/test_graph.py:125:9
+    |
+123 |           mocks["langgraph.checkpoint.postgres"] = mock_postgres
+124 |
+125 | /         with patch.dict(sys.modules, mocks):
+126 | |             with pytest.raises(ValueError, match="connection_string"):
+    | |______________________________________________________________________^
+127 |                   get_checkpointer("production")
+    |
+help: Combine `with` statements
+
+N806 Variable `MockMemorySaver` in function should be lowercase
+   --> packages/agents/tests/test_graph.py:134:16
+    |
+132 | class TestCheckpointerDevelopment:
+133 |     def test_development_returns_memory_saver_instance(self):
+134 |         mocks, MockMemorySaver, _ = _make_langgraph_mocks()
+    |                ^^^^^^^^^^^^^^^
+135 |         with patch.dict(sys.modules, mocks):
+136 |             cp = get_checkpointer("development")
+    |
+
+N806 Variable `MockMemorySaver` in function should be lowercase
+   --> packages/agents/tests/test_graph.py:140:16
+    |
+139 |     def test_development_creates_no_arg_instance(self):
+140 |         mocks, MockMemorySaver, _ = _make_langgraph_mocks()
+    |                ^^^^^^^^^^^^^^^
+141 |         with patch.dict(sys.modules, mocks):
+142 |             cp = get_checkpointer("development")
+    |
+
+E501 Line too long (107 > 100)
+   --> packages/agents/tests/test_graph.py:213:101
+    |
+211 |         with patch.dict(sys.modules, mocks):
+212 |             build_oh_my_class_graph()
+213 |         # 14 pipeline (incl. step_00_diagnostic, step_04b_roadmap) + 2 gates + healing_node + escalate_node
+    |                                                                                                     ^^^^^^^
+214 |         assert len(nodes) == 18
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/tests/test_prompt_management.py:3:1
+  |
+1 |   """Tests for G2 prompt management — markdown files per agent, skills directory."""
+2 |
+3 | / from __future__ import annotations
+4 | |
+5 | | import pytest
+  | |_____________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_prompt_management.py:126:5
+    |
+125 |   def test_planner_nodes_uses_load_system_prompt():
+126 | /     import inspect
+127 | |     from packages.agents.sub_agents.planner import nodes
+    | |________________________________________________________^
+128 |       src = inspect.getsource(nodes)
+129 |       assert "load_system_prompt" in src
+    |
+help: Organize imports
+
+E501 Line too long (108 > 100)
+   --> packages/agents/tests/test_prompt_management.py:130:101
+    |
+128 |     src = inspect.getsource(nodes)
+129 |     assert "load_system_prompt" in src
+130 |     assert "PLANNER_SYSTEM_PROMPT = " not in src.replace("PLANNER_SYSTEM_PROMPT = load_system_prompt()", "")
+    |                                                                                                     ^^^^^^^^
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_prompt_management.py:134:5
+    |
+133 |   def test_researcher_nodes_uses_load_system_prompt():
+134 | /     import inspect
+135 | |     from packages.agents.sub_agents.researcher import nodes
+    | |___________________________________________________________^
+136 |       src = inspect.getsource(nodes)
+137 |       assert "load_system_prompt" in src
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_prompt_management.py:141:5
+    |
+140 |   def test_content_creator_nodes_uses_load_system_prompt():
+141 | /     import inspect
+142 | |     from packages.agents.sub_agents.content_creator import nodes
+    | |________________________________________________________________^
+143 |       src = inspect.getsource(nodes)
+144 |       assert "load_system_prompt" in src
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/agents/tests/test_state_quality_fields.py:2:1
+  |
+1 | """Tests for new quality gate state fields."""
+2 | from packages.agents.state import OhMyClassState
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3 |
+4 | def test_state_has_fail_layer():
+  |
+help: Organize imports
+
+TC001 Move application import `packages.agents.state.OhMyClassState` into a type-checking block
+ --> packages/agents/tests/test_state_quality_fields.py:2:35
+  |
+1 | """Tests for new quality gate state fields."""
+2 | from packages.agents.state import OhMyClassState
+  |                                   ^^^^^^^^^^^^^^
+3 |
+4 | def test_state_has_fail_layer():
+  |
+help: Move into type-checking block
+
+F401 [*] `packages.agents.state.OhMyClassState` imported but unused
+  --> packages/agents/tests/test_state_quality_fields.py:17:39
+   |
+16 | def test_state_has_schema_valid():
+17 |     from packages.agents.state import OhMyClassState
+   |                                       ^^^^^^^^^^^^^^
+18 |     state = {"schema_valid": True}
+19 |     assert state.get("schema_valid") is True
+   |
+help: Remove unused import: `packages.agents.state.OhMyClassState`
+
+F401 [*] `pytest` imported but unused
+ --> packages/agents/tests/test_state_schemas.py:8:8
+  |
+6 | from __future__ import annotations
+7 |
+8 | import pytest
+  |        ^^^^^^
+  |
+help: Remove unused import: `pytest`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/tests/test_state_schemas.py:55:9
+   |
+54 |       def test_independent_of_ohmy_class_state(self):
+55 | /         import inspect
+56 | |         import packages.agents.sub_agents.planner.state as mod
+   | |______________________________________________________________^
+57 |
+58 |           # No import of OhMyClassState — graph coupling must stay in adapters
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/agents/tests/test_state_schemas.py:94:9
+   |
+93 |       def test_independent_of_ohmy_class_state(self):
+94 | /         import inspect
+95 | |         import packages.agents.sub_agents.researcher.state as mod
+   | |_________________________________________________________________^
+96 |
+97 |           source = inspect.getsource(mod)
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_state_schemas.py:137:9
+    |
+136 |       def test_independent_of_ohmy_class_state(self):
+137 | /         import inspect
+138 | |         import packages.agents.sub_agents.content_creator.state as mod
+    | |______________________________________________________________________^
+139 |
+140 |           source = inspect.getsource(mod)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_state_schemas.py:175:9
+    |
+174 |       def test_independent_of_ohmy_class_state(self):
+175 | /         import inspect
+176 | |         import packages.agents.sub_agents.reviewer.state as mod
+    | |_______________________________________________________________^
+177 |
+178 |           source = inspect.getsource(mod)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_state_schemas.py:235:9
+    |
+234 |       def test_independent_of_ohmy_class_state(self):
+235 | /         import inspect
+236 | |         import packages.agents.lead_agent.state as mod
+    | |______________________________________________________^
+237 |
+238 |           source = inspect.getsource(mod)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_state_schemas.py:247:9
+    |
+246 |       def test_has_teacher_decision_field(self):
+247 | /         import inspect
+248 | |         import packages.agents.state as mod
+    | |___________________________________________^
+249 |
+250 |           source = inspect.getsource(mod)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_state_schemas.py:254:9
+    |
+253 |       def test_has_gate_payload_field(self):
+254 | /         import inspect
+255 | |         import packages.agents.state as mod
+    | |___________________________________________^
+256 |
+257 |           source = inspect.getsource(mod)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_state_schemas.py:261:9
+    |
+260 |       def test_has_error_field(self):
+261 | /         import inspect
+262 | |         import packages.agents.state as mod
+    | |___________________________________________^
+263 |
+264 |           source = inspect.getsource(mod)
+    |
+help: Organize imports
+
+TC001 Move application import `packages.agents.state.OhMyClassState` into a type-checking block
+   --> packages/agents/tests/test_state_schemas.py:268:43
+    |
+267 |     def test_graph_state_instantiates(self):
+268 |         from packages.agents.state import OhMyClassState
+    |                                           ^^^^^^^^^^^^^^
+269 |
+270 |         state: OhMyClassState = {
+    |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/agents/tests/test_state_schemas.py:322:9
+    |
+321 |     def test_content_creator_extract_from_graph_state(self):
+322 |         from packages.agents.sub_agents.content_creator.adapters import extract_content_creator_state
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+323 |
+324 |         graph_state = {
+    |
+help: Organize imports
+
+E501 Line too long (101 > 100)
+   --> packages/agents/tests/test_state_schemas.py:322:101
+    |
+321 |     def test_content_creator_extract_from_graph_state(self):
+322 |         from packages.agents.sub_agents.content_creator.adapters import extract_content_creator_state
+    |                                                                                                     ^
+323 |
+324 |         graph_state = {
+    |
+
+F401 [*] `pytest` imported but unused
+ --> packages/llm_client/budget/tests/test_ema.py:4:8
+  |
+2 | from __future__ import annotations
+3 |
+4 | import pytest
+  |        ^^^^^^
+5 |
+6 | from packages.llm_client.budget.ema import EMATracker
+  |
+help: Remove unused import: `pytest`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/llm_client/budget/tests/test_manager.py:2:1
+  |
+1 |   """Tests for TokenBudgetManager — soft/hard limits and EMA integration."""
+2 | / from __future__ import annotations
+3 | |
+4 | | import logging
+5 | | import pytest
+6 | |
+7 | | from packages.llm_client.budget.config import TokenBudgetConfig
+8 | | from packages.llm_client.budget.manager import TokenBudgetManager
+  | |_________________________________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `pytest` imported but unused
+ --> packages/llm_client/budget/tests/test_manager.py:5:8
+  |
+4 | import logging
+5 | import pytest
+  |        ^^^^^^
+6 |
+7 | from packages.llm_client.budget.config import TokenBudgetConfig
+  |
+help: Remove unused import: `pytest`
+
+B007 Loop control variable `task` not used within loop body
+   --> packages/llm_client/budget/tests/test_manager.py:131:9
+    |
+129 |     manager = TokenBudgetManager()
+130 |     result = manager.summary()
+131 |     for task, data in result.items():
+    |         ^^^^
+132 |         assert "soft_limit" in data
+133 |         assert "hard_limit" in data
+    |
+help: Rename unused `task` to `_task`
+
+B007 Loop control variable `task` not used within loop body
+   --> packages/llm_client/budget/tests/test_manager.py:141:9
+    |
+139 |     manager = TokenBudgetManager()
+140 |     result = manager.summary()
+141 |     for task, data in result.items():
+    |         ^^^^
+142 |         assert data["ema_samples"] == 0
+143 |         assert data["ema_value"] is None
+    |
+help: Rename unused `task` to `_task`
+
+UP035 [*] Import from `collections.abc` instead: `AsyncIterator`
+  --> packages/llm_client/client.py:9:1
+   |
+ 8 | from dataclasses import dataclass
+ 9 | from typing import AsyncIterator
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 |
+11 | import openai
+   |
+help: Import from `collections.abc`
+
+UP035 [*] Import from `collections.abc` instead: `AsyncIterator`
+  --> packages/llm_client/mock.py:8:1
+   |
+ 7 | from collections import defaultdict
+ 8 | from typing import AsyncIterator
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 9 |
+10 | from packages.llm_client.client import ChatMessage, ChatResponse
+   |
+help: Import from `collections.abc`
+
+F401 [*] `pytest` imported but unused
+ --> packages/llm_client/tests/test_client.py:4:8
+  |
+2 | from __future__ import annotations
+3 |
+4 | import pytest
+  |        ^^^^^^
+5 |
+6 | from packages.llm_client.config import LLMClientConfig
+  |
+help: Remove unused import: `pytest`
+
+E501 Line too long (101 > 100)
+  --> packages/llm_client/tests/test_mock.py:34:101
+   |
+32 |     mock.set_response("f.pro", "content_generation", "first")
+33 |     mock.set_response("f.pro", "content_generation", "second")
+34 |     r1 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+   |                                                                                                     ^
+35 |     r2 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+36 |     assert r1.content == "first"
+   |
+
+E501 Line too long (101 > 100)
+  --> packages/llm_client/tests/test_mock.py:35:101
+   |
+33 |     mock.set_response("f.pro", "content_generation", "second")
+34 |     r1 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+35 |     r2 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+   |                                                                                                     ^
+36 |     assert r1.content == "first"
+37 |     assert r2.content == "second"
+   |
+
+E501 Line too long (103 > 100)
+  --> packages/llm_client/tests/test_mock.py:46:101
+   |
+44 |     await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+45 |     # Queue empty — falls back to default
+46 |     resp = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+   |                                                                                                     ^^^
+47 |     assert resp.content == '{"result": "mock response"}'
+   |
+
+F401 [*] `pytest` imported but unused
+ --> packages/llm_client/tests/test_tags.py:4:8
+  |
+2 | from __future__ import annotations
+3 |
+4 | import pytest
+  |        ^^^^^^
+5 |
+6 | from packages.llm_client.tags import build_tags
+  |
+help: Remove unused import: `pytest`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/notifications/__init__.py:1:1
+  |
+1 | / from packages.notifications.dispatcher import NotificationDispatcher
+2 | | from packages.notifications.base import ApprovalEvent, NotificationChannel
+3 | | from packages.notifications.registry import build_dispatcher
+  | |____________________________________________________________^
+4 |
+5 |   __all__ = ["NotificationDispatcher", "ApprovalEvent", "NotificationChannel", "build_dispatcher"]
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/notifications/base.py:1:1
+  |
+1 | / from __future__ import annotations
+2 | | from dataclasses import dataclass, field
+3 | | from typing import Protocol, runtime_checkable
+  | |______________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `dataclasses.field` imported but unused
+ --> packages/notifications/base.py:2:36
+  |
+1 | from __future__ import annotations
+2 | from dataclasses import dataclass, field
+  |                                    ^^^^^
+3 | from typing import Protocol, runtime_checkable
+  |
+help: Remove unused import: `dataclasses.field`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/notifications/channels/__init__.py:1:1
+  |
+1 | / from packages.notifications.channels.sse import SSEChannel
+2 | | from packages.notifications.channels.telegram import TelegramChannel
+3 | | from packages.notifications.channels.email import EmailChannel
+  | |______________________________________________________________^
+4 |
+5 |   __all__ = ["SSEChannel", "TelegramChannel", "EmailChannel"]
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/notifications/channels/email.py:2:1
+  |
+1 |   """Email channel stub — wire up when Resend/SMTP ready."""
+2 | / from __future__ import annotations
+3 | | from packages.notifications.base import ApprovalEvent
+  | |_____________________________________________________^
+  |
+help: Organize imports
+
+TC001 Move application import `packages.notifications.base.ApprovalEvent` into a type-checking block
+ --> packages/notifications/channels/email.py:3:41
+  |
+1 | """Email channel stub — wire up when Resend/SMTP ready."""
+2 | from __future__ import annotations
+3 | from packages.notifications.base import ApprovalEvent
+  |                                         ^^^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/notifications/channels/sse.py:2:1
+  |
+1 |   """SSE channel — pushes event to existing RunStream."""
+2 | / from __future__ import annotations
+3 | | from packages.notifications.base import ApprovalEvent
+  | |_____________________________________________________^
+  |
+help: Organize imports
+
+TC001 Move application import `packages.notifications.base.ApprovalEvent` into a type-checking block
+ --> packages/notifications/channels/sse.py:3:41
+  |
+1 | """SSE channel — pushes event to existing RunStream."""
+2 | from __future__ import annotations
+3 | from packages.notifications.base import ApprovalEvent
+  |                                         ^^^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/notifications/channels/telegram.py:2:1
+  |
+1 |   """Telegram bot notification channel. Free, no SDK needed."""
+2 | / from __future__ import annotations
+3 | | import httpx
+4 | | from packages.notifications.base import ApprovalEvent
+5 | | from pydantic_settings import BaseSettings, SettingsConfigDict
+  | |______________________________________________________________^
+  |
+help: Organize imports
+
+TC001 Move application import `packages.notifications.base.ApprovalEvent` into a type-checking block
+ --> packages/notifications/channels/telegram.py:4:41
+  |
+2 | from __future__ import annotations
+3 | import httpx
+4 | from packages.notifications.base import ApprovalEvent
+  |                                         ^^^^^^^^^^^^^
+5 | from pydantic_settings import BaseSettings, SettingsConfigDict
+  |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/notifications/dispatcher.py:2:1
+  |
+1 |   """Fan-out dispatcher — sends to all available channels concurrently."""
+2 | / from __future__ import annotations
+3 | | import asyncio
+4 | | import logging
+5 | | from packages.notifications.base import ApprovalEvent, NotificationChannel
+  | |__________________________________________________________________________^
+6 |
+7 |   logger = logging.getLogger(__name__)
+  |
+help: Organize imports
+
+TC001 Move application import `packages.notifications.base.ApprovalEvent` into a type-checking block
+ --> packages/notifications/dispatcher.py:5:41
+  |
+3 | import asyncio
+4 | import logging
+5 | from packages.notifications.base import ApprovalEvent, NotificationChannel
+  |                                         ^^^^^^^^^^^^^
+6 |
+7 | logger = logging.getLogger(__name__)
+  |
+help: Move into type-checking block
+
+F401 [*] `packages.notifications.base.NotificationChannel` imported but unused
+ --> packages/notifications/dispatcher.py:5:56
+  |
+3 | import asyncio
+4 | import logging
+5 | from packages.notifications.base import ApprovalEvent, NotificationChannel
+  |                                                        ^^^^^^^^^^^^^^^^^^^
+6 |
+7 | logger = logging.getLogger(__name__)
+  |
+help: Remove unused import: `packages.notifications.base.NotificationChannel`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> packages/notifications/dispatcher.py:33:31
+   |
+31 |         return {
+32 |             ch.name: (result is True)
+33 |             for ch, result in zip(available, results)
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^
+34 |         }
+   |
+help: Add explicit value for parameter `strict=`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/notifications/tests/test_notifications.py:2:1
+  |
+1 |   """Tests for notification system — J4 pluggable channels."""
+2 | / from __future__ import annotations
+3 | | import asyncio
+4 | | import pytest
+5 | | from unittest.mock import AsyncMock, MagicMock, patch
+  | |_____________________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `asyncio` imported but unused
+ --> packages/notifications/tests/test_notifications.py:3:8
+  |
+1 | """Tests for notification system — J4 pluggable channels."""
+2 | from __future__ import annotations
+3 | import asyncio
+  |        ^^^^^^^
+4 | import pytest
+5 | from unittest.mock import AsyncMock, MagicMock, patch
+  |
+help: Remove unused import: `asyncio`
+
+E501 Line too long (105 > 100)
+   --> packages/notifications/tests/test_notifications.py:157:101
+    |
+155 |         mock_response.status_code = 200
+156 |         with patch("packages.notifications.channels.telegram.httpx.AsyncClient") as mock_client:
+157 |             mock_client.return_value.__aenter__.return_value.post = AsyncMock(return_value=mock_response)
+    |                                                                                                     ^^^^^
+158 |             result = await ch.send(make_event())
+159 |         assert result is True
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/notifications/tests/test_notifications.py:180:9
+    |
+178 |       @pytest.mark.asyncio
+179 |       async def test_sends_to_available_channels(self):
+180 | /         from packages.notifications.dispatcher import NotificationDispatcher
+181 | |         from packages.notifications.channels.sse import SSEChannel
+182 | |         from packages.notifications.channels.email import EmailChannel
+    | |______________________________________________________________________^
+183 |           dispatcher = NotificationDispatcher([SSEChannel(), EmailChannel()])
+184 |           results = await dispatcher.notify(make_event())
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/notifications/tests/test_notifications.py:190:9
+    |
+188 |       @pytest.mark.asyncio
+189 |       async def test_returns_empty_when_all_unavailable(self):
+190 | /         from packages.notifications.dispatcher import NotificationDispatcher
+191 | |         from packages.notifications.channels.email import EmailChannel
+    | |______________________________________________________________________^
+192 |           dispatcher = NotificationDispatcher([EmailChannel()])
+193 |           results = await dispatcher.notify(make_event())
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/notifications/tests/test_notifications.py:198:9
+    |
+196 |       @pytest.mark.asyncio
+197 |       async def test_concurrent_send(self):
+198 | /         from packages.notifications.dispatcher import NotificationDispatcher
+199 | |         from packages.notifications.channels.sse import SSEChannel
+    | |__________________________________________________________________^
+200 |           ch1 = SSEChannel()
+201 |           ch2 = SSEChannel()
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/notifications/tests/test_notifications.py:209:9
+    |
+207 |       @pytest.mark.asyncio
+208 |       async def test_channel_error_does_not_crash_others(self):
+209 | /         from packages.notifications.dispatcher import NotificationDispatcher
+210 | |         from packages.notifications.channels.sse import SSEChannel
+    | |__________________________________________________________________^
+211 |           broken_ch = MagicMock()
+212 |           broken_ch.name = "broken"
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/notifications/tests/test_notifications.py:222:9
+    |
+220 |   class TestRegistry:
+221 |       def test_build_dispatcher_returns_dispatcher(self):
+222 | /         from packages.notifications.registry import build_dispatcher
+223 | |         from packages.notifications.dispatcher import NotificationDispatcher
+    | |____________________________________________________________________________^
+224 |           dispatcher = build_dispatcher()
+225 |           assert isinstance(dispatcher, NotificationDispatcher)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/layer1_schema/__init__.py:8:1
+   |
+ 6 |   """
+ 7 |
+ 8 | / from packages.quality.layer1_schema.circuit_breaker import CircuitBreaker as StatefulCircuitBreaker
+ 9 | | from packages.quality.layer1_schema.validators import (
+10 | |     CircuitBreaker,
+11 | |     PLACEHOLDER_PATTERNS,
+12 | |     ValidationGateError,
+13 | |     check_answer_key_separation,
+14 | |     check_bloom_coverage,
+15 | |     check_placeholder_content,
+16 | |     validate_schema,
+17 | | )
+   | |_^
+18 |
+19 |   __all__ = [
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/layer2_content/__init__.py:7:1
+   |
+ 5 |   """
+ 6 |
+ 7 | / from packages.quality.layer2_content.age_check import check_age_appropriateness
+ 8 | | from packages.quality.layer2_content.fact_check import FACTChecker
+ 9 | | from packages.quality.layer2_content.pedagogical import check_pedagogical_metrics
+10 | | from packages.quality.layer2_content.age_band import AgeBand, AGE_BANDS, get_age_band, build_grade_prompt_section
+11 | | from packages.quality.layer2_content.readability_checker import ReadabilityResult, check_readability, MAX_DEVIATION
+12 | | from packages.quality.layer2_content.methodology import (
+13 | |     MethodologyGateResult,
+14 | |     MethodologyViolation,
+15 | |     check_methodology_compliance,
+16 | | )
+   | |_^
+17 |
+18 |   __all__ = [
+   |
+help: Organize imports
+
+E501 Line too long (113 > 100)
+  --> packages/quality/layer2_content/__init__.py:10:101
+   |
+ 8 | from packages.quality.layer2_content.fact_check import FACTChecker
+ 9 | from packages.quality.layer2_content.pedagogical import check_pedagogical_metrics
+10 | from packages.quality.layer2_content.age_band import AgeBand, AGE_BANDS, get_age_band, build_grade_prompt_section
+   |                                                                                                     ^^^^^^^^^^^^^
+11 | from packages.quality.layer2_content.readability_checker import ReadabilityResult, check_readability, MAX_DEVIATION
+12 | from packages.quality.layer2_content.methodology import (
+   |
+
+E501 Line too long (115 > 100)
+  --> packages/quality/layer2_content/__init__.py:11:101
+   |
+ 9 | from packages.quality.layer2_content.pedagogical import check_pedagogical_metrics
+10 | from packages.quality.layer2_content.age_band import AgeBand, AGE_BANDS, get_age_band, build_grade_prompt_section
+11 | from packages.quality.layer2_content.readability_checker import ReadabilityResult, check_readability, MAX_DEVIATION
+   |                                                                                                     ^^^^^^^^^^^^^^^
+12 | from packages.quality.layer2_content.methodology import (
+13 |     MethodologyGateResult,
+   |
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+  --> packages/quality/layer2_content/methodology.py:65:13
+   |
+63 |       for section in sections:
+64 |           for comp in section.get("components", []):
+65 | /             if isinstance(comp, dict) and comp.get("type") == "question_card":
+66 | |                 if not comp.get("wrong_reasons"):
+   | |_________________________________________________^
+67 |                       return False
+68 |       return True
+   |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> packages/quality/layer2_content/methodology.py:106:5
+    |
+105 |       # R5: why_wrong_reasoning — every question_card must carry wrong_reasons
+106 | /     if "why_wrong_reasoning" in methodology_tags:
+107 | |         if _count_question_cards(sections) > 0 and not _questions_have_wrong_reasons(sections):
+    | |_______________________________________________________________________________________________^
+108 |               violations.append(MethodologyViolation(
+109 |                   tag="why_wrong_reasoning",
+    |
+help: Combine `if` statements using `and`
+
+F401 [*] `common.contracts.judge_output.LayerScore` imported but unused
+  --> packages/quality/layer4_judge/geval.py:20:60
+   |
+19 | if TYPE_CHECKING:
+20 |     from common.contracts.judge_output import JudgeOutput, LayerScore
+   |                                                            ^^^^^^^^^^
+   |
+help: Remove unused import: `common.contracts.judge_output.LayerScore`
+
+UP037 [*] Remove quotes from type annotation
+  --> packages/quality/layer4_judge/geval.py:57:10
+   |
+55 |         *,
+56 |         lesson_plan: dict[str, Any] | None = None,
+57 |     ) -> "JudgeOutput":
+   |          ^^^^^^^^^^^^^
+58 |         """Score artifacts using G-Eval across 3 layers.
+   |
+help: Remove quotes
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/layer4_judge/geval.py:67:9
+   |
+65 |               JudgeOutput with scores, issues, and pass/fail status.
+66 |           """
+67 | /         import json
+68 | |         import litellm
+69 | |
+70 | |         from common.contracts.judge_output import JudgeOutput
+71 | |         from packages.agents.sub_agents.reviewer.prompts import load_system_prompt
+72 | |         from packages.quality.layer4_judge.majority_vote import majority_vote
+   | |_____________________________________________________________________________^
+73 |           REVIEWER_SYSTEM_PROMPT = load_system_prompt()
+   |
+help: Organize imports
+
+N806 Variable `REVIEWER_SYSTEM_PROMPT` in function should be lowercase
+  --> packages/quality/layer4_judge/geval.py:73:9
+   |
+71 |         from packages.agents.sub_agents.reviewer.prompts import load_system_prompt
+72 |         from packages.quality.layer4_judge.majority_vote import majority_vote
+73 |         REVIEWER_SYSTEM_PROMPT = load_system_prompt()
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+74 |
+75 |         user_prompt = f"""
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/layer4_judge/pedagogical_scorer.py:64:5
+   |
+62 |           PedagogicalScore with 5 dimension scores (1-5) and a total average.
+63 |       """
+64 | /     from packages.llm_client.client import LLMClient, ChatMessage
+65 | |     from packages.agents.config import MODELS
+   | |_____________________________________________^
+66 |
+67 |       llm = llm or LLMClient()
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_layer1_schema.py:3:1
+   |
+ 1 |   """Tests for Layer 1 schema validation."""
+ 2 |
+ 3 | / import pytest
+ 4 | |
+ 5 | | from packages.quality.layer1_schema.validators import (
+ 6 | |     CircuitBreaker,
+ 7 | |     PLACEHOLDER_PATTERNS,
+ 8 | |     ValidationGateError,
+ 9 | |     check_answer_key_separation,
+10 | |     check_bloom_coverage,
+11 | |     check_placeholder_content,
+12 | |     validate_schema,
+13 | | )
+14 | | from common.contracts.lesson_plan import LessonPlan
+   | |___________________________________________________^
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_layer2_content.py:6:1
+   |
+ 4 |     packages.quality.layer2_content.methodology
+ 5 |   """
+ 6 | / from __future__ import annotations
+ 7 | | import pytest
+ 8 | | from packages.quality.layer2_content.methodology import (
+ 9 | |     check_methodology_compliance,
+10 | |     MethodologyGateResult,
+11 | |     MethodologyViolation,
+12 | | )
+   | |_^
+   |
+help: Organize imports
+
+F401 [*] `pytest` imported but unused
+ --> packages/quality/tests/test_layer2_content.py:7:8
+  |
+5 | """
+6 | from __future__ import annotations
+7 | import pytest
+  |        ^^^^^^
+8 | from packages.quality.layer2_content.methodology import (
+9 |     check_methodology_compliance,
+  |
+help: Remove unused import: `pytest`
+
+F401 [*] `packages.quality.layer2_content.methodology.MethodologyViolation` imported but unused
+  --> packages/quality/tests/test_layer2_content.py:11:5
+   |
+ 9 |     check_methodology_compliance,
+10 |     MethodologyGateResult,
+11 |     MethodologyViolation,
+   |     ^^^^^^^^^^^^^^^^^^^^
+12 | )
+   |
+help: Remove unused import: `packages.quality.layer2_content.methodology.MethodologyViolation`
+
+E501 Line too long (121 > 100)
+  --> packages/quality/tests/test_layer2_content.py:20:101
+   |
+18 |     if "film" in include:
+19 |         sections.append({"heading": "Warm-up", "components": [
+20 |             {"type": "film_clip_activity", "clips": [{"title": "Test", "description": "desc"}], "hunt_chips": ["arrive"]}
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^
+21 |         ]})
+22 |     if "vocab" in include:
+   |
+
+E501 Line too long (101 > 100)
+  --> packages/quality/tests/test_layer2_content.py:30:101
+   |
+28 |     if "phrasal" in include:
+29 |         sections.append({"heading": "Phrasal", "components": [
+30 |             {"type": "phrasal_verb_cluster", "groups": [{"label": "Leaving", "color": "a", "items": [
+   |                                                                                                     ^
+31 |                 {"verb": "set off", "meaning": "begin journey"}
+32 |             ]}]}
+   |
+
+E501 Line too long (104 > 100)
+  --> packages/quality/tests/test_layer2_content.py:64:101
+   |
+62 |     def test_full_vocab_lesson_passes_all_tags(self):
+63 |         sections = _build_vocab_lesson()
+64 |         tags = ["concept_map", "film_based", "shy_student_1on1", "active_recall", "why_wrong_reasoning"]
+   |                                                                                                     ^^^^
+65 |         # active_recall requires active_recall_prompt — not in build, so test without it
+66 |         tags = ["concept_map", "film_based", "shy_student_1on1", "why_wrong_reasoning"]
+   |
+
+E501 Line too long (112 > 100)
+   --> packages/quality/tests/test_layer3_html.py:147:101
+    |
+146 |     def test_viewport_present(self):
+147 |         assert self.validator.check_viewport_meta('<meta name="viewport" content="width=device-width">') is True
+    |                                                                                                     ^^^^^^^^^^^^
+148 |
+149 |     def test_viewport_missing(self):
+    |
+
+E501 Line too long (102 > 100)
+   --> packages/quality/tests/test_layer3_html.py:265:101
+    |
+263 |     @pytest.mark.asyncio
+264 |     async def test_custom_viewports(self):
+265 |         result = await check_responsive("<html></html>", viewports=[480, 1024], environment="staging")
+    |                                                                                                     ^^
+266 |         assert 480 in result.viewport_results
+267 |         assert 1024 in result.viewport_results
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_layer4_judge.py:3:1
+   |
+ 1 |   """Tests for layer4_judge — majority_vote and GEvalScorer."""
+ 2 |
+ 3 | / from __future__ import annotations
+ 4 | |
+ 5 | | import json
+ 6 | | import sys
+ 7 | | import pytest
+ 8 | | from unittest.mock import AsyncMock, MagicMock, patch
+ 9 | |
+10 | | from common.contracts.judge_output import JudgeOutput, LayerScore
+11 | | from packages.quality.layer4_judge.majority_vote import majority_vote
+   | |_____________________________________________________________________^
+   |
+help: Organize imports
+
+F401 [*] `json` imported but unused
+ --> packages/quality/tests/test_layer4_judge.py:5:8
+  |
+3 | from __future__ import annotations
+4 |
+5 | import json
+  |        ^^^^
+6 | import sys
+7 | import pytest
+  |
+help: Remove unused import: `json`
+
+E501 Line too long (120 > 100)
+  --> packages/quality/tests/test_layer4_judge.py:16:101
+   |
+14 | # ── helpers ───────────────────────────────────────────────────────────────────
+15 |
+16 | def make_judge_output(passed: bool = True, score: float = 8.0, critical_issues: list[str] | None = None) -> JudgeOutput:
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^
+17 |     return JudgeOutput(
+18 |         overall_score=score,
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/quality/tests/test_layer4_judge.py:159:9
+    |
+157 |     @pytest.mark.asyncio
+158 |     async def test_calls_litellm_num_judges_times(self):
+159 |         from packages.quality.layer4_judge.geval import GEvalScorer, GEvalConfig
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+160 |
+161 |         good_output = make_judge_output(passed=True, score=8.0)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/quality/tests/test_layer4_judge.py:181:9
+    |
+179 |     @pytest.mark.asyncio
+180 |     async def test_continues_on_single_judge_failure(self):
+181 |         from packages.quality.layer4_judge.geval import GEvalScorer, GEvalConfig
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+182 |
+183 |         good_output = make_judge_output(passed=True, score=8.0)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/quality/tests/test_layer4_judge.py:203:9
+    |
+201 |     @pytest.mark.asyncio
+202 |     async def test_uses_different_temperatures(self):
+203 |         from packages.quality.layer4_judge.geval import GEvalScorer, GEvalConfig
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+204 |
+205 |         good_output = make_judge_output(passed=True, score=8.0)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/quality/tests/test_layer4_judge.py:216:9
+    |
+214 |     @pytest.mark.asyncio
+215 |     async def test_metadata_tags_include_reviewer(self):
+216 |         from packages.quality.layer4_judge.geval import GEvalScorer, GEvalConfig
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+217 |
+218 |         good_output = make_judge_output(passed=True, score=8.0)
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_layer5_human.py:3:1
+   |
+ 1 |   """Tests for layer5_human — InterruptHandler."""
+ 2 |
+ 3 | / from __future__ import annotations
+ 4 | |
+ 5 | | import sys
+ 6 | | from unittest.mock import AsyncMock, MagicMock, patch
+ 7 | |
+ 8 | | import pytest
+ 9 | |
+10 | | from packages.quality.layer5_human.interrupt_handler import (
+11 | |     InterruptConfig,
+12 | |     InterruptHandler,
+13 | | )
+   | |_^
+   |
+help: Organize imports
+
+E501 Line too long (101 > 100)
+  --> packages/quality/tests/test_layer5_human.py:32:101
+   |
+30 |         with patch.dict(sys.modules, {"langgraph.types": mock_types}):
+31 |             handler = InterruptHandler()
+32 |             result = await handler.create_gate("blueprint_approval", {"lesson_plan": {"topic": "T"}})
+   |                                                                                                     ^
+33 |
+34 |         assert result["action"] == "approve"
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> packages/quality/tests/test_pedagogical_scorer.py:2:1
+  |
+1 |   """Tests for PedagogicalScore dataclass and score_pedagogical (QG2)."""
+2 | / from __future__ import annotations
+3 | |
+4 | | import pytest
+5 | | from unittest.mock import AsyncMock, MagicMock
+  | |______________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_pedagogical_scorer.py:10:9
+   |
+ 8 | class TestPedagogicalScoreDataclass:
+ 9 |     def test_passed_true_when_total_gte_threshold(self):
+10 |         from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+11 |         score = PedagogicalScore(
+12 |             clarity=4.0, integrity=4.0, depth=3.5,
+   |
+help: Organize imports
+
+E501 Line too long (101 > 100)
+  --> packages/quality/tests/test_pedagogical_scorer.py:10:101
+   |
+ 8 | class TestPedagogicalScoreDataclass:
+ 9 |     def test_passed_true_when_total_gte_threshold(self):
+10 |         from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
+   |                                                                                                     ^
+11 |         score = PedagogicalScore(
+12 |             clarity=4.0, integrity=4.0, depth=3.5,
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_pedagogical_scorer.py:20:9
+   |
+19 |     def test_passed_false_when_total_below_threshold(self):
+20 |         from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+21 |         score = PedagogicalScore(
+22 |             clarity=2.0, integrity=2.0, depth=3.0,
+   |
+help: Organize imports
+
+E501 Line too long (101 > 100)
+  --> packages/quality/tests/test_pedagogical_scorer.py:20:101
+   |
+19 |     def test_passed_false_when_total_below_threshold(self):
+20 |         from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
+   |                                                                                                     ^
+21 |         score = PedagogicalScore(
+22 |             clarity=2.0, integrity=2.0, depth=3.0,
+   |
+
+E501 Line too long (133 > 100)
+  --> packages/quality/tests/test_pedagogical_scorer.py:64:101
+   |
+63 |         mock_response = MagicMock()
+64 |         mock_response.content = '{"clarity": 4, "integrity": 4, "depth": 4, "practicality": 4, "pertinence": 4, "rationale": "good"}'
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+65 |
+66 |         mock_llm = AsyncMock()
+   |
+
+E501 Line too long (139 > 100)
+  --> packages/quality/tests/test_pedagogical_scorer.py:84:101
+   |
+83 | …
+84 | …grity": 2, "depth": 3, "practicality": 2, "pertinence": 3, "rationale": "needs work"}'
+   |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+85 | …
+86 | …
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_pedagogical_scorer.py:96:9
+   |
+94 |       @pytest.mark.asyncio
+95 |       async def test_raises_on_invalid_json(self):
+96 | /         from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical
+97 | |         import json
+   | |___________________^
+98 |
+99 |           mock_response = MagicMock()
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> packages/quality/tests/test_pedagogical_scorer.py:110:9
+    |
+108 |     @pytest.mark.asyncio
+109 |     async def test_content_truncated_to_6000_chars(self):
+110 |         from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical, _MAX_CONTENT_CHARS
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+111 |
+112 |         mock_response = MagicMock()
+    |
+help: Organize imports
+
+E501 Line too long (106 > 100)
+   --> packages/quality/tests/test_pedagogical_scorer.py:110:101
+    |
+108 |     @pytest.mark.asyncio
+109 |     async def test_content_truncated_to_6000_chars(self):
+110 |         from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical, _MAX_CONTENT_CHARS
+    |                                                                                                     ^^^^^^
+111 |
+112 |         mock_response = MagicMock()
+    |
+
+E501 Line too long (131 > 100)
+   --> packages/quality/tests/test_pedagogical_scorer.py:113:101
+    |
+112 |         mock_response = MagicMock()
+113 |         mock_response.content = '{"clarity": 3, "integrity": 3, "depth": 3, "practicality": 3, "pertinence": 3, "rationale": "ok"}'
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+114 |
+115 |         mock_llm = AsyncMock()
+    |
+
+F401 [*] `pytest` imported but unused
+ --> packages/quality/tests/test_readability_checker.py:4:8
+  |
+2 | from __future__ import annotations
+3 |
+4 | import pytest
+  |        ^^^^^^
+  |
+help: Remove unused import: `pytest`
+
+E501 Line too long (101 > 100)
+  --> packages/quality/tests/test_readability_checker.py:33:101
+   |
+31 |             'The photosynthetic process utilises electromagnetic radiation '
+32 |             'to catalyse biochemical transformations within chloroplasts. '
+33 |             'The mitochondrial oxidative phosphorylation generates adenosine triphosphate molecules.'
+   |                                                                                                     ^
+34 |         )
+35 |         result = check_readability(complex_text, target_grade=1)
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_readability_checker.py:81:9
+   |
+80 |     def test_passes_when_deviation_exactly_at_limit(self):
+81 |         from packages.quality.layer2_content.readability_checker import ReadabilityResult, MAX_DEVIATION
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+82 |         # Simulate a result at the exact boundary
+83 |         result = ReadabilityResult(
+   |
+help: Organize imports
+
+E501 Line too long (104 > 100)
+  --> packages/quality/tests/test_readability_checker.py:81:101
+   |
+80 |     def test_passes_when_deviation_exactly_at_limit(self):
+81 |         from packages.quality.layer2_content.readability_checker import ReadabilityResult, MAX_DEVIATION
+   |                                                                                                     ^^^^
+82 |         # Simulate a result at the exact boundary
+83 |         result = ReadabilityResult(
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> packages/quality/tests/test_readability_checker.py:93:9
+   |
+92 |     def test_fails_when_deviation_exceeds_limit(self):
+93 |         from packages.quality.layer2_content.readability_checker import ReadabilityResult, MAX_DEVIATION
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+94 |         result = ReadabilityResult(
+95 |             fk_grade_level=9.1,
+   |
+help: Organize imports
+
+E501 Line too long (104 > 100)
+  --> packages/quality/tests/test_readability_checker.py:93:101
+   |
+92 |     def test_fails_when_deviation_exceeds_limit(self):
+93 |         from packages.quality.layer2_content.readability_checker import ReadabilityResult, MAX_DEVIATION
+   |                                                                                                     ^^^^
+94 |         result = ReadabilityResult(
+95 |             fk_grade_level=9.1,
+   |
+
+TC001 Move application import `..auth.models.User` into a type-checking block
+  --> services/gateway/routers/runs.py:14:27
+   |
+13 | from ..auth.dependencies import require_teacher
+14 | from ..auth.models import User
+   |                           ^^^^
+15 |
+16 | router = APIRouter()
+   |
+help: Move into type-checking block
+
+F841 Local variable `graph` is assigned to but never used
+  --> services/gateway/routers/runs.py:53:13
+   |
+51 |             from packages.agents.graph import build_oh_my_class_graph
+52 |
+53 |             graph = build_oh_my_class_graph(environment="development")
+   |             ^^^^^
+54 |             # Real implementation streams graph events via checkpointer
+55 |         except Exception as e:
+   |
+help: Remove assignment to unused variable `graph`
+
+F401 [*] `pytest` imported but unused
+  --> services/gateway/tests/test_approvals_router.py:9:8
+   |
+ 7 | from unittest.mock import MagicMock
+ 8 |
+ 9 | import pytest
+   |        ^^^^^^
+10 | from fastapi import FastAPI
+11 | from fastapi.testclient import TestClient
+   |
+help: Remove unused import: `pytest`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> services/gateway/tests/test_approvals_router.py:21:1
+   |
+19 |       sys.modules["jwt"] = MagicMock()
+20 |
+21 | / from services.gateway.auth.models import Role, User  # noqa: E402
+22 | | from services.gateway.routers.approvals import (  # noqa: E402
+23 | |     ApprovalRequest,
+24 | |     ApprovalResponse,
+25 | |     router,
+26 | | )
+   | |_^
+   |
+help: Organize imports
+
+F401 [*] `pytest` imported but unused
+  --> services/gateway/tests/test_runs_router.py:9:8
+   |
+ 7 | from unittest.mock import MagicMock
+ 8 |
+ 9 | import pytest
+   |        ^^^^^^
+10 | from fastapi import FastAPI
+11 | from fastapi.testclient import TestClient
+   |
+help: Remove unused import: `pytest`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> services/gateway/tests/test_runs_router.py:21:1
+   |
+19 |       sys.modules["jwt"] = MagicMock()
+20 |
+21 | / from services.gateway.auth.models import Role, User  # noqa: E402
+22 | | from services.gateway.routers.runs import RunRequest, RunResponse, router  # noqa: E402
+   | |_________________________________________________________________________^
+   |
+help: Organize imports
+
+Found 346 errors.
+[*] 181 fixable with the `--fix` option (27 hidden fixes can be enabled with the `--unsafe-fixes` option).

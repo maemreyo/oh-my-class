@@ -1,0 +1,9 @@
+time="2026-06-25T10:34:37+07:00" level=warning msg="/Users/trung.ngo/Documents/zaob-dev/oh-my-class/infra/compose/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Image compose-gateway Building 
+ Image compose-proxy Building 
+ Image compose-web Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.54kB done
+#1 DONE 0.0s
+resolve : lstat /Users/trung.ngo/Documents/zaob-dev/oh-my-class/infra/infra: no such file or directory
+

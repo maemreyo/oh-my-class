@@ -25,7 +25,7 @@ def client() -> TestClient:
     """Return a TestClient wired with only RequestIDMiddleware + a probe route."""
     app = FastAPI()
 
-    @app.get("/probe")
+    @app.get("/probe")  # pyright: ignore[reportUntypedFunctionDecorator]
     async def probe(request: Request):
         # Echo the request_id back so the test can assert state was populated.
         return {"request_id": getattr(request.state, "request_id", None)}

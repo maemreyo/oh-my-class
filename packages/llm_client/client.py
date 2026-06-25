@@ -6,13 +6,21 @@ Never instantiate openai.AsyncOpenAI directly inside agent code.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import AsyncIterator
+from typing import TYPE_CHECKING, cast
 
 import openai
+from openai import Omit
 
 from packages.llm_client.budget.manager import TokenBudgetManager
 from packages.llm_client.config import LLMClientConfig
 from packages.llm_client.tags import build_tags
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from openai.types.chat import ChatCompletionMessageParam, completion_create_params
+
+_OMIT: Omit = Omit()
 
 _budget = TokenBudgetManager()  # module-level singleton
 
@@ -62,7 +70,7 @@ class LLMClient:
         step: int | None = None,
         max_tokens: int | None = None,
         temperature: float | None = None,
-        response_format: dict | None = None,
+        response_format: completion_create_params.ResponseFormat | Omit = _OMIT,
     ) -> ChatResponse:
         """Send chat request. Returns ChatResponse with usage stats."""
         extra = build_tags(agent, task, run_id, step)
@@ -71,18 +79,18 @@ class LLMClient:
         budget_hard_limit = _budget.get_hard_limit(task)
         effective_max_tokens = max_tokens if max_tokens is not None else budget_hard_limit
 
-        kwargs: dict = {
-            "model": model,
-            "messages": [{"role": m.role, "content": m.content} for m in messages],
-            "temperature": temperature if temperature is not None else self._config.temperature,
-            "extra_body": extra,
-        }
-        if effective_max_tokens is not None:
-            kwargs["max_tokens"] = effective_max_tokens
-        if response_format is not None:
-            kwargs["response_format"] = response_format
-
-        resp = await self._client.chat.completions.create(**kwargs)
+        typed_messages = cast(
+            "list[ChatCompletionMessageParam]",
+            [{"role": m.role, "content": m.content} for m in messages],
+        )
+        resp = await self._client.chat.completions.create(
+            model=model,
+            messages=typed_messages,
+            temperature=temperature if temperature is not None else self._config.temperature,
+            extra_body=extra,
+            max_tokens=effective_max_tokens,
+            response_format=response_format,
+        )
         choice = resp.choices[0]
         usage = resp.usage
 
@@ -112,9 +120,13 @@ class LLMClient:
     ) -> AsyncIterator[str]:
         """Stream chat response token by token."""
         extra = build_tags(agent, task, run_id, step)
+        typed_messages = cast(
+            "list[ChatCompletionMessageParam]",
+            [{"role": m.role, "content": m.content} for m in messages],
+        )
         stream = await self._client.chat.completions.create(
             model=model,
-            messages=[{"role": m.role, "content": m.content} for m in messages],
+            messages=typed_messages,
             temperature=self._config.temperature,
             extra_body=extra,
             stream=True,

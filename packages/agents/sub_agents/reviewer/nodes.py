@@ -6,9 +6,10 @@ to avoid self-review bias.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from packages.agents.sub_agents.reviewer.state import ReviewerState
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.reviewer.state import ReviewerState
 
 
 async def reviewer_node(state: ReviewerState) -> dict[str, Any]:

@@ -80,7 +80,7 @@ class OhMyClassState(TypedDict):
     fail_layer: NotRequired[str | None]       # "schema" | "content" | "judge" | "human"
     fail_count: NotRequired[int]              # incremented by healing_node
     fail_type: NotRequired[str | None]        # "validation" | "content" | "score" | "timeout"
-    fail_context: NotRequired[dict | None]    # error details for healing strategy
+    fail_context: NotRequired[dict[str, Any] | None]    # error details for healing strategy
 
     # ── Gate scores ──────────────────────────────────────────────────────────────
     schema_valid: NotRequired[bool | None]
@@ -91,9 +91,9 @@ class OhMyClassState(TypedDict):
     # ── Healing / model override ─────────────────────────────────────────────────
     escalate: NotRequired[bool]              # set True to trigger escalation
     escalate_reason: NotRequired[str | None]
-    healing_strategy: NotRequired[str | None]  # "retry" | "rewrite" | "reroute" | "replan" | "escalate"
+    healing_strategy: NotRequired[str | None]  # "retry" | "rewrite" | "reroute" | "replan" | "escalate"  # noqa: E501
     healing_note: NotRequired[str | None]
-    healing_context: NotRequired[dict | None]
+    healing_context: NotRequired[dict[str, Any] | None]
     generation_model: NotRequired[str | None]  # overrides default model for generation
 
     # ── HITL Gate ───────────────────────────────────────────
@@ -103,10 +103,13 @@ class OhMyClassState(TypedDict):
     # ── Error ───────────────────────────────────────────────
     error: NotRequired[str]   # set by any node on unrecoverable failure
 
+    # ── Review ──────────────────────────────────────────────
+    review_results: NotRequired[dict[str, Any] | None]   # output from reviewer agent
+
     # ── Diagnostic ──────────────────────────────────────────
-    student_responses: NotRequired[dict | None]   # StudentResponse JSON
-    diagnostic_report: NotRequired[dict | None]   # DiagnosticReport JSON
-    student_profile: NotRequired[dict | None]     # StudentProfile JSON
+    student_responses: NotRequired[dict[str, Any] | None]   # StudentResponse JSON
+    diagnostic_report: NotRequired[dict[str, Any] | None]   # DiagnosticReport JSON
+    student_profile: NotRequired[dict[str, Any] | None]     # StudentProfile JSON
 
     # ── Export ──────────────────────────────────────────────
     export_formats: list[str]  # ["html", "gift", "h5p"]

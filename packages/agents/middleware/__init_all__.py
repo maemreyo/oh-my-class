@@ -8,6 +8,6 @@ INVARIANT-08: ClarificationMiddleware is always the last in the chain (order=30)
 
 from __future__ import annotations
 
-from packages.agents.middleware.registry import ORDERED_MIDDLEWARE_LIST, EXPECTED_MIDDLEWARE_COUNT
+from packages.agents.middleware.registry import EXPECTED_MIDDLEWARE_COUNT, ORDERED_MIDDLEWARE_LIST
 
 __all__ = ["ORDERED_MIDDLEWARE_LIST", "EXPECTED_MIDDLEWARE_COUNT"]

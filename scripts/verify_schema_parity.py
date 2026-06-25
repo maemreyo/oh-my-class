@@ -67,11 +67,10 @@ def extract_zod_fields(zod_file: Path) -> set[str]:
     """
     content = zod_file.read_text()
 
-    # Find all `fieldName: z.` patterns — these are object properties
+    # Match both `fieldName: z.` (unquoted) and `"fieldName": z.` (quoted) patterns
     fields: set[str] = set()
-    for match in re.finditer(r"(\w+)\s*:\s*z\.", content):
+    for match in re.finditer(r'"?(\w+)"?\s*:\s*z\.', content):
         field = match.group(1)
-        # Skip common Zod internals that aren't field names
         if field in {"z", "import"}:
             continue
         fields.add(field)

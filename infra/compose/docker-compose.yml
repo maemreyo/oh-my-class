@@ -20,7 +20,7 @@ services:
 
   gateway:
     build:
-      context: ..
+      context: ../..
       dockerfile: infra/docker/Dockerfile.gateway
     ports:
       - "8001:8001"
@@ -53,18 +53,18 @@ services:
 
   proxy:
     build:
-      context: ..
+      context: ../..
       dockerfile: infra/docker/Dockerfile.proxy
     ports:
       - "4000:4000"
     env_file:
-      - ../services/proxy/.env
+      - ../../.env
     depends_on:
       - redis
 
   web:
     build:
-      context: ..
+      context: ../..
       dockerfile: infra/docker/Dockerfile.web
     ports:
       - "3000:3000"

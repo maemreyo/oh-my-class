@@ -31,8 +31,8 @@ async def test_mock_queued_responses_consumed_in_order():
     mock = MockLLMClient()
     mock.set_response("f.pro", "content_generation", "first")
     mock.set_response("f.pro", "content_generation", "second")
-    r1 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
-    r2 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+    r1 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
+    r2 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
     assert r1.content == "first"
     assert r2.content == "second"
 
@@ -43,7 +43,7 @@ async def test_mock_falls_back_to_default_when_queue_empty():
     mock.set_response("f.pro", "content_generation", "queued")
     await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
     # Queue empty — falls back to default
-    resp = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+    resp = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
     assert resp.content == '{"result": "mock response"}'
 
 

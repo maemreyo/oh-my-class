@@ -1,5 +1,6 @@
 """Extract factual claims from educational content using regex patterns."""
 from __future__ import annotations
+
 import re
 from dataclasses import dataclass
 

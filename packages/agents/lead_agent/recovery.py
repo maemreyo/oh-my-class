@@ -6,8 +6,10 @@ This module handles the semantic side: *what* to fix and *how*.
 
 from __future__ import annotations
 
+from typing import Any
 
-def build_recovery_context(review_results: dict, revision_count: int) -> str:
+
+def build_recovery_context(review_results: dict[str, Any], revision_count: int) -> str:
     """Build semantic recovery guidance for the Lead Agent after a low review score.
 
     Args:

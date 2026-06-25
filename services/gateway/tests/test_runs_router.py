@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -20,7 +19,6 @@ if "jwt" not in sys.modules:
 
 from services.gateway.auth.models import Role, User  # noqa: E402
 from services.gateway.routers.runs import RunRequest, RunResponse, router  # noqa: E402
-
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 

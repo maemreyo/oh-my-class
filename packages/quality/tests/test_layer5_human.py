@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -12,10 +13,9 @@ from packages.quality.layer5_human.interrupt_handler import (
     InterruptHandler,
 )
 
-
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _make_langgraph_types_mock(interrupt_return_value: dict) -> MagicMock:
+def _make_langgraph_types_mock(interrupt_return_value: dict[str, Any]) -> MagicMock:
     mock_module = MagicMock()
     mock_module.interrupt = MagicMock(return_value=interrupt_return_value)
     return mock_module
@@ -29,7 +29,7 @@ class TestCreateGate:
         mock_types = _make_langgraph_types_mock({"action": "approve"})
         with patch.dict(sys.modules, {"langgraph.types": mock_types}):
             handler = InterruptHandler()
-            result = await handler.create_gate("blueprint_approval", {"lesson_plan": {"topic": "T"}})
+            result = await handler.create_gate("blueprint_approval", {"lesson_plan": {"topic": "T"}})  # noqa: E501
 
         assert result["action"] == "approve"
 

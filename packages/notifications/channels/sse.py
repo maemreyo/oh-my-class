@@ -1,6 +1,10 @@
 """SSE channel — pushes event to existing RunStream."""
 from __future__ import annotations
-from packages.notifications.base import ApprovalEvent
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from packages.notifications.base import ApprovalEvent
 
 
 class SSEChannel:

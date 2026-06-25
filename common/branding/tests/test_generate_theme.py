@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -21,10 +21,9 @@ from common.branding.generate_theme import (  # noqa: E402
     generate_utility_classes,
 )
 
-
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _make_kit_dir(themes: dict[str, dict]) -> str:
+def _make_kit_dir(themes: dict[str, dict[str, Any]]) -> str:
     """Create a temporary kit directory with theme.json files."""
     tmp = tempfile.mkdtemp()
     for name, data in themes.items():
@@ -34,7 +33,7 @@ def _make_kit_dir(themes: dict[str, dict]) -> str:
     return tmp
 
 
-def _default_theme_data() -> dict:
+def _default_theme_data() -> dict[str, Any]:
     return {
         "colors": {
             "primary": "#4F46E5",
@@ -199,7 +198,7 @@ class TestGenerateAllThemes:
 # ── generate_group_tokens ────────────────────────────────────────────────────
 
 class TestGenerateGroupTokens:
-    def _theme_data_with_groups(self) -> dict:
+    def _theme_data_with_groups(self) -> dict[str, Any]:
         return {
             "groups": {
                 "a": {"color": "#33508F", "label": "Ngữ pháp – Từ vựng"},
@@ -230,7 +229,7 @@ class TestGenerateGroupTokens:
 # ── generate_utility_classes ─────────────────────────────────────────────────
 
 class TestGenerateUtilityClasses:
-    def _theme_data_with_groups(self) -> dict:
+    def _theme_data_with_groups(self) -> dict[str, Any]:
         return {
             "groups": {
                 "a": {"color": "#33508F", "label": "Ngữ pháp – Từ vựng"},

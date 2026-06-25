@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from ..auth.dependencies import require_teacher
-from ..auth.models import User
+
+if TYPE_CHECKING:
+    from ..auth.models import User
 
 router = APIRouter()
 
@@ -32,7 +34,7 @@ class RunResponse(BaseModel):
     state: dict[str, Any] | None = None
 
 
-@router.post("", response_model=RunResponse)
+@router.post("", response_model=RunResponse)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def create_run(
     request: RunRequest,
     current_user: Annotated[User, Depends(require_teacher)],
@@ -50,7 +52,7 @@ async def create_run(
         try:
             from packages.agents.graph import build_oh_my_class_graph
 
-            graph = build_oh_my_class_graph(environment="development")
+            build_oh_my_class_graph(environment="development")
             # Real implementation streams graph events via checkpointer
         except Exception as e:
             print(f"Graph invocation failed for run {run_id}: {e}")
@@ -60,7 +62,7 @@ async def create_run(
     return RunResponse(run_id=run_id, status="created")
 
 
-@router.get("/{run_id}", response_model=RunResponse)
+@router.get("/{run_id}", response_model=RunResponse)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def get_run(
     run_id: str,
     current_user: Annotated[User, Depends(require_teacher)],
@@ -74,7 +76,7 @@ async def get_run(
     )
 
 
-@router.get("/{run_id}/status")
+@router.get("/{run_id}/status")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def get_run_status(
     run_id: str,
     current_user: Annotated[User, Depends(require_teacher)],

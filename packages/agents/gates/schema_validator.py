@@ -1,7 +1,7 @@
 """Layer 1: JSON Schema validation with circuit breaker."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 REQUIRED_ARTIFACT_KEYS = {"type", "content"}
 
 
-def step_09_schema_validate(state: "OhMyClassState") -> dict:
+def step_09_schema_validate(state: OhMyClassState) -> dict[str, Any]:
     """Layer 1: Validate artifacts against required schema.
 
     Checks each artifact has required keys and non-empty content.

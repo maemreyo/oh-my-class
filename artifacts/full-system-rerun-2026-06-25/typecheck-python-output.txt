@@ -1,0 +1,1224 @@
+🔍 Running basedpyright type check...
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/generate_theme.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/generate_theme.py:19:42 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/generate_theme.py:37:38 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/generate_theme.py:91:39 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/generate_theme.py:121:44 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/generate_theme.py:152:42 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/generate_theme.py:194:36 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/generate_theme.py:215:39 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/tests/test_generate_theme.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/tests/test_generate_theme.py:6:8 - error: Import "os" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/tests/test_generate_theme.py:27:37 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/tests/test_generate_theme.py:37:30 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/tests/test_generate_theme.py:202:42 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/branding/tests/test_generate_theme.py:233:42 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/answer_key.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/answer_key.py:37:20 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/lesson_plan.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/lesson_plan.py:9:20 - error: Import "Annotated" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/research_bundle.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/research_bundle.py:36:28 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/roadmap.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/roadmap.py:56:20 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/student_response.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/student_response.py:31:14 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_answer_key.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_answer_key.py:12:55 - error: Import "QuestionList" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_answer_key.py:90:58 - error: Argument of type "Literal['lesson']" cannot be assigned to parameter "artifact_type" of type "Literal['answer_key']" in function "__init__"
+    "Literal['lesson']" is not assignable to type "Literal['answer_key']" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:37:60 - error: Import "ConceptRelationType" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:62:27 - error: Argument of type "Literal[0]" cannot be assigned to parameter "level" of type "Literal[1, 2, 3, 4]" in function "__init__"
+    Type "Literal[0]" is not assignable to type "Literal[1, 2, 3, 4]"
+      "Literal[0]" is not assignable to type "Literal[1]"
+      "Literal[0]" is not assignable to type "Literal[2]"
+      "Literal[0]" is not assignable to type "Literal[3]"
+      "Literal[0]" is not assignable to type "Literal[4]" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:66:27 - error: Argument of type "Literal[5]" cannot be assigned to parameter "level" of type "Literal[1, 2, 3, 4]" in function "__init__"
+    Type "Literal[5]" is not assignable to type "Literal[1, 2, 3, 4]"
+      "Literal[5]" is not assignable to type "Literal[1]"
+      "Literal[5]" is not assignable to type "Literal[2]"
+      "Literal[5]" is not assignable to type "Literal[3]"
+      "Literal[5]" is not assignable to type "Literal[4]" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:112:29 - error: Argument of type "Literal['danger']" cannot be assigned to parameter "variant" of type "Literal['note', 'warning', 'tip', 'alert']" in function "__init__"
+    Type "Literal['danger']" is not assignable to type "Literal['note', 'warning', 'tip', 'alert']"
+      "Literal['danger']" is not assignable to type "Literal['note']"
+      "Literal['danger']" is not assignable to type "Literal['warning']"
+      "Literal['danger']" is not assignable to type "Literal['tip']"
+      "Literal['danger']" is not assignable to type "Literal['alert']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:192:52 - error: Argument of type "Literal['bad']" cannot be assigned to parameter "variant" of type "Literal['target', 'now', 'default']" in function "__init__"
+    Type "Literal['bad']" is not assignable to type "Literal['target', 'now', 'default']"
+      "Literal['bad']" is not assignable to type "Literal['target']"
+      "Literal['bad']" is not assignable to type "Literal['now']"
+      "Literal['bad']" is not assignable to type "Literal['default']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:379:31 - error: Argument of type "list[dict[str, str]]" cannot be assigned to parameter "nodes" of type "list[ConceptNode]" in function "__init__" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:391:39 - error: Argument of type "list[dict[str, str]]" cannot be assigned to parameter "events" of type "list[TimelineEvent]" in function "__init__" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:428:60 - error: Argument of type "Literal['antonym']" cannot be assigned to parameter "relation" of type "ConceptRelationType" in function "__init__"
+    Type "Literal['antonym']" is not assignable to type "ConceptRelationType"
+      "Literal['antonym']" is not assignable to type "Literal['synonymy']"
+      "Literal['antonym']" is not assignable to type "Literal['contrast']"
+      "Literal['antonym']" is not assignable to type "Literal['collocation']"
+      "Literal['antonym']" is not assignable to type "Literal['register']"
+      "Literal['antonym']" is not assignable to type "Literal['part_of']"
+      "Literal['antonym']" is not assignable to type "Literal['example_of']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_components.py:490:47 - error: Argument of type "Literal['z']" cannot be assigned to parameter "color" of type "GroupColor" in function "__init__"
+    Type "Literal['z']" is not assignable to type "GroupColor"
+      "Literal['z']" is not assignable to type "Literal['a']"
+      "Literal['z']" is not assignable to type "Literal['b']"
+      "Literal['z']" is not assignable to type "Literal['c']"
+      "Literal['z']" is not assignable to type "Literal['d']"
+      "Literal['z']" is not assignable to type "Literal['e']" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_diagnostic_report.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_diagnostic_report.py:46:13 - error: Argument missing for parameter "student_id" (reportCallIssue)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_diagnostic_report.py:51:13 - error: Argument missing for parameter "wrong_question_ids" (reportCallIssue)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_diagnostic_report.py:164:39 - error: Argument of type "str" cannot be assigned to parameter "bloom_level" of type "BloomLevel" in function "__init__"
+    Type "str" is not assignable to type "BloomLevel"
+      "str" is not assignable to type "Literal['remember']"
+      "str" is not assignable to type "Literal['understand']"
+      "str" is not assignable to type "Literal['apply']"
+      "str" is not assignable to type "Literal['analyze']"
+      "str" is not assignable to type "Literal['evaluate']"
+      "str" is not assignable to type "Literal['create']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_diagnostic_report.py:256:13 - error: Argument missing for parameter "student_id" (reportCallIssue)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_lesson_plan.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_lesson_plan.py:6:36 - error: Import "AssessmentCheckpoint" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_lesson_plan.py:61:50 - error: "tags" is not a known attribute of "None" (reportOptionalMemberAccess)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_lesson_plan.py:62:49 - error: "tags" is not a known attribute of "None" (reportOptionalMemberAccess)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_lesson_plan.py:66:39 - error: Argument of type "list[str]" cannot be assigned to parameter "tags" of type "list[MethodologyTag]" in function "__init__"
+    Type "Literal['invalid_tag']" is not assignable to type "MethodologyTag"
+      "Literal['invalid_tag']" is not assignable to type "Literal['concept_map']"
+      "Literal['invalid_tag']" is not assignable to type "Literal['contrastive_pairs']"
+      "Literal['invalid_tag']" is not assignable to type "Literal['film_based']"
+      "Literal['invalid_tag']" is not assignable to type "Literal['shy_student_1on1']"
+      "Literal['invalid_tag']" is not assignable to type "Literal['active_recall']"
+      "Literal['invalid_tag']" is not assignable to type "Literal['why_wrong_reasoning']"
+      "Literal['invalid_tag']" is not assignable to type "Literal['timed_quiz']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_lesson_plan.py:74:41 - error: Argument of type "list[str]" cannot be assigned to parameter "tags" of type "list[MethodologyTag]" in function "__init__"
+    "list[str]" is not assignable to "list[MethodologyTag]"
+      Type parameter "_T@list" is invariant, but "str" is not the same as "MethodologyTag"
+      Consider switching from "list" to "Sequence" which is covariant (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_roadmap.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_roadmap.py:131:31 - error: Argument of type "Literal['lesson']" cannot be assigned to parameter "artifact_type" of type "Literal['roadmap']" in function "__init__"
+    "Literal['lesson']" is not assignable to type "Literal['roadmap']" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_student_profile.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_student_profile.py:24:13 - error: Argument missing for parameter "primary" (reportCallIssue)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_student_profile.py:47:35 - error: Argument of type "Literal['mixed']" cannot be assigned to parameter "primary" of type "LearningStylePrimary" in function "__init__"
+    Type "Literal['mixed']" is not assignable to type "LearningStylePrimary"
+      "Literal['mixed']" is not assignable to type "Literal['visual']"
+      "Literal['mixed']" is not assignable to type "Literal['auditory']"
+      "Literal['mixed']" is not assignable to type "Literal['kinesthetic']"
+      "Literal['mixed']" is not assignable to type "Literal['reading']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_student_profile.py:67:13 - error: Argument missing for parameter "teaching_principle" (reportCallIssue)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_student_profile.py:123:13 - error: Argument missing for parameter "student_id" (reportCallIssue)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/common/contracts/tests/test_student_profile.py:128:13 - error: Argument missing for parameter "learning_style" (reportCallIssue)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/config/tests/test_gate_config.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/config/tests/test_gate_config.py:135:40 - error: Import "GateConfig" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/config/tests/test_gate_config.py:139:40 - error: Import "MODELS" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/content_reviewer.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/content_reviewer.py:15:56 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/export_readiness.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/export_readiness.py:14:58 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/fact_check/fact_checker.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/fact_check/fact_checker.py:6:62 - error: Import "classify_risk" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/fact_check/fact_checker.py:56:34 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/fact_check/llm_verifier.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/fact_check/llm_verifier.py:28:13 - error: Expected type arguments for generic class "list" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/fact_check/tests/test_fact_detection.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/fact_check/tests/test_fact_detection.py:4:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/gate_01_blueprint.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/gate_01_blueprint.py:42:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/llm_judge.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/llm_judge.py:12:31 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/llm_judge.py:12:50 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/llm_judge.py:23:52 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/presentation/age_checker.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/presentation/age_checker.py:19:71 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/presentation/answer_key_guard.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/presentation/answer_key_guard.py:15:40 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/presentation/answer_key_guard.py:15:49 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/presentation/html_validator.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/presentation/html_validator.py:9:108 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/schema_validator.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/schema_validator.py:12:57 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:10:37 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:41:40 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_01_blueprint_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:48:40 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_01_blueprint_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:59:49 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_01_blueprint_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:67:49 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_01_blueprint_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:75:49 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_01_blueprint_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:88:49 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_01_blueprint_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:97:49 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_01_blueprint_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:105:49 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_01_blueprint_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:116:38 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_02_content_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:123:38 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_02_content_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:134:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_02_content_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:142:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_02_content_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:150:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_02_content_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:161:38 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "gate_02_content_approval"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:171:43 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_blueprint_gate"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:175:43 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_blueprint_gate"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:179:43 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_blueprint_gate"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:183:43 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_blueprint_gate"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:187:41 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_content_gate"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:191:41 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_content_gate"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:195:41 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_content_gate"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:209:39 - error: Import "gate_01_blueprint_approval" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_gates.py:209:67 - error: Import "gate_02_content_approval" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:3:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:5:37 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:41:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_09_schema_validate"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:48:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_09_schema_validate"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:56:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_09_schema_validate"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:64:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_09_schema_validate"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:70:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_09_schema_validate"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:76:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_09_schema_validate"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:82:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_09_schema_validate"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:90:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10_content_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:98:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10_content_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:105:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10_content_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:115:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10_content_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:125:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10_content_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:131:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10_content_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:140:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10_content_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:149:37 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10b_llm_judge"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:157:37 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10b_llm_judge"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:164:37 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10b_llm_judge"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:170:37 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_10b_llm_judge"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:183:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_11_export_readiness"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:189:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_11_export_readiness"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:196:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_11_export_readiness"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:206:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_11_export_readiness"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:215:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_11_export_readiness"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/gates/tests/test_quality_gates.py:221:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "step_11_export_readiness"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/html_healer.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/html_healer.py:25:60 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py:26:48 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py:31:35 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "state" of type "dict[Unknown, Unknown]" in function "apply"
+    "OhMyClassState" is not assignable to "dict[Unknown, Unknown]" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py:34:32 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "state" of type "dict[Unknown, Unknown]" in function "apply"
+    "OhMyClassState" is not assignable to "dict[Unknown, Unknown]" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py:37:34 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "state" of type "dict[Unknown, Unknown]" in function "apply"
+    "OhMyClassState" is not assignable to "dict[Unknown, Unknown]" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py:40:34 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "state" of type "dict[Unknown, Unknown]" in function "apply"
+    "OhMyClassState" is not assignable to "dict[Unknown, Unknown]" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py:43:33 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "state" of type "dict[Unknown, Unknown]" in function "apply"
+    "OhMyClassState" is not assignable to "dict[Unknown, Unknown]" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py:45:31 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "state" of type "dict[Unknown, Unknown]" in function "apply"
+    "OhMyClassState" is not assignable to "dict[Unknown, Unknown]" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/orchestrator.py:48:46 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/escalate.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/escalate.py:5:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/escalate.py:5:44 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/replan.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/replan.py:5:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/replan.py:5:44 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/reroute.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/reroute.py:8:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/reroute.py:8:44 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/retry.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/retry.py:7:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/retry.py:7:44 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/rewrite.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/rewrite.py:5:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/strategies/rewrite.py:5:44 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:7:32 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:27:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "heal"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:35:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "heal"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:42:49 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "heal"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:48:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "heal"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:55:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "heal"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:63:58 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "heal"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:71:58 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "heal"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:80:36 - error: Argument of type "dict[str, bool]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_healing"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:84:36 - error: Argument of type "dict[str, bool]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_healing"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/healing/tests/test_orchestrator.py:85:36 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_healing"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/agent.py:27:12 - error: Expected type arguments for generic class "list" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/agent.py:28:6 - error: Expected type arguments for generic class "CompiledStateGraph" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/agent.py:47:17 - error: Argument of type "str" cannot be assigned to parameter "api_key" of type "SecretStr | (() -> str) | (() -> Awaitable[str]) | None" in function "__init__"
+    Type "str" is not assignable to type "SecretStr | (() -> str) | (() -> Awaitable[str]) | None"
+      "str" is not assignable to "SecretStr"
+      "str" is not assignable to "None"
+      Type "str" is not assignable to type "() -> str"
+      Type "str" is not assignable to type "() -> Awaitable[str]" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/node.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/node.py:44:13 - error: Could not access item in TypedDict
+    "review_results" is not a defined key in "OhMyClassState" (reportGeneralTypeIssues)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/recovery.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/recovery.py:10:44 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/state.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/state.py:19:14 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/state.py:20:13 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py:7:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py:166:49 - error: Import "lead_agent_node" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py:170:12 - error: Import "asyncio" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py:179:31 - error: Import "AsyncMock" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py:209:46 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "lead_agent_node"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py:219:44 - error: Import "recovery" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py:223:44 - error: Import "node" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tests/test_lead_agent.py:227:44 - error: Import "prompts" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:22:47 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:22:56 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:41:33 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:41:77 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:61:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:62:22 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:65:11 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:86:34 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:86:54 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/lead_agent/tools.py:86:63 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/state.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/state.py:83:31 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/state.py:96:34 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/state.py:107:36 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/state.py:108:36 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/state.py:109:34 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/content_creator/agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/content_creator/agent.py:12:55 - error: Expected type arguments for generic class "CompiledStateGraph" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/content_creator/agent.py:40:46 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "graph_state" of type "dict[str, Any]" in function "extract_content_creator_state"
+    "OhMyClassState" is not assignable to "dict[str, Any]" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/content_creator/state.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/content_creator/state.py:12:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/content_creator/state.py:13:22 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/content_creator/state.py:18:21 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/agent.py:12:53 - error: Expected type arguments for generic class "CompiledStateGraph" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/agent.py:48:55 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "graph_state" of type "dict[str, Any]" in function "extract_diagnostician_state"
+    "OhMyClassState" is not assignable to "dict[str, Any]" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/state.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/state.py:11:24 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/state.py:14:36 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/tools.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/tools.py:5:23 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/tools.py:39:48 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/diagnostician/tools.py:65:23 - error: Expected type arguments for generic class "list" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/planner/agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/planner/agent.py:12:47 - error: Expected type arguments for generic class "CompiledStateGraph" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/planner/agent.py:39:43 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "graph_state" of type "dict[str, Any]" in function "extract_planner_state"
+    "OhMyClassState" is not assignable to "dict[str, Any]" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/planner/state.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/planner/state.py:13:17 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/planner/state.py:16:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/researcher/agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/researcher/agent.py:12:50 - error: Expected type arguments for generic class "CompiledStateGraph" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/researcher/agent.py:39:49 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "graph_state" of type "dict[str, Any]" in function "extract_researcher_state"
+    "OhMyClassState" is not assignable to "dict[str, Any]" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/researcher/state.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/researcher/state.py:12:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/researcher/state.py:16:22 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/reviewer/agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/reviewer/agent.py:12:48 - error: Expected type arguments for generic class "CompiledStateGraph" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/reviewer/agent.py:39:45 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "graph_state" of type "dict[str, Any]" in function "extract_reviewer_state"
+    "OhMyClassState" is not assignable to "dict[str, Any]" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/reviewer/state.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/reviewer/state.py:12:21 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/reviewer/state.py:13:18 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/reviewer/state.py:14:21 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/agent.py:12:47 - error: Expected type arguments for generic class "CompiledStateGraph" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/agent.py:48:49 - error: Argument of type "OhMyClassState" cannot be assigned to parameter "graph_state" of type "dict[str, Any]" in function "extract_roadmap_agent_state"
+    "OhMyClassState" is not assignable to "dict[str, Any]" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/state.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/state.py:11:24 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/state.py:12:34 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/state.py:15:35 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/tools.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/tools.py:5:26 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/tools.py:24:41 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/tools.py:40:61 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/tools.py:51:23 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/tools.py:56:30 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/sub_agents/roadmap_agent/tools.py:70:11 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_content_safety.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_content_safety.py:15:30 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, str]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_content_safety.py:23:35 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, str]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_content_safety.py:33:29 - error: Argument of type "dict[str, list[dict[str, str]]]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, list[dict[str, str]]]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_content_safety.py:41:34 - error: Argument of type "dict[str, list[dict[str, str]]]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, list[dict[str, str]]]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_content_safety.py:51:30 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, str]" is not assignable to "OhMyClassState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py:41:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py:51:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py:60:48 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py:69:48 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py:79:42 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py:89:42 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py:98:47 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_guardrail.py:107:47 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_input_sanitization.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_input_sanitization.py:14:30 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    "artifacts" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_input_sanitization.py:22:35 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, str]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_input_sanitization.py:32:30 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_input_sanitization.py:40:35 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_input_sanitization.py:49:35 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_input_sanitization.py:58:34 - error: Argument of type "dict[str, str]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, str]" is not assignable to "OhMyClassState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:42:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:43:42 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:52:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:53:42 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:56:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:65:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:66:42 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:69:48 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:78:39 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:79:38 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:82:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:94:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:95:42 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:98:39 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:109:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_loop_detection.py:110:42 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_middleware_suite.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_middleware_suite.py:59:48 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_middleware_suite.py:68:47 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_middleware_suite.py:82:39 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_middleware_suite.py:97:48 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_middleware_suite.py:107:39 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_middleware_suite.py:116:47 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_skill_activation.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_skill_activation.py:14:35 - error: Argument of type "dict[str, dict[str, str]]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, dict[str, str]]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_skill_activation.py:24:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_skill_activation.py:35:35 - error: Argument of type "dict[str, dict[str, str]]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, dict[str, str]]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_skill_activation.py:44:34 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_subagent_limit.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_subagent_limit.py:15:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_subagent_limit.py:25:30 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_subagent_limit.py:34:30 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_subagent_limit.py:42:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_subagent_limit.py:50:34 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_token_budget.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_token_budget.py:40:48 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_token_budget.py:50:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_token_budget.py:59:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_token_budget.py:68:43 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_token_budget.py:76:38 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "after_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_token_budget.py:85:39 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/middleware/test_token_budget.py:94:48 - error: Argument of type "dict[str, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "before_model"
+    "dict[str, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:36:33 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:70:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:81:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:90:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:99:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:107:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:116:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:123:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:129:38 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:137:38 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:148:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:157:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:166:38 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_content_creator.py:175:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ContentCreatorState" in function "content_creator_node"
+    "dict[Unknown, Unknown]" is not assignable to "ContentCreatorState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:156:40 - error: Argument of type "str" cannot be assigned to parameter "bloom_level" of type "BloomLevel" in function "__init__"
+    Type "str" is not assignable to type "BloomLevel"
+      "str" is not assignable to type "Literal['remember']"
+      "str" is not assignable to type "Literal['understand']"
+      "str" is not assignable to type "Literal['apply']"
+      "str" is not assignable to type "Literal['analyze']"
+      "str" is not assignable to type "Literal['evaluate']"
+      "str" is not assignable to type "Literal['create']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:175:32 - error: Argument of type "str" cannot be assigned to parameter "group" of type "GroupColor" in function "__init__"
+    Type "str" is not assignable to type "GroupColor"
+      "str" is not assignable to type "Literal['a']"
+      "str" is not assignable to type "Literal['b']"
+      "str" is not assignable to type "Literal['c']"
+      "str" is not assignable to type "Literal['d']"
+      "str" is not assignable to type "Literal['e']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:181:56 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:235:65 - error: Argument of type "Literal['A0']" cannot be assigned to parameter "recommended_level" of type "RecommendedLevel" in function "__init__"
+    Type "Literal['A0']" is not assignable to type "RecommendedLevel"
+      "Literal['A0']" is not assignable to type "Literal['B1']"
+      "Literal['A0']" is not assignable to type "Literal['B2']"
+      "Literal['A0']" is not assignable to type "Literal['C1']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:254:26 - error: Argument of type "Literal['severe']" cannot be assigned to parameter "severity" of type "Severity" in function "__init__"
+    Type "Literal['severe']" is not assignable to type "Severity"
+      "Literal['severe']" is not assignable to type "Literal['critical']"
+      "Literal['severe']" is not assignable to type "Literal['moderate']"
+      "Literal['severe']" is not assignable to type "Literal['minor']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:270:34 - error: Argument of type "Literal['synthesize']" cannot be assigned to parameter "bloom_level" of type "BloomLevel" in function "__init__"
+    Type "Literal['synthesize']" is not assignable to type "BloomLevel"
+      "Literal['synthesize']" is not assignable to type "Literal['remember']"
+      "Literal['synthesize']" is not assignable to type "Literal['understand']"
+      "Literal['synthesize']" is not assignable to type "Literal['apply']"
+      "Literal['synthesize']" is not assignable to type "Literal['analyze']"
+      "Literal['synthesize']" is not assignable to type "Literal['evaluate']"
+      "Literal['synthesize']" is not assignable to type "Literal['create']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:282:49 - error: Argument of type "Literal['z']" cannot be assigned to parameter "group" of type "GroupColor" in function "__init__"
+    Type "Literal['z']" is not assignable to type "GroupColor"
+      "Literal['z']" is not assignable to type "Literal['a']"
+      "Literal['z']" is not assignable to type "Literal['b']"
+      "Literal['z']" is not assignable to type "Literal['c']"
+      "Literal['z']" is not assignable to type "Literal['d']"
+      "Literal['z']" is not assignable to type "Literal['e']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:286:53 - error: Argument of type "str" cannot be assigned to parameter "group" of type "GroupColor" in function "__init__"
+    Type "str" is not assignable to type "GroupColor"
+      "str" is not assignable to type "Literal['a']"
+      "str" is not assignable to type "Literal['b']"
+      "str" is not assignable to type "Literal['c']"
+      "str" is not assignable to type "Literal['d']"
+      "str" is not assignable to type "Literal['e']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:387:43 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:407:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "DiagnosticianState" in function "diagnostician_node"
+    "dict[Unknown, Unknown]" is not assignable to "DiagnosticianState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:419:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "DiagnosticianState" in function "diagnostician_node"
+    "dict[Unknown, Unknown]" is not assignable to "DiagnosticianState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:431:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "DiagnosticianState" in function "diagnostician_node"
+    "dict[Unknown, Unknown]" is not assignable to "DiagnosticianState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:441:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "DiagnosticianState" in function "diagnostician_node"
+    "dict[Unknown, Unknown]" is not assignable to "DiagnosticianState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:452:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "DiagnosticianState" in function "diagnostician_node"
+    "dict[Unknown, Unknown]" is not assignable to "DiagnosticianState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:461:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "DiagnosticianState" in function "diagnostician_node"
+    "dict[Unknown, Unknown]" is not assignable to "DiagnosticianState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:469:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "DiagnosticianState" in function "diagnostician_node"
+    "dict[Unknown, Unknown]" is not assignable to "DiagnosticianState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:503:49 - error: Argument of type "dict[str, None]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "diagnostician_graph_node"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:510:49 - error: Argument of type "dict[str, dict[Unknown, Unknown]]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "diagnostician_graph_node"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:517:49 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "diagnostician_graph_node"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:529:48 - error: Argument of type "dict[str, dict[str, Unknown]]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "diagnostician_graph_node"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_diagnostician.py:540:44 - error: Argument of type "dict[str, dict[str, str]]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "diagnostician_graph_node"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:43:82 - error: Argument of type "Literal['INVALID']" cannot be assigned to parameter "verification_status" of type "Literal['VERIFIED', 'MODIFIED', 'REMOVED', 'UNCERTAIN']" in function "__init__"
+    Type "Literal['INVALID']" is not assignable to type "Literal['VERIFIED', 'MODIFIED', 'REMOVED', 'UNCERTAIN']"
+      "Literal['INVALID']" is not assignable to type "Literal['VERIFIED']"
+      "Literal['INVALID']" is not assignable to type "Literal['MODIFIED']"
+      "Literal['INVALID']" is not assignable to type "Literal['REMOVED']"
+      "Literal['INVALID']" is not assignable to type "Literal['UNCERTAIN']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:52:74 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:189:43 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:205:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:217:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:227:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:237:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:248:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:257:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:267:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:275:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:286:38 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:297:38 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_planner.py:310:47 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "PlannerState" in function "planner_node"
+    "dict[Unknown, Unknown]" is not assignable to "PlannerState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:29:33 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:63:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:76:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:86:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:96:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:107:40 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:116:40 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:129:40 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:137:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:148:36 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:158:36 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:171:36 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_researcher.py:182:45 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "ResearcherState" in function "researcher_node"
+    "dict[Unknown, Unknown]" is not assignable to "ResearcherState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:53:32 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:113:54 - error: Argument of type "Literal['mixed']" cannot be assigned to parameter "primary" of type "LearningStylePrimary" in function "__init__"
+    Type "Literal['mixed']" is not assignable to type "LearningStylePrimary"
+      "Literal['mixed']" is not assignable to type "Literal['visual']"
+      "Literal['mixed']" is not assignable to type "Literal['auditory']"
+      "Literal['mixed']" is not assignable to type "Literal['kinesthetic']"
+      "Literal['mixed']" is not assignable to type "Literal['reading']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:122:29 - error: Argument of type "Literal['SAT']" cannot be assigned to parameter "target_exam" of type "TargetExam | None" in function "__init__"
+    Type "Literal['SAT']" is not assignable to type "TargetExam | None"
+      "Literal['SAT']" is not assignable to "None"
+      "Literal['SAT']" is not assignable to type "Literal['HSA']"
+      "Literal['SAT']" is not assignable to type "Literal['IELTS']"
+      "Literal['SAT']" is not assignable to type "Literal['TOEIC']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:130:29 - error: Argument of type "str" cannot be assigned to parameter "target_exam" of type "TargetExam | None" in function "__init__"
+    Type "str" is not assignable to type "TargetExam | None"
+      "str" is not assignable to "None"
+      "str" is not assignable to type "Literal['HSA']"
+      "str" is not assignable to type "Literal['IELTS']"
+      "str" is not assignable to type "Literal['TOEIC']" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:307:43 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:338:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:351:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:363:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:374:36 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:383:36 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:391:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:401:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:432:35 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:458:43 - error: Argument of type "dict[str, None]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "roadmap_graph_node"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:465:43 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "roadmap_graph_node"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:476:42 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "roadmap_graph_node"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:482:30 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:505:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/sub_agents/test_roadmap_agent.py:519:36 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "RoadmapAgentState" in function "roadmap_node"
+    "dict[Unknown, Unknown]" is not assignable to "RoadmapAgentState" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:17:5 - error: Import "route_after_blueprint_gate" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:18:5 - error: Import "route_after_content_gate" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:29:32 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:56:13 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:152:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:156:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:160:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:164:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:168:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:172:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:176:35 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:184:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_human_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:188:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_human_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:193:41 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_human_review"
+    "dict[Unknown, Unknown]" is not assignable to "OhMyClassState" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:253:35 - error: Argument of type "dict[str, bool]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_schema"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:256:35 - error: Argument of type "dict[str, bool]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_schema"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:259:35 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_schema"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:264:43 - error: Argument of type "dict[str, bool]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_content_review"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:267:43 - error: Argument of type "dict[str, bool]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_content_review"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:270:43 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_content_review"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:275:34 - error: Argument of type "dict[str, float]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_judge"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:278:34 - error: Argument of type "dict[str, float]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_judge"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:281:34 - error: Argument of type "dict[str, float]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_judge"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:284:34 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_judge"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:287:34 - error: Argument of type "dict[str, float]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_judge"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:292:35 - error: Argument of type "dict[str, bool]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_export"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:295:35 - error: Argument of type "dict[str, bool]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_export"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_graph.py:298:35 - error: Argument of type "dict[Any, Any]" cannot be assigned to parameter "state" of type "OhMyClassState" in function "route_after_export"
+    "raw_request" is required in "OhMyClassState"
+    "teacher_id" is required in "OhMyClassState"
+    "class_info" is required in "OhMyClassState"
+    "run_id" is required in "OhMyClassState"
+    "blueprint_approved" is required in "OhMyClassState"
+    "research_policy" is required in "OhMyClassState"
+    "artifact_types" is required in "OhMyClassState"
+    "theme" is required in "OhMyClassState"
+    ... (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_state_quality_fields.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_state_quality_fields.py:17:39 - error: Import "OhMyClassState" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_state_schemas.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_state_schemas.py:8:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/agents/tests/test_state_schemas.py:208:16 - error: Object of type "None" is not subscriptable (reportOptionalSubscript)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/budget/manager.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/budget/manager.py:81:36 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/budget/tests/test_ema.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/budget/tests/test_ema.py:4:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/budget/tests/test_manager.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/budget/tests/test_manager.py:5:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/budget/tests/test_manager.py:149:12 - error: Could not access item in TypedDict
+    "env_prefix" is not a required key in "SettingsConfigDict", so access may result in runtime exception (reportTypedDictNotRequiredAccess)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/client.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/client.py:65:26 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/client.py:74:17 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/client.py:115:24 - error: No overloads for "create" match the provided arguments (reportCallIssue)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/client.py:117:22 - error: Argument of type "list[dict[str, str]]" cannot be assigned to parameter "messages" of type "Iterable[ChatCompletionMessageParam]" in function "create" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/mock.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/mock.py:25:27 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/mock.py:78:28 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/tags.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/tags.py:14:6 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/tests/test_client.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/tests/test_client.py:4:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/tests/test_tags.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/llm_client/tests/test_tags.py:4:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/base.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/base.py:2:36 - error: Import "field" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/dispatcher.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/dispatcher.py:5:56 - error: Import "NotificationChannel" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/dispatcher.py:11:34 - error: Expected type arguments for generic class "list" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:3:8 - error: Import "asyncio" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:8:32 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:12 - error: Type "ApprovalEvent" is not assignable to return type "dict[Unknown, Unknown]"
+    "ApprovalEvent" is not assignable to "dict[Unknown, Unknown]" (reportReturnType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:28 - error: Argument of type "str | int | float" cannot be assigned to parameter "run_id" of type "str" in function "__init__"
+    Type "str | int | float" is not assignable to type "str"
+      "float" is not assignable to "str" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:28 - error: Argument of type "str | int | float" cannot be assigned to parameter "teacher_id" of type "str" in function "__init__"
+    Type "str | int | float" is not assignable to type "str"
+      "float" is not assignable to "str" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:28 - error: Argument of type "str | int | float" cannot be assigned to parameter "gate_type" of type "str" in function "__init__"
+    Type "str | int | float" is not assignable to type "str"
+      "float" is not assignable to "str" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:28 - error: Argument of type "str | int | float" cannot be assigned to parameter "summary" of type "str" in function "__init__"
+    Type "str | int | float" is not assignable to type "str"
+      "float" is not assignable to "str" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:28 - error: Argument of type "str | int | float" cannot be assigned to parameter "approve_url" of type "str" in function "__init__"
+    Type "str | int | float" is not assignable to type "str"
+      "float" is not assignable to "str" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:28 - error: Argument of type "str | int | float" cannot be assigned to parameter "artifacts_count" of type "int" in function "__init__"
+    Type "str | int | float" is not assignable to type "int"
+      "float" is not assignable to "int" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:28 - error: Argument of type "str | int | float" cannot be assigned to parameter "judge_score" of type "float | None" in function "__init__"
+    Type "str | int | float" is not assignable to type "float | None"
+      Type "str" is not assignable to type "float | None"
+        "str" is not assignable to "float"
+        "str" is not assignable to "None" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:20:28 - error: Argument of type "str | int | float" cannot be assigned to parameter "expires_in_hours" of type "int" in function "__init__"
+    Type "str | int | float" is not assignable to type "int"
+      "float" is not assignable to "int" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:73:32 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "send"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:82:23 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "send"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:85:41 - error: Cannot access attribute "run_id" for class "dict[Unknown, Unknown]"
+    Attribute "run_id" is unknown (reportAttributeAccessIssue)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:91:32 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "send"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:112:32 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "send"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:119:26 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "_format"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:126:26 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "_format"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:133:26 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "_format"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:140:26 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "_format"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:147:26 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "_format"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:158:36 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "send"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:173:32 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "send"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:184:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "notify"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:193:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "notify"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:204:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "notify"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/notifications/tests/test_notifications.py:216:43 - error: Argument of type "dict[Unknown, Unknown]" cannot be assigned to parameter "event" of type "ApprovalEvent" in function "notify"
+    "dict[Unknown, Unknown]" is not assignable to "ApprovalEvent" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer4_judge/geval.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer4_judge/geval.py:20:60 - error: Import "LayerScore" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer4_judge/pedagogical_scorer.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer4_judge/pedagogical_scorer.py:88:15 - error: Argument of type "object" cannot be assigned to parameter "x" of type "ConvertibleToFloat" in function "__new__"
+    Type "object" is not assignable to type "ConvertibleToFloat"
+      "object" is not assignable to "str"
+      "object" is incompatible with protocol "Buffer"
+        "__buffer__" is not present
+      "object" is incompatible with protocol "SupportsFloat"
+        "__float__" is not present
+      "object" is incompatible with protocol "SupportsIndex"
+        "__index__" is not present (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer4_judge/pedagogical_scorer.py:89:15 - error: Argument of type "object" cannot be assigned to parameter "x" of type "ConvertibleToFloat" in function "__new__"
+    Type "object" is not assignable to type "ConvertibleToFloat"
+      "object" is not assignable to "str"
+      "object" is incompatible with protocol "Buffer"
+        "__buffer__" is not present
+      "object" is incompatible with protocol "SupportsFloat"
+        "__float__" is not present
+      "object" is incompatible with protocol "SupportsIndex"
+        "__index__" is not present (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer4_judge/pedagogical_scorer.py:90:15 - error: Argument of type "object" cannot be assigned to parameter "x" of type "ConvertibleToFloat" in function "__new__"
+    Type "object" is not assignable to type "ConvertibleToFloat"
+      "object" is not assignable to "str"
+      "object" is incompatible with protocol "Buffer"
+        "__buffer__" is not present
+      "object" is incompatible with protocol "SupportsFloat"
+        "__float__" is not present
+      "object" is incompatible with protocol "SupportsIndex"
+        "__index__" is not present (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer4_judge/pedagogical_scorer.py:91:15 - error: Argument of type "object" cannot be assigned to parameter "x" of type "ConvertibleToFloat" in function "__new__"
+    Type "object" is not assignable to type "ConvertibleToFloat"
+      "object" is not assignable to "str"
+      "object" is incompatible with protocol "Buffer"
+        "__buffer__" is not present
+      "object" is incompatible with protocol "SupportsFloat"
+        "__float__" is not present
+      "object" is incompatible with protocol "SupportsIndex"
+        "__index__" is not present (reportArgumentType)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer4_judge/pedagogical_scorer.py:92:15 - error: Argument of type "object" cannot be assigned to parameter "x" of type "ConvertibleToFloat" in function "__new__"
+    Type "object" is not assignable to type "ConvertibleToFloat"
+      "object" is not assignable to "str"
+      "object" is incompatible with protocol "Buffer"
+        "__buffer__" is not present
+      "object" is incompatible with protocol "SupportsFloat"
+        "__float__" is not present
+      "object" is incompatible with protocol "SupportsIndex"
+        "__index__" is not present (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer5_human/interrupt_handler.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/layer5_human/interrupt_handler.py:114:21 - error: Argument of type "str | None" cannot be assigned to parameter "url" of type "URL | str" in function "post"
+    Type "str | None" is not assignable to type "URL | str"
+      Type "None" is not assignable to type "URL | str"
+        "None" is not assignable to "URL"
+        "None" is not assignable to "str" (reportArgumentType)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_layer2_content.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_layer2_content.py:7:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_layer2_content.py:11:5 - error: Import "MethodologyViolation" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_layer4_judge.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_layer4_judge.py:5:8 - error: Import "json" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_layer5_human.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_layer5_human.py:18:56 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_readability_checker.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/packages/quality/tests/test_readability_checker.py:4:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/services/gateway/main.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/services/gateway/main.py:30:21 - error: Type annotation not supported for this statement (reportInvalidTypeForm)
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/services/gateway/main.py:30:21 - error: Expected type arguments for generic class "dict" (reportMissingTypeArgument)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/services/gateway/tests/test_approvals_router.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/services/gateway/tests/test_approvals_router.py:9:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/services/gateway/tests/test_runs_router.py
+  /Users/trung.ngo/Documents/zaob-dev/oh-my-class/services/gateway/tests/test_runs_router.py:9:8 - error: Import "pytest" is not accessed (reportUnusedImport)
+434 errors, 0 warnings, 0 notes
+
+📊 Summary: 434 errors, 0 warnings
+❌      434 real type errors found

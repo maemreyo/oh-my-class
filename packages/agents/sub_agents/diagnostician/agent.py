@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
+
     from packages.agents.state import OhMyClassState
 
 
-def make_diagnostician_agent(checkpointer=None) -> "CompiledStateGraph":
+def make_diagnostician_agent(checkpointer=None) -> CompiledStateGraph[Any, Any]:
     """Return a compiled LangGraph for the Diagnostician Agent.
 
     For standalone use:
@@ -31,7 +32,7 @@ def make_diagnostician_agent(checkpointer=None) -> "CompiledStateGraph":
     return builder.compile(checkpointer=checkpointer)
 
 
-async def diagnostician_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+async def diagnostician_graph_node(state: OhMyClassState) -> dict[str, Any]:
     """Pipeline graph node for step_00_diagnostic.
 
     Skip policy:
@@ -45,5 +46,5 @@ async def diagnostician_graph_node(state: "OhMyClassState") -> dict[str, Any]:
     from packages.agents.sub_agents.diagnostician.adapters import extract_diagnostician_state
     from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
-    diagnostician_state = extract_diagnostician_state(state)  # raises ValidationError on bad input
-    return await diagnostician_node(diagnostician_state)       # raises ValueError on LLM/schema error
+    diagnostician_state = extract_diagnostician_state(state)  # type: ignore[arg-type]  # raises ValidationError on bad input
+    return await diagnostician_node(diagnostician_state)       # raises ValueError on LLM/schema error  # noqa: E501

@@ -2,26 +2,28 @@
 
 from __future__ import annotations
 
-_BOOK_DB: dict[str, list[dict]] = {
+from typing import Any
+
+_BOOK_DB: dict[str, list[dict[str, str]]] = {
     "B1": [
-        {"title": "Destination B1", "publisher": "Macmillan", "focus": "grammar + vocabulary"},
-        {"title": "English Grammar in Use (Intermediate)", "publisher": "Cambridge", "focus": "grammar"},
-        {"title": "Vocabulary in Use (Pre-Intermediate)", "publisher": "Cambridge", "focus": "vocabulary"},
+        {"title": "Destination B1", "publisher": "Macmillan", "focus": "grammar + vocabulary"},  # noqa: E501
+        {"title": "English Grammar in Use (Intermediate)", "publisher": "Cambridge", "focus": "grammar"},  # noqa: E501
+        {"title": "Vocabulary in Use (Pre-Intermediate)", "publisher": "Cambridge", "focus": "vocabulary"},  # noqa: E501
     ],
     "B2": [
-        {"title": "Destination B2", "publisher": "Macmillan", "focus": "grammar + vocabulary for HSA/IELTS"},
-        {"title": "Advanced Grammar in Use", "publisher": "Cambridge", "focus": "grammar"},
-        {"title": "Vocabulary in Use (Upper-Intermediate)", "publisher": "Cambridge", "focus": "vocabulary"},
-        {"title": "Common Mistakes at B2", "publisher": "Cambridge", "focus": "error correction"},
+        {"title": "Destination B2", "publisher": "Macmillan", "focus": "grammar + vocabulary for HSA/IELTS"},  # noqa: E501
+        {"title": "Advanced Grammar in Use", "publisher": "Cambridge", "focus": "grammar"},  # noqa: E501
+        {"title": "Vocabulary in Use (Upper-Intermediate)", "publisher": "Cambridge", "focus": "vocabulary"},  # noqa: E501
+        {"title": "Common Mistakes at B2", "publisher": "Cambridge", "focus": "error correction"},  # noqa: E501
     ],
     "C1": [
-        {"title": "Destination C1 & C2", "publisher": "Macmillan", "focus": "advanced grammar + vocabulary"},
-        {"title": "English Collocations in Use (Advanced)", "publisher": "Cambridge", "focus": "collocations"},
-        {"title": "Academic Vocabulary in Use", "publisher": "Cambridge", "focus": "academic vocabulary"},
+        {"title": "Destination C1 & C2", "publisher": "Macmillan", "focus": "advanced grammar + vocabulary"},  # noqa: E501
+        {"title": "English Collocations in Use (Advanced)", "publisher": "Cambridge", "focus": "collocations"},  # noqa: E501
+        {"title": "Academic Vocabulary in Use", "publisher": "Cambridge", "focus": "academic vocabulary"},  # noqa: E501
     ],
 }
 
-_WEAK_SKILL_SUPPLEMENTS: dict[str, list[dict]] = {
+_WEAK_SKILL_SUPPLEMENTS: dict[str, list[dict[str, str]]] = {
     "vocabulary": [
         {"title": "Word Power Made Easy", "publisher": "Pocket Books", "focus": "word building"},
     ],
@@ -29,15 +31,15 @@ _WEAK_SKILL_SUPPLEMENTS: dict[str, list[dict]] = {
         {"title": "Oxford Collocations Dictionary", "publisher": "Oxford", "focus": "collocations"},
     ],
     "reading_comprehension": [
-        {"title": "Reading Explorer", "publisher": "National Geographic", "focus": "reading skills"},
+        {"title": "Reading Explorer", "publisher": "National Geographic", "focus": "reading skills"},  # noqa: E501
     ],
     "grammar": [
-        {"title": "Murphy's English Grammar", "publisher": "Cambridge", "focus": "reference grammar"},
+        {"title": "Murphy's English Grammar", "publisher": "Cambridge", "focus": "reference grammar"},  # noqa: E501
     ],
 }
 
 
-def book_recommender(level: str, weak_skills: list[str]) -> dict:
+def book_recommender(level: str, weak_skills: list[str]) -> dict[str, Any]:
     """Recommend textbooks based on CEFR level and weak skills.
 
     Args:
@@ -48,12 +50,12 @@ def book_recommender(level: str, weak_skills: list[str]) -> dict:
         Dict with "core_books" and "supplement_books" lists.
     """
     core = _BOOK_DB.get(level, _BOOK_DB["B2"])
-    supplements: list[dict] = []
+    supplements: list[dict[str, str]] = []
     for skill in (weak_skills or []):
         supplements.extend(_WEAK_SKILL_SUPPLEMENTS.get(skill, []))
 
     seen: set[str] = set()
-    unique_supplements: list[dict] = []
+    unique_supplements: list[dict[str, str]] = []
     for book in supplements:
         key = book["title"]
         if key not in seen:
@@ -67,7 +69,7 @@ def milestone_calculator(
     target_score: int,
     current_error_rate: float,
     months: int,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Calculate monthly score milestones toward a target exam score.
 
     Uses a linear interpolation model with front-loading (faster early progress).

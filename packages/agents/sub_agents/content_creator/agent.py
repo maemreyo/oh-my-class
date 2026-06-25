@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
+
     from packages.agents.state import OhMyClassState
 
 
-def make_content_creator_agent(checkpointer=None) -> "CompiledStateGraph":
+def make_content_creator_agent(checkpointer=None) -> CompiledStateGraph[Any, Any]:
     """Return a compiled LangGraph for the Content Creator Agent.
 
     Can be run standalone:
@@ -32,10 +33,10 @@ def make_content_creator_agent(checkpointer=None) -> "CompiledStateGraph":
     return builder.compile(checkpointer=checkpointer)
 
 
-async def content_creator_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+async def content_creator_graph_node(state: OhMyClassState) -> dict[str, Any]:
     """Main pipeline graph node — adapter for the content creator compiled sub-graph."""
     from packages.agents.sub_agents.content_creator.adapters import extract_content_creator_state
     from packages.agents.sub_agents.content_creator.nodes import content_creator_node
 
-    cc_state = extract_content_creator_state(state)
+    cc_state = extract_content_creator_state(state)  # type: ignore[arg-type]
     return await content_creator_node(cc_state)

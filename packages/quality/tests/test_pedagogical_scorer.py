@@ -1,13 +1,17 @@
 """Tests for PedagogicalScore dataclass and score_pedagogical (QG2)."""
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 
 class TestPedagogicalScoreDataclass:
     def test_passed_true_when_total_gte_threshold(self):
-        from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
+        from packages.quality.layer4_judge.pedagogical_scorer import (
+            PASS_THRESHOLD,
+            PedagogicalScore,
+        )
         score = PedagogicalScore(
             clarity=4.0, integrity=4.0, depth=3.5,
             practicality=4.0, pertinence=3.5,
@@ -17,7 +21,10 @@ class TestPedagogicalScoreDataclass:
         assert score.total >= PASS_THRESHOLD
 
     def test_passed_false_when_total_below_threshold(self):
-        from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, PASS_THRESHOLD
+        from packages.quality.layer4_judge.pedagogical_scorer import (
+            PASS_THRESHOLD,
+            PedagogicalScore,
+        )
         score = PedagogicalScore(
             clarity=2.0, integrity=2.0, depth=3.0,
             practicality=2.0, pertinence=3.0,
@@ -61,7 +68,7 @@ class TestScorePedagogical:
         from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical
 
         mock_response = MagicMock()
-        mock_response.content = '{"clarity": 4, "integrity": 4, "depth": 4, "practicality": 4, "pertinence": 4, "rationale": "good"}'
+        mock_response.content = '{"clarity": 4, "integrity": 4, "depth": 4, "practicality": 4, "pertinence": 4, "rationale": "good"}'  # noqa: E501
 
         mock_llm = AsyncMock()
         mock_llm.chat = AsyncMock(return_value=mock_response)
@@ -81,7 +88,7 @@ class TestScorePedagogical:
         from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical
 
         mock_response = MagicMock()
-        mock_response.content = '{"clarity": 2, "integrity": 2, "depth": 3, "practicality": 2, "pertinence": 3, "rationale": "needs work"}'
+        mock_response.content = '{"clarity": 2, "integrity": 2, "depth": 3, "practicality": 2, "pertinence": 3, "rationale": "needs work"}'  # noqa: E501
 
         mock_llm = AsyncMock()
         mock_llm.chat = AsyncMock(return_value=mock_response)
@@ -93,8 +100,9 @@ class TestScorePedagogical:
 
     @pytest.mark.asyncio
     async def test_raises_on_invalid_json(self):
-        from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical
         import json
+
+        from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical
 
         mock_response = MagicMock()
         mock_response.content = 'Not valid JSON at all'
@@ -107,10 +115,13 @@ class TestScorePedagogical:
 
     @pytest.mark.asyncio
     async def test_content_truncated_to_6000_chars(self):
-        from packages.quality.layer4_judge.pedagogical_scorer import score_pedagogical, _MAX_CONTENT_CHARS
+        from packages.quality.layer4_judge.pedagogical_scorer import (
+            _MAX_CONTENT_CHARS,
+            score_pedagogical,
+        )
 
         mock_response = MagicMock()
-        mock_response.content = '{"clarity": 3, "integrity": 3, "depth": 3, "practicality": 3, "pertinence": 3, "rationale": "ok"}'
+        mock_response.content = '{"clarity": 3, "integrity": 3, "depth": 3, "practicality": 3, "pertinence": 3, "rationale": "ok"}'  # noqa: E501
 
         mock_llm = AsyncMock()
         mock_llm.chat = AsyncMock(return_value=mock_response)

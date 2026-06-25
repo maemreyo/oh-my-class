@@ -1,10 +1,12 @@
 """FACT hybrid pipeline: heuristics → optionally LLM for high-risk."""
 from __future__ import annotations
+
 from dataclasses import dataclass, field
+from typing import Any
 
 from packages.agents.gates.fact_check.extractor import extract_claims
-from packages.agents.gates.fact_check.risk_classifier import classify_risk, filter_high_risk
 from packages.agents.gates.fact_check.llm_verifier import verify_high_risk_claims
+from packages.agents.gates.fact_check.risk_classifier import filter_high_risk
 
 
 @dataclass
@@ -53,7 +55,7 @@ def fact_check(
     )
 
 
-def run_fact_check(text: str) -> dict:
+def run_fact_check(text: str) -> dict[str, Any]:
     """Backward-compat wrapper for content_reviewer.py.
 
     Returns legacy dict format: {"passed": bool, "errors": list[str], ...}

@@ -38,9 +38,8 @@ class InputSanitizationMiddleware(BaseMiddleware):
             valid = (grade == "kindergarten") or (isinstance(grade, int) and 1 <= grade <= 12)
             if not valid:
                 raise InputValidationError(f"Invalid grade: {grade}")
-        if "subject" in class_info:
-            if not class_info["subject"] or not str(class_info["subject"]).strip():
-                raise InputValidationError("subject is empty")
+        if "subject" in class_info and (not class_info["subject"] or not str(class_info["subject"]).strip()):  # noqa: E501
+            raise InputValidationError("subject is empty")
         return state
 
     async def after_model(

@@ -30,7 +30,7 @@ class ApprovalResponse(BaseModel):
     run_id: str
 
 
-@router.post("/{run_id}/approve", response_model=ApprovalResponse)
+@router.post("/{run_id}/approve", response_model=ApprovalResponse)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def approve(
     run_id: str,
     request: ApprovalRequest,
@@ -48,7 +48,7 @@ async def approve(
     )
 
 
-@router.post("/{run_id}/reject", response_model=ApprovalResponse)
+@router.post("/{run_id}/reject", response_model=ApprovalResponse)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def reject(
     run_id: str,
     request: ApprovalRequest,

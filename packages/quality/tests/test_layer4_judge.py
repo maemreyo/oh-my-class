@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-import json
 import sys
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from common.contracts.judge_output import JudgeOutput, LayerScore
 from packages.quality.layer4_judge.majority_vote import majority_vote
 
-
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def make_judge_output(passed: bool = True, score: float = 8.0, critical_issues: list[str] | None = None) -> JudgeOutput:
+def make_judge_output(passed: bool = True, score: float = 8.0, critical_issues: list[str] | None = None) -> JudgeOutput:  # noqa: E501
     return JudgeOutput(
         overall_score=score,
         layer_scores=[
@@ -156,7 +155,7 @@ class TestGEvalScorer:
 
     @pytest.mark.asyncio
     async def test_calls_litellm_num_judges_times(self):
-        from packages.quality.layer4_judge.geval import GEvalScorer, GEvalConfig
+        from packages.quality.layer4_judge.geval import GEvalConfig, GEvalScorer
 
         good_output = make_judge_output(passed=True, score=8.0)
         mock_litellm = _make_litellm_mock(return_value=_make_llm_response(good_output))
@@ -178,7 +177,7 @@ class TestGEvalScorer:
 
     @pytest.mark.asyncio
     async def test_continues_on_single_judge_failure(self):
-        from packages.quality.layer4_judge.geval import GEvalScorer, GEvalConfig
+        from packages.quality.layer4_judge.geval import GEvalConfig, GEvalScorer
 
         good_output = make_judge_output(passed=True, score=8.0)
         call_count = 0
@@ -200,7 +199,7 @@ class TestGEvalScorer:
 
     @pytest.mark.asyncio
     async def test_uses_different_temperatures(self):
-        from packages.quality.layer4_judge.geval import GEvalScorer, GEvalConfig
+        from packages.quality.layer4_judge.geval import GEvalConfig, GEvalScorer
 
         good_output = make_judge_output(passed=True, score=8.0)
         mock_litellm = _make_litellm_mock(return_value=_make_llm_response(good_output))
@@ -213,7 +212,7 @@ class TestGEvalScorer:
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_reviewer(self):
-        from packages.quality.layer4_judge.geval import GEvalScorer, GEvalConfig
+        from packages.quality.layer4_judge.geval import GEvalConfig, GEvalScorer
 
         good_output = make_judge_output(passed=True, score=8.0)
         mock_litellm = _make_litellm_mock(return_value=_make_llm_response(good_output))

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +62,8 @@ async def score_pedagogical(
     Returns:
         PedagogicalScore with 5 dimension scores (1-5) and a total average.
     """
-    from packages.llm_client.client import LLMClient, ChatMessage
     from packages.agents.config import MODELS
+    from packages.llm_client.client import ChatMessage, LLMClient
 
     llm = llm or LLMClient()
     truncated = content[:_MAX_CONTENT_CHARS]
@@ -79,7 +80,7 @@ async def score_pedagogical(
     )
 
     try:
-        data: dict[str, object] = json.loads(response.content)
+        data: dict[str, Any] = json.loads(response.content)
     except json.JSONDecodeError as exc:
         logger.error("Failed to parse pedagogical score JSON", exc_info=exc)
         raise

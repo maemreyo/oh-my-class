@@ -1,8 +1,9 @@
 """LLM-based fact verification for high-risk claims only (f.pro)."""
 from __future__ import annotations
+
 import json
 from dataclasses import dataclass
-
+from typing import Any
 
 VERIFY_PROMPT = """You are a fact-checker for educational content.
 
@@ -25,7 +26,7 @@ class VerificationResult:
 
 
 def verify_high_risk_claims(
-    claims: list,
+    claims: list[Any],
     grade_level: str,
     llm_client,
 ) -> list[VerificationResult]:
@@ -48,4 +49,4 @@ def verify_high_risk_claims(
     )
 
     raw = json.loads(response.content)
-    return [VerificationResult(claim=r["claim"], status=r["status"], note=r.get("note", "")) for r in raw]
+    return [VerificationResult(claim=r["claim"], status=r["status"], note=r.get("note", "")) for r in raw]  # noqa: E501

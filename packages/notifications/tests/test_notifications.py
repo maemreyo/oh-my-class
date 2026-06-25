@@ -1,13 +1,15 @@
 """Tests for notification system — J4 pluggable channels."""
 from __future__ import annotations
-import asyncio
-import pytest
+
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
-def make_event(**overrides) -> dict:
+
+def make_event(**overrides: Any):
     from packages.notifications.base import ApprovalEvent
-    defaults = dict(
+    defaults: dict[str, Any] = dict(
         run_id="run-001",
         teacher_id="t-001",
         gate_type="content_approval",
@@ -82,7 +84,7 @@ class TestSSEChannel:
         await ch.send(event)
         mock_stream.publish.assert_called_once()
         call_args = mock_stream.publish.call_args
-        assert call_args[0][0] == event.run_id
+        assert call_args[0][0] == event.run_id  # pyright: ignore[reportAttributeAccessIssue]
 
     @pytest.mark.asyncio
     async def test_no_stream_does_not_raise(self):
@@ -154,7 +156,7 @@ class TestTelegramChannel:
         mock_response = MagicMock()
         mock_response.status_code = 200
         with patch("packages.notifications.channels.telegram.httpx.AsyncClient") as mock_client:
-            mock_client.return_value.__aenter__.return_value.post = AsyncMock(return_value=mock_response)
+            mock_client.return_value.__aenter__.return_value.post = AsyncMock(return_value=mock_response)  # noqa: E501
             result = await ch.send(make_event())
         assert result is True
 
@@ -177,9 +179,9 @@ class TestEmailChannel:
 class TestNotificationDispatcher:
     @pytest.mark.asyncio
     async def test_sends_to_available_channels(self):
-        from packages.notifications.dispatcher import NotificationDispatcher
-        from packages.notifications.channels.sse import SSEChannel
         from packages.notifications.channels.email import EmailChannel
+        from packages.notifications.channels.sse import SSEChannel
+        from packages.notifications.dispatcher import NotificationDispatcher
         dispatcher = NotificationDispatcher([SSEChannel(), EmailChannel()])
         results = await dispatcher.notify(make_event())
         assert "sse" in results
@@ -187,16 +189,16 @@ class TestNotificationDispatcher:
 
     @pytest.mark.asyncio
     async def test_returns_empty_when_all_unavailable(self):
-        from packages.notifications.dispatcher import NotificationDispatcher
         from packages.notifications.channels.email import EmailChannel
+        from packages.notifications.dispatcher import NotificationDispatcher
         dispatcher = NotificationDispatcher([EmailChannel()])
         results = await dispatcher.notify(make_event())
         assert results == {}
 
     @pytest.mark.asyncio
     async def test_concurrent_send(self):
-        from packages.notifications.dispatcher import NotificationDispatcher
         from packages.notifications.channels.sse import SSEChannel
+        from packages.notifications.dispatcher import NotificationDispatcher
         ch1 = SSEChannel()
         ch2 = SSEChannel()
         ch2.name = "sse2"
@@ -206,8 +208,8 @@ class TestNotificationDispatcher:
 
     @pytest.mark.asyncio
     async def test_channel_error_does_not_crash_others(self):
-        from packages.notifications.dispatcher import NotificationDispatcher
         from packages.notifications.channels.sse import SSEChannel
+        from packages.notifications.dispatcher import NotificationDispatcher
         broken_ch = MagicMock()
         broken_ch.name = "broken"
         broken_ch.is_available = AsyncMock(side_effect=Exception("boom"))
@@ -219,8 +221,8 @@ class TestNotificationDispatcher:
 
 class TestRegistry:
     def test_build_dispatcher_returns_dispatcher(self):
-        from packages.notifications.registry import build_dispatcher
         from packages.notifications.dispatcher import NotificationDispatcher
+        from packages.notifications.registry import build_dispatcher
         dispatcher = build_dispatcher()
         assert isinstance(dispatcher, NotificationDispatcher)
 

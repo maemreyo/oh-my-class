@@ -3,23 +3,6 @@
  * DO NOT EDIT MANUALLY
  */
 
-export {
-	ArtifactContent,
-	ArtifactContentSchema,
-	TeachingPack,
-	TeachingPackSchema,
-} from "./artifact.js";
-export {
-	JudgeOutput,
-	JudgeOutputSchema,
-	LayerScore,
-	LayerScoreSchema,
-} from "./judge_output.js";
-export {
-	AssessmentCheckpoint,
-	AssessmentCheckpointSchema,
-	LearningObjective,
-	LearningObjectiveSchema,
-	LessonPlan,
-	LessonPlanSchema,
-} from "./lesson_plan.js";
+export { LessonPlanSchema, LessonPlan, LearningObjectiveSchema, LearningObjective, AssessmentCheckpointSchema, AssessmentCheckpoint } from "./lesson_plan.js";
+export { ArtifactContentSchema, ArtifactContent, TeachingPackSchema, TeachingPack } from "./artifact.js";
+export { JudgeOutputSchema, JudgeOutput, LayerScoreSchema, LayerScore } from "./judge_output.js";

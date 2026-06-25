@@ -1,10 +1,15 @@
 """Tests for LessonPlan contract and methodology extensions."""
 from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
+
 from common.contracts.lesson_plan import (
-    LessonPlan, LearningObjective, AssessmentCheckpoint, MethodologyMetadata,
+    LearningObjective,
+    LessonPlan,
+    MethodologyMetadata,
 )
+
 
 class TestLearningObjective:
     def test_valid_bloom_levels(self):
@@ -26,7 +31,7 @@ class TestLessonPlan:
             "topic": "Unit 2 Travel", "grade_level": "Grade 10", "subject": "english",
             "duration_minutes": 60,
             "learning_objectives": [
-                LearningObjective(description="Distinguish arrive/reach/enter", bloom_level="understand"),
+                LearningObjective(description="Distinguish arrive/reach/enter", bloom_level="understand"),  # noqa: E501
                 LearningObjective(description="Use phrasal verbs correctly", bloom_level="apply"),
             ],
         }
@@ -58,12 +63,13 @@ class TestLessonPlan:
             target_skill_area="vocabulary",
         )
         plan = self._valid_plan(methodology=meta)
+        assert plan.methodology is not None
         assert "concept_map" in plan.methodology.tags
         assert "film_based" in plan.methodology.tags
 
     def test_methodology_invalid_tag(self):
         with pytest.raises(ValidationError):
-            MethodologyMetadata(tags=["invalid_tag"])
+            MethodologyMetadata(tags=["invalid_tag"])  # pyright: ignore[reportArgumentType]
 
     def test_methodology_all_valid_tags(self):
         all_tags = [
@@ -71,5 +77,5 @@ class TestLessonPlan:
             "shy_student_1on1", "active_recall", "why_wrong_reasoning",
             "timed_quiz", "roleplay_script",
         ]
-        meta = MethodologyMetadata(tags=all_tags)
+        meta = MethodologyMetadata(tags=all_tags)  # pyright: ignore[reportArgumentType]
         assert len(meta.tags) == len(all_tags)

@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
+
     from packages.agents.state import OhMyClassState
 
 
-def make_researcher_agent(checkpointer=None) -> "CompiledStateGraph":
+def make_researcher_agent(checkpointer=None) -> CompiledStateGraph[Any, Any]:
     """Return a compiled LangGraph for the Researcher Agent.
 
     Can be run standalone:
@@ -31,10 +32,10 @@ def make_researcher_agent(checkpointer=None) -> "CompiledStateGraph":
     return builder.compile(checkpointer=checkpointer)
 
 
-async def researcher_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+async def researcher_graph_node(state: OhMyClassState) -> dict[str, Any]:
     """Main pipeline graph node — adapter for the researcher compiled sub-graph."""
     from packages.agents.sub_agents.researcher.adapters import extract_researcher_state
     from packages.agents.sub_agents.researcher.nodes import researcher_node
 
-    researcher_state = extract_researcher_state(state)
+    researcher_state = extract_researcher_state(state)  # type: ignore[arg-type]
     return await researcher_node(researcher_state)

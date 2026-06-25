@@ -8,24 +8,27 @@ The Lead Agent uses create_react_agent (B2 pattern):
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from langchain_core.messages import SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import create_react_agent
+from pydantic import SecretStr
 
 from packages.agents.lead_agent.prompts import load_system_prompt
 from packages.agents.lead_agent.state import LeadAgentState
 from packages.agents.lead_agent.tools import SUB_AGENT_TOOLS
 
+if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
+
 
 def make_lead_agent(
     model: Any = None,
     checkpointer: Any = None,
-    tools: list | None = None,
-) -> CompiledStateGraph:
+    tools: list[Any] | None = None,
+) -> CompiledStateGraph[Any, Any]:
     """Factory — returns a compiled ReAct graph for the Lead Agent.
 
     Routes through 9Router sidecar at NINEROUTER_BASE_URL (default: http://localhost:20128/v1).
@@ -44,7 +47,7 @@ def make_lead_agent(
     llm = model or ChatOpenAI(
         model="gpt-5.4",
         base_url=os.environ.get("NINEROUTER_BASE_URL", "http://localhost:20128/v1"),
-        api_key=os.environ.get("NINEROUTER_API_KEY", "no-key"),
+        api_key=SecretStr(os.environ.get("NINEROUTER_API_KEY", "no-key")),
         temperature=0,
     )
     system_prompt = load_system_prompt()

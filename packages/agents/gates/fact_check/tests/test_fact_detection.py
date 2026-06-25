@@ -1,7 +1,7 @@
 """Tests for I2 hybrid FACT detection — no LLM needed for extractor/classifier."""
 from __future__ import annotations
+
 import json
-import pytest
 from unittest.mock import MagicMock
 
 
@@ -39,7 +39,7 @@ class TestExtractor:
         assert isinstance(claims, list)
 
     def test_claim_has_required_fields(self):
-        from packages.agents.gates.fact_check.extractor import extract_claims, Claim
+        from packages.agents.gates.fact_check.extractor import Claim, extract_claims
         claims = extract_claims("Water is H2O.")
         for c in claims:
             assert isinstance(c, Claim)

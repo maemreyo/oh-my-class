@@ -6,6 +6,8 @@ and a per-question answer breakdown built during analysis.
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -28,4 +30,4 @@ class StudentResponse(BaseModel):
     wrong_question_ids: list[int | str]  # teacher input
     answers: list[StudentAnswerItem] = []
     total_questions: int = 0
-    context: dict = Field(default_factory=dict)
+    context: dict[str, Any] = Field(default_factory=dict)

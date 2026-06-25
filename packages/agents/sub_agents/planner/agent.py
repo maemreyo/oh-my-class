@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
+
     from packages.agents.state import OhMyClassState
 
 
-def make_planner_agent(checkpointer=None) -> "CompiledStateGraph":
+def make_planner_agent(checkpointer=None) -> CompiledStateGraph[Any, Any]:
     """Return a compiled LangGraph for the Planner Agent.
 
     Can be run standalone:
@@ -31,10 +32,10 @@ def make_planner_agent(checkpointer=None) -> "CompiledStateGraph":
     return builder.compile(checkpointer=checkpointer)
 
 
-async def planner_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+async def planner_graph_node(state: OhMyClassState) -> dict[str, Any]:
     """Main pipeline graph node — adapter for the planner compiled sub-graph."""
     from packages.agents.sub_agents.planner.adapters import extract_planner_state
     from packages.agents.sub_agents.planner.nodes import planner_node
 
-    planner_state = extract_planner_state(state)
+    planner_state = extract_planner_state(state)  # type: ignore[arg-type]
     return await planner_node(planner_state)

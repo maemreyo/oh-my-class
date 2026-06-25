@@ -7,11 +7,12 @@ Follows the FACT protocol (Find → Assess → Cross-reference → Tag).
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from common.contracts.research_bundle import ResearchBundle
 
-from packages.agents.sub_agents.researcher.state import ResearcherState
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.researcher.state import ResearcherState
 
 
 async def researcher_node(state: ResearcherState) -> dict[str, Any]:
@@ -22,7 +23,7 @@ async def researcher_node(state: ResearcherState) -> dict[str, Any]:
     import litellm
 
     from packages.agents.sub_agents.researcher.prompts import load_system_prompt
-    RESEARCHER_SYSTEM_PROMPT = load_system_prompt()
+    researcher_system_prompt = load_system_prompt()
 
     lesson_plan = state.get("lesson_plan") or {}
     research_policy = state.get("research_policy", "standard")
@@ -40,7 +41,7 @@ Please gather and verify sources following the FACT protocol.
 """
 
     messages = [
-        {"role": "system", "content": RESEARCHER_SYSTEM_PROMPT},
+        {"role": "system", "content": researcher_system_prompt},
         {"role": "user", "content": user_prompt},
     ]
 

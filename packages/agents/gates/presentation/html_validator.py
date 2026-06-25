@@ -1,12 +1,14 @@
 """HTML structural validator for artifact content."""
 from __future__ import annotations
+
 import re
+from typing import Any
 
 DOCTYPE_PATTERN = re.compile(r"<!DOCTYPE\s+html", re.IGNORECASE)
 EXTERNAL_ASSET_PATTERN = re.compile(r'(?:src|href)=["\']https?://', re.IGNORECASE)
 
 
-def validate_html(html: str, *, block_external_assets: bool = True, block_missing_doctype: bool = True) -> dict:
+def validate_html(html: str, *, block_external_assets: bool = True, block_missing_doctype: bool = True) -> dict[str, Any]:  # noqa: E501
     """Validate HTML artifact for structural issues.
 
     Returns:

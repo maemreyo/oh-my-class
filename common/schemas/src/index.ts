@@ -37,6 +37,13 @@ export {
 	type LogContext,
 	LogContextSchema,
 } from "./log-context.js";
+// Run and Artifact API response types (match gateway RunResponse + ArtifactContent+rendered)
+export {
+	type Run,
+	RunSchema,
+	type Artifact,
+	ArtifactSchema,
+} from "./run.js";
 // Hand-written question types (not from Pydantic)
 export {
 	CoreQuestionTypes,

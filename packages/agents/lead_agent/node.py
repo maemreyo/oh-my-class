@@ -16,7 +16,7 @@ from packages.agents.lead_agent.recovery import build_recovery_context
 _lead_agent = None
 
 
-async def lead_agent_node(state: "OhMyClassState") -> dict[str, Any]:
+async def lead_agent_node(state: OhMyClassState) -> dict[str, Any]:
     """LangGraph node — invokes the Lead Agent and writes results back to graph state.
 
     Extracts relevant context from OhMyClassState, builds the Lead Agent input,
@@ -39,9 +39,10 @@ async def lead_agent_node(state: "OhMyClassState") -> dict[str, Any]:
     messages: list[dict[str, Any]] = [{"role": "user", "content": task}]
 
     # D3: inject semantic recovery guidance on retry
-    if state.get("review_results") and state.get("revision_count", 0) > 0:
+    review_results = state.get("review_results")
+    if review_results and state.get("revision_count", 0) > 0:
         recovery_ctx = build_recovery_context(
-            state["review_results"],
+            review_results,
             state["revision_count"],
         )
         messages.insert(0, {"role": "system", "content": recovery_ctx})

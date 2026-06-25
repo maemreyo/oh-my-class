@@ -7,26 +7,27 @@ so all langgraph-dependent tests use sys.modules injection, same as litellm.
 from __future__ import annotations
 
 import sys
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from packages.agents.graph import (
-    route_after_review,
-    route_after_human_review,
-    route_after_blueprint_gate,
-    route_after_content_gate,
-    route_after_schema,
-    route_after_content_review,
-    route_after_judge,
-    route_after_export,
-)
 from packages.agents.checkpointer import get_checkpointer
+from packages.agents.graph import (
+    route_after_content_review,
+    route_after_export,
+    route_after_human_review,
+    route_after_judge,
+    route_after_review,
+    route_after_schema,
+)
 
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def make_state(**overrides) -> dict:
+def make_state(**overrides) -> OhMyClassState:
     base = {
         "raw_request": "Teach photosynthesis",
         "teacher_id": "t-001",
@@ -47,13 +48,13 @@ def make_state(**overrides) -> dict:
         "research_policy": "basic",
     }
     base.update(overrides)
-    return base
+    return cast("OhMyClassState", base)
 
 
 def _make_langgraph_mocks():
     """Build sys.modules patch entries for langgraph."""
     # Track which nodes were registered
-    _nodes: dict = {}
+    _nodes: dict[str, Any] = {}
 
     class _MockStateGraph:
         def __init__(self, state_class):
@@ -122,22 +123,21 @@ class TestCheckpointerErrors:
         mock_postgres.PostgresSaver.from_conn_string.side_effect = None
         mocks["langgraph.checkpoint.postgres"] = mock_postgres
 
-        with patch.dict(sys.modules, mocks):
-            with pytest.raises(ValueError, match="connection_string"):
-                get_checkpointer("production")
+        with patch.dict(sys.modules, mocks), pytest.raises(ValueError, match="connection_string"):
+            get_checkpointer("production")
 
 
 # ── Checkpointer (MemorySaver — with langgraph mock) ─────────────────────────
 
 class TestCheckpointerDevelopment:
     def test_development_returns_memory_saver_instance(self):
-        mocks, MockMemorySaver, _ = _make_langgraph_mocks()
+        mocks, mock_memory_saver, _ = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             cp = get_checkpointer("development")
-        assert isinstance(cp, MockMemorySaver)
+        assert isinstance(cp, mock_memory_saver)
 
     def test_development_creates_no_arg_instance(self):
-        mocks, MockMemorySaver, _ = _make_langgraph_mocks()
+        mocks, mock_memory_saver, _ = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             cp = get_checkpointer("development")
         # Should be a valid object (not None)
@@ -210,7 +210,7 @@ class TestGraphStructure:
         mocks, _, nodes = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             build_oh_my_class_graph()
-        # 14 pipeline (incl. step_00_diagnostic, step_04b_roadmap) + 2 gates + healing_node + escalate_node
+        # 14 pipeline (incl. step_00_diagnostic, step_04b_roadmap) + 2 gates + healing_node + escalate_node  # noqa: E501
         assert len(nodes) == 18
 
     def test_graph_has_all_step_names(self):
@@ -250,49 +250,49 @@ class TestGraphStructure:
 
 class TestRouteAfterSchema:
     def test_passes_when_schema_valid(self):
-        assert route_after_schema({"schema_valid": True}) == "step_10_content_review"
+        assert route_after_schema(cast("OhMyClassState", {"schema_valid": True})) == "step_10_content_review"  # noqa: E501
 
     def test_heals_when_schema_invalid(self):
-        assert route_after_schema({"schema_valid": False}) == "healing_node"
+        assert route_after_schema(cast("OhMyClassState", {"schema_valid": False})) == "healing_node"
 
     def test_heals_when_schema_valid_missing(self):
-        assert route_after_schema({}) == "healing_node"
+        assert route_after_schema(cast("OhMyClassState", {})) == "healing_node"
 
 
 class TestRouteAfterContentReview:
     def test_passes_when_review_passed(self):
-        assert route_after_content_review({"content_review_passed": True}) == "step_10b_llm_judge"
+        assert route_after_content_review(cast("OhMyClassState", {"content_review_passed": True})) == "step_10b_llm_judge"  # noqa: E501
 
     def test_heals_when_review_failed(self):
-        assert route_after_content_review({"content_review_passed": False}) == "healing_node"
+        assert route_after_content_review(cast("OhMyClassState", {"content_review_passed": False})) == "healing_node"  # noqa: E501
 
     def test_heals_when_review_missing(self):
-        assert route_after_content_review({}) == "healing_node"
+        assert route_after_content_review(cast("OhMyClassState", {})) == "healing_node"
 
 
 class TestRouteAfterJudge:
     def test_passes_when_score_at_threshold(self):
-        assert route_after_judge({"judge_score": 7.0}) == "gate_02_content_approval"
+        assert route_after_judge(cast("OhMyClassState", {"judge_score": 7.0})) == "gate_02_content_approval"  # noqa: E501
 
     def test_passes_when_score_above_threshold(self):
-        assert route_after_judge({"judge_score": 9.5}) == "gate_02_content_approval"
+        assert route_after_judge(cast("OhMyClassState", {"judge_score": 9.5})) == "gate_02_content_approval"  # noqa: E501
 
     def test_heals_when_score_below_threshold(self):
-        assert route_after_judge({"judge_score": 6.9}) == "healing_node"
+        assert route_after_judge(cast("OhMyClassState", {"judge_score": 6.9})) == "healing_node"
 
     def test_heals_when_score_missing(self):
-        assert route_after_judge({}) == "healing_node"
+        assert route_after_judge(cast("OhMyClassState", {})) == "healing_node"
 
     def test_heals_when_score_zero(self):
-        assert route_after_judge({"judge_score": 0.0}) == "healing_node"
+        assert route_after_judge(cast("OhMyClassState", {"judge_score": 0.0})) == "healing_node"
 
 
 class TestRouteAfterExport:
     def test_finalizes_when_ready(self):
-        assert route_after_export({"export_ready": True}) == "step_12_finalize"
+        assert route_after_export(cast("OhMyClassState", {"export_ready": True})) == "step_12_finalize"  # noqa: E501
 
     def test_escalates_when_not_ready(self):
-        assert route_after_export({"export_ready": False}) == "escalate_node"
+        assert route_after_export(cast("OhMyClassState", {"export_ready": False})) == "escalate_node"  # noqa: E501
 
     def test_escalates_when_missing(self):
-        assert route_after_export({}) == "escalate_node"
+        assert route_after_export(cast("OhMyClassState", {})) == "escalate_node"

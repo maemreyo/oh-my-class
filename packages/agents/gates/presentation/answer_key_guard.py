@@ -1,6 +1,8 @@
 """Answer key leakage guard for student-facing artifacts."""
 from __future__ import annotations
+
 import re
+from typing import Any
 
 ANSWER_LEAK_PATTERNS = [
     r"answer\s*key",
@@ -12,7 +14,7 @@ ANSWER_LEAK_PATTERNS = [
 STUDENT_ARTIFACT_TYPES = {"worksheet", "quiz", "student_handout", "activity_sheet"}
 
 
-def check_answer_key_leakage(artifact: dict) -> dict:
+def check_answer_key_leakage(artifact: dict[str, Any]) -> dict[str, Any]:
     """Check that student-facing artifacts don't contain answer keys.
 
     Args:

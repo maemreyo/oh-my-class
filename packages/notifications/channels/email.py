@@ -1,6 +1,10 @@
 """Email channel stub — wire up when Resend/SMTP ready."""
 from __future__ import annotations
-from packages.notifications.base import ApprovalEvent
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from packages.notifications.base import ApprovalEvent
 
 
 class EmailChannel:

@@ -5,7 +5,7 @@ against this union; Eta templates dispatch by `component.type`.
 """
 from __future__ import annotations
 
-from typing import Annotated, Union
+from typing import Annotated
 
 from pydantic import Field
 
@@ -58,30 +58,7 @@ from common.contracts.components.vocab_lesson import (
 )
 
 ContentComponent = Annotated[
-    Union[
-        Heading,
-        Paragraph,
-        Callout,
-        OrderedList,
-        UnorderedList,
-        Table,
-        StatGrid,
-        PatternGrid,
-        TraitGrid,
-        TaxonomyGrid,
-        PhaseTimeline,
-        FlowStep,
-        QuestionCard,
-        QuestionList,
-        ConceptMap,
-        TimelineComponent,
-        VocabCluster,
-        ContrastivePairs,
-        PhrasalVerbCluster,
-        FilmClipActivity,
-        RoleplayScript,
-        ActiveRecallPrompt,
-    ],
+    Heading | Paragraph | Callout | OrderedList | UnorderedList | Table | StatGrid | PatternGrid | TraitGrid | TaxonomyGrid | PhaseTimeline | FlowStep | QuestionCard | QuestionList | ConceptMap | TimelineComponent | VocabCluster | ContrastivePairs | PhrasalVerbCluster | FilmClipActivity | RoleplayScript | ActiveRecallPrompt,  # noqa: E501
     Field(discriminator="type"),
 ]
 

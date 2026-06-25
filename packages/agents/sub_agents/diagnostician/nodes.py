@@ -6,15 +6,16 @@ Analyses a student's wrong answers using the DiagnosticReport schema.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from common.contracts.diagnostic_report import DiagnosticReport
-
-from packages.agents.sub_agents.diagnostician.state import DiagnosticianState
 from packages.agents.sub_agents.diagnostician.tools import (
     bloom_taxonomy_lookup,
     question_type_classifier,
 )
+
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.diagnostician.state import DiagnosticianState
 
 
 async def diagnostician_node(state: DiagnosticianState) -> dict[str, Any]:
@@ -56,7 +57,10 @@ Wrong questions grouped by section (pre-computed):
 {json.dumps(grouped_by_section, ensure_ascii=False, indent=2)}
 
 Bloom taxonomy reference (Vietnamese names):
-{json.dumps({k: {"vn_name": v["vn_name"], "description": v["description"]} for k, v in bloom_reference.items()}, ensure_ascii=False, indent=2)}
+{json.dumps(
+    {k: {"vn_name": v["vn_name"], "description": v["description"]}
+     for k, v in bloom_reference.items()},
+    ensure_ascii=False, indent=2)}
 """
 
     messages = [

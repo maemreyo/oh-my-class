@@ -1,11 +1,11 @@
-"""Concept and timeline components — ConceptMap (with edges), VocabCluster, ContrastivePairs, PhrasalVerbCluster."""
+"""Concept and timeline components — ConceptMap (with edges), VocabCluster, ContrastivePairs, PhrasalVerbCluster."""  # noqa: E501
 from __future__ import annotations
 
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
-ConceptRelationType = Literal["synonymy", "contrast", "collocation", "register", "part_of", "example_of"]
+ConceptRelationType = Literal["synonymy", "contrast", "collocation", "register", "part_of", "example_of"]  # noqa: E501
 GroupColor = Literal["a", "b", "c", "d", "e"]
 
 

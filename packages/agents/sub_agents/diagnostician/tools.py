@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-_BLOOM_MAP: dict[str, dict] = {
+from typing import Any
+
+_BLOOM_MAP: dict[str, dict[str, Any]] = {
     "remember": {
         "vn_name": "Nhận biết",
         "description": "Recall facts, terminology, definitions",
@@ -36,7 +38,7 @@ _BLOOM_MAP: dict[str, dict] = {
 }
 
 
-def bloom_taxonomy_lookup(bloom_level: str) -> dict:
+def bloom_taxonomy_lookup(bloom_level: str) -> dict[str, Any]:
     """Return Vietnamese name and characteristics for a Bloom taxonomy level."""
     key = bloom_level.lower().strip()
     if key not in _BLOOM_MAP:
@@ -62,7 +64,7 @@ def question_type_classifier(
     Returns:
         Dict of section_name → [question_ids].
     """
-    result: dict[str, list] = {}
+    result: dict[str, list[str | int]] = {}
     for qid in question_ids:
         section = section_map.get(str(qid), "unknown")
         result.setdefault(section, []).append(qid)

@@ -9,6 +9,7 @@ dependencies = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
+    "import-linter>=2.0",
 ]
 
 [tool.uv.workspace]
@@ -32,6 +33,7 @@ members = [
 [tool.pytest.ini_options]
 testpaths = ["packages/agents/tests", "packages/agents/skills/tests", "packages/llm_client/tests", "packages/llm_client/budget/tests", "packages/notifications/tests", "packages/quality/tests", "common/contracts/tests", "common/branding/tests", "services/gateway/tests", "tests"]
 asyncio_mode = "auto"
+pythonpath = ["."]
 
 [tool.ruff]
 target-version = "py312"

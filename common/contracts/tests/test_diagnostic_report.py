@@ -5,13 +5,13 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from common.contracts.student_response import StudentAnswerItem, StudentResponse
 from common.contracts.diagnostic_report import (
     BloomGap,
     DiagnosticReport,
     KnowledgeGap,
     MisconceptionPattern,
 )
+from common.contracts.student_response import StudentAnswerItem, StudentResponse
 
 
 class TestStudentResponse:
@@ -43,12 +43,12 @@ class TestStudentResponse:
     def test_missing_student_id_raises(self):
         """StudentResponse requires student_id."""
         with pytest.raises(ValidationError):
-            StudentResponse(wrong_question_ids=[1])
+            StudentResponse(wrong_question_ids=[1])  # pyright: ignore[reportCallIssue]
 
     def test_missing_wrong_question_ids_raises(self):
         """StudentResponse requires wrong_question_ids."""
         with pytest.raises(ValidationError):
-            StudentResponse(student_id="s-001")
+            StudentResponse(student_id="s-001")  # pyright: ignore[reportCallIssue]
 
     def test_wrong_question_ids_mixed_types(self):
         """wrong_question_ids accepts a mix of int and str ids."""
@@ -161,7 +161,7 @@ class TestBloomGap:
         """BloomGap accepts all six Bloom's taxonomy levels."""
         levels = ["remember", "understand", "apply", "analyze", "evaluate", "create"]
         for level in levels:
-            bg = BloomGap(bloom_level=level, vn_name="test", error_count=1, error_rate=0.1)
+            bg = BloomGap(bloom_level=level, vn_name="test", error_count=1, error_rate=0.1)  # pyright: ignore[reportArgumentType]
             assert bg.bloom_level == level
 
     def test_zero_errors(self):
@@ -253,7 +253,7 @@ class TestDiagnosticReport:
     def test_missing_student_id_raises(self):
         """DiagnosticReport requires student_id."""
         with pytest.raises(ValidationError):
-            DiagnosticReport()
+            DiagnosticReport()  # pyright: ignore[reportCallIssue]
 
     def test_json_roundtrip(self):
         """DiagnosticReport survives a model_dump / model_validate round-trip."""

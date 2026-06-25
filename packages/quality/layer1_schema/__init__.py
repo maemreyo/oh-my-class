@@ -7,8 +7,8 @@ no placeholder content, Bloom coverage, and answer key separation.
 
 from packages.quality.layer1_schema.circuit_breaker import CircuitBreaker as StatefulCircuitBreaker
 from packages.quality.layer1_schema.validators import (
-    CircuitBreaker,
     PLACEHOLDER_PATTERNS,
+    CircuitBreaker,
     ValidationGateError,
     check_answer_key_separation,
     check_bloom_coverage,

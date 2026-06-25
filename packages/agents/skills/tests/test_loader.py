@@ -1,11 +1,14 @@
 """Tests for SK2 SkillLoader — registry, SKILL.md loading, XML block assembly."""
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from packages.agents.skills.loader import SkillLoader
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_build_skills_block_structure():

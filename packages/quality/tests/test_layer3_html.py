@@ -144,7 +144,7 @@ class TestHTMLValidator:
     # ── check_viewport_meta ─────────────────────────────────────────────────
 
     def test_viewport_present(self):
-        assert self.validator.check_viewport_meta('<meta name="viewport" content="width=device-width">') is True
+        assert self.validator.check_viewport_meta('<meta name="viewport" content="width=device-width">') is True  # noqa: E501
 
     def test_viewport_missing(self):
         assert self.validator.check_viewport_meta("<html></html>") is False
@@ -262,7 +262,7 @@ class TestResponsiveCheck:
 
     @pytest.mark.asyncio
     async def test_custom_viewports(self):
-        result = await check_responsive("<html></html>", viewports=[480, 1024], environment="staging")
+        result = await check_responsive("<html></html>", viewports=[480, 1024], environment="staging")  # noqa: E501
         assert 480 in result.viewport_results
         assert 1024 in result.viewport_results
         assert 375 not in result.viewport_results

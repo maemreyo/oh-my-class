@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from common.contracts.judge_output import JudgeOutput, LayerScore
+    from common.contracts.judge_output import JudgeOutput
 
 
 @dataclass
@@ -54,7 +54,7 @@ class GEvalScorer:
         artifacts: list[dict[str, Any]],
         *,
         lesson_plan: dict[str, Any] | None = None,
-    ) -> "JudgeOutput":
+    ) -> JudgeOutput:
         """Score artifacts using G-Eval across 3 layers.
 
         Args:
@@ -65,12 +65,13 @@ class GEvalScorer:
             JudgeOutput with scores, issues, and pass/fail status.
         """
         import json
+
         import litellm
 
         from common.contracts.judge_output import JudgeOutput
         from packages.agents.sub_agents.reviewer.prompts import load_system_prompt
         from packages.quality.layer4_judge.majority_vote import majority_vote
-        REVIEWER_SYSTEM_PROMPT = load_system_prompt()
+        reviewer_system_prompt = load_system_prompt()
 
         user_prompt = f"""
 Evaluate the following teaching artifacts:
@@ -84,7 +85,7 @@ Score each artifact across the 3 layers and provide overall assessment.
 """
 
         messages = [
-            {"role": "system", "content": REVIEWER_SYSTEM_PROMPT},
+            {"role": "system", "content": reviewer_system_prompt},
             {"role": "user", "content": user_prompt},
         ]
 

@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import patch
 
 import pytest
 
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
 
-def make_base_state(**overrides) -> dict:
-    base = {
+
+
+def make_base_state(**overrides: Any) -> OhMyClassState:
+    base: dict[str, Any] = {
         "raw_request": "Teach photosynthesis",
         "teacher_id": "t-001",
         "class_info": {"grade": 5, "subject": "science"},
@@ -27,8 +32,7 @@ def make_base_state(**overrides) -> dict:
         "cost_usd": 0.0,
         "research_policy": "basic",
     }
-    base.update(overrides)
-    return base
+    return cast("OhMyClassState", {**base, **overrides})
 
 
 # ── gate_01_blueprint_approval ────────────────────────────────────────────────
@@ -168,31 +172,31 @@ class TestGate02ContentApproval:
 class TestRouteFunctions:
     def test_blueprint_route_approve(self):
         from packages.agents.graph import route_after_blueprint_gate
-        assert route_after_blueprint_gate({"teacher_decision": "approve"}) == "approve"
+        assert route_after_blueprint_gate(cast("OhMyClassState", {"teacher_decision": "approve"})) == "approve"  # noqa: E501
 
     def test_blueprint_route_edit_proceeds(self):
         from packages.agents.graph import route_after_blueprint_gate
-        assert route_after_blueprint_gate({"teacher_decision": "edit"}) == "approve"
+        assert route_after_blueprint_gate(cast("OhMyClassState", {"teacher_decision": "edit"})) == "approve"  # noqa: E501
 
     def test_blueprint_route_reject_reruns_planner(self):
         from packages.agents.graph import route_after_blueprint_gate
-        assert route_after_blueprint_gate({"teacher_decision": "reject"}) == "reject"
+        assert route_after_blueprint_gate(cast("OhMyClassState", {"teacher_decision": "reject"})) == "reject"  # noqa: E501
 
     def test_blueprint_route_defaults_to_approve(self):
         from packages.agents.graph import route_after_blueprint_gate
-        assert route_after_blueprint_gate({}) == "approve"
+        assert route_after_blueprint_gate(cast("OhMyClassState", {})) == "approve"
 
     def test_content_route_approve(self):
         from packages.agents.graph import route_after_content_gate
-        assert route_after_content_gate({"teacher_decision": "approve"}) == "approve"
+        assert route_after_content_gate(cast("OhMyClassState", {"teacher_decision": "approve"})) == "approve"  # noqa: E501
 
     def test_content_route_reject_regenerates(self):
         from packages.agents.graph import route_after_content_gate
-        assert route_after_content_gate({"teacher_decision": "reject"}) == "reject"
+        assert route_after_content_gate(cast("OhMyClassState", {"teacher_decision": "reject"})) == "reject"  # noqa: E501
 
     def test_content_route_defaults_to_approve(self):
         from packages.agents.graph import route_after_content_gate
-        assert route_after_content_gate({}) == "approve"
+        assert route_after_content_gate(cast("OhMyClassState", {})) == "approve"
 
 
 # ── Lead Agent isolation ────────────────────────────────────────────────────────
@@ -200,13 +204,17 @@ class TestRouteFunctions:
 def test_lead_agent_node_does_not_call_interrupt():
     """Lead Agent must not import or call interrupt() directly — E3 invariant."""
     import inspect
+
     from packages.agents.lead_agent import node as node_module
     source = inspect.getsource(node_module)
     assert "interrupt" not in source
 
 
 def test_gates_module_is_importable():
-    from packages.agents.gates import gate_01_blueprint_approval, gate_02_content_approval  # noqa: F401
+    from packages.agents.gates import (  # noqa: F401
+        gate_01_blueprint_approval,  # pyright: ignore[reportUnusedImport]
+        gate_02_content_approval,  # pyright: ignore[reportUnusedImport]
+    )
 
 
 def test_gates_are_callable():

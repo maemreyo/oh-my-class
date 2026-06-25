@@ -1,10 +1,12 @@
 """Layer 0: Exponential backoff with ±25% jitter."""
 from __future__ import annotations
+
 import random
 import time
+from typing import Any
 
 
-def apply(state: dict, fail_count: int) -> dict:
+def apply(state: dict[str, Any], fail_count: int) -> dict[str, Any]:
     """Exponential backoff with ±25% jitter. Same inputs, retry immediately."""
     base_delay = 0.5
     max_delay = 10.0

@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "types": ["node"],
     "paths": {
-      "@oh-my-class/renderer/*": ["../renderer/src/*"]
+      "@oh-my-class/renderer/*": ["../renderer/dist/*"]
     }
   },
   "include": ["src"],

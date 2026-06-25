@@ -6,7 +6,7 @@ Bloom's taxonomy levels, and assessment checkpoints.
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 

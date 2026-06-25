@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from packages.llm_client.budget.config import TokenBudgetConfig
 from packages.llm_client.budget.ema import EMATracker
@@ -78,7 +79,7 @@ class TokenBudgetManager:
         self._ema.record(task, tokens_used)
         self.check_soft_limit(task, tokens_used)
 
-    def summary(self) -> dict[str, dict]:
+    def summary(self) -> dict[str, dict[str, Any]]:
         """Return current limits and EMA state for all tracked tasks."""
         all_tasks = _SOFT_LIMIT_TASKS | _HARD_LIMIT_TASKS
         return {

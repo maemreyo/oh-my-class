@@ -5,11 +5,11 @@ Consumed by the renderer's answer_key.eta template.
 """
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from common.contracts.components import ContentComponent
+from common.contracts.components import ContentComponent  # noqa: TC001
 
 
 class AnswerKeyMetadata(BaseModel):
@@ -34,4 +34,4 @@ class AnswerKeyContent(BaseModel):
     theme: str = "default"
     sections: list[AnswerKeySection] = Field(default_factory=list)
     metadata: AnswerKeyMetadata = Field(default_factory=AnswerKeyMetadata)
-    accessibility: dict = Field(default_factory=lambda: {"language": "vi"})
+    accessibility: dict[str, Any] = Field(default_factory=lambda: {"language": "vi"})

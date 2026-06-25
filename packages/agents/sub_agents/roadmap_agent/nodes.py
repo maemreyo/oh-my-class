@@ -6,12 +6,13 @@ Generates a personalised RoadmapContent artifact from DiagnosticReport + Student
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from common.contracts.roadmap import RoadmapContent
-
-from packages.agents.sub_agents.roadmap_agent.state import RoadmapAgentState
 from packages.agents.sub_agents.roadmap_agent.tools import book_recommender, milestone_calculator
+
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.roadmap_agent.state import RoadmapAgentState
 
 
 async def roadmap_node(state: RoadmapAgentState) -> dict[str, Any]:

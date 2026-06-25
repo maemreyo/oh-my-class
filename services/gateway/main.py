@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
 
     environment = os.getenv("OMC_ENVIRONMENT", "development")
     app.state.checkpointer = get_checkpointer(environment)
-    app.state.runs: dict = {}
+    app.state.runs = {}
 
     yield
 
@@ -59,7 +59,7 @@ app.include_router(approvals.router, prefix="/run", tags=["approvals"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 
 
-@app.get("/health")
+@app.get("/health")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def health_check():
     """Health check endpoint for load balancers and monitoring."""
     return {"status": "ok", "service": "oh-my-class-gateway"}

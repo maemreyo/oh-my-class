@@ -1,0 +1,7 @@
+Scope: 4 of 5 workspace projects
+apps/web lint$ next lint
+apps/web lint: Invalid project directory provided, no such directory: /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/lint
+apps/web lint: Failed
+/Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @oh-my-class/web@0.1.0 lint: `next lint`
+Exit status 1

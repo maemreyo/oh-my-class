@@ -6,10 +6,10 @@ from pydantic import ValidationError
 
 from common.contracts.answer_key import (
     AnswerKeyContent,
-    AnswerKeySection,
     AnswerKeyMetadata,
+    AnswerKeySection,
 )
-from common.contracts.components import QuestionCard, QuestionList
+from common.contracts.components import QuestionCard
 
 
 class TestAnswerKeyMetadata:
@@ -87,7 +87,7 @@ class TestAnswerKeyContent:
 
     def test_invalid_artifact_type_rejected(self):
         with pytest.raises(ValidationError):
-            AnswerKeyContent(title="Test", artifact_type="lesson")
+            AnswerKeyContent(title="Test", artifact_type="lesson")  # pyright: ignore[reportArgumentType]
 
     def test_json_roundtrip(self):
         ak = AnswerKeyContent(

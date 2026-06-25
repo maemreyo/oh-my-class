@@ -48,35 +48,35 @@ def client() -> TestClient:
     app = FastAPI()
     register_exception_handlers(app)
 
-    @app.get("/raise/validation")
+    @app.get("/raise/validation")  # pyright: ignore[reportUntypedFunctionDecorator]
     def _v() -> None:
         raise ValidationError("Field 'topic' is required")
 
-    @app.get("/raise/notfound")
+    @app.get("/raise/notfound")  # pyright: ignore[reportUntypedFunctionDecorator]
     def _n() -> None:
         raise NotFoundError("Run run-xyz does not exist")
 
-    @app.get("/raise/auth")
+    @app.get("/raise/auth")  # pyright: ignore[reportUntypedFunctionDecorator]
     def _a() -> None:
         raise AuthenticationError("Invalid credentials")
 
-    @app.get("/raise/pipeline")
+    @app.get("/raise/pipeline")  # pyright: ignore[reportUntypedFunctionDecorator]
     def _p() -> None:
         raise PipelineError("Step 3 failed", run_id="run-1", step=3)
 
-    @app.get("/raise/omc")
+    @app.get("/raise/omc")  # pyright: ignore[reportUntypedFunctionDecorator]
     def _o() -> None:
         raise OMCError(error_code=ErrorCode.PIPELINE_ERROR, message="Boom")
 
-    @app.get("/raise/http403")
+    @app.get("/raise/http403")  # pyright: ignore[reportUntypedFunctionDecorator]
     def _h() -> None:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    @app.get("/raise/http404")
+    @app.get("/raise/http404")  # pyright: ignore[reportUntypedFunctionDecorator]
     def _h2() -> None:
         raise HTTPException(status_code=404, detail="Not here")
 
-    @app.get("/clean")
+    @app.get("/clean")  # pyright: ignore[reportUntypedFunctionDecorator]
     def _c() -> dict[str, bool]:
         return {"ok": True}
 

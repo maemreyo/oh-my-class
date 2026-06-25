@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, NotRequired
+from typing import Annotated, Any
 
 from langgraph.graph import MessagesState
 from langgraph.managed.is_last_step import RemainingStepsManager
@@ -16,7 +16,7 @@ class LeadAgentState(MessagesState):
     next retry reads it to adjust its approach.
     """
     task: str
-    context: dict
-    result: dict | None
+    context: dict[str, Any]
+    result: dict[str, Any] | None
     recovery_guidance: str | None
-    remaining_steps: NotRequired[Annotated[int, RemainingStepsManager]]
+    remaining_steps: Annotated[int, RemainingStepsManager]

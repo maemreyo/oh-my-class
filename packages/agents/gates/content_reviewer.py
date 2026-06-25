@@ -1,18 +1,22 @@
 """Layer 2-3: FACT hybrid + HTML validation + age-appropriateness."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from packages.agents.gates.fact_check import run_fact_check
-from packages.agents.gates.presentation import validate_html, check_age_appropriateness, check_answer_key_leakage
 from packages.agents.config.gate_config import GateConfig
+from packages.agents.gates.fact_check import run_fact_check
+from packages.agents.gates.presentation import (
+    check_age_appropriateness,
+    check_answer_key_leakage,
+    validate_html,
+)
 from packages.quality.layer2_content.methodology import check_methodology_compliance
 
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
 
-def step_10_content_review(state: "OhMyClassState") -> dict:
+def step_10_content_review(state: OhMyClassState) -> dict[str, Any]:
     """Layer 2-3: Content review (fact-check, HTML, age-appropriateness, answer key).
 
     Runs all sub-checks on all artifacts. Fails on first hard error.

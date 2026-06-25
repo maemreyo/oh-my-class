@@ -1,13 +1,16 @@
 """Tests for loop_detection middleware."""
 
+from typing import Any, cast
+
 import pytest
 
 from packages.agents.middleware.base import MiddlewareContext
 from packages.agents.middleware.loop_detection import LoopDetectedError, LoopDetectionMiddleware
+from packages.agents.state import OhMyClassState
 
 
-def make_state(**overrides):
-    base = {
+def make_state(**overrides: Any) -> OhMyClassState:
+    base: dict[str, Any] = {
         "raw_request": "Teach photosynthesis",
         "teacher_id": "t-001",
         "class_info": {"grade": 5, "subject": "science"},
@@ -26,8 +29,7 @@ def make_state(**overrides):
         "cost_usd": 0.0,
         "research_policy": "basic",
     }
-    base.update(overrides)
-    return base
+    return cast("OhMyClassState", {**base, **overrides})
 
 
 class TestLoopDetection:

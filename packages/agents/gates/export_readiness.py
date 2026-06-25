@@ -1,7 +1,7 @@
 """Layer 6: Export readiness — multi-judge assembly validation."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from packages.agents.config.gate_config import GateConfig
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 REQUIRED_EXPORT_FORMATS = {"html"}
 
 
-def step_11_export_readiness(state: "OhMyClassState") -> dict:
+def step_11_export_readiness(state: OhMyClassState) -> dict[str, Any]:
     """Layer 6: Validate that artifacts are ready for export.
 
     Checks: export_formats requested, artifacts non-empty, all required formats covered.

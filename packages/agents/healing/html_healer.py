@@ -1,6 +1,8 @@
 """HTML-specific healing — DOCTYPE injection, unclosed tag repair."""
 from __future__ import annotations
+
 import re
+from typing import Any
 
 DOCTYPE_HEADER = "<!DOCTYPE html>\n"
 
@@ -22,7 +24,7 @@ def _remove_external_assets(html: str) -> str:
     )
 
 
-def validate_and_heal(html: str, max_attempts: int = 3) -> dict:
+def validate_and_heal(html: str, max_attempts: int = 3) -> dict[str, Any]:
     """Attempt to heal common HTML issues.
 
     Returns:

@@ -21,7 +21,7 @@ class TestLearningStyle:
     def test_missing_primary_raises(self):
         """LearningStyle raises ValidationError when primary is absent."""
         with pytest.raises(ValidationError):
-            LearningStyle()
+            LearningStyle()  # pyright: ignore[reportCallIssue]
 
     def test_with_all_fields(self):
         """LearningStyle stores optional fields when provided."""
@@ -44,7 +44,7 @@ class TestLearningStyle:
         """LearningStyle rejects unrecognised primary styles."""
         from pydantic import ValidationError
         with pytest.raises(ValidationError):
-            LearningStyle(primary="mixed")
+            LearningStyle(primary="mixed")  # pyright: ignore[reportArgumentType]
 
 
 class TestPersonalityTrait:
@@ -64,7 +64,7 @@ class TestPersonalityTrait:
     def test_missing_field_raises(self):
         """PersonalityTrait raises ValidationError when any required field is missing."""
         with pytest.raises(ValidationError):
-            PersonalityTrait(trait="introvert", vn_name="Hướng nội")
+            PersonalityTrait(trait="introvert", vn_name="Hướng nội")  # pyright: ignore[reportCallIssue]
 
     def test_various_traits(self):
         """PersonalityTrait accepts any string value for trait."""
@@ -120,12 +120,12 @@ class TestStudentProfile:
     def test_missing_student_id_raises(self):
         """StudentProfile raises ValidationError when student_id is absent."""
         with pytest.raises(ValidationError):
-            StudentProfile(learning_style=self._make_learning_style())
+            StudentProfile(learning_style=self._make_learning_style())  # pyright: ignore[reportCallIssue]
 
     def test_missing_learning_style_raises(self):
         """StudentProfile raises ValidationError when learning_style is absent."""
         with pytest.raises(ValidationError):
-            StudentProfile(student_id="s-005")
+            StudentProfile(student_id="s-005")  # pyright: ignore[reportCallIssue]
 
     def test_with_personality_traits(self):
         """StudentProfile stores a list of PersonalityTrait objects."""

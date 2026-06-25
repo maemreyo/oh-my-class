@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 # Default group colors used when theme_data has no 'groups' key.
 _DEFAULT_GROUPS: dict[str, str] = {
@@ -16,7 +17,7 @@ _DEFAULT_GROUPS: dict[str, str] = {
 }
 
 
-def load_theme_json(theme_path: Path) -> dict:
+def load_theme_json(theme_path: Path) -> dict[str, Any]:
     """Load theme JSON from disk.
 
     Args:
@@ -34,7 +35,7 @@ def load_theme_json(theme_path: Path) -> dict:
         return json.load(f)
 
 
-def generate_core_tokens(theme_data: dict) -> str:
+def generate_core_tokens(theme_data: dict[str, Any]) -> str:
     """Generate :root { } block with color, spacing, and border-radius tokens.
 
     Args:
@@ -88,7 +89,7 @@ def _tint_hex(hex_color: str) -> str:
     return f"#{tr:02X}{tg:02X}{tb:02X}"
 
 
-def generate_group_tokens(theme_data: dict) -> str:
+def generate_group_tokens(theme_data: dict[str, Any]) -> str:
     """Generate --c-a through --c-e and tint variables inside :root { }.
 
     If the theme_data dict has no 'groups' key, falls back to default colors.
@@ -118,7 +119,7 @@ def generate_group_tokens(theme_data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def generate_typography_tokens(theme_data: dict) -> str:
+def generate_typography_tokens(theme_data: dict[str, Any]) -> str:
     """Generate typography custom properties inside :root { }.
 
     Args:
@@ -149,7 +150,7 @@ def generate_typography_tokens(theme_data: dict) -> str:
 """
 
 
-def generate_utility_classes(theme_data: dict) -> str:
+def generate_utility_classes(theme_data: dict[str, Any]) -> str:
     """Generate .g-a through .g-e utility classes.
 
     Each class sets border-left-color and styles .qnum and .pc-id children.
@@ -191,7 +192,7 @@ def generate_utility_classes(theme_data: dict) -> str:
     return "\n\n".join(blocks) + "\n"
 
 
-def generate_dark_mode(theme_data: dict) -> str:  # noqa: ARG001
+def generate_dark_mode(theme_data: dict[str, Any]) -> str:  # noqa: ARG001
     """Generate dark mode media query block.
 
     Args:
@@ -212,7 +213,7 @@ def generate_dark_mode(theme_data: dict) -> str:  # noqa: ARG001
 """
 
 
-def generate_print_styles(theme_data: dict) -> str:  # noqa: ARG001
+def generate_print_styles(theme_data: dict[str, Any]) -> str:  # noqa: ARG001
     """Generate print media query block.
 
     Args:

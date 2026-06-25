@@ -1,8 +1,6 @@
 """Tests for EMATracker — exponential moving average per task."""
 from __future__ import annotations
 
-import pytest
-
 from packages.llm_client.budget.ema import EMATracker
 
 

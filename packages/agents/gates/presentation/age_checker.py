@@ -1,6 +1,8 @@
 """Age-appropriateness checker for K-12 content."""
 from __future__ import annotations
+
 import re
+from typing import Any
 
 BLOCKED_FOR_K12 = [
     r"\b(?:violence|gore|explicit|adult)\b",
@@ -16,7 +18,7 @@ GRADE_LEVEL_COMPLEX_THRESHOLD = {
 }
 
 
-def check_age_appropriateness(text: str, grade: int | None = None) -> dict:
+def check_age_appropriateness(text: str, grade: int | None = None) -> dict[str, Any]:
     """Check if text is age-appropriate for the given grade level.
 
     Returns:

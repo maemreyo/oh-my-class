@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import pytest
 
 from packages.llm_client.budget.config import TokenBudgetConfig
 from packages.llm_client.budget.manager import TokenBudgetManager
@@ -128,7 +127,7 @@ def test_summary_returns_all_tracked_tasks():
 def test_summary_shape():
     manager = TokenBudgetManager()
     result = manager.summary()
-    for task, data in result.items():
+    for _task, data in result.items():
         assert "soft_limit" in data
         assert "hard_limit" in data
         assert "ema_samples" in data
@@ -138,7 +137,7 @@ def test_summary_shape():
 def test_summary_ema_samples_zero_before_any_records():
     manager = TokenBudgetManager()
     result = manager.summary()
-    for task, data in result.items():
+    for _task, data in result.items():
         assert data["ema_samples"] == 0
         assert data["ema_value"] is None
 
@@ -146,4 +145,4 @@ def test_summary_ema_samples_zero_before_any_records():
 def test_config_budget_prefix_separate_from_gate_prefix():
     # TokenBudgetConfig uses BUDGET_ prefix, not GATE_
     config = TokenBudgetConfig()
-    assert config.model_config["env_prefix"] == "BUDGET_"
+    assert config.model_config["env_prefix"] == "BUDGET_"  # pyright: ignore[reportTypedDictNotRequiredAccess]

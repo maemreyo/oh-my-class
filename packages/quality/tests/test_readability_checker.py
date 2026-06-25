@@ -1,8 +1,6 @@
 """Tests for Flesch-Kincaid readability check (AF4 detective layer)."""
 from __future__ import annotations
 
-import pytest
-
 
 class TestCheckReadability:
     def test_empty_text_passes(self):
@@ -30,7 +28,7 @@ class TestCheckReadability:
         complex_text = (
             'The photosynthetic process utilises electromagnetic radiation '
             'to catalyse biochemical transformations within chloroplasts. '
-            'The mitochondrial oxidative phosphorylation generates adenosine triphosphate molecules.'
+            'The mitochondrial oxidative phosphorylation generates adenosine triphosphate molecules.'  # noqa: E501
         )
         result = check_readability(complex_text, target_grade=1)
         assert result.passed is False
@@ -78,7 +76,10 @@ class TestCheckReadability:
         assert MAX_DEVIATION == 2.0
 
     def test_passes_when_deviation_exactly_at_limit(self):
-        from packages.quality.layer2_content.readability_checker import ReadabilityResult, MAX_DEVIATION
+        from packages.quality.layer2_content.readability_checker import (
+            MAX_DEVIATION,
+            ReadabilityResult,
+        )
         # Simulate a result at the exact boundary
         result = ReadabilityResult(
             fk_grade_level=8.0,
@@ -90,7 +91,10 @@ class TestCheckReadability:
         assert result.passed is True
 
     def test_fails_when_deviation_exceeds_limit(self):
-        from packages.quality.layer2_content.readability_checker import ReadabilityResult, MAX_DEVIATION
+        from packages.quality.layer2_content.readability_checker import (
+            MAX_DEVIATION,
+            ReadabilityResult,
+        )
         result = ReadabilityResult(
             fk_grade_level=9.1,
             target_grade=6,

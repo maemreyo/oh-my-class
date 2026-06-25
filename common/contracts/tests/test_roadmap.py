@@ -4,15 +4,15 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from common.contracts.components import PhaseTimeline, StatCard
 from common.contracts.roadmap import (
-    RoadmapContent,
-    RoadmapSection,
-    RoadmapHero,
-    RoadmapSidebar,
-    NavItem,
     LegendItem,
+    NavItem,
+    RoadmapContent,
+    RoadmapHero,
+    RoadmapSection,
+    RoadmapSidebar,
 )
-from common.contracts.components import StatCard, PhaseTimeline
 
 
 class TestNavItem:
@@ -45,7 +45,7 @@ class TestRoadmapHero:
             eyebrow="Personalized Plan",
             lede="Based on your diagnostic results",
             stamp="6 months",
-            stats=[StatCard(label="Current", value="65%"), StatCard(label="Target", value="85%", variant="target")],
+            stats=[StatCard(label="Current", value="65%"), StatCard(label="Target", value="85%", variant="target")],  # noqa: E501
         )
         assert len(h.stats) == 2
 
@@ -128,7 +128,7 @@ class TestRoadmapContent:
                 title="Test",
                 hero=self._make_hero(),
                 sidebar=self._make_sidebar(),
-                artifact_type="lesson",
+                artifact_type="lesson",  # pyright: ignore[reportArgumentType]
             )
 
     def test_with_sections(self):

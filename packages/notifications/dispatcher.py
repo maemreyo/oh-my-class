@@ -1,14 +1,18 @@
 """Fan-out dispatcher — sends to all available channels concurrently."""
 from __future__ import annotations
+
 import asyncio
 import logging
-from packages.notifications.base import ApprovalEvent, NotificationChannel
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from packages.notifications.base import ApprovalEvent
 
 logger = logging.getLogger(__name__)
 
 
 class NotificationDispatcher:
-    def __init__(self, channels: list):
+    def __init__(self, channels: list[Any]):
         self.channels = channels
 
     async def notify(self, event: ApprovalEvent) -> dict[str, bool]:
@@ -30,5 +34,5 @@ class NotificationDispatcher:
         )
         return {
             ch.name: (result is True)
-            for ch, result in zip(available, results)
+            for ch, result in zip(available, results, strict=False)
         }

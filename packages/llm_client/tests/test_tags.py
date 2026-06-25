@@ -1,8 +1,6 @@
 """Tests for build_tags() cost attribution metadata."""
 from __future__ import annotations
 
-import pytest
-
 from packages.llm_client.tags import build_tags
 
 

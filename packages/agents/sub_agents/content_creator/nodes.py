@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from common.contracts.artifact import ArtifactContent
 
-from packages.agents.sub_agents.content_creator.state import ContentCreatorState
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.content_creator.state import ContentCreatorState
 
 
 async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
@@ -19,7 +20,7 @@ async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
     import litellm
 
     from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
-    CONTENT_CREATOR_SYSTEM_PROMPT = load_system_prompt()
+    content_creator_system_prompt = load_system_prompt()
 
     lesson_plan = state.get("lesson_plan") or {}
     research_bundle = state.get("research_bundle") or {}
@@ -43,7 +44,7 @@ Return a JSON array of artifacts.
 """
 
     messages = [
-        {"role": "system", "content": CONTENT_CREATOR_SYSTEM_PROMPT},
+        {"role": "system", "content": content_creator_system_prompt},
         {"role": "user", "content": user_prompt},
     ]
 

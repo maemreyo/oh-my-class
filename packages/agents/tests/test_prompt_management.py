@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ── load_system_prompt() per sub-agent ────────────────────────────────────────
 
 class TestPlannerPrompt:
@@ -124,14 +123,16 @@ class TestSkillsDirectory:
 
 def test_planner_nodes_uses_load_system_prompt():
     import inspect
+
     from packages.agents.sub_agents.planner import nodes
     src = inspect.getsource(nodes)
     assert "load_system_prompt" in src
-    assert "PLANNER_SYSTEM_PROMPT = " not in src.replace("PLANNER_SYSTEM_PROMPT = load_system_prompt()", "")
+    assert "PLANNER_SYSTEM_PROMPT = " not in src.replace("PLANNER_SYSTEM_PROMPT = load_system_prompt()", "")  # noqa: E501
 
 
 def test_researcher_nodes_uses_load_system_prompt():
     import inspect
+
     from packages.agents.sub_agents.researcher import nodes
     src = inspect.getsource(nodes)
     assert "load_system_prompt" in src
@@ -139,6 +140,7 @@ def test_researcher_nodes_uses_load_system_prompt():
 
 def test_content_creator_nodes_uses_load_system_prompt():
     import inspect
+
     from packages.agents.sub_agents.content_creator import nodes
     src = inspect.getsource(nodes)
     assert "load_system_prompt" in src

@@ -6,7 +6,7 @@ healing orchestrator, and interrupt() gates for teacher approval.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from packages.agents.gates import (
     gate_01_blueprint_approval,
@@ -17,10 +17,12 @@ from packages.agents.gates import (
     step_11_export_readiness,
 )
 from packages.agents.healing import healing_node, route_after_healing
-from packages.agents.state import OhMyClassState
 from packages.agents.sub_agents.content_creator.agent import content_creator_graph_node
 from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
 from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
+
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
 
 
 def _make_dummy_node(step: int, name: str):
@@ -67,9 +69,10 @@ def build_oh_my_class_graph(
         H. Healing Node — select + apply recovery strategy
         E. Escalate Node — terminal failure node
     """
-    from langgraph.graph import StateGraph, END
-    from packages.agents.state import OhMyClassState
+    from langgraph.graph import END, StateGraph
+
     from packages.agents.checkpointer import get_checkpointer
+    from packages.agents.state import OhMyClassState
 
     if checkpointer is None:
         checkpointer = get_checkpointer(environment)

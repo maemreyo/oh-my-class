@@ -2,42 +2,51 @@
 from __future__ import annotations
 
 import pytest
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from common.contracts.components import (
-    ContentComponent,
-    Heading,
-    Paragraph,
     Callout,
-    OrderedList,
-    UnorderedList,
-    Table,
-    StatGrid,
-    StatCard,
-    PatternGrid,
-    PatternCard,
-    TraitGrid,
-    TraitCard,
-    TaxonomyGrid,
-    TaxonomyItem,
-    PhaseTimeline,
-    RoadmapPhase,
-    PhaseBlock,
-    FlowStep,
+    ConceptMap,
+    ContentComponent,
     FlowItem,
+    FlowStep,
+    Heading,
+    OrderedList,
+    Paragraph,
+    PatternCard,
+    PatternGrid,
+    PhaseBlock,
+    PhaseTimeline,
     QuestionCard,
     QuestionList,
-    ConceptMap,
+    RoadmapPhase,
+    StatCard,
+    StatGrid,
+    Table,
+    TaxonomyGrid,
+    TaxonomyItem,
     TimelineComponent,
+    TraitCard,
+    TraitGrid,
+    UnorderedList,
 )
-from pydantic import TypeAdapter
-
 from common.contracts.components.concept import (
-    ConceptEdge, ConceptNode, VocabCluster, VocabItem, ContrastivePairs, ContrastivePairRow,
-    PhrasalVerbCluster, PhrasalVerbGroup, PhrasalVerbItem, ConceptRelationType,
+    ConceptEdge,
+    ConceptNode,
+    ContrastivePairRow,
+    ContrastivePairs,
+    PhrasalVerbCluster,
+    PhrasalVerbGroup,
+    PhrasalVerbItem,
+    VocabCluster,
+    VocabItem,
 )
 from common.contracts.components.vocab_lesson import (
-    FilmClip, FilmClipActivity, RoleplayLine, RoleplayScript, ActiveRecallPrompt,
+    ActiveRecallPrompt,
+    FilmClip,
+    FilmClipActivity,
+    RoleplayLine,
+    RoleplayScript,
 )
 
 _COMPONENT_ADAPTER = TypeAdapter(ContentComponent)
@@ -59,11 +68,11 @@ class TestHeading:
 
     def test_invalid_level_0(self):
         with pytest.raises(ValidationError):
-            Heading(level=0, text="bad")
+            Heading(level=0, text="bad")  # pyright: ignore[reportArgumentType]
 
     def test_invalid_level_5(self):
         with pytest.raises(ValidationError):
-            Heading(level=5, text="bad")
+            Heading(level=5, text="bad")  # pyright: ignore[reportArgumentType]
 
     def test_all_valid_levels(self):
         for lvl in (1, 2, 3, 4):
@@ -109,7 +118,7 @@ class TestCallout:
 
     def test_invalid_variant(self):
         with pytest.raises(ValidationError):
-            Callout(variant="danger", body="body")
+            Callout(variant="danger", body="body")  # pyright: ignore[reportArgumentType]
 
     def test_with_title(self):
         c = Callout(variant="tip", title="Pro tip", body="Do it this way")
@@ -189,7 +198,7 @@ class TestStatGrid:
 
     def test_invalid_variant(self):
         with pytest.raises(ValidationError):
-            StatCard(label="L", value="V", variant="bad")
+            StatCard(label="L", value="V", variant="bad")  # pyright: ignore[reportArgumentType]
 
     def test_discriminated_union(self):
         raw = {"type": "stat_grid", "stats": [{"label": "L", "value": "V"}]}
@@ -376,7 +385,7 @@ class TestQuestionList:
 
 class TestConceptMap:
     def test_valid(self):
-        cm = ConceptMap(nodes=[{"id": "n1", "label": "Node 1"}])
+        cm = ConceptMap(nodes=[{"id": "n1", "label": "Node 1"}])  # pyright: ignore[reportArgumentType]
         assert cm.type == "concept_map"
 
     def test_discriminated_union(self):
@@ -388,7 +397,7 @@ class TestConceptMap:
 
 class TestTimelineComponent:
     def test_valid(self):
-        tc = TimelineComponent(events=[{"time": "2024", "label": "Event"}])
+        tc = TimelineComponent(events=[{"time": "2024", "label": "Event"}])  # pyright: ignore[reportArgumentType]
         assert tc.type == "timeline"
 
     def test_discriminated_union(self):
@@ -425,7 +434,7 @@ class TestConceptMapEdges:
 
     def test_invalid_relation(self):
         with pytest.raises(ValidationError):
-            ConceptEdge(source="n1", target="n2", relation="antonym")
+            ConceptEdge(source="n1", target="n2", relation="antonym")  # pyright: ignore[reportArgumentType]
 
     def test_all_valid_relations(self):
         for rel in ("synonymy", "contrast", "collocation", "register", "part_of", "example_of"):
@@ -440,7 +449,7 @@ class TestVocabCluster:
         vc = VocabCluster(
             title="arrive / reach / enter",
             items=[
-                VocabItem(word="arrive", definition="reach a destination", example="We arrived at 6pm."),
+                VocabItem(word="arrive", definition="reach a destination", example="We arrived at 6pm."),  # noqa: E501
                 VocabItem(word="reach", definition="get to after effort"),
                 VocabItem(word="enter", definition="go into a space"),
             ],
@@ -464,7 +473,7 @@ class TestVocabCluster:
 class TestContrastivePairs:
     def test_valid(self):
         cp = ContrastivePairs(rows=[
-            ContrastivePairRow(terms="fare / ticket", distinction="fare=price, ticket=physical card"),
+            ContrastivePairRow(terms="fare / ticket", distinction="fare=price, ticket=physical card"),  # noqa: E501
         ])
         assert cp.type == "contrastive_pairs"
 
@@ -487,7 +496,7 @@ class TestPhrasalVerbCluster:
 
     def test_invalid_color(self):
         with pytest.raises(ValidationError):
-            PhrasalVerbGroup(label="X", color="z", items=[])
+            PhrasalVerbGroup(label="X", color="z", items=[])  # pyright: ignore[reportArgumentType]
 
     def test_discriminated_union(self):
         raw = {"type": "phrasal_verb_cluster", "groups": []}
@@ -518,8 +527,8 @@ class TestRoleplayScript:
     def test_valid(self):
         rs = RoleplayScript(
             lines=[
-                RoleplayLine(speaker="Người tiễn (A)", speaker_class="A", text="We should [blank_1] soon."),
-                RoleplayLine(speaker="Người đi (B)", speaker_class="B", text="I don't want to [blank_2] the flight."),
+                RoleplayLine(speaker="Người tiễn (A)", speaker_class="A", text="We should [blank_1] soon."),  # noqa: E501
+                RoleplayLine(speaker="Người đi (B)", speaker_class="B", text="I don't want to [blank_2] the flight."),  # noqa: E501
             ],
             answer_key=["set off", "miss"],
             instruction="Read along — not improvised.",

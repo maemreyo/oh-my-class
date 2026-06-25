@@ -7,11 +7,12 @@ and Gagné's 9-event instruction model. Output validated against LessonPlan sche
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from common.contracts.lesson_plan import LessonPlan
 
-from packages.agents.sub_agents.planner.state import PlannerState
+if TYPE_CHECKING:
+    from packages.agents.sub_agents.planner.state import PlannerState
 
 
 async def planner_node(state: PlannerState) -> dict[str, Any]:
@@ -22,7 +23,7 @@ async def planner_node(state: PlannerState) -> dict[str, Any]:
     import litellm
 
     from packages.agents.sub_agents.planner.prompts import load_system_prompt
-    PLANNER_SYSTEM_PROMPT = load_system_prompt()
+    planner_system_prompt = load_system_prompt()
 
     user_prompt = f"""
 Teacher request: {state['raw_request']}
@@ -35,7 +36,7 @@ Class information:
 """
 
     messages = [
-        {"role": "system", "content": PLANNER_SYSTEM_PROMPT},
+        {"role": "system", "content": planner_system_prompt},
         {"role": "user", "content": user_prompt},
     ]
 

@@ -1,0 +1,8 @@
+❌ LessonPlan: fields in Pydantic but missing in Zod: ['learning_objectives', 'learning_plan', 'methodology']
+⚠️  LessonPlan: fields in Zod but not in Pydantic: ['description']
+❌ ArtifactContent: fields in Pydantic but missing in Zod: ['accessibility', 'sections']
+⚠️  ArtifactContent: fields in Zod but not in Pydantic: ['artifacts', 'run_id']
+❌ JudgeOutput: fields in Pydantic but missing in Zod: ['critical_issues', 'passed', 'rationale']
+⚠️  JudgeOutput: fields in Zod but not in Pydantic: ['issues', 'score']
+
+❌ Schema parity check FAILED. Run `python scripts/generate_zod_schemas.py` and commit the result.

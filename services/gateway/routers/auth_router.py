@@ -24,7 +24,7 @@ DEMO_USERS = {
 }
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def login(request: LoginRequest):
     """Authenticate user and return JWT token."""
     # TODO: Replace with real password verification (bcrypt)
@@ -38,7 +38,7 @@ async def login(request: LoginRequest):
     return create_access_token(user)
 
 
-@router.get("/me", response_model=User)
+@router.get("/me", response_model=User)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def get_me():
     """Get current user info (requires auth header)."""
     # This endpoint is a placeholder — in real use, it requires get_current_user dep

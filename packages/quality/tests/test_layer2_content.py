@@ -4,11 +4,10 @@ Imports from the production module:
   packages.quality.layer2_content.methodology
 """
 from __future__ import annotations
-import pytest
+
 from packages.quality.layer2_content.methodology import (
-    check_methodology_compliance,
     MethodologyGateResult,
-    MethodologyViolation,
+    check_methodology_compliance,
 )
 
 
@@ -17,7 +16,7 @@ def _build_vocab_lesson(include=None):
     sections = []
     if "film" in include:
         sections.append({"heading": "Warm-up", "components": [
-            {"type": "film_clip_activity", "clips": [{"title": "Test", "description": "desc"}], "hunt_chips": ["arrive"]}
+            {"type": "film_clip_activity", "clips": [{"title": "Test", "description": "desc"}], "hunt_chips": ["arrive"]}  # noqa: E501
         ]})
     if "vocab" in include:
         sections.append({"heading": "Concept", "components": [
@@ -27,7 +26,7 @@ def _build_vocab_lesson(include=None):
         ]})
     if "phrasal" in include:
         sections.append({"heading": "Phrasal", "components": [
-            {"type": "phrasal_verb_cluster", "groups": [{"label": "Leaving", "color": "a", "items": [
+            {"type": "phrasal_verb_cluster", "groups": [{"label": "Leaving", "color": "a", "items": [  # noqa: E501
                 {"verb": "set off", "meaning": "begin journey"}
             ]}]}
         ]})
@@ -61,7 +60,7 @@ class TestMethodologyCompliance:
 
     def test_full_vocab_lesson_passes_all_tags(self):
         sections = _build_vocab_lesson()
-        tags = ["concept_map", "film_based", "shy_student_1on1", "active_recall", "why_wrong_reasoning"]
+        tags = ["concept_map", "film_based", "shy_student_1on1", "active_recall", "why_wrong_reasoning"]  # noqa: E501
         # active_recall requires active_recall_prompt — not in build, so test without it
         tags = ["concept_map", "film_based", "shy_student_1on1", "why_wrong_reasoning"]
         result = check_methodology_compliance(sections, tags)

@@ -1,9 +1,12 @@
 """SkillLoader: reads SKILL.md files and assembles <available_skills> XML block."""
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from packages.agents.skills.registry import SKILL_MAP
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class SkillLoader:

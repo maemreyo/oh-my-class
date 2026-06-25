@@ -1,5 +1,6 @@
 """CircuitBreaker — prevents cascading failures."""
 from __future__ import annotations
+
 import time
 
 

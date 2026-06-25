@@ -1,4 +1,4 @@
-"""Vocabulary lesson methodology components — FilmClipActivity, RoleplayScript, ActiveRecallPrompt."""
+"""Vocabulary lesson methodology components — FilmClipActivity, RoleplayScript, ActiveRecallPrompt."""  # noqa: E501
 from __future__ import annotations
 
 from typing import Literal

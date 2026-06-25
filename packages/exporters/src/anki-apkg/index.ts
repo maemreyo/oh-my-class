@@ -92,7 +92,7 @@ CREATE TABLE graves (
 );
 `
 
-function buildColRecord(deckId: number, modelId: number, deckName: string, ts: number): object[] {
+function buildColRecord(deckId: number, modelId: number, deckName: string, ts: number): string[] {
   const model = {
     [modelId]: {
       id: modelId,

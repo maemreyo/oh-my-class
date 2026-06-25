@@ -1,8 +1,10 @@
 """Layer 1: Inject error context into generation prompt, same model."""
 from __future__ import annotations
 
+from typing import Any
 
-def apply(state: dict, fail_count: int) -> dict:
+
+def apply(state: dict[str, Any], fail_count: int) -> dict[str, Any]:
     """Inject error context into generation prompt, same model."""
     fail_context = state.get("fail_context") or {}
     errors = fail_context.get("errors", [])

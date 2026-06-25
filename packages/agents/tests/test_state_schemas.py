@@ -5,7 +5,10 @@ Each sub-agent has its own state — independently instantiable, no OhMyClassSta
 
 from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
 
 
 class TestPlannerState:
@@ -53,6 +56,7 @@ class TestPlannerState:
 
     def test_independent_of_ohmy_class_state(self):
         import inspect
+
         import packages.agents.sub_agents.planner.state as mod
 
         # No import of OhMyClassState — graph coupling must stay in adapters
@@ -92,6 +96,7 @@ class TestResearcherState:
 
     def test_independent_of_ohmy_class_state(self):
         import inspect
+
         import packages.agents.sub_agents.researcher.state as mod
 
         source = inspect.getsource(mod)
@@ -135,6 +140,7 @@ class TestContentCreatorState:
 
     def test_independent_of_ohmy_class_state(self):
         import inspect
+
         import packages.agents.sub_agents.content_creator.state as mod
 
         source = inspect.getsource(mod)
@@ -173,6 +179,7 @@ class TestReviewerState:
 
     def test_independent_of_ohmy_class_state(self):
         import inspect
+
         import packages.agents.sub_agents.reviewer.state as mod
 
         source = inspect.getsource(mod)
@@ -184,7 +191,7 @@ class TestLeadAgentState:
     def test_instantiates_with_required_fields(self):
         from packages.agents.lead_agent.state import LeadAgentState
 
-        state = LeadAgentState(
+        state = LeadAgentState(  # pyright: ignore[reportCallIssue]
             messages=[],
             task="Generate a lesson on photosynthesis",
             context={"raw_request": "Teach photosynthesis", "run_id": "r1"},
@@ -198,19 +205,19 @@ class TestLeadAgentState:
     def test_result_can_be_set(self):
         from packages.agents.lead_agent.state import LeadAgentState
 
-        state = LeadAgentState(
+        state = LeadAgentState(  # pyright: ignore[reportCallIssue]
             messages=[],
             task="task",
             context={},
             result={"lesson_plan": {"topic": "X"}},
             recovery_guidance=None,
         )
-        assert state["result"]["lesson_plan"]["topic"] == "X"
+        assert state["result"]["lesson_plan"]["topic"] == "X"  # pyright: ignore[reportOptionalSubscript]
 
     def test_recovery_guidance_can_be_set(self):
         from packages.agents.lead_agent.state import LeadAgentState
 
-        state = LeadAgentState(
+        state = LeadAgentState(  # pyright: ignore[reportCallIssue]
             messages=[],
             task="task",
             context={},
@@ -222,7 +229,7 @@ class TestLeadAgentState:
     def test_has_messages_from_messages_state(self):
         from packages.agents.lead_agent.state import LeadAgentState
 
-        state = LeadAgentState(
+        state = LeadAgentState(  # pyright: ignore[reportCallIssue]
             messages=[],
             task="task",
             context={},
@@ -233,6 +240,7 @@ class TestLeadAgentState:
 
     def test_independent_of_ohmy_class_state(self):
         import inspect
+
         import packages.agents.lead_agent.state as mod
 
         source = inspect.getsource(mod)
@@ -245,6 +253,7 @@ class TestOhMyClassStateGateFields:
 
     def test_has_teacher_decision_field(self):
         import inspect
+
         import packages.agents.state as mod
 
         source = inspect.getsource(mod)
@@ -252,6 +261,7 @@ class TestOhMyClassStateGateFields:
 
     def test_has_gate_payload_field(self):
         import inspect
+
         import packages.agents.state as mod
 
         source = inspect.getsource(mod)
@@ -259,13 +269,13 @@ class TestOhMyClassStateGateFields:
 
     def test_has_error_field(self):
         import inspect
+
         import packages.agents.state as mod
 
         source = inspect.getsource(mod)
         assert "error" in source
 
     def test_graph_state_instantiates(self):
-        from packages.agents.state import OhMyClassState
 
         state: OhMyClassState = {
             "raw_request": "Teach photosynthesis",
@@ -319,7 +329,9 @@ class TestNodeAdapters:
         assert researcher_state["research_bundle"] is None
 
     def test_content_creator_extract_from_graph_state(self):
-        from packages.agents.sub_agents.content_creator.adapters import extract_content_creator_state
+        from packages.agents.sub_agents.content_creator.adapters import (
+            extract_content_creator_state,
+        )
 
         graph_state = {
             "lesson_plan": {"topic": "X"},

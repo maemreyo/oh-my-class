@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
 
-def gate_01_blueprint_approval(state: "OhMyClassState") -> dict[str, Any]:
+def gate_01_blueprint_approval(state: OhMyClassState) -> dict[str, Any]:
     """HITL gate: teacher reviews and approves the lesson blueprint.
 
     Interrupts graph execution. When resumed, injects teacher_decision,
@@ -39,7 +39,7 @@ def gate_01_blueprint_approval(state: "OhMyClassState") -> dict[str, Any]:
 
     action: str = teacher_response.get("action", "approve")
     feedback: str = teacher_response.get("feedback", "")
-    edited_plan: dict | None = teacher_response.get("edited_lesson_plan")
+    edited_plan: dict[str, Any] | None = teacher_response.get("edited_lesson_plan")
 
     updates: dict[str, Any] = {
         "teacher_decision": action,

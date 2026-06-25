@@ -1,7 +1,7 @@
 """Layer 4: G-Eval LLM judge (f.pro, single judge MVP)."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from packages.agents.config.gate_config import GateConfig
 
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
 
-def _score_artifact(artifact: dict, lesson_plan: dict | None) -> float:
+def _score_artifact(artifact: dict[str, Any], lesson_plan: dict[str, Any] | None) -> float:
     """Stub: score an artifact. Returns 8.0 in MVP (real impl calls f.pro).
 
     Dimensions: relevance, accuracy, clarity, age_appropriateness, curriculum_alignment.
@@ -20,7 +20,7 @@ def _score_artifact(artifact: dict, lesson_plan: dict | None) -> float:
     return 8.0
 
 
-def step_10b_llm_judge(state: "OhMyClassState") -> dict:
+def step_10b_llm_judge(state: OhMyClassState) -> dict[str, Any]:
     """Layer 4: LLM-as-Judge using G-Eval pattern.
 
     Scores each artifact on 5 dimensions. Returns overall score.

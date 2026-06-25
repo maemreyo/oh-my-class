@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
 
-def gate_02_content_approval(state: "OhMyClassState") -> dict[str, Any]:
+def gate_02_content_approval(state: OhMyClassState) -> dict[str, Any]:
     """HITL gate: teacher reviews and approves the generated artifacts.
 
     Interrupts graph execution. When resumed, injects teacher_decision,

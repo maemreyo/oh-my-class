@@ -1,6 +1,10 @@
 """Classify factual claims by hallucination risk level."""
 from __future__ import annotations
-from packages.agents.gates.fact_check.extractor import Claim
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from packages.agents.gates.fact_check.extractor import Claim
 
 HIGH_RISK_TYPES = {"date", "statistic", "formula"}
 MEDIUM_RISK_TYPES = {"named_entity"}

@@ -5,13 +5,15 @@ All agent calls include these tags — LiteLLM logs them for per-agent cost trac
 """
 from __future__ import annotations
 
+from typing import Any
+
 
 def build_tags(
     agent: str,
     task: str,
     run_id: str | None = None,
     step: int | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """Build metadata tags dict for LiteLLM cost attribution.
 
     Args:

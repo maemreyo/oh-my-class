@@ -2,16 +2,16 @@
 
 import pytest
 
+from common.contracts.lesson_plan import LessonPlan
 from packages.quality.layer1_schema.validators import (
-    CircuitBreaker,
     PLACEHOLDER_PATTERNS,
+    CircuitBreaker,
     ValidationGateError,
     check_answer_key_separation,
     check_bloom_coverage,
     check_placeholder_content,
     validate_schema,
 )
-from common.contracts.lesson_plan import LessonPlan
 
 
 class TestValidateSchema:

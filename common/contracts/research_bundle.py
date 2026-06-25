@@ -5,7 +5,7 @@ Follows the FACT protocol (Find → Assess → Cross-reference → Tag).
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -33,5 +33,5 @@ class ResearchBundle(BaseModel):
         description="Minimum 2 sources for basic, 5+ for standard, 10+ for rigorous",
     )
     key_findings: list[str] = Field(default_factory=list)
-    cross_references: list[dict] = Field(default_factory=list)
+    cross_references: list[dict[str, Any]] = Field(default_factory=list)
     research_policy: Literal["basic", "standard", "rigorous"] = "standard"

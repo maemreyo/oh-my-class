@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
+
     from packages.agents.state import OhMyClassState
 
 
-def make_reviewer_agent(checkpointer=None) -> "CompiledStateGraph":
+def make_reviewer_agent(checkpointer=None) -> CompiledStateGraph[Any, Any]:
     """Return a compiled LangGraph for the Reviewer Agent.
 
     Can be run standalone:
@@ -31,12 +32,12 @@ def make_reviewer_agent(checkpointer=None) -> "CompiledStateGraph":
     return builder.compile(checkpointer=checkpointer)
 
 
-async def reviewer_graph_node(state: "OhMyClassState") -> dict[str, Any]:
+async def reviewer_graph_node(state: OhMyClassState) -> dict[str, Any]:
     """Main pipeline graph node — adapter for the reviewer compiled sub-graph."""
     from packages.agents.sub_agents.reviewer.adapters import extract_reviewer_state
     from packages.agents.sub_agents.reviewer.nodes import reviewer_node
 
-    reviewer_state = extract_reviewer_state(state)
+    reviewer_state = extract_reviewer_state(state)  # type: ignore[arg-type]
     return await reviewer_node(reviewer_state)
 
 
@@ -55,6 +56,6 @@ async def quality_review(state: dict[str, Any]) -> dict[str, Any]:
     judge_output = await scorer.score(artifacts, lesson_plan=lesson_plan)
 
     return {
-        "quality_scores": judge_output.model_dump() if hasattr(judge_output, "model_dump") else dict(judge_output),
+        "quality_scores": judge_output.model_dump() if hasattr(judge_output, "model_dump") else dict(judge_output),  # noqa: E501
         "quality_passed": bool(judge_output.passed),
     }

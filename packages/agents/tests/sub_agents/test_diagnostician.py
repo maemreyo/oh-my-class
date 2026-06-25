@@ -2,8 +2,10 @@
 
 import json
 import sys
-import pytest
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from common.contracts.diagnostic_report import (
     BloomGap,
@@ -13,6 +15,9 @@ from common.contracts.diagnostic_report import (
 )
 from common.contracts.student_response import StudentAnswerItem, StudentResponse
 
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
+    from packages.agents.sub_agents.diagnostician.state import DiagnosticianState
 
 # ── StudentResponse ────────────────────────────────────────────────────────────
 
@@ -153,7 +158,7 @@ class TestBloomGap:
             ("evaluate", "Đánh giá"),
             ("create", "Sáng tạo"),
         ]:
-            gap = BloomGap(bloom_level=level, vn_name=vn, error_count=1, error_rate=0.5)
+            gap = BloomGap(bloom_level=level, vn_name=vn, error_count=1, error_rate=0.5)  # pyright: ignore[reportArgumentType]
             assert gap.bloom_level == level
 
 
@@ -172,13 +177,13 @@ class TestMisconceptionPattern:
     def test_groups_a_through_e(self):
         for g in ["a", "b", "c", "d", "e"]:
             p = MisconceptionPattern(
-                id="X1", group=g, title="T", description="D", question_ids=[]
+                id="X1", group=g, title="T", description="D", question_ids=[]  # pyright: ignore[reportArgumentType]
             )
             assert p.group == g
 
 
 class TestDiagnosticReport:
-    def _make_minimal(self, student_id: str = "s1") -> dict:
+    def _make_minimal(self, student_id: str = "s1") -> dict[str, Any]:
         return {"student_id": student_id}
 
     def test_minimal_defaults(self):
@@ -226,13 +231,13 @@ class TestDiagnosticReport:
         assert restored.student_id == "s3"
 
     def test_exported_from_contracts(self):
-        from common.contracts import DiagnosticReport as DR
-        assert DR is DiagnosticReport
+        from common.contracts import DiagnosticReport as DiagnosticReportAlias
+        assert DiagnosticReportAlias is DiagnosticReport
 
     def test_rejects_invalid_recommended_level(self):
         from pydantic import ValidationError
         with pytest.raises(ValidationError):
-            DiagnosticReport(student_id="s1", recommended_level="A0")
+            DiagnosticReport(student_id="s1", recommended_level="A0")  # pyright: ignore[reportArgumentType]
 
     def test_rejects_out_of_range_error_rate(self):
         from pydantic import ValidationError
@@ -251,7 +256,7 @@ class TestKnowledgeGapLiterals:
         with pytest.raises(ValidationError):
             KnowledgeGap(
                 category="grammar", error_count=1, error_rate=0.5,
-                severity="severe", question_ids=[],
+                severity="severe", question_ids=[],  # pyright: ignore[reportArgumentType]
             )
 
     def test_rejects_out_of_range_error_rate(self):
@@ -267,7 +272,7 @@ class TestBloomGapLiterals:
     def test_rejects_invalid_bloom_level(self):
         from pydantic import ValidationError
         with pytest.raises(ValidationError):
-            BloomGap(bloom_level="synthesize", vn_name="Tổng hợp", error_count=1, error_rate=0.5)
+            BloomGap(bloom_level="synthesize", vn_name="Tổng hợp", error_count=1, error_rate=0.5)  # pyright: ignore[reportArgumentType]
 
     def test_rejects_out_of_range_error_rate(self):
         from pydantic import ValidationError
@@ -279,11 +284,11 @@ class TestMisconceptionPatternLiterals:
     def test_rejects_invalid_group(self):
         from pydantic import ValidationError
         with pytest.raises(ValidationError):
-            MisconceptionPattern(id="C1", group="z", title="T", description="D", question_ids=[])
+            MisconceptionPattern(id="C1", group="z", title="T", description="D", question_ids=[])  # pyright: ignore[reportArgumentType]
 
     def test_accepts_all_valid_groups(self):
         for g in ["a", "b", "c", "d", "e"]:
-            p = MisconceptionPattern(id="C1", group=g, title="T", description="D", question_ids=[])
+            p = MisconceptionPattern(id="C1", group=g, title="T", description="D", question_ids=[])  # pyright: ignore[reportArgumentType]
             assert p.group == g
 
 
@@ -384,7 +389,7 @@ VALID_REPORT_GENERIC_FENCE = f"```\n{VALID_REPORT_JSON}\n```"
 
 
 class TestDiagnosticianNode:
-    def _make_state(self, **overrides) -> dict:
+    def _make_state(self, **overrides) -> dict[str, Any]:
         base = {
             "student_responses": {
                 "student_id": "s1",
@@ -404,7 +409,7 @@ class TestDiagnosticianNode:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_REPORT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await diagnostician_node(self._make_state())
+            result = await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
         assert "diagnostic_report" in result
         report = DiagnosticReport.model_validate(result["diagnostic_report"])
@@ -416,7 +421,7 @@ class TestDiagnosticianNode:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_REPORT_WRAPPED))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await diagnostician_node(self._make_state())
+            result = await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
         assert result["diagnostic_report"]["recommended_level"] == "B2"
 
@@ -428,7 +433,7 @@ class TestDiagnosticianNode:
             return_value=_make_mock_response(VALID_REPORT_GENERIC_FENCE)
         )
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await diagnostician_node(self._make_state())
+            result = await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
         assert "diagnostic_report" in result
 
@@ -438,7 +443,7 @@ class TestDiagnosticianNode:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_REPORT_JSON))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await diagnostician_node(self._make_state())
+            result = await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
         assert "diagnostic_report" in result
 
@@ -447,18 +452,16 @@ class TestDiagnosticianNode:
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Invalid JSON"):
-                await diagnostician_node(self._make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+            await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
         mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Diagnostician agent failed"):
-                await diagnostician_node(self._make_state())
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Diagnostician agent failed"):  # noqa: E501
+            await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_handles_empty_student_responses(self):
@@ -466,7 +469,7 @@ class TestDiagnosticianNode:
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_REPORT_JSON))
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            result = await diagnostician_node(self._make_state(student_responses={}))
+            result = await diagnostician_node(cast("DiagnosticianState", self._make_state(student_responses={})))  # noqa: E501
 
         assert "diagnostic_report" in result
 
@@ -500,21 +503,21 @@ class TestDiagnosticianGraphNode:
     async def test_skips_when_no_student_responses(self):
         from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
 
-        result = await diagnostician_graph_node({"student_responses": None})
+        result = await diagnostician_graph_node(cast("OhMyClassState", {"student_responses": None}))
         assert result == {}
 
     @pytest.mark.asyncio
     async def test_skips_when_empty_dict(self):
         from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
 
-        result = await diagnostician_graph_node({"student_responses": {}})
+        result = await diagnostician_graph_node(cast("OhMyClassState", {"student_responses": {}}))
         assert result == {}
 
     @pytest.mark.asyncio
     async def test_skips_when_key_absent(self):
         from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
 
-        result = await diagnostician_graph_node({})
+        result = await diagnostician_graph_node(cast("OhMyClassState", {}))
         assert result == {}
 
     @pytest.mark.asyncio
@@ -524,9 +527,8 @@ class TestDiagnosticianGraphNode:
 
         valid_sr = {"student_id": "s1", "wrong_question_ids": [1]}
         mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API down"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
-            with pytest.raises(ValueError, match="Diagnostician agent failed"):
-                await diagnostician_graph_node({"student_responses": valid_sr})
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Diagnostician agent failed"):  # noqa: E501
+            await diagnostician_graph_node(cast("OhMyClassState", {"student_responses": valid_sr}))
 
     @pytest.mark.asyncio
     async def test_fails_closed_on_invalid_student_response(self):
@@ -537,7 +539,7 @@ class TestDiagnosticianGraphNode:
 
         invalid_sr = {"student_id": "s1"}  # missing required wrong_question_ids
         with pytest.raises(ValidationError):
-            await diagnostician_graph_node({"student_responses": invalid_sr})
+            await diagnostician_graph_node(cast("OhMyClassState", {"student_responses": invalid_sr}))  # noqa: E501
 
 
 # ── adapter input validation ───────────────────────────────────────────────────
@@ -556,7 +558,7 @@ class TestExtractDiagnosticianState:
         assert state["student_responses"]["wrong_question_ids"] == [1, 2]
 
     def test_raises_on_invalid_student_response(self):
-        """Invalid input (present but missing required fields) raises ValidationError — fail closed."""
+        """Invalid input (present but missing required fields) raises ValidationError — fail closed."""  # noqa: E501
         from pydantic import ValidationError
 
         from packages.agents.sub_agents.diagnostician.adapters import extract_diagnostician_state

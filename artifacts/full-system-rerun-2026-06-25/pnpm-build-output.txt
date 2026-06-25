@@ -1,0 +1,9 @@
+
+> oh-my-class@0.1.0 build /Users/trung.ngo/Documents/zaob-dev/oh-my-class
+> turbo run build
+
+• turbo 2.9.18
+  x Could not resolve workspaces.
+  `-> Missing `packageManager` field in package.json
+
+ ELIFECYCLE  Command failed with exit code 1.
