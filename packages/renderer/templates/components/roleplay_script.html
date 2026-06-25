@@ -1,0 +1,31 @@
+<%
+/* roleplay_script.html — scripted roleplay with blanks
+   it = RoleplayScript: { instruction?, lines, answer_key } */
+const lines = it.lines || [];
+const answerKey = it.answer_key || [];
+
+function renderText(text) {
+  return text.replace(/\[blank_(\d+)\]/g, function(_, n) {
+    return '<span class="blank">________ (' + n + ')</span>';
+  });
+}
+%>
+<% if (it.instruction) { %><p class="section-intro"><%= it.instruction %></p><% } %>
+<div class="script">
+  <% for (const line of lines) { const sc = line.speaker_class || 'A'; %>
+    <div class="line">
+      <span class="who <%= sc %>"><%= line.speaker %></span>
+      <span class="what"><%~ renderText(line.text) %></span>
+    </div>
+  <% } %>
+  <% if (answerKey.length > 0) { %>
+    <div class="script-key">
+      <%
+        const keyParts = answerKey.map(function(ans, i) {
+          return '(' + (i+1) + ') <b>' + ans + '</b>';
+        });
+      %>
+      Đáp án: <%~ keyParts.join(' &middot; ') %>
+    </div>
+  <% } %>
+</div>

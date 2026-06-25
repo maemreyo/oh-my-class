@@ -1,0 +1,15 @@
+<%
+/* phrasal_clusters.html — phrasal verb semantic clusters
+   it = PhrasalVerbCluster: { groups } */
+const groups = it.groups || [];
+%>
+<div class="pv-clusters">
+  <% for (const group of groups) { const c = group.color || 'a'; %>
+    <div class="pv-cluster pv<%= c %>" style="background:var(--c-<%= c %>-tint,rgba(51,80,143,0.08));">
+      <span class="pvt" style="color:var(--c-<%= c %>,#33508F);"><%= group.label %></span>
+      <% for (const item of (group.items || [])) { %>
+        <div class="pv-item"><strong><%= item.verb %></strong> — <%= item.meaning %><% if (item.example) { %><em style="display:block;font-size:12px;color:var(--ink-faint);margin-top:2px;"><%= item.example %></em><% } %></div>
+      <% } %>
+    </div>
+  <% } %>
+</div>

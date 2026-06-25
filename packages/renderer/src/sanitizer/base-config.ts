@@ -44,11 +44,11 @@ export const BASE_CONFIG: IOptions = {
     "style": [],
   },
   allowedSchemes: ["data"],
-  allowedSchemesAppliedToAttributes: ["src", "href"],
+  allowedSchemesAppliedToAttributes: ["src"],
   allowedClasses: { "*": ["*"] },
   exclusiveFilter: (frame) => {
     if (frame.attribs.src && !frame.attribs.src.startsWith("data:")) return true;
-    if (frame.attribs.href && /^https?:/.test(frame.attribs.href)) return true;
+    if (frame.attribs.href && /^(https?:|javascript:)/i.test(frame.attribs.href)) return true;
     return false;
   },
 };

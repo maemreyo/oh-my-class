@@ -32,6 +32,13 @@ from common.contracts.components import (
 )
 from pydantic import TypeAdapter
 
+from common.contracts.components.concept import (
+    ConceptEdge, ConceptNode, VocabCluster, VocabItem, ContrastivePairs, ContrastivePairRow,
+    PhrasalVerbCluster, PhrasalVerbGroup, PhrasalVerbItem, ConceptRelationType,
+)
+from common.contracts.components.vocab_lesson import (
+    FilmClip, FilmClipActivity, RoleplayLine, RoleplayScript, ActiveRecallPrompt,
+)
 
 _COMPONENT_ADAPTER = TypeAdapter(ContentComponent)
 
@@ -399,3 +406,151 @@ class TestUnknownTypeRejection:
     def test_missing_type_raises(self):
         with pytest.raises((ValidationError, KeyError)):
             _COMPONENT_ADAPTER.validate_python({"text": "No type here"})
+
+
+# ── ConceptMap edges ──────────────────────────────────────────────────────────
+
+class TestConceptMapEdges:
+    def test_edges_default_empty(self):
+        cm = ConceptMap(nodes=[ConceptNode(id="n1", label="arrive")])
+        assert cm.edges == []
+
+    def test_valid_edge(self):
+        cm = ConceptMap(
+            nodes=[ConceptNode(id="n1", label="arrive"), ConceptNode(id="n2", label="reach")],
+            edges=[ConceptEdge(source="n1", target="n2", relation="contrast", label="scope diff")],
+        )
+        assert len(cm.edges) == 1
+        assert cm.edges[0].relation == "contrast"
+
+    def test_invalid_relation(self):
+        with pytest.raises(ValidationError):
+            ConceptEdge(source="n1", target="n2", relation="antonym")
+
+    def test_all_valid_relations(self):
+        for rel in ("synonymy", "contrast", "collocation", "register", "part_of", "example_of"):
+            e = ConceptEdge(source="a", target="b", relation=rel)
+            assert e.relation == rel
+
+
+# ── VocabCluster ─────────────────────────────────────────────────────────────
+
+class TestVocabCluster:
+    def test_valid(self):
+        vc = VocabCluster(
+            title="arrive / reach / enter",
+            items=[
+                VocabItem(word="arrive", definition="reach a destination", example="We arrived at 6pm."),
+                VocabItem(word="reach", definition="get to after effort"),
+                VocabItem(word="enter", definition="go into a space"),
+            ],
+        )
+        assert vc.type == "vocab_cluster"
+        assert len(vc.items) == 3
+        assert vc.discrimination_prompt is None
+
+    def test_discriminated_union(self):
+        raw = {"type": "vocab_cluster", "title": "Test", "items": []}
+        parsed = _COMPONENT_ADAPTER.validate_python(raw)
+        assert isinstance(parsed, VocabCluster)
+
+    def test_optional_fields(self):
+        vc = VocabCluster(title="T", description="desc", discrimination_prompt="Q?")
+        assert vc.description == "desc"
+
+
+# ── ContrastivePairs ─────────────────────────────────────────────────────────
+
+class TestContrastivePairs:
+    def test_valid(self):
+        cp = ContrastivePairs(rows=[
+            ContrastivePairRow(terms="fare / ticket", distinction="fare=price, ticket=physical card"),
+        ])
+        assert cp.type == "contrastive_pairs"
+
+    def test_discriminated_union(self):
+        raw = {"type": "contrastive_pairs", "rows": []}
+        assert isinstance(_COMPONENT_ADAPTER.validate_python(raw), ContrastivePairs)
+
+
+# ── PhrasalVerbCluster ────────────────────────────────────────────────────────
+
+class TestPhrasalVerbCluster:
+    def test_valid(self):
+        pvc = PhrasalVerbCluster(groups=[
+            PhrasalVerbGroup(label="Rời đi", color="a", items=[
+                PhrasalVerbItem(verb="set off", meaning="start journey"),
+            ]),
+        ])
+        assert pvc.type == "phrasal_verb_cluster"
+        assert pvc.groups[0].color == "a"
+
+    def test_invalid_color(self):
+        with pytest.raises(ValidationError):
+            PhrasalVerbGroup(label="X", color="z", items=[])
+
+    def test_discriminated_union(self):
+        raw = {"type": "phrasal_verb_cluster", "groups": []}
+        assert isinstance(_COMPONENT_ADAPTER.validate_python(raw), PhrasalVerbCluster)
+
+
+# ── FilmClipActivity ──────────────────────────────────────────────────────────
+
+class TestFilmClipActivity:
+    def test_valid(self):
+        fca = FilmClipActivity(
+            clips=[FilmClip(title="Up in the Air", description="Airport vocab")],
+            hunt_chips=["check in", "set off", "arrive"],
+            post_viewing_note="Ask one open question.",
+        )
+        assert fca.type == "film_clip_activity"
+        assert len(fca.clips) == 1
+        assert "check in" in fca.hunt_chips
+
+    def test_discriminated_union(self):
+        raw = {"type": "film_clip_activity", "clips": [], "hunt_chips": []}
+        assert isinstance(_COMPONENT_ADAPTER.validate_python(raw), FilmClipActivity)
+
+
+# ── RoleplayScript ────────────────────────────────────────────────────────────
+
+class TestRoleplayScript:
+    def test_valid(self):
+        rs = RoleplayScript(
+            lines=[
+                RoleplayLine(speaker="Người tiễn (A)", speaker_class="A", text="We should [blank_1] soon."),
+                RoleplayLine(speaker="Người đi (B)", speaker_class="B", text="I don't want to [blank_2] the flight."),
+            ],
+            answer_key=["set off", "miss"],
+            instruction="Read along — not improvised.",
+        )
+        assert rs.type == "roleplay_script"
+        assert len(rs.lines) == 2
+        assert rs.answer_key == ["set off", "miss"]
+
+    def test_discriminated_union(self):
+        raw = {"type": "roleplay_script", "lines": [], "answer_key": []}
+        assert isinstance(_COMPONENT_ADAPTER.validate_python(raw), RoleplayScript)
+
+
+# ── ActiveRecallPrompt ────────────────────────────────────────────────────────
+
+class TestActiveRecallPrompt:
+    def test_valid(self):
+        arp = ActiveRecallPrompt(instruction="Redraw the concept map.", time_minutes=5)
+        assert arp.type == "active_recall_prompt"
+        assert arp.time_minutes == 5
+
+    def test_default_time(self):
+        arp = ActiveRecallPrompt(instruction="Redraw.")
+        assert arp.time_minutes == 3
+
+    def test_time_bounds(self):
+        with pytest.raises(ValidationError):
+            ActiveRecallPrompt(instruction="x", time_minutes=0)
+        with pytest.raises(ValidationError):
+            ActiveRecallPrompt(instruction="x", time_minutes=31)
+
+    def test_discriminated_union(self):
+        raw = {"type": "active_recall_prompt", "instruction": "Do it"}
+        assert isinstance(_COMPONENT_ADAPTER.validate_python(raw), ActiveRecallPrompt)

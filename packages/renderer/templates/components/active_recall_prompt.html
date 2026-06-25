@@ -1,0 +1,11 @@
+<%
+/* active_recall_prompt.html — draw-from-memory active recall prompt
+   it = { instruction, time_minutes, scaffold_hint? } */
+%>
+<div class="note-callout" style="border-left:4px solid var(--green);background:var(--green-tint,rgba(46,111,78,0.08));">
+  <strong style="color:var(--green);">&#9998; Recall (<%= it.time_minutes || 3 %> phút)</strong>
+  <p style="margin:6px 0 0;"><%= it.instruction %></p>
+  <% if (it.scaffold_hint) { %>
+    <p style="margin:6px 0 0;font-size:12.5px;color:var(--ink-soft);"><em><%= it.scaffold_hint %></em></p>
+  <% } %>
+</div>

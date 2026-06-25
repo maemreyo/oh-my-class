@@ -17,4 +17,11 @@ const ctype = comp && comp.type;
 <% } else if (ctype === "question_card") { %><%~ include('./question_card.html', comp) %>
 <% } else if (ctype === "question_list") { %><%~ include('./question_list.html', comp) %>
 <% } else if (ctype === "alert") { %><%~ include('./alert.html', comp) %>
+<% } else if (ctype === "vocab_cluster") { %><%~ include('./vocab_concept_box.html', comp) %>
+<% } else if (ctype === "contrastive_pairs") { %><%~ include('./contrastive_pairs.html', comp) %>
+<% } else if (ctype === "phrasal_verb_cluster") { %><%~ include('./phrasal_clusters.html', comp) %>
+<% } else if (ctype === "film_clip_activity") { %><%~ include('./film_card.html', comp) %>
+<% } else if (ctype === "roleplay_script") { %><%~ include('./roleplay_script.html', comp) %>
+<% } else if (ctype === "active_recall_prompt") { %><%~ include('./active_recall_prompt.html', comp) %>
+<% } else if (ctype === "hw_list") { %><%~ include('./hw_list.html', comp) %>
 <% } else if (ctype) { %><!-- unknown component: <%= ctype %> --><% } %>

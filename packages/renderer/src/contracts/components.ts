@@ -151,6 +151,21 @@ export interface AlertComponent {
   body: string;
 }
 
+export interface VocabItem { word: string; definition: string; example?: string }
+export interface VocabClusterComponent { type: "vocab_cluster"; title: string; description?: string; items?: VocabItem[]; discrimination_prompt?: string }
+export interface ContrastivePairRow { terms: string; distinction: string }
+export interface ContrastivePairsComponent { type: "contrastive_pairs"; title?: string; rows?: ContrastivePairRow[] }
+export interface PhrasalVerbItem { verb: string; meaning: string; example?: string }
+export interface PhrasalVerbGroup { label: string; color?: string; items?: PhrasalVerbItem[] }
+export interface PhrasalVerbClusterComponent { type: "phrasal_verb_cluster"; groups?: PhrasalVerbGroup[] }
+export interface FilmClip { title: string; description: string }
+export interface FilmClipActivityComponent { type: "film_clip_activity"; clips?: FilmClip[]; hunt_chips?: string[]; post_viewing_note?: string }
+export interface RoleplayLine { speaker: string; speaker_class?: string; text: string }
+export interface RoleplayScriptComponent { type: "roleplay_script"; lines?: RoleplayLine[]; answer_key?: string[]; instruction?: string }
+export interface ActiveRecallPromptComponent { type: "active_recall_prompt"; instruction: string; time_minutes?: number; scaffold_hint?: string }
+export interface HwItem { tag: string; text: string }
+export interface HwListComponent { type: "hw_list"; items?: HwItem[]; callout?: string }
+
 export type ContentComponent =
   | HeadingComponent
   | ParagraphComponent
@@ -167,4 +182,11 @@ export type ContentComponent =
   | ConceptMapComponent
   | TimelineComponentData
   | AlertComponent
+  | VocabClusterComponent
+  | ContrastivePairsComponent
+  | PhrasalVerbClusterComponent
+  | FilmClipActivityComponent
+  | RoleplayScriptComponent
+  | ActiveRecallPromptComponent
+  | HwListComponent
   | { type: string; [key: string]: unknown };

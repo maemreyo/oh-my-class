@@ -34,10 +34,35 @@
     <% } %>
   </div>
 
+  <% if (showAnswer && it.wrong_reasons && Object.keys(it.wrong_reasons).length > 0) { %>
+    <div class="question-wrong-reasons" role="note">
+      <span class="wrong-reasons-label">Tại sao các đáp án khác sai:</span>
+      <% for (const opt of (it.options || [])) { if (opt.label !== it.answer && it.wrong_reasons[opt.label]) { %>
+        <div class="wrong-reason-item">
+          <span class="wrong-letter"><%= opt.label %></span>
+          <span class="wrong-text"><%= it.wrong_reasons[opt.label] %></span>
+        </div>
+      <% } } %>
+    </div>
+  <% } %>
+
   <% if (showAnswer && it.explain) { %>
     <div class="question-explanation" role="note">
       <span class="explanation-label">Gi&#7843;i th&#237;ch:</span>
       <%~ it.explain %>
+    </div>
+  <% } %>
+
+  <% if (showAnswer && it.essence) { %>
+    <div class="question-essence" role="note">
+      <span class="essence-label">Điểm mấu chốt:</span>
+      <span class="essence-text"><%~ it.essence %></span>
+    </div>
+  <% } %>
+  <% if (showAnswer && it.tip) { %>
+    <div class="question-tip" role="note">
+      <span class="tip-label">Mẹo nhớ:</span>
+      <span class="tip-text"><%~ it.tip %></span>
     </div>
   <% } %>
 </article>

@@ -1,4 +1,4 @@
-"""ContentComponent discriminated union — all 14 typed component variants.
+"""ContentComponent discriminated union — all 20 typed component variants.
 
 The union is discriminated on the `type` field. LLM output is validated
 against this union; Eta templates dispatch by `component.type`.
@@ -20,10 +20,18 @@ from common.contracts.components.cards import (
     TraitGrid,
 )
 from common.contracts.components.concept import (
+    ConceptEdge,
     ConceptMap,
     ConceptNode,
+    ContrastivePairRow,
+    ContrastivePairs,
+    PhrasalVerbCluster,
+    PhrasalVerbGroup,
+    PhrasalVerbItem,
     TimelineComponent,
     TimelineEvent,
+    VocabCluster,
+    VocabItem,
 )
 from common.contracts.components.questions import QuestionCard, QuestionList
 from common.contracts.components.tabular import Table
@@ -40,6 +48,13 @@ from common.contracts.components.timeline import (
     PhaseBlock,
     PhaseTimeline,
     RoadmapPhase,
+)
+from common.contracts.components.vocab_lesson import (
+    ActiveRecallPrompt,
+    FilmClip,
+    FilmClipActivity,
+    RoleplayLine,
+    RoleplayScript,
 )
 
 ContentComponent = Annotated[
@@ -60,6 +75,12 @@ ContentComponent = Annotated[
         QuestionList,
         ConceptMap,
         TimelineComponent,
+        VocabCluster,
+        ContrastivePairs,
+        PhrasalVerbCluster,
+        FilmClipActivity,
+        RoleplayScript,
+        ActiveRecallPrompt,
     ],
     Field(discriminator="type"),
 ]
@@ -94,7 +115,21 @@ __all__ = [
     "QuestionList",
     # concept
     "ConceptNode",
+    "ConceptEdge",
     "ConceptMap",
     "TimelineEvent",
     "TimelineComponent",
+    "VocabItem",
+    "VocabCluster",
+    "ContrastivePairRow",
+    "ContrastivePairs",
+    "PhrasalVerbItem",
+    "PhrasalVerbGroup",
+    "PhrasalVerbCluster",
+    # vocab_lesson
+    "FilmClip",
+    "FilmClipActivity",
+    "RoleplayLine",
+    "RoleplayScript",
+    "ActiveRecallPrompt",
 ]

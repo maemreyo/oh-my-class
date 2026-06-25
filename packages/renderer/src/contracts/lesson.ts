@@ -5,9 +5,44 @@
  * Rendered by pages/lesson.html template.
  */
 
+export interface LessonSidebarStat {
+  key: string;
+  value: string;
+}
+
+export interface LessonSidebarNavItem {
+  href: string;
+  num?: string;
+  label: string;
+}
+
+export interface LessonSidebar {
+  title: string;
+  subtitle?: string;
+  stats?: LessonSidebarStat[];
+  nav?: LessonSidebarNavItem[];
+  linkback?: string;
+}
+
+export interface LessonHeroStat {
+  label: string;
+  value: string;
+  unit?: string;
+}
+
+export interface LessonHero {
+  eyebrow?: string;
+  lede?: string;
+  noteBox?: string;
+  statCards?: LessonHeroStat[];
+  objectives?: string[];
+}
+
 export interface LessonSection {
   heading: string;
   body: string;
+  id?: string;
+  time?: string;
   components?: string[];
 }
 
@@ -27,4 +62,6 @@ export interface LessonData {
   vocabulary?: VocabEntry[];
   theme?: string;
   lang?: string;
+  sidebar?: LessonSidebar;
+  hero?: LessonHero;
 }

@@ -1,0 +1,27 @@
+<%
+/* film_card.html — film warm-up activity
+   it = FilmClipActivity: { clips, hunt_chips, post_viewing_note? } */
+const clips = it.clips || [];
+const chips = it.hunt_chips || [];
+%>
+<div class="film-opt">
+  <% for (const clip of clips) { %>
+    <div class="film-card">
+      <div class="ft">&#127916; <%= clip.title %></div>
+      <p><%= clip.description %></p>
+    </div>
+  <% } %>
+</div>
+<% if (chips.length > 0) { %>
+  <div class="huntsheet">
+    <strong>Phiếu săn từ (giao trước khi xem):</strong> tích vào ô khi nghe/thấy từ xuất hiện.
+    <div class="chiplist">
+      <% for (const chip of chips) { %>
+        <span class="chip"><%= chip %></span>
+      <% } %>
+    </div>
+  </div>
+<% } %>
+<% if (it.post_viewing_note) { %>
+  <p class="section-intro" style="margin-top:8px;"><%= it.post_viewing_note %></p>
+<% } %>

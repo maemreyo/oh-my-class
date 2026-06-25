@@ -18,6 +18,7 @@ from packages.agents.gates import (
 )
 from packages.agents.healing import healing_node, route_after_healing
 from packages.agents.state import OhMyClassState
+from packages.agents.sub_agents.content_creator.agent import content_creator_graph_node
 from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
 from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
 
@@ -85,7 +86,7 @@ def build_oh_my_class_graph(
     graph.add_node("step_05_pack_scope", _make_dummy_node(5, "pack_scope"))
     graph.add_node("step_06_visual_engine", _make_dummy_node(6, "visual_engine"))
     graph.add_node("step_07_research", _make_dummy_node(7, "research"))
-    graph.add_node("step_08_generate", _make_dummy_node(8, "generate"))
+    graph.add_node("step_08_generate", content_creator_graph_node)
     graph.add_node("step_09_schema_validate", step_09_schema_validate)
     graph.add_node("step_10_content_review", step_10_content_review)
     graph.add_node("step_10b_llm_judge", step_10b_llm_judge)

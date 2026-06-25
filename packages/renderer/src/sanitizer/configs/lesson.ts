@@ -5,6 +5,6 @@ export const LESSON_CONFIG: IOptions = {
   ...BASE_CONFIG,
   allowedTags: [
     ...(BASE_CONFIG.allowedTags as string[]),
-    "details", "summary",
+    "a", "details", "summary",
   ],
 };

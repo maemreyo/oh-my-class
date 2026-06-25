@@ -6,9 +6,26 @@ Bloom's taxonomy levels, and assessment checkpoints.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
+
+MethodologyTag = Literal[
+    "concept_map",
+    "contrastive_pairs",
+    "film_based",
+    "shy_student_1on1",
+    "active_recall",
+    "why_wrong_reasoning",
+    "timed_quiz",
+    "roleplay_script",
+]
+
+
+class MethodologyMetadata(BaseModel):
+    tags: list[MethodologyTag] = Field(default_factory=list)
+    target_skill_area: str | None = None
+    student_profile_notes: str | None = None
 
 
 class LearningObjective(BaseModel):
@@ -70,3 +87,4 @@ class LessonPlan(BaseModel):
         description="Gagné 9-event phases keyed by phase name",
     )
     assessment_checkpoints: list[AssessmentCheckpoint] = Field(default_factory=list)
+    methodology: MethodologyMetadata | None = None

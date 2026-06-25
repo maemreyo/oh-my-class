@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from packages.agents.gates.fact_check import run_fact_check
 from packages.agents.gates.presentation import validate_html, check_age_appropriateness, check_answer_key_leakage
 from packages.agents.config.gate_config import GateConfig
+from packages.quality.layer2_content.methodology import check_methodology_compliance
 
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
@@ -21,6 +22,10 @@ def step_10_content_review(state: "OhMyClassState") -> dict:
     errors = []
     warnings = []
     grade = state.get("class_info", {}).get("grade")
+
+    # Methodology gate — only active when lesson_plan declares methodology tags
+    lesson_plan = state.get("lesson_plan") or {}
+    methodology_tags = (lesson_plan.get("methodology") or {}).get("tags") or []
 
     for artifact in artifacts:
         content = artifact.get("content", "")
@@ -53,6 +58,13 @@ def step_10_content_review(state: "OhMyClassState") -> dict:
             ak_result = check_answer_key_leakage(artifact)
             if not ak_result["passed"]:
                 errors.extend(ak_result["errors"])
+
+        # Methodology compliance gate (lesson artifacts with methodology tags only)
+        if artifact_type == "lesson" and methodology_tags:
+            sections = artifact.get("sections") or []
+            meth_result = check_methodology_compliance(sections, methodology_tags)
+            if not meth_result.passed:
+                errors.extend(v.message for v in meth_result.violations)
 
     if errors:
         return {

@@ -1,0 +1,13 @@
+<%
+/* contrastive_pairs.html — quick contrast table
+   it = ContrastivePairs: { title?, rows } */
+%>
+<% if (it.title) { %><h3 class="h3"><%= it.title %></h3><% } %>
+<table class="quickpairs">
+  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
+  <tbody>
+    <% for (const row of (it.rows || [])) { %>
+      <tr><td><strong><%= row.terms %></strong></td><td><%= row.distinction %></td></tr>
+    <% } %>
+  </tbody>
+</table>

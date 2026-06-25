@@ -1,0 +1,16 @@
+<%
+/* hw_list.html — homework list with tags
+   it = { items: [{tag, text}], callout? } */
+const items = it.items || [];
+%>
+<ul class="hw-list">
+  <% for (const item of items) { %>
+    <li>
+      <span class="hwtag"><%= item.tag %></span>
+      <span><%= item.text %></span>
+    </li>
+  <% } %>
+</ul>
+<% if (it.callout) { %>
+  <div class="note-callout"><%~ it.callout %></div>
+<% } %>
