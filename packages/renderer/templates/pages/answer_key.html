@@ -1,45 +1,213 @@
 <%
-  /* Answer key: teacher-only view — all answers always visible, no hide/reveal toggle.
-     it = AnswerKeyData + { themeCSS, lang } */
-  const questions = it.questions || [];
-
-  let content = '<section class="answer-key-page">';
-  content += '<div class="answer-key-banner" role="note" aria-label="Teacher view">';
-  content += '<span aria-hidden="true">&#128274;</span> D&#224;nh cho gi&#225;o vi&#234;n — Kh&#244;ng ph&#225;t cho h&#7885;c sinh';
-  content += '</div>';
-
-  if (it.rubric) {
-    content += '<div class="rubric-section"><h2>H&#432;&#7899;ng d&#7851;n ch&#7845;m</h2><p>' + it.rubric + '</p></div>';
-  }
-
-  content += '<ol class="answer-list" aria-label="Answer key">';
-  for (let i = 0; i < questions.length; i++) {
-    const q = questions[i];
-    content += '<li class="answer-item"><article class="component-question-mc answer-key-q" id="ak-' + q.id + '">';
-    content += '<p class="question-prompt"><span class="question-number" aria-hidden="true">' + (i + 1) + '.</span> ' + q.prompt + '</p>';
-    content += '<div class="options-grid" role="radiogroup" aria-labelledby="ak-' + q.id + '">';
-    for (const opt of (q.options || [])) {
-      const isCorrect = opt.label === q.answer;
-      content += '<label class="option' + (isCorrect ? ' option--correct' : ' option--neutral') + '">';
-      content += '<input type="radio" name="ak-' + q.id + '" value="' + opt.label + '" disabled' + (isCorrect ? ' checked' : '') + '>';
-      content += '<span class="option-label" aria-hidden="true">' + opt.label + '</span>';
-      content += '<span class="option-text">' + opt.text + '</span>';
-      if (isCorrect) content += '<span class="option-check" aria-label="Correct answer">&#10003;</span>';
-      content += '</label>';
-    }
-    content += '</div>';
-    if (q.explain) {
-      content += '<div class="question-explanation" role="note"><span class="explanation-label">Gi&#7843;i th&#237;ch:</span> ' + q.explain + '</div>';
-    }
-    if (it.teachingNotes && it.teachingNotes[i]) {
-      content += '<div class="teaching-note" role="note"><span aria-hidden="true">&#128203;</span> ' + it.teachingNotes[i] + '</div>';
-    }
-    content += '</article></li>';
-  }
-  content += '</ol></section>';
+/* answer_key.html — rich answer key page (AnswerKeyContent schema)
+   it = AnswerKeyData + { themeCSS, lang } */
+const sections = it.sections || [];
+const metadata = it.metadata || {};
+const lang = it.lang || it.accessibility && it.accessibility.language || 'vi';
 %>
-<%~ include('../base.html', {
-  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
-  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
-  type: 'answer_key', content: content
-}) %>
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= it.title %> — oh-my-class</title>
+<style>
+/* === Theme CSS === */
+:root { <%~ it.themeCSS || '' %> }
+
+/* === Group color aliases (map theme category vars with hardcoded fallbacks) === */
+:root {
+  --c-a: var(--color-category-a, #33508F);
+  --c-a-tint: var(--color-category-a-tint, rgba(51,80,143,0.08));
+  --c-b: var(--color-category-b, #B9762A);
+  --c-b-tint: var(--color-category-b-tint, rgba(185,118,42,0.09));
+  --c-c: var(--color-category-c, #3C7A4E);
+  --c-c-tint: var(--color-category-c-tint, rgba(60,122,78,0.08));
+  --c-d: var(--color-category-d, #1F7A8C);
+  --c-d-tint: var(--color-category-d-tint, rgba(31,122,140,0.08));
+  --c-e: var(--color-category-e, #8A4F7E);
+  --c-e-tint: var(--color-category-e-tint, rgba(138,79,126,0.08));
+  --paper: var(--color-bg, #FBF4F0);
+  --card: var(--color-bg-card, #FFFFFF);
+  --ink: var(--color-text, #22273A);
+  --ink-soft: var(--color-text-soft, #5C6275);
+  --ink-faint: var(--color-text-faint, #8B8FA0);
+  --line: var(--color-border, #E8D8CD);
+  --line-soft: var(--color-border-soft, #EFE3DA);
+  --red: var(--color-accent, #B23A2E);
+  --red-deep: var(--color-accent-deep, #8C2C22);
+  --red-tint: var(--color-accent-tint, rgba(178,58,46,0.07));
+  --gold: var(--color-warning, #A8782E);
+  --green: var(--color-success, #2E6F4E);
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(40,20,10,0.04), 0 8px 24px -16px rgba(40,20,10,0.25);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body, system-ui, -apple-system, 'Segoe UI', sans-serif);
+  line-height: 1.65; font-size: 15.5px;
+}
+h1,h2,h3,h4 { font-family: var(--font-heading, Georgia, serif); margin: 0; color: var(--ink); font-weight: 700; }
+p { margin: 0 0 10px; } ul { margin: 0; padding-left: 20px; } li { margin-bottom: 5px; }
+
+/* Layout */
+.shell { display: flex; max-width: 1280px; margin: 0 auto; min-height: 100vh; position: relative; }
+.sidebar {
+  width: 268px; flex-shrink: 0;
+  position: sticky; top: 0; align-self: flex-start;
+  height: 100vh; overflow-y: auto;
+  padding: 26px 18px 40px 26px;
+  border-right: 1px solid var(--line);
+}
+.main { flex: 1; min-width: 0; padding: 38px 44px 100px; }
+
+/* Sidebar */
+.side-title { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 16px; line-height: 1.3; margin-bottom: 4px; }
+.side-sub { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 22px; }
+.side-nav { display: flex; flex-direction: column; gap: 3px; margin-bottom: 24px; }
+.side-nav a { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 7px; font-size: 13.5px; color: var(--ink); border-left: 3px solid transparent; text-decoration: none; }
+.side-nav a:hover { background: var(--card); }
+.side-nav a .sw { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legend { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--line); }
+.lt2 { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-faint); margin-bottom: 8px; font-weight: 700; }
+.legend-row { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-soft); margin-bottom: 5px; }
+
+/* Hero */
+.hero { margin-bottom: 34px; position: relative; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--red-deep); font-weight: 700; margin-bottom: 10px; }
+.hero h1 { font-size: 30px; line-height: 1.25; max-width: 680px; }
+.hero .lede { max-width: 640px; color: var(--ink-soft); font-size: 15px; margin-top: 12px; }
+.stamp { position: absolute; top: 32px; right: 50px; width: 96px; height: 96px; border: 2.5px solid var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; transform: rotate(-9deg); opacity: .85; font-weight: 700; color: var(--red); font-size: 11px; line-height: 1.25; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; max-width: 880px; }
+.stat-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+.stat-card .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 6px; }
+.stat-card .v { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 22px; line-height: 1.2; }
+.stat-card.target .v { color: var(--green); }
+.stat-card.now .v { color: var(--red-deep); }
+
+/* Section */
+.section { margin-bottom: 46px; }
+.section-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+.section-head h2 { font-size: 21px; }
+.section-head .sub { font-size: 12px; color: var(--ink-faint); font-style: italic; }
+.section-head .rng { margin-left: auto; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; color: #fff; }
+.section-instr { font-size: 13.6px; color: var(--ink-soft); margin-bottom: 16px; font-style: italic; }
+.summary { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; font-size: 13.8px; color: var(--ink-soft); }
+
+/* Question card */
+.qcard { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 22px 20px; margin-bottom: 16px; box-shadow: var(--shadow); border-left-width: 5px; }
+.qhead { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.qnum { font-weight: 700; font-size: 12.5px; color: #fff; padding: 3px 9px; border-radius: 6px; flex-shrink: 0; margin-top: 1px; }
+.qtext { font-size: 15.3px; color: var(--ink); flex: 1; }
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 12px 0 4px; }
+.option { border: 1px solid var(--line-soft); border-radius: 8px; padding: 7px 10px; font-size: 13.8px; color: var(--ink-soft); display: flex; gap: 7px; }
+.option .letter { font-weight: 700; color: var(--ink-faint); flex-shrink: 0; }
+.option.correct { border-color: var(--red); background: var(--red-tint); color: var(--red-deep); font-weight: 600; }
+.option.correct .letter { color: var(--red-deep); }
+.panel { margin-top: 13px; border-top: 1px dashed var(--line); padding-top: 13px; display: flex; flex-direction: column; gap: 9px; }
+.prow { display: flex; gap: 11px; align-items: flex-start; }
+.prow .plabel { flex-shrink: 0; width: 108px; font-size: 10.8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; padding-top: 2px; }
+.prow .ptext { font-size: 13.9px; color: var(--ink); flex: 1; }
+.prow.explain .plabel { color: var(--ink-soft); }
+.prow.essence .plabel { color: var(--gold); }
+.prow.tip .plabel { color: var(--green); }
+.prow.essence .ptext, .prow.tip .ptext { color: var(--ink-soft); }
+.wrong-section { margin-top: 11px; border-top: 1px dashed var(--line); padding-top: 11px; }
+.wrong-section-label { font-size: 10.8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; color: var(--red-deep); margin-bottom: 8px; display: block; }
+.wrong-list { display: flex; flex-direction: column; gap: 7px; }
+.wrong-item { display: flex; gap: 10px; align-items: flex-start; border: 1px solid rgba(178,58,46,.15); border-radius: 8px; padding: 8px 11px; background: rgba(178,58,46,.03); }
+.wrong-item .wletter { font-weight: 700; font-size: 12px; color: var(--red-deep); flex-shrink: 0; width: 18px; padding-top: 1px; }
+.wrong-item .wbody { flex: 1; }
+.wrong-item .woption { font-size: 13px; color: var(--ink-soft); font-style: italic; margin-bottom: 3px; }
+.wrong-item .wreason { font-size: 13.5px; color: var(--ink); line-height: 1.55; }
+
+/* Component extras */
+.comp-callout { border-left: 4px solid var(--gold); background: var(--card); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.comp-callout .callout-title { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--gold); }
+.comp-callout--warning { border-left-color: var(--red); }
+.comp-callout--tip { border-left-color: var(--green); }
+.comp-callout--alert { border-left-color: var(--red); background: var(--red-tint); }
+.comp-heading--1 { font-size: 26px; margin: 24px 0 12px; }
+.comp-heading--2 { font-size: 20px; margin: 20px 0 10px; }
+.comp-heading--3 { font-size: 16px; margin: 16px 0 8px; }
+.comp-heading--4 { font-size: 14px; margin: 12px 0 6px; }
+.tbl-wrap { overflow-x: auto; margin-bottom: 18px; }
+table.dtable { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); font-size: 13.4px; }
+table.dtable th { background: var(--ink); color: #fff; text-align: left; padding: 9px 13px; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; font-weight: 600; }
+table.dtable td { padding: 9px 13px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+table.dtable tr:last-child td { border-bottom: none; }
+
+/* Group colors */
+.g-a { border-left-color: var(--c-a); } .g-a .qnum { background: var(--c-a); } .g-a .rng { background: var(--c-a); }
+.g-b { border-left-color: var(--c-b); } .g-b .qnum { background: var(--c-b); } .g-b .rng { background: var(--c-b); }
+.g-c { border-left-color: var(--c-c); } .g-c .qnum { background: var(--c-c); } .g-c .rng { background: var(--c-c); }
+.g-d { border-left-color: var(--c-d); } .g-d .qnum { background: var(--c-d); } .g-d .rng { background: var(--c-d); }
+.g-e { border-left-color: var(--c-e); } .g-e .qnum { background: var(--c-e); } .g-e .rng { background: var(--c-e); }
+.sw-a { background: var(--c-a); } .sw-b { background: var(--c-b); } .sw-c { background: var(--c-c); } .sw-d { background: var(--c-d); } .sw-e { background: var(--c-e); }
+
+@media (max-width: 880px) {
+  .shell { flex-direction: column; }
+  .sidebar { position: static; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); padding: 18px; }
+  .main { padding: 28px 20px 80px; }
+  .hero .stamp { display: none; }
+  .options { grid-template-columns: 1fr; }
+}
+@media print {
+  .sidebar, .no-print { display: none; }
+  .shell { display: block; }
+  .main { padding: 0; }
+  body { background: white; color: black; }
+  .qcard { page-break-inside: avoid; }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1a1a2e; --card: #252540; --ink: #e8e8f0;
+    --ink-soft: #9999bb; --ink-faint: #666688;
+    --line: #333355; --line-soft: #2a2a48;
+    --red-tint: rgba(178,58,46,0.18);
+  }
+  .qcard { box-shadow: none; }
+}
+</style>
+</head>
+<body class="artifact artifact--answer_key">
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Navigation">
+    <%~ include('../components/sidebar.html', { title: it.title, sections: sections, metadata: metadata }) %>
+  </aside>
+
+  <main class="main" id="main-content">
+    <%~ include('../components/hero.html', {
+      eyebrow: 'Đáp án chi tiết · oh-my-class',
+      title: it.title,
+      lede: it.lede || '',
+      stamp: it.stamp || '',
+      stats: (metadata && metadata.hero_stats) || []
+    }) %>
+
+    <% for (const section of sections) { const g = section.group || 'a'; %>
+    <div class="section" id="section-<%= section.id %>">
+      <div class="section-head g-<%= g %>">
+        <h2><%= section.title %></h2>
+        <% if (section.sub) { %><span class="sub"><%= section.sub %></span><% } %>
+        <% if (section.range) { %><span class="rng rng-<%= g %>"><%= section.range %></span><% } %>
+      </div>
+      <% if (section.instruction) { %><p class="section-instr"><%= section.instruction %></p><% } %>
+      <% if (section.summary) { %><div class="summary"><%~ section.summary %></div><% } %>
+      <% for (const comp of (section.components || [])) { %>
+      <%~ include('../components/dispatcher.html', { component: comp }) %>
+      <% } %>
+    </div>
+    <% } %>
+
+    <footer style="margin-top:50px;padding-top:22px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-faint);">
+      <span>Generated by oh-my-class</span>
+    </footer>
+  </main>
+</div>
+
+</body>
+</html>

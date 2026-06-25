@@ -1,0 +1,33 @@
+<div class="comp-phase-timeline">
+  <% for (const phase of (it.phases || [])) { const g = phase.group || 'a'; %>
+  <div class="phase-item g-<%= g %>">
+    <div class="phase-dot" style="background:var(--c-<%= g %>,var(--color-category-<%= g %>,#33508F))"></div>
+    <div class="phase-card">
+      <div class="phase-head">
+        <strong class="phase-title"><%= phase.title %></strong>
+        <span class="phase-when"><%= phase.when %></span>
+      </div>
+      <% if (phase.goal) { %><p class="phase-goal"><%~ phase.goal %></p><% } %>
+      <% if ((phase.blocks || []).length > 0) { %>
+      <div class="phase-blocks">
+        <% for (const block of phase.blocks) { %>
+        <div class="phase-block<% if (block.full) { %> phase-block--full<% } %>">
+          <span class="block-label"><%= block.label %></span>
+          <% if (block.text) { %><p class="block-text"><%~ block.text %></p><% } %>
+          <% if ((block.items || []).length > 0) { %>
+          <ul class="block-items"><% for (const item of block.items) { %><li><%~ item %></li><% } %></ul>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+      <% } %>
+      <% if (phase.output) { %>
+      <div class="phase-output">
+        <span class="phase-output-label">Output:</span>
+        <span class="phase-output-text"><%~ phase.output %></span>
+      </div>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+</div>

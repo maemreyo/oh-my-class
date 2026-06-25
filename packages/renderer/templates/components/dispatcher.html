@@ -1,0 +1,20 @@
+<%
+/* dispatcher.html — component router
+   it.component = ContentComponent object with a `type` discriminator field */
+const comp = it.component;
+const ctype = comp && comp.type;
+%>
+<% if (ctype === "heading") { %><%~ include('./heading.html', comp) %>
+<% } else if (ctype === "paragraph") { %><%~ include('./paragraph.html', comp) %>
+<% } else if (ctype === "callout") { %><%~ include('./callout.html', comp) %>
+<% } else if (ctype === "table") { %><%~ include('./table.html', comp) %>
+<% } else if (ctype === "stat_grid") { %><%~ include('./stat_grid.html', comp) %>
+<% } else if (ctype === "pattern_grid") { %><%~ include('./pattern_grid.html', comp) %>
+<% } else if (ctype === "trait_grid") { %><%~ include('./trait_grid.html', comp) %>
+<% } else if (ctype === "taxonomy_grid") { %><%~ include('./taxonomy_grid.html', comp) %>
+<% } else if (ctype === "phase_timeline") { %><%~ include('./phase_timeline.html', comp) %>
+<% } else if (ctype === "flow_step") { %><%~ include('./flow_step.html', comp) %>
+<% } else if (ctype === "question_card") { %><%~ include('./question_card.html', comp) %>
+<% } else if (ctype === "question_list") { %><%~ include('./question_list.html', comp) %>
+<% } else if (ctype === "alert") { %><%~ include('./alert.html', comp) %>
+<% } else if (ctype) { %><!-- unknown component: <%= ctype %> --><% } %>

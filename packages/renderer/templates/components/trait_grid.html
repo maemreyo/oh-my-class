@@ -1,0 +1,11 @@
+<div class="comp-trait-grid">
+  <% for (const t of (it.traits || [])) { %>
+  <div class="trait-card">
+    <span class="trait-icon" aria-hidden="true"><%= t.icon %></span>
+    <div class="trait-body">
+      <strong class="trait-title"><%= t.title %></strong>
+      <p class="trait-text"><%~ t.body %></p>
+    </div>
+  </div>
+  <% } %>
+</div>

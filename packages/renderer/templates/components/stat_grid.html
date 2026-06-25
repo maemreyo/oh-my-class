@@ -1,0 +1,8 @@
+<div class="comp-stat-grid">
+  <% for (const stat of (it.stats || [])) { %>
+  <div class="stat-card<% if (stat.variant && stat.variant !== 'default') { %> stat-card--<%= stat.variant %><% } %>">
+    <div class="stat-k"><%= stat.label %></div>
+    <div class="stat-v"><%= stat.value %></div>
+  </div>
+  <% } %>
+</div>

@@ -1,0 +1,12 @@
+<div class="comp-taxonomy-grid">
+  <% for (const item of (it.items || [])) { %>
+  <div class="taxonomy-card">
+    <span class="tax-icon" aria-hidden="true"><%= item.icon %></span>
+    <div class="tax-body">
+      <strong class="tax-title"><%= item.title %></strong>
+      <p class="tax-body-text"><%~ item.body %></p>
+      <% if (item.example) { %><p class="tax-example"><em><%= item.example %></em></p><% } %>
+    </div>
+  </div>
+  <% } %>
+</div>

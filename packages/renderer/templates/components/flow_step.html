@@ -1,0 +1,11 @@
+<div class="comp-flow-step">
+  <% for (const step of (it.steps || [])) { %>
+  <div class="flow-item">
+    <span class="flow-time"><%= step.time %></span>
+    <div class="flow-body">
+      <strong class="flow-title"><%= step.title %></strong>
+      <p class="flow-text"><%~ step.body %></p>
+    </div>
+  </div>
+  <% } %>
+</div>

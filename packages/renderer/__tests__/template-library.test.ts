@@ -89,29 +89,32 @@ describe("template-library — answer_key page", () => {
   it("shows all answers (no hide/reveal toggle)", async () => {
     const html = await renderArtifact("answer_key", {
       title: "Answer Key",
-      subject: "Math",
-      gradeLevel: "Grade 5",
-      questions: [{
-        id: "ak1",
-        prompt: "5 + 3 = ?",
-        options: [{ label: "A", text: "7" }, { label: "B", text: "8" }],
-        answer: "B",
-        explain: "5 + 3 equals 8",
+      sections: [{
+        id: "s1",
+        title: "Toán học",
+        group: "a",
+        components: [{
+          type: "question_card",
+          id: "ak1",
+          text: "5 + 3 = ?",
+          options: { A: "7", B: "8" },
+          answer: "B",
+          explain: "5 + 3 equals 8",
+        }],
       }],
     });
     expect(html).toContain("5 + 3 = ?");
     expect(html).toContain("5 + 3 equals 8");
-    expect(html).toContain("option--correct");
+    expect(html).toContain("option correct");
   });
 
-  it("includes teacher-only banner", async () => {
+  it("renders answer key eyebrow and title", async () => {
     const html = await renderArtifact("answer_key", {
       title: "Answer Key",
-      subject: "Math",
-      gradeLevel: "Grade 5",
-      questions: [],
+      sections: [],
     });
-    expect(html).toContain("giáo viên");
+    expect(html).toContain("Đáp án chi tiết");
+    expect(html).toContain("Answer Key");
   });
 });
 

@@ -1,6 +1,6 @@
 """LangGraph graph builder for the oh-my-class pipeline.
 
-Constructs the StateGraph with all 16 nodes, quality gate chain,
+Constructs the StateGraph with all 18 nodes, quality gate chain,
 healing orchestrator, and interrupt() gates for teacher approval.
 """
 
@@ -18,6 +18,8 @@ from packages.agents.gates import (
 )
 from packages.agents.healing import healing_node, route_after_healing
 from packages.agents.state import OhMyClassState
+from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
+from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
 
 
 def _make_dummy_node(step: int, name: str):
@@ -74,10 +76,12 @@ def build_oh_my_class_graph(
     graph = StateGraph(OhMyClassState)
 
     # ── Pipeline nodes ─────────────────────────────────────────────────────────
+    graph.add_node("step_00_diagnostic", diagnostician_graph_node)
     graph.add_node("step_01_preflight", _make_dummy_node(1, "preflight"))
     graph.add_node("step_02_quickstart", _make_dummy_node(2, "quickstart"))
     graph.add_node("step_03_blueprint", _make_dummy_node(3, "blueprint"))
     graph.add_node("gate_01_blueprint_approval", gate_01_blueprint_approval)
+    graph.add_node("step_04b_roadmap", roadmap_graph_node)
     graph.add_node("step_05_pack_scope", _make_dummy_node(5, "pack_scope"))
     graph.add_node("step_06_visual_engine", _make_dummy_node(6, "visual_engine"))
     graph.add_node("step_07_research", _make_dummy_node(7, "research"))
@@ -92,7 +96,14 @@ def build_oh_my_class_graph(
     graph.add_node("escalate_node", escalate_node)
 
     # ── Edges ──────────────────────────────────────────────────────────────────
-    graph.set_entry_point("step_01_preflight")
+    graph.set_entry_point("step_00_diagnostic")
+    graph.add_conditional_edges(
+        "step_00_diagnostic",
+        route_after_diagnostic,
+        {
+            "step_01_preflight": "step_01_preflight",
+        },
+    )
     graph.add_edge("step_01_preflight", "step_02_quickstart")
     graph.add_edge("step_02_quickstart", "step_03_blueprint")
     graph.add_edge("step_03_blueprint", "gate_01_blueprint_approval")
@@ -101,8 +112,16 @@ def build_oh_my_class_graph(
         "gate_01_blueprint_approval",
         route_after_blueprint_gate,
         {
-            "approve": "step_05_pack_scope",
+            "approve": "step_04b_roadmap",
             "reject": "step_03_blueprint",
+        },
+    )
+
+    graph.add_conditional_edges(
+        "step_04b_roadmap",
+        route_after_roadmap,
+        {
+            "step_05_pack_scope": "step_05_pack_scope",
         },
     )
 
@@ -172,6 +191,16 @@ def build_oh_my_class_graph(
 
 
 # ── Router functions ────────────────────────────────────────────────────────────
+
+def route_after_diagnostic(state: OhMyClassState) -> str:
+    """Always proceed to preflight — skip logic lives inside diagnostician_graph_node."""
+    return "step_01_preflight"
+
+
+def route_after_roadmap(state: OhMyClassState) -> str:
+    """Always proceed to pack_scope — skip logic lives inside roadmap_graph_node."""
+    return "step_05_pack_scope"
+
 
 def route_after_blueprint_gate(state: OhMyClassState) -> str:
     """Route after Gate 01: approve/edit → pack scope; reject → re-run planner."""

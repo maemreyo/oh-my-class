@@ -1,0 +1,11 @@
+<div class="comp-pattern-grid">
+  <% for (const p of (it.patterns || [])) { %>
+  <div class="pattern-card g-<%= p.group || 'a' %>">
+    <span class="pc-id"><%= p.id %></span>
+    <div class="pc-body">
+      <strong class="pc-title"><%= p.title %></strong>
+      <p class="pc-desc"><%~ p.description %></p>
+    </div>
+  </div>
+  <% } %>
+</div>

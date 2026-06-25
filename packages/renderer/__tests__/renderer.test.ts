@@ -3,10 +3,11 @@ import { renderArtifact, renderArtifactSync, renderTemplate } from "../src/rende
 import { sanitizeHtml } from "../src/sanitizer.js";
 import { inlineCss, validateNoExternalUrls } from "../src/inline-assets.js";
 import type { ArtifactType, ArtifactDataMap } from "../src/contracts/index.js";
+// Note: minimalData type is augmented below to include roadmap
 
 // ── Minimal data for each artifact type (smoke tests) ───────────────────────
 
-const minimalData: ArtifactDataMap = {
+const minimalData: ArtifactDataMap & { roadmap: ArtifactDataMap["roadmap"] } = {
   lesson: {
     title: "Test Lesson",
     subject: "Math",
@@ -58,15 +59,21 @@ const minimalData: ArtifactDataMap = {
   },
   answer_key: {
     title: "Test Answer Key",
-    subject: "Math",
-    gradeLevel: "Grade 5",
-    questions: [
+    sections: [
       {
-        id: "ak1",
-        prompt: "5 + 3 = ?",
-        options: [{ label: "A", text: "7" }, { label: "B", text: "8" }],
-        answer: "B",
-        explain: "5 + 3 = 8",
+        id: "s1",
+        title: "Section 1",
+        group: "a",
+        components: [
+          {
+            type: "question_card",
+            id: "ak1",
+            text: "5 + 3 = ?",
+            options: { A: "7", B: "8" },
+            answer: "B",
+            explain: "5 + 3 = 8",
+          },
+        ],
       },
     ],
   },
@@ -96,6 +103,25 @@ const minimalData: ArtifactDataMap = {
     gradeLevel: "Grade 5",
     questions: [
       { id: "et1", prompt: "What did you learn today?", type: "short_answer" },
+    ],
+  },
+  roadmap: {
+    title: "Test Roadmap",
+    hero: { title: "Test Learning Roadmap", eyebrow: "Lộ trình học tập", stamp: "HSA 40+" },
+    sidebar: { title: "Test Roadmap", subtitle: "6 tháng" },
+    sections: [
+      {
+        id: "phase-1",
+        title: "Phase 1: Foundation",
+        components: [
+          {
+            type: "phase_timeline",
+            phases: [
+              { title: "Month 1", when: "Tháng 1", goal: "Build foundation", group: "a" },
+            ],
+          },
+        ],
+      },
     ],
   },
 };
@@ -149,14 +175,14 @@ describe("renderArtifact (async, typed)", () => {
 // ── Smoke test: all 10 artifact types ────────────────────────────────────────
 
 describe("all artifact types render without throwing", () => {
-  const types: ArtifactType[] = [
+  const types: (ArtifactType | "roadmap")[] = [
     "lesson", "quiz", "drill", "worksheet", "recap", "infographic",
-    "answer_key", "flashcard_deck", "reading_passage", "exit_ticket",
+    "answer_key", "flashcard_deck", "reading_passage", "exit_ticket", "roadmap",
   ];
 
   for (const type of types) {
     it(`renders ${type} to valid HTML`, async () => {
-      const html = await renderArtifact(type, minimalData[type]);
+      const html = await renderArtifact(type as ArtifactType, (minimalData as Record<string, unknown>)[type] as ArtifactDataMap[ArtifactType]);
       expect(html).toContain("<!DOCTYPE html>");
       expect(html).toContain("oh-my-class");
       expect(html).not.toMatch(/https?:\/\//);

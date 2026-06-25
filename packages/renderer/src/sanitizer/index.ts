@@ -12,6 +12,7 @@ import { ANSWER_KEY_CONFIG } from "./configs/answer_key.js";
 import { FLASHCARD_DECK_CONFIG } from "./configs/flashcard_deck.js";
 import { READING_PASSAGE_CONFIG } from "./configs/reading_passage.js";
 import { EXIT_TICKET_CONFIG } from "./configs/exit_ticket.js";
+import { ROADMAP_CONFIG } from "./configs/roadmap.js";
 
 const CONFIG_MAP: Record<ArtifactType, IOptions> = {
   lesson:          LESSON_CONFIG,
@@ -25,6 +26,7 @@ const CONFIG_MAP: Record<ArtifactType, IOptions> = {
   reading_passage: READING_PASSAGE_CONFIG,
   exit_ticket:     EXIT_TICKET_CONFIG,
   teaching_pack:   BASE_CONFIG,   // teaching_pack is a bundle — sanitize each artifact independently
+  roadmap:         ROADMAP_CONFIG,
 };
 
 /**

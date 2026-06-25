@@ -17,6 +17,12 @@ from common.contracts.errors import (
 from common.contracts.judge_output import JudgeOutput, LayerScore
 from common.contracts.lesson_plan import AssessmentCheckpoint, LearningObjective, LessonPlan
 from common.contracts.log_context import LogContext
+from common.contracts.diagnostic_report import (
+    BloomGap,
+    DiagnosticReport,
+    KnowledgeGap,
+    MisconceptionPattern,
+)
 from common.contracts.research_bundle import ResearchBundle, ResearchSource
 from common.contracts.roadmap import (
     RoadmapContent,
@@ -24,9 +30,20 @@ from common.contracts.roadmap import (
     RoadmapSection,
     RoadmapSidebar,
 )
+from common.contracts.student_profile import LearningStyle, PersonalityTrait, StudentProfile
+from common.contracts.student_response import StudentAnswerItem, StudentResponse
 
 __all__ = [
     "ArtifactContent",
+    "BloomGap",
+    "DiagnosticReport",
+    "KnowledgeGap",
+    "LearningStyle",
+    "MisconceptionPattern",
+    "PersonalityTrait",
+    "StudentAnswerItem",
+    "StudentProfile",
+    "StudentResponse",
     "AnswerKeyContent",
     "AnswerKeyMetadata",
     "AnswerKeySection",

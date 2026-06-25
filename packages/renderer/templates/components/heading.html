@@ -1,0 +1,2 @@
+<% const tag = 'h' + (it.level || 2); %>
+<<%= tag %><% if (it.id) { %> id="<%= it.id %>"<% } %> class="comp-heading comp-heading--<%= it.level || 2 %>"><%= it.text %></<%= tag %>>

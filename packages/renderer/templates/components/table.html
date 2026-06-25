@@ -1,0 +1,15 @@
+<div class="tbl-wrap">
+  <table class="dtable">
+    <% if ((it.columns || []).length > 0) { %>
+    <thead><tr>
+      <% for (const col of (it.columns || [])) { %><th><%= col %></th><% } %>
+    </tr></thead>
+    <% } %>
+    <tbody>
+      <% for (const row of (it.rows || [])) { %>
+      <tr><% for (const cell of row) { %><td><%~ cell %></td><% } %></tr>
+      <% } %>
+    </tbody>
+  </table>
+  <% if (it.caption) { %><p class="tbl-caption"><%= it.caption %></p><% } %>
+</div>

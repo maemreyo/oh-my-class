@@ -1,0 +1,22 @@
+<%
+/* hero.html — answer key / roadmap hero section
+   it = { eyebrow?, title, lede?, stamp?, stats? } */
+%>
+<div class="hero">
+  <% if (it.eyebrow) { %>
+  <div class="eyebrow"><%= it.eyebrow %></div>
+  <% } %>
+  <h1><%= it.title %></h1>
+  <% if (it.lede) { %><p class="lede"><%~ it.lede %></p><% } %>
+  <% if (it.stamp) { %><div class="stamp" aria-hidden="true"><%= it.stamp %></div><% } %>
+  <% if ((it.stats || []).length > 0) { %>
+  <div class="stat-grid">
+    <% for (const stat of it.stats) { %>
+    <div class="stat-card<% if (stat.variant && stat.variant !== 'default') { %> <%= stat.variant %><% } %>">
+      <div class="k"><%= stat.label %></div>
+      <div class="v"><%= stat.value %></div>
+    </div>
+    <% } %>
+  </div>
+  <% } %>
+</div>

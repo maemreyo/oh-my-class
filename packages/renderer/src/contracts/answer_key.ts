@@ -1,20 +1,33 @@
 /**
  * Answer key artifact data contract.
  *
- * Used by ContentCreator Agent when artifact_type == "answer_key".
- * Rendered by pages/answer_key.html template.
- * Teacher-only view — answers are always visible.
+ * Mirrors AnswerKeyContent Python Pydantic model (common/contracts/answer_key.py).
+ * Used when artifact_type == "answer_key".
+ * Teacher-only view — answers always visible.
  */
 
-import type { MCQuestion } from "./quiz.js";
+import type { ContentComponent } from "./components.js";
+
+export interface AnswerKeySection {
+  id: string;
+  title: string;
+  sub?: string;
+  range?: string;
+  group?: string;
+  instruction?: string;
+  summary?: string;
+  components?: ContentComponent[];
+}
+
+export interface AnswerKeyMetadata {
+  total_questions?: number;
+  groups?: Record<string, { label: string; color?: string }>;
+}
 
 export interface AnswerKeyData {
   title: string;
-  subject: string;
-  gradeLevel: string;
-  questions: MCQuestion[];
-  teachingNotes?: string[];
-  rubric?: string;
   theme?: string;
-  lang?: string;
+  sections?: AnswerKeySection[];
+  metadata?: AnswerKeyMetadata;
+  accessibility?: { language?: string };
 }

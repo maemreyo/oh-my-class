@@ -204,14 +204,14 @@ class TestGraphStructure:
             graph = build_oh_my_class_graph()
         assert graph is not None
 
-    def test_graph_has_16_user_nodes(self):
+    def test_graph_has_18_user_nodes(self):
         from packages.agents.graph import build_oh_my_class_graph
 
         mocks, _, nodes = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             build_oh_my_class_graph()
-        # 12 pipeline + 2 gates + healing_node + escalate_node
-        assert len(nodes) == 16
+        # 14 pipeline (incl. step_00_diagnostic, step_04b_roadmap) + 2 gates + healing_node + escalate_node
+        assert len(nodes) == 18
 
     def test_graph_has_all_step_names(self):
         from packages.agents.graph import build_oh_my_class_graph
@@ -220,8 +220,8 @@ class TestGraphStructure:
         with patch.dict(sys.modules, mocks):
             build_oh_my_class_graph()
         expected_nodes = [
-            "step_01", "step_02", "step_03", "gate_01",
-            "step_05", "step_06", "step_07", "step_08",
+            "step_00", "step_01", "step_02", "step_03", "gate_01",
+            "step_04b", "step_05", "step_06", "step_07", "step_08",
             "step_09", "step_10", "step_10b", "gate_02",
             "step_11", "step_12", "healing_node", "escalate_node",
         ]
@@ -234,8 +234,8 @@ class TestGraphStructure:
         mocks, _, _ = _make_langgraph_mocks()
         with patch.dict(sys.modules, mocks):
             graph = build_oh_my_class_graph()
-        # Compiled graph has __start__ + 16 user nodes + __end__ = 18
-        assert len(graph.get_graph().nodes) == 18
+        # Compiled graph has __start__ + 18 user nodes + __end__ = 20
+        assert len(graph.get_graph().nodes) == 20
 
     def test_graph_accepts_custom_checkpointer(self):
         from packages.agents.graph import build_oh_my_class_graph

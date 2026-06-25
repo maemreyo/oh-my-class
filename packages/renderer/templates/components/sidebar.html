@@ -1,0 +1,31 @@
+<%
+/* sidebar.html — answer key sticky sidebar
+   it = { title, subtitle?, sections, metadata? } */
+const sections = it.sections || [];
+const groups = (it.metadata && it.metadata.groups) || {};
+const groupKeys = ['a','b','c','d','e'];
+%>
+<div class="side-title"><%= it.title %></div>
+<% if (it.subtitle) { %><div class="side-sub"><%= it.subtitle %></div><% } %>
+
+<nav class="side-nav" aria-label="Sections">
+  <% for (const s of sections) { const g = s.group || 'a'; %>
+  <a href="#section-<%= s.id %>" style="border-left-color:var(--c-<%= g %>,var(--color-category-<%= g %>,#33508F))">
+    <span class="sw sw-<%= g %>" style="background:var(--c-<%= g %>,var(--color-category-<%= g %>,#33508F))"></span>
+    <span><%= s.title %></span>
+    <% if (s.range) { %><span class="rng" style="font-family:monospace;font-size:11px;color:#8B8FA0;margin-left:auto"><%= s.range %></span><% } %>
+  </a>
+  <% } %>
+</nav>
+
+<% if (Object.keys(groups).length > 0) { %>
+<div class="legend">
+  <div class="lt2">Chú thích</div>
+  <% for (const gk of groupKeys) { if (!groups[gk]) continue; %>
+  <div class="legend-row">
+    <span class="sw sw-<%= gk %>" style="width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--c-<%= gk %>,var(--color-category-<%= gk %>))"></span>
+    <span><%= groups[gk].label || gk %></span>
+  </div>
+  <% } %>
+</div>
+<% } %>

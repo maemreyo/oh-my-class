@@ -103,6 +103,11 @@ class OhMyClassState(TypedDict):
     # ── Error ───────────────────────────────────────────────
     error: NotRequired[str]   # set by any node on unrecoverable failure
 
+    # ── Diagnostic ──────────────────────────────────────────
+    student_responses: NotRequired[dict | None]   # StudentResponse JSON
+    diagnostic_report: NotRequired[dict | None]   # DiagnosticReport JSON
+    student_profile: NotRequired[dict | None]     # StudentProfile JSON
+
     # ── Export ──────────────────────────────────────────────
     export_formats: list[str]  # ["html", "gift", "h5p"]
     exported_files: Annotated[list[dict[str, Any]], merge_exported_files]

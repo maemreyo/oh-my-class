@@ -17,6 +17,7 @@ import type { FlashcardDeckData } from "./flashcard_deck.js";
 import type { ReadingPassageData } from "./reading_passage.js";
 import type { ExitTicketData } from "./exit_ticket.js";
 import type { TeachingPackData } from "./schemas/teaching-pack.js";
+import type { RoadmapData } from "./roadmap.js";
 
 export type ArtifactDataMap = {
   lesson:          LessonData;
@@ -30,6 +31,7 @@ export type ArtifactDataMap = {
   reading_passage: ReadingPassageData;
   exit_ticket:     ExitTicketData;
   teaching_pack:   TeachingPackData;   // TP1: type 11 — bundle artifact
+  roadmap:         RoadmapData;        // R08: personalized learning roadmap
 };
 
 export type ArtifactType = keyof ArtifactDataMap;
@@ -46,6 +48,9 @@ export type { FlashcardDeckData, Flashcard } from "./flashcard_deck.js";
 export type { ReadingPassageData, ComprehensionQuestion } from "./reading_passage.js";
 export type { ExitTicketData, ExitTicketQuestion } from "./exit_ticket.js";
 export type { TeachingPackData } from "./schemas/teaching-pack.js";
+export type { RoadmapData, RoadmapHero, RoadmapSidebar, RoadmapSection, StatCard as RoadmapStatCard } from "./roadmap.js";
+export type { AnswerKeyData, AnswerKeySection, AnswerKeyMetadata } from "./answer_key.js";
+export type { ContentComponent, QuestionCardComponent, QuestionListComponent } from "./components.js";
 
 // ── New schemas (Report 07) ───────────────────────────────────────────────────
 export type { CurriculumFramework, CurriculumStandard } from "./curriculum-standard.js";

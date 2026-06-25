@@ -1,0 +1,19 @@
+<%
+/* question_list.html — section wrapper iterating question_cards */
+const ql = it;
+const questions = ql.questions || [];
+%>
+<div class="question-list g-<%= ql.group || 'a' %>" id="ql-<%= ql.section_key || 'main' %>">
+  <% if (ql.title) { %>
+  <div class="section-head">
+    <h2><%= ql.title %></h2>
+    <% if (ql.sub) { %><span class="sub"><%= ql.sub %></span><% } %>
+    <% if (ql.range) { %><span class="rng rng-<%= ql.group || 'a' %>"><%= ql.range %></span><% } %>
+  </div>
+  <% } %>
+  <% if (ql.instruction) { %><p class="section-instr"><%= ql.instruction %></p><% } %>
+  <% if (ql.summary) { %><div class="summary"><%~ ql.summary %></div><% } %>
+  <% for (const q of questions) { %>
+  <%~ include('./question_card.html', q) %>
+  <% } %>
+</div>

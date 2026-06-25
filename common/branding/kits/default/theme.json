@@ -31,5 +31,12 @@
     "sm": "4px",
     "md": "8px",
     "lg": "12px"
+  },
+  "groups": {
+    "a": { "color": "#33508F", "label": "Ngữ pháp – Từ vựng" },
+    "b": { "color": "#B9762A", "label": "Hội thoại" },
+    "c": { "color": "#3C7A4E", "label": "Viết lại / Kết hợp câu" },
+    "d": { "color": "#1F7A8C", "label": "Điền từ & Đọc hiểu" },
+    "e": { "color": "#8A4F7E", "label": "Tư duy logic" }
   }
 }

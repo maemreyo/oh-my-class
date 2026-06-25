@@ -1,0 +1,58 @@
+<%
+/* question_card.html — rich MCQ card with explain, wrongReasons, essence, tip
+   it = QuestionCardComponent */
+const q = it;
+const g = q.group || 'a';
+const opts = q.options || {};
+const optKeys = Object.keys(opts);
+const wrongs = q.wrong_reasons || {};
+const wrongKeys = Object.keys(wrongs).filter(k => k !== q.answer);
+%>
+<article class="qcard g-<%= g %>" id="q-<%= q.id %>">
+  <div class="qhead">
+    <span class="qnum"><%= q.id %></span>
+    <p class="qtext"><%~ q.text %></p>
+  </div>
+  <div class="options">
+    <% for (const k of optKeys) { const isCorrect = k === q.answer; %>
+    <div class="option<% if (isCorrect) { %> correct<% } %>">
+      <b class="letter"><%= k %></b>
+      <span><%~ opts[k] %></span>
+    </div>
+    <% } %>
+  </div>
+  <div class="panel">
+    <div class="prow explain">
+      <span class="plabel">Giải thích</span>
+      <span class="ptext"><%~ q.explain %></span>
+    </div>
+    <% if (q.essence) { %>
+    <div class="prow essence">
+      <span class="plabel">Bản chất</span>
+      <span class="ptext"><%~ q.essence %></span>
+    </div>
+    <% } %>
+    <% if (q.tip) { %>
+    <div class="prow tip">
+      <span class="plabel">Mẹo làm bài</span>
+      <span class="ptext"><%~ q.tip %></span>
+    </div>
+    <% } %>
+  </div>
+  <% if (wrongKeys.length > 0) { %>
+  <div class="wrong-section">
+    <span class="wrong-section-label">Phân tích đáp án sai</span>
+    <div class="wrong-list">
+      <% for (const wk of wrongKeys) { %>
+      <div class="wrong-item">
+        <span class="wletter"><%= wk %></span>
+        <div class="wbody">
+          <p class="woption"><%= opts[wk] || '' %></p>
+          <p class="wreason"><%~ wrongs[wk] %></p>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+</article>
