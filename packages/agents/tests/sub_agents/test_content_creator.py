@@ -181,6 +181,49 @@ class TestContentCreatorAgent:
             assert artifact.artifact_type in ("lesson", "worksheet", "quiz", "drill", "recap", "infographic")  # noqa: E501
             assert len(artifact.title) >= 3
 
+    @pytest.mark.asyncio
+    async def test_system_prompt_from_external_file(self):
+        """Regression: system prompt must come from prompts/system.md, not hardcoded."""
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+            await generate_artifacts(cast("ContentCreatorState", _make_state()))
+
+        system_msg = mock_llm.call_args.kwargs["messages"][0]["content"]
+        # system.md contains "Rich Component Model" section — hardcoded prompt did not
+        assert "Rich Component Model" in system_msg or "RCM" in system_msg
+        # system.md contains the complete valid example
+        assert "Phân số tương đương" in system_msg
+        # JSON-only suffix appended
+        assert "CRITICAL" in system_msg
+
+    @pytest.mark.asyncio
+    async def test_temperature_is_03(self):
+        """Temperature must be 0.3 for structured JSON output (not 0.7)."""
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+            await generate_artifacts(cast("ContentCreatorState", _make_state()))
+
+        assert mock_llm.call_args.kwargs["temperature"] == 0.3
+
+    @pytest.mark.asyncio
+    async def test_retry_includes_failed_output(self):
+        """Retry prompt must include the failed LLM output for self-repair."""
+        from packages.agents.sub_agents.content_creator.nodes import _retry_prompt
+
+        failed_output = '{"bad": "json"}'
+        result = _retry_prompt("base prompt", ValueError("missing field"), failed_output)
+        assert "Previous output" in result or "previous output" in result
+        assert failed_output in result
+
+    @pytest.mark.asyncio
+    async def test_retry_without_failed_output(self):
+        """Retry prompt works when no previous output available."""
+        from packages.agents.sub_agents.content_creator.nodes import _retry_prompt
+
+        result = _retry_prompt("base prompt", ValueError("error"), None)
+        assert "base prompt" in result
+        assert "Validation error" in result or "validation error" in result
+
 
 # ── validate_no_cdn ───────────────────────────────────────────────────────────
 

@@ -26,6 +26,40 @@ Return a JSON object matching the ArtifactContent schema:
 }
 ```
 
+## Complete Valid Example — Lesson Artifact
+
+Return JSON that matches this exact shape. Every field shown is required unless marked optional.
+
+```json
+{
+  "artifact_type": "lesson",
+  "theme": "default",
+  "title": "Phân số tương đương — Lớp 5",
+  "sections": [
+    {
+      "type": "teaching",
+      "title": "Phân số tương đương là gì?",
+      "components": [
+        { "type": "heading", "level": 2, "text": "Khái niệm cơ bản" },
+        { "type": "paragraph", "text": "Hai phân số được gọi là tương đương nếu当我们用 cùng một số nhân chia cả tử và mẫu số thì giá trị không đổi." },
+        { "type": "callout", "variant": "tip", "body": "Phân số tương đương có cùng giá trị nhưng dạng khác nhau." },
+        { "type": "table", "columns": ["Phân số", "Nhân", "Kết quả"], "rows": [["1/2", "×2", "2/4"], ["1/2", "×3", "3/6"]] }
+      ]
+    },
+    {
+      "type": "practice",
+      "title": "Luyện tập — Tìm phân số tương đương",
+      "components": [
+        { "type": "question_card", "id": 1, "text": "Phân số nào tương đương với 2/5?", "options": {"A": "4/10", "B": "3/5", "C": "2/10", "D": "5/2"}, "answer": "A", "explain": "2/5 × 2/2 = 4/10" },
+        { "type": "question_card", "id": 2, "text": "Chọn phân số tương đương với 3/4:", "options": {"A": "6/8", "B": "3/8", "C": "4/3", "D": "3/12"}, "answer": "A", "explain": "3/4 × 2/2 = 6/8" }
+      ]
+    }
+  ],
+  "metadata": { "duration_minutes": 45, "grade_level": "Grade 5" },
+  "accessibility": { "language": "vi" }
+}
+```
+
 ## Hard Constraints
 
 - Return JSON ONLY — never raw HTML

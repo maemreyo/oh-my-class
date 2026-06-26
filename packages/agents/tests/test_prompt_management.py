@@ -143,4 +143,5 @@ def test_content_creator_nodes_uses_load_system_prompt():
 
     from packages.agents.sub_agents.content_creator import nodes
     src = inspect.getsource(nodes)
-    assert "RUNTIME_SYSTEM_PROMPT" in src
+    assert "load_system_prompt" in src
+    assert "RUNTIME_SYSTEM_PROMPT" not in src

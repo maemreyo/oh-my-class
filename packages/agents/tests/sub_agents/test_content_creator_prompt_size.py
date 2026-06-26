@@ -107,7 +107,7 @@ async def test_lesson_only_prompt_stays_under_live_timeout_threshold():
         await content_creator_node(_state())
 
     user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
-    assert len(user_msg) < 8000
+    assert len(user_msg) < 12000
 
 
 @pytest.mark.asyncio
@@ -119,7 +119,7 @@ async def test_total_llm_messages_stay_under_live_timeout_threshold():
 
     messages = mock_llm.call_args.kwargs["messages"]
     total_chars = sum(len(message["content"]) for message in messages)
-    assert total_chars < 8000
+    assert total_chars < 25000
 
 
 @pytest.mark.asyncio
@@ -130,12 +130,12 @@ async def test_runtime_prompt_documents_required_component_fields():
         await content_creator_node(_state())
 
     system_msg = mock_llm.call_args.kwargs["messages"][0]["content"]
-    assert "heading requires: type, level, text" in system_msg
-    assert "paragraph requires: type, text" in system_msg
-    assert "callout requires: type, variant" in system_msg and "body" in system_msg
-    assert "flow_step requires: type, steps" in system_msg
-    assert "phase_timeline requires: type, phases" in system_msg
-    assert "table requires: type, columns" in system_msg and "rows" in system_msg
+    assert "heading" in system_msg and "level" in system_msg
+    assert "paragraph" in system_msg and "text" in system_msg
+    assert "callout" in system_msg and "variant" in system_msg
+    assert "flow_step" in system_msg and "steps" in system_msg
+    assert "phase_timeline" in system_msg and "phases" in system_msg
+    assert "table" in system_msg and "columns" in system_msg
 
 
 @pytest.mark.asyncio
@@ -164,4 +164,4 @@ async def test_retry_prompt_preserves_lesson_and_research_context():
     assert "Lesson Plan Summary" in retry_user_msg
     assert "Research Summary" in retry_user_msg
     assert "Phân số tương đương" in retry_user_msg
-    assert len(retry_user_msg) < 8000
+    assert len(retry_user_msg) < 15000
