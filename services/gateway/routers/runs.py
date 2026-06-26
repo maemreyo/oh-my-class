@@ -64,6 +64,7 @@ class RunRequest(BaseModel):
     raw_request: str
     class_info: dict[str, Any]
     teacher_id: str
+    artifact_types: list[str] | None = None
 
 
 class RunResponse(BaseModel):
@@ -89,7 +90,7 @@ def build_initial_state(request: RunRequest, run_id: str) -> dict[str, Any]:
         "run_id": run_id,
         "blueprint_approved": False,
         "research_policy": "standard",
-        "artifact_types": [],
+        "artifact_types": request.artifact_types or [],
         "theme": "default",
         "artifacts": [],
         "quality_passed": False,

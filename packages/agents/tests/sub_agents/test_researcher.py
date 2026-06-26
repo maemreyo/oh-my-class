@@ -1,6 +1,8 @@
 """Tests for researcher agent."""
 
+import contextlib
 import json
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, patch
 
@@ -45,6 +47,39 @@ VALID_BUNDLE_JSON = json.dumps({
 
 VALID_BUNDLE_WRAPPED = f"```json\n{VALID_BUNDLE_JSON}\n```"
 VALID_BUNDLE_GENERIC_FENCE = f"```\n{VALID_BUNDLE_JSON}\n```"
+SEARCH_RESULTS = [
+    {
+        "title": "Source 1",
+        "url": "https://example.edu/one",
+        "snippet": "Alpha",
+        "verification_status": "UNCERTAIN",
+    },
+    {
+        "title": "Source 2",
+        "url": "https://example.edu/two",
+        "snippet": "Beta",
+        "verification_status": "UNCERTAIN",
+    },
+]
+
+
+@contextlib.contextmanager
+def _patch_research_tools(mock_llm: AsyncMock) -> Iterator[None]:
+    with contextlib.ExitStack() as stack:
+        stack.enter_context(patch("packages.agents.llm.complete_json_chat", mock_llm))
+        stack.enter_context(
+            patch(
+                "packages.agents.tools.web_search.web_search",
+                AsyncMock(return_value=SEARCH_RESULTS),
+            )
+        )
+        stack.enter_context(
+            patch(
+                "packages.agents.sub_agents.researcher.tools.web_fetch",
+                AsyncMock(return_value="Fetched page content about photosynthesis."),
+            )
+        )
+        yield
 
 
 # ── ResearcherAgent ───────────────────────────────────────────────────────────
@@ -55,7 +90,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
@@ -68,7 +103,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert result["research_bundle"]["topic"] == "Photosynthesis"
@@ -78,7 +113,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_GENERIC_FENCE)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
@@ -88,7 +123,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_JSON)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
@@ -98,7 +133,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value="not json")
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         bundle = ResearchBundle.model_validate(result["research_bundle"])
@@ -111,7 +146,7 @@ class TestResearcherAgent:
 
         mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
         with (
-            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            _patch_research_tools(mock_llm),
             pytest.raises(ValueError, match="Researcher agent failed"),
         ):
             await research_sources(cast("ResearcherState", _make_state()))
@@ -125,7 +160,7 @@ class TestResearcherAgent:
             "sources": [{"title": "Only one", "credibility_score": 0.9, "verification_status": "VERIFIED"}],  # noqa: E501
         })
         mock_llm = _make_llm_mock(return_value=bad_bundle)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         bundle = ResearchBundle.model_validate(result["research_bundle"])
@@ -137,7 +172,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state(lesson_plan=None)))
 
         mock_llm.assert_awaited_once()
@@ -148,7 +183,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             await research_sources(cast("ResearcherState", _make_state()))
 
         assert mock_llm.call_args.kwargs["model"] == "openai/f.pro"
@@ -158,7 +193,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             await research_sources(cast("ResearcherState", _make_state(run_id="run-abc")))
 
         tags = mock_llm.call_args.kwargs["tags"]
@@ -171,18 +206,20 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             await research_sources(cast("ResearcherState", _make_state(research_policy="rigorous")))
 
         user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
         assert "rigorous" in user_msg
+        assert "Fetched evidence from f.pro.fetch" in user_msg
+        assert "Fetched page content" in user_msg
 
     @pytest.mark.asyncio
     async def test_bundle_sources_have_verification_status(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with _patch_research_tools(mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         bundle = ResearchBundle.model_validate(result["research_bundle"])
@@ -197,8 +234,12 @@ class TestResearcherTools:
     async def test_web_search_returns_results(self):
         from packages.agents.sub_agents.researcher.tools import web_search
 
-        results = await web_search("photosynthesis", num_results=3)
-        assert len(results) == 3
+        with patch(
+            "packages.agents.sub_agents.researcher.tools.shared_web_search",
+            AsyncMock(return_value=SEARCH_RESULTS),
+        ):
+            results = await web_search("photosynthesis", num_results=3)
+        assert len(results) == 2
         assert all("title" in r for r in results)
         assert all("url" in r for r in results)
         assert all("snippet" in r for r in results)
@@ -207,14 +248,22 @@ class TestResearcherTools:
     async def test_web_search_respects_num_results(self):
         from packages.agents.sub_agents.researcher.tools import web_search
 
-        results = await web_search("test", num_results=5)
-        assert len(results) == 5
+        with patch(
+            "packages.agents.sub_agents.researcher.tools.shared_web_search",
+            AsyncMock(return_value=SEARCH_RESULTS),
+        ):
+            results = await web_search("test", num_results=5)
+        assert len(results) == 2
 
     @pytest.mark.asyncio
     async def test_web_fetch_returns_string(self):
         from packages.agents.sub_agents.researcher.tools import web_fetch
 
-        content = await web_fetch("https://example.com")
+        with patch(
+            "packages.agents.tools.ninerouter_web.NineRouterWebClient.fetch",
+            AsyncMock(return_value=type("Fetch", (), {"content": "Example content"})()),
+        ):
+            content = await web_fetch("https://example.com")
         assert isinstance(content, str)
         assert len(content) > 0
 
@@ -222,7 +271,11 @@ class TestResearcherTools:
     async def test_web_fetch_includes_url(self):
         from packages.agents.sub_agents.researcher.tools import web_fetch
 
-        content = await web_fetch("https://example.com/test")
+        with patch(
+            "packages.agents.tools.ninerouter_web.NineRouterWebClient.fetch",
+            AsyncMock(return_value=type("Fetch", (), {"content": "https://example.com/test"})()),
+        ):
+            content = await web_fetch("https://example.com/test")
         assert "example.com" in content
 
 

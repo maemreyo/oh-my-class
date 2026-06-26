@@ -7,24 +7,14 @@ independent from the main pipeline graph.
 from __future__ import annotations
 
 import json
-import sys
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _make_mock_response(content: str) -> MagicMock:
-    mock = MagicMock()
-    mock.choices = [MagicMock()]
-    mock.choices[0].message.content = content
-    return mock
-
-
-def _make_litellm_mock(content: str) -> MagicMock:
-    mock_module = MagicMock()
-    mock_module.acompletion = AsyncMock(return_value=_make_mock_response(content))
-    return mock_module
+def _make_llm_mock(content: str) -> AsyncMock:
+    return AsyncMock(return_value=content)
 
 
 VALID_PLAN = json.dumps({
@@ -77,8 +67,8 @@ class TestPlannerAgentFactory:
     async def test_ainvoke_returns_lesson_plan(self):
         from packages.agents.sub_agents.planner.agent import make_planner_agent
 
-        mock_litellm = _make_litellm_mock(VALID_PLAN)
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(VALID_PLAN)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             agent = make_planner_agent()
             result = await agent.ainvoke({
                 "messages": [],
@@ -97,8 +87,8 @@ class TestPlannerAgentFactory:
         """Planner can run without importing OhMyClassState or graph.py."""
         from packages.agents.sub_agents.planner.agent import make_planner_agent
 
-        mock_litellm = _make_litellm_mock(VALID_PLAN)
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(VALID_PLAN)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             agent = make_planner_agent()
             result = await agent.ainvoke({
                 "messages": [],
@@ -125,8 +115,8 @@ class TestResearcherAgentFactory:
     async def test_ainvoke_returns_research_bundle(self):
         from packages.agents.sub_agents.researcher.agent import make_researcher_agent
 
-        mock_litellm = _make_litellm_mock(VALID_BUNDLE)
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(VALID_BUNDLE)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             agent = make_researcher_agent()
             result = await agent.ainvoke({
                 "messages": [],
@@ -154,8 +144,8 @@ class TestContentCreatorAgentFactory:
     async def test_ainvoke_returns_artifacts(self):
         from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent
 
-        mock_litellm = _make_litellm_mock(VALID_ARTIFACTS)
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(VALID_ARTIFACTS)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             agent = make_content_creator_agent()
             result = await agent.ainvoke({
                 "messages": [],

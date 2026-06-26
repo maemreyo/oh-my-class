@@ -10,8 +10,8 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from typing import TYPE_CHECKING, Any, cast
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import FastAPI
@@ -32,6 +32,9 @@ from services.gateway.routers.runs import (  # noqa: E402
     router,
 )
 
+if TYPE_CHECKING:
+    from packages.agents.state import OhMyClassState
+
 VALID_PLAN = json.dumps({
     "topic": "Photosynthesis",
     "grade_level": "Grade 5",
@@ -44,20 +47,14 @@ VALID_PLAN = json.dumps({
 })
 
 
-def _make_litellm_mock(content: str) -> MagicMock:
-    mock_response = MagicMock()
-    mock_response.choices = [MagicMock()]
-    mock_response.choices[0].message.content = content
-    mock_module = MagicMock()
-    mock_module.acompletion = AsyncMock(return_value=mock_response)
-    return mock_module
+def _make_llm_mock(content: str) -> AsyncMock:
+    return AsyncMock(return_value=content)
 
 
 def _build_real_graph():
-    """Compile the real LangGraph with the litellm module mocked."""
-    mock_litellm = _make_litellm_mock(VALID_PLAN)
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setitem(sys.modules, "litellm", mock_litellm)
+    """Compile the real LangGraph with the shared LLM helper mocked."""
+    mock_llm = _make_llm_mock(VALID_PLAN)
+    with patch("packages.agents.llm.complete_json_chat", mock_llm):
         from packages.agents.graph import build_oh_my_class_graph
         return build_oh_my_class_graph()
 
@@ -90,9 +87,8 @@ def _initial_state(raw_request: str = "Teach photosynthesis to Grade 5") -> dict
 @pytest.mark.asyncio
 async def test_graph_reaches_blueprint_approval_with_lesson_plan():
     """Full preflight → quickstart → planner → gate_01 sequence."""
-    mock_litellm = _make_litellm_mock(VALID_PLAN)
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setitem(sys.modules, "litellm", mock_litellm)
+    mock_llm = _make_llm_mock(VALID_PLAN)
+    with patch("packages.agents.llm.complete_json_chat", mock_llm):
         from packages.agents.graph import build_oh_my_class_graph
 
         graph = build_oh_my_class_graph()
@@ -122,7 +118,7 @@ async def test_preflight_node_rejects_short_request_in_graph():
 
     short_state = _initial_state(raw_request="hi")
     with pytest.raises(ValueError, match="at least 10 characters"):
-        step_01_preflight(short_state)
+        step_01_preflight(cast("OhMyClassState", short_state))
 
 
 @pytest.mark.asyncio
@@ -131,7 +127,7 @@ async def test_preflight_node_rejects_empty_request_in_graph():
 
     empty_state = _initial_state(raw_request="")
     with pytest.raises(ValueError, match="raw_request is required"):
-        step_01_preflight(empty_state)
+        step_01_preflight(cast("OhMyClassState", empty_state))
 
 
 # ── Gateway-level integration ─────────────────────────────────────────────────
@@ -155,9 +151,8 @@ def _make_app_with_graph(graph: Any) -> TestClient:
 
 def test_create_run_reaches_blueprint_approval_via_gateway():
     """POST /run with mocked LLM → 200 + status 'awaiting_approval' + lesson_plan in state."""
-    mock_litellm = _make_litellm_mock(VALID_PLAN)
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setitem(sys.modules, "litellm", mock_litellm)
+    mock_llm = _make_llm_mock(VALID_PLAN)
+    with patch("packages.agents.llm.complete_json_chat", mock_llm):
         from packages.agents.graph import build_oh_my_class_graph
 
         graph = build_oh_my_class_graph()

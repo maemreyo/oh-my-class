@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import time
 from dataclasses import dataclass
@@ -19,6 +20,7 @@ class FlowConfig:
     username: str
     password: str
     request_timeout_s: int
+    progress_interval_s: int
     run_id: str | None
 
 
@@ -29,6 +31,7 @@ def parse_args() -> FlowConfig:
     parser.add_argument("--username", default="teacher1")
     parser.add_argument("--password", default="dev")
     parser.add_argument("--timeout", type=int, default=900)
+    parser.add_argument("--progress-interval", type=int, default=10)
     parser.add_argument("--run-id", default=None)
     args = parser.parse_args()
     output_dir = Path(args.output_dir)
@@ -39,6 +42,7 @@ def parse_args() -> FlowConfig:
         username=args.username,
         password=args.password,
         request_timeout_s=args.timeout,
+        progress_interval_s=args.progress_interval,
         run_id=args.run_id,
     )
 
@@ -66,9 +70,32 @@ def request_json(
     request = Request(f"{config.base_url}{path}", data=body, headers=headers, method=method)
     started = time.monotonic()
     log(config, f"HTTP {method} {path} started")
+    gateway_log = config.output_dir / "gateway-fpro.log"
+    progress_note = f"watch gateway log: {gateway_log}"
     try:
-        with urlopen(request, timeout=config.request_timeout_s) as response:
-            data = response.read()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_read_response, request, config.request_timeout_s)
+            while True:
+                elapsed = time.monotonic() - started
+                if elapsed >= config.request_timeout_s:
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    raise RuntimeError(
+                        f"{method} {path} timed out after {elapsed:.1f}s; {progress_note}"
+                    )
+                try:
+                    wait_s = min(
+                        config.progress_interval_s,
+                        max(0.1, config.request_timeout_s - elapsed),
+                    )
+                    data = future.result(timeout=wait_s)
+                    break
+                except concurrent.futures.TimeoutError:
+                    elapsed = time.monotonic() - started
+                    log(
+                        config,
+                        f"HTTP {method} {path} still running after {elapsed:.1f}s; "
+                        f"{progress_note}",
+                    )
     except HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"{method} {path} failed {error.code}: {detail}") from error
@@ -82,6 +109,11 @@ def request_json(
     if not isinstance(parsed, dict):
         raise RuntimeError(f"{method} {path} returned non-object JSON")
     return parsed
+
+
+def _read_response(request: Request, timeout_s: int) -> bytes:
+    with urlopen(request, timeout=timeout_s) as response:
+        return response.read()
 
 
 def login(config: FlowConfig) -> str:
@@ -104,9 +136,10 @@ def create_run(config: FlowConfig, token: str) -> dict[str, Any]:
         "/run",
         {
         "raw_request": (
-            "Tạo teaching pack Toán lớp 5 bằng tiếng Việt về phân số tương đương, "
-            "gồm lesson, worksheet, quiz, dùng rich UI components và HTML templates."
+            "Tạo một lesson Toán lớp 5 bằng tiếng Việt về phân số tương đương, "
+            "dùng rich UI components và HTML templates."
         ),
+            "artifact_types": ["lesson"],
             "class_info": {
                 "grade": 5,
                 "subject": "math",
@@ -136,11 +169,11 @@ def write_outputs(
     state = run.get("state")
     if not isinstance(state, dict):
         raise RuntimeError("run response did not include state")
-    artifacts = state.get("artifacts") if isinstance(state.get("artifacts"), list) else []
-    exported_files = (
-        state.get("exported_files")
-        if isinstance(state.get("exported_files"), list)
-        else []
+    artifacts_value = state.get("artifacts")
+    artifacts: list[Any] = artifacts_value if isinstance(artifacts_value, list) else []
+    exported_files_value = state.get("exported_files")
+    exported_files: list[Any] = (
+        exported_files_value if isinstance(exported_files_value, list) else []
     )
     (config.output_dir / "live_run_snapshots.json").write_text(
         json.dumps(

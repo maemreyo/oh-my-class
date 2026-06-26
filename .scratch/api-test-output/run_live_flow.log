@@ -1,9 +1,8 @@
-[2026-06-26T07:43:54+00:00] live flow runner started
-[2026-06-26T07:43:54+00:00] HTTP POST /auth/login started
-[2026-06-26T07:43:54+00:00] HTTP POST /auth/login completed in 0.0s
-[2026-06-26T07:43:54+00:00] login ok
-[2026-06-26T07:43:54+00:00] HTTP POST /run started
-[2026-06-26T07:44:12+00:00] HTTP POST /run completed in 18.2s
-[2026-06-26T07:44:12+00:00] run created: 9747d2c1-64d2-42ea-a936-e1e6d299472d status=awaiting_approval
-[2026-06-26T07:44:12+00:00] approving blueprint gate
-[2026-06-26T07:44:12+00:00] HTTP POST /run/9747d2c1-64d2-42ea-a936-e1e6d299472d/approve started
+[2026-06-26T08:24:17+00:00] live flow runner started
+[2026-06-26T08:24:17+00:00] HTTP POST /auth/login started
+[2026-06-26T08:24:17+00:00] HTTP POST /auth/login completed in 0.0s
+[2026-06-26T08:24:17+00:00] login ok
+[2026-06-26T08:24:17+00:00] HTTP POST /run started
+[2026-06-26T08:24:27+00:00] HTTP POST /run still running after 10.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T08:24:37+00:00] HTTP POST /run still running after 20.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T08:24:47+00:00] HTTP POST /run still running after 30.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log

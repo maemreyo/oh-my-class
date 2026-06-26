@@ -1,26 +1,12 @@
-"""Planner Agent tools — web_search and read_file for research.
-
-Tools available to the Planner Agent for gathering information
-during lesson plan design.
-"""
-
 from __future__ import annotations
 
 from typing import Any
 
+from packages.agents.tools.web_search import web_search as shared_web_search
+
 
 async def web_search(query: str, num_results: int = 5) -> list[dict[str, Any]]:
-    """Search the web for curriculum and pedagogical references.
-
-    Args:
-        query: Search query for educational content.
-        num_results: Maximum results to return.
-
-    Returns:
-        List of search results with title, url, snippet.
-    """
-    # TODO: Delegate to packages.agents.tools.web_search
-    raise NotImplementedError("planner web_search stub")
+    return await shared_web_search(query, num_results=num_results)
 
 
 async def read_file(path: str) -> str:

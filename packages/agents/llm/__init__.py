@@ -118,19 +118,48 @@ async def complete_json_chat(
     tags: list[str],
 ) -> str:
     config = get_llm_config()
+    started = time.monotonic()
+    request_model = model.removeprefix("openai/")
+    _LOGGER.info(
+        "llm.transport.request model=%s base_url=%s message_count=%s message_chars=%s tags=%s",
+        request_model,
+        config["api_base"],
+        len(messages),
+        _message_chars(messages),
+        tags,
+    )
     client = AsyncOpenAI(
         api_key=config["api_key"] or "no-key",
         base_url=config["api_base"],
         timeout=120.0,
-        max_retries=2,
+        max_retries=0,
     )
     response = await client.chat.completions.create(
-        model=model.removeprefix("openai/"),
+        model=request_model,
         messages=messages,
         temperature=temperature,
         extra_body={"metadata": {"tags": tags}},
     )
+    usage = response.usage.model_dump() if response.usage is not None else None
+    choice_count = len(response.choices)
+    _LOGGER.info(
+        "llm.transport.response model=%s response_id=%s response_model=%s "
+        "choices=%s usage=%s duration_s=%.1f",
+        request_model,
+        response.id,
+        response.model,
+        choice_count,
+        usage,
+        time.monotonic() - started,
+    )
     if not response.choices:
+        _LOGGER.warning(
+            "llm.transport.empty_choices model=%s response_id=%s response_model=%s usage=%s",
+            request_model,
+            response.id,
+            response.model,
+            usage,
+        )
         raise RuntimeError(
             f"9Router returned empty choices for model={model}; response_id={response.id}"
         )
@@ -148,6 +177,17 @@ def chat_messages(system: str, user: str) -> list[ChatCompletionMessageParam]:
         "content": user,
     }
     return [system_message, user_message]
+
+
+def _message_chars(messages: list[ChatCompletionMessageParam]) -> int:
+    total = 0
+    for message in messages:
+        content = message.get("content")
+        if isinstance(content, str):
+            total += len(content)
+        elif isinstance(content, list):
+            total += len(str(content))
+    return total
 
 
 def extract_json_text(content: Any, reasoning_content: Any = None) -> str:

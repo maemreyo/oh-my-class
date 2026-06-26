@@ -26,9 +26,15 @@ async def researcher_node(state: ResearcherState) -> dict[str, Any]:
     lesson_plan = state.get("lesson_plan") or {}
     research_policy = state.get("research_policy", "standard")
     topic = lesson_plan.get("topic", "General topic")
+    from packages.agents.sub_agents.researcher.tools import web_fetch
     from packages.agents.tools.web_search import web_search
 
     source_candidates = await web_search(str(topic), num_results=5, min_sources=2)
+    research_evidence = await _build_research_evidence(
+        source_candidates,
+        fetch_limit=_fetch_limit(str(research_policy)),
+        web_fetcher=web_fetch,
+    )
 
     user_prompt = f"""
 Research topic: {topic}
@@ -41,10 +47,14 @@ Learning objectives:
 Source candidates from the web_search tool:
 {json.dumps(source_candidates, indent=2)}
 
+Fetched evidence from f.pro.fetch:
+{json.dumps(research_evidence, indent=2) }
+
 Please gather and verify sources following the FACT protocol.
-Use ONLY the source candidates above. If you did not fetch a page body, mark
-verification_status as UNCERTAIN rather than VERIFIED. Do not invent URLs,
-citations, snippets, or credibility scores.
+Use ONLY the source candidates and fetched evidence above. Mark a source VERIFIED
+only when fetched evidence supports it. If fetch failed or content is missing,
+mark verification_status as UNCERTAIN. Do not invent URLs, citations, snippets,
+or credibility scores.
 """
 
     from packages.agents.llm import (
@@ -132,3 +142,38 @@ citations, snippets, or credibility scores.
             raise ValueError(f"Researcher agent failed: {e}") from e
 
     raise ValueError("Researcher agent failed: exhausted retries")
+
+
+def _fetch_limit(research_policy: str) -> int:
+    limits = {"basic": 2, "standard": 5, "rigorous": 10}
+    return limits.get(research_policy, 5)
+
+
+async def _build_research_evidence(
+    source_candidates: list[dict[str, Any]],
+    *,
+    fetch_limit: int,
+    web_fetcher,
+) -> list[dict[str, Any]]:
+    evidence: list[dict[str, Any]] = []
+    for source in source_candidates[:fetch_limit]:
+        url = source.get("url")
+        if not isinstance(url, str) or not url:
+            evidence.append({"source": source, "fetch_status": "SKIPPED", "content": ""})
+            continue
+        try:
+            content = await web_fetcher(url)
+        except Exception as error:
+            evidence.append({
+                "source": source,
+                "fetch_status": "FAILED",
+                "error": str(error)[:200],
+                "content": "",
+            })
+            continue
+        evidence.append({
+            "source": source,
+            "fetch_status": "FETCHED",
+            "content": content[:4000],
+        })
+    return evidence

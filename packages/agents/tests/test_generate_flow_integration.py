@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import json
-import sys
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 from langgraph.types import Command
@@ -39,22 +38,15 @@ VALID_ARTIFACTS = json.dumps([{
 }])
 
 
-def _make_mock_response(content: str) -> MagicMock:
-    mock = MagicMock()
-    mock.choices = [MagicMock()]
-    mock.choices[0].message.content = content
-    return mock
-
-
-def _routing_acompletion(*, messages: list[dict], **kwargs: Any) -> MagicMock:
+def _routing_complete_json_chat(*, messages: list[dict[str, Any]], **kwargs: Any) -> str:
     user_msg = next(
         (m["content"] for m in messages if m["role"] == "user"), ""
     )
     if "Research topic" in user_msg:
-        return _make_mock_response(VALID_BUNDLE)
+        return VALID_BUNDLE
     if "Generate artifacts" in user_msg:
-        return _make_mock_response(VALID_ARTIFACTS)
-    return _make_mock_response(VALID_PLAN)
+        return VALID_ARTIFACTS
+    return VALID_PLAN
 
 
 def _initial_state() -> dict[str, Any]:
@@ -81,24 +73,25 @@ def _initial_state() -> dict[str, Any]:
 
 @pytest.mark.asyncio
 async def test_generate_produces_artifacts():
-    mock_litellm = MagicMock()
-    mock_litellm.acompletion = AsyncMock(side_effect=_routing_acompletion)
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setitem(sys.modules, "litellm", mock_litellm)
+    mock_llm = AsyncMock(side_effect=_routing_complete_json_chat)
+    with pytest.MonkeyPatch.context():
+        from unittest.mock import patch
+
         from packages.agents.graph import build_oh_my_class_graph
 
-        graph = build_oh_my_class_graph()
-        config = {"configurable": {"thread_id": "test-gen-thread"}}
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+            graph = build_oh_my_class_graph()
+            config = {"configurable": {"thread_id": "test-gen-thread"}}
 
-        state = await graph.ainvoke(_initial_state(), config=config)
-        assert state.get("lesson_plan") is not None
-        assert state.get("artifact_types") == ["lesson", "worksheet", "quiz"]
-        assert state.get("theme") == "default"
+            state = await graph.ainvoke(_initial_state(), config=config)
+            assert state.get("lesson_plan") is not None
+            assert state.get("artifact_types") == ["lesson", "worksheet", "quiz"]
+            assert state.get("theme") == "default"
 
-        state = await graph.ainvoke(
-            Command(resume={"action": "approve"}),
-            config=config,
-        )
+            state = await graph.ainvoke(
+                Command(resume={"action": "approve"}),
+                config=config,
+            )
 
     artifacts = state.get("artifacts", [])
     assert len(artifacts) >= 1
@@ -110,20 +103,21 @@ async def test_generate_produces_artifacts():
 
 @pytest.mark.asyncio
 async def test_pack_scope_and_visual_engine_run_after_approval():
-    mock_litellm = MagicMock()
-    mock_litellm.acompletion = AsyncMock(side_effect=_routing_acompletion)
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setitem(sys.modules, "litellm", mock_litellm)
+    mock_llm = AsyncMock(side_effect=_routing_complete_json_chat)
+    with pytest.MonkeyPatch.context():
+        from unittest.mock import patch
+
         from packages.agents.graph import build_oh_my_class_graph
 
-        graph = build_oh_my_class_graph()
-        config = {"configurable": {"thread_id": "test-scope-thread"}}
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+            graph = build_oh_my_class_graph()
+            config = {"configurable": {"thread_id": "test-scope-thread"}}
 
-        state = await graph.ainvoke(_initial_state(), config=config)
-        state = await graph.ainvoke(
-            Command(resume={"action": "approve"}),
-            config=config,
-        )
+            state = await graph.ainvoke(_initial_state(), config=config)
+            state = await graph.ainvoke(
+                Command(resume={"action": "approve"}),
+                config=config,
+            )
 
     assert state.get("artifact_types") == ["lesson", "worksheet", "quiz"]
     assert state.get("theme") == "default"
@@ -135,20 +129,21 @@ async def test_pack_scope_and_visual_engine_run_after_approval():
 async def test_artifact_has_required_fields():
     from common.contracts.artifact import ArtifactContent
 
-    mock_litellm = MagicMock()
-    mock_litellm.acompletion = AsyncMock(side_effect=_routing_acompletion)
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setitem(sys.modules, "litellm", mock_litellm)
+    mock_llm = AsyncMock(side_effect=_routing_complete_json_chat)
+    with pytest.MonkeyPatch.context():
+        from unittest.mock import patch
+
         from packages.agents.graph import build_oh_my_class_graph
 
-        graph = build_oh_my_class_graph()
-        config = {"configurable": {"thread_id": "test-schema-thread"}}
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+            graph = build_oh_my_class_graph()
+            config = {"configurable": {"thread_id": "test-schema-thread"}}
 
-        state = await graph.ainvoke(_initial_state(), config=config)
-        state = await graph.ainvoke(
-            Command(resume={"action": "approve"}),
-            config=config,
-        )
+            state = await graph.ainvoke(_initial_state(), config=config)
+            state = await graph.ainvoke(
+                Command(resume={"action": "approve"}),
+                config=config,
+            )
 
     for artifact in state.get("artifacts", []):
         validated = ArtifactContent.model_validate(artifact)
