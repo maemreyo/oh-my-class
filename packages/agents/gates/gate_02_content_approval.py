@@ -42,6 +42,7 @@ def gate_02_content_approval(state: OhMyClassState) -> dict[str, Any]:
     feedback: str = teacher_response.get("feedback", "")
 
     return {
+        "teacher_approved": action == "approve",
         "teacher_decision": action,
         "revision_feedback": feedback,
         "gate_payload": teacher_response,

@@ -52,6 +52,8 @@ def build_oh_my_class_graph(
     *,
     environment: str = "development",
     checkpointer: Any | None = None,
+    interrupt_before: list[str] | None = None,
+    interrupt_after: list[str] | None = None,
 ) -> Any:
     """Build and compile the oh-my-class LangGraph pipeline.
 
@@ -198,7 +200,11 @@ def build_oh_my_class_graph(
     graph.add_edge("step_12_finalize", END)
     graph.add_edge("escalate_node", END)
 
-    return graph.compile(checkpointer=checkpointer)
+    return graph.compile(
+        checkpointer=checkpointer,
+        interrupt_before=interrupt_before,
+        interrupt_after=interrupt_after,
+    )
 
 
 # ── Router functions ────────────────────────────────────────────────────────────

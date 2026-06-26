@@ -17,6 +17,39 @@ VALID_ARTIFACT = {
     "title": "Photosynthesis Basics",
     "sections": [{"content": "Plants use sunlight to make food."}],
 }
+
+
+def _strong_lesson_artifact() -> dict[str, Any]:
+    return {
+        "artifact_type": "lesson",
+        "title": "Photosynthesis Basics",
+        "sections": [
+            {
+                "title": "Hook",
+                "content": " ".join(
+                    ["Plants observe sunlight and describe leaf changes."] * 8,
+                ),
+            },
+            {
+                "title": "Explain",
+                "content": " ".join(
+                    ["Students connect sunlight, water, carbon dioxide, glucose, and oxygen."] * 8,
+                ),
+            },
+            {
+                "title": "Practice",
+                "content": " ".join(
+                    ["Learners sort evidence cards and justify each vocabulary choice."] * 8,
+                ),
+            },
+            {
+                "title": "Check",
+                "content": " ".join(
+                    ["Students answer retrieval questions and explain wrong alternatives."] * 8,
+                ),
+            },
+        ],
+    }
 HTML_ARTIFACT = {
     "artifact_type": "lesson",
     "title": "Photosynthesis HTML",
@@ -142,10 +175,25 @@ class TestContentReviewer:
 class TestLLMJudge:
     def test_passes_non_empty_artifacts(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
-        state = _base_state(artifacts=[VALID_ARTIFACT], lesson_plan={"topic": "Math"})
+        state = _base_state(
+            artifacts=[_strong_lesson_artifact()],
+            lesson_plan={
+                "topic": "Math",
+                "learning_objectives": ["Explain photosynthesis"],
+            },
+        )
         result = step_10b_llm_judge(cast("OhMyClassState", state))
         assert result["judge_score"] >= 7.0
+        assert result["quality_scores"]["overall"] >= 7.0
         assert "fail_layer" not in result
+
+    def test_fails_sparse_artifacts(self):
+        from packages.agents.gates.llm_judge import step_10b_llm_judge
+
+        state = _base_state(artifacts=[VALID_ARTIFACT], lesson_plan={"topic": "Math"})
+        result = step_10b_llm_judge(cast("OhMyClassState", state))
+        assert result["judge_score"] < 7.0
+        assert result["fail_layer"] == "judge"
 
     def test_fails_empty_artifacts(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
@@ -300,8 +348,11 @@ class TestQualityGateChain:
         )
 
         state: dict[str, Any] = _base_state(
-            artifacts=[VALID_ARTIFACT],
-            lesson_plan={"topic": "Photosynthesis"},
+            artifacts=[_strong_lesson_artifact()],
+            lesson_plan={
+                "topic": "Photosynthesis",
+                "learning_objectives": ["Explain photosynthesis"],
+            },
         )
 
         schema_result = step_09_schema_validate(cast("OhMyClassState", state))
@@ -446,8 +497,11 @@ class TestFinalizeHardInvariant:
             artifacts=[FINALIZE_ARTIFACT_CLEAN],
             export_formats=["html"],
         )
-        result = step_12_finalize(cast("OhMyClassState", state))
+        with patch("packages.agents.nodes.finalize._render_artifact_with_renderer") as render:
+            render.return_value = "<!DOCTYPE html><html><body>renderer-template</body></html>"
+            result = step_12_finalize(cast("OhMyClassState", state))
         assert len(result["exported_files"]) == 1
+        assert "renderer-template" in result["exported_files"][0]["content"]
         assert "fail_context" not in result
 
     def test_artifact_with_url_rejected(self):
@@ -485,7 +539,9 @@ class TestFinalizeHardInvariant:
             "accessibility": {"language": "en"},
         }
         state = _base_state(artifacts=[artifact], export_formats=["html"])
-        result = step_12_finalize(cast("OhMyClassState", state))
+        with patch("packages.agents.nodes.finalize._render_artifact_with_renderer") as render:
+            render.return_value = "<!DOCTYPE html><html><body>renderer-template</body></html>"
+            result = step_12_finalize(cast("OhMyClassState", state))
         assert len(result["exported_files"]) == 1
         assert "fail_context" not in result
 
@@ -512,10 +568,15 @@ class TestFinalizeHardInvariant:
             artifacts=[FINALIZE_ARTIFACT_CLEAN],
             export_formats=["html"],
         )
-        result = step_12_finalize(cast("OhMyClassState", state))
+        with patch("packages.agents.nodes.finalize._render_artifact_with_renderer") as render:
+            render.return_value = (
+                "<!DOCTYPE html><html><body>oh-my-class renderer-template</body></html>"
+            )
+            result = step_12_finalize(cast("OhMyClassState", state))
         html = result["exported_files"][0]["content"]
         assert "<!DOCTYPE html>" in html
         assert "oh-my-class" in html
+        assert "renderer-template" in html
         assert "https://" not in html
 
     def test_finalize_empty_artifacts_exports_nothing(self):

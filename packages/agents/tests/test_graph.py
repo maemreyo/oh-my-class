@@ -72,11 +72,13 @@ def _make_langgraph_mocks():
         def set_entry_point(self, node):
             pass
 
-        def compile(self, checkpointer=None):
+        def compile(self, checkpointer=None, interrupt_before=None, interrupt_after=None):
             all_nodes = {"__start__": None, **_nodes, "__end__": None}
             mock_compiled = MagicMock()
             mock_inner_graph = MagicMock()
             mock_inner_graph.nodes = all_nodes
+            mock_compiled.interrupt_before = interrupt_before
+            mock_compiled.interrupt_after = interrupt_after
             mock_compiled.get_graph.return_value = mock_inner_graph
             return mock_compiled
 
@@ -244,6 +246,15 @@ class TestGraphStructure:
         with patch.dict(sys.modules, mocks):
             graph = build_oh_my_class_graph(checkpointer=MagicMock())
         assert graph is not None
+
+    def test_graph_compiles_with_teacher_gate_interrupts(self):
+        from packages.agents.graph import build_oh_my_class_graph
+
+        mocks, _, _ = _make_langgraph_mocks()
+        gates = ["gate_01_blueprint_approval", "gate_02_content_approval"]
+        with patch.dict(sys.modules, mocks):
+            graph = build_oh_my_class_graph(interrupt_before=gates)
+        assert graph.interrupt_before == gates
 
 
 # ── Quality gate router functions ─────────────────────────────────────────────

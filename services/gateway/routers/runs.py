@@ -184,6 +184,11 @@ def _derive_status(state: dict[str, Any]) -> str:
     """
     if state.get("error"):
         return "failed"
+    interrupt_gate = _extract_interrupt_gate(state)
+    if interrupt_gate == "content_approval":
+        return "awaiting_content_approval"
+    if interrupt_gate == "blueprint_approval":
+        return "awaiting_approval"
     if state.get("export_ready") and state.get("exported_files"):
         return "completed"
     if state.get("teacher_approved") and not state.get("exported_files"):
@@ -204,6 +209,37 @@ def _derive_status(state: dict[str, Any]) -> str:
     if state.get("lesson_plan"):
         return "awaiting_approval"
     return "running"
+
+
+def _extract_interrupt_gate(state: dict[str, Any]) -> str | None:
+    interrupt_list = state.get("__interrupt__")
+    if not interrupt_list or not isinstance(interrupt_list, list):
+        return None
+    interrupt_data = interrupt_list[0]
+    if hasattr(interrupt_data, "value"):
+        value = interrupt_data.value
+    elif isinstance(interrupt_data, dict):
+        value = interrupt_data.get("value", interrupt_data)
+    else:
+        return None
+    if not isinstance(value, dict):
+        return None
+    gate = value.get("gate")
+    return gate if isinstance(gate, str) else None
+
+
+def _extract_interrupt_payload(state: dict[str, Any]) -> dict[str, Any] | None:
+    interrupt_list = state.get("__interrupt__")
+    if not interrupt_list or not isinstance(interrupt_list, list):
+        return None
+    interrupt_data = interrupt_list[0]
+    if hasattr(interrupt_data, "value"):
+        value = interrupt_data.value
+    elif isinstance(interrupt_data, dict):
+        value = interrupt_data.get("value", interrupt_data)
+    else:
+        return None
+    return value if isinstance(value, dict) else None
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -274,11 +310,12 @@ async def create_run(
         "current_step": state.get("current_step", 1),
     })
 
-    if state.get("gate_payload"):
+    interrupt_payload = _extract_interrupt_payload(state) or state.get("gate_payload")
+    if interrupt_payload:
         emit_run_event(run_id, "interrupt", {
-            "gate": state["gate_payload"].get("gate", "unknown"),
+            "gate": interrupt_payload.get("gate", "unknown"),
             "current_step": state.get("current_step"),
-            **{k: v for k, v in state["gate_payload"].items() if k != "gate"},
+            **{k: v for k, v in interrupt_payload.items() if k != "gate"},
         })
 
     http_request.app.state.runs[run_id] = {

@@ -102,12 +102,16 @@ class TestResearcherAgent:
         assert "research_bundle" in result
 
     @pytest.mark.asyncio
-    async def test_raises_value_error_on_invalid_json(self):
+    async def test_invalid_json_returns_uncertain_source_candidates(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Researcher agent failed"):  # noqa: E501
-            await research_sources(cast("ResearcherState", _make_state()))
+        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+            result = await research_sources(cast("ResearcherState", _make_state()))
+
+        bundle = ResearchBundle.model_validate(result["research_bundle"])
+        assert len(bundle.sources) >= 2
+        assert all(source.verification_status == "UNCERTAIN" for source in bundle.sources)
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
@@ -118,7 +122,7 @@ class TestResearcherAgent:
             await research_sources(cast("ResearcherState", _make_state()))
 
     @pytest.mark.asyncio
-    async def test_raises_on_too_few_sources(self):
+    async def test_too_few_sources_returns_uncertain_source_candidates(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         bad_bundle = json.dumps({
@@ -126,8 +130,12 @@ class TestResearcherAgent:
             "sources": [{"title": "Only one", "credibility_score": 0.9, "verification_status": "VERIFIED"}],  # noqa: E501
         })
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_bundle))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Researcher agent failed"):  # noqa: E501
-            await research_sources(cast("ResearcherState", _make_state()))
+        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+            result = await research_sources(cast("ResearcherState", _make_state()))
+
+        bundle = ResearchBundle.model_validate(result["research_bundle"])
+        assert len(bundle.sources) >= 2
+        assert all(source.verification_status == "UNCERTAIN" for source in bundle.sources)
 
     @pytest.mark.asyncio
     async def test_missing_lesson_plan_uses_default_topic(self):

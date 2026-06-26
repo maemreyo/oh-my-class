@@ -34,7 +34,7 @@
       content += '</label>';
     }
     content += '</div>';
-    if (!showAnswers) {
+    if (!showAnswers && q.answer) {
       // Reveal toggle
       content += '<button class="reveal-btn no-print" aria-expanded="false" aria-controls="reveal-' + q.id + '"';
       content += ' onclick="(function(b){var e=b.getAttribute(\'aria-expanded\')===\'true\';';

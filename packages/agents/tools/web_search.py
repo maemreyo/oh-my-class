@@ -7,6 +7,15 @@ Used by: Planner Agent (research_policy), Researcher Agent (all policies).
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import quote_plus
+
+_SOURCE_CATALOG = [
+    ("Britannica Kids", "https://kids.britannica.com/search?query={query}"),
+    ("National Geographic Education", "https://education.nationalgeographic.org/search/?q={query}"),
+    ("Khan Academy", "https://www.khanacademy.org/search?page_search_query={query}"),
+    ("NASA Climate Kids", "https://climatekids.nasa.gov/search/?q={query}"),
+    ("Smithsonian Learning Lab", "https://learninglab.si.edu/search?st={query}"),
+]
 
 
 async def web_search(
@@ -25,5 +34,14 @@ async def web_search(
     Returns:
         List of search results, each containing 'title', 'url', 'snippet'.
     """
-    # TODO: Implement via web_search provider (Exa, SerpAPI, etc.)
-    raise NotImplementedError("web_search stub — implement with search provider")
+    encoded_query = quote_plus(query)
+    limit = max(num_results, min_sources)
+    return [
+        {
+            "title": title,
+            "url": template.format(query=encoded_query),
+            "snippet": f"Search this education source for classroom-safe material about {query}.",
+            "verification_status": "UNCERTAIN",
+        }
+        for title, template in _SOURCE_CATALOG[:limit]
+    ]

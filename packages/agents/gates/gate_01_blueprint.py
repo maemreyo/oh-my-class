@@ -42,6 +42,7 @@ def gate_01_blueprint_approval(state: OhMyClassState) -> dict[str, Any]:
     edited_plan: dict[str, Any] | None = teacher_response.get("edited_lesson_plan")
 
     updates: dict[str, Any] = {
+        "blueprint_approved": action in ("approve", "edit"),
         "teacher_decision": action,
         "revision_feedback": feedback,
         "gate_payload": teacher_response,

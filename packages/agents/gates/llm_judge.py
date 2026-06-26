@@ -9,6 +9,16 @@ if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
 
+_MIN_WORDS_BY_TYPE = {
+    "lesson": 180,
+    "worksheet": 90,
+    "quiz": 60,
+    "drill": 80,
+    "recap": 80,
+    "infographic": 60,
+}
+
+
 def _extract_text_content(artifact: dict[str, Any]) -> str:
     """Extract concatenated text from an artifact's sections list."""
     sections = artifact.get("sections") or []
@@ -20,15 +30,37 @@ def _extract_text_content(artifact: dict[str, Any]) -> str:
     return "\n".join(parts)
 
 
-def _score_artifact(artifact: dict[str, Any], lesson_plan: dict[str, Any] | None) -> float:
-    """Stub: score an artifact. Returns 8.0 in MVP (real impl calls f.pro).
+def _word_count(text: str) -> int:
+    return len([word for word in text.split() if word.strip()])
 
-    Dimensions: relevance, accuracy, clarity, age_appropriateness, curriculum_alignment.
+
+def _section_title_score(artifact: dict[str, Any]) -> float:
+    sections = artifact.get("sections") or []
+    if not sections:
+        return 0.0
+    titled = [
+        section for section in sections
+        if isinstance(section, dict) and str(section.get("title", "")).strip()
+    ]
+    return len(titled) / len(sections)
+
+
+def _score_artifact(artifact: dict[str, Any], lesson_plan: dict[str, Any] | None) -> float:
+    """Score artifact strength until the real multi-judge is wired.
+
+    The heuristic intentionally fails sparse content so the healing loop runs
+    instead of exporting a tiny teaching pack with a fake high score.
     """
     content = _extract_text_content(artifact)
     if not content or not content.strip():
         return 0.0
-    return 8.0
+    artifact_type = str(artifact.get("artifact_type", "lesson"))
+    minimum_words = _MIN_WORDS_BY_TYPE.get(artifact_type, 80)
+    word_score = min(_word_count(content) / minimum_words, 1.0) * 5.0
+    section_score = _section_title_score(artifact) * 2.0
+    objective_bonus = 1.0 if lesson_plan and lesson_plan.get("learning_objectives") else 0.0
+    structure_bonus = 2.0 if len(artifact.get("sections") or []) >= 3 else 1.0
+    return round(min(word_score + section_score + objective_bonus + structure_bonus, 10.0), 2)
 
 
 def step_10b_llm_judge(state: OhMyClassState) -> dict[str, Any]:
@@ -52,10 +84,16 @@ def step_10b_llm_judge(state: OhMyClassState) -> dict[str, Any]:
 
     scores = [_score_artifact(a, lesson_plan) for a in artifacts]
     overall = sum(scores) / len(scores)
+    quality_scores = {
+        "overall": round(overall, 2),
+        "per_artifact": scores,
+        "method": "heuristic_content_strength",
+    }
 
     if overall < config.judge_min_score:
         return {
             "judge_score": overall,
+            "quality_scores": quality_scores,
             "fail_layer": "judge",
             "fail_type": "score",
             "fail_count": state.get("fail_count", 0),
@@ -65,4 +103,4 @@ def step_10b_llm_judge(state: OhMyClassState) -> dict[str, Any]:
             },
         }
 
-    return {"judge_score": overall}
+    return {"judge_score": overall, "quality_scores": quality_scores}

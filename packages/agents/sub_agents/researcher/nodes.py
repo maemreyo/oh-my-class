@@ -28,6 +28,9 @@ async def researcher_node(state: ResearcherState) -> dict[str, Any]:
     lesson_plan = state.get("lesson_plan") or {}
     research_policy = state.get("research_policy", "standard")
     topic = lesson_plan.get("topic", "General topic")
+    from packages.agents.tools.web_search import web_search
+
+    source_candidates = await web_search(str(topic), num_results=5, min_sources=2)
 
     user_prompt = f"""
 Research topic: {topic}
@@ -37,7 +40,13 @@ Research policy: {research_policy}
 Learning objectives:
 {json.dumps(lesson_plan.get('learning_objectives', []), indent=2)}
 
+Source candidates from the web_search tool:
+{json.dumps(source_candidates, indent=2)}
+
 Please gather and verify sources following the FACT protocol.
+Use ONLY the source candidates above. If you did not fetch a page body, mark
+verification_status as UNCERTAIN rather than VERIFIED. Do not invent URLs,
+citations, snippets, or credibility scores.
 """
 
     messages = [
@@ -59,7 +68,7 @@ Please gather and verify sources following the FACT protocol.
     response = None
     for attempt in range(3):
         try:
-            response = await litellm.acompletion(
+            response: Any = await litellm.acompletion(
                 model=resolve_model("f.light"),
                 messages=messages,
                 temperature=0.3 if attempt > 0 else 0.7,
@@ -84,7 +93,7 @@ Please gather and verify sources following the FACT protocol.
                 bundle_data = json.loads(json_str)
                 bundle = ResearchBundle.model_validate(bundle_data)
                 return {"research_bundle": bundle.model_dump()}
-            except (ValueError, json.JSONDecodeError, Exception) as parse_err:
+            except (ValueError, json.JSONDecodeError, Exception):
                 if attempt < 2:
                     messages.append({"role": "assistant", "content": str(content)[:500]})
                     messages.append({
@@ -92,7 +101,26 @@ Please gather and verify sources following the FACT protocol.
                         "content": "Invalid response. Return ONLY the JSON object. No prose.",
                     })
                     continue
-                raise
+                sources = [
+                    {
+                        "title": str(source["title"]),
+                        "url": str(source["url"]),
+                        "credibility_score": 0.5,
+                        "verification_status": "UNCERTAIN",
+                    }
+                    for source in source_candidates
+                ]
+                bundle = ResearchBundle.model_validate({
+                    "topic": str(topic),
+                    "sources": sources,
+                    "key_findings": [
+                        "Research could not be fully verified automatically; "
+                        "sources are provided for teacher review.",
+                    ],
+                    "cross_references": [],
+                    "research_policy": research_policy,
+                })
+                return {"research_bundle": bundle.model_dump()}
         except Exception as e:
             if attempt < 2:
                 continue

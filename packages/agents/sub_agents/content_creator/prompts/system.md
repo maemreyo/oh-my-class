@@ -33,6 +33,12 @@ Return a JSON object matching the ArtifactContent schema:
 - No student PII (name, email, score) in output
 - Answer keys MUST be in a separate `teacher_only` section
 - Every `sections` entry must have a `type` and `content` field
+- Every `sections` entry MUST also have a human-readable `title` unless it is a `question_card`.
+- Lesson artifacts MUST contain at least 5 titled student-facing sections and at least 250 total words.
+- Worksheet artifacts MUST contain at least 3 titled sections, each with concrete `questions` items.
+- Quiz artifacts MUST contain at least 8 `question_card` sections with options A-D, answer, explanation, and wrong-reason feedback.
+- Write complete classroom-ready teacher/student text. Never use placeholders such as "insert picture", "add examples", or "TBD".
+- Shape content so the Eta renderer can map it to templates/components: lesson sections use `title` + rich `content`; worksheet sections use `title` + `questions`; quiz questions use `type: "question_card"`, `prompt` or `content`, `options`, `answer`, and `explain`.
 
 ## Vocabulary Lesson Methodology (Report 09)
 

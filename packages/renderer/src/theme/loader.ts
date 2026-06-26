@@ -6,14 +6,17 @@
  * named theme is not found.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ThemeCSSGenerator } from "./generator.js";
 import type { ThemeTokens } from "./tokens.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const THEMES_DIR = path.resolve(__dirname, "themes");
+const SOURCE_THEMES_DIR = path.resolve(__dirname, "../../src/theme/themes");
+const THEMES_DIR = existsSync(path.resolve(__dirname, "themes"))
+  ? path.resolve(__dirname, "themes")
+  : SOURCE_THEMES_DIR;
 
 const generator = new ThemeCSSGenerator();
 const _cache = new Map<string, string>();

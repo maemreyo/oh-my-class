@@ -62,6 +62,7 @@ class TestGate01BlueprintApproval:
             mock_interrupt.return_value = {"action": "approve", "feedback": ""}
             result = gate_01_blueprint_approval(state)
         assert result["teacher_decision"] == "approve"
+        assert result["blueprint_approved"] is True
 
     def test_approve_returns_gate_payload(self):
         from packages.agents.gates.gate_01_blueprint import gate_01_blueprint_approval
@@ -78,6 +79,7 @@ class TestGate01BlueprintApproval:
             mock_interrupt.return_value = {"action": "reject", "feedback": "Too complex"}
             result = gate_01_blueprint_approval(state)
         assert result["teacher_decision"] == "reject"
+        assert result["blueprint_approved"] is False
 
     def test_edit_updates_lesson_plan(self):
         from packages.agents.gates.gate_01_blueprint import gate_01_blueprint_approval
@@ -137,6 +139,7 @@ class TestGate02ContentApproval:
             mock_interrupt.return_value = {"action": "approve", "feedback": ""}
             result = gate_02_content_approval(state)
         assert result["teacher_decision"] == "approve"
+        assert result["teacher_approved"] is True
 
     def test_reject_sets_teacher_decision(self):
         from packages.agents.gates.gate_02_content_approval import gate_02_content_approval
@@ -145,6 +148,7 @@ class TestGate02ContentApproval:
             mock_interrupt.return_value = {"action": "reject", "feedback": "Redo this"}
             result = gate_02_content_approval(state)
         assert result["teacher_decision"] == "reject"
+        assert result["teacher_approved"] is False
 
     def test_returns_gate_payload(self):
         from packages.agents.gates.gate_02_content_approval import gate_02_content_approval

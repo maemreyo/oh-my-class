@@ -1,0 +1,41 @@
+[
+  {
+    "file": ".scratch/manual-render-output/artifact-0-lesson.html",
+    "artifact_type": "lesson",
+    "title": "Discovering Animals: Names and Features",
+    "uses_lesson_template": true,
+    "uses_base_template": false,
+    "uses_quiz_component": true,
+    "uses_worksheet_component": false,
+    "has_answer_reveal": false,
+    "invented_answer_a": false,
+    "empty_answer_label": false,
+    "external_url": false
+  },
+  {
+    "file": ".scratch/manual-render-output/artifact-1-worksheet.html",
+    "artifact_type": "worksheet",
+    "title": "Animal Identification and Description Worksheet",
+    "uses_lesson_template": false,
+    "uses_base_template": true,
+    "uses_quiz_component": false,
+    "uses_worksheet_component": true,
+    "has_answer_reveal": false,
+    "invented_answer_a": false,
+    "empty_answer_label": false,
+    "external_url": false
+  },
+  {
+    "file": ".scratch/manual-render-output/artifact-2-quiz.html",
+    "artifact_type": "quiz",
+    "title": "Animal Quiz: Names and Features",
+    "uses_lesson_template": false,
+    "uses_base_template": true,
+    "uses_quiz_component": true,
+    "uses_worksheet_component": false,
+    "has_answer_reveal": false,
+    "invented_answer_a": false,
+    "empty_answer_label": false,
+    "external_url": false
+  }
+]
