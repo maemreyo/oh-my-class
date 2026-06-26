@@ -82,3 +82,8 @@ INFO:     127.0.0.1:55391 - "GET /health HTTP/1.1" 200 OK
 [92m12:41:14 - LiteLLM:INFO[0m: utils.py:4090 - 
 LiteLLM completion() model= f.light; provider = openai
 {"level": "INFO", "logger": "LiteLLM", "message": "\nLiteLLM completion() model= f.light; provider = openai", "timestamp": "2026-06-26 12:41:14,632"}
+{"level": "ERROR", "logger": "omc.error", "message": "omc_exception: PIPELINE_ERROR (status=500)", "timestamp": "2026-06-26 12:46:54,369"}
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [43282]

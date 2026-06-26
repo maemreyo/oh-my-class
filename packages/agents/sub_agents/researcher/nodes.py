@@ -20,8 +20,6 @@ async def researcher_node(state: ResearcherState) -> dict[str, Any]:
 
     Returns: {"research_bundle": {...}}
     """
-    import litellm
-
     from packages.agents.sub_agents.researcher.prompts import load_system_prompt
     researcher_system_prompt = load_system_prompt()
 
@@ -54,9 +52,18 @@ citations, snippets, or credibility scores.
         {"role": "user", "content": user_prompt},
     ]
 
-    from packages.agents.llm import extract_json_text, get_llm_config, resolve_model
+    from packages.agents.llm import (
+        complete_json_chat,
+        extract_json_text,
+        log_llm_failure,
+        log_llm_start,
+        log_llm_success,
+        resolve_model,
+    )
 
-    llm_config = get_llm_config()
+    model = resolve_model("f.light")
+    run_id = str(state.get("run_id", ""))
+    step = int(state.get("current_step", 7))
     # Strong system prompt to force JSON output from free models
     messages[0]["content"] = (
         messages[0]["content"]
@@ -65,35 +72,37 @@ citations, snippets, or credibility scores.
         "Just the raw JSON."
     )
 
-    response = None
     for attempt in range(3):
+        attempt_number = attempt + 1
+        started = log_llm_start("researcher", run_id, step, model, attempt_number)
         try:
-            response: Any = await litellm.acompletion(
-                model=resolve_model("f.light"),
+            content = await complete_json_chat(
+                model=model,
                 messages=messages,
                 temperature=0.3 if attempt > 0 else 0.7,
-                api_base=llm_config["api_base"],
-                api_key=llm_config["api_key"],
-                extra_body={
-                    "metadata": {
-                        "tags": [
-                            "agent:researcher",
-                            f"step:{state.get('current_step', 7)}",
-                            f"run:{state.get('run_id', '')}",
-                            "pipeline:oh-my-class",
-                        ]
-                    }
-                },
+                tags=[
+                    "agent:researcher",
+                    f"step:{state.get('current_step', 7)}",
+                    f"run:{state.get('run_id', '')}",
+                    "pipeline:oh-my-class",
+                ],
             )
-            msg = response.choices[0].message
-            reasoning = getattr(msg, "reasoning_content", None)
-            content = msg.content
+            log_llm_success("researcher", run_id, step, model, attempt_number, started)
             try:
-                json_str = extract_json_text(content, reasoning)
+                json_str = extract_json_text(content)
                 bundle_data = json.loads(json_str)
                 bundle = ResearchBundle.model_validate(bundle_data)
                 return {"research_bundle": bundle.model_dump()}
             except (ValueError, json.JSONDecodeError, Exception):
+                log_llm_failure(
+                    "researcher",
+                    run_id,
+                    step,
+                    model,
+                    attempt_number,
+                    started,
+                    ValueError("invalid JSON response"),
+                )
                 if attempt < 2:
                     messages.append({"role": "assistant", "content": str(content)[:500]})
                     messages.append({
@@ -122,6 +131,7 @@ citations, snippets, or credibility scores.
                 })
                 return {"research_bundle": bundle.model_dump()}
         except Exception as e:
+            log_llm_failure("researcher", run_id, step, model, attempt_number, started, e)
             if attempt < 2:
                 continue
             raise ValueError(f"Researcher agent failed: {e}") from e

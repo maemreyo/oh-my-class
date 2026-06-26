@@ -20,8 +20,6 @@ async def roadmap_node(state: RoadmapAgentState) -> dict[str, Any]:
 
     Returns: {"roadmap_artifact": {...}, "artifacts": [{"type": "roadmap", ...}]}
     """
-    import litellm
-
     from packages.agents.sub_agents.roadmap_agent.prompts import load_system_prompt
 
     system_prompt = load_system_prompt()
@@ -57,30 +55,32 @@ Monthly Milestones:
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
-    from packages.agents.llm import get_llm_config, resolve_model
+    from packages.agents.llm import (
+        complete_json_chat,
+        log_llm_failure,
+        log_llm_start,
+        log_llm_success,
+        resolve_model,
+    )
 
-    llm_config = get_llm_config()
+    model = resolve_model("f.light")
+    run_id = str(state.get("run_id", ""))
+    step = int(state.get("current_step", 0))
 
+    started = log_llm_start("roadmap_agent", run_id, step, model, 1)
     try:
-        response: Any = await litellm.acompletion(
-            model=resolve_model("f.light"),
+        content = await complete_json_chat(
+            model=model,
             messages=messages,
             temperature=0.5,
-            api_base=llm_config["api_base"],
-            api_key=llm_config["api_key"],
-            extra_body={
-                "metadata": {
-                    "tags": [
-                        "agent:roadmap_agent",
-                        f"step:{state.get('current_step', 0)}",
-                        f"run:{state.get('run_id', '')}",
-                        "pipeline:oh-my-class",
-                    ]
-                }
-            },
+            tags=[
+                "agent:roadmap_agent",
+                f"step:{state.get('current_step', 0)}",
+                f"run:{state.get('run_id', '')}",
+                "pipeline:oh-my-class",
+            ],
         )
-
-        content = str(response.choices[0].message.content or "")
+        log_llm_success("roadmap_agent", run_id, step, model, 1, started)
 
         if "```json" in content:
             json_str = content.split("```json")[1].split("```")[0].strip()
@@ -106,6 +106,8 @@ Monthly Milestones:
         }
 
     except json.JSONDecodeError as e:
+        log_llm_failure("roadmap_agent", run_id, step, model, 1, started, e)
         raise ValueError(f"Invalid JSON from LLM: {e}") from e
     except Exception as e:
+        log_llm_failure("roadmap_agent", run_id, step, model, 1, started, e)
         raise ValueError(f"Roadmap agent failed: {e}") from e

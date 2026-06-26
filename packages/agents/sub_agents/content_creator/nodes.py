@@ -17,8 +17,6 @@ async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
 
     Returns: {"artifacts": [...]}
     """
-    import litellm
-
     from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
     content_creator_system_prompt = load_system_prompt()
 
@@ -48,39 +46,45 @@ Return a JSON array of artifacts.
         {"role": "user", "content": user_prompt},
     ]
 
-    from packages.agents.llm import extract_json_text, get_llm_config, resolve_model
+    from packages.agents.llm import (
+        complete_json_chat,
+        extract_json_text,
+        log_llm_failure,
+        log_llm_start,
+        log_llm_success,
+        resolve_model,
+    )
 
-    llm_config = get_llm_config()
+    model = resolve_model("f.light")
+    run_id = str(state.get("run_id", ""))
+    step = int(state.get("current_step", 8))
     # Force JSON array output from free models
     messages[0]["content"] = (
         messages[0]["content"]
-        + "\n\nCRITICAL: Respond ONLY with a JSON array. No prose, no explanation, no markdown fences."
+        + "\n\nCRITICAL: Respond ONLY with a JSON array. "
+        "No prose, no explanation, no markdown fences."
     )
 
     content = None
     for attempt in range(3):
+        attempt_number = attempt + 1
+        started = log_llm_start(
+            "content_creator", run_id, step, model, attempt_number,
+        )
         try:
-            response = await litellm.acompletion(
-                model=resolve_model("f.light"),
+            content = await complete_json_chat(
+                model=model,
                 messages=messages,
                 temperature=0.3 if attempt > 0 else 0.7,
-                api_base=llm_config["api_base"],
-                api_key=llm_config["api_key"],
-                extra_body={
-                    "metadata": {
-                        "tags": [
-                            "agent:content_creator",
-                            f"step:{state.get('current_step', 8)}",
-                            f"run:{state.get('run_id', '')}",
-                            "pipeline:oh-my-class",
-                        ]
-                    }
-                },
+                tags=[
+                    "agent:content_creator",
+                    f"step:{state.get('current_step', 8)}",
+                    f"run:{state.get('run_id', '')}",
+                    "pipeline:oh-my-class",
+                ],
             )
-            msg = response.choices[0].message
-            reasoning = getattr(msg, "reasoning_content", None)
-            content = msg.content
-            json_str = extract_json_text(content, reasoning)
+            log_llm_success("content_creator", run_id, step, model, attempt_number, started)
+            json_str = extract_json_text(content)
             artifacts_data = json.loads(json_str)
 
             if isinstance(artifacts_data, dict):
@@ -94,6 +98,9 @@ Return a JSON array of artifacts.
 
             return {"artifacts": artifacts}
         except (ValueError, json.JSONDecodeError) as parse_err:
+            log_llm_failure(
+                "content_creator", run_id, step, model, attempt_number, started, parse_err,
+            )
             if attempt < 2:
                 messages.append({"role": "assistant", "content": str(content)[:500]})
                 messages.append({
@@ -103,6 +110,7 @@ Return a JSON array of artifacts.
                 continue
             raise ValueError(f"Content creator agent failed: {parse_err}") from parse_err
         except Exception as e:
+            log_llm_failure("content_creator", run_id, step, model, attempt_number, started, e)
             if attempt < 2:
                 continue
             raise ValueError(f"Content creator agent failed: {e}") from e

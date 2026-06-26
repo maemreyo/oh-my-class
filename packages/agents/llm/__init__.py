@@ -6,10 +6,16 @@ Routes directly to 9Router in development.
 from __future__ import annotations
 
 import json as _json
+import logging
 import os
+import time
 from typing import Any, Final
 
+from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam
+
 NINEROUTER_BASE_URL: Final = "http://localhost:20128/v1"
+_LOGGER: Final = logging.getLogger("packages.agents.llm")
 
 MODEL_COMBO_MAP: Final[dict[str, str]] = {
     "f.light": "openai/f.pro",
@@ -44,6 +50,86 @@ def resolve_model(combo_name: str) -> str:
         "gpt-5.4" → "openai/f.pro"
     """
     return MODEL_COMBO_MAP.get(combo_name, "openai/f.pro")
+
+
+def log_llm_start(agent: str, run_id: str, step: int, model: str, attempt: int) -> float:
+    started = time.monotonic()
+    _LOGGER.info(
+        "llm.call.start agent=%s run_id=%s step=%s model=%s attempt=%s",
+        agent,
+        run_id,
+        step,
+        model,
+        attempt,
+    )
+    return started
+
+
+def log_llm_success(
+    agent: str,
+    run_id: str,
+    step: int,
+    model: str,
+    attempt: int,
+    started: float,
+) -> None:
+    _LOGGER.info(
+        "llm.call.success agent=%s run_id=%s step=%s model=%s attempt=%s duration_s=%.1f",
+        agent,
+        run_id,
+        step,
+        model,
+        attempt,
+        time.monotonic() - started,
+    )
+
+
+def log_llm_failure(
+    agent: str,
+    run_id: str,
+    step: int,
+    model: str,
+    attempt: int,
+    started: float,
+    error: BaseException,
+) -> None:
+    _LOGGER.warning(
+        "llm.call.failure agent=%s run_id=%s step=%s model=%s attempt=%s duration_s=%.1f error=%s",
+        agent,
+        run_id,
+        step,
+        model,
+        attempt,
+        time.monotonic() - started,
+        str(error)[:500],
+    )
+
+
+async def complete_json_chat(
+    model: str,
+    messages: list[dict[str, str]],
+    temperature: float,
+    tags: list[str],
+) -> str:
+    config = get_llm_config()
+    client = AsyncOpenAI(
+        api_key=config["api_key"] or "no-key",
+        base_url=config["api_base"],
+        timeout=300.0,
+        max_retries=2,
+    )
+    typed_messages: list[ChatCompletionMessageParam] = [
+        {"role": message["role"], "content": message["content"]}
+        for message in messages
+    ]
+    response = await client.chat.completions.create(
+        model=model.removeprefix("openai/"),
+        messages=typed_messages,
+        temperature=temperature,
+        extra_body={"metadata": {"tags": tags}},
+    )
+    choice = response.choices[0]
+    return choice.message.content or ""
 
 
 def extract_json_text(content: Any, reasoning_content: Any = None) -> str:
