@@ -51,16 +51,16 @@ Monthly Milestones:
 {json.dumps(milestones, ensure_ascii=False, indent=2)}
 """
 
+    from packages.agents.config.models import MODELS
     from packages.agents.llm import (
         chat_messages,
         complete_json_chat,
         log_llm_failure,
         log_llm_start,
         log_llm_success,
-        resolve_model,
     )
 
-    model = resolve_model("f.light")
+    model = MODELS.blueprint_design
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 0))
     messages = chat_messages(system_prompt, user_prompt)

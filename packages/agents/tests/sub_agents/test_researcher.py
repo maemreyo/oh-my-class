@@ -186,7 +186,7 @@ class TestResearcherAgent:
         with _patch_research_tools(mock_llm):
             await research_sources(cast("ResearcherState", _make_state()))
 
-        assert mock_llm.call_args.kwargs["model"] == "openai/f.pro"
+        assert mock_llm.call_args.kwargs["model"] == "f.pro"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):

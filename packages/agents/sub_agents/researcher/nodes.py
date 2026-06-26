@@ -57,6 +57,7 @@ mark verification_status as UNCERTAIN. Do not invent URLs, citations, snippets,
 or credibility scores.
 """
 
+    from packages.agents.config.models import MODELS
     from packages.agents.llm import (
         chat_messages,
         complete_json_chat,
@@ -64,10 +65,9 @@ or credibility scores.
         log_llm_failure,
         log_llm_start,
         log_llm_success,
-        resolve_model,
     )
 
-    model = resolve_model("f.light")
+    model = MODELS.researcher
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 7))
     system_prompt = (

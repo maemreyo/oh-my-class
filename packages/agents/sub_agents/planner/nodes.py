@@ -33,6 +33,7 @@ Class information:
 - Language: {state['class_info'].get('language', 'en')}
 """
 
+    from packages.agents.config.models import MODELS
     from packages.agents.llm import (
         chat_messages,
         complete_json_chat,
@@ -40,10 +41,9 @@ Class information:
         log_llm_failure,
         log_llm_start,
         log_llm_success,
-        resolve_model,
     )
 
-    model = resolve_model("f.light")
+    model = MODELS.planner
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 3))
     system_prompt = (

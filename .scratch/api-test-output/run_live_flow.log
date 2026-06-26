@@ -1,96 +1,15 @@
-[2026-06-26T11:27:58+00:00] live flow runner started
-[2026-06-26T11:27:58+00:00] HTTP POST /auth/login started
-[2026-06-26T11:27:58+00:00] HTTP POST /auth/login completed in 0.0s
-[2026-06-26T11:27:58+00:00] login ok
-[2026-06-26T11:27:58+00:00] HTTP POST /run started
-[2026-06-26T11:28:13+00:00] HTTP POST /run still running after 15.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:28:28+00:00] HTTP POST /run still running after 30.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:28:43+00:00] HTTP POST /run still running after 45.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:28:58+00:00] HTTP POST /run still running after 60.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:29:13+00:00] HTTP POST /run still running after 75.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:29:28+00:00] HTTP POST /run still running after 90.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:29:43+00:00] HTTP POST /run still running after 105.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:29:58+00:00] HTTP POST /run still running after 120.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:30:10+00:00] HTTP POST /run completed in 132.0s
-[2026-06-26T11:30:10+00:00] run created: fb5ffce4-8df5-47d3-929b-36a0469b0f1b status=awaiting_approval
-[2026-06-26T11:30:10+00:00] approving blueprint gate
-[2026-06-26T11:30:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve started
-[2026-06-26T11:30:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 15.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:30:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 30.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:30:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 45.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:31:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 60.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:31:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 75.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:31:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 90.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:31:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 105.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:32:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 120.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:32:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 135.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:32:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 150.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:32:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 165.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:33:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 180.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:33:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 195.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:33:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 210.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:33:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 225.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:34:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 240.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:34:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 255.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:34:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 270.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:34:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 285.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:35:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 300.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:35:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 315.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:35:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 330.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:35:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 345.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:36:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 360.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:36:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 375.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:36:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 390.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:36:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 405.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:37:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 420.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:37:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 435.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:37:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 450.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:37:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 465.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:38:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 480.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:38:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 495.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:38:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 510.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:38:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 525.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:39:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 540.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:39:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 555.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:39:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 570.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:39:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 585.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:40:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 600.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:40:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 615.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:40:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 630.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:40:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 645.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:41:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 660.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:41:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 675.2s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:41:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 690.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:41:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 705.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:42:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 720.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:42:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 735.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:42:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 750.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:42:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 765.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:43:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 780.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:43:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 795.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:43:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 810.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:43:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 825.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:44:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 840.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:44:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 855.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:44:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 870.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:44:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 885.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:45:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 900.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:45:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 915.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:45:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 930.3s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:45:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 945.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:46:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 960.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:46:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 975.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:46:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 990.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:46:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1005.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:47:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1020.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:47:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1035.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:47:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1050.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:47:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1065.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:48:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1080.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:48:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1095.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:48:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1110.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:48:55+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1125.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:49:10+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1140.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:49:25+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1155.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:49:40+00:00] HTTP POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve still running after 1170.4s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T11:49:51+00:00] runner failed: POST /run/fb5ffce4-8df5-47d3-929b-36a0469b0f1b/approve failed 500: {"error_code":"PIPELINE_ERROR","message":"Graph resume failed: Content creator agent failed: Request timed out.","details":[],"request_id":"a3940725-1720-41fe-a0b9-f9dc20f6c515","run_id":"fb5ffce4-8df5-47d3-929b-36a0469b0f1b"}
+[2026-06-26T12:15:39+00:00] live flow runner started
+[2026-06-26T12:15:39+00:00] HTTP POST /auth/login started
+[2026-06-26T12:15:39+00:00] HTTP POST /auth/login completed in 0.0s
+[2026-06-26T12:15:39+00:00] login ok
+[2026-06-26T12:15:39+00:00] HTTP POST /run started
+[2026-06-26T12:15:54+00:00] HTTP POST /run still running after 15.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T12:16:02+00:00] HTTP POST /run completed in 23.1s
+[2026-06-26T12:16:02+00:00] run created: 2dac3690-fada-43e3-a4ee-f9906b80aafa status=awaiting_approval
+[2026-06-26T12:16:02+00:00] approving blueprint gate
+[2026-06-26T12:16:02+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve started
+[2026-06-26T12:16:17+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 15.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T12:16:32+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 30.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T12:16:47+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 45.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T12:17:02+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 60.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T12:17:17+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 75.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log

@@ -43,7 +43,7 @@ Required component fields:
 - stat_grid requires: type, stats (list of {label, value}).
 - phase_timeline requires: type, phases (list of {title, when}).
 - flow_step requires: type, steps (list of {time, title, body}).
-- question_card requires: type, id, text, options (dict[str, str] e.g. {"A":"...","B":"..."}), answer, explain.
+- question_card requires: type, id, text, options (dict e.g. {"A":"..","B":".."}), answer, explain.
 - question_list requires: type, questions, section_key, group, title.
 - concept_map requires: type, nodes (list of {id, label}).
 - timeline requires: type, events (list of {time, label}).
@@ -85,6 +85,7 @@ Return a JSON array of artifacts.
 """
     base_user_prompt = user_prompt
 
+    from packages.agents.config.models import MODELS
     from packages.agents.llm import (
         chat_messages,
         complete_json_chat,
@@ -92,10 +93,9 @@ Return a JSON array of artifacts.
         log_llm_failure,
         log_llm_start,
         log_llm_success,
-        resolve_model,
     )
 
-    model = resolve_model("f.light")
+    model = MODELS.content_creator
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 8))
     system_prompt = RUNTIME_SYSTEM_PROMPT
