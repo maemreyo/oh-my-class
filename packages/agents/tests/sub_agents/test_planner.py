@@ -288,7 +288,7 @@ class TestPlannerAgent:
             await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         call_kwargs = mock_litellm.acompletion.call_args
-        assert call_kwargs.kwargs["model"] == "openai/f.light"
+        assert call_kwargs.kwargs["model"] == "openai/f.pro"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):

@@ -1,0 +1,1005 @@
+{
+  "after_create": {
+    "raw_request": "Create a Vietnamese Grade 5 math teaching pack about equivalent fractions, including a lesson, worksheet, and quiz with rich visual components.",
+    "teacher_id": "u-001",
+    "class_info": {
+      "grade": 5,
+      "subject": "math",
+      "student_count": 32,
+      "language": "vi"
+    },
+    "run_id": "live-mocked-939b085a-17ef-4754-a086-b21310c3ad2b",
+    "lesson_plan": {
+      "topic": "Phân số tương đương",
+      "grade_level": "Lớp 5",
+      "subject": "Toán",
+      "duration_minutes": 45,
+      "learning_objectives": [
+        {
+          "description": "Giải thích phân số tương đương bằng mô hình trực quan.",
+          "bloom_level": "understand",
+          "assessment_method": "Câu hỏi miệng"
+        },
+        {
+          "description": "Tạo phân số tương đương bằng cách nhân hoặc chia cả tử và mẫu số.",
+          "bloom_level": "apply",
+          "assessment_method": "Phiếu bài tập"
+        },
+        {
+          "description": "So sánh và phân loại các phân số tương đương.",
+          "bloom_level": "analyze",
+          "assessment_method": "Quiz cuối giờ"
+        }
+      ],
+      "prerequisite_knowledge": [
+        "Tử số và mẫu số",
+        "Nhân chia số tự nhiên",
+        "Biểu diễn phân số bằng hình vẽ"
+      ],
+      "learning_plan": {
+        "1": "Dùng thanh phân số để hỏi vì sao 1/2, 2/4 và 3/6 che cùng một phần."
+      },
+      "assessment_checkpoints": [
+        {
+          "type": "oral_check",
+          "description": "Giải thích 2/4 bằng 1/2",
+          "trigger": "Sau phần hình thành"
+        }
+      ],
+      "methodology": {
+        "tags": [
+          "concept_map",
+          "contrastive_pairs"
+        ],
+        "target_skill_area": null,
+        "student_profile_notes": null
+      }
+    },
+    "blueprint_approved": false,
+    "research_policy": "standard",
+    "artifact_types": [
+      "lesson",
+      "worksheet",
+      "quiz"
+    ],
+    "theme": "default",
+    "artifacts": [],
+    "quality_passed": false,
+    "teacher_approved": false,
+    "revision_count": 0,
+    "export_formats": [
+      "html"
+    ],
+    "exported_files": [],
+    "current_step": 2,
+    "tokens_used": 0,
+    "cost_usd": 0.0,
+    "__interrupt__": [
+      "Interrupt(value={'gate': 'blueprint_approval', 'lesson_plan': {'topic': 'Phân số tương đương', 'grade_level': 'Lớp 5', 'subject': 'Toán', 'duration_minutes': 45, 'learning_objectives': [{'description': 'Giải thích phân số tương đương bằng mô hình trực quan.', 'bloom_level': 'understand', 'assessment_method': 'Câu hỏi miệng'}, {'description': 'Tạo phân số tương đương bằng cách nhân hoặc chia cả tử và mẫu số.', 'bloom_level': 'apply', 'assessment_method': 'Phiếu bài tập'}, {'description': 'So sánh và phân loại các phân số tương đương.', 'bloom_level': 'analyze', 'assessment_method': 'Quiz cuối giờ'}], 'prerequisite_knowledge': ['Tử số và mẫu số', 'Nhân chia số tự nhiên', 'Biểu diễn phân số bằng hình vẽ'], 'learning_plan': {'1': 'Dùng thanh phân số để hỏi vì sao 1/2, 2/4 và 3/6 che cùng một phần.'}, 'assessment_checkpoints': [{'type': 'oral_check', 'description': 'Giải thích 2/4 bằng 1/2', 'trigger': 'Sau phần hình thành'}], 'methodology': {'tags': ['concept_map', 'contrastive_pairs'], 'target_skill_area': None, 'student_profile_notes': None}}, 'run_id': 'live-mocked-939b085a-17ef-4754-a086-b21310c3ad2b'}, id='ee8e0d6c032182bd4f861ce7affc8034')"
+    ]
+  },
+  "after_blueprint_approval": {
+    "raw_request": "Create a Vietnamese Grade 5 math teaching pack about equivalent fractions, including a lesson, worksheet, and quiz with rich visual components.",
+    "teacher_id": "u-001",
+    "class_info": {
+      "grade": 5,
+      "subject": "math",
+      "student_count": 32,
+      "language": "vi"
+    },
+    "run_id": "live-mocked-939b085a-17ef-4754-a086-b21310c3ad2b",
+    "lesson_plan": {
+      "topic": "Phân số tương đương",
+      "grade_level": "Lớp 5",
+      "subject": "Toán",
+      "duration_minutes": 45,
+      "learning_objectives": [
+        {
+          "description": "Giải thích phân số tương đương bằng mô hình trực quan.",
+          "bloom_level": "understand",
+          "assessment_method": "Câu hỏi miệng"
+        },
+        {
+          "description": "Tạo phân số tương đương bằng cách nhân hoặc chia cả tử và mẫu số.",
+          "bloom_level": "apply",
+          "assessment_method": "Phiếu bài tập"
+        },
+        {
+          "description": "So sánh và phân loại các phân số tương đương.",
+          "bloom_level": "analyze",
+          "assessment_method": "Quiz cuối giờ"
+        }
+      ],
+      "prerequisite_knowledge": [
+        "Tử số và mẫu số",
+        "Nhân chia số tự nhiên",
+        "Biểu diễn phân số bằng hình vẽ"
+      ],
+      "learning_plan": {
+        "1": "Dùng thanh phân số để hỏi vì sao 1/2, 2/4 và 3/6 che cùng một phần."
+      },
+      "assessment_checkpoints": [
+        {
+          "type": "oral_check",
+          "description": "Giải thích 2/4 bằng 1/2",
+          "trigger": "Sau phần hình thành"
+        }
+      ],
+      "methodology": {
+        "tags": [
+          "concept_map",
+          "contrastive_pairs"
+        ],
+        "target_skill_area": null,
+        "student_profile_notes": null
+      }
+    },
+    "blueprint_approved": true,
+    "revision_feedback": "",
+    "research_bundle": {
+      "topic": "Phân số tương đương",
+      "sources": [
+        {
+          "title": "Common Core fractions progression",
+          "url": "https://example.edu/fractions-progression",
+          "credibility_score": 0.5,
+          "verification_status": "UNCERTAIN"
+        },
+        {
+          "title": "Visual fraction models for Grade 5",
+          "url": "https://example.edu/visual-fractions",
+          "credibility_score": 0.5,
+          "verification_status": "UNCERTAIN"
+        }
+      ],
+      "key_findings": [
+        "Mô hình trực quan giúp học sinh thấy cùng một lượng trước khi dùng quy tắc ký hiệu."
+      ],
+      "cross_references": [],
+      "research_policy": "standard"
+    },
+    "research_policy": "standard",
+    "artifact_types": [
+      "lesson",
+      "worksheet",
+      "quiz"
+    ],
+    "theme": "default",
+    "artifacts": [
+      {
+        "artifact_type": "lesson",
+        "theme": "default",
+        "title": "Bài học: Phân số tương đương",
+        "sections": [
+          {
+            "type": "warmup",
+            "title": "Khởi động bằng thanh phân số",
+            "components": [
+              {
+                "type": "concept_map",
+                "title": "Cùng một lượng",
+                "nodes": [
+                  {
+                    "id": "a",
+                    "label": "1/2"
+                  },
+                  {
+                    "id": "b",
+                    "label": "2/4"
+                  },
+                  {
+                    "id": "c",
+                    "label": "3/6"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "concept",
+            "title": "Quy tắc tạo phân số tương đương",
+            "components": [
+              {
+                "type": "flow_step",
+                "steps": [
+                  {
+                    "time": "1 phút",
+                    "title": "Chọn thừa số",
+                    "body": "Chọn một số khác 0."
+                  },
+                  {
+                    "time": "2 phút",
+                    "title": "Nhân tử số",
+                    "body": "Nhân tử số với thừa số đã chọn."
+                  },
+                  {
+                    "time": "2 phút",
+                    "title": "Nhân mẫu số",
+                    "body": "Nhân mẫu số với cùng thừa số."
+                  }
+                ]
+              },
+              {
+                "type": "contrastive_pairs",
+                "rows": [
+                  {
+                    "terms": "2/4 và 2/5",
+                    "distinction": "Chỉ đổi mẫu số thì lượng thay đổi; phải đổi cả tử và mẫu theo cùng một thừa số."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "practice",
+            "title": "Kiểm tra hiểu nhanh",
+            "components": [
+              {
+                "type": "question_card",
+                "id": 1,
+                "text": "Phân số nào tương đương với 1/2?",
+                "options": {
+                  "A": "2/4",
+                  "B": "2/3",
+                  "C": "3/5",
+                  "D": "4/5"
+                },
+                "answer": "",
+                "explain": ""
+              }
+            ]
+          }
+        ],
+        "metadata": {
+          "subject": "Toán",
+          "grade_level": "Lớp 5"
+        },
+        "accessibility": {
+          "language": "vi",
+          "reading_level": "grade_5",
+          "alt_texts": {}
+        }
+      },
+      {
+        "artifact_type": "worksheet",
+        "theme": "default",
+        "title": "Phiếu luyện tập: Phân số tương đương",
+        "sections": [
+          {
+            "type": "practice_set",
+            "title": "Bài tập chính",
+            "components": [
+              {
+                "type": "question_card",
+                "id": 1,
+                "text": "Viết một phân số tương đương với 3/5.",
+                "options": {
+                  "A": "1/2",
+                  "B": "2/3",
+                  "C": "3/5",
+                  "D": "4/7"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 2,
+                "text": "Chọn cặp phân số biểu diễn cùng một lượng.",
+                "options": {
+                  "A": "1/3 và 2/6",
+                  "B": "1/3 và 2/5",
+                  "C": "2/3 và 3/4",
+                  "D": "3/8 và 4/8"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 3,
+                "text": "Giải thích vì sao 4/8 tương đương với 1/2.",
+                "options": {
+                  "A": "1/2",
+                  "B": "2/3",
+                  "C": "3/5",
+                  "D": "4/7"
+                },
+                "answer": "",
+                "explain": ""
+              }
+            ]
+          },
+          {
+            "type": "reflection",
+            "title": "Tự kiểm tra",
+            "content": "Khoanh tròn bài em thấy cần luyện thêm và viết một câu hỏi cho bạn bên cạnh."
+          }
+        ],
+        "metadata": {
+          "subject": "Toán",
+          "grade_level": "Lớp 5"
+        },
+        "accessibility": {
+          "language": "vi",
+          "reading_level": "grade_5",
+          "alt_texts": {}
+        }
+      },
+      {
+        "artifact_type": "quiz",
+        "theme": "default",
+        "title": "Quiz: Nhận biết phân số tương đương",
+        "sections": [
+          {
+            "type": "quiz_items",
+            "title": "Câu hỏi",
+            "components": [
+              {
+                "type": "question_card",
+                "id": 1,
+                "text": "Phân số nào tương đương với 2/3?",
+                "options": {
+                  "A": "4/6",
+                  "B": "3/4",
+                  "C": "2/5",
+                  "D": "5/6"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 2,
+                "text": "Nếu nhân cả tử và mẫu của 1/4 với 3, ta được gì?",
+                "options": {
+                  "A": "3/12",
+                  "B": "1/12",
+                  "C": "4/7",
+                  "D": "3/4"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 3,
+                "text": "Cặp nào không tương đương?",
+                "options": {
+                  "A": "2/4 và 1/2",
+                  "B": "3/6 và 1/2",
+                  "C": "2/5 và 4/10",
+                  "D": "3/5 và 6/5"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 4,
+                "text": "Hoàn thành: 5/10 = ?/2",
+                "options": {
+                  "A": "1/2",
+                  "B": "2/2",
+                  "C": "5/2",
+                  "D": "10/2"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 5,
+                "text": "Mô hình nào có cùng phần tô màu với 3/6?",
+                "options": {
+                  "A": "1/2",
+                  "B": "1/3",
+                  "C": "2/3",
+                  "D": "5/6"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 6,
+                "text": "Quy tắc nào luôn giữ giá trị phân số?",
+                "options": {
+                  "A": "Nhân tử và mẫu cùng một số khác 0",
+                  "B": "Chỉ nhân tử số",
+                  "C": "Chỉ cộng mẫu số",
+                  "D": "Đổi chỗ tử và mẫu"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 7,
+                "text": "Từ 6/9, chia cả tử và mẫu cho 3 được phân số nào?",
+                "options": {
+                  "A": "2/3",
+                  "B": "3/2",
+                  "C": "6/3",
+                  "D": "1/9"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 8,
+                "text": "Vì sao 2/4 và 3/6 tương đương?",
+                "options": {
+                  "A": "Cả hai cùng bằng một nửa",
+                  "B": "Cả hai có tử số giống nhau",
+                  "C": "Cả hai có mẫu số giống nhau",
+                  "D": "Cả hai đều lớn hơn 1"
+                },
+                "answer": "",
+                "explain": ""
+              }
+            ]
+          }
+        ],
+        "metadata": {
+          "subject": "Toán",
+          "grade_level": "Lớp 5"
+        },
+        "accessibility": {
+          "language": "vi",
+          "reading_level": "grade_5",
+          "alt_texts": {}
+        }
+      }
+    ],
+    "quality_scores": {
+      "overall": 1.65,
+      "per_artifact": [
+        0.0,
+        4.94,
+        0.0
+      ],
+      "components": [
+        {
+          "score": 7.94,
+          "component_count": 7,
+          "unique_intents": 3,
+          "methodology_bonus": 2.0,
+          "stuffing_penalty": 0.0,
+          "overuse_penalty": 0.0,
+          "notes": [
+            "methodology matched: concept_map",
+            "methodology matched: contrastive_pairs"
+          ]
+        },
+        {
+          "score": 3.81,
+          "component_count": 5,
+          "unique_intents": 1,
+          "methodology_bonus": 0.0,
+          "stuffing_penalty": 1.5,
+          "overuse_penalty": 0.0,
+          "notes": [
+            "stuffing: 5 components but only 1 intent(s)"
+          ]
+        },
+        {
+          "score": 2.61,
+          "component_count": 9,
+          "unique_intents": 1,
+          "methodology_bonus": 0.0,
+          "stuffing_penalty": 2.7,
+          "overuse_penalty": 0.0,
+          "notes": [
+            "stuffing: 9 components but only 1 intent(s)"
+          ]
+        }
+      ],
+      "method": "heuristic_content_strength"
+    },
+    "quality_passed": false,
+    "teacher_approved": false,
+    "revision_count": 0,
+    "fail_layer": "judge",
+    "fail_count": 4,
+    "fail_type": "score",
+    "fail_context": {
+      "errors": [
+        "Judge score 1.6 below threshold 7.0"
+      ],
+      "per_artifact_scores": [
+        0.0,
+        4.94,
+        0.0
+      ]
+    },
+    "schema_valid": true,
+    "content_review_passed": true,
+    "judge_score": 1.6466666666666667,
+    "escalate": true,
+    "escalate_reason": "Auto-escalated after 4 failed healing attempts. Last fail layer: judge. Last error: ['Judge score 1.6 below threshold 7.0']",
+    "healing_strategy": "escalate",
+    "healing_note": "Full regeneration triggered after 3 failed attempts",
+    "healing_context": {
+      "rewrite_instruction": "Previous attempt failed validation. Fix these issues:\nJudge score 1.6 below threshold 7.0"
+    },
+    "generation_model": "f.light",
+    "teacher_decision": "approve",
+    "gate_payload": {
+      "action": "approve",
+      "feedback": ""
+    },
+    "error": "Auto-escalated after 4 failed healing attempts. Last fail layer: judge. Last error: ['Judge score 1.6 below threshold 7.0']",
+    "review_results": null,
+    "export_formats": [
+      "html"
+    ],
+    "exported_files": [],
+    "current_step": 6,
+    "tokens_used": 0,
+    "cost_usd": 0.0
+  },
+  "final": {
+    "raw_request": "Create a Vietnamese Grade 5 math teaching pack about equivalent fractions, including a lesson, worksheet, and quiz with rich visual components.",
+    "teacher_id": "u-001",
+    "class_info": {
+      "grade": 5,
+      "subject": "math",
+      "student_count": 32,
+      "language": "vi"
+    },
+    "run_id": "live-mocked-939b085a-17ef-4754-a086-b21310c3ad2b",
+    "lesson_plan": {
+      "topic": "Phân số tương đương",
+      "grade_level": "Lớp 5",
+      "subject": "Toán",
+      "duration_minutes": 45,
+      "learning_objectives": [
+        {
+          "description": "Giải thích phân số tương đương bằng mô hình trực quan.",
+          "bloom_level": "understand",
+          "assessment_method": "Câu hỏi miệng"
+        },
+        {
+          "description": "Tạo phân số tương đương bằng cách nhân hoặc chia cả tử và mẫu số.",
+          "bloom_level": "apply",
+          "assessment_method": "Phiếu bài tập"
+        },
+        {
+          "description": "So sánh và phân loại các phân số tương đương.",
+          "bloom_level": "analyze",
+          "assessment_method": "Quiz cuối giờ"
+        }
+      ],
+      "prerequisite_knowledge": [
+        "Tử số và mẫu số",
+        "Nhân chia số tự nhiên",
+        "Biểu diễn phân số bằng hình vẽ"
+      ],
+      "learning_plan": {
+        "1": "Dùng thanh phân số để hỏi vì sao 1/2, 2/4 và 3/6 che cùng một phần."
+      },
+      "assessment_checkpoints": [
+        {
+          "type": "oral_check",
+          "description": "Giải thích 2/4 bằng 1/2",
+          "trigger": "Sau phần hình thành"
+        }
+      ],
+      "methodology": {
+        "tags": [
+          "concept_map",
+          "contrastive_pairs"
+        ],
+        "target_skill_area": null,
+        "student_profile_notes": null
+      }
+    },
+    "blueprint_approved": true,
+    "revision_feedback": "",
+    "research_bundle": {
+      "topic": "Phân số tương đương",
+      "sources": [
+        {
+          "title": "Common Core fractions progression",
+          "url": "https://example.edu/fractions-progression",
+          "credibility_score": 0.5,
+          "verification_status": "UNCERTAIN"
+        },
+        {
+          "title": "Visual fraction models for Grade 5",
+          "url": "https://example.edu/visual-fractions",
+          "credibility_score": 0.5,
+          "verification_status": "UNCERTAIN"
+        }
+      ],
+      "key_findings": [
+        "Mô hình trực quan giúp học sinh thấy cùng một lượng trước khi dùng quy tắc ký hiệu."
+      ],
+      "cross_references": [],
+      "research_policy": "standard"
+    },
+    "research_policy": "standard",
+    "artifact_types": [
+      "lesson",
+      "worksheet",
+      "quiz"
+    ],
+    "theme": "default",
+    "artifacts": [
+      {
+        "artifact_type": "lesson",
+        "theme": "default",
+        "title": "Bài học: Phân số tương đương",
+        "sections": [
+          {
+            "type": "warmup",
+            "title": "Khởi động bằng thanh phân số",
+            "components": [
+              {
+                "type": "concept_map",
+                "title": "Cùng một lượng",
+                "nodes": [
+                  {
+                    "id": "a",
+                    "label": "1/2"
+                  },
+                  {
+                    "id": "b",
+                    "label": "2/4"
+                  },
+                  {
+                    "id": "c",
+                    "label": "3/6"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "concept",
+            "title": "Quy tắc tạo phân số tương đương",
+            "components": [
+              {
+                "type": "flow_step",
+                "steps": [
+                  {
+                    "time": "1 phút",
+                    "title": "Chọn thừa số",
+                    "body": "Chọn một số khác 0."
+                  },
+                  {
+                    "time": "2 phút",
+                    "title": "Nhân tử số",
+                    "body": "Nhân tử số với thừa số đã chọn."
+                  },
+                  {
+                    "time": "2 phút",
+                    "title": "Nhân mẫu số",
+                    "body": "Nhân mẫu số với cùng thừa số."
+                  }
+                ]
+              },
+              {
+                "type": "contrastive_pairs",
+                "rows": [
+                  {
+                    "terms": "2/4 và 2/5",
+                    "distinction": "Chỉ đổi mẫu số thì lượng thay đổi; phải đổi cả tử và mẫu theo cùng một thừa số."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "practice",
+            "title": "Kiểm tra hiểu nhanh",
+            "components": [
+              {
+                "type": "question_card",
+                "id": 1,
+                "text": "Phân số nào tương đương với 1/2?",
+                "options": {
+                  "A": "2/4",
+                  "B": "2/3",
+                  "C": "3/5",
+                  "D": "4/5"
+                },
+                "answer": "",
+                "explain": ""
+              }
+            ]
+          }
+        ],
+        "metadata": {
+          "subject": "Toán",
+          "grade_level": "Lớp 5"
+        },
+        "accessibility": {
+          "language": "vi",
+          "reading_level": "grade_5",
+          "alt_texts": {}
+        }
+      },
+      {
+        "artifact_type": "worksheet",
+        "theme": "default",
+        "title": "Phiếu luyện tập: Phân số tương đương",
+        "sections": [
+          {
+            "type": "practice_set",
+            "title": "Bài tập chính",
+            "components": [
+              {
+                "type": "question_card",
+                "id": 1,
+                "text": "Viết một phân số tương đương với 3/5.",
+                "options": {
+                  "A": "1/2",
+                  "B": "2/3",
+                  "C": "3/5",
+                  "D": "4/7"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 2,
+                "text": "Chọn cặp phân số biểu diễn cùng một lượng.",
+                "options": {
+                  "A": "1/3 và 2/6",
+                  "B": "1/3 và 2/5",
+                  "C": "2/3 và 3/4",
+                  "D": "3/8 và 4/8"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 3,
+                "text": "Giải thích vì sao 4/8 tương đương với 1/2.",
+                "options": {
+                  "A": "1/2",
+                  "B": "2/3",
+                  "C": "3/5",
+                  "D": "4/7"
+                },
+                "answer": "",
+                "explain": ""
+              }
+            ]
+          },
+          {
+            "type": "reflection",
+            "title": "Tự kiểm tra",
+            "content": "Khoanh tròn bài em thấy cần luyện thêm và viết một câu hỏi cho bạn bên cạnh."
+          }
+        ],
+        "metadata": {
+          "subject": "Toán",
+          "grade_level": "Lớp 5"
+        },
+        "accessibility": {
+          "language": "vi",
+          "reading_level": "grade_5",
+          "alt_texts": {}
+        }
+      },
+      {
+        "artifact_type": "quiz",
+        "theme": "default",
+        "title": "Quiz: Nhận biết phân số tương đương",
+        "sections": [
+          {
+            "type": "quiz_items",
+            "title": "Câu hỏi",
+            "components": [
+              {
+                "type": "question_card",
+                "id": 1,
+                "text": "Phân số nào tương đương với 2/3?",
+                "options": {
+                  "A": "4/6",
+                  "B": "3/4",
+                  "C": "2/5",
+                  "D": "5/6"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 2,
+                "text": "Nếu nhân cả tử và mẫu của 1/4 với 3, ta được gì?",
+                "options": {
+                  "A": "3/12",
+                  "B": "1/12",
+                  "C": "4/7",
+                  "D": "3/4"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 3,
+                "text": "Cặp nào không tương đương?",
+                "options": {
+                  "A": "2/4 và 1/2",
+                  "B": "3/6 và 1/2",
+                  "C": "2/5 và 4/10",
+                  "D": "3/5 và 6/5"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 4,
+                "text": "Hoàn thành: 5/10 = ?/2",
+                "options": {
+                  "A": "1/2",
+                  "B": "2/2",
+                  "C": "5/2",
+                  "D": "10/2"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 5,
+                "text": "Mô hình nào có cùng phần tô màu với 3/6?",
+                "options": {
+                  "A": "1/2",
+                  "B": "1/3",
+                  "C": "2/3",
+                  "D": "5/6"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 6,
+                "text": "Quy tắc nào luôn giữ giá trị phân số?",
+                "options": {
+                  "A": "Nhân tử và mẫu cùng một số khác 0",
+                  "B": "Chỉ nhân tử số",
+                  "C": "Chỉ cộng mẫu số",
+                  "D": "Đổi chỗ tử và mẫu"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 7,
+                "text": "Từ 6/9, chia cả tử và mẫu cho 3 được phân số nào?",
+                "options": {
+                  "A": "2/3",
+                  "B": "3/2",
+                  "C": "6/3",
+                  "D": "1/9"
+                },
+                "answer": "",
+                "explain": ""
+              },
+              {
+                "type": "question_card",
+                "id": 8,
+                "text": "Vì sao 2/4 và 3/6 tương đương?",
+                "options": {
+                  "A": "Cả hai cùng bằng một nửa",
+                  "B": "Cả hai có tử số giống nhau",
+                  "C": "Cả hai có mẫu số giống nhau",
+                  "D": "Cả hai đều lớn hơn 1"
+                },
+                "answer": "",
+                "explain": ""
+              }
+            ]
+          }
+        ],
+        "metadata": {
+          "subject": "Toán",
+          "grade_level": "Lớp 5"
+        },
+        "accessibility": {
+          "language": "vi",
+          "reading_level": "grade_5",
+          "alt_texts": {}
+        }
+      }
+    ],
+    "quality_scores": {
+      "overall": 1.65,
+      "per_artifact": [
+        0.0,
+        4.94,
+        0.0
+      ],
+      "components": [
+        {
+          "score": 7.94,
+          "component_count": 7,
+          "unique_intents": 3,
+          "methodology_bonus": 2.0,
+          "stuffing_penalty": 0.0,
+          "overuse_penalty": 0.0,
+          "notes": [
+            "methodology matched: concept_map",
+            "methodology matched: contrastive_pairs"
+          ]
+        },
+        {
+          "score": 3.81,
+          "component_count": 5,
+          "unique_intents": 1,
+          "methodology_bonus": 0.0,
+          "stuffing_penalty": 1.5,
+          "overuse_penalty": 0.0,
+          "notes": [
+            "stuffing: 5 components but only 1 intent(s)"
+          ]
+        },
+        {
+          "score": 2.61,
+          "component_count": 9,
+          "unique_intents": 1,
+          "methodology_bonus": 0.0,
+          "stuffing_penalty": 2.7,
+          "overuse_penalty": 0.0,
+          "notes": [
+            "stuffing: 9 components but only 1 intent(s)"
+          ]
+        }
+      ],
+      "method": "heuristic_content_strength"
+    },
+    "quality_passed": false,
+    "teacher_approved": false,
+    "revision_count": 0,
+    "fail_layer": "judge",
+    "fail_count": 4,
+    "fail_type": "score",
+    "fail_context": {
+      "errors": [
+        "Judge score 1.6 below threshold 7.0"
+      ],
+      "per_artifact_scores": [
+        0.0,
+        4.94,
+        0.0
+      ]
+    },
+    "schema_valid": true,
+    "content_review_passed": true,
+    "judge_score": 1.6466666666666667,
+    "escalate": true,
+    "escalate_reason": "Auto-escalated after 4 failed healing attempts. Last fail layer: judge. Last error: ['Judge score 1.6 below threshold 7.0']",
+    "healing_strategy": "escalate",
+    "healing_note": "Full regeneration triggered after 3 failed attempts",
+    "healing_context": {
+      "rewrite_instruction": "Previous attempt failed validation. Fix these issues:\nJudge score 1.6 below threshold 7.0"
+    },
+    "generation_model": "f.light",
+    "teacher_decision": "approve",
+    "gate_payload": {
+      "action": "approve",
+      "feedback": ""
+    },
+    "error": "Auto-escalated after 4 failed healing attempts. Last fail layer: judge. Last error: ['Judge score 1.6 below threshold 7.0']",
+    "review_results": null,
+    "export_formats": [
+      "html"
+    ],
+    "exported_files": [],
+    "current_step": 6,
+    "tokens_used": 0,
+    "cost_usd": 0.0
+  }
+}

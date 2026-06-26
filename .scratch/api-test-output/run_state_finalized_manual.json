@@ -1,0 +1,487 @@
+{
+  "raw_request": "Create a Vietnamese Grade 5 math teaching pack about equivalent fractions, including a lesson, worksheet, and quiz with rich visual components.",
+  "teacher_id": "u-001",
+  "class_info": {
+    "grade": 5,
+    "subject": "math",
+    "student_count": 32,
+    "language": "vi"
+  },
+  "run_id": "live-mocked-939b085a-17ef-4754-a086-b21310c3ad2b",
+  "lesson_plan": {
+    "topic": "Phân số tương đương",
+    "grade_level": "Lớp 5",
+    "subject": "Toán",
+    "duration_minutes": 45,
+    "learning_objectives": [
+      {
+        "description": "Giải thích phân số tương đương bằng mô hình trực quan.",
+        "bloom_level": "understand",
+        "assessment_method": "Câu hỏi miệng"
+      },
+      {
+        "description": "Tạo phân số tương đương bằng cách nhân hoặc chia cả tử và mẫu số.",
+        "bloom_level": "apply",
+        "assessment_method": "Phiếu bài tập"
+      },
+      {
+        "description": "So sánh và phân loại các phân số tương đương.",
+        "bloom_level": "analyze",
+        "assessment_method": "Quiz cuối giờ"
+      }
+    ],
+    "prerequisite_knowledge": [
+      "Tử số và mẫu số",
+      "Nhân chia số tự nhiên",
+      "Biểu diễn phân số bằng hình vẽ"
+    ],
+    "learning_plan": {
+      "1": "Dùng thanh phân số để hỏi vì sao 1/2, 2/4 và 3/6 che cùng một phần."
+    },
+    "assessment_checkpoints": [
+      {
+        "type": "oral_check",
+        "description": "Giải thích 2/4 bằng 1/2",
+        "trigger": "Sau phần hình thành"
+      }
+    ],
+    "methodology": {
+      "tags": [
+        "concept_map",
+        "contrastive_pairs"
+      ],
+      "target_skill_area": null,
+      "student_profile_notes": null
+    }
+  },
+  "blueprint_approved": true,
+  "revision_feedback": "",
+  "research_bundle": {
+    "topic": "Phân số tương đương",
+    "sources": [
+      {
+        "title": "Common Core fractions progression",
+        "url": "https://example.edu/fractions-progression",
+        "credibility_score": 0.5,
+        "verification_status": "UNCERTAIN"
+      },
+      {
+        "title": "Visual fraction models for Grade 5",
+        "url": "https://example.edu/visual-fractions",
+        "credibility_score": 0.5,
+        "verification_status": "UNCERTAIN"
+      }
+    ],
+    "key_findings": [
+      "Mô hình trực quan giúp học sinh thấy cùng một lượng trước khi dùng quy tắc ký hiệu."
+    ],
+    "cross_references": [],
+    "research_policy": "standard"
+  },
+  "research_policy": "standard",
+  "artifact_types": [
+    "lesson",
+    "worksheet",
+    "quiz"
+  ],
+  "theme": "default",
+  "artifacts": [
+    {
+      "artifact_type": "lesson",
+      "theme": "default",
+      "title": "Bài học: Phân số tương đương",
+      "sections": [
+        {
+          "type": "warmup",
+          "title": "Khởi động bằng thanh phân số",
+          "components": [
+            {
+              "type": "concept_map",
+              "title": "Cùng một lượng",
+              "nodes": [
+                {
+                  "id": "a",
+                  "label": "1/2"
+                },
+                {
+                  "id": "b",
+                  "label": "2/4"
+                },
+                {
+                  "id": "c",
+                  "label": "3/6"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "concept",
+          "title": "Quy tắc tạo phân số tương đương",
+          "components": [
+            {
+              "type": "flow_step",
+              "steps": [
+                {
+                  "time": "1 phút",
+                  "title": "Chọn thừa số",
+                  "body": "Chọn một số khác 0."
+                },
+                {
+                  "time": "2 phút",
+                  "title": "Nhân tử số",
+                  "body": "Nhân tử số với thừa số đã chọn."
+                },
+                {
+                  "time": "2 phút",
+                  "title": "Nhân mẫu số",
+                  "body": "Nhân mẫu số với cùng thừa số."
+                }
+              ]
+            },
+            {
+              "type": "contrastive_pairs",
+              "rows": [
+                {
+                  "terms": "2/4 và 2/5",
+                  "distinction": "Chỉ đổi mẫu số thì lượng thay đổi; phải đổi cả tử và mẫu theo cùng một thừa số."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "practice",
+          "title": "Kiểm tra hiểu nhanh",
+          "components": [
+            {
+              "type": "question_card",
+              "id": 1,
+              "text": "Phân số nào tương đương với 1/2?",
+              "options": {
+                "A": "2/4",
+                "B": "2/3",
+                "C": "3/5",
+                "D": "4/5"
+              },
+              "answer": "",
+              "explain": ""
+            }
+          ]
+        }
+      ],
+      "metadata": {
+        "subject": "Toán",
+        "grade_level": "Lớp 5"
+      },
+      "accessibility": {
+        "language": "vi",
+        "reading_level": "grade_5",
+        "alt_texts": {}
+      }
+    },
+    {
+      "artifact_type": "worksheet",
+      "theme": "default",
+      "title": "Phiếu luyện tập: Phân số tương đương",
+      "sections": [
+        {
+          "type": "practice_set",
+          "title": "Bài tập chính",
+          "components": [
+            {
+              "type": "question_card",
+              "id": 1,
+              "text": "Viết một phân số tương đương với 3/5.",
+              "options": {
+                "A": "1/2",
+                "B": "2/3",
+                "C": "3/5",
+                "D": "4/7"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 2,
+              "text": "Chọn cặp phân số biểu diễn cùng một lượng.",
+              "options": {
+                "A": "1/3 và 2/6",
+                "B": "1/3 và 2/5",
+                "C": "2/3 và 3/4",
+                "D": "3/8 và 4/8"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 3,
+              "text": "Giải thích vì sao 4/8 tương đương với 1/2.",
+              "options": {
+                "A": "1/2",
+                "B": "2/3",
+                "C": "3/5",
+                "D": "4/7"
+              },
+              "answer": "",
+              "explain": ""
+            }
+          ]
+        },
+        {
+          "type": "reflection",
+          "title": "Tự kiểm tra",
+          "content": "Khoanh tròn bài em thấy cần luyện thêm và viết một câu hỏi cho bạn bên cạnh."
+        }
+      ],
+      "metadata": {
+        "subject": "Toán",
+        "grade_level": "Lớp 5"
+      },
+      "accessibility": {
+        "language": "vi",
+        "reading_level": "grade_5",
+        "alt_texts": {}
+      }
+    },
+    {
+      "artifact_type": "quiz",
+      "theme": "default",
+      "title": "Quiz: Nhận biết phân số tương đương",
+      "sections": [
+        {
+          "type": "quiz_items",
+          "title": "Câu hỏi",
+          "components": [
+            {
+              "type": "question_card",
+              "id": 1,
+              "text": "Phân số nào tương đương với 2/3?",
+              "options": {
+                "A": "4/6",
+                "B": "3/4",
+                "C": "2/5",
+                "D": "5/6"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 2,
+              "text": "Nếu nhân cả tử và mẫu của 1/4 với 3, ta được gì?",
+              "options": {
+                "A": "3/12",
+                "B": "1/12",
+                "C": "4/7",
+                "D": "3/4"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 3,
+              "text": "Cặp nào không tương đương?",
+              "options": {
+                "A": "2/4 và 1/2",
+                "B": "3/6 và 1/2",
+                "C": "2/5 và 4/10",
+                "D": "3/5 và 6/5"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 4,
+              "text": "Hoàn thành: 5/10 = ?/2",
+              "options": {
+                "A": "1/2",
+                "B": "2/2",
+                "C": "5/2",
+                "D": "10/2"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 5,
+              "text": "Mô hình nào có cùng phần tô màu với 3/6?",
+              "options": {
+                "A": "1/2",
+                "B": "1/3",
+                "C": "2/3",
+                "D": "5/6"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 6,
+              "text": "Quy tắc nào luôn giữ giá trị phân số?",
+              "options": {
+                "A": "Nhân tử và mẫu cùng một số khác 0",
+                "B": "Chỉ nhân tử số",
+                "C": "Chỉ cộng mẫu số",
+                "D": "Đổi chỗ tử và mẫu"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 7,
+              "text": "Từ 6/9, chia cả tử và mẫu cho 3 được phân số nào?",
+              "options": {
+                "A": "2/3",
+                "B": "3/2",
+                "C": "6/3",
+                "D": "1/9"
+              },
+              "answer": "",
+              "explain": ""
+            },
+            {
+              "type": "question_card",
+              "id": 8,
+              "text": "Vì sao 2/4 và 3/6 tương đương?",
+              "options": {
+                "A": "Cả hai cùng bằng một nửa",
+                "B": "Cả hai có tử số giống nhau",
+                "C": "Cả hai có mẫu số giống nhau",
+                "D": "Cả hai đều lớn hơn 1"
+              },
+              "answer": "",
+              "explain": ""
+            }
+          ]
+        }
+      ],
+      "metadata": {
+        "subject": "Toán",
+        "grade_level": "Lớp 5"
+      },
+      "accessibility": {
+        "language": "vi",
+        "reading_level": "grade_5",
+        "alt_texts": {}
+      }
+    }
+  ],
+  "quality_scores": {
+    "overall": 1.65,
+    "per_artifact": [
+      0.0,
+      4.94,
+      0.0
+    ],
+    "components": [
+      {
+        "score": 7.94,
+        "component_count": 7,
+        "unique_intents": 3,
+        "methodology_bonus": 2.0,
+        "stuffing_penalty": 0.0,
+        "overuse_penalty": 0.0,
+        "notes": [
+          "methodology matched: concept_map",
+          "methodology matched: contrastive_pairs"
+        ]
+      },
+      {
+        "score": 3.81,
+        "component_count": 5,
+        "unique_intents": 1,
+        "methodology_bonus": 0.0,
+        "stuffing_penalty": 1.5,
+        "overuse_penalty": 0.0,
+        "notes": [
+          "stuffing: 5 components but only 1 intent(s)"
+        ]
+      },
+      {
+        "score": 2.61,
+        "component_count": 9,
+        "unique_intents": 1,
+        "methodology_bonus": 0.0,
+        "stuffing_penalty": 2.7,
+        "overuse_penalty": 0.0,
+        "notes": [
+          "stuffing: 9 components but only 1 intent(s)"
+        ]
+      }
+    ],
+    "method": "heuristic_content_strength"
+  },
+  "quality_passed": false,
+  "teacher_approved": false,
+  "revision_count": 0,
+  "fail_layer": "judge",
+  "fail_count": 4,
+  "fail_type": "score",
+  "fail_context": {
+    "errors": [
+      "Judge score 1.6 below threshold 7.0"
+    ],
+    "per_artifact_scores": [
+      0.0,
+      4.94,
+      0.0
+    ]
+  },
+  "schema_valid": true,
+  "content_review_passed": true,
+  "judge_score": 1.6466666666666667,
+  "escalate": true,
+  "escalate_reason": "Auto-escalated after 4 failed healing attempts. Last fail layer: judge. Last error: ['Judge score 1.6 below threshold 7.0']",
+  "healing_strategy": "escalate",
+  "healing_note": "Full regeneration triggered after 3 failed attempts",
+  "healing_context": {
+    "rewrite_instruction": "Previous attempt failed validation. Fix these issues:\nJudge score 1.6 below threshold 7.0"
+  },
+  "generation_model": "f.light",
+  "teacher_decision": "approve",
+  "gate_payload": {
+    "action": "approve",
+    "feedback": ""
+  },
+  "error": "Auto-escalated after 4 failed healing attempts. Last fail layer: judge. Last error: ['Judge score 1.6 below threshold 7.0']",
+  "review_results": null,
+  "export_formats": [
+    "html"
+  ],
+  "exported_files": [
+    {
+      "artifact_id": "artifact-0",
+      "format": "html",
+      "title": "Bài học: Phân số tương đương",
+      "content": "<!DOCTYPE html>\n<html lang=\"vi\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Bài học: Phân số tương đương — oh-my-class</title>\n  <style>\n    /* Theme + Lesson CSS — NO external assets */\n    :root { --color-bg: #FBF4F0;\n      --color-bg-card: #FFFFFF;\n      --color-bg-deep: #F3E2D9;\n      --color-text: #22273A;\n      --color-text-soft: #5C6275;\n      --color-text-faint: #8B8FA0;\n      --color-border: #E8D8CD;\n      --color-border-soft: #EFE3DA;\n      --color-accent: #B23A2E;\n      --color-accent-deep: #8C2C22;\n      --color-accent-tint: rgba(178,58,46,0.07);\n      --color-success: #2E6F4E;\n      --color-warning: #A8782E;\n      --color-error: #B23A2E;\n      --color-category-a: #33508F;\n      --color-category-a-tint: rgba(51,80,143,0.08);\n      --color-category-b: #B9762A;\n      --color-category-b-tint: rgba(185,118,42,0.09);\n      --color-category-c: #3C7A4E;\n      --color-category-c-tint: rgba(60,122,78,0.08);\n      --color-category-d: #1F7A8C;\n      --color-category-d-tint: rgba(31,122,140,0.08);\n      --color-category-e: #8A4F7E;\n      --color-category-e-tint: rgba(138,79,126,0.08);\n      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;\n      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;\n      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace; }\n    :root {\n      /* category color aliases */\n      --c-a: var(--color-category-a, #33508F); --c-a-tint: var(--color-category-a-tint, rgba(51,80,143,0.08));\n      --c-b: var(--color-category-b, #B9762A); --c-b-tint: var(--color-category-b-tint, rgba(185,118,42,0.09));\n      --c-c: var(--color-category-c, #3C7A4E); --c-c-tint: var(--color-category-c-tint, rgba(60,122,78,0.08));\n      --c-d: var(--color-category-d, #1F7A8C); --c-d-tint: var(--color-category-d-tint, rgba(31,122,140,0.08));\n      --c-e: var(--color-category-e, #8A4F7E); --c-e-tint: var(--color-category-e-tint, rgba(138,79,126,0.08));\n      --paper: var(--color-bg, #FBF4F0); --card: var(--color-bg-card, #FFFFFF);\n      --ink: var(--color-text, #22273A); --ink-soft: var(--color-text-soft, #5C6275);\n      --ink-faint: var(--color-text-faint, #8B8FA0); --line: var(--color-border, #E8D8CD);\n      --line-soft: var(--color-border-soft, #EFE3DA); --red: var(--color-accent, #B23A2E);\n      --red-deep: var(--color-accent-deep, #8C2C22); --red-tint: var(--color-accent-tint, rgba(178,58,46,0.07));\n      --gold: var(--color-warning, #A8782E); --gold-tint: rgba(168,120,46,0.09);\n      --green: var(--color-success, #2E6F4E); --green-tint: rgba(46,111,78,0.08);\n      --radius: 12px; --shadow: 0 1px 2px rgba(40,20,10,0.04), 0 8px 24px -16px rgba(40,20,10,0.25);\n    }\n    *, *::before, *::after { box-sizing: border-box; }\n    html { scroll-behavior: smooth; }\n    body { margin: 0; background: var(--paper); color: var(--ink);\n      font-family: var(--font-body, system-ui, -apple-system, 'Segoe UI', sans-serif);\n      line-height: 1.65; font-size: 15.5px; }\n    h1,h2,h3,h4 { font-family: var(--font-heading, Georgia, serif); margin: 0; color: var(--ink); font-weight: 700; }\n    p { margin: 0 0 10px; } ul,ol { margin: 0; padding-left: 20px; } li { margin-bottom: 5px; }\n    a { color: var(--c-a); text-decoration: none; }\n\n    /* Shell */\n    .shell { position: relative; z-index: 1; display: flex; max-width: 1280px; margin: 0 auto; min-height: 100vh; }\n    .sidebar { width: 252px; flex-shrink: 0; position: sticky; top: 0; align-self: flex-start;\n      height: 100vh; overflow-y: auto; padding: 26px 18px 40px 26px; border-right: 1px solid var(--line); }\n    .main { flex: 1; min-width: 0; padding: 38px 46px 110px; }\n\n    /* Sidebar */\n    .side-title { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 16px; line-height: 1.3; margin-bottom: 4px; }\n    .side-sub { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 18px; }\n    .side-stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; }\n    .side-stat .k { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 3px; }\n    .side-stat .v { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 16.5px; color: var(--ink); }\n    .side-nav { display: flex; flex-direction: column; gap: 2px; margin: 18px 0; }\n    .side-nav a { display: flex; align-items: baseline; gap: 8px; padding: 7px 9px; border-radius: 7px; font-size: 12.8px; color: var(--ink); }\n    .side-nav a:hover { background: var(--card); }\n    .side-nav a .nn { font-size: 10.5px; color: var(--ink-faint); flex-shrink: 0; }\n    .linkback { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--ink-soft); }\n\n    /* Hero */\n    .hero { margin-bottom: 32px; }\n    .eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--red-deep); font-weight: 700; margin-bottom: 10px; }\n    .hero h1 { font-size: 27px; line-height: 1.28; max-width: 680px; }\n    .hero .lede { max-width: 680px; color: var(--ink-soft); font-size: 14.6px; margin-top: 12px; }\n    .note-box { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 10px; padding: 13px 17px; margin-top: 18px; font-size: 13.4px; color: var(--ink-soft); max-width: 700px; }\n    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 11px; margin-top: 20px; max-width: 840px; }\n    .stat-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); }\n    .stat-card .k { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 5px; }\n    .stat-card .v { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 18px; line-height: 1.2; }\n    .stat-card .v small { font-size: 12px; color: var(--ink-soft); }\n    .obj-card { background: var(--c-a-tint); border: 1px solid rgba(51,80,143,0.2); border-radius: 10px; padding: 14px 18px; margin-top: 18px; max-width: 760px; }\n    .obj-card .ot { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; color: var(--c-a); margin-bottom: 8px; }\n    .obj-card ol { padding-left: 20px; }\n    .obj-card li { font-size: 13.6px; color: var(--ink); margin-bottom: 6px; }\n\n    /* Legacy objectives */\n    .component-learning-objective { background: var(--c-a-tint); border: 1px solid rgba(51,80,143,0.2); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; }\n    .objective-heading { font-size: 14px; margin-bottom: 6px; }\n    .objective-list { padding-left: 18px; }\n    .objective-item { font-size: 13.6px; }\n\n    /* Sections */\n    .section { margin-bottom: 46px; }\n    .lesson-section { margin-bottom: 28px; }\n    .section-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-bottom: 11px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }\n    .section-head h2 { font-size: 19.5px; }\n    .section-head .time { margin-left: auto; font-size: 12px; font-weight: 700; color: #fff; background: var(--ink); padding: 3px 10px; border-radius: 20px; }\n    .section-heading { font-size: 19.5px; margin-bottom: 12px; }\n    .section-intro, .section-body { font-size: 13.8px; color: var(--ink-soft); margin-bottom: 14px; max-width: 780px; }\n    .h3 { font-size: 15.5px; margin: 22px 0 11px; color: var(--ink); }\n    .note-callout { background: var(--gold-tint); border: 1px solid rgba(168,120,46,0.3); border-radius: 10px; padding: 12px 16px; font-size: 13.2px; color: var(--ink); margin: 13px 0; }\n\n    /* Concept box */\n    .concept-box { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--c-a); border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow); }\n    .cb-title { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 15.5px; margin-bottom: 3px; }\n    .cb-link { font-size: 12px; color: var(--red-deep); margin-bottom: 10px; display: block; }\n    .tri { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 10px 0; }\n    .tri-card { background: var(--paper, #FBF4F0); border-radius: 9px; padding: 10px 13px; }\n    .tri-card b { display: block; font-size: 13px; color: var(--c-a); margin-bottom: 4px; }\n    .tri-card span { font-size: 12.6px; color: var(--ink-soft); }\n    .tri-card em { display: block; margin-top: 5px; font-size: 12.2px; color: var(--ink); font-style: italic; }\n    .fiveset { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin: 10px 0; }\n    .fcard { background: var(--paper, #FBF4F0); border-radius: 8px; padding: 9px 10px; font-size: 12.3px; color: var(--ink-soft); }\n    .fcard b { display: block; color: var(--c-a); margin-bottom: 3px; font-size: 12.8px; }\n\n    /* Quick pairs table */\n    .quickpairs { width: 100%; border-collapse: collapse; font-size: 13.2px; margin-top: 6px; }\n    .quickpairs th { background: var(--ink); color: #fff; text-align: left; padding: 7px 11px; font-size: 10.5px; text-transform: uppercase; }\n    .quickpairs td { padding: 7px 11px; border-bottom: 1px solid var(--line-soft); }\n    .quickpairs tr:nth-child(even) td { background: rgba(140,90,70,0.025); }\n\n    /* Film */\n    .film-opt { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 14px; }\n    .film-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 13px 16px; }\n    .film-card .ft { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 14.5px; margin-bottom: 4px; }\n    .film-card p { font-size: 13px; color: var(--ink-soft); margin: 0; }\n    .huntsheet { background: var(--paper, #FBF4F0); border: 1px dashed var(--ink-faint); border-radius: 10px; padding: 13px 17px; font-size: 13.3px; color: var(--ink-soft); }\n    .chiplist { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }\n    .chip { font-size: 11.5px; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 4px 11px; color: var(--ink); }\n\n    /* Phrasal verbs */\n    .pv-clusters { display: grid; grid-template-columns: repeat(2,1fr); gap: 11px; margin: 10px 0; }\n    .pv-cluster { border-radius: 10px; padding: 12px 15px; }\n    .pvt { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; font-weight: 700; margin-bottom: 7px; display: block; }\n    .pv-item { font-size: 13px; margin-bottom: 3px; color: var(--ink); }\n    .pv-item strong { font-weight: 700; }\n\n    /* Practice questions */\n    .pq { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; border-left: 4px solid var(--c-a); }\n    .pq-n { font-size: 11px; font-weight: 700; color: var(--c-a); margin-right: 6px; }\n    .pq-text { font-size: 13.8px; color: var(--ink); }\n    .pq-opts { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0; font-size: 13px; color: var(--ink-soft); }\n    .pq-ans { font-size: 12.6px; background: var(--green-tint); color: var(--green); border-radius: 6px; padding: 5px 10px; display: inline-block; font-weight: 600; }\n    .pq-why { font-size: 12.6px; color: var(--ink-soft); margin-top: 5px; }\n\n    /* MCQ question component */\n    .component-question-mc { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }\n    .question-prompt { font-size: 14px; margin-bottom: 10px; }\n    .options-grid { display: flex; flex-direction: column; gap: 6px; }\n    .option { border: 1px solid var(--line-soft); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; cursor: pointer; }\n    .option--correct { border-color: var(--green); background: var(--green-tint); }\n    .question-explanation { margin-top: 10px; padding: 8px 12px; background: var(--c-a-tint); border-radius: 8px; font-size: 13px; }\n    .question-wrong-reasons { margin-top: 10px; padding: 8px 12px; background: var(--red-tint); border-radius: 8px; }\n    .wrong-reasons-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--red-deep); display: block; margin-bottom: 6px; }\n    .wrong-reason-item { display: flex; gap: 8px; margin-bottom: 4px; font-size: 13px; }\n    .wrong-letter { font-weight: 700; color: var(--red-deep); flex-shrink: 0; }\n    .question-essence { margin-top: 8px; font-size: 13px; padding: 6px 10px; background: var(--gold-tint); border-radius: 6px; }\n    .essence-label { font-weight: 700; color: var(--gold); margin-right: 6px; font-size: 11px; text-transform: uppercase; }\n    .question-tip { margin-top: 6px; font-size: 13px; padding: 6px 10px; background: var(--green-tint); border-radius: 6px; }\n    .tip-label { font-weight: 700; color: var(--green); margin-right: 6px; font-size: 11px; text-transform: uppercase; }\n\n    /* Roleplay */\n    .script { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; box-shadow: var(--shadow); }\n    .script .line { display: flex; gap: 12px; margin-bottom: 9px; font-size: 13.6px; }\n    .script .who { font-weight: 700; font-size: 12px; flex-shrink: 0; width: 84px; padding-top: 1px; }\n    .script .who.A { color: var(--c-b); }\n    .script .who.B { color: var(--c-d); }\n    .script .what { flex: 1; color: var(--ink); }\n    .script .blank { background: var(--paper, #FBF4F0); border-radius: 4px; padding: 1px 6px; color: var(--ink-faint); font-style: italic; }\n    .script-key { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 12.6px; color: var(--ink-soft); }\n\n    /* HW list */\n    .hw-list { list-style: none; padding: 0; }\n    .hw-list li { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; font-size: 13.4px; color: var(--ink-soft); }\n    .hwtag { font-size: 10.5px; font-weight: 700; color: #fff; background: var(--c-a); border-radius: 5px; padding: 2px 7px; flex-shrink: 0; margin-top: 2px; }\n\n    /* Legacy vocab grid */\n    .lesson-vocabulary { margin-bottom: 32px; }\n    .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }\n    .component-vocabulary-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }\n    .vocab-header { display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; }\n    .vocab-term { font-weight: 700; font-size: 15px; }\n    .vocab-pos { font-size: 11px; color: var(--ink-faint); font-style: italic; }\n    .vocab-definition { font-size: 13.5px; }\n    .vocab-example { font-size: 12.5px; color: var(--ink-soft); }\n\n    @media (max-width: 880px) {\n      .shell { flex-direction: column; }\n      .sidebar { position: static; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); padding: 18px 18px 14px; }\n      .main { padding: 26px 18px 90px; }\n      .stat-grid { grid-template-columns: repeat(2,1fr); }\n      .tri { grid-template-columns: 1fr; }\n      .fiveset { grid-template-columns: repeat(2,1fr); }\n      .film-opt { grid-template-columns: 1fr; }\n      .pv-clusters { grid-template-columns: 1fr; }\n    }\n    @media print {\n      .sidebar, .no-print { display: none; }\n      .shell { display: block; }\n      .main { padding: 0; }\n      body { background: white; }\n    }\n  </style>\n</head>\n<body class=\"artifact artifact--lesson\">\n<div class=\"shell\">\n\n  \n  <main class=\"main\" id=\"main-content\">\n\n        <div class=\"hero\">\n      <div class=\"eyebrow\">lesson</div>      <h1>Bài học: Phân số tương đương</h1>\n      <p class=\"lede\">A structured oh-my-class lesson pack.</p>                            </div>\n    \n        <section class=\"section\" id=\"section-1\">\n              <div class=\"section-head\">\n          <h2>Khởi động bằng thanh phân số</h2>                  </div>\n                                                    </section>\n        <section class=\"section\" id=\"section-2\">\n              <div class=\"section-head\">\n          <h2>Quy tắc tạo phân số tương đương</h2>                  </div>\n                                  <div class=\"comp-flow-step\">\n    <div class=\"flow-item\">\n    <span class=\"flow-time\">1 phút</span>\n    <div class=\"flow-body\">\n      <strong class=\"flow-title\">Chọn thừa số</strong>\n      <p class=\"flow-text\">Chọn một số khác 0.</p>\n    </div>\n  </div>\n    <div class=\"flow-item\">\n    <span class=\"flow-time\">2 phút</span>\n    <div class=\"flow-body\">\n      <strong class=\"flow-title\">Nhân tử số</strong>\n      <p class=\"flow-text\">Nhân tử số với thừa số đã chọn.</p>\n    </div>\n  </div>\n    <div class=\"flow-item\">\n    <span class=\"flow-time\">2 phút</span>\n    <div class=\"flow-body\">\n      <strong class=\"flow-title\">Nhân mẫu số</strong>\n      <p class=\"flow-text\">Nhân mẫu số với cùng thừa số.</p>\n    </div>\n  </div>\n  </div>\n                              <table class=\"quickpairs\">\n  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>\n  <tbody>\n          <tr><td><strong>2/4 và 2/5</strong></td><td>Chỉ đổi mẫu số thì lượng thay đổi; phải đổi cả tử và mẫu theo cùng một thừa số.</td></tr>\n      </tbody>\n</table>\n                  </section>\n        <section class=\"section\" id=\"section-3\">\n              <div class=\"section-head\">\n          <h2>Kiểm tra hiểu nhanh</h2>                  </div>\n                                  <article class=\"qcard g-a\" id=\"q-1\">\n  <div class=\"qhead\">\n    <span class=\"qnum\">1</span>\n    <p class=\"qtext\">Phân số nào tương đương với 1/2?</p>\n  </div>\n  <div class=\"options\">\n        <div class=\"option\">\n      <b class=\"letter\">A</b>\n      <span>2/4</span>\n    </div>\n        <div class=\"option\">\n      <b class=\"letter\">B</b>\n      <span>2/3</span>\n    </div>\n        <div class=\"option\">\n      <b class=\"letter\">C</b>\n      <span>3/5</span>\n    </div>\n        <div class=\"option\">\n      <b class=\"letter\">D</b>\n      <span>4/5</span>\n    </div>\n      </div>\n  <div class=\"panel\">\n    <div class=\"prow explain\">\n      <span class=\"plabel\">Giải thích</span>\n      <span class=\"ptext\"></span>\n    </div>\n          </div>\n  </article>\n                  </section>\n    \n    \n    <footer>\n      <span>Generated by oh-my-class</span>\n    </footer>\n  </main>\n</div>\n</body>\n</html>\n",
+      "artifact_type": "lesson",
+      "theme": "default"
+    },
+    {
+      "artifact_id": "artifact-1",
+      "format": "html",
+      "title": "Phiếu luyện tập: Phân số tương đương",
+      "content": "<!DOCTYPE html>\n<html lang=\"vi\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Phiếu luyện tập: Phân số tương đương — oh-my-class</title>\n  <style>\n    :root {\n      --color-bg: #FBF4F0;\n      --color-bg-card: #FFFFFF;\n      --color-bg-deep: #F3E2D9;\n      --color-text: #22273A;\n      --color-text-soft: #5C6275;\n      --color-text-faint: #8B8FA0;\n      --color-border: #E8D8CD;\n      --color-border-soft: #EFE3DA;\n      --color-accent: #B23A2E;\n      --color-accent-deep: #8C2C22;\n      --color-accent-tint: rgba(178,58,46,0.07);\n      --color-success: #2E6F4E;\n      --color-warning: #A8782E;\n      --color-error: #B23A2E;\n      --color-category-a: #33508F;\n      --color-category-a-tint: rgba(51,80,143,0.08);\n      --color-category-b: #B9762A;\n      --color-category-b-tint: rgba(185,118,42,0.09);\n      --color-category-c: #3C7A4E;\n      --color-category-c-tint: rgba(60,122,78,0.08);\n      --color-category-d: #1F7A8C;\n      --color-category-d-tint: rgba(31,122,140,0.08);\n      --color-category-e: #8A4F7E;\n      --color-category-e-tint: rgba(138,79,126,0.08);\n      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;\n      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;\n      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace;    }\n\n    *, *::before, *::after { box-sizing: border-box; }\n\n    body {\n      font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);\n      margin: 0;\n      padding: 0;\n      background: var(--color-bg, #fafafa);\n      color: var(--color-text, #1a1a2e);\n      line-height: 1.65;\n    }\n\n    .omc-header {\n      padding: 1rem 1.5rem;\n      border-bottom: 2px solid var(--color-border, #e2e8f0);\n      margin-bottom: 1.5rem;\n      display: flex;\n      align-items: baseline;\n      gap: 1rem;\n    }\n    .omc-header .brand { font-weight: 700; color: var(--color-accent, #b23a2e); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; }\n    .omc-header .title { font-size: 1.35rem; font-weight: 600; margin: 0; flex: 1; }\n    .omc-header .meta { color: var(--color-text-soft, #5c6275); font-size: 0.875rem; white-space: nowrap; }\n\n    main { padding: 0 1.5rem 2rem; max-width: 900px; margin: 0 auto; }\n\n    .omc-footer {\n      margin-top: 2rem;\n      padding: 1rem 1.5rem;\n      border-top: 1px solid var(--color-border, #e2e8f0);\n      color: var(--color-text-faint, #8b8fa0);\n      font-size: 0.8rem;\n    }\n\n    /* WCAG 2.2 AA — ensure focused/targeted elements are not obscured by sticky header */\n    :target, :focus { scroll-margin-top: 4rem; }\n\n    @media print {\n      .no-print { display: none !important; }\n      body { background: white; }\n      .omc-footer { border-top: 1px solid #ccc; }\n    }\n  </style>\n</head>\n<body class=\"artifact artifact--worksheet\">\n  <header class=\"omc-header\">\n    <span class=\"brand\">oh-my-class</span>\n    <h1 class=\"title\">Phiếu luyện tập: Phân số tương đương</h1>\n        <div class=\"meta\">\n      <span class=\"subject\">Toán</span>       ·       <span class=\"grade\">Lớp 5</span>    </div>\n      </header>\n\n  <main id=\"main-content\">\n    <div class=\"worksheet-page\"><div class=\"worksheet-header\"><div class=\"worksheet-name-line\"><span>Họ tên:</span> <span class=\"blank-line\" aria-label=\"Student name\"></span></div><div class=\"worksheet-date-line\"><span>Ngày:</span> <span class=\"blank-line\" aria-label=\"Date\"></span></div></div><section class=\"worksheet-section\"><h2 class=\"section-title\">Phần 1: Bài tập chính</h2><ol class=\"question-list\"><li class=\"question-item\"><article class=\"component-worksheet-q\" id=\"wq-w1-1\"><p class=\"question-prompt\">Complete this practice task.</p><div class=\"answer-lines\"><div class=\"answer-line\"></div><div class=\"answer-line\"></div></div></article></li></ol></section><section class=\"worksheet-section\"><h2 class=\"section-title\">Phần 2: Tự kiểm tra</h2><ol class=\"question-list\"><li class=\"question-item\"><article class=\"component-worksheet-q\" id=\"wq-w2-1\"><p class=\"question-prompt\">Khoanh tròn bài em thấy cần luyện thêm và viết một câu hỏi cho bạn bên cạnh.</p><div class=\"answer-lines\"><div class=\"answer-line\"></div><div class=\"answer-line\"></div></div></article></li></ol></section></div>  </main>\n\n  <footer class=\"omc-footer\">\n    <span>Generated by oh-my-class</span>\n  </footer>\n</body>\n</html>\n",
+      "artifact_type": "worksheet",
+      "theme": "default"
+    },
+    {
+      "artifact_id": "artifact-2",
+      "format": "html",
+      "title": "Quiz: Nhận biết phân số tương đương",
+      "content": "<!DOCTYPE html>\n<html lang=\"vi\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Quiz: Nhận biết phân số tương đương — oh-my-class</title>\n  <style>\n    :root {\n      --color-bg: #FBF4F0;\n      --color-bg-card: #FFFFFF;\n      --color-bg-deep: #F3E2D9;\n      --color-text: #22273A;\n      --color-text-soft: #5C6275;\n      --color-text-faint: #8B8FA0;\n      --color-border: #E8D8CD;\n      --color-border-soft: #EFE3DA;\n      --color-accent: #B23A2E;\n      --color-accent-deep: #8C2C22;\n      --color-accent-tint: rgba(178,58,46,0.07);\n      --color-success: #2E6F4E;\n      --color-warning: #A8782E;\n      --color-error: #B23A2E;\n      --color-category-a: #33508F;\n      --color-category-a-tint: rgba(51,80,143,0.08);\n      --color-category-b: #B9762A;\n      --color-category-b-tint: rgba(185,118,42,0.09);\n      --color-category-c: #3C7A4E;\n      --color-category-c-tint: rgba(60,122,78,0.08);\n      --color-category-d: #1F7A8C;\n      --color-category-d-tint: rgba(31,122,140,0.08);\n      --color-category-e: #8A4F7E;\n      --color-category-e-tint: rgba(138,79,126,0.08);\n      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;\n      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;\n      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace;    }\n\n    *, *::before, *::after { box-sizing: border-box; }\n\n    body {\n      font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);\n      margin: 0;\n      padding: 0;\n      background: var(--color-bg, #fafafa);\n      color: var(--color-text, #1a1a2e);\n      line-height: 1.65;\n    }\n\n    .omc-header {\n      padding: 1rem 1.5rem;\n      border-bottom: 2px solid var(--color-border, #e2e8f0);\n      margin-bottom: 1.5rem;\n      display: flex;\n      align-items: baseline;\n      gap: 1rem;\n    }\n    .omc-header .brand { font-weight: 700; color: var(--color-accent, #b23a2e); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; }\n    .omc-header .title { font-size: 1.35rem; font-weight: 600; margin: 0; flex: 1; }\n    .omc-header .meta { color: var(--color-text-soft, #5c6275); font-size: 0.875rem; white-space: nowrap; }\n\n    main { padding: 0 1.5rem 2rem; max-width: 900px; margin: 0 auto; }\n\n    .omc-footer {\n      margin-top: 2rem;\n      padding: 1rem 1.5rem;\n      border-top: 1px solid var(--color-border, #e2e8f0);\n      color: var(--color-text-faint, #8b8fa0);\n      font-size: 0.8rem;\n    }\n\n    /* WCAG 2.2 AA — ensure focused/targeted elements are not obscured by sticky header */\n    :target, :focus { scroll-margin-top: 4rem; }\n\n    @media print {\n      .no-print { display: none !important; }\n      body { background: white; }\n      .omc-footer { border-top: 1px solid #ccc; }\n    }\n  </style>\n</head>\n<body class=\"artifact artifact--quiz\">\n  <header class=\"omc-header\">\n    <span class=\"brand\">oh-my-class</span>\n    <h1 class=\"title\">Quiz: Nhận biết phân số tương đương</h1>\n        <div class=\"meta\">\n      <span class=\"subject\">Toán</span>       ·       <span class=\"grade\">Lớp 5</span>    </div>\n      </header>\n\n  <main id=\"main-content\">\n    <div class=\"quiz-page\"><p class=\"quiz-meta no-print\" aria-label=\"Time limit\"><span class=\"meta-icon\" aria-hidden=\"true\">⏱</span> Thời gian: <strong>10 phút</strong></p><ol class=\"question-list\" aria-label=\"Questions\"><li class=\"question-item\"><article class=\"component-question-mc\" id=\"q-q1\"><p class=\"question-prompt\" id=\"prompt-q1\"><span class=\"question-number\" aria-hidden=\"true\">1.</span> Question</p><div class=\"options-grid\" role=\"radiogroup\" aria-labelledby=\"prompt-q1\"><label class=\"option\"><input type=\"radio\" name=\"q-q1\" value=\"A\" /><span class=\"option-label\" aria-hidden=\"true\">A</span><span class=\"option-text\">A</span></label><label class=\"option\"><input type=\"radio\" name=\"q-q1\" value=\"B\" /><span class=\"option-label\" aria-hidden=\"true\">B</span><span class=\"option-text\">B</span></label><label class=\"option\"><input type=\"radio\" name=\"q-q1\" value=\"C\" /><span class=\"option-label\" aria-hidden=\"true\">C</span><span class=\"option-text\">C</span></label><label class=\"option\"><input type=\"radio\" name=\"q-q1\" value=\"D\" /><span class=\"option-label\" aria-hidden=\"true\">D</span><span class=\"option-text\">D</span></label></div></article></li></ol></div>  </main>\n\n  <footer class=\"omc-footer\">\n    <span>Generated by oh-my-class</span>\n  </footer>\n</body>\n</html>\n",
+      "artifact_type": "quiz",
+      "theme": "default"
+    }
+  ],
+  "current_step": 12,
+  "tokens_used": 0,
+  "cost_usd": 0.0
+}

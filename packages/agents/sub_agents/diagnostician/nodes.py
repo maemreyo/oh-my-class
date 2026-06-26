@@ -67,12 +67,17 @@ Bloom taxonomy reference (Vietnamese names):
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
+    from packages.agents.llm import get_llm_config, resolve_model
+
+    llm_config = get_llm_config()
 
     try:
-        response = await litellm.acompletion(
-            model="f.light",
+        response: Any = await litellm.acompletion(
+            model=resolve_model("f.light"),
             messages=messages,
             temperature=0.3,
+            api_base=llm_config["api_base"],
+            api_key=llm_config["api_key"],
             extra_body={
                 "metadata": {
                     "tags": [
@@ -85,7 +90,7 @@ Bloom taxonomy reference (Vietnamese names):
             },
         )
 
-        content = response.choices[0].message.content
+        content = str(response.choices[0].message.content or "")
 
         if "```json" in content:
             json_str = content.split("```json")[1].split("```")[0].strip()

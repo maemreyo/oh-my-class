@@ -98,25 +98,25 @@ class TestModelConfig:
         from packages.agents.config.models import MODELS
         assert MODELS.llm_judge == "f.pro"
 
-    def test_summarization_is_f_light(self):
+    def test_summarization_is_f_pro(self):
         from packages.agents.config.models import MODELS
-        assert MODELS.summarization == "f.light"
+        assert MODELS.summarization == "f.pro"
 
-    def test_content_generation_is_f_light(self):
+    def test_content_generation_is_f_pro(self):
         from packages.agents.config.models import MODELS
-        assert MODELS.content_generation == "f.light"
+        assert MODELS.content_generation == "f.pro"
 
-    def test_blueprint_design_is_f_light(self):
+    def test_blueprint_design_is_f_pro(self):
         from packages.agents.config.models import MODELS
-        assert MODELS.blueprint_design == "f.light"
+        assert MODELS.blueprint_design == "f.pro"
 
-    def test_schema_rewrite_is_f_light(self):
+    def test_schema_rewrite_is_f_pro(self):
         from packages.agents.config.models import MODELS
-        assert MODELS.schema_rewrite == "f.light"
+        assert MODELS.schema_rewrite == "f.pro"
 
-    def test_researcher_is_f_light(self):
+    def test_researcher_is_f_pro(self):
         from packages.agents.config.models import MODELS
-        assert MODELS.researcher == "f.light"
+        assert MODELS.researcher == "f.pro"
 
     def test_lead_agent_is_f_pro(self):
         from packages.agents.config.models import MODELS

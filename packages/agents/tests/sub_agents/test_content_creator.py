@@ -132,7 +132,7 @@ class TestContentCreatorAgent:
         with patch.dict(sys.modules, {"litellm": mock_litellm}):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
-        assert mock_litellm.acompletion.call_args.kwargs["model"] == "openai/f.light"
+        assert mock_litellm.acompletion.call_args.kwargs["model"] == "openai/f.pro"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):

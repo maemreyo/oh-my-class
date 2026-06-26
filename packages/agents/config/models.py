@@ -1,8 +1,6 @@
 """9Router model assignments for oh-my-class.
 
-Combos match AGENTS.md §6.1 model assignment table:
-  f.pro   → gpt-5.4 / content-fusion (Lead, Judge, Fact-check)
-  f.light → deepseek-v4-flash / deepseek-free (Planner, Researcher, Content Creator)
+Temporary dev routing uses f.pro for every task.
 
 Override via env: MODEL_BLUEPRINT_DESIGN=f.pro
 """
@@ -30,14 +28,13 @@ class ModelConfig(BaseSettings):
     # Alias: spec QG2 references MODELS.quality_gate → resolves to same f.pro combo
     quality_gate: str = "f.pro"
 
-    # f.light — fast generation (deepseek-v4-flash / deepseek-free per §6.1)
-    blueprint_design: str = "f.light"
-    researcher: str = "f.light"
-    content_generation: str = "f.light"
-    schema_rewrite: str = "f.light"
-    summarization: str = "f.light"
-    title_generation: str = "f.light"
-    content_review_light: str = "f.light"
+    blueprint_design: str = "f.pro"
+    researcher: str = "f.pro"
+    content_generation: str = "f.pro"
+    schema_rewrite: str = "f.pro"
+    summarization: str = "f.pro"
+    title_generation: str = "f.pro"
+    content_review_light: str = "f.pro"
 
 
 # Singleton — import this, not ModelConfig()
