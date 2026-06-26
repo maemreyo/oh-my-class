@@ -11,6 +11,10 @@ from packages.quality.layer2_content.age_band import (
     get_age_band,
 )
 from packages.quality.layer2_content.age_check import check_age_appropriateness
+from packages.quality.layer2_content.component_scorer import (
+    ComponentScoringResult,
+    score_component_usage,
+)
 from packages.quality.layer2_content.fact_check import FACTChecker
 from packages.quality.layer2_content.methodology import (
     MethodologyGateResult,
@@ -38,4 +42,6 @@ __all__ = [
     "MethodologyGateResult",
     "MethodologyViolation",
     "check_methodology_compliance",
+    "ComponentScoringResult",
+    "score_component_usage",
 ]

@@ -29,6 +29,14 @@ def _extract_text_content(artifact: dict[str, Any]) -> str:
     return "\n".join(parts)
 
 
+def _section_has_payload(section: dict[str, Any]) -> bool:
+    content = section.get("content", "")
+    components = section.get("components")
+    return (isinstance(content, str) and bool(content.strip())) or (
+        isinstance(components, list) and bool(components)
+    )
+
+
 def step_09_schema_validate(state: OhMyClassState) -> dict[str, Any]:
     """Layer 1: Validate artifacts against ArtifactContent contract.
 
@@ -69,9 +77,9 @@ def step_09_schema_validate(state: OhMyClassState) -> dict[str, Any]:
                     errors.append(
                         f"Artifact[{i}].sections[{j}] is not a dict"
                     )
-                elif not str(section.get("content", "")).strip():
+                elif not _section_has_payload(section):
                     errors.append(
-                        f"Artifact[{i}].sections[{j}] has empty content"
+                        f"Artifact[{i}].sections[{j}] has empty content and components"
                     )
 
     if errors:

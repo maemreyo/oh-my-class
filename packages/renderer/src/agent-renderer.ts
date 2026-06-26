@@ -1,7 +1,7 @@
 import process from "node:process";
 
 import { renderArtifact } from "./renderer.js";
-import type { LessonData, QuizData, WorksheetData } from "./contracts/index.js";
+import type { ContentComponent, LessonData, QuizData, WorksheetData } from "./contracts/index.js";
 
 type ArtifactRecord = Readonly<Record<string, unknown>>;
 
@@ -17,6 +17,13 @@ function asRecordArray(value: unknown): readonly ArtifactRecord[] {
   return Array.isArray(value) ? value.map(asRecord) : [];
 }
 
+function isContentComponent(value: unknown): value is ContentComponent {
+  if (value === null || typeof value !== "object" || !("type" in value)) {
+    return false;
+  }
+  return typeof value.type === "string";
+}
+
 function common(artifact: ArtifactRecord): Pick<LessonData, "title" | "subject" | "gradeLevel" | "theme" | "lang"> {
   const metadata = asRecord(artifact.metadata);
   const accessibility = asRecord(artifact.accessibility);
@@ -27,6 +34,12 @@ function common(artifact: ArtifactRecord): Pick<LessonData, "title" | "subject" 
     theme: asString(artifact.theme, "default"),
     lang: asString(accessibility.language, "vi"),
   };
+}
+
+function preserveComponents(section: ArtifactRecord): readonly ContentComponent[] {
+  const raw = section.components;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(isContentComponent);
 }
 
 function lessonData(artifact: ArtifactRecord): LessonData {
@@ -42,6 +55,7 @@ function lessonData(artifact: ArtifactRecord): LessonData {
       body: asString(section.content, asString(section.text, "")),
       id: asString(section.id, `section-${index + 1}`),
       time: asString(section.time, ""),
+      components: preserveComponents(section),
     })),
     hero: {
       eyebrow: asString(artifact.artifact_type, "lesson"),

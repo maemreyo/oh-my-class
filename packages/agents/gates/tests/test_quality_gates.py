@@ -33,17 +33,89 @@ def make_base_state(**overrides) -> OhMyClassState:
     return cast("OhMyClassState", base)
 
 
-VALID_ARTIFACT = {"type": "lesson", "content": "Plants use sunlight to make food."}
+COMPONENT_ARTIFACT = {
+    "artifact_type": "lesson",
+    "title": "Photosynthesis Components",
+    "sections": [
+        {
+            "title": "Concept Map",
+            "content": " ".join(
+                [
+                    "Students connect sunlight, water, carbon dioxide, glucose, "
+                    "and oxygen using leaf evidence."
+                ] * 8,
+            ),
+            "components": [
+                {
+                    "type": "concept_map",
+                    "nodes": [
+                        {"id": "sun", "label": "Sunlight"},
+                        {"id": "leaf", "label": "Leaf"},
+                    ],
+                    "edges": [{"from": "sun", "to": "leaf", "label": "energy"}],
+                },
+            ],
+        },
+        {
+            "title": "Check",
+            "content": " ".join(
+                [
+                    "Students explain which gas plants absorb during photosynthesis "
+                    "and why each distractor is wrong."
+                ] * 8,
+            ),
+            "components": [
+                {
+                    "type": "question_card",
+                    "id": 1,
+                    "text": "Which gas do plants absorb during photosynthesis?",
+                    "options": {
+                        "A": "Oxygen",
+                        "B": "Carbon dioxide",
+                        "C": "Nitrogen",
+                        "D": "Hydrogen",
+                    },
+                    "answer": "B",
+                    "explain": "Plants use carbon dioxide to make glucose.",
+                },
+            ],
+        },
+        {
+            "title": "Reflection",
+            "content": " ".join(
+                [
+                    "Learners write one sentence linking light energy to glucose "
+                    "production and oxygen release."
+                ] * 8,
+            ),
+            "components": [
+                {
+                    "type": "callout",
+                    "variant": "tip",
+                    "body": "Reactants enter the leaf; products leave or store energy.",
+                },
+            ],
+        },
+    ],
+}
 HTML_ARTIFACT = {
-    "type": "lesson_html",
-    "content": "<!DOCTYPE html><html><body>Plants use sunlight to make food.</body></html>",
+    "artifact_type": "roadmap",
+    "title": "HTML Roadmap",
+    "sections": [
+        {
+            "content": (
+                "<!DOCTYPE html><html><body>"
+                "Plants use sunlight to make food.</body></html>"
+            ),
+        },
+    ],
 }
 
 
 class TestSchemaValidator:
     def test_passes_with_valid_artifacts(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
-        state = make_base_state(artifacts=[VALID_ARTIFACT])
+        state = make_base_state(artifacts=[COMPONENT_ARTIFACT])
         result = step_09_schema_validate(state)
         assert result["schema_valid"] is True
         assert "fail_layer" not in result
@@ -58,21 +130,53 @@ class TestSchemaValidator:
 
     def test_fails_with_missing_content_key(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
-        state = make_base_state(artifacts=[{"type": "lesson"}])
+        state = make_base_state(artifacts=[{
+            "artifact_type": "lesson",
+            "title": "Missing Sections",
+        }])
         result = step_09_schema_validate(state)
         assert result["schema_valid"] is False
         assert "fail_context" in result
-        assert any("content" in e for e in result["fail_context"]["errors"])
+        assert any("sections" in e for e in result["fail_context"]["errors"])
 
     def test_fails_with_empty_content(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
-        state = make_base_state(artifacts=[{"type": "lesson", "content": "   "}])
+        state = make_base_state(artifacts=[{
+            "artifact_type": "lesson",
+            "title": "Empty Section",
+            "sections": [{"content": "   "}],
+        }])
         result = step_09_schema_validate(state)
         assert result["schema_valid"] is False
 
+    def test_passes_components_only_section(self):
+        from packages.agents.gates.schema_validator import step_09_schema_validate
+        state = make_base_state(artifacts=[{
+            "artifact_type": "lesson",
+            "title": "Components Only Lesson",
+            "sections": [
+                {
+                    "type": "teaching",
+                    "title": "Concept Map",
+                    "components": [
+                        {
+                            "type": "concept_map",
+                            "nodes": [{"id": "leaf", "label": "Leaf"}],
+                            "edges": [],
+                        }
+                    ],
+                }
+            ],
+        }])
+        result = step_09_schema_validate(state)
+        assert result["schema_valid"] is True
+
     def test_fails_with_missing_type_key(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
-        state = make_base_state(artifacts=[{"content": "some content"}])
+        state = make_base_state(artifacts=[{
+            "title": "Missing Type",
+            "sections": [{"content": "some content"}],
+        }])
         result = step_09_schema_validate(state)
         assert result["schema_valid"] is False
 
@@ -84,7 +188,7 @@ class TestSchemaValidator:
 
     def test_multiple_valid_artifacts_pass(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
-        state = make_base_state(artifacts=[VALID_ARTIFACT, HTML_ARTIFACT])
+        state = make_base_state(artifacts=[COMPONENT_ARTIFACT, HTML_ARTIFACT])
         result = step_09_schema_validate(state)
         assert result["schema_valid"] is True
 
@@ -92,15 +196,35 @@ class TestSchemaValidator:
 class TestContentReviewer:
     def test_passes_with_clean_content(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
-        state = make_base_state(artifacts=[VALID_ARTIFACT])
+        state = make_base_state(artifacts=[COMPONENT_ARTIFACT])
         result = step_10_content_review(state)
         assert result["content_review_passed"] is True
 
+    def test_fails_flat_content_without_components(self):
+        from packages.agents.gates.content_reviewer import step_10_content_review
+        state = make_base_state(artifacts=[{
+            "artifact_type": "lesson",
+            "title": "Flat Lesson",
+            "sections": [{"content": "Plants use sunlight to make food."}],
+        }])
+        result = step_10_content_review(state)
+        assert result["content_review_passed"] is False
+        assert result["fail_layer"] == "content"
+
     def test_fails_with_blocked_content(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
-        state = make_base_state(artifacts=[
-            {"type": "lesson", "content": "violence and gore in this lesson"}
-        ])
+        artifact = {
+            **COMPONENT_ARTIFACT,
+            "sections": [
+                {
+                    **COMPONENT_ARTIFACT["sections"][0],
+                    "content": "violence and gore in this lesson",
+                },
+                COMPONENT_ARTIFACT["sections"][1],
+                COMPONENT_ARTIFACT["sections"][2],
+            ],
+        }
+        state = make_base_state(artifacts=[artifact])
         result = step_10_content_review(state)
         assert result["content_review_passed"] is False
         assert result["fail_layer"] == "content"
@@ -114,8 +238,16 @@ class TestContentReviewer:
     def test_fails_html_with_external_assets(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
         artifact = {
-            "type": "lesson_html",
-            "content": '<!DOCTYPE html><html><body><img src="https://external.com/img.png"></body></html>',
+            "artifact_type": "roadmap",
+            "title": "External HTML",
+            "sections": [
+                {
+                    "content": (
+                        '<!DOCTYPE html><html><body><img src="https://external.com/img.png">'
+                        "</body></html>"
+                    ),
+                },
+            ],
         }
         state = make_base_state(artifacts=[artifact])
         result = step_10_content_review(state)
@@ -124,8 +256,9 @@ class TestContentReviewer:
     def test_fails_worksheet_with_answer_key(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
         artifact = {
-            "type": "worksheet",
-            "content": "Question 1: What is 2+2?\nAnswer Key: 4",
+            "artifact_type": "worksheet",
+            "title": "Math Worksheet",
+            "sections": [{"content": "Question 1: What is 2+2?\nAnswer Key: 4"}],
         }
         state = make_base_state(artifacts=[artifact])
         result = step_10_content_review(state)
@@ -140,9 +273,18 @@ class TestContentReviewer:
 
     def test_fail_context_has_errors(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
-        state = make_base_state(artifacts=[
-            {"type": "lesson", "content": "explicit adult violence content"}
-        ])
+        artifact = {
+            **COMPONENT_ARTIFACT,
+            "sections": [
+                {
+                    **COMPONENT_ARTIFACT["sections"][0],
+                    "content": "explicit adult violence content",
+                },
+                COMPONENT_ARTIFACT["sections"][1],
+                COMPONENT_ARTIFACT["sections"][2],
+            ],
+        }
+        state = make_base_state(artifacts=[artifact])
         result = step_10_content_review(state)
         assert "fail_context" in result
         assert len(result["fail_context"]["errors"]) > 0
@@ -151,7 +293,7 @@ class TestContentReviewer:
 class TestLLMJudge:
     def test_passes_with_valid_artifacts(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
-        state = make_base_state(artifacts=[VALID_ARTIFACT])
+        state = make_base_state(artifacts=[COMPONENT_ARTIFACT])
         result = step_10b_llm_judge(state)
         assert "judge_score" in result
         assert result["judge_score"] >= 7.0
@@ -166,15 +308,18 @@ class TestLLMJudge:
 
     def test_score_is_float(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
-        state = make_base_state(artifacts=[VALID_ARTIFACT])
+        state = make_base_state(artifacts=[COMPONENT_ARTIFACT])
         result = step_10b_llm_judge(state)
         assert isinstance(result["judge_score"], float)
 
     def test_empty_content_artifact_scores_zero(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
-        state = make_base_state(artifacts=[{"type": "lesson", "content": ""}])
+        state = make_base_state(artifacts=[{
+            "artifact_type": "lesson",
+            "title": "Empty",
+            "sections": [{"content": ""}],
+        }])
         result = step_10b_llm_judge(state)
-        # Empty content → score 0.0 → fail
         assert result["fail_layer"] == "judge"
 
 
@@ -182,7 +327,7 @@ class TestExportReadiness:
     def test_passes_when_ready(self):
         from packages.agents.gates.export_readiness import step_11_export_readiness
         state = make_base_state(
-            artifacts=[VALID_ARTIFACT],
+            artifacts=[COMPONENT_ARTIFACT],
             export_formats=["html"],
             judge_score=8.0,
         )
@@ -198,14 +343,14 @@ class TestExportReadiness:
 
     def test_fails_with_no_export_formats(self):
         from packages.agents.gates.export_readiness import step_11_export_readiness
-        state = make_base_state(artifacts=[VALID_ARTIFACT], export_formats=[])
+        state = make_base_state(artifacts=[COMPONENT_ARTIFACT], export_formats=[])
         result = step_11_export_readiness(state)
         assert result["export_ready"] is False
 
     def test_fails_when_judge_score_too_low(self):
         from packages.agents.gates.export_readiness import step_11_export_readiness
         state = make_base_state(
-            artifacts=[VALID_ARTIFACT],
+            artifacts=[COMPONENT_ARTIFACT],
             export_formats=["html"],
             judge_score=5.0,
         )
@@ -215,7 +360,7 @@ class TestExportReadiness:
     def test_passes_when_judge_score_none(self):
         from packages.agents.gates.export_readiness import step_11_export_readiness
         state = make_base_state(
-            artifacts=[VALID_ARTIFACT],
+            artifacts=[COMPONENT_ARTIFACT],
             export_formats=["html"],
         )
         result = step_11_export_readiness(state)

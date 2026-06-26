@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from packages.agents.config.gate_config import GateConfig
+from packages.quality.layer2_content.component_scorer import score_component_usage
 
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
@@ -45,7 +46,11 @@ def _section_title_score(artifact: dict[str, Any]) -> float:
     return len(titled) / len(sections)
 
 
-def _score_artifact(artifact: dict[str, Any], lesson_plan: dict[str, Any] | None) -> float:
+def _score_artifact(
+    artifact: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+    component_score: float,
+) -> float:
     """Score artifact strength until the real multi-judge is wired.
 
     The heuristic intentionally fails sparse content so the healing loop runs
@@ -60,7 +65,9 @@ def _score_artifact(artifact: dict[str, Any], lesson_plan: dict[str, Any] | None
     section_score = _section_title_score(artifact) * 2.0
     objective_bonus = 1.0 if lesson_plan and lesson_plan.get("learning_objectives") else 0.0
     structure_bonus = 2.0 if len(artifact.get("sections") or []) >= 3 else 1.0
-    return round(min(word_score + section_score + objective_bonus + structure_bonus, 10.0), 2)
+    component_bonus = max(0.0, (component_score - 5.0) / 5.0) * 1.0
+    total = word_score + section_score + objective_bonus + structure_bonus + component_bonus
+    return round(min(total, 10.0), 2)
 
 
 def step_10b_llm_judge(state: OhMyClassState) -> dict[str, Any]:
@@ -82,11 +89,30 @@ def step_10b_llm_judge(state: OhMyClassState) -> dict[str, Any]:
             "fail_context": {"errors": ["No artifacts to judge"]},
         }
 
-    scores = [_score_artifact(a, lesson_plan) for a in artifacts]
+    component_scores = [
+        score_component_usage(a, lesson_plan)
+        for a in artifacts
+    ]
+    scores = [
+        _score_artifact(artifact, lesson_plan, component.score)
+        for artifact, component in zip(artifacts, component_scores, strict=True)
+    ]
     overall = sum(scores) / len(scores)
     quality_scores = {
         "overall": round(overall, 2),
         "per_artifact": scores,
+        "components": [
+            {
+                "score": score.score,
+                "component_count": score.component_count,
+                "unique_intents": score.unique_intents,
+                "methodology_bonus": score.methodology_bonus,
+                "stuffing_penalty": score.stuffing_penalty,
+                "overuse_penalty": score.overuse_penalty,
+                "notes": score.notes,
+            }
+            for score in component_scores
+        ],
         "method": "heuristic_content_strength",
     }
 

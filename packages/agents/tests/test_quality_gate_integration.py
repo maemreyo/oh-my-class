@@ -50,6 +50,81 @@ def _strong_lesson_artifact() -> dict[str, Any]:
             },
         ],
     }
+
+
+def _component_lesson_artifact() -> dict[str, Any]:
+    return {
+        "artifact_type": "lesson",
+        "title": "Photosynthesis Components",
+        "sections": [
+            {
+                "title": "Concept Map",
+                "content": " ".join(
+                    [
+                        "Students connect sunlight, water, carbon dioxide, glucose, "
+                        "and oxygen using evidence from plant leaves."
+                    ] * 8,
+                ),
+                "components": [
+                    {
+                        "type": "concept_map",
+                        "nodes": [
+                            {"id": "sun", "label": "Sunlight"},
+                            {"id": "leaf", "label": "Leaf"},
+                            {"id": "sugar", "label": "Glucose"},
+                        ],
+                        "edges": [
+                            {"from": "sun", "to": "leaf", "label": "energy"},
+                            {"from": "leaf", "to": "sugar", "label": "makes"},
+                        ],
+                    }
+                ],
+            },
+            {
+                "title": "Check Understanding",
+                "content": " ".join(
+                    [
+                        "Students explain which material enters the plant and why "
+                        "each distractor is not the best answer."
+                    ] * 8,
+                ),
+                "components": [
+                    {
+                        "type": "question_card",
+                        "id": 1,
+                        "text": "Which gas do plants absorb during photosynthesis?",
+                        "options": {
+                            "A": "Oxygen",
+                            "B": "Carbon dioxide",
+                            "C": "Nitrogen",
+                            "D": "Hydrogen",
+                        },
+                        "answer": "B",
+                        "explain": (
+                            "Carbon dioxide enters leaves through stomata "
+                            "and is used to make glucose."
+                        ),
+                    }
+                ],
+            },
+            {
+                "title": "Exit Reflection",
+                "content": " ".join(
+                    [
+                        "Learners write one sentence that links light energy to glucose "
+                        "production and oxygen release."
+                    ] * 8,
+                ),
+                "components": [
+                    {
+                        "type": "callout",
+                        "variant": "tip",
+                        "body": "Reactants enter the leaf; products leave or store energy.",
+                    }
+                ],
+            },
+        ],
+    }
 HTML_ARTIFACT = {
     "artifact_type": "lesson",
     "title": "Photosynthesis HTML",
@@ -120,6 +195,28 @@ class TestSchemaValidator:
         result = step_09_schema_validate(cast("OhMyClassState", state))
         assert result["schema_valid"] is False
 
+    def test_passes_components_only_section(self):
+        from packages.agents.gates.schema_validator import step_09_schema_validate
+        artifact = {
+            "artifact_type": "lesson",
+            "title": "Components Only Lesson",
+            "sections": [
+                {
+                    "type": "teaching",
+                    "title": "Concept Map",
+                    "components": [
+                        {
+                            "type": "concept_map",
+                            "nodes": [{"id": "leaf", "label": "Leaf"}],
+                            "edges": [],
+                        }
+                    ],
+                }
+            ],
+        }
+        result = step_09_schema_validate(cast("OhMyClassState", _base_state(artifacts=[artifact])))
+        assert result["schema_valid"] is True
+
     def test_preserves_fail_count_from_state(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
         state = _base_state(artifacts=[], fail_count=2)
@@ -133,10 +230,20 @@ class TestSchemaValidator:
 class TestContentReviewer:
     def test_passes_clean_content(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
-        state = _base_state(artifacts=[VALID_ARTIFACT])
+        state = _base_state(artifacts=[_component_lesson_artifact()])
         result = step_10_content_review(cast("OhMyClassState", state))
         assert result["content_review_passed"] is True
         assert "fail_layer" not in result
+
+    def test_fails_flat_lesson_without_components(self):
+        from packages.agents.gates.content_reviewer import step_10_content_review
+        result = step_10_content_review(cast(
+            "OhMyClassState",
+            _base_state(artifacts=[VALID_ARTIFACT]),
+        ))
+        assert result["content_review_passed"] is False
+        assert result["fail_layer"] == "content"
+        assert any("components" in error for error in result["fail_context"]["errors"])
 
     def test_fails_blocked_content(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
@@ -176,7 +283,7 @@ class TestLLMJudge:
     def test_passes_non_empty_artifacts(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
         state = _base_state(
-            artifacts=[_strong_lesson_artifact()],
+            artifacts=[_component_lesson_artifact()],
             lesson_plan={
                 "topic": "Math",
                 "learning_objectives": ["Explain photosynthesis"],
@@ -186,6 +293,17 @@ class TestLLMJudge:
         assert result["judge_score"] >= 7.0
         assert result["quality_scores"]["overall"] >= 7.0
         assert "fail_layer" not in result
+
+    def test_quality_scores_include_component_intelligence(self):
+        from packages.agents.gates.llm_judge import step_10b_llm_judge
+        result = step_10b_llm_judge(cast("OhMyClassState", _base_state(
+            artifacts=[_component_lesson_artifact()],
+            lesson_plan={"methodology": {"tags": ["concept_map", "why_wrong_reasoning"]}},
+        )))
+        component_scores = result["quality_scores"]["components"]
+        assert component_scores[0]["component_count"] == 3
+        assert component_scores[0]["unique_intents"] >= 2
+        assert component_scores[0]["score"] > 5.0
 
     def test_fails_sparse_artifacts(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
@@ -224,6 +342,13 @@ class TestHealingOrchestrator:
     def test_first_validation_failure_rewrites(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
         state = cast("OhMyClassState", _base_state(fail_count=0, fail_type="validation"))
+        result = HealingOrchestrator(max_retries=3).heal(state)
+        assert result.get("healing_strategy") == "rewrite"
+        assert result["fail_count"] == 1
+
+    def test_first_content_failure_rewrites(self):
+        from packages.agents.healing.orchestrator import HealingOrchestrator
+        state = cast("OhMyClassState", _base_state(fail_count=0, fail_type="content"))
         result = HealingOrchestrator(max_retries=3).heal(state)
         assert result.get("healing_strategy") == "rewrite"
         assert result["fail_count"] == 1
@@ -348,7 +473,7 @@ class TestQualityGateChain:
         )
 
         state: dict[str, Any] = _base_state(
-            artifacts=[_strong_lesson_artifact()],
+            artifacts=[_component_lesson_artifact()],
             lesson_plan={
                 "topic": "Photosynthesis",
                 "learning_objectives": ["Explain photosynthesis"],

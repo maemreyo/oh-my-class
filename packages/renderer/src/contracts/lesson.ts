@@ -5,6 +5,8 @@
  * Rendered by pages/lesson.html template.
  */
 
+import type { ContentComponent } from "./components.js";
+
 export interface LessonSidebarStat {
   key: string;
   value: string;
@@ -43,7 +45,7 @@ export interface LessonSection {
   body: string;
   id?: string;
   time?: string;
-  components?: string[];
+  components?: readonly ContentComponent[];
 }
 
 export interface VocabEntry {

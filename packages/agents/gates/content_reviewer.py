@@ -10,6 +10,7 @@ from packages.agents.gates.presentation import (
     check_answer_key_leakage,
     validate_html,
 )
+from packages.quality.layer1_schema.component_gate import validate_component_minimums
 from packages.quality.layer2_content.methodology import check_methodology_compliance
 
 if TYPE_CHECKING:
@@ -44,6 +45,8 @@ def step_10_content_review(state: OhMyClassState) -> dict[str, Any]:
             if str(p).strip()
         )
         artifact_type = artifact.get("artifact_type", "")
+
+        errors.extend(validate_component_minimums(artifact))
 
         # Fact check
         fact_result = run_fact_check(content)
