@@ -51,5 +51,29 @@ class ModelAssignments(BaseSettings):
     content_review_light: str = "4omc"
 
 
+class MaxTokensConfig(BaseSettings):
+    """Per-agent max_tokens budget. Env prefix: MAX_TOKENS_
+
+    Caps total output (thinking + content) so reasoning models
+    can't burn unlimited tokens on reasoning.
+    """
+
+    model_config = SettingsConfigDict(
+        env_prefix="MAX_TOKENS_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    planner: int = 4096
+    researcher: int = 4096
+    content_creator: int = 8192
+    diagnostician: int = 2048
+    reviewer: int = 2048
+    default: int = 4096
+
+
 LLM = LLMConfig()
 MODELS = ModelAssignments()
+MAX_TOKENS = MaxTokensConfig()

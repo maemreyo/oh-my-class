@@ -85,6 +85,7 @@ Bloom taxonomy reference (Vietnamese names):
                 "agent:diagnostician",
                 f"step:{state.get('current_step', 0)}",
                 f"run:{state.get('run_id', '')}",
+                "attempt:1",
                 "pipeline:oh-my-class",
             ],
         )

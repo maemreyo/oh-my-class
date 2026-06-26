@@ -28,6 +28,8 @@ from services.gateway.routers.approvals import (  # noqa: E402
 )
 from services.gateway.routers.runs import (  # noqa: E402
     _derive_status,
+)
+from packages.agents.events import (  # noqa: E402
     _event_store,
     _event_subscribers,
 )

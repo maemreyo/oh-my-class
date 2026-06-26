@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from openai import AsyncOpenAI
 
-from packages.agents.config.models import LLM
+from packages.agents.config.models import LLM, MAX_TOKENS
 
 if TYPE_CHECKING:
     from openai.types.chat import (
@@ -17,6 +17,18 @@ if TYPE_CHECKING:
     )
 
 _LOGGER: Final = logging.getLogger("packages.agents.llm")
+
+# Per-agent max_tokens defaults — caps total output (thinking + content)
+# so reasoning models can't burn unlimited tokens on reasoning.
+# Configured via MAX_TOKENS_* env vars (see packages/agents/config/models.py).
+_AGENT_MAX_TOKENS: dict[str, int] = {
+    "planner": MAX_TOKENS.planner,
+    "researcher": MAX_TOKENS.researcher,
+    "content_creator": MAX_TOKENS.content_creator,
+    "diagnostician": MAX_TOKENS.diagnostician,
+    "reviewer": MAX_TOKENS.reviewer,
+}
+_DEFAULT_MAX_TOKENS = MAX_TOKENS.default
 
 
 def log_llm_start(agent: str, run_id: str, step: int, model: str, attempt: int) -> float:
@@ -77,70 +89,125 @@ async def complete_json_chat(
     messages: list[ChatCompletionMessageParam],
     temperature: float,
     tags: list[str],
+    max_tokens: int | None = None,
 ) -> str:
+    from packages.agents.events import emit_run_event
+
     started = time.monotonic()
     request_model = model.removeprefix("openai/")
-    _LOGGER.info(
-        "llm.transport.request model=%s base_url=%s message_count=%s message_chars=%s tags=%s",
-        request_model,
-        LLM.base_url,
-        len(messages),
-        _message_chars(messages),
-        tags,
-    )
-    client = AsyncOpenAI(
-        api_key=LLM.api_key or "no-key",
-        base_url=LLM.base_url,
-        timeout=LLM.timeout,
-        max_retries=LLM.max_retries,
-    )
-    response = await client.chat.completions.create(
-        model=request_model,
-        messages=messages,
-        temperature=temperature,
-        extra_body={"metadata": "|".join(tags) if tags else ""},
-    )
-    usage = response.usage.model_dump() if response.usage is not None else None
-    choice_count = len(response.choices)
-    _LOGGER.info(
-        "llm.transport.response model=%s response_id=%s response_model=%s "
-        "choices=%s usage=%s duration_s=%.1f",
-        request_model,
-        response.id,
-        response.model,
-        choice_count,
-        usage,
-        time.monotonic() - started,
-    )
-    if not response.choices:
-        _LOGGER.warning(
-            "llm.transport.empty_choices model=%s response_id=%s response_model=%s usage=%s",
+
+    run_id = ""
+    agent_name = ""
+    attempt = 1
+    for tag in tags:
+        if tag.startswith("run:"):
+            run_id = tag.split(":", 1)[1]
+        elif tag.startswith("agent:"):
+            agent_name = tag.split(":", 1)[1]
+        elif tag.startswith("attempt:"):
+            attempt = int(tag.split(":", 1)[1])
+
+    # Resolve max_tokens: explicit > agent-specific default > global default
+    if max_tokens is None:
+        max_tokens = _AGENT_MAX_TOKENS.get(agent_name, _DEFAULT_MAX_TOKENS)
+
+    emit_run_event(run_id, "llm_call_started", {
+        "agent": agent_name,
+        "model": request_model,
+        "attempt": attempt,
+        "max_tokens": max_tokens,
+        "message_chars": _message_chars(messages),
+    })
+
+    try:
+        _LOGGER.info(
+            "llm.transport.request model=%s base_url=%s message_count=%s message_chars=%s tags=%s",
+            request_model,
+            LLM.base_url,
+            len(messages),
+            _message_chars(messages),
+            tags,
+        )
+        client = AsyncOpenAI(
+            api_key=LLM.api_key or "no-key",
+            base_url=LLM.base_url,
+            timeout=LLM.timeout,
+            max_retries=LLM.max_retries,
+        )
+        response = await client.chat.completions.create(
+            model=request_model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            extra_body={"metadata": "|".join(tags) if tags else ""},
+        )
+        usage = response.usage.model_dump() if response.usage is not None else None
+        choice_count = len(response.choices)
+        _LOGGER.info(
+            "llm.transport.response model=%s response_id=%s response_model=%s "
+            "choices=%s usage=%s duration_s=%.1f",
             request_model,
             response.id,
             response.model,
+            choice_count,
             usage,
+            time.monotonic() - started,
         )
-        raise RuntimeError(
-            f"9Router returned empty choices for model={model}; response_id={response.id}"
-        )
-    choice = response.choices[0]
-    content = choice.message.content or ""
-    if not content:
-        # Reasoning models sometimes put content in the reasoning field
-        msg = choice.message
-        reasoning = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None)
-        if reasoning:
-            if isinstance(reasoning, list):
-                content = "".join(p.get("text", str(p)) if isinstance(p, dict) else str(p) for p in reasoning)  # noqa: E501
-            else:
-                content = str(reasoning)
-            _LOGGER.info(
-                "llm.transport.fallback_from_reasoning model=%s response_id=%s fallback_chars=%s",
+        if not response.choices:
+            _LOGGER.warning(
+                "llm.transport.empty_choices model=%s response_id=%s response_model=%s usage=%s",
                 request_model,
                 response.id,
-                len(content),
+                response.model,
+                usage,
             )
-    return content
+            raise RuntimeError(
+                f"9Router returned empty choices for model={model}; response_id={response.id}"
+            )
+        choice = response.choices[0]
+        content = choice.message.content or ""
+        if not content:
+            msg = choice.message
+            reasoning = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None)
+            if reasoning:
+                if isinstance(reasoning, list):
+                    content = "".join(p.get("text", str(p)) if isinstance(p, dict) else str(p) for p in reasoning)  # noqa: E501
+                else:
+                    content = str(reasoning)
+                _LOGGER.info(
+                    "llm.transport.fallback_from_reasoning model=%s response_id=%s fallback_chars=%s",
+                    request_model,
+                    response.id,
+                    len(content),
+                )
+
+        emit_run_event(run_id, "llm_call_completed", {
+            "agent": agent_name,
+            "model": request_model,
+            "attempt": attempt,
+            "duration_s": round(time.monotonic() - started, 1),
+            "response_chars": len(content),
+            "usage": usage,
+        })
+        return content
+    except Exception as exc:
+        error_type = type(exc).__name__.lower()
+        exc_str = str(exc).lower()
+        if "timeout" in exc_str:
+            error_type = "timeout"
+        elif "json" in exc_str:
+            error_type = "json_parse"
+        elif "empty" in exc_str:
+            error_type = "empty_response"
+        emit_run_event(run_id, "llm_call_failed", {
+            "agent": agent_name,
+            "model": request_model,
+            "attempt": attempt,
+            "duration_s": round(time.monotonic() - started, 1),
+            "error": str(exc)[:200],
+            "error_type": error_type,
+        })
+        raise
 
 
 def chat_messages(system: str, user: str) -> list[ChatCompletionMessageParam]:

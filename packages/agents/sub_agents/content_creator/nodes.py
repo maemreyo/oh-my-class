@@ -117,6 +117,7 @@ Return a JSON array of artifacts.
                     "agent:content_creator",
                     f"step:{state.get('current_step', 8)}",
                     f"run:{state.get('run_id', '')}",
+                    f"attempt:{attempt_number}",
                     "pipeline:oh-my-class",
                 ],
             )

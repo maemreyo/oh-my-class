@@ -6,7 +6,12 @@ healing orchestrator, and interrupt() gates for teacher approval.
 
 from __future__ import annotations
 
+import asyncio
+import inspect
+import time as _time
 from typing import Any
+
+from packages.agents.events import emit_run_event
 
 from packages.agents.gates import (
     gate_01_blueprint_approval,
@@ -30,6 +35,46 @@ from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_n
 from packages.agents.sub_agents.planner.agent import planner_graph_node
 from packages.agents.sub_agents.researcher.agent import researcher_graph_node
 from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
+
+
+def _wrap_node(node_fn, node_name: str, agent_name: str = ""):
+    """Wrap a LangGraph node with step_started/completed/failed events."""
+    _is_async = inspect.iscoroutinefunction(node_fn)
+
+    async def wrapped(state: OhMyClassState) -> dict[str, Any]:
+        run_id = str(state.get("run_id", ""))
+        emit_run_event(run_id, "step_started", {
+            "node": node_name,
+            "agent": agent_name,
+        })
+        started = _time.monotonic()
+        try:
+            if _is_async:
+                result = await node_fn(state)
+            else:
+                result = await asyncio.to_thread(node_fn, state)
+            duration = round(_time.monotonic() - started, 1)
+            result_keys = list(result.keys()) if isinstance(result, dict) else []
+            emit_run_event(run_id, "step_completed", {
+                "node": node_name,
+                "agent": agent_name,
+                "duration_s": duration,
+                "result_keys": result_keys,
+            })
+            return result
+        except Exception as exc:
+            duration = round(_time.monotonic() - started, 1)
+            emit_run_event(run_id, "step_failed", {
+                "node": node_name,
+                "agent": agent_name,
+                "duration_s": duration,
+                "error": str(exc)[:200],
+                "error_type": type(exc).__name__,
+            })
+            raise
+
+    wrapped.__name__ = node_name
+    return wrapped
 
 
 def _make_dummy_node(step: int, name: str):
@@ -89,24 +134,24 @@ def build_oh_my_class_graph(
     graph = StateGraph(OhMyClassState)
 
     # ── Pipeline nodes ─────────────────────────────────────────────────────────
-    graph.add_node("step_00_diagnostic", diagnostician_graph_node)
-    graph.add_node("step_01_preflight", step_01_preflight)
-    graph.add_node("step_02_quickstart", step_02_quickstart)
-    graph.add_node("step_03_blueprint", planner_graph_node)
-    graph.add_node("gate_01_blueprint_approval", gate_01_blueprint_approval)
-    graph.add_node("step_04b_roadmap", roadmap_graph_node)
-    graph.add_node("step_05_pack_scope", step_05_pack_scope)
-    graph.add_node("step_06_visual_engine", step_06_visual_engine)
-    graph.add_node("step_07_research", researcher_graph_node)
-    graph.add_node("step_08_generate", content_creator_graph_node)
-    graph.add_node("step_09_schema_validate", step_09_schema_validate)
-    graph.add_node("step_10_content_review", step_10_content_review)
-    graph.add_node("step_10b_llm_judge", step_10b_llm_judge)
-    graph.add_node("gate_02_content_approval", gate_02_content_approval)
-    graph.add_node("step_11_export_readiness", step_11_export_readiness)
-    graph.add_node("step_12_finalize", step_12_finalize)
-    graph.add_node("healing_node", healing_node)
-    graph.add_node("escalate_node", escalate_node)
+    graph.add_node("step_00_diagnostic", _wrap_node(diagnostician_graph_node, "step_00_diagnostic", "diagnostician"))
+    graph.add_node("step_01_preflight", _wrap_node(step_01_preflight, "step_01_preflight"))
+    graph.add_node("step_02_quickstart", _wrap_node(step_02_quickstart, "step_02_quickstart"))
+    graph.add_node("step_03_blueprint", _wrap_node(planner_graph_node, "step_03_blueprint", "planner"))
+    graph.add_node("gate_01_blueprint_approval", _wrap_node(gate_01_blueprint_approval, "gate_01_blueprint_approval"))
+    graph.add_node("step_04b_roadmap", _wrap_node(roadmap_graph_node, "step_04b_roadmap", "roadmap"))
+    graph.add_node("step_05_pack_scope", _wrap_node(step_05_pack_scope, "step_05_pack_scope"))
+    graph.add_node("step_06_visual_engine", _wrap_node(step_06_visual_engine, "step_06_visual_engine"))
+    graph.add_node("step_07_research", _wrap_node(researcher_graph_node, "step_07_research", "researcher"))
+    graph.add_node("step_08_generate", _wrap_node(content_creator_graph_node, "step_08_generate", "content_creator"))
+    graph.add_node("step_09_schema_validate", _wrap_node(step_09_schema_validate, "step_09_schema_validate"))
+    graph.add_node("step_10_content_review", _wrap_node(step_10_content_review, "step_10_content_review"))
+    graph.add_node("step_10b_llm_judge", _wrap_node(step_10b_llm_judge, "step_10b_llm_judge"))
+    graph.add_node("gate_02_content_approval", _wrap_node(gate_02_content_approval, "gate_02_content_approval"))
+    graph.add_node("step_11_export_readiness", _wrap_node(step_11_export_readiness, "step_11_export_readiness"))
+    graph.add_node("step_12_finalize", _wrap_node(step_12_finalize, "step_12_finalize"))
+    graph.add_node("healing_node", _wrap_node(healing_node, "healing_node", "healing"))
+    graph.add_node("escalate_node", _wrap_node(escalate_node, "escalate_node"))
 
     # ── Edges ──────────────────────────────────────────────────────────────────
     graph.set_entry_point("step_00_diagnostic")

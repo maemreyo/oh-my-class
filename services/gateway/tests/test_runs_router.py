@@ -25,13 +25,16 @@ from services.gateway.routers.runs import (  # noqa: E402
     RunRequest,
     RunResponse,
     _derive_status,
-    _event_store,
-    _event_subscribers,
     _to_run_response,
     build_initial_state,
+    router,
+)
+from packages.agents.events import (  # noqa: E402
+    _event_store,
+    _event_subscribers,
     emit_run_event,
     get_run_events,
-    router,
+    clear_run,
 )
 
 # ── helpers ───────────────────────────────────────────────────────────────────

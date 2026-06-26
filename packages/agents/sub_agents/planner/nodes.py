@@ -65,6 +65,7 @@ Class information:
                     "agent:planner",
                     f"step:{state.get('current_step', 3)}",
                     f"run:{state.get('run_id', '')}",
+                    f"attempt:{attempt_number}",
                     "pipeline:oh-my-class",
                 ],
             )

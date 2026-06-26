@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import uuid
-from collections import defaultdict
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
@@ -14,41 +12,19 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
+from packages.agents.events import (
+    emit_run_event,
+    get_run_events,
+    has_terminal_event,
+    subscribe,
+    unsubscribe,
+)
+
 from ..auth.dependencies import require_teacher
 from ..auth.models import Role, User
 from ..exceptions import AuthorizationError, NotFoundError, PipelineError
 
 router = APIRouter()
-
-# ── In-memory event store ──────────────────────────────────────────────────
-
-_TERMINAL_EVENTS = {"step_completed", "run_failed", "interrupt"}
-_event_store: dict[str, list[dict[str, Any]]] = defaultdict(list)
-_event_subscribers: dict[str, list[asyncio.Queue[dict[str, Any] | None]]] = defaultdict(list)
-
-
-def _has_terminal_event(run_id: str) -> bool:
-    return any(e["event_type"] in _TERMINAL_EVENTS for e in _event_store.get(run_id, []))
-
-
-def emit_run_event(run_id: str, event_type: str, data: dict[str, Any]) -> None:
-    """Append an event to the run's event log and notify subscribers."""
-    event = {
-        "event_type": event_type,
-        "run_id": run_id,
-        "timestamp": datetime.now(UTC).isoformat(),
-        **data,
-    }
-    _event_store[run_id].append(event)
-
-    for queue in _event_subscribers[run_id]:
-        with contextlib.suppress(asyncio.QueueFull):
-            queue.put_nowait(event)
-
-
-def get_run_events(run_id: str) -> list[dict[str, Any]]:
-    """Get all events for a run."""
-    return list(_event_store.get(run_id, []))
 
 
 def _format_sse(event: dict[str, Any]) -> str:
@@ -364,15 +340,14 @@ async def get_run_status(
 
     _require_owner(run_data, current_user)
 
-    queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
-    _event_subscribers[run_id].append(queue)
+    queue = subscribe(run_id)
 
     async def event_generator():
         try:
             for event in get_run_events(run_id):
                 yield _format_sse(event)
 
-            if _has_terminal_event(run_id):
+            if has_terminal_event(run_id):
                 return
 
             while True:
@@ -384,7 +359,7 @@ async def get_run_status(
                 except TimeoutError:
                     yield ": keepalive\n\n"
         finally:
-            _event_subscribers[run_id].remove(queue)
+            unsubscribe(run_id, queue)
 
     return StreamingResponse(
         event_generator(),

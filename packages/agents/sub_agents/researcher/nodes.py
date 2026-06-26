@@ -90,6 +90,7 @@ or credibility scores.
                     "agent:researcher",
                     f"step:{state.get('current_step', 7)}",
                     f"run:{state.get('run_id', '')}",
+                    f"attempt:{attempt_number}",
                     "pipeline:oh-my-class",
                 ],
             )
