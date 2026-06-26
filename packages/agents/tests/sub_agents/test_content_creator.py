@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import json
-import sys
 from typing import TYPE_CHECKING, Any, cast
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -23,20 +22,13 @@ if TYPE_CHECKING:
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _make_mock_response(content: str) -> MagicMock:
-    mock = MagicMock()
-    mock.choices = [MagicMock()]
-    mock.choices[0].message.content = content
-    return mock
-
-
-def _make_litellm_mock(return_value=None, side_effect=None) -> MagicMock:
-    mock_module = MagicMock()
+def _make_llm_mock(
+    return_value: str | None = None,
+    side_effect: Exception | None = None,
+) -> AsyncMock:
     if side_effect is not None:
-        mock_module.acompletion = AsyncMock(side_effect=side_effect)
-    else:
-        mock_module.acompletion = AsyncMock(return_value=return_value)
-    return mock_module
+        return AsyncMock(side_effect=side_effect)
+    return AsyncMock(return_value=return_value)
 
 
 def _make_state(**overrides) -> dict[str, Any]:
@@ -71,8 +63,8 @@ VALID_ARTIFACT_ARRAY_JSON = json.dumps([VALID_ARTIFACT])
 class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_returns_valid_artifact_content(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
@@ -82,8 +74,8 @@ class TestContentCreatorAgent:
 
     @pytest.mark.asyncio
     async def test_parses_json_code_fence(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert result["artifacts"][0]["title"] == "Photosynthesis Lesson"
@@ -91,8 +83,8 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_parses_generic_code_fence(self):
         wrapped = f"```\n{VALID_ARTIFACT_ARRAY_JSON}\n```"
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(wrapped))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=wrapped)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
@@ -100,82 +92,88 @@ class TestContentCreatorAgent:
 
     @pytest.mark.asyncio
     async def test_parses_bare_json_array(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_ARRAY_JSON))  # noqa: E501
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_ARRAY_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
 
     @pytest.mark.asyncio
     async def test_wraps_single_artifact_dict_in_list(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert len(result["artifacts"]) == 1
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_invalid_json(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not valid json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Content creator agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(return_value="not valid json")
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Content creator agent failed"),
+        ):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
-        mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Content creator agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Content creator agent failed"),
+        ):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
     @pytest.mark.asyncio
-    async def test_calls_litellm_with_correct_model(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+    async def test_calls_llm_with_correct_model(self):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
-        assert mock_litellm.acompletion.call_args.kwargs["model"] == "openai/f.pro"
+        assert mock_llm.call_args.kwargs["model"] == "openai/f.pro"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state(run_id="run-xyz")))
 
-        tags = mock_litellm.acompletion.call_args.kwargs["extra_body"]["metadata"]["tags"]
+        tags = mock_llm.call_args.kwargs["tags"]
         assert any("run-xyz" in t for t in tags)
         assert any("agent:content_creator" in t for t in tags)
         assert any("pipeline:oh-my-class" in t for t in tags)
 
     @pytest.mark.asyncio
     async def test_missing_lesson_plan_uses_empty_dict(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state(lesson_plan=None)))  # noqa: E501
 
-        mock_litellm.acompletion.assert_awaited_once()
+        mock_llm.assert_awaited_once()
         assert "artifacts" in result
 
     @pytest.mark.asyncio
     async def test_missing_artifact_types_defaults_to_lesson(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state(artifact_types=None)))
 
-        user_msg = mock_litellm.acompletion.call_args.kwargs["messages"][1]["content"]
+        user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
         assert "lesson" in user_msg
 
     @pytest.mark.asyncio
     async def test_theme_forwarded_to_prompt(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state(theme="ocean")))
 
-        user_msg = mock_litellm.acompletion.call_args.kwargs["messages"][1]["content"]
+        user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
         assert "ocean" in user_msg
 
     @pytest.mark.asyncio
     async def test_artifact_validates_against_schema(self):
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ARTIFACT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         for artifact_dict in result["artifacts"]:

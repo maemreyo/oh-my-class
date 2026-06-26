@@ -47,12 +47,8 @@ verification_status as UNCERTAIN rather than VERIFIED. Do not invent URLs,
 citations, snippets, or credibility scores.
 """
 
-    messages = [
-        {"role": "system", "content": researcher_system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
-
     from packages.agents.llm import (
+        chat_messages,
         complete_json_chat,
         extract_json_text,
         log_llm_failure,
@@ -64,13 +60,13 @@ citations, snippets, or credibility scores.
     model = resolve_model("f.light")
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 7))
-    # Strong system prompt to force JSON output from free models
-    messages[0]["content"] = (
-        messages[0]["content"]
+    system_prompt = (
+        researcher_system_prompt
         + "\n\nCRITICAL: Respond ONLY with a single JSON object. "
         "No prose, no explanation, no markdown code fences. "
         "Just the raw JSON."
     )
+    messages = chat_messages(system_prompt, user_prompt)
 
     for attempt in range(3):
         attempt_number = attempt + 1
@@ -104,11 +100,10 @@ citations, snippets, or credibility scores.
                     ValueError("invalid JSON response"),
                 )
                 if attempt < 2:
-                    messages.append({"role": "assistant", "content": str(content)[:500]})
-                    messages.append({
-                        "role": "user",
-                        "content": "Invalid response. Return ONLY the JSON object. No prose.",
-                    })
+                    messages = chat_messages(
+                        system_prompt,
+                        "Invalid response. Return ONLY the JSON object. No prose.",
+                    )
                     continue
                 sources = [
                     {

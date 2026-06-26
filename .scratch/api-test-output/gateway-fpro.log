@@ -1,10 +1,16 @@
-INFO:     Started server process [76262]
+INFO:     Started server process [79453]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
-{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/health method=GET", "timestamp": "2026-06-26 14:16:34,890"}
-INFO:     127.0.0.1:60077 - "GET /health HTTP/1.1" 200 OK
-{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/auth/login method=POST", "timestamp": "2026-06-26 14:16:41,075"}
-INFO:     127.0.0.1:60090 - "POST /auth/login HTTP/1.1" 200 OK
-{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/run method=POST", "timestamp": "2026-06-26 14:16:41,078"}
-{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.start agent=planner run_id=8db51c57-1852-430a-9db8-37da4cb602d1 step=2 model=openai/f.pro attempt=1", "timestamp": "2026-06-26 14:16:41,400"}
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/health method=GET", "timestamp": "2026-06-26 14:43:45,971"}
+INFO:     127.0.0.1:62266 - "GET /health HTTP/1.1" 200 OK
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/auth/login method=POST", "timestamp": "2026-06-26 14:43:54,525"}
+INFO:     127.0.0.1:62277 - "POST /auth/login HTTP/1.1" 200 OK
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/run method=POST", "timestamp": "2026-06-26 14:43:54,527"}
+{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.start agent=planner run_id=9747d2c1-64d2-42ea-a936-e1e6d299472d step=2 model=openai/f.pro attempt=1", "timestamp": "2026-06-26 14:43:54,785"}
+{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/chat/completions \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 14:44:12,757"}
+{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.success agent=planner run_id=9747d2c1-64d2-42ea-a936-e1e6d299472d step=2 model=openai/f.pro attempt=1 duration_s=18.0", "timestamp": "2026-06-26 14:44:12,762"}
+INFO:     127.0.0.1:62278 - "POST /run HTTP/1.1" 200 OK
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/run/9747d2c1-64d2-42ea-a936-e1e6d299472d/approve method=POST", "timestamp": "2026-06-26 14:44:12,767"}
+{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.start agent=researcher run_id=9747d2c1-64d2-42ea-a936-e1e6d299472d step=6 model=openai/f.pro attempt=1", "timestamp": "2026-06-26 14:44:12,777"}
+{"level": "INFO", "logger": "openai._base_client", "message": "Retrying request to /chat/completions in 0.474676 seconds", "timestamp": "2026-06-26 14:46:12,795"}

@@ -1,9 +1,8 @@
 """Tests for planner agent and ResearchBundle contract."""
 
 import json
-import sys
 from typing import TYPE_CHECKING, Any, cast
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -158,21 +157,13 @@ class TestResearchBundle:
 
 # ── Planner Agent ─────────────────────────────────────────────────────────────
 
-def _make_mock_response(content: str) -> MagicMock:
-    mock = MagicMock()
-    mock.choices = [MagicMock()]
-    mock.choices[0].message.content = content
-    return mock
-
-
-def _make_litellm_mock(return_value=None, side_effect=None) -> MagicMock:
-    """Build a fake litellm module with acompletion as an AsyncMock."""
-    mock_module = MagicMock()
+def _make_llm_mock(
+    return_value: str | None = None,
+    side_effect: Exception | None = None,
+) -> AsyncMock:
     if side_effect is not None:
-        mock_module.acompletion = AsyncMock(side_effect=side_effect)
-    else:
-        mock_module.acompletion = AsyncMock(return_value=return_value)
-    return mock_module
+        return AsyncMock(side_effect=side_effect)
+    return AsyncMock(return_value=return_value)
 
 
 VALID_PLAN_JSON = json.dumps({
@@ -205,8 +196,8 @@ class TestPlannerAgent:
     async def test_returns_valid_lesson_plan(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
@@ -217,8 +208,8 @@ class TestPlannerAgent:
     async def test_parses_json_code_fence(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert result["lesson_plan"]["topic"] == "Photosynthesis"
@@ -227,8 +218,8 @@ class TestPlannerAgent:
     async def test_parses_generic_code_fence(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_GENERIC_FENCE))  # noqa: E501
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_PLAN_GENERIC_FENCE)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
@@ -237,8 +228,8 @@ class TestPlannerAgent:
     async def test_parses_bare_json(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_PLAN_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
@@ -247,16 +238,22 @@ class TestPlannerAgent:
     async def test_raises_value_error_on_invalid_json(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json at all"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Planner agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(return_value="not json at all")
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Planner agent failed"),
+        ):
             await design_lesson_plan(cast("PlannerState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Planner agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Planner agent failed"),
+        ):
             await design_lesson_plan(cast("PlannerState", self._make_state()))
 
     @pytest.mark.asyncio
@@ -264,41 +261,44 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         bad_plan = json.dumps({"topic": "T"})  # Missing required fields
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_plan))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Planner agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(return_value=bad_plan)
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Planner agent failed"),
+        ):
             await design_lesson_plan(cast("PlannerState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_state_missing_class_info_fields_uses_defaults(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state(class_info={})))
 
-        mock_litellm.acompletion.assert_awaited_once()
+        mock_llm.assert_awaited_once()
         assert "lesson_plan" in result
 
     @pytest.mark.asyncio
-    async def test_calls_litellm_with_correct_model(self):
+    async def test_calls_llm_with_correct_model(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await design_lesson_plan(cast("PlannerState", self._make_state()))
 
-        call_kwargs = mock_litellm.acompletion.call_args
+        call_kwargs = mock_llm.call_args
         assert call_kwargs.kwargs["model"] == "openai/f.pro"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await design_lesson_plan(cast("PlannerState", self._make_state(run_id="my-run-xyz")))
 
-        tags = mock_litellm.acompletion.call_args.kwargs["extra_body"]["metadata"]["tags"]
+        tags = mock_llm.call_args.kwargs["tags"]
         assert any("my-run-xyz" in t for t in tags)
         assert any("agent:planner" in t for t in tags)
         assert any("pipeline:oh-my-class" in t for t in tags)
@@ -307,8 +307,8 @@ class TestPlannerAgent:
     async def test_lesson_plan_has_correct_bloom_levels(self):
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_PLAN_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         plan = LessonPlan.model_validate(result["lesson_plan"])

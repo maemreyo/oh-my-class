@@ -1,9 +1,8 @@
 """Tests for researcher agent."""
 
 import json
-import sys
 from typing import TYPE_CHECKING, Any, cast
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -14,20 +13,13 @@ if TYPE_CHECKING:
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _make_mock_response(content: str) -> MagicMock:
-    mock = MagicMock()
-    mock.choices = [MagicMock()]
-    mock.choices[0].message.content = content
-    return mock
-
-
-def _make_litellm_mock(return_value=None, side_effect=None) -> MagicMock:
-    mock_module = MagicMock()
+def _make_llm_mock(
+    return_value: str | None = None,
+    side_effect: Exception | None = None,
+) -> AsyncMock:
     if side_effect is not None:
-        mock_module.acompletion = AsyncMock(side_effect=side_effect)
-    else:
-        mock_module.acompletion = AsyncMock(return_value=return_value)
-    return mock_module
+        return AsyncMock(side_effect=side_effect)
+    return AsyncMock(return_value=return_value)
 
 
 def _make_state(**overrides) -> dict[str, Any]:
@@ -62,8 +54,8 @@ class TestResearcherAgent:
     async def test_returns_valid_research_bundle(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
@@ -75,8 +67,8 @@ class TestResearcherAgent:
     async def test_parses_json_code_fence(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert result["research_bundle"]["topic"] == "Photosynthesis"
@@ -85,8 +77,8 @@ class TestResearcherAgent:
     async def test_parses_generic_code_fence(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_GENERIC_FENCE))  # noqa: E501
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_GENERIC_FENCE)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
@@ -95,8 +87,8 @@ class TestResearcherAgent:
     async def test_parses_bare_json(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         assert "research_bundle" in result
@@ -105,8 +97,8 @@ class TestResearcherAgent:
     async def test_invalid_json_returns_uncertain_source_candidates(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value="not json")
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         bundle = ResearchBundle.model_validate(result["research_bundle"])
@@ -117,8 +109,11 @@ class TestResearcherAgent:
     async def test_raises_value_error_on_llm_error(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Researcher agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Researcher agent failed"),
+        ):
             await research_sources(cast("ResearcherState", _make_state()))
 
     @pytest.mark.asyncio
@@ -129,8 +124,8 @@ class TestResearcherAgent:
             "topic": "T",
             "sources": [{"title": "Only one", "credibility_score": 0.9, "verification_status": "VERIFIED"}],  # noqa: E501
         })
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_bundle))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=bad_bundle)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         bundle = ResearchBundle.model_validate(result["research_bundle"])
@@ -141,32 +136,32 @@ class TestResearcherAgent:
     async def test_missing_lesson_plan_uses_default_topic(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state(lesson_plan=None)))
 
-        mock_litellm.acompletion.assert_awaited_once()
+        mock_llm.assert_awaited_once()
         assert "research_bundle" in result
 
     @pytest.mark.asyncio
-    async def test_calls_litellm_with_correct_model(self):
+    async def test_calls_llm_with_correct_model(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await research_sources(cast("ResearcherState", _make_state()))
 
-        assert mock_litellm.acompletion.call_args.kwargs["model"] == "openai/f.pro"
+        assert mock_llm.call_args.kwargs["model"] == "openai/f.pro"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await research_sources(cast("ResearcherState", _make_state(run_id="run-abc")))
 
-        tags = mock_litellm.acompletion.call_args.kwargs["extra_body"]["metadata"]["tags"]
+        tags = mock_llm.call_args.kwargs["tags"]
         assert any("run-abc" in t for t in tags)
         assert any("agent:researcher" in t for t in tags)
         assert any("pipeline:oh-my-class" in t for t in tags)
@@ -175,19 +170,19 @@ class TestResearcherAgent:
     async def test_research_policy_forwarded_to_prompt(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await research_sources(cast("ResearcherState", _make_state(research_policy="rigorous")))
 
-        user_msg = mock_litellm.acompletion.call_args.kwargs["messages"][1]["content"]
+        user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
         assert "rigorous" in user_msg
 
     @pytest.mark.asyncio
     async def test_bundle_sources_have_verification_status(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_BUNDLE_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_BUNDLE_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await research_sources(cast("ResearcherState", _make_state()))
 
         bundle = ResearchBundle.model_validate(result["research_bundle"])

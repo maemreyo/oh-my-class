@@ -51,11 +51,8 @@ Monthly Milestones:
 {json.dumps(milestones, ensure_ascii=False, indent=2)}
 """
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
     from packages.agents.llm import (
+        chat_messages,
         complete_json_chat,
         log_llm_failure,
         log_llm_start,
@@ -66,6 +63,7 @@ Monthly Milestones:
     model = resolve_model("f.light")
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 0))
+    messages = chat_messages(system_prompt, user_prompt)
 
     started = log_llm_start("roadmap_agent", run_id, step, model, 1)
     try:

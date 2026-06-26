@@ -1,9 +1,8 @@
 """Tests for Roadmap Agent and supporting tools."""
 
 import json
-import sys
 from typing import TYPE_CHECKING, Any, cast
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -257,20 +256,13 @@ class TestMilestoneCalculator:
 
 # ── Roadmap Agent node ─────────────────────────────────────────────────────────
 
-def _make_mock_response(content: str) -> MagicMock:
-    mock = MagicMock()
-    mock.choices = [MagicMock()]
-    mock.choices[0].message.content = content
-    return mock
-
-
-def _make_litellm_mock(return_value=None, side_effect=None) -> MagicMock:
-    mock_module = MagicMock()
+def _make_llm_mock(
+    return_value: str | None = None,
+    side_effect: Exception | None = None,
+) -> AsyncMock:
     if side_effect is not None:
-        mock_module.acompletion = AsyncMock(side_effect=side_effect)
-    else:
-        mock_module.acompletion = AsyncMock(return_value=return_value)
-    return mock_module
+        return AsyncMock(side_effect=side_effect)
+    return AsyncMock(return_value=return_value)
 
 
 VALID_ROADMAP_JSON = json.dumps({
@@ -338,8 +330,8 @@ class TestRoadmapNode:
     async def test_returns_roadmap_artifact(self):
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ROADMAP_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ROADMAP_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await roadmap_node(cast("RoadmapAgentState", self._make_state()))
 
         assert "roadmap_artifact" in result
@@ -351,8 +343,8 @@ class TestRoadmapNode:
     async def test_roadmap_artifact_has_sections(self):
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ROADMAP_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ROADMAP_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await roadmap_node(cast("RoadmapAgentState", self._make_state()))
 
         artifact = result["roadmap_artifact"]
@@ -363,8 +355,8 @@ class TestRoadmapNode:
     async def test_artifact_type_set_to_roadmap(self):
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ROADMAP_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ROADMAP_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await roadmap_node(cast("RoadmapAgentState", self._make_state()))
 
         assert result["roadmap_artifact"]["artifact_type"] == "roadmap"
@@ -373,24 +365,30 @@ class TestRoadmapNode:
     async def test_raises_value_error_on_invalid_json(self):
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+        mock_llm = _make_llm_mock(return_value="not json")
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Invalid JSON"),
+        ):
             await roadmap_node(cast("RoadmapAgentState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-        mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Roadmap agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Roadmap agent failed"),
+        ):
             await roadmap_node(cast("RoadmapAgentState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_works_without_student_profile(self):
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ROADMAP_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ROADMAP_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await roadmap_node(cast("RoadmapAgentState", self._make_state(student_profile=None)))  # noqa: E501
 
         assert "roadmap_artifact" in result
@@ -399,8 +397,8 @@ class TestRoadmapNode:
     async def test_artifact_entry_has_student_id_in_id(self):
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ROADMAP_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ROADMAP_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await roadmap_node(cast("RoadmapAgentState", self._make_state()))
 
         artifact_id = result["artifacts"][0]["id"]
@@ -473,8 +471,11 @@ class TestRoadmapGraphNode:
         """Present diagnostic_report + LLM failure → ValueError propagates (fail closed)."""
         from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
 
-        mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API down"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Roadmap agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(side_effect=RuntimeError("API down"))
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Roadmap agent failed"),
+        ):
             await roadmap_graph_node(cast("OhMyClassState", self._make_full_state()))
 
 
@@ -502,8 +503,8 @@ class TestRoadmapNodeValidation:
         from common.contracts.roadmap import RoadmapContent
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_ROADMAP_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_ROADMAP_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await roadmap_node(cast("RoadmapAgentState", self._make_state()))
 
         validated = RoadmapContent.model_validate(result["roadmap_artifact"])
@@ -515,6 +516,9 @@ class TestRoadmapNodeValidation:
         from packages.agents.sub_agents.roadmap_agent.nodes import roadmap_node
 
         bad_roadmap = json.dumps({"title": "test"})  # missing required hero + sidebar
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(bad_roadmap))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Roadmap agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(return_value=bad_roadmap)
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Roadmap agent failed"),
+        ):
             await roadmap_node(cast("RoadmapAgentState", self._make_state()))

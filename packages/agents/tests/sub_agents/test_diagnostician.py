@@ -1,9 +1,8 @@
 """Tests for Diagnostician Agent and supporting tools."""
 
 import json
-import sys
 from typing import TYPE_CHECKING, Any, cast
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -352,20 +351,13 @@ class TestQuestionTypeClassifier:
 
 # ── Diagnostician Agent node ───────────────────────────────────────────────────
 
-def _make_mock_response(content: str) -> MagicMock:
-    mock = MagicMock()
-    mock.choices = [MagicMock()]
-    mock.choices[0].message.content = content
-    return mock
-
-
-def _make_litellm_mock(return_value=None, side_effect=None) -> MagicMock:
-    mock_module = MagicMock()
+def _make_llm_mock(
+    return_value: str | None = None,
+    side_effect: Exception | None = None,
+) -> AsyncMock:
     if side_effect is not None:
-        mock_module.acompletion = AsyncMock(side_effect=side_effect)
-    else:
-        mock_module.acompletion = AsyncMock(return_value=return_value)
-    return mock_module
+        return AsyncMock(side_effect=side_effect)
+    return AsyncMock(return_value=return_value)
 
 
 VALID_REPORT_JSON = json.dumps({
@@ -407,8 +399,8 @@ class TestDiagnosticianNode:
     async def test_returns_diagnostic_report(self):
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_REPORT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_REPORT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
         assert "diagnostic_report" in result
@@ -419,8 +411,8 @@ class TestDiagnosticianNode:
     async def test_parses_json_code_fence(self):
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_REPORT_WRAPPED))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_REPORT_WRAPPED)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
         assert result["diagnostic_report"]["recommended_level"] == "B2"
@@ -429,10 +421,8 @@ class TestDiagnosticianNode:
     async def test_parses_generic_fence(self):
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
-        mock_litellm = _make_litellm_mock(
-            return_value=_make_mock_response(VALID_REPORT_GENERIC_FENCE)
-        )
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_REPORT_GENERIC_FENCE)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
         assert "diagnostic_report" in result
@@ -441,8 +431,8 @@ class TestDiagnosticianNode:
     async def test_parses_bare_json(self):
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_REPORT_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_REPORT_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
         assert "diagnostic_report" in result
@@ -451,24 +441,30 @@ class TestDiagnosticianNode:
     async def test_raises_value_error_on_invalid_json(self):
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+        mock_llm = _make_llm_mock(return_value="not json")
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Invalid JSON"),
+        ):
             await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_raises_value_error_on_llm_error(self):
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
-        mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API timeout"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Diagnostician agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Diagnostician agent failed"),
+        ):
             await diagnostician_node(cast("DiagnosticianState", self._make_state()))
 
     @pytest.mark.asyncio
     async def test_handles_empty_student_responses(self):
         from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
 
-        mock_litellm = _make_litellm_mock(return_value=_make_mock_response(VALID_REPORT_JSON))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+        mock_llm = _make_llm_mock(return_value=VALID_REPORT_JSON)
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
             result = await diagnostician_node(cast("DiagnosticianState", self._make_state(student_responses={})))  # noqa: E501
 
         assert "diagnostic_report" in result
@@ -526,8 +522,11 @@ class TestDiagnosticianGraphNode:
         from packages.agents.sub_agents.diagnostician.agent import diagnostician_graph_node
 
         valid_sr = {"student_id": "s1", "wrong_question_ids": [1]}
-        mock_litellm = _make_litellm_mock(side_effect=RuntimeError("API down"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Diagnostician agent failed"):  # noqa: E501
+        mock_llm = _make_llm_mock(side_effect=RuntimeError("API down"))
+        with (
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Diagnostician agent failed"),
+        ):
             await diagnostician_graph_node(cast("OhMyClassState", {"student_responses": valid_sr}))
 
     @pytest.mark.asyncio

@@ -41,12 +41,8 @@ Please generate one ArtifactContent JSON for each artifact type.
 Return a JSON array of artifacts.
 """
 
-    messages = [
-        {"role": "system", "content": content_creator_system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
-
     from packages.agents.llm import (
+        chat_messages,
         complete_json_chat,
         extract_json_text,
         log_llm_failure,
@@ -58,12 +54,12 @@ Return a JSON array of artifacts.
     model = resolve_model("f.light")
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 8))
-    # Force JSON array output from free models
-    messages[0]["content"] = (
-        messages[0]["content"]
+    system_prompt = (
+        content_creator_system_prompt
         + "\n\nCRITICAL: Respond ONLY with a JSON array. "
         "No prose, no explanation, no markdown fences."
     )
+    messages = chat_messages(system_prompt, user_prompt)
 
     content = None
     for attempt in range(3):
@@ -102,11 +98,10 @@ Return a JSON array of artifacts.
                 "content_creator", run_id, step, model, attempt_number, started, parse_err,
             )
             if attempt < 2:
-                messages.append({"role": "assistant", "content": str(content)[:500]})
-                messages.append({
-                    "role": "user",
-                    "content": "Invalid response. Return ONLY the JSON array of artifacts.",
-                })
+                messages = chat_messages(
+                    system_prompt,
+                    "Invalid response. Return ONLY the JSON array of artifacts.",
+                )
                 continue
             raise ValueError(f"Content creator agent failed: {parse_err}") from parse_err
         except Exception as e:

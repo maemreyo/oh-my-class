@@ -33,12 +33,8 @@ Class information:
 - Language: {state['class_info'].get('language', 'en')}
 """
 
-    messages = [
-        {"role": "system", "content": planner_system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
-
     from packages.agents.llm import (
+        chat_messages,
         complete_json_chat,
         extract_json_text,
         log_llm_failure,
@@ -50,12 +46,12 @@ Class information:
     model = resolve_model("f.light")
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 3))
-    # Force JSON output from free models
-    messages[0]["content"] = (
-        messages[0]["content"]
+    system_prompt = (
+        planner_system_prompt
         + "\n\nCRITICAL: Respond ONLY with a single JSON object. "
         "No prose, no explanation, no markdown code fences."
     )
+    messages = chat_messages(system_prompt, user_prompt)
 
     for attempt in range(3):
         attempt_number = attempt + 1
@@ -82,14 +78,10 @@ Class information:
                 "planner", run_id, step, model, attempt_number, started, parse_err,
             )
             if attempt < 2:
-                messages.append({
-                    "role": "assistant",
-                    "content": str(locals().get("content", ""))[:500],
-                })
-                messages.append({
-                    "role": "user",
-                    "content": "Invalid response. Return ONLY the JSON object.",
-                })
+                messages = chat_messages(
+                    system_prompt,
+                    "Invalid response. Return ONLY the JSON object.",
+                )
                 continue
             raise ValueError(f"Planner agent failed: {parse_err}") from parse_err
         except Exception as e:

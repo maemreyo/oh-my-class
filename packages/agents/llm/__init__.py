@@ -9,10 +9,16 @@ import json as _json
 import logging
 import os
 import time
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionMessageParam
+
+if TYPE_CHECKING:
+    from openai.types.chat import (
+        ChatCompletionMessageParam,
+        ChatCompletionSystemMessageParam,
+        ChatCompletionUserMessageParam,
+    )
 
 NINEROUTER_BASE_URL: Final = "http://localhost:20128/v1"
 _LOGGER: Final = logging.getLogger("packages.agents.llm")
@@ -107,7 +113,7 @@ def log_llm_failure(
 
 async def complete_json_chat(
     model: str,
-    messages: list[dict[str, str]],
+    messages: list[ChatCompletionMessageParam],
     temperature: float,
     tags: list[str],
 ) -> str:
@@ -115,21 +121,33 @@ async def complete_json_chat(
     client = AsyncOpenAI(
         api_key=config["api_key"] or "no-key",
         base_url=config["api_base"],
-        timeout=300.0,
+        timeout=120.0,
         max_retries=2,
     )
-    typed_messages: list[ChatCompletionMessageParam] = [
-        {"role": message["role"], "content": message["content"]}
-        for message in messages
-    ]
     response = await client.chat.completions.create(
         model=model.removeprefix("openai/"),
-        messages=typed_messages,
+        messages=messages,
         temperature=temperature,
         extra_body={"metadata": {"tags": tags}},
     )
+    if not response.choices:
+        raise RuntimeError(
+            f"9Router returned empty choices for model={model}; response_id={response.id}"
+        )
     choice = response.choices[0]
     return choice.message.content or ""
+
+
+def chat_messages(system: str, user: str) -> list[ChatCompletionMessageParam]:
+    system_message: ChatCompletionSystemMessageParam = {
+        "role": "system",
+        "content": system,
+    }
+    user_message: ChatCompletionUserMessageParam = {
+        "role": "user",
+        "content": user,
+    }
+    return [system_message, user_message]
 
 
 def extract_json_text(content: Any, reasoning_content: Any = None) -> str:
