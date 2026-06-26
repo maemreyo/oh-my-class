@@ -33,7 +33,7 @@ class GateConfig(BaseSettings):
     responsive_check_enabled: bool = False  # Playwright — off for MVP
 
     # Layer 4: LLM Judge
-    judge_model: str = "f.pro"
+    judge_model: str = "4omc"
     judge_min_score: float = 7.0
     judge_n: int = 1                       # K4: 1 judge MVP, bump to 3 later
     judge_temperature: float = 0.1

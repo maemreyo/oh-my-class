@@ -130,7 +130,7 @@ class TestContentCreatorAgent:
         with patch("packages.agents.llm.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
-        assert mock_llm.call_args.kwargs["model"] == "f.pro"
+        assert mock_llm.call_args.kwargs["model"] == "4omc"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):

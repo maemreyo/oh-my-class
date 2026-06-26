@@ -47,7 +47,7 @@ Learning objectives:
 Source candidates from the web_search tool:
 {json.dumps(source_candidates, indent=2)}
 
-Fetched evidence from f.pro.fetch:
+Fetched evidence from 4omc.fetch:
 {json.dumps(research_evidence, indent=2) }
 
 Please gather and verify sources following the FACT protocol.

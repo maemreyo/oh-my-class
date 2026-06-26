@@ -20,10 +20,10 @@ class LeadAgentConfig(TypedDict):
     metadata_tags: list[str]
 
 
-# The Lead Agent uses gpt-5.4 via 9Router combo: f.pro
+# The Lead Agent uses gpt-5.4 via 9Router combo: 4omc
 # (NOT direct OpenAI API — all traffic routes through 9Router sidecar)
 LEAD_AGENT_CONFIG: LeadAgentConfig = {
-    "model": "gpt-5.4",        # → 9Router combo: f.pro (best free model)
+        "model": "gpt-5.4",        # → 9Router combo: 4omc (best free model)
     "fallback": "deepseek-v4-flash",  # → 9Router combo: f.light (fast fallback)
     "tools": ["task", "ask_clarification", "read_file", "write_file"],
     "max_turns": 0,  # Unlimited (pipeline steps)

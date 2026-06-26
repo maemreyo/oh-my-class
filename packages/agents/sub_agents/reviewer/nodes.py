@@ -1,6 +1,6 @@
 """Reviewer Agent — LangGraph node function.
 
-LLM-as-Judge with G-Eval scoring. Uses f.pro (different from generator)
+LLM-as-Judge with G-Eval scoring. Uses 4omc (different from generator)
 to avoid self-review bias.
 """
 

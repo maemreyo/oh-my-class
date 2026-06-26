@@ -18,9 +18,9 @@ class MockLLMClient:
 
     Usage:
         mock = MockLLMClient()
-        mock.set_response("f.pro", "content_generation", '{"sections": [...]}')
-        result = await mock.chat("f.pro", messages, task="content_generation")
-        assert mock.call_count("f.pro") == 1
+        mock.set_response("4omc", "content_generation", '{"sections": [...]}')
+        result = await mock.chat("4omc", messages, task="content_generation")
+        assert mock.call_count("4omc") == 1
     """
 
     def __init__(self) -> None:

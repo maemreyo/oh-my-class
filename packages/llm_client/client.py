@@ -62,7 +62,7 @@ class LLMClient:
 
     async def chat(
         self,
-        model: str,                         # "f.light" | "f.pro" — always
+        model: str,                         # "f.light" | "4omc" — always
         messages: list[ChatMessage],
         agent: str = "unknown",
         task: str = "unknown",

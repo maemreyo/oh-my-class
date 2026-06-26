@@ -1,15 +1,9 @@
-[2026-06-26T12:15:39+00:00] live flow runner started
-[2026-06-26T12:15:39+00:00] HTTP POST /auth/login started
-[2026-06-26T12:15:39+00:00] HTTP POST /auth/login completed in 0.0s
-[2026-06-26T12:15:39+00:00] login ok
-[2026-06-26T12:15:39+00:00] HTTP POST /run started
-[2026-06-26T12:15:54+00:00] HTTP POST /run still running after 15.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T12:16:02+00:00] HTTP POST /run completed in 23.1s
-[2026-06-26T12:16:02+00:00] run created: 2dac3690-fada-43e3-a4ee-f9906b80aafa status=awaiting_approval
-[2026-06-26T12:16:02+00:00] approving blueprint gate
-[2026-06-26T12:16:02+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve started
-[2026-06-26T12:16:17+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 15.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T12:16:32+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 30.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T12:16:47+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 45.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T12:17:02+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 60.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T12:17:17+00:00] HTTP POST /run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve still running after 75.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T13:08:12+00:00] live flow runner started
+[2026-06-26T13:08:12+00:00] HTTP POST /auth/login started
+[2026-06-26T13:08:12+00:00] HTTP POST /auth/login completed in 0.0s
+[2026-06-26T13:08:12+00:00] login ok
+[2026-06-26T13:08:12+00:00] HTTP POST /run started
+[2026-06-26T13:08:27+00:00] HTTP POST /run still running after 15.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T13:08:42+00:00] HTTP POST /run still running after 30.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T13:08:57+00:00] HTTP POST /run still running after 45.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
+[2026-06-26T13:09:12+00:00] HTTP POST /run still running after 60.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log

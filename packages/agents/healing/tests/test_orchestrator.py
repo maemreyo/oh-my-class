@@ -54,7 +54,7 @@ class TestHealingOrchestrator:
         state = make_state(fail_count=1, fail_type="validation", generation_model="f.light")
         result = HealingOrchestrator().heal(cast("OhMyClassState", state))
         assert result["healing_strategy"] == "reroute"
-        assert result["generation_model"] == "f.pro"
+        assert result["generation_model"] == "4omc"
 
     def test_replan_on_third_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
@@ -142,17 +142,17 @@ class TestRerouteStrategy:
     def test_upgrades_light_to_pro(self):
         from packages.agents.healing.strategies.reroute import apply
         result = apply({"generation_model": "f.light"}, 2)
-        assert result["generation_model"] == "f.pro"
+        assert result["generation_model"] == "4omc"
 
     def test_downgrades_pro_to_light(self):
         from packages.agents.healing.strategies.reroute import apply
-        result = apply({"generation_model": "f.pro"}, 2)
+        result = apply({"generation_model": "4omc"}, 2)
         assert result["generation_model"] == "f.light"
 
     def test_defaults_to_light_when_no_model(self):
         from packages.agents.healing.strategies.reroute import apply
         result = apply({}, 2)
-        assert result["generation_model"] in ("f.light", "f.pro")
+        assert result["generation_model"] in ("f.light", "4omc")
 
     def test_clears_artifacts(self):
         from packages.agents.healing.strategies.reroute import apply

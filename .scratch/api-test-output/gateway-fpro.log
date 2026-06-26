@@ -1,36 +1,14 @@
-INFO:     Started server process [77113]
+INFO:     Started server process [88043]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
-{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/health method=GET", "timestamp": "2026-06-26 19:15:29,231"}
-INFO:     127.0.0.1:62071 - "GET /health HTTP/1.1" 200 OK
-{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/auth/login method=POST", "timestamp": "2026-06-26 19:15:39,339"}
-INFO:     127.0.0.1:62081 - "POST /auth/login HTTP/1.1" 200 OK
-{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/run method=POST", "timestamp": "2026-06-26 19:15:39,341"}
-{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.start agent=planner run_id=2dac3690-fada-43e3-a4ee-f9906b80aafa step=2 model=f.pro attempt=1", "timestamp": "2026-06-26 19:15:39,575"}
-{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.transport.request model=f.pro base_url=http://localhost:20128/v1 message_count=2 message_chars=1373 tags=['agent:planner', 'step:2', 'run:2dac3690-fada-43e3-a4ee-f9906b80aafa', 'pipeline:oh-my-class']", "timestamp": "2026-06-26 19:15:39,575"}
-{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/chat/completions \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 19:16:02,442"}
-{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.transport.response model=f.pro response_id=gen-1782476140-PAvCBVkFKCF7Wh25ejkh response_model=xiaomi/mimo-v2.5-20260422 choices=1 usage={'completion_tokens': 1882, 'prompt_tokens': 2376, 'total_tokens': 4258, 'completion_tokens_details': {'accepted_prediction_tokens': None, 'audio_tokens': 0, 'reasoning_tokens': 57, 'rejected_prediction_tokens': None, 'image_tokens': 0}, 'prompt_tokens_details': {'audio_tokens': 0, 'cached_tokens': 320, 'cache_write_tokens': 0, 'video_tokens': 0}} duration_s=22.9", "timestamp": "2026-06-26 19:16:02,452"}
-{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.success agent=planner run_id=2dac3690-fada-43e3-a4ee-f9906b80aafa step=2 model=f.pro attempt=1 duration_s=22.9", "timestamp": "2026-06-26 19:16:02,452"}
-INFO:     127.0.0.1:62082 - "POST /run HTTP/1.1" 200 OK
-{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/run/2dac3690-fada-43e3-a4ee-f9906b80aafa/approve method=POST", "timestamp": "2026-06-26 19:16:02,460"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.start type=search model=f.pro.search details={'query': 'Phân số tương đương - Mối quan hệ giữa các phân số bằng nhau'}", "timestamp": "2026-06-26 19:16:02,475"}
-{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/search \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 19:16:04,065"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.success type=search model=f.pro.search duration_s=1.6 details={'result_count': 5}", "timestamp": "2026-06-26 19:16:04,066"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.start type=fetch model=f.pro.fetch details={'url': 'https://hoc24.vn/ly-thuyet/bai-23-mo-rong-phan-so-phan-so-bang-nhau.124964'}", "timestamp": "2026-06-26 19:16:04,066"}
-{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/web/fetch \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 19:16:05,589"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.success type=fetch model=f.pro.fetch duration_s=1.5 details={'content_chars': 11417}", "timestamp": "2026-06-26 19:16:05,590"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.start type=fetch model=f.pro.fetch details={'url': 'https://vi.wikipedia.org/wiki/Ph%C3%A2n_s%E1%BB%91'}", "timestamp": "2026-06-26 19:16:05,590"}
-{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/web/fetch \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 19:16:14,490"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.success type=fetch model=f.pro.fetch duration_s=8.9 details={'content_chars': 24306}", "timestamp": "2026-06-26 19:16:14,491"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.start type=fetch model=f.pro.fetch details={'url': 'https://hoclagioi.vn/cam-nang/phan-so-bang-nhau-la-gi-id-592'}", "timestamp": "2026-06-26 19:16:14,491"}
-{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/web/fetch \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 19:16:14,811"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.success type=fetch model=f.pro.fetch duration_s=0.3 details={'content_chars': 9553}", "timestamp": "2026-06-26 19:16:14,812"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.start type=fetch model=f.pro.fetch details={'url': 'https://vi.khanacademy.org/math/toan-lop-4-viet-nam/x2ffbd70d5a249b56:phan-so-toan-lop-4/x2ffbd70d5a249b56:tinh-chat-co-ban-cua-phan-so-toan-lop-4/v/generating-equivalent-fractions'}", "timestamp": "2026-06-26 19:16:14,812"}
-{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/web/fetch \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 19:16:17,734"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.success type=fetch model=f.pro.fetch duration_s=2.9 details={'content_chars': 0}", "timestamp": "2026-06-26 19:16:17,734"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.start type=fetch model=f.pro.fetch details={'url': 'https://hoctot.nam.name.vn/ly-thuyet-mo-rong-phan-so-phan-so-bang-nhau-toan-6-kntt-voi-cuoc-song-a91030.html'}", "timestamp": "2026-06-26 19:16:17,734"}
-{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/web/fetch \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 19:16:19,203"}
-{"level": "INFO", "logger": "packages.agents.tools.ninerouter_web", "message": "web.call.success type=fetch model=f.pro.fetch duration_s=1.5 details={'content_chars': 22480}", "timestamp": "2026-06-26 19:16:19,203"}
-{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.start agent=researcher run_id=2dac3690-fada-43e3-a4ee-f9906b80aafa step=6 model=f.pro attempt=1", "timestamp": "2026-06-26 19:16:19,204"}
-{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.transport.request model=f.pro base_url=http://localhost:20128/v1 message_count=2 message_chars=31856 tags=['agent:researcher', 'step:6', 'run:2dac3690-fada-43e3-a4ee-f9906b80aafa', 'pipeline:oh-my-class']", "timestamp": "2026-06-26 19:16:19,204"}
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/health method=GET", "timestamp": "2026-06-26 20:06:46,023"}
+INFO:     127.0.0.1:64766 - "GET /health HTTP/1.1" 200 OK
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/auth/login method=POST", "timestamp": "2026-06-26 20:08:12,450"}
+INFO:     127.0.0.1:64832 - "POST /auth/login HTTP/1.1" 200 OK
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/run method=POST", "timestamp": "2026-06-26 20:08:12,453"}
+{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.start agent=planner run_id=d7e8f34f-0d1e-450d-819c-6c450b6bf461 step=2 model=f.pro attempt=1", "timestamp": "2026-06-26 20:08:12,685"}
+{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.transport.request model=f.pro base_url=http://localhost:20128/v1 message_count=2 message_chars=1373 tags=['agent:planner', 'step:2', 'run:d7e8f34f-0d1e-450d-819c-6c450b6bf461', 'pipeline:oh-my-class']", "timestamp": "2026-06-26 20:08:12,685"}
+{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/chat/completions \"HTTP/1.1 200 OK\"", "timestamp": "2026-06-26 20:09:55,465"}
+{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.transport.response model=f.pro response_id=gen-1782479376-ZJ6vVmhzyj9A5s1z8W5E response_model=nvidia/nemotron-3-super-120b-a12b-20230311:free choices=1 usage={'completion_tokens': 2079, 'prompt_tokens': 2392, 'total_tokens': 4471, 'completion_tokens_details': {'accepted_prediction_tokens': None, 'audio_tokens': 0, 'reasoning_tokens': 1659, 'rejected_prediction_tokens': None, 'image_tokens': 0}, 'prompt_tokens_details': {'audio_tokens': 0, 'cached_tokens': 0, 'cache_write_tokens': 0, 'video_tokens': 0}} duration_s=102.8", "timestamp": "2026-06-26 20:09:55,473"}
+{"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.success agent=planner run_id=d7e8f34f-0d1e-450d-819c-6c450b6bf461 step=2 model=f.pro attempt=1 duration_s=102.8", "timestamp": "2026-06-26 20:09:55,473"}

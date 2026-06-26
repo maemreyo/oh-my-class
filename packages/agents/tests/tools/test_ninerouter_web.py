@@ -79,7 +79,7 @@ async def test_search_posts_to_ninerouter_search_endpoint() -> None:
     assert results[0].title == "Equivalent fractions"
     call = FakeAsyncClient.calls[0]
     assert call["url"] == "http://router.local/v1/search"
-    assert call["json"]["model"] == "f.pro.search"
+    assert call["json"]["model"] == "4omc.search"
     assert call["json"]["search_type"] == "web"
     assert call["headers"]["Authorization"] == "Bearer test-key"
 
@@ -108,7 +108,7 @@ async def test_fetch_returns_markdown_content() -> None:
     assert "Equivalent fractions" in result.content
     call = FakeAsyncClient.calls[0]
     assert call["url"] == "http://router.local/v1/web/fetch"
-    assert call["json"]["model"] == "f.pro.fetch"
+    assert call["json"]["model"] == "4omc.fetch"
     assert "Authorization" not in call["headers"]
 
 

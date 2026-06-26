@@ -288,7 +288,7 @@ class TestPlannerAgent:
             await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         call_kwargs = mock_llm.call_args
-        assert call_kwargs.kwargs["model"] == "f.pro"
+        assert call_kwargs.kwargs["model"] == "4omc"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):

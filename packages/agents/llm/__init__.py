@@ -98,7 +98,7 @@ async def complete_json_chat(
         model=request_model,
         messages=messages,
         temperature=temperature,
-        extra_body={"metadata": {"tags": tags}},
+        extra_body={"metadata": "|".join(tags) if tags else ""},
     )
     usage = response.usage.model_dump() if response.usage is not None else None
     choice_count = len(response.choices)

@@ -5,16 +5,16 @@ from packages.agents.config.models import LLM, MODELS
 
 def test_llm_config_defaults() -> None:
     assert LLM.base_url == "http://localhost:20128/v1"
-    assert LLM.timeout == 120.0
+    assert LLM.timeout == 600.0
     assert LLM.max_retries == 0
 
 
 def test_model_assignments_defaults() -> None:
-    assert MODELS.lead_agent == "f.pro"
-    assert MODELS.planner == "f.pro"
-    assert MODELS.researcher == "f.pro"
-    assert MODELS.content_creator == "f.pro"
-    assert MODELS.reviewer == "f.pro"
+    assert MODELS.lead_agent == "4omc"
+    assert MODELS.planner == "4omc"
+    assert MODELS.researcher == "4omc"
+    assert MODELS.content_creator == "4omc"
+    assert MODELS.reviewer == "4omc"
 
 
 def test_env_override(monkeypatch) -> None:

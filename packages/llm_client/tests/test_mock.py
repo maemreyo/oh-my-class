@@ -10,16 +10,16 @@ from packages.llm_client.mock import MockLLMClient
 @pytest.mark.asyncio
 async def test_mock_returns_default_response():
     mock = MockLLMClient()
-    resp = await mock.chat("f.pro", [ChatMessage(role="user", content="test")], task="something")
+    resp = await mock.chat("4omc", [ChatMessage(role="user", content="test")], task="something")
     assert resp.content == '{"result": "mock response"}'
 
 
 @pytest.mark.asyncio
 async def test_mock_returns_set_response():
     mock = MockLLMClient()
-    mock.set_response("f.pro", "content_generation", '{"title": "Test Lesson"}')
+    mock.set_response("4omc", "content_generation", '{"title": "Test Lesson"}')
     resp = await mock.chat(
-        "f.pro",
+        "4omc",
         [ChatMessage(role="user", content="generate")],
         task="content_generation",
     )
@@ -29,10 +29,10 @@ async def test_mock_returns_set_response():
 @pytest.mark.asyncio
 async def test_mock_queued_responses_consumed_in_order():
     mock = MockLLMClient()
-    mock.set_response("f.pro", "content_generation", "first")
-    mock.set_response("f.pro", "content_generation", "second")
-    r1 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
-    r2 = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
+    mock.set_response("4omc", "content_generation", "first")
+    mock.set_response("4omc", "content_generation", "second")
+    r1 = await mock.chat("4omc", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
+    r2 = await mock.chat("4omc", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
     assert r1.content == "first"
     assert r2.content == "second"
 
@@ -40,10 +40,10 @@ async def test_mock_queued_responses_consumed_in_order():
 @pytest.mark.asyncio
 async def test_mock_falls_back_to_default_when_queue_empty():
     mock = MockLLMClient()
-    mock.set_response("f.pro", "content_generation", "queued")
-    await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
+    mock.set_response("4omc", "content_generation", "queued")
+    await mock.chat("4omc", [ChatMessage(role="user", content="x")], task="content_generation")
     # Queue empty — falls back to default
-    resp = await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
+    resp = await mock.chat("4omc", [ChatMessage(role="user", content="x")], task="content_generation")  # noqa: E501
     assert resp.content == '{"result": "mock response"}'
 
 
@@ -53,14 +53,14 @@ async def test_mock_tracks_call_count_by_model():
     await mock.chat("f.light", [ChatMessage(role="user", content="x")], task="summarize")
     await mock.chat("f.light", [ChatMessage(role="user", content="y")], task="summarize")
     assert mock.call_count("f.light") == 2
-    assert mock.call_count("f.pro") == 0
+    assert mock.call_count("4omc") == 0
 
 
 @pytest.mark.asyncio
 async def test_mock_tracks_call_count_by_task():
     mock = MockLLMClient()
-    await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="content_generation")
-    await mock.chat("f.pro", [ChatMessage(role="user", content="y")], task="quality_gate")
+    await mock.chat("4omc", [ChatMessage(role="user", content="x")], task="content_generation")
+    await mock.chat("4omc", [ChatMessage(role="user", content="y")], task="quality_gate")
     assert mock.call_count(task="content_generation") == 1
     assert mock.call_count(task="quality_gate") == 1
 
@@ -68,7 +68,7 @@ async def test_mock_tracks_call_count_by_task():
 @pytest.mark.asyncio
 async def test_mock_total_call_count():
     mock = MockLLMClient()
-    await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="t1")
+    await mock.chat("4omc", [ChatMessage(role="user", content="x")], task="t1")
     await mock.chat("f.light", [ChatMessage(role="user", content="y")], task="t2")
     assert mock.call_count() == 2
 
@@ -77,7 +77,7 @@ async def test_mock_total_call_count():
 async def test_mock_last_call():
     mock = MockLLMClient()
     await mock.chat(
-        "f.pro",
+        "4omc",
         [ChatMessage(role="user", content="x")],
         agent="llm_judge",
         task="quality_gate",
@@ -88,7 +88,7 @@ async def test_mock_last_call():
     assert call["agent"] == "llm_judge"
     assert call["task"] == "quality_gate"
     assert call["run_id"] == "run-1"
-    assert call["model"] == "f.pro"
+    assert call["model"] == "4omc"
 
 
 def test_mock_last_call_none_when_empty():
@@ -99,8 +99,8 @@ def test_mock_last_call_none_when_empty():
 @pytest.mark.asyncio
 async def test_mock_reset_clears_state():
     mock = MockLLMClient()
-    mock.set_response("f.pro", "task", "value")
-    await mock.chat("f.pro", [ChatMessage(role="user", content="x")], task="task")
+    mock.set_response("4omc", "task", "value")
+    await mock.chat("4omc", [ChatMessage(role="user", content="x")], task="task")
     mock.reset()
     assert mock.call_count() == 0
     assert mock.last_call() is None
@@ -129,10 +129,10 @@ async def test_mock_stream_yields_words():
 async def test_mock_chat_returns_token_estimates():
     mock = MockLLMClient()
     resp = await mock.chat(
-        "f.pro",
+        "4omc",
         [ChatMessage(role="user", content="hello world")],
         task="content_generation",
     )
     assert resp.input_tokens > 0
     assert resp.output_tokens > 0
-    assert resp.model == "f.pro"
+    assert resp.model == "4omc"

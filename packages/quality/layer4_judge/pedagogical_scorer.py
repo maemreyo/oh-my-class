@@ -1,4 +1,4 @@
-"""5-dimension pedagogical quality rubric via f.pro LLM (QG2)."""
+"""5-dimension pedagogical quality rubric via 4omc LLM (QG2)."""
 from __future__ import annotations
 
 import json
@@ -51,7 +51,7 @@ async def score_pedagogical(
     run_id: str | None = None,
     step: int | None = None,
 ) -> PedagogicalScore:
-    """Score content on 5 pedagogical dimensions using an f.pro LLM judge.
+    """Score content on 5 pedagogical dimensions using a 4omc LLM judge.
 
     Args:
         content: The educational content to evaluate (plain text or markdown)

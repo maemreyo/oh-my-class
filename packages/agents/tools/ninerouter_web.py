@@ -15,7 +15,7 @@ _LOGGER: Final = logging.getLogger("packages.agents.tools.ninerouter_web")
 class NineRouterSearchRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    model: Literal["f.pro.search"] = "f.pro.search"
+    model: Literal["4omc.search"] = "4omc.search"
     query: str = Field(min_length=1)
     search_type: Literal["web"] = "web"
     max_results: int = Field(default=5, ge=1, le=20)
@@ -24,7 +24,7 @@ class NineRouterSearchRequest(BaseModel):
 class NineRouterFetchRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    model: Literal["f.pro.fetch"] = "f.pro.fetch"
+    model: Literal["4omc.fetch"] = "4omc.fetch"
     url: str = Field(min_length=1, max_length=2000)
     format: Literal["markdown"] = "markdown"
 

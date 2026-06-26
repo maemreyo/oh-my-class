@@ -1,4 +1,4 @@
-"""Layer 4: G-Eval LLM judge (f.pro, single judge MVP)."""
+"""Layer 4: G-Eval LLM judge (4omc, single judge MVP)."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any

@@ -186,7 +186,7 @@ class TestResearcherAgent:
         with _patch_research_tools(mock_llm):
             await research_sources(cast("ResearcherState", _make_state()))
 
-        assert mock_llm.call_args.kwargs["model"] == "f.pro"
+        assert mock_llm.call_args.kwargs["model"] == "4omc"
 
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):
@@ -211,7 +211,7 @@ class TestResearcherAgent:
 
         user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
         assert "rigorous" in user_msg
-        assert "Fetched evidence from f.pro.fetch" in user_msg
+        assert "Fetched evidence from 4omc.fetch" in user_msg
         assert "Fetched page content" in user_msg
 
     @pytest.mark.asyncio

@@ -1,4 +1,4 @@
-"""LLM-based fact verification for high-risk claims only (f.pro)."""
+"""LLM-based fact verification for high-risk claims only (4omc)."""
 from __future__ import annotations
 
 import json
@@ -30,14 +30,14 @@ def verify_high_risk_claims(
     grade_level: str,
     llm_client,
 ) -> list[VerificationResult]:
-    """Verify HIGH-risk claims using f.pro. Returns verification results."""
+    """Verify HIGH-risk claims using 4omc. Returns verification results."""
     if not claims:
         return []
 
     claims_json = json.dumps([{"claim": c.text, "context": c.context} for c in claims])
 
     response = llm_client.chat(
-        model="f.pro",
+        model="4omc",
         messages=[{
             "role": "user",
             "content": VERIFY_PROMPT.format(

@@ -31,24 +31,24 @@ class ModelAssignments(BaseSettings):
         extra="ignore",
     )
 
-    lead_agent: str = "f.pro"
-    planner: str = "f.pro"
-    researcher: str = "f.pro"
-    content_creator: str = "f.pro"
-    reviewer: str = "f.pro"
-    diagnostician: str = "f.pro"
+    lead_agent: str = "4omc"
+    planner: str = "4omc"
+    researcher: str = "4omc"
+    content_creator: str = "4omc"
+    reviewer: str = "4omc"
+    diagnostician: str = "4omc"
 
-    llm_judge: str = "f.pro"
-    fact_verification: str = "f.pro"
-    quality_gate: str = "f.pro"
+    llm_judge: str = "4omc"
+    fact_verification: str = "4omc"
+    quality_gate: str = "4omc"
 
-    blueprint_design: str = "f.pro"
-    content_generation: str = "f.pro"
-    schema_rewrite: str = "f.pro"
+    blueprint_design: str = "4omc"
+    content_generation: str = "4omc"
+    schema_rewrite: str = "4omc"
 
-    summarization: str = "f.pro"
-    title_generation: str = "f.pro"
-    content_review_light: str = "f.pro"
+    summarization: str = "4omc"
+    title_generation: str = "4omc"
+    content_review_light: str = "4omc"
 
 
 LLM = LLMConfig()

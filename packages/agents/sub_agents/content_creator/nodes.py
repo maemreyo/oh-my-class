@@ -19,7 +19,8 @@ if TYPE_CHECKING:
 RUNTIME_SYSTEM_PROMPT = """You are the Content Creator Agent for oh-my-class.
 Return only a JSON array of ArtifactContent objects. No markdown, prose, or raw HTML.
 
-ArtifactContent fields: artifact_type, theme, title, sections, metadata, accessibility.
+ArtifactContent fields: artifact_type, theme, title, sections, metadata (dict, not string),
+accessibility (dict e.g. {"language":"vi"}, not string).
 Allowed artifact_type values: lesson, worksheet, quiz, drill, recap, infographic.
 Allowed theme values: default, ocean, forest.
 
