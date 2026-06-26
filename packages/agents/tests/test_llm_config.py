@@ -1,33 +1,31 @@
 from __future__ import annotations
 
-from packages.agents.llm import get_llm_config, resolve_model
+from packages.agents.config.models import LLM, MODELS
 
 
-def test_resolve_model_routes_all_known_aliases_to_f_pro() -> None:
-    aliases = [
-        "f.light",
-        "f.pro",
-        "gpt-5.4",
-        "deepseek-v4-flash",
-        "deepseek-free",
-        "content-fusion",
-        "deepseek-compressed",
-        "deepseek-direct",
-    ]
-
-    for alias in aliases:
-        assert resolve_model(alias) == "openai/f.pro"
+def test_llm_config_defaults() -> None:
+    assert LLM.base_url == "http://localhost:20128/v1"
+    assert LLM.timeout == 120.0
+    assert LLM.max_retries == 0
 
 
-def test_get_llm_config_uses_9router_when_litellm_env_is_set(monkeypatch) -> None:
-    monkeypatch.setenv("LITELLM_API_BASE", "http://localhost:4000")
-    monkeypatch.setenv("LITELLM_MASTER_KEY", "litellm-key")
-    monkeypatch.setenv("NINEROUTER_API_KEY", "router-key")
-    monkeypatch.delenv("NINEROUTER_BASE_URL", raising=False)
+def test_model_assignments_defaults() -> None:
+    assert MODELS.lead_agent == "f.pro"
+    assert MODELS.planner == "f.pro"
+    assert MODELS.researcher == "f.pro"
+    assert MODELS.content_creator == "f.pro"
+    assert MODELS.reviewer == "f.pro"
 
-    config = get_llm_config()
 
-    assert config == {
-        "api_base": "http://localhost:20128/v1",
-        "api_key": "router-key",
-    }
+def test_env_override(monkeypatch) -> None:
+    monkeypatch.setenv("LLM_BASE_URL", "http://custom:9999/v1")
+    monkeypatch.setenv("MODEL_PLANNER", "f.light")
+
+    from importlib import reload
+
+    from packages.agents.config import models
+
+    reload(models)
+
+    assert models.LLM.base_url == "http://custom:9999/v1"
+    assert models.MODELS.planner == "f.light"

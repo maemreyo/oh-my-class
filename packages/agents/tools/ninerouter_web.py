@@ -110,15 +110,30 @@ def _parse_search_result(item: dict[str, Any]) -> SearchResult:
     return SearchResult(title=title, url=url, snippet=snippet, source=source)
 
 
+def _extract_text(value: Any) -> str | None:
+    """Extract text from a value that may be a string, a dict with text/content keys, or None."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        for key in ("text", "content", "markdown"):
+            candidate = value.get(key)
+            if isinstance(candidate, str):
+                return candidate
+    return None
+
+
 def _parse_fetch_result(url: str, payload: dict[str, Any]) -> FetchResult:
     content_value = payload.get("content") or payload.get("markdown") or payload.get("text")
-    if not isinstance(content_value, str):
+    extracted = _extract_text(content_value)
+    if extracted is None:
         data = payload.get("data")
         if isinstance(data, dict):
-            content_value = data.get("content") or data.get("markdown") or data.get("text")
-    if not isinstance(content_value, str):
+            extracted = _extract_text(data)
+    if extracted is None:
         raise ValueError("9Router fetch returned no markdown content")
     title_value = payload.get("title")
+    title = str(title_value) if title_value is not None else None
+    return FetchResult(url=url, content=extracted, title=title)
     title = str(title_value) if title_value is not None else None
     return FetchResult(url=url, content=content_value, title=title)
 

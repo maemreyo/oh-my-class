@@ -132,7 +132,10 @@ async def test_runtime_prompt_documents_required_component_fields():
     system_msg = mock_llm.call_args.kwargs["messages"][0]["content"]
     assert "heading requires: type, level, text" in system_msg
     assert "paragraph requires: type, text" in system_msg
-    assert "callout requires: type, variant, body" in system_msg
+    assert "callout requires: type, variant" in system_msg and "body" in system_msg
+    assert "flow_step requires: type, steps" in system_msg
+    assert "phase_timeline requires: type, phases" in system_msg
+    assert "table requires: type, columns" in system_msg and "rows" in system_msg
 
 
 @pytest.mark.asyncio

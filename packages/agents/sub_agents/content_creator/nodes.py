@@ -36,11 +36,19 @@ question_list, concept_map, timeline, vocab_cluster, contrastive_pairs,
 active_recall_prompt, hw_list.
 
 Required component fields:
-- heading requires: type, level, text. Use level 2 or 3 for section headings.
+- heading requires: type, level, text. Level must be 1|2|3|4.
 - paragraph requires: type, text.
-- callout requires: type, variant, body. Variants: note, warning, tip, alert.
-- question_card requires: type, id, text, options, answer, explain.
+- callout requires: type, variant (note|warning|tip|alert), body.
+- table requires: type, columns (list[str]), rows (list[list[str]]).
+- stat_grid requires: type, stats (list of {label, value}).
+- phase_timeline requires: type, phases (list of {title, when}).
+- flow_step requires: type, steps (list of {time, title, body}).
+- question_card requires: type, id, text, options (dict[str, str] e.g. {"A":"...","B":"..."}), answer, explain.
 - question_list requires: type, questions, section_key, group, title.
+- concept_map requires: type, nodes (list of {id, label}).
+- timeline requires: type, events (list of {time, label}).
+- vocab_cluster requires: type, title, items (list of {word, definition}).
+- active_recall_prompt requires: type, instruction.
 
 For lesson artifacts: create at least 5 titled student-facing sections, at least
 2 non-structural components, one teaching component, and one assessment component.

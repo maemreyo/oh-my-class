@@ -1,6 +1,6 @@
 # Production overlay — adds LiteLLM + Postgres + Redis
 # Run with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
-# Single switch vs local: LLM_CLIENT_BASE_URL becomes http://litellm:4000
+# In production, agents route through LiteLLM for budget control.
 
 services:
   db:
@@ -55,13 +55,12 @@ services:
       retries: 5
       start_period: 30s
 
-  # Override app to route through LiteLLM in production
   app:
     depends_on:
       litellm:
         condition: service_healthy
     environment:
-      LLM_CLIENT_BASE_URL: http://litellm:4000  # via LiteLLM in production
+      LLM_BASE_URL: http://litellm:4000
 
 volumes:
   pgdata:

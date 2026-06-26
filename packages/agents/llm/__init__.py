@@ -1,17 +1,13 @@
-"""Shared LLM client for all agents.
-
-Routes directly to 9Router in development.
-"""
-
 from __future__ import annotations
 
 import json as _json
 import logging
-import os
 import time
 from typing import TYPE_CHECKING, Any, Final
 
 from openai import AsyncOpenAI
+
+from packages.agents.config.models import LLM
 
 if TYPE_CHECKING:
     from openai.types.chat import (
@@ -20,42 +16,7 @@ if TYPE_CHECKING:
         ChatCompletionUserMessageParam,
     )
 
-NINEROUTER_BASE_URL: Final = "http://localhost:20128/v1"
 _LOGGER: Final = logging.getLogger("packages.agents.llm")
-
-MODEL_COMBO_MAP: Final[dict[str, str]] = {
-    "f.light": "openai/f.pro",
-    "f.pro": "openai/f.pro",
-    "gpt-5.4": "openai/f.pro",
-    "deepseek-v4-flash": "openai/f.pro",
-    "deepseek-free": "openai/f.pro",
-    "content-fusion": "openai/f.pro",
-    "deepseek-compressed": "openai/f.pro",
-    "deepseek-direct": "openai/f.pro",
-}
-
-
-def get_llm_config() -> dict[str, Any]:
-    """Get LLM configuration from environment.
-
-    Development routes directly to 9Router; LiteLLM is intentionally bypassed.
-    """
-    nine_router_key = os.environ.get("NINEROUTER_API_KEY", "")
-    return {
-        "api_base": os.environ.get("NINEROUTER_BASE_URL", NINEROUTER_BASE_URL),
-        "api_key": nine_router_key,
-    }
-
-
-def resolve_model(combo_name: str) -> str:
-    """Resolve a 9Router combo name to an litellm-compatible model string.
-
-    Examples:
-        "f.light" → "openai/f.pro"
-        "deepseek-v4-flash" → "openai/f.pro"
-        "gpt-5.4" → "openai/f.pro"
-    """
-    return MODEL_COMBO_MAP.get(combo_name, "openai/f.pro")
 
 
 def log_llm_start(agent: str, run_id: str, step: int, model: str, attempt: int) -> float:
@@ -117,22 +78,21 @@ async def complete_json_chat(
     temperature: float,
     tags: list[str],
 ) -> str:
-    config = get_llm_config()
     started = time.monotonic()
     request_model = model.removeprefix("openai/")
     _LOGGER.info(
         "llm.transport.request model=%s base_url=%s message_count=%s message_chars=%s tags=%s",
         request_model,
-        config["api_base"],
+        LLM.base_url,
         len(messages),
         _message_chars(messages),
         tags,
     )
     client = AsyncOpenAI(
-        api_key=config["api_key"] or "no-key",
-        base_url=config["api_base"],
-        timeout=120.0,
-        max_retries=0,
+        api_key=LLM.api_key or "no-key",
+        base_url=LLM.base_url,
+        timeout=LLM.timeout,
+        max_retries=LLM.max_retries,
     )
     response = await client.chat.completions.create(
         model=request_model,
@@ -164,7 +124,23 @@ async def complete_json_chat(
             f"9Router returned empty choices for model={model}; response_id={response.id}"
         )
     choice = response.choices[0]
-    return choice.message.content or ""
+    content = choice.message.content or ""
+    if not content:
+        # Reasoning models sometimes put content in the reasoning field
+        msg = choice.message
+        reasoning = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None)
+        if reasoning:
+            if isinstance(reasoning, list):
+                content = "".join(p.get("text", str(p)) if isinstance(p, dict) else str(p) for p in reasoning)  # noqa: E501
+            else:
+                content = str(reasoning)
+            _LOGGER.info(
+                "llm.transport.fallback_from_reasoning model=%s response_id=%s fallback_chars=%s",
+                request_model,
+                response.id,
+                len(content),
+            )
+    return content
 
 
 def chat_messages(system: str, user: str) -> list[ChatCompletionMessageParam]:

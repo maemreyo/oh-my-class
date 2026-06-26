@@ -1,8 +1,13 @@
 # ════════════════════════════════════════════════════════════════════
-# LiteLLM Proxy Configuration — oh-my-class
+# LiteLLM Proxy Configuration — OPTIONAL (dev mode bypasses LiteLLM)
 # ════════════════════════════════════════════════════════════════════
 #
-# RULING: 100% 9Router. NO paid fallbacks. Budget cap = $0 for any paid model.
+# STATUS: This config is used ONLY in production (docker-compose.prod.yml).
+# In dev mode, agents call 9Router directly via LLM_BASE_URL env var.
+#
+# To enable LiteLLM in production:
+#   1. Set LLM_BASE_URL=http://litellm:4000 in .env.production
+#   2. Run: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
 #
 # MODEL NAME → 9Router COMBO MAPPING:
 # ┌─────────────────────┬─────────────────┬─────────────────────────────┐
@@ -14,11 +19,6 @@
 # │ content-fusion      │ f.pro (fusion)  │ Parallel providers + judge  │
 # │ deepseek-compressed │ f.light (RTK)   │ Token compression via free  │
 # └─────────────────────┴─────────────────┴─────────────────────────────┘
-#
-# ALL traffic routes through 9Router sidecar (port 20128).
-# Model names are LiteLLM virtual routes — NOT direct API calls.
-# When 9Router is unreachable → fail safely (queue/run or error).
-# See AGENTS.md §6 for model assignments.
 # ════════════════════════════════════════════════════════════════════
 
 model_list:

@@ -1,6 +1,4 @@
-"""Agent configuration — gate thresholds and model assignments."""
-
 from packages.agents.config.gate_config import GateConfig
-from packages.agents.config.models import MODELS, ModelConfig
+from packages.agents.config.models import LLM, MODELS, LLMConfig, ModelAssignments
 
-__all__ = ["GateConfig", "ModelConfig", "MODELS"]
+__all__ = ["GateConfig", "LLM", "LLMConfig", "MODELS", "ModelAssignments"]

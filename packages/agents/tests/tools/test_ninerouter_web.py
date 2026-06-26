@@ -113,6 +113,26 @@ async def test_fetch_returns_markdown_content() -> None:
 
 
 @pytest.mark.asyncio
+async def test_fetch_handles_dict_content_format() -> None:
+    FakeAsyncClient.response = FakeResponse({
+        "provider": "exa",
+        "title": "Example",
+        "content": {
+            "format": "markdown",
+            "text": "# Equivalent fractions\nTwo fractions can name the same amount.",
+            "length": 4330,
+        },
+        "metrics": {"response_time_ms": 276},
+    })
+    client = NineRouterWebClient(base_url="http://router.local/v1", api_key="")
+
+    result = await client.fetch(NineRouterFetchRequest(url="https://example.edu/fractions"))
+
+    assert result.title == "Example"
+    assert "Equivalent fractions" in result.content
+
+
+@pytest.mark.asyncio
 async def test_fetch_without_content_raises_value_error() -> None:
     FakeAsyncClient.response = FakeResponse({"title": "Missing content"})
     client = NineRouterWebClient(base_url="http://router.local/v1", api_key="")
