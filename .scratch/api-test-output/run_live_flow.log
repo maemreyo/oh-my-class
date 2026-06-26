@@ -1,9 +1,0 @@
-[2026-06-26T13:08:12+00:00] live flow runner started
-[2026-06-26T13:08:12+00:00] HTTP POST /auth/login started
-[2026-06-26T13:08:12+00:00] HTTP POST /auth/login completed in 0.0s
-[2026-06-26T13:08:12+00:00] login ok
-[2026-06-26T13:08:12+00:00] HTTP POST /run started
-[2026-06-26T13:08:27+00:00] HTTP POST /run still running after 15.0s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T13:08:42+00:00] HTTP POST /run still running after 30.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T13:08:57+00:00] HTTP POST /run still running after 45.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log
-[2026-06-26T13:09:12+00:00] HTTP POST /run still running after 60.1s; watch gateway log: .scratch/api-test-output/gateway-fpro.log

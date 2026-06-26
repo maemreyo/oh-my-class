@@ -287,9 +287,11 @@ def route_after_content_review(state: OhMyClassState) -> str:
 
 
 def route_after_judge(state: OhMyClassState) -> str:
-    """Route after LLM judge: score ≥ 7.0 → gate 02; below → healing."""
+    """Route after LLM judge: score ≥ judge_min_score → gate 02; below → healing."""
+    from packages.agents.config.gate_config import GateConfig
+    config = GateConfig()
     score = state.get("judge_score", 0.0) or 0.0
-    return "gate_02_content_approval" if score >= 7.0 else "healing_node"
+    return "gate_02_content_approval" if score >= config.judge_min_score else "healing_node"
 
 
 def route_after_export(state: OhMyClassState) -> str:
@@ -301,11 +303,13 @@ def route_after_export(state: OhMyClassState) -> str:
 
 def route_after_review(state: OhMyClassState) -> str:
     """Legacy: route after quality review node (pre-quality-gate-nodes)."""
+    from packages.agents.config.gate_config import GateConfig
+    config = GateConfig()
     scores = state.get("quality_scores", {})
     overall = scores.get("overall", 0.0) if scores else 0.0
-    if overall >= 7.0:
+    if overall >= config.judge_min_score:
         return "human_review"
-    if state.get("revision_count", 0) >= 3:
+    if state.get("revision_count", 0) >= config.hitl_max_revisions:
         return "escalate"
     return "repair"
 

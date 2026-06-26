@@ -11,9 +11,11 @@ class CircuitOpenError(Exception):
 class CircuitBreaker:
     """Prevents cascading failures by stopping calls after threshold failures."""
 
-    def __init__(self, threshold: int = 3, recovery_timeout: float = 60.0):
-        self.threshold = threshold
-        self.recovery_timeout = recovery_timeout
+    def __init__(self, threshold: int | None = None, recovery_timeout: float | None = None):
+        from packages.agents.config.gate_config import GateConfig
+        config = GateConfig()
+        self.threshold = threshold if threshold is not None else config.schema_circuit_threshold
+        self.recovery_timeout = recovery_timeout if recovery_timeout is not None else config.schema_circuit_recovery_s
         self.failures = 0
         self.state = "closed"   # closed | open | half-open
         self.last_failure_time = 0.0

@@ -74,6 +74,27 @@ class MaxTokensConfig(BaseSettings):
     default: int = 4096
 
 
+class NinerouterConfig(BaseSettings):
+    """9Router web tool config. Env prefix: NINEROUTER_"""
+
+    model_config = SettingsConfigDict(
+        env_prefix="NINEROUTER_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    timeout: float = 30.0
+    search_results: int = 5
+    min_sources: int = 2
+    fetch_limit_basic: int = 2
+    fetch_limit_standard: int = 5
+    fetch_limit_rigorous: int = 10
+    content_truncate: int = 4000
+
+
 LLM = LLMConfig()
 MODELS = ModelAssignments()
 MAX_TOKENS = MaxTokensConfig()
+NINEROUTER = NinerouterConfig()

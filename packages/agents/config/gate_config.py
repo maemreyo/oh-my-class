@@ -57,3 +57,16 @@ class GateConfig(BaseSettings):
     block_external_assets: bool = True
     block_answer_key_leakage: bool = True
     block_missing_brand: bool = True
+
+    # Pipeline
+    preflight_min_length: int = 10
+    title_max_length: int = 50
+
+    # Judge word count thresholds per artifact type
+    judge_min_words_lesson: int = 180
+    judge_min_words_worksheet: int = 90
+    judge_min_words_quiz: int = 60
+    judge_min_words_drill: int = 80
+    judge_min_words_recap: int = 80
+    judge_min_words_infographic: int = 60
+    judge_min_words_default: int = 80

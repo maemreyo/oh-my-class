@@ -91,6 +91,40 @@ class TestGateConfigEnvOverride:
             GateConfig()
 
 
+# ── Pipeline config defaults ──────────────────────────────────────────────────
+
+class TestGateConfigPipelineDefaults:
+    def test_preflight_min_length_default(self):
+        from packages.agents.config.gate_config import GateConfig
+        assert GateConfig().preflight_min_length == 10
+
+    def test_title_max_length_default(self):
+        from packages.agents.config.gate_config import GateConfig
+        assert GateConfig().title_max_length == 50
+
+    def test_judge_min_words_lesson_default(self):
+        from packages.agents.config.gate_config import GateConfig
+        assert GateConfig().judge_min_words_lesson == 180
+
+    def test_judge_min_words_quiz_default(self):
+        from packages.agents.config.gate_config import GateConfig
+        assert GateConfig().judge_min_words_quiz == 60
+
+    def test_judge_min_words_default_default(self):
+        from packages.agents.config.gate_config import GateConfig
+        assert GateConfig().judge_min_words_default == 80
+
+    def test_env_override_preflight_min_length(self, monkeypatch):
+        monkeypatch.setenv("GATE_PREFLIGHT_MIN_LENGTH", "20")
+        from packages.agents.config.gate_config import GateConfig
+        assert GateConfig().preflight_min_length == 20
+
+    def test_env_override_title_max_length(self, monkeypatch):
+        monkeypatch.setenv("GATE_TITLE_MAX_LENGTH", "100")
+        from packages.agents.config.gate_config import GateConfig
+        assert GateConfig().title_max_length == 100
+
+
 # ── ModelConfig / MODELS singleton ────────────────────────────────────────────
 
 class TestModelConfig:
@@ -124,8 +158,8 @@ class TestModelConfig:
 
     def test_env_override_model(self, monkeypatch):
         monkeypatch.setenv("MODEL_CONTENT_GENERATION", "f.light")
-        from packages.agents.config.models import ModelConfig
-        assert ModelConfig().content_generation == "f.light"
+        from packages.agents.config.models import ModelAssignments
+        assert ModelAssignments().content_generation == "f.light"
 
 
 # ── Package __init__ ──────────────────────────────────────────────────────────
@@ -138,3 +172,37 @@ def test_config_package_exports_gate_config():
 
 def test_config_package_exports_models():
     from packages.agents.config import MODELS  # noqa: F401  # pyright: ignore[reportUnusedImport]
+
+
+# ── NinerouterConfig ─────────────────────────────────────────────────────────
+
+class TestNinerouterConfigDefaults:
+    def test_timeout_default(self):
+        from packages.agents.config.models import NINEROUTER
+        assert NINEROUTER.timeout == 30.0
+
+    def test_search_results_default(self):
+        from packages.agents.config.models import NINEROUTER
+        assert NINEROUTER.search_results == 5
+
+    def test_min_sources_default(self):
+        from packages.agents.config.models import NINEROUTER
+        assert NINEROUTER.min_sources == 2
+
+    def test_fetch_limit_standard_default(self):
+        from packages.agents.config.models import NINEROUTER
+        assert NINEROUTER.fetch_limit_standard == 5
+
+    def test_content_truncate_default(self):
+        from packages.agents.config.models import NINEROUTER
+        assert NINEROUTER.content_truncate == 4000
+
+    def test_env_override_timeout(self, monkeypatch):
+        monkeypatch.setenv("NINEROUTER_TIMEOUT", "60")
+        from packages.agents.config.models import NinerouterConfig
+        assert NinerouterConfig().timeout == 60.0
+
+    def test_env_override_search_results(self, monkeypatch):
+        monkeypatch.setenv("NINEROUTER_SEARCH_RESULTS", "10")
+        from packages.agents.config.models import NinerouterConfig
+        assert NinerouterConfig().search_results == 10

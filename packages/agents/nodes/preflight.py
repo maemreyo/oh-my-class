@@ -10,15 +10,13 @@ from packages.agents.state import (
 
 
 def step_01_preflight(state: OhMyClassState) -> dict[str, Any]:
-    """Validate raw_request is non-empty and structurally sound.
-
-    Rejects: empty strings, whitespace-only, shorter than 10 chars.
-    Sets current_step = 1.
-    """
+    """Validate raw_request is non-empty and structurally sound."""
+    from packages.agents.config.gate_config import GateConfig
+    config = GateConfig()
     raw = state.get("raw_request", "").strip()
     if not raw:
         raise ValueError("raw_request is required and cannot be empty")
-    if len(raw) < 10:
-        raise ValueError("raw_request must be at least 10 characters")
+    if len(raw) < config.preflight_min_length:
+        raise ValueError(f"raw_request must be at least {config.preflight_min_length} characters")
 
     return {"current_step": 1}

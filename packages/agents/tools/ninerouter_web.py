@@ -8,6 +8,8 @@ from typing import Any, Final, Literal
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
 
+from packages.agents.config.models import NINEROUTER
+
 NINEROUTER_BASE_URL: Final = "http://localhost:20128/v1"
 _LOGGER: Final = logging.getLogger("packages.agents.tools.ninerouter_web")
 
@@ -85,7 +87,7 @@ class NineRouterWebClient:
         headers = {"Content-Type": "application/json"}
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=NINEROUTER.timeout) as client:
             response = await client.post(f"{self._base_url}{path}", json=payload, headers=headers)
             response.raise_for_status()
         parsed = response.json()

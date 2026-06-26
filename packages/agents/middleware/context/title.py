@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class TitleMiddleware(BaseMiddleware):
-    """Sets run_title in context metadata from the first 50 chars of raw_request."""
+    """Sets run_title in context metadata from the first N chars of raw_request."""
 
     name: str = "title"
     order: int = 18
@@ -22,9 +22,11 @@ class TitleMiddleware(BaseMiddleware):
         context: MiddlewareContext,
     ) -> OhMyClassState:
         if "run_title" not in context.metadata:
+            from packages.agents.config.gate_config import GateConfig
+            config = GateConfig()
             raw = state.get("raw_request", "")
             if raw:
-                context.metadata["run_title"] = raw[:50].strip()
+                context.metadata["run_title"] = raw[:config.title_max_length].strip()
         return state
 
     async def after_model(

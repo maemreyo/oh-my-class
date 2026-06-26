@@ -10,16 +10,6 @@ if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
 
 
-_MIN_WORDS_BY_TYPE = {
-    "lesson": 180,
-    "worksheet": 90,
-    "quiz": 60,
-    "drill": 80,
-    "recap": 80,
-    "infographic": 60,
-}
-
-
 def _extract_text_content(artifact: dict[str, Any]) -> str:
     """Extract concatenated text from an artifact's sections list."""
     sections = artifact.get("sections") or []
@@ -51,16 +41,14 @@ def _score_artifact(
     lesson_plan: dict[str, Any] | None,
     component_score: float,
 ) -> float:
-    """Score artifact strength until the real multi-judge is wired.
-
-    The heuristic intentionally fails sparse content so the healing loop runs
-    instead of exporting a tiny teaching pack with a fake high score.
-    """
+    """Score artifact strength until the real multi-judge is wired."""
+    from packages.agents.config.gate_config import GateConfig
+    config = GateConfig()
     content = _extract_text_content(artifact)
     if not content or not content.strip():
         return 0.0
     artifact_type = str(artifact.get("artifact_type", "lesson"))
-    minimum_words = _MIN_WORDS_BY_TYPE.get(artifact_type, 80)
+    minimum_words = getattr(config, f"judge_min_words_{artifact_type}", config.judge_min_words_default)
     word_score = min(_word_count(content) / minimum_words, 1.0) * 5.0
     section_score = _section_title_score(artifact) * 2.0
     objective_bonus = 1.0 if lesson_plan and lesson_plan.get("learning_objectives") else 0.0

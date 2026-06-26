@@ -23,10 +23,12 @@ def build_recovery_context(review_results: dict[str, Any], revision_count: int) 
     feedback = review_results.get("feedback", "")
     per_artifact = review_results.get("per_artifact", {})
 
+    from packages.agents.config.gate_config import GateConfig
+    config = GateConfig()
     weak_artifacts = [
         artifact_type
         for artifact_type, scores in per_artifact.items()
-        if scores.get("overall", 10) < 7.0
+        if scores.get("overall", 10) < config.judge_min_score
     ]
 
     lines = [

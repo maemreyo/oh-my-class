@@ -21,6 +21,7 @@ async def researcher_node(state: ResearcherState) -> dict[str, Any]:
     Returns: {"research_bundle": {...}}
     """
     from packages.agents.sub_agents.researcher.prompts import load_system_prompt
+    from packages.agents.config.models import NINEROUTER
     researcher_system_prompt = load_system_prompt()
 
     lesson_plan = state.get("lesson_plan") or {}
@@ -29,7 +30,7 @@ async def researcher_node(state: ResearcherState) -> dict[str, Any]:
     from packages.agents.sub_agents.researcher.tools import web_fetch
     from packages.agents.tools.web_search import web_search
 
-    source_candidates = await web_search(str(topic), num_results=5, min_sources=2)
+    source_candidates = await web_search(str(topic), num_results=NINEROUTER.search_results, min_sources=NINEROUTER.min_sources)
     research_evidence = await _build_research_evidence(
         source_candidates,
         fetch_limit=_fetch_limit(str(research_policy)),
@@ -57,6 +58,7 @@ mark verification_status as UNCERTAIN. Do not invent URLs, citations, snippets,
 or credibility scores.
 """
 
+    from packages.agents.config.gate_config import GateConfig
     from packages.agents.config.models import MODELS
     from packages.agents.llm import (
         chat_messages,
@@ -67,6 +69,7 @@ or credibility scores.
         log_llm_success,
     )
 
+    config = GateConfig()
     model = MODELS.researcher
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 7))
@@ -78,7 +81,7 @@ or credibility scores.
     )
     messages = chat_messages(system_prompt, user_prompt)
 
-    for attempt in range(3):
+    for attempt in range(config.max_retries):
         attempt_number = attempt + 1
         started = log_llm_start("researcher", run_id, step, model, attempt_number)
         try:
@@ -146,8 +149,13 @@ or credibility scores.
 
 
 def _fetch_limit(research_policy: str) -> int:
-    limits = {"basic": 2, "standard": 5, "rigorous": 10}
-    return limits.get(research_policy, 5)
+    from packages.agents.config.models import NINEROUTER
+    limits = {
+        "basic": NINEROUTER.fetch_limit_basic,
+        "standard": NINEROUTER.fetch_limit_standard,
+        "rigorous": NINEROUTER.fetch_limit_rigorous,
+    }
+    return limits.get(research_policy, NINEROUTER.fetch_limit_standard)
 
 
 async def _build_research_evidence(
@@ -156,6 +164,7 @@ async def _build_research_evidence(
     fetch_limit: int,
     web_fetcher,
 ) -> list[dict[str, Any]]:
+    from packages.agents.config.models import NINEROUTER
     evidence: list[dict[str, Any]] = []
     for source in source_candidates[:fetch_limit]:
         url = source.get("url")
@@ -175,6 +184,6 @@ async def _build_research_evidence(
         evidence.append({
             "source": source,
             "fetch_status": "FETCHED",
-            "content": content[:4000],
+            "content": content[:NINEROUTER.content_truncate],
         })
     return evidence
