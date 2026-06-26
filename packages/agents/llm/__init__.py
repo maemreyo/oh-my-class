@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Final
 from openai import AsyncOpenAI
 
 from packages.agents.config.models import LLM, MAX_TOKENS
+from packages.agents.observability import trace_llm_call
 
 if TYPE_CHECKING:
     from openai.types.chat import (
@@ -99,6 +100,7 @@ async def complete_json_chat(
     run_id = ""
     agent_name = ""
     attempt = 1
+    step = 0
     for tag in tags:
         if tag.startswith("run:"):
             run_id = tag.split(":", 1)[1]
@@ -106,6 +108,8 @@ async def complete_json_chat(
             agent_name = tag.split(":", 1)[1]
         elif tag.startswith("attempt:"):
             attempt = int(tag.split(":", 1)[1])
+        elif tag.startswith("step:"):
+            step = int(tag.split(":", 1)[1])
 
     # Resolve max_tokens: explicit > agent-specific default > global default
     if max_tokens is None:
@@ -134,62 +138,76 @@ async def complete_json_chat(
             timeout=LLM.timeout,
             max_retries=LLM.max_retries,
         )
-        response = await client.chat.completions.create(
-            model=request_model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            extra_body={"metadata": "|".join(tags) if tags else ""},
-        )
-        usage = response.usage.model_dump() if response.usage is not None else None
-        choice_count = len(response.choices)
-        _LOGGER.info(
-            "llm.transport.response model=%s response_id=%s response_model=%s "
-            "choices=%s usage=%s duration_s=%.1f",
-            request_model,
-            response.id,
-            response.model,
-            choice_count,
-            usage,
-            time.monotonic() - started,
-        )
-        if not response.choices:
-            _LOGGER.warning(
-                "llm.transport.empty_choices model=%s response_id=%s response_model=%s usage=%s",
+
+        with trace_llm_call(agent_name, run_id, request_model, step) as trace:
+            response = await client.chat.completions.create(
+                model=request_model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                extra_body={"metadata": "|".join(tags) if tags else ""},
+            )
+            usage = response.usage.model_dump() if response.usage is not None else None
+            choice_count = len(response.choices)
+            _LOGGER.info(
+                "llm.transport.response model=%s response_id=%s response_model=%s "
+                "choices=%s usage=%s duration_s=%.1f",
                 request_model,
                 response.id,
                 response.model,
+                choice_count,
                 usage,
+                time.monotonic() - started,
             )
-            raise RuntimeError(
-                f"9Router returned empty choices for model={model}; response_id={response.id}"
-            )
-        choice = response.choices[0]
-        content = choice.message.content or ""
-        if not content:
-            msg = choice.message
-            reasoning = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None)
-            if reasoning:
-                if isinstance(reasoning, list):
-                    content = "".join(p.get("text", str(p)) if isinstance(p, dict) else str(p) for p in reasoning)  # noqa: E501
-                else:
-                    content = str(reasoning)
-                _LOGGER.info(
-                    "llm.transport.fallback_from_reasoning model=%s response_id=%s fallback_chars=%s",
+            if not response.choices:
+                _LOGGER.warning(
+                    "llm.transport.empty_choices model=%s response_id=%s response_model=%s usage=%s",
                     request_model,
                     response.id,
-                    len(content),
+                    response.model,
+                    usage,
                 )
+                raise RuntimeError(
+                    f"9Router returned empty choices for model={model}; response_id={response.id}"
+                )
+            choice = response.choices[0]
+            content = choice.message.content or ""
+            if not content:
+                msg = choice.message
+                reasoning = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None)
+                if reasoning:
+                    if isinstance(reasoning, list):
+                        content = "".join(p.get("text", str(p)) if isinstance(p, dict) else str(p) for p in reasoning)  # noqa: E501
+                    else:
+                        content = str(reasoning)
+                    _LOGGER.info(
+                        "llm.transport.fallback_from_reasoning model=%s response_id=%s fallback_chars=%s",
+                        request_model,
+                        response.id,
+                        len(content),
+                    )
 
-        emit_run_event(run_id, "llm_call_completed", {
-            "agent": agent_name,
-            "model": request_model,
-            "attempt": attempt,
-            "duration_s": round(time.monotonic() - started, 1),
-            "response_chars": len(content),
-            "usage": usage,
-        })
-        return content
+            trace.update(
+                input={"messages": len(messages), "temperature": temperature, "max_tokens": max_tokens},
+                output={"content_length": len(content), "choice_count": choice_count},
+                usage=usage,
+                metadata={
+                    "attempt": attempt,
+                    "response_id": response.id,
+                    "response_model": response.model,
+                },
+            )
+
+            emit_run_event(run_id, "llm_call_completed", {
+                "agent": agent_name,
+                "model": request_model,
+                "attempt": attempt,
+                "step": step,
+                "duration_s": round(time.monotonic() - started, 1),
+                "response_chars": len(content),
+                "usage": usage,
+            })
+            return content
     except Exception as exc:
         error_type = type(exc).__name__.lower()
         exc_str = str(exc).lower()
@@ -203,6 +221,7 @@ async def complete_json_chat(
             "agent": agent_name,
             "model": request_model,
             "attempt": attempt,
+            "step": step,
             "duration_s": round(time.monotonic() - started, 1),
             "error": str(exc)[:200],
             "error_type": error_type,

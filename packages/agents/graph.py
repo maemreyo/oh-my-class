@@ -12,6 +12,7 @@ import time as _time
 from typing import Any
 
 from packages.agents.events import emit_run_event
+from packages.agents.observability import trace_node
 
 from packages.agents.gates import (
     gate_01_blueprint_approval,
@@ -38,40 +39,82 @@ from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
 
 
 def _wrap_node(node_fn, node_name: str, agent_name: str = ""):
-    """Wrap a LangGraph node with step_started/completed/failed events."""
+    """Wrap a LangGraph node with step_started/completed/failed events + Langfuse trace."""
     _is_async = inspect.iscoroutinefunction(node_fn)
+
+    # Extract step number from node_name (e.g., "step_03_blueprint" → 3)
+    _step_num = 0
+    if node_name.startswith("step_"):
+        try:
+            _step_num = int(node_name.split("_")[1])
+        except (IndexError, ValueError):
+            pass
+    elif node_name.startswith("gate_"):
+        try:
+            _step_num = int(node_name.split("_")[1])
+        except (IndexError, ValueError):
+            pass
 
     async def wrapped(state: OhMyClassState) -> dict[str, Any]:
         run_id = str(state.get("run_id", ""))
+        current_step = state.get("current_step", _step_num)
+
         emit_run_event(run_id, "step_started", {
             "node": node_name,
             "agent": agent_name,
+            "step": current_step,
         })
-        started = _time.monotonic()
-        try:
-            if _is_async:
-                result = await node_fn(state)
-            else:
-                result = await asyncio.to_thread(node_fn, state)
-            duration = round(_time.monotonic() - started, 1)
-            result_keys = list(result.keys()) if isinstance(result, dict) else []
-            emit_run_event(run_id, "step_completed", {
-                "node": node_name,
-                "agent": agent_name,
-                "duration_s": duration,
-                "result_keys": result_keys,
-            })
-            return result
-        except Exception as exc:
-            duration = round(_time.monotonic() - started, 1)
-            emit_run_event(run_id, "step_failed", {
-                "node": node_name,
-                "agent": agent_name,
-                "duration_s": duration,
-                "error": str(exc)[:200],
-                "error_type": type(exc).__name__,
-            })
-            raise
+
+        with trace_node(agent_name or node_name, run_id, current_step) as trace:
+            started = _time.monotonic()
+            try:
+                if _is_async:
+                    result = await node_fn(state)
+                else:
+                    result = await asyncio.to_thread(node_fn, state)
+                duration = round(_time.monotonic() - started, 1)
+                result_keys = list(result.keys()) if isinstance(result, dict) else []
+
+                trace.update(
+                    output={
+                        "result_keys": result_keys,
+                        "duration_s": duration,
+                    },
+                    metadata={
+                        "node": node_name,
+                        "agent": agent_name,
+                        "result_keys": result_keys,
+                    },
+                )
+
+                emit_run_event(run_id, "step_completed", {
+                    "node": node_name,
+                    "agent": agent_name,
+                    "step": current_step,
+                    "duration_s": duration,
+                    "result_keys": result_keys,
+                })
+                return result
+            except Exception as exc:
+                duration = round(_time.monotonic() - started, 1)
+                trace.update(
+                    level="ERROR",
+                    status_message=str(exc)[:500],
+                    metadata={
+                        "node": node_name,
+                        "agent": agent_name,
+                        "error_type": type(exc).__name__,
+                    },
+                )
+                emit_run_event(run_id, "step_failed", {
+                    "node": node_name,
+                    "agent": agent_name,
+                    "step": current_step,
+                    "duration_s": duration,
+                    "error": str(exc)[:200],
+                    "error_type": type(exc).__name__,
+                })
+                raise
 
     wrapped.__name__ = node_name
     return wrapped

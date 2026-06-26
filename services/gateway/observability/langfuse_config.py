@@ -21,11 +21,19 @@ from typing import Any
 
 @lru_cache
 def get_langfuse_config() -> dict[str, str | bool]:
-    """Get Langfuse configuration from environment."""
+    """Get Langfuse configuration from environment.
+
+    Env var priority: LANGFUSE_BASE_URL > LANGFUSE_HOST > default.
+    """
+    host = (
+        os.environ.get("LANGFUSE_BASE_URL")
+        or os.environ.get("LANGFUSE_HOST")
+        or "http://localhost:3001"
+    )
     return {
         "public_key": os.environ.get("LANGFUSE_PUBLIC_KEY", ""),
         "secret_key": os.environ.get("LANGFUSE_SECRET_KEY", ""),
-        "host": os.environ.get("LANGFUSE_HOST", "http://localhost:3001"),
+        "host": host,
         "enabled": bool(os.environ.get("LANGFUSE_PUBLIC_KEY")),
     }
 
