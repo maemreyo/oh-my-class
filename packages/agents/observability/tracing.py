@@ -1,13 +1,12 @@
 """Langfuse v4 tracing context managers for pipeline nodes and LLM calls.
 
-Uses SDK v4 OpenTelemetry-based API: start_as_current_observation().
+Uses SDK v4 OpenTelemetry-based API.
 Degrades to no-ops when Langfuse is not configured.
 """
 
 from __future__ import annotations
 
 import logging
-from contextlib import contextmanager
 from typing import Any
 
 from packages.agents.observability.langfuse_client import (
@@ -42,6 +41,7 @@ class LangfuseTrace:
 
     def end(self) -> None:
         try:
+            self.observation.end()
             self.client.flush()
         except Exception as exc:
             _LOGGER.debug("Langfuse flush failed: %s", exc)
@@ -55,49 +55,43 @@ class LangfuseTrace:
         self.end()
 
 
-@contextmanager
 def trace_node(agent_name: str, run_id: str, step: int, **kwargs: Any):
     client = get_langfuse_client()
 
     if client is None:
-        yield NoOpTrace()
-        return
+        return NoOpTrace()
 
     try:
         metadata = get_trace_metadata(run_id, agent_name, step, **kwargs)
-
         obs = client.start_observation(
             as_type="span",
             name=agent_name or "node",
             metadata=metadata,
         )
-        yield LangfuseTrace(obs, client)
+        return LangfuseTrace(obs, client)
 
     except Exception as exc:
         _LOGGER.debug("Langfuse trace_node failed: %s", exc)
-        yield NoOpTrace()
+        return NoOpTrace()
 
 
-@contextmanager
 def trace_llm_call(agent_name: str, run_id: str, model: str, step: int):
     client = get_langfuse_client()
 
     if client is None:
-        yield NoOpTrace()
-        return
+        return NoOpTrace()
 
     try:
         metadata = get_trace_metadata(run_id, agent_name, step)
         metadata["model"] = model
-
         obs = client.start_observation(
             as_type="generation",
             name=f"llm-call-{agent_name}",
             model=model,
             metadata=metadata,
         )
-        yield LangfuseTrace(obs, client)
+        return LangfuseTrace(obs, client)
 
     except Exception as exc:
         _LOGGER.debug("Langfuse trace_llm_call failed: %s", exc)
-        yield NoOpTrace()
+        return NoOpTrace()
