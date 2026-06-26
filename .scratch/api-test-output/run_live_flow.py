@@ -70,7 +70,7 @@ def request_json(
     request = Request(f"{config.base_url}{path}", data=body, headers=headers, method=method)
     started = time.monotonic()
     log(config, f"HTTP {method} {path} started")
-    gateway_log = config.output_dir / "gateway-fpro.log"
+    gateway_log = config.output_dir / "gateway.log"
     progress_note = f"watch gateway log: {gateway_log}"
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:

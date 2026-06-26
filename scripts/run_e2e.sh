@@ -4,8 +4,8 @@ set -euo pipefail
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUTPUT_DIR="$PROJECT_ROOT/.scratch/api-test-output"
-GATEWAY_LOG="$OUTPUT_DIR/gateway-fpro.log"
-FLOW_LOG="$OUTPUT_DIR/run_live_flow.log"
+GATEWAY_LOG="$OUTPUT_DIR/gateway.log"
+FLOW_LOG="$OUTPUT_DIR/e2e.log"
 GATEWAY_PORT=8001
 TIMEOUT=900
 PROGRESS_INTERVAL=20
@@ -31,7 +31,7 @@ ok "Old processes killed"
 
 # ── Step 2: Clean old logs ────────────────────────────────────────────────────
 mkdir -p "$OUTPUT_DIR"
-rm -f "$GATEWAY_LOG" "$FLOW_LOG"
+rm -f "$OUTPUT_DIR"/*.log "$OUTPUT_DIR"/*.json "$OUTPUT_DIR"/*.html "$OUTPUT_DIR"/*.pid
 ok "Old logs cleaned"
 
 # ── Step 3: Load env and start gateway ────────────────────────────────────────
