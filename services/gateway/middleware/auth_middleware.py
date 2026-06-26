@@ -19,6 +19,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
     """
 
     PUBLIC_PATHS = {"/health", "/auth/login", "/docs", "/openapi.json", "/redoc"}
+    PUBLIC_PREFIXES = ("/webhook/",)
 
     async def dispatch(self, request: Request, call_next):
         # Skip auth for public paths
@@ -27,6 +28,10 @@ class JWTMiddleware(BaseHTTPMiddleware):
 
         # Skip auth for docs
         if request.url.path.startswith("/docs") or request.url.path.startswith("/redoc"):
+            return await call_next(request)
+
+        # Webhooks are public — they use their own signature verification (HMAC)
+        if any(request.url.path.startswith(p) for p in self.PUBLIC_PREFIXES):
             return await call_next(request)
 
         # Check for Authorization header

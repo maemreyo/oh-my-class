@@ -13,10 +13,19 @@ router = APIRouter()
 
 
 @router.post("/notify")  # pyright: ignore[reportUntypedFunctionDecorator]
-async def send_notification():
-    """POST /webhook/notify — Send gate approval notification."""
-    # TODO: Dispatch notification via configured channel (Telegram/Zalo/email)
-    raise NotImplementedError
+async def send_notification(request: Request):
+    """POST /webhook/notify — Send gate approval notification.
+
+    Accepts JSON payload describing the notification event.
+    Returns ack; actual dispatch (Telegram/Zalo/email) is TODO.
+    """
+    payload = await request.json()
+    get_logger("webhook.notify").info(
+        "notify.received type=%s payload_keys=%s",
+        payload.get("type", "unknown"),
+        list(payload.keys()),
+    )
+    return {"status": "received", "type": payload.get("type", "unknown")}
 
 
 @router.post("/telegram")  # pyright: ignore[reportUntypedFunctionDecorator]

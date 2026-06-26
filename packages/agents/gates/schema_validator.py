@@ -69,7 +69,7 @@ def step_09_schema_validate(state: OhMyClassState) -> dict[str, Any]:
                     errors.append(
                         f"Artifact[{i}].sections[{j}] is not a dict"
                     )
-                elif not section.get("content", "").strip():
+                elif not str(section.get("content", "")).strip():
                     errors.append(
                         f"Artifact[{i}].sections[{j}] has empty content"
                     )

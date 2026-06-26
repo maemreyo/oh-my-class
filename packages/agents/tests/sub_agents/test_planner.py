@@ -248,7 +248,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json at all"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Planner agent failed"):  # noqa: E501
             await design_lesson_plan(cast("PlannerState", self._make_state()))
 
     @pytest.mark.asyncio

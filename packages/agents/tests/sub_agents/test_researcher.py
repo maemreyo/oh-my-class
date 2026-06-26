@@ -106,7 +106,7 @@ class TestResearcherAgent:
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Researcher agent failed"):  # noqa: E501
             await research_sources(cast("ResearcherState", _make_state()))
 
     @pytest.mark.asyncio

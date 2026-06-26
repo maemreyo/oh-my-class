@@ -117,7 +117,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_raises_value_error_on_invalid_json(self):
         mock_litellm = _make_litellm_mock(return_value=_make_mock_response("not valid json"))
-        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Invalid JSON"):  # noqa: E501
+        with patch.dict(sys.modules, {"litellm": mock_litellm}), pytest.raises(ValueError, match="Content creator agent failed"):  # noqa: E501
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
     @pytest.mark.asyncio

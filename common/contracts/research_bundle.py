@@ -32,6 +32,8 @@ class ResearchBundle(BaseModel):
         min_length=2,
         description="Minimum 2 sources for basic, 5+ for standard, 10+ for rigorous",
     )
-    key_findings: list[str | dict[str, Any]] = Field(default_factory=list)
+    key_findings: str | list[str] | list[dict[str, Any]] | list[str | dict[str, Any]] = Field(
+        default_factory=list,
+    )
     cross_references: list[dict[str, Any]] = Field(default_factory=list)
     research_policy: Literal["basic", "standard", "rigorous"] = "standard"

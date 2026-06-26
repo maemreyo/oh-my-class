@@ -48,51 +48,66 @@ Return a JSON array of artifacts.
         {"role": "user", "content": user_prompt},
     ]
 
-    from packages.agents.llm import get_llm_config, resolve_model
+    from packages.agents.llm import extract_json_text, get_llm_config, resolve_model
 
     llm_config = get_llm_config()
-    try:
-        response = await litellm.acompletion(
-            model=resolve_model("f.light"),
-            messages=messages,
-            temperature=0.7,
-            api_base=llm_config["api_base"],
-            api_key=llm_config["api_key"],
-            extra_body={
-                "metadata": {
-                    "tags": [
-                        "agent:content_creator",
-                        f"step:{state.get('current_step', 8)}",
-                        f"run:{state.get('run_id', '')}",
-                        "pipeline:oh-my-class",
-                    ]
-                }
-            },
-        )
+    # Force JSON array output from free models
+    messages[0]["content"] = (
+        messages[0]["content"]
+        + "\n\nCRITICAL: Respond ONLY with a JSON array. No prose, no explanation, no markdown fences."
+    )
 
-        msg = response.choices[0].message
-        reasoning = getattr(msg, "reasoning_content", None)
-        content = msg.content
+    content = None
+    for attempt in range(3):
+        try:
+            response = await litellm.acompletion(
+                model=resolve_model("f.light"),
+                messages=messages,
+                temperature=0.3 if attempt > 0 else 0.7,
+                api_base=llm_config["api_base"],
+                api_key=llm_config["api_key"],
+                extra_body={
+                    "metadata": {
+                        "tags": [
+                            "agent:content_creator",
+                            f"step:{state.get('current_step', 8)}",
+                            f"run:{state.get('run_id', '')}",
+                            "pipeline:oh-my-class",
+                        ]
+                    }
+                },
+            )
+            msg = response.choices[0].message
+            reasoning = getattr(msg, "reasoning_content", None)
+            content = msg.content
+            json_str = extract_json_text(content, reasoning)
+            artifacts_data = json.loads(json_str)
 
-        from packages.agents.llm import extract_json_text
+            if isinstance(artifacts_data, dict):
+                # LLM returned single object — wrap in array
+                artifacts_data = [artifacts_data]
 
-        json_str = extract_json_text(content, reasoning)
-        artifacts_data = json.loads(json_str)
+            artifacts = []
+            for artifact_data in artifacts_data:
+                artifact = ArtifactContent.model_validate(artifact_data)
+                artifacts.append(artifact.model_dump())
 
-        if isinstance(artifacts_data, dict):
-            artifacts_data = [artifacts_data]
+            return {"artifacts": artifacts}
+        except (ValueError, json.JSONDecodeError) as parse_err:
+            if attempt < 2:
+                messages.append({"role": "assistant", "content": str(content)[:500]})
+                messages.append({
+                    "role": "user",
+                    "content": "Invalid response. Return ONLY the JSON array of artifacts.",
+                })
+                continue
+            raise ValueError(f"Content creator agent failed: {parse_err}") from parse_err
+        except Exception as e:
+            if attempt < 2:
+                continue
+            raise ValueError(f"Content creator agent failed: {e}") from e
 
-        artifacts = []
-        for artifact_data in artifacts_data:
-            artifact = ArtifactContent.model_validate(artifact_data)
-            artifacts.append(artifact.model_dump())
-
-        return {"artifacts": artifacts}
-
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON from LLM: {e}") from e
-    except Exception as e:
-        raise ValueError(f"Content creator agent failed: {e}") from e
+    raise ValueError("Content creator agent failed: exhausted retries")
 
 
 def validate_no_cdn(artifacts: list[dict[str, Any]]) -> list[str]:

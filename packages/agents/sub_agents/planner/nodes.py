@@ -40,40 +40,54 @@ Class information:
         {"role": "user", "content": user_prompt},
     ]
 
-    from packages.agents.llm import get_llm_config, resolve_model
+    from packages.agents.llm import extract_json_text, get_llm_config, resolve_model
 
     llm_config = get_llm_config()
-    try:
-        response = await litellm.acompletion(
-            model=resolve_model("f.light"),
-            messages=messages,
-            temperature=0.7,
-            api_base=llm_config["api_base"],
-            api_key=llm_config["api_key"],
-            extra_body={
-                "metadata": {
-                    "tags": [
-                        "agent:planner",
-                        f"step:{state.get('current_step', 3)}",
-                        f"run:{state.get('run_id', '')}",
-                        "pipeline:oh-my-class",
-                    ]
-                }
-            },
-        )
+    # Force JSON output from free models
+    messages[0]["content"] = (
+        messages[0]["content"]
+        + "\n\nCRITICAL: Respond ONLY with a single JSON object. "
+        "No prose, no explanation, no markdown code fences."
+    )
 
-        msg = response.choices[0].message
-        reasoning = getattr(msg, "reasoning_content", None)
-        content = msg.content
+    for attempt in range(3):
+        try:
+            response = await litellm.acompletion(
+                model=resolve_model("f.light"),
+                messages=messages,
+                temperature=0.3 if attempt > 0 else 0.7,
+                api_base=llm_config["api_base"],
+                api_key=llm_config["api_key"],
+                extra_body={
+                    "metadata": {
+                        "tags": [
+                            "agent:planner",
+                            f"step:{state.get('current_step', 3)}",
+                            f"run:{state.get('run_id', '')}",
+                            "pipeline:oh-my-class",
+                        ]
+                    }
+                },
+            )
+            msg = response.choices[0].message
+            reasoning = getattr(msg, "reasoning_content", None)
+            content = msg.content
+            json_str = extract_json_text(content, reasoning)
+            plan_data = json.loads(json_str)
+            plan = LessonPlan.model_validate(plan_data)
+            return {"lesson_plan": plan.model_dump()}
+        except (ValueError, json.JSONDecodeError) as parse_err:
+            if attempt < 2:
+                messages.append({"role": "assistant", "content": str(content)[:500]})
+                messages.append({
+                    "role": "user",
+                    "content": "Invalid response. Return ONLY the JSON object.",
+                })
+                continue
+            raise ValueError(f"Planner agent failed: {parse_err}") from parse_err
+        except Exception as e:
+            if attempt < 2:
+                continue
+            raise ValueError(f"Planner agent failed: {e}") from e
 
-        from packages.agents.llm import extract_json_text
-
-        json_str = extract_json_text(content, reasoning)
-        plan_data = json.loads(json_str)
-        plan = LessonPlan.model_validate(plan_data)
-        return {"lesson_plan": plan.model_dump()}
-
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON from LLM: {e}") from e
-    except Exception as e:
-        raise ValueError(f"Planner agent failed: {e}") from e
+    raise ValueError("Planner agent failed: exhausted retries")

@@ -45,40 +45,57 @@ Please gather and verify sources following the FACT protocol.
         {"role": "user", "content": user_prompt},
     ]
 
-    from packages.agents.llm import get_llm_config, resolve_model
+    from packages.agents.llm import extract_json_text, get_llm_config, resolve_model
 
     llm_config = get_llm_config()
-    try:
-        response = await litellm.acompletion(
-            model=resolve_model("f.light"),
-            messages=messages,
-            temperature=0.7,
-            api_base=llm_config["api_base"],
-            api_key=llm_config["api_key"],
-            extra_body={
-                "metadata": {
-                    "tags": [
-                        "agent:researcher",
-                        f"step:{state.get('current_step', 7)}",
-                        f"run:{state.get('run_id', '')}",
-                        "pipeline:oh-my-class",
-                    ]
-                }
-            },
-        )
+    # Strong system prompt to force JSON output from free models
+    messages[0]["content"] = (
+        messages[0]["content"]
+        + "\n\nCRITICAL: Respond ONLY with a single JSON object. "
+        "No prose, no explanation, no markdown code fences. "
+        "Just the raw JSON."
+    )
 
-        msg = response.choices[0].message
-        reasoning = getattr(msg, "reasoning_content", None)
-        content = msg.content
+    response = None
+    for attempt in range(3):
+        try:
+            response = await litellm.acompletion(
+                model=resolve_model("f.light"),
+                messages=messages,
+                temperature=0.3 if attempt > 0 else 0.7,
+                api_base=llm_config["api_base"],
+                api_key=llm_config["api_key"],
+                extra_body={
+                    "metadata": {
+                        "tags": [
+                            "agent:researcher",
+                            f"step:{state.get('current_step', 7)}",
+                            f"run:{state.get('run_id', '')}",
+                            "pipeline:oh-my-class",
+                        ]
+                    }
+                },
+            )
+            msg = response.choices[0].message
+            reasoning = getattr(msg, "reasoning_content", None)
+            content = msg.content
+            try:
+                json_str = extract_json_text(content, reasoning)
+                bundle_data = json.loads(json_str)
+                bundle = ResearchBundle.model_validate(bundle_data)
+                return {"research_bundle": bundle.model_dump()}
+            except (ValueError, json.JSONDecodeError, Exception) as parse_err:
+                if attempt < 2:
+                    messages.append({"role": "assistant", "content": str(content)[:500]})
+                    messages.append({
+                        "role": "user",
+                        "content": "Invalid response. Return ONLY the JSON object. No prose.",
+                    })
+                    continue
+                raise
+        except Exception as e:
+            if attempt < 2:
+                continue
+            raise ValueError(f"Researcher agent failed: {e}") from e
 
-        from packages.agents.llm import extract_json_text
-
-        json_str = extract_json_text(content, reasoning)
-        bundle_data = json.loads(json_str)
-        bundle = ResearchBundle.model_validate(bundle_data)
-        return {"research_bundle": bundle.model_dump()}
-
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON from LLM: {e}") from e
-    except Exception as e:
-        raise ValueError(f"Researcher agent failed: {e}") from e
+    raise ValueError("Researcher agent failed: exhausted retries")
