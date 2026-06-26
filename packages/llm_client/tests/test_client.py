@@ -20,6 +20,9 @@ def test_config_uses_llm_env_vars(monkeypatch) -> None:
     from packages.agents.config import models
 
     reload(models)
+    import packages.llm_client.config as llm_client_config
+
+    reload(llm_client_config)
 
     from packages.llm_client.config import LLMClientConfig
 
