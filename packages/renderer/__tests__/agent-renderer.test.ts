@@ -116,4 +116,59 @@ describe("renderAgentArtifact", () => {
     expect(html).toContain("Introduction");
     expect(html).toContain("Basic math concepts");
   });
+
+  it("renders drill artifacts with the drill template", async () => {
+    const html = await renderAgentArtifact({
+      artifact_type: "drill",
+      title: "Food Drill",
+      metadata: { subject: "English", grade_level: "Grade 5" },
+      sections: [
+        {
+          id: "d1",
+          content: "Choose the food word.",
+          options: { A: "Apple", B: "Chair", C: "Pencil", D: "Window" },
+          answer: "A",
+        },
+      ],
+    });
+
+    expect(html).toContain("drill-page");
+    expect(html).toContain("Choose the food word.");
+  });
+
+  it("renders recap artifacts with recap cards", async () => {
+    const html = await renderAgentArtifact({
+      artifact_type: "recap",
+      title: "Food Recap",
+      metadata: { subject: "English", grade_level: "Grade 5" },
+      sections: [{ title: "Fruit", content: "Fruit words name sweet plant foods." }],
+    });
+
+    expect(html).toContain("recap-page");
+    expect(html).toContain("Fruit words name sweet plant foods.");
+  });
+
+  it("renders infographic artifacts with infographic sections", async () => {
+    const html = await renderAgentArtifact({
+      artifact_type: "infographic",
+      title: "Food Infographic",
+      metadata: { subject: "English", grade_level: "Grade 5" },
+      sections: [{ title: "Food Groups", content: "Fruit, vegetables, grains, and protein." }],
+    });
+
+    expect(html).toContain("infographic-page");
+    expect(html).toContain("Food Groups");
+  });
+
+  it("renders answer_key artifacts with the answer key template", async () => {
+    const html = await renderAgentArtifact({
+      artifact_type: "answer_key",
+      title: "Teacher Answers",
+      metadata: { subject: "English", grade_level: "Grade 5" },
+      sections: [{ id: "a1", title: "Quiz", content: "1. A" }],
+    });
+
+    expect(html).toContain("Teacher Answers");
+    expect(html).toContain("oh-my-class");
+  });
 });

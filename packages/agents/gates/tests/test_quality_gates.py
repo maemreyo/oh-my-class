@@ -425,18 +425,69 @@ class TestHTMLValidator:
 class TestAnswerKeyGuard:
     def test_worksheet_with_answer_key_fails(self):
         from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
-        artifact = {"type": "worksheet", "content": "Q1: 2+2=?\nAnswer Key: 4"}
+        artifact = {"artifact_type": "worksheet", "content": "Q1: 2+2=?\nAnswer Key: 4"}
         result = check_answer_key_leakage(artifact)
         assert result["passed"] is False
 
     def test_lesson_plan_passes_with_answer_key(self):
         from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
-        artifact = {"type": "lesson_plan", "content": "Answer Key: provided in teacher guide"}
+        artifact = {
+            "artifact_type": "lesson_plan",
+            "content": "Answer Key: provided in teacher guide",
+        }
         result = check_answer_key_leakage(artifact)
-        assert result["passed"] is True  # lesson_plan is teacher-facing
+        assert result["passed"] is True
 
     def test_clean_worksheet_passes(self):
         from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
-        artifact = {"type": "worksheet", "content": "Q1: What is 2+2? Write your answer below."}
+        artifact = {
+            "artifact_type": "worksheet",
+            "content": "Q1: What is 2+2? Write your answer below.",
+        }
         result = check_answer_key_leakage(artifact)
         assert result["passed"] is True
+
+    def test_nested_quiz_component_answer_fails(self):
+        from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
+        artifact = {
+            "artifact_type": "quiz",
+            "sections": [
+                {
+                    "components": [
+                        {
+                            "type": "question_card",
+                            "text": "2+2?",
+                            "answer": "A",
+                        }
+                    ],
+                }
+            ],
+        }
+        result = check_answer_key_leakage(artifact)
+        assert result["passed"] is False
+
+    def test_nested_question_list_answer_fails(self):
+        from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
+        artifact = {
+            "artifact_type": "drill",
+            "sections": [
+                {
+                    "components": [
+                        {
+                            "type": "question_list",
+                            "questions": [
+                                {"text": "2+2?", "correct_answer": "A"},
+                            ],
+                        }
+                    ],
+                }
+            ],
+        }
+        result = check_answer_key_leakage(artifact)
+        assert result["passed"] is False
+
+    def test_recap_student_type_with_answer_key_fails(self):
+        from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
+        artifact = {"artifact_type": "recap", "content": "Correct answer: B"}
+        result = check_answer_key_leakage(artifact)
+        assert result["passed"] is False

@@ -1,7 +1,16 @@
 import process from "node:process";
 
 import { renderArtifact } from "./renderer.js";
-import type { ContentComponent, LessonData, QuizData, WorksheetData } from "./contracts/index.js";
+import type {
+  AnswerKeyData,
+  ContentComponent,
+  DrillData,
+  InfographicData,
+  LessonData,
+  QuizData,
+  RecapData,
+  WorksheetData,
+} from "./contracts/index.js";
 
 type ArtifactRecord = Readonly<Record<string, unknown>>;
 
@@ -124,6 +133,59 @@ function quizData(artifact: ArtifactRecord): QuizData {
   };
 }
 
+function drillData(artifact: ArtifactRecord): DrillData {
+  const sections = asRecordArray(artifact.sections).filter((section) => section.teacher_only !== true);
+  return {
+    ...common(artifact),
+    timeLimit: 10,
+    questions: sections.map((section, index) => ({
+      id: asString(section.id, `d${index + 1}`),
+      prompt: asString(section.prompt, asString(section.content, asString(section.text, "Practice question"))),
+      answer: quizAnswer(section),
+      type: asString(section.type, "fill") === "question_card" ? "mc" : "fill",
+      options: optionList(section.options),
+    })),
+  };
+}
+
+function recapData(artifact: ArtifactRecord): RecapData {
+  const sections = asRecordArray(artifact.sections).filter((section) => section.teacher_only !== true);
+  return {
+    ...common(artifact),
+    items: sections.map((section, index) => ({
+      id: asString(section.id, `recap-${index + 1}`),
+      concept: asString(section.title, `Concept ${index + 1}`),
+      summary: asString(section.content, asString(section.summary, "Review this concept.")),
+    })),
+  };
+}
+
+function infographicData(artifact: ArtifactRecord): InfographicData {
+  const sections = asRecordArray(artifact.sections).filter((section) => section.teacher_only !== true);
+  return {
+    ...common(artifact),
+    sections: sections.map((section, index) => ({
+      title: asString(section.title, `Visual ${index + 1}`),
+      content: asString(section.content, asString(section.summary, "")),
+    })),
+  };
+}
+
+function answerKeyData(artifact: ArtifactRecord): AnswerKeyData {
+  const sections = asRecordArray(artifact.sections);
+  return {
+    title: common(artifact).title,
+    theme: common(artifact).theme,
+    accessibility: { language: common(artifact).lang },
+    sections: sections.map((section, index) => ({
+      id: asString(section.id, `answer-${index + 1}`),
+      title: asString(section.title, `Answer ${index + 1}`),
+      summary: asString(section.content, asString(section.summary, "")),
+      components: [...preserveComponents(section)],
+    })),
+  };
+}
+
 export async function renderAgentArtifact(input: unknown): Promise<string> {
   const artifact = asRecord(input);
   const artifactType = asString(artifact.artifact_type, "lesson");
@@ -132,6 +194,14 @@ export async function renderAgentArtifact(input: unknown): Promise<string> {
       return renderArtifact("quiz", quizData(artifact));
     case "worksheet":
       return renderArtifact("worksheet", worksheetData(artifact));
+    case "drill":
+      return renderArtifact("drill", drillData(artifact));
+    case "recap":
+      return renderArtifact("recap", recapData(artifact));
+    case "infographic":
+      return renderArtifact("infographic", infographicData(artifact));
+    case "answer_key":
+      return renderArtifact("answer_key", answerKeyData(artifact));
     default:
       return renderArtifact("lesson", lessonData(artifact));
   }
