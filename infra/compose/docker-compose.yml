@@ -1,6 +1,5 @@
-version: "3.9"
-
 services:
+  # ── App PostgreSQL ──────────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     environment:
@@ -12,12 +11,27 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-langfuse.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omc_dev"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
 
+  # ── App Redis ───────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
+    command: >
+      --requirepass ${REDIS_AUTH:-omc_redis_secret}
+      --maxmemory-policy noeviction
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
 
+  # ── Gateway ─────────────────────────────────────────────────────────
   gateway:
     build:
       context: ../..
@@ -28,29 +42,127 @@ services:
       - ../../.env
     environment:
       DATABASE_URL: postgresql://omc_dev:omc_dev@db:5432/oh_my_class
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_AUTH:-omc_redis_secret}@redis:6379
       LITELLM_PROXY_URL: http://proxy:4000
+      LANGFUSE_BASE_URL: http://langfuse-web:3000
     depends_on:
-      - db
-      - redis
-      - proxy
-      - langfuse
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      proxy:
+        condition: service_started
+      langfuse-web:
+        condition: service_started
 
-
-  langfuse:
-    image: langfuse/langfuse:latest
+  # ── Langfuse v3 — Web UI ────────────────────────────────────────────
+  langfuse-web:
+    image: docker.io/langfuse/langfuse:3
+    restart: always
     ports:
-      - "3001:3000"
-    environment:
-      DATABASE_URL: postgresql://omc_dev:omc_dev@db:5432/langfuse
+      - "3100:3000"
+    environment: &langfuse-env
       NEXTAUTH_URL: http://localhost:3001
-      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-changeme}
-      SALT: ${LANGFUSE_SALT:-changeme}
-    depends_on:
-      - db
-    volumes:
-      - langfuse_data:/app/data
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-omc_langfuse_nextauth_secret}
+      DATABASE_URL: postgresql://omc_dev:omc_dev@db:5432/langfuse
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_secret}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      SALT: ${LANGFUSE_SALT:-omc_langfuse_salt}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_AUTH: ${REDIS_AUTH:-omc_redis_secret}
+      LANGFUSE_USE_AZURE_BLOB: "false"
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minio_secret}
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minio_secret}
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+      LANGFUSE_INIT_ORG_ID: ""
+      LANGFUSE_INIT_ORG_NAME: ""
+      LANGFUSE_INIT_PROJECT_ID: ""
+      LANGFUSE_INIT_PROJECT_NAME: ""
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ""
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ""
+      LANGFUSE_INIT_USER_EMAIL: ""
+      LANGFUSE_INIT_USER_NAME: ""
+      LANGFUSE_INIT_USER_PASSWORD: ""
+    depends_on: &langfuse-deps
+      db:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
+  # ── Langfuse v3 — Background Worker ─────────────────────────────────
+  langfuse-worker:
+    image: docker.io/langfuse/langfuse-worker:3
+    restart: always
+    depends_on: *langfuse-deps
+    environment:
+      <<: *langfuse-env
+    profiles:
+      - langfuse-worker
+
+  # ── ClickHouse (Langfuse v3 traces/observations store) ──────────────
+  clickhouse:
+    image: docker.io/clickhouse/clickhouse-server
+    restart: always
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_secret}
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+    ports:
+      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:9000:9000"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1s
+
+  # ── MinIO (Langfuse v3 object storage) ──────────────────────────────
+  minio:
+    image: cgr.dev/chainguard/minio
+    restart: always
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_secret}
+    ports:
+      - "9090:9000"
+      - "127.0.0.1:9091:9001"
+    volumes:
+      - langfuse_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
+      start_period: 1s
+
+  # ── LiteLLM Proxy (optional) ────────────────────────────────────────
   proxy:
     build:
       context: ../..
@@ -60,8 +172,10 @@ services:
     env_file:
       - ../../.env
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
 
+  # ── Next.js Web Dashboard ──────────────────────────────────────────
   web:
     build:
       context: ../..
@@ -75,4 +189,6 @@ services:
 
 volumes:
   pgdata:
-  langfuse_data:
+  langfuse_clickhouse_data:
+  langfuse_clickhouse_logs:
+  langfuse_minio_data:
