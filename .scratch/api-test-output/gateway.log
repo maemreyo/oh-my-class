@@ -45,3 +45,10 @@ INFO:     Waiting for background tasks to complete. (CTRL+C to force quit)
 {"level": "WARNING", "logger": "packages.agents.llm", "message": "llm.call.failure agent=researcher run_id=3938e8aa-1b27-4037-a8f6-a068e7edc86f step=6 model=4omc attempt=2 duration_s=82.0 error=Error code: 504 - {'error': {'message': '[504]: An error occurred with your deployment\\n\\nFUNCTION_INVOCATION_TIMEOUT\\n\\nhkg1::7glrc-1782491693984-622d19e0aaee\\n'}}", "timestamp": "2026-06-26 23:35:19,123"}
 {"level": "INFO", "logger": "packages.agents.llm", "message": "llm.call.start agent=researcher run_id=3938e8aa-1b27-4037-a8f6-a068e7edc86f step=6 model=4omc attempt=3", "timestamp": "2026-06-26 23:35:19,123"}
 {"level": "INFO", "logger": "packages.agents.llm", "message": "llm.transport.request model=4omc base_url=http://localhost:20128/v1 message_count=2 message_chars=44769 tags=['agent:researcher', 'step:6', 'run:3938e8aa-1b27-4037-a8f6-a068e7edc86f', 'attempt:3', 'pipeline:oh-my-class']", "timestamp": "2026-06-26 23:35:19,123"}
+{"level": "INFO", "logger": "httpx", "message": "HTTP Request: POST http://localhost:20128/v1/chat/completions \"HTTP/1.1 504 Gateway Timeout\"", "timestamp": "2026-06-26 23:36:41,260"}
+{"level": "WARNING", "logger": "packages.agents.llm", "message": "llm.call.failure agent=researcher run_id=3938e8aa-1b27-4037-a8f6-a068e7edc86f step=6 model=4omc attempt=3 duration_s=82.1 error=Error code: 504 - {'error': {'message': '[504]: An error occurred with your deployment\\n\\nFUNCTION_INVOCATION_TIMEOUT\\n\\nhkg1::nwwkf-1782491776121-55771fe13d2c\\n'}}", "timestamp": "2026-06-26 23:36:41,268"}
+{"level": "ERROR", "logger": "omc.error", "message": "omc_exception: PIPELINE_ERROR (status=500)", "timestamp": "2026-06-26 23:36:41,272"}
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25223]
+INFO:     Stopping reloader process [25215]
