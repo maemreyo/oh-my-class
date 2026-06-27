@@ -47,9 +47,9 @@ import { useCreateRun, useRun, useRunStatus } from "@/hooks/use-run";
 import { useApproveRun, useRejectRun } from "@/hooks/use-approval";
 import {
 	snapshotPreviewUrl,
-	useCreatePipelineV2Run,
-	useResumePipelineV2Run,
-} from "@/hooks/use-pipeline-v2";
+	useCreateTeachingPackRun,
+	useResumeTeachingPackRun,
+} from "@/hooks/use-teaching-packs";
 
 // ── useCreateRun ──────────────────────────────────────────────────────────────
 
@@ -219,23 +219,23 @@ describe("useRejectRun", () => {
 	});
 });
 
-describe("useCreatePipelineV2Run", () => {
+describe("useCreateTeachingPackRun", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		capturedOpts.length = 0;
 	});
 
-	it("calls POST /pipeline-v2/run with an idempotency key", async () => {
-		mockPost.mockResolvedValue({ run_id: "run-v2", job_id: "job-v2", status: "pending" });
+	it("calls POST /teaching-packs/runs with an idempotency key", async () => {
+		mockPost.mockResolvedValue({ run_id: "run-teaching-pack", job_id: "job-teaching-pack", status: "pending" });
 
-		const hook = useCreatePipelineV2Run();
+		const hook = useCreateTeachingPackRun();
 		await (hook as { mutateAsync: Function }).mutateAsync({
 			raw_request: "Teach fractions",
 			class_info: { grade: 5, subject: "math" },
 		});
 
 		expect(mockPost).toHaveBeenCalledWith(
-			"/pipeline-v2/run",
+			"/teaching-packs/runs",
 			{ raw_request: "Teach fractions", class_info: { grade: 5, subject: "math" } },
 			expect.objectContaining({
 				headers: expect.objectContaining({ "Idempotency-Key": expect.stringContaining("create:") }),
@@ -244,16 +244,16 @@ describe("useCreatePipelineV2Run", () => {
 	});
 });
 
-describe("useResumePipelineV2Run", () => {
+describe("useResumeTeachingPackRun", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		capturedOpts.length = 0;
 	});
 
-	it("calls generic V2 resume endpoint", async () => {
-		mockPost.mockResolvedValue({ run_id: "run-v2", response_id: "resp-1", job_id: "job-1" });
+	it("calls generic Teaching Pack resume endpoint", async () => {
+		mockPost.mockResolvedValue({ run_id: "run-teaching-pack", response_id: "resp-1", job_id: "job-1" });
 
-		const hook = useResumePipelineV2Run("run-v2");
+		const hook = useResumeTeachingPackRun("run-teaching-pack");
 		await (hook as { mutateAsync: Function }).mutateAsync({
 			gate_id: "gate-1",
 			gate_name: "contract_confirmation",
@@ -262,7 +262,7 @@ describe("useResumePipelineV2Run", () => {
 		});
 
 		expect(mockPost).toHaveBeenCalledWith(
-			"/pipeline-v2/run/run-v2/resume",
+			"/teaching-packs/runs/run-teaching-pack/resume",
 			{
 				gate_id: "gate-1",
 				gate_name: "contract_confirmation",
@@ -270,22 +270,22 @@ describe("useResumePipelineV2Run", () => {
 				response: { feedback: "Looks good" },
 			},
 			expect.objectContaining({
-				headers: expect.objectContaining({ "Idempotency-Key": expect.stringContaining("resume:run-v2") }),
+				headers: expect.objectContaining({ "Idempotency-Key": expect.stringContaining("resume:run-teaching-pack") }),
 			}),
 		);
 	});
 });
 
 describe("snapshotPreviewUrl", () => {
-	it("builds the V2 rendered preview URL", () => {
-		expect(snapshotPreviewUrl("run-v2", "snap-1", "teacher")).toBe(
-			"http://gateway.test/pipeline-v2/run/run-v2/snapshots/snap-1/preview?view=teacher",
+	it("builds the Teaching Pack rendered preview URL", () => {
+		expect(snapshotPreviewUrl("run-teaching-pack", "snap-1", "teacher")).toBe(
+			"http://gateway.test/teaching-packs/runs/run-teaching-pack/snapshots/snap-1/preview?view=teacher",
 		);
 	});
 
 	it("builds student preview URL", () => {
-		expect(snapshotPreviewUrl("run-v2", "snap-2", "student")).toBe(
-			"http://gateway.test/pipeline-v2/run/run-v2/snapshots/snap-2/preview?view=student",
+		expect(snapshotPreviewUrl("run-teaching-pack", "snap-2", "student")).toBe(
+			"http://gateway.test/teaching-packs/runs/run-teaching-pack/snapshots/snap-2/preview?view=student",
 		);
 	});
 });

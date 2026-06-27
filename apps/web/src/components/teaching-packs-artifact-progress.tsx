@@ -7,7 +7,7 @@ export interface ArtifactProgressItem {
 	readonly error?: string;
 }
 
-export interface PipelineV2ArtifactProgressProps {
+export interface TeachingPackArtifactProgressProps {
 	readonly artifacts: readonly ArtifactProgressItem[];
 }
 
@@ -20,7 +20,7 @@ const STATUS_CONFIG = {
 	failed: { label: "Failed", color: "text-destructive" },
 } as const;
 
-export function PipelineV2ArtifactProgress({ artifacts }: PipelineV2ArtifactProgressProps) {
+export function TeachingPackArtifactProgress({ artifacts }: TeachingPackArtifactProgressProps) {
 	if (artifacts.length === 0) return null;
 
 	return (

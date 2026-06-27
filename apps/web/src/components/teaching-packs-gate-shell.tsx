@@ -2,24 +2,24 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useResumePipelineV2Run } from "@/hooks/use-pipeline-v2";
-import type { PipelineV2EventPayload, PipelineV2GateName } from "@/hooks/use-pipeline-v2";
-import { PipelineV2GateBody } from "@/components/pipeline-v2-gate-bodies";
-import { PipelineV2ScopedRejection } from "@/components/pipeline-v2-scoped-rejection";
-import type { ArtifactRejection } from "@/components/pipeline-v2-scoped-rejection";
+import { useResumeTeachingPackRun } from "@/hooks/use-teaching-packs";
+import type { TeachingPackEventPayload, TeachingPackGateName } from "@/hooks/use-teaching-packs";
+import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
+import { TeachingPackScopedRejection } from "@/components/teaching-packs-scoped-rejection";
+import type { ArtifactRejection } from "@/components/teaching-packs-scoped-rejection";
 
-export interface PipelineV2GateShellProps {
+export interface TeachingPackGateShellProps {
 	readonly runId: string;
-	readonly event: PipelineV2EventPayload;
+	readonly event: TeachingPackEventPayload;
 	readonly onResolved?: () => void;
 }
 
-export function PipelineV2GateShell({ runId, event, onResolved }: PipelineV2GateShellProps) {
+export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPackGateShellProps) {
 	const gateName = gateNameFor(event);
 	const gateId = typeof event.gate_id === "string" ? event.gate_id : "";
 	const [feedback, setFeedback] = useState("");
 	const [scopedRejectionMode, setScopedRejectionMode] = useState(false);
-	const resume = useResumePipelineV2Run(runId);
+	const resume = useResumeTeachingPackRun(runId);
 
 	if (!gateName || !gateId) return null;
 
@@ -50,11 +50,11 @@ export function PipelineV2GateShell({ runId, event, onResolved }: PipelineV2Gate
 	const artifacts = (event.artifacts ?? []).map((a) => ({ id: a.artifact_id, type: a.artifact_type }));
 
 	return (
-		<section aria-labelledby="pipeline-v2-gate-title" className="rounded-lg border border-border bg-card p-6">
+		<section aria-labelledby="teaching-packs-gate-title" className="rounded-lg border border-border bg-card p-6">
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<p className="text-xs font-semibold uppercase tracking-wide text-primary">Teacher gate</p>
-					<h2 id="pipeline-v2-gate-title" className="text-lg font-semibold">
+					<h2 id="teaching-packs-gate-title" className="text-lg font-semibold">
 						{labelFor(gateName)}
 					</h2>
 				</div>
@@ -62,13 +62,13 @@ export function PipelineV2GateShell({ runId, event, onResolved }: PipelineV2Gate
 			</div>
 
 			<div className="mt-4 rounded-md bg-muted p-4">
-					<PipelineV2GateBody runId={runId} gateName={gateName} event={event} />
+					<TeachingPackGateBody runId={runId} gateName={gateName} event={event} />
 			</div>
 
 			{scopedRejectionMode && showScopedRejection ? (
 				<>
 					<div className="mt-4 rounded-md bg-destructive/10 p-4">
-						<PipelineV2ScopedRejection
+						<TeachingPackScopedRejection
 							artifacts={artifacts}
 							onReject={handleScopedRejection}
 							disabled={resume.isPending}
@@ -84,11 +84,11 @@ export function PipelineV2GateShell({ runId, event, onResolved }: PipelineV2Gate
 				</>
 			) : (
 				<>
-					<label className="mt-4 block text-sm font-medium" htmlFor="pipeline-v2-gate-feedback">
+					<label className="mt-4 block text-sm font-medium" htmlFor="teaching-packs-gate-feedback">
 						Feedback or edit notes
 					</label>
 					<textarea
-						id="pipeline-v2-gate-feedback"
+						id="teaching-packs-gate-feedback"
 						className="mt-2 min-h-24 w-full rounded-md border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
 						value={feedback}
 						onChange={(event_) => setFeedback(event_.target.value)}
@@ -127,13 +127,13 @@ export function PipelineV2GateShell({ runId, event, onResolved }: PipelineV2Gate
 	);
 }
 
-function gateNameFor(event: PipelineV2EventPayload): PipelineV2GateName | null {
+function gateNameFor(event: TeachingPackEventPayload): TeachingPackGateName | null {
 	const candidate = event.gate_name ?? event.gate;
 	if (isGateName(candidate)) return candidate;
 	return null;
 }
 
-function isGateName(value: unknown): value is PipelineV2GateName {
+function isGateName(value: unknown): value is TeachingPackGateName {
 	switch (value) {
 		case "clarification_required":
 		case "contract_confirmation":
@@ -146,7 +146,7 @@ function isGateName(value: unknown): value is PipelineV2GateName {
 	}
 }
 
-function labelFor(gateName: PipelineV2GateName): string {
+function labelFor(gateName: TeachingPackGateName): string {
 	switch (gateName) {
 		case "clarification_required":
 			return "Clarification required";

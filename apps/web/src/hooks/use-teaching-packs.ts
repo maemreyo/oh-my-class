@@ -4,7 +4,7 @@ import { useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient, gatewayUrl } from "@/lib/api-client";
 
-export type PipelineV2RunStatus =
+export type TeachingPackRunStatus =
 	| "pending"
 	| "running"
 	| "awaiting_approval"
@@ -12,34 +12,34 @@ export type PipelineV2RunStatus =
 	| "failed"
 	| "cancelled";
 
-export type PipelineV2GateName =
+export type TeachingPackGateName =
 	| "clarification_required"
 	| "contract_confirmation"
 	| "search_plan_confirmation"
 	| "blueprint_approval"
 	| "content_approval";
 
-export type PipelineV2GateAction = "approve" | "edit" | "reject";
+export type TeachingPackGateAction = "approve" | "edit" | "reject";
 
-export interface PipelineV2CreateRunRequest {
+export interface TeachingPackCreateRunRequest {
 	readonly raw_request: string;
 	readonly class_info: Readonly<Record<string, unknown>>;
 }
 
-export interface PipelineV2RunAcceptedResponse {
+export interface TeachingPackRunAcceptedResponse {
 	readonly run_id: string;
 	readonly job_id: string | null;
-	readonly status: PipelineV2RunStatus;
+	readonly status: TeachingPackRunStatus;
 }
 
-export interface PipelineV2ResumeRequest {
+export interface TeachingPackResumeRequest {
 	readonly gate_id: string;
-	readonly gate_name: PipelineV2GateName;
-	readonly action: PipelineV2GateAction;
+	readonly gate_name: TeachingPackGateName;
+	readonly action: TeachingPackGateAction;
 	readonly response?: Readonly<Record<string, unknown>>;
 }
 
-export interface PipelineV2ResumeAcceptedResponse {
+export interface TeachingPackResumeAcceptedResponse {
 	readonly run_id: string;
 	readonly response_id: string;
 	readonly job_id: string;
@@ -52,11 +52,11 @@ export interface ArtifactProgressItem {
 	readonly error?: string;
 }
 
-export interface PipelineV2EventPayload {
+export interface TeachingPackEventPayload {
 	readonly sequence?: number;
 	readonly gate_id?: string;
-	readonly gate_name?: PipelineV2GateName;
-	readonly gate?: PipelineV2GateName;
+	readonly gate_name?: TeachingPackGateName;
+	readonly gate?: TeachingPackGateName;
 	readonly snapshot_ids?: readonly string[];
 	readonly contract?: Readonly<Record<string, unknown>>;
 	readonly questions?: readonly Readonly<Record<string, unknown>>[];
@@ -64,9 +64,9 @@ export interface PipelineV2EventPayload {
 	readonly [key: string]: unknown;
 }
 
-export interface PipelineV2StatusEvent {
+export interface TeachingPackStatusEvent {
 	readonly name: string;
-	readonly payload: PipelineV2EventPayload;
+	readonly payload: TeachingPackEventPayload;
 }
 
 export interface RenderedSnapshotMetadata {
@@ -82,49 +82,49 @@ export interface RenderedSnapshotMetadata {
 	readonly approved_at: string | null;
 }
 
-export function useCreatePipelineV2Run() {
+export function useCreateTeachingPackRun() {
 	const queryClient = useQueryClient();
-	return useMutation<PipelineV2RunAcceptedResponse, Error, PipelineV2CreateRunRequest>({
+	return useMutation<TeachingPackRunAcceptedResponse, Error, TeachingPackCreateRunRequest>({
 		mutationFn: (request) =>
-			apiClient.post<PipelineV2RunAcceptedResponse>("/pipeline-v2/run", request, {
+			apiClient.post<TeachingPackRunAcceptedResponse>("/teaching-packs/runs", request, {
 				headers: { "Idempotency-Key": idempotencyKey("create") },
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["pipeline-v2", "runs"] });
+			queryClient.invalidateQueries({ queryKey: ["teaching-pack", "runs"] });
 		},
 	});
 }
 
-export function useResumePipelineV2Run(runId: string) {
+export function useResumeTeachingPackRun(runId: string) {
 	const queryClient = useQueryClient();
-	return useMutation<PipelineV2ResumeAcceptedResponse, Error, PipelineV2ResumeRequest>({
+	return useMutation<TeachingPackResumeAcceptedResponse, Error, TeachingPackResumeRequest>({
 		mutationFn: (request) =>
-			apiClient.post<PipelineV2ResumeAcceptedResponse>(
-				`/pipeline-v2/run/${runId}/resume`,
+			apiClient.post<TeachingPackResumeAcceptedResponse>(
+				`/teaching-packs/runs/${runId}/resume`,
 				request,
 				{ headers: { "Idempotency-Key": idempotencyKey(`resume:${runId}`) } },
 			),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["pipeline-v2", "run", runId] });
+			queryClient.invalidateQueries({ queryKey: ["teaching-pack", "run", runId] });
 		},
 	});
 }
 
-	export function usePipelineV2Status(runId: string | null) {
+	export function useTeachingPackStatus(runId: string | null) {
 		const lastEventIdRef = useRef<string | null>(null);
-		const subscribe = useCallback((callback: (event: PipelineV2StatusEvent) => void) => {
+		const subscribe = useCallback((callback: (event: TeachingPackStatusEvent) => void) => {
 			if (!runId) return () => {};
 			let closed = false;
 			let retryTimer: ReturnType<typeof setTimeout> | null = null;
 			let eventSource: EventSource | null = null;
 
 			const connect = () => {
-				const url = new URL(`${gatewayUrl()}/pipeline-v2/run/${runId}/status`);
+				const url = new URL(`${gatewayUrl()}/teaching-packs/runs/${runId}/status`);
 				if (lastEventIdRef.current) {
 					url.searchParams.set("last_event_id", lastEventIdRef.current);
 				}
 				eventSource = new EventSource(url.toString());
-				for (const eventName of PIPELINE_V2_EVENT_NAMES) {
+				for (const eventName of TEACHING_PACK_EVENT_NAMES) {
 					eventSource.addEventListener(eventName, handleMessage);
 				}
 				eventSource.onerror = () => {
@@ -154,10 +154,10 @@ export function snapshotPreviewUrl(
 	snapshotId: string,
 	view: "student" | "teacher",
 ): string {
-	return `${gatewayUrl()}/pipeline-v2/run/${runId}/snapshots/${snapshotId}/preview?view=${view}`;
+	return `${gatewayUrl()}/teaching-packs/runs/${runId}/snapshots/${snapshotId}/preview?view=${view}`;
 }
 
-function parsePayload(data: string): PipelineV2EventPayload {
+function parsePayload(data: string): TeachingPackEventPayload {
 	try {
 		const parsed: unknown = JSON.parse(data);
 		if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
@@ -177,13 +177,13 @@ function idempotencyKey(prefix: string): string {
 	return `${prefix}:${Date.now().toString(36)}`;
 }
 
-const PIPELINE_V2_EVENT_NAMES = [
-	"pipeline_v2.run.accepted",
-	"pipeline_v2.clarification_required.opened",
-	"pipeline_v2.contract_confirmation.opened",
-	"pipeline_v2.search_plan_confirmation.opened",
-	"pipeline_v2.blueprint_approval.opened",
-	"pipeline_v2.content_approval.opened",
-	"pipeline_v2.content.approved_snapshots",
-	"pipeline_v2.run.cancelled",
+const TEACHING_PACK_EVENT_NAMES = [
+	"teaching_pack.run.accepted",
+	"teaching_pack.clarification_required.opened",
+	"teaching_pack.contract_confirmation.opened",
+	"teaching_pack.search_plan_confirmation.opened",
+	"teaching_pack.blueprint_approval.opened",
+	"teaching_pack.content_approval.opened",
+	"teaching_pack.content.approved_snapshots",
+	"teaching_pack.run.cancelled",
 ] as const;

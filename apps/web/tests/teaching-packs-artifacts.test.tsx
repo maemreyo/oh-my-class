@@ -1,12 +1,12 @@
 /**
- * Unit tests for Pipeline V2 artifact progress and scoped rejection components.
+ * Unit tests for Teaching Pack artifact progress and scoped rejection components.
  *
  * Tests pure logic without DOM rendering. Component rendering verified via Playwright.
  */
 
 import { describe, it, expect } from "vitest";
-import type { ArtifactProgressItem } from "@/components/pipeline-v2-artifact-progress";
-import type { ArtifactRejection } from "@/components/pipeline-v2-scoped-rejection";
+import type { ArtifactProgressItem } from "@/components/teaching-packs-artifact-progress";
+import type { ArtifactRejection } from "@/components/teaching-packs-scoped-rejection";
 
 describe("ArtifactProgressItem type", () => {
 	it("accepts valid artifact progress items", () => {
@@ -81,7 +81,7 @@ describe("ArtifactRejection type", () => {
 	});
 });
 
-describe("PipelineV2EventPayload with artifacts", () => {
+describe("TeachingPackEventPayload with artifacts", () => {
 	it("accepts event with no artifacts", () => {
 		type EventPayload = {
 			readonly gate_id?: string;

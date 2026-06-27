@@ -1,15 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OMCLogger } from "@/lib/logger";
 import * as loggerModule from "@/lib/logger";
 import { useErrorLogger } from "./use-error-logger";
 
 describe("useErrorLogger", () => {
-	let mockBoundLogger: { error: ReturnType<typeof vi.fn> };
+	let mockBoundLogger: OMCLogger;
+	let mockBoundLoggerError: ReturnType<typeof vi.fn>;
 	let mockFetch: ReturnType<typeof vi.fn>;
 
 	beforeEach(() => {
-		mockBoundLogger = {
-			error: vi.fn(),
-		};
+		mockBoundLogger = new OMCLogger();
+		mockBoundLoggerError = vi.fn();
+		vi.spyOn(mockBoundLogger, "error").mockImplementation(mockBoundLoggerError);
 
 		vi.spyOn(loggerModule.logger, "bind").mockReturnValue(mockBoundLogger);
 		mockFetch = vi.fn().mockResolvedValue(new Response());
@@ -43,7 +45,7 @@ describe("useErrorLogger", () => {
 
 		logError(error);
 
-		expect(mockBoundLogger.error).toHaveBeenCalledWith("Component error", {
+		expect(mockBoundLoggerError).toHaveBeenCalledWith("Component error", {
 			error_message: "Test error",
 			stack: expect.any(String),
 		});
@@ -78,7 +80,7 @@ describe("useErrorLogger", () => {
 
 		logError(error, extra);
 
-		expect(mockBoundLogger.error).toHaveBeenCalledWith("Component error", {
+		expect(mockBoundLoggerError).toHaveBeenCalledWith("Component error", {
 			error_message: "Test error",
 			stack: expect.any(String),
 			userId: "user-123",

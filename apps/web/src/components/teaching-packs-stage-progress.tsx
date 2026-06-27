@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 
-export interface PipelineV2StageProgressProps {
+export interface TeachingPackStageProgressProps {
 	readonly status: string;
 }
 
@@ -13,13 +13,13 @@ const STAGES = [
 	{ key: "completed", label: "Completed", detail: "Artifacts are ready to export." },
 ] as const;
 
-export function PipelineV2StageProgress({ status }: PipelineV2StageProgressProps) {
+export function TeachingPackStageProgress({ status }: TeachingPackStageProgressProps) {
 	return (
-		<section aria-labelledby="pipeline-v2-progress-title" className="rounded-lg border border-border bg-card p-4">
+		<section aria-labelledby="teaching-packs-progress-title" className="rounded-lg border border-border bg-card p-4">
 			<div className="flex items-center justify-between gap-4">
 				<div>
-					<h2 id="pipeline-v2-progress-title" className="text-lg font-semibold">
-						Pipeline V2 progress
+					<h2 id="teaching-packs-progress-title" className="text-lg font-semibold">
+						Teaching Pack progress
 					</h2>
 					<p className="text-sm text-muted-foreground">Persisted status with SSE replay after refresh.</p>
 				</div>

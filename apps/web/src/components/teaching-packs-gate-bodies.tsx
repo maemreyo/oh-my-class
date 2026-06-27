@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { snapshotPreviewUrl } from "@/hooks/use-pipeline-v2";
-import type { ArtifactProgressItem, PipelineV2EventPayload, PipelineV2GateName } from "@/hooks/use-pipeline-v2";
-import { PipelineV2ArtifactProgress } from "@/components/pipeline-v2-artifact-progress";
+import { snapshotPreviewUrl } from "@/hooks/use-teaching-packs";
+import type { ArtifactProgressItem, TeachingPackEventPayload, TeachingPackGateName } from "@/hooks/use-teaching-packs";
+import { TeachingPackArtifactProgress } from "@/components/teaching-packs-artifact-progress";
 
-export function PipelineV2GateBody({ runId, gateName, event }: {
+export function TeachingPackGateBody({ runId, gateName, event }: {
 	readonly runId: string;
-	readonly gateName: PipelineV2GateName;
-	readonly event: PipelineV2EventPayload;
+	readonly gateName: TeachingPackGateName;
+	readonly event: TeachingPackEventPayload;
 }) {
 	switch (gateName) {
 		case "clarification_required":
@@ -61,7 +61,7 @@ function ContentApprovalBody({ runId, snapshotIds, artifacts }: {
 }) {
 	return (
 		<div className="space-y-4">
-			{artifacts.length > 0 && <PipelineV2ArtifactProgress artifacts={artifacts} />}
+			{artifacts.length > 0 && <TeachingPackArtifactProgress artifacts={artifacts} />}
 			<ContentSnapshots runId={runId} snapshotIds={snapshotIds} />
 		</div>
 	);

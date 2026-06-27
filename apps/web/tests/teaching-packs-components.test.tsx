@@ -1,5 +1,5 @@
 /**
- * Unit tests for Pipeline V2 stage progress and gate shell logic.
+ * Unit tests for Teaching Pack stage progress and gate shell logic.
  *
  * Follows project convention: tests pure logic without DOM rendering.
  * Component rendering is verified via browser QA (Playwright).
@@ -29,7 +29,7 @@ vi.mock("@tanstack/react-query", () => ({
 vi.mock("@/components/ui/badge", () => ({ Badge: () => null }));
 vi.mock("@/components/ui/button", () => ({ Button: ({ children }: { children: React.ReactNode }) => null }));
 
-import { snapshotPreviewUrl } from "@/hooks/use-pipeline-v2";
+import { snapshotPreviewUrl } from "@/hooks/use-teaching-packs";
 
 type GateName =
 	| "clarification_required"
@@ -207,13 +207,13 @@ describe("formatValue", () => {
 describe("snapshotPreviewUrl", () => {
 	it("builds teacher preview URL", () => {
 		expect(snapshotPreviewUrl("run-1", "snap-1", "teacher")).toBe(
-			"http://gateway.test/pipeline-v2/run/run-1/snapshots/snap-1/preview?view=teacher",
+			"http://gateway.test/teaching-packs/runs/run-1/snapshots/snap-1/preview?view=teacher",
 		);
 	});
 
 	it("builds student preview URL", () => {
 		expect(snapshotPreviewUrl("run-1", "snap-2", "student")).toBe(
-			"http://gateway.test/pipeline-v2/run/run-1/snapshots/snap-2/preview?view=student",
+			"http://gateway.test/teaching-packs/runs/run-1/snapshots/snap-2/preview?view=student",
 		);
 	});
 });
@@ -224,8 +224,8 @@ describe("V2 resume payload construction", () => {
 	it("resume sends gate_id, gate_name, action", async () => {
 		mockPost.mockResolvedValue({ run_id: "r-1", response_id: "resp-1", job_id: "j-1" });
 
-		const mod = await import("@/hooks/use-pipeline-v2");
-		const { mutateAsync } = mod.useResumePipelineV2Run("r-1") as { mutateAsync: Function };
+		const mod = await import("@/hooks/use-teaching-packs");
+		const { mutateAsync } = mod.useResumeTeachingPackRun("r-1") as { mutateAsync: Function };
 
 		await mutateAsync({
 			gate_id: "gate-1",
@@ -234,7 +234,7 @@ describe("V2 resume payload construction", () => {
 		});
 
 		expect(mockPost).toHaveBeenCalledWith(
-			"/pipeline-v2/run/r-1/resume",
+			"/teaching-packs/runs/r-1/resume",
 			expect.objectContaining({
 				gate_id: "gate-1",
 				gate_name: "content_approval",
@@ -247,8 +247,8 @@ describe("V2 resume payload construction", () => {
 	it("resume includes feedback in response when provided", async () => {
 		mockPost.mockResolvedValue({ run_id: "r-1", response_id: "resp-1", job_id: "j-1" });
 
-		const mod = await import("@/hooks/use-pipeline-v2");
-		const { mutateAsync } = mod.useResumePipelineV2Run("r-1") as { mutateAsync: Function };
+		const mod = await import("@/hooks/use-teaching-packs");
+		const { mutateAsync } = mod.useResumeTeachingPackRun("r-1") as { mutateAsync: Function };
 
 		await mutateAsync({
 			gate_id: "gate-1",
@@ -258,7 +258,7 @@ describe("V2 resume payload construction", () => {
 		});
 
 		expect(mockPost).toHaveBeenCalledWith(
-			"/pipeline-v2/run/r-1/resume",
+			"/teaching-packs/runs/r-1/resume",
 			expect.objectContaining({
 				response: { feedback: "Needs more detail" },
 			}),

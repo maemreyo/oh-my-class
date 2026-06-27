@@ -2,24 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { PipelineV2GateShell } from "@/components/pipeline-v2-gate-shell";
-import { PipelineV2StageProgress } from "@/components/pipeline-v2-stage-progress";
+import { TeachingPackGateShell } from "@/components/teaching-packs-gate-shell";
+import { TeachingPackStageProgress } from "@/components/teaching-packs-stage-progress";
 import { useRun } from "@/hooks/use-run";
-import { usePipelineV2Status } from "@/hooks/use-pipeline-v2";
-import type { PipelineV2EventPayload, PipelineV2StatusEvent } from "@/hooks/use-pipeline-v2";
+import { useTeachingPackStatus } from "@/hooks/use-teaching-packs";
+import type { TeachingPackEventPayload, TeachingPackStatusEvent } from "@/hooks/use-teaching-packs";
 
 export default function RunDetailPage() {
 	const params = useParams();
 	const runId = params.runId as string;
 
 	const { data: run, error, isLoading } = useRun(runId);
-	const { subscribe } = usePipelineV2Status(runId);
-	const [v2Events, setV2Events] = useState<PipelineV2StatusEvent[]>([]);
-	const [activeGate, setActiveGate] = useState<PipelineV2EventPayload | null>(null);
+	const { subscribe } = useTeachingPackStatus(runId);
+	const [teachingPackEvents, setTeachingPackEvents] = useState<TeachingPackStatusEvent[]>([]);
+	const [activeGate, setActiveGate] = useState<TeachingPackEventPayload | null>(null);
 
 	useEffect(() => {
 		const unsubscribe = subscribe((event) => {
-			setV2Events((previous) => [...previous, event]);
+			setTeachingPackEvents((previous) => [...previous, event]);
 			if (isGateEvent(event)) setActiveGate(event.payload);
 		});
 
@@ -34,7 +34,7 @@ export default function RunDetailPage() {
 		return (
 			<div className="mx-auto max-w-3xl p-4 md:p-8">
 				<section aria-labelledby="gateway-unavailable-title" className="rounded-lg border border-border bg-card p-6 shadow-sm">
-					<p className="text-sm font-medium text-muted-foreground">Pipeline V2 run</p>
+					<p className="text-sm font-medium text-muted-foreground">Teaching Pack run</p>
 					<h1 id="gateway-unavailable-title" className="mt-2 text-2xl font-bold tracking-tight">
 						Gateway unavailable
 					</h1>
@@ -52,28 +52,28 @@ export default function RunDetailPage() {
 	return (
 		<div className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
 			<div>
-				<p className="text-sm font-medium text-muted-foreground">Pipeline V2 run</p>
+				<p className="text-sm font-medium text-muted-foreground">Teaching Pack run</p>
 				<h1 className="mt-1 text-3xl font-bold tracking-tight">{runId}</h1>
 			</div>
 
-			<PipelineV2StageProgress status={run?.status ?? "unknown"} />
+			<TeachingPackStageProgress status={run?.status ?? "unknown"} />
 
 			{activeGate ? (
-				<PipelineV2GateShell
+				<TeachingPackGateShell
 					runId={runId}
 					event={activeGate}
 					onResolved={() => setActiveGate(null)}
 				/>
 			) : null}
 
-			<section aria-labelledby="pipeline-v2-events-title" className="rounded-lg border border-border bg-card p-4">
-				<h2 id="pipeline-v2-events-title" className="text-lg font-semibold">Events</h2>
+			<section aria-labelledby="teaching-packs-events-title" className="rounded-lg border border-border bg-card p-4">
+				<h2 id="teaching-packs-events-title" className="text-lg font-semibold">Events</h2>
 				<div className="mt-3 max-h-72 overflow-auto rounded-md bg-muted p-4 font-mono text-sm">
-					{v2Events.length === 0 ? (
+					{teachingPackEvents.length === 0 ? (
 						<div className="text-muted-foreground">Waiting for events...</div>
 					) : null}
-					{v2Events.map((event, index) => (
-						<div key={`v2-${event.name}-${index}`} className="border-b border-border py-2 last:border-b-0">
+					{teachingPackEvents.map((event, index) => (
+						<div key={`teaching-pack-${event.name}-${index}`} className="border-b border-border py-2 last:border-b-0">
 							<span className="text-primary">{event.name}</span>{" "}
 							<span className="text-muted-foreground">{JSON.stringify(event.payload)}</span>
 						</div>
@@ -82,8 +82,8 @@ export default function RunDetailPage() {
 			</section>
 
 			{run?.state && (
-				<section aria-labelledby="pipeline-v2-state-title" className="rounded-lg border border-border bg-card p-4">
-					<h2 id="pipeline-v2-state-title" className="text-lg font-semibold">Persisted state</h2>
+				<section aria-labelledby="teaching-packs-state-title" className="rounded-lg border border-border bg-card p-4">
+					<h2 id="teaching-packs-state-title" className="text-lg font-semibold">Persisted state</h2>
 					<pre className="mt-3 overflow-auto rounded-md bg-muted p-4 text-sm">
 						{JSON.stringify(run.state, null, 2)}
 					</pre>
@@ -93,7 +93,7 @@ export default function RunDetailPage() {
 	);
 }
 
-function isGateEvent(event: PipelineV2StatusEvent): boolean {
+function isGateEvent(event: TeachingPackStatusEvent): boolean {
 	return typeof event.payload.gate_id === "string" && (
 		typeof event.payload.gate_name === "string" || typeof event.payload.gate === "string"
 	);

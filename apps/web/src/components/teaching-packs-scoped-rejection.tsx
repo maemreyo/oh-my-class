@@ -8,17 +8,17 @@ export interface ArtifactRejection {
 	readonly reason: string;
 }
 
-export interface PipelineV2ScopedRejectionProps {
+export interface TeachingPackScopedRejectionProps {
 	readonly artifacts: readonly { readonly id: string; readonly type: string }[];
 	readonly onReject: (rejections: readonly ArtifactRejection[]) => Promise<void> | void;
 	readonly disabled?: boolean;
 }
 
-export function PipelineV2ScopedRejection({
+export function TeachingPackScopedRejection({
 	artifacts,
 	onReject,
 	disabled,
-}: PipelineV2ScopedRejectionProps) {
+}: TeachingPackScopedRejectionProps) {
 	const [rejections, setRejections] = useState<Map<string, string>>(new Map());
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
