@@ -141,15 +141,16 @@ class TestResearcherAgent:
         assert all(source.verification_status == "UNCERTAIN" for source in bundle.sources)
 
     @pytest.mark.asyncio
-    async def test_raises_value_error_on_llm_error(self):
+    async def test_llm_error_returns_uncertain_sources(self):
         from packages.agents.sub_agents.researcher.nodes import researcher_node as research_sources
 
         mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
-        with (
-            _patch_research_tools(mock_llm),
-            pytest.raises(ValueError, match="Researcher agent failed"),
-        ):
-            await research_sources(cast("ResearcherState", _make_state()))
+        with _patch_research_tools(mock_llm):
+            result = await research_sources(cast("ResearcherState", _make_state()))
+
+        bundle = ResearchBundle.model_validate(result["research_bundle"])
+        assert len(bundle.sources) >= 2
+        assert all(source.verification_status == "UNCERTAIN" for source in bundle.sources)
 
     @pytest.mark.asyncio
     async def test_too_few_sources_returns_uncertain_source_candidates(self):

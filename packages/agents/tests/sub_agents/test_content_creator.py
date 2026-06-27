@@ -116,13 +116,15 @@ class TestContentCreatorAgent:
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
     @pytest.mark.asyncio
-    async def test_raises_value_error_on_llm_error(self):
+    async def test_llm_error_returns_placeholder_artifacts(self):
         mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
-        with (
-            patch("packages.agents.llm.complete_json_chat", mock_llm),
-            pytest.raises(ValueError, match="Content creator agent failed"),
-        ):
-            await generate_artifacts(cast("ContentCreatorState", _make_state()))
+        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
+
+        assert "artifacts" in result
+        assert len(result["artifacts"]) >= 1
+        for a in result["artifacts"]:
+            assert a.get("metadata", {}).get("placeholder") is True
 
     @pytest.mark.asyncio
     async def test_calls_llm_with_correct_model(self):

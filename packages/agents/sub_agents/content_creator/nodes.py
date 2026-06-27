@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import TYPE_CHECKING, Any
+
+_LOGGER = logging.getLogger(__name__)
 
 from common.contracts.artifact import ArtifactContent
 from packages.agents.sub_agents.content_creator.summarizers import (
@@ -119,7 +122,13 @@ Return a JSON array of artifacts.
             if attempt < 2:
                 messages = chat_messages(system_prompt, _retry_prompt(base_user_prompt, e, last_content))
                 continue
-            raise ValueError(f"Content creator agent failed: {e}") from e
+            _LOGGER.warning(
+                "content_creator.fallback_placeholder run_id=%s model=%s error=%s",
+                run_id, model, str(e)[:200],
+            )
+            topic = lesson_plan.get("topic", "Bài học")
+            placeholders = _build_placeholder_artifacts(artifact_types, theme, topic)
+            return {"artifacts": placeholders}
 
     raise ValueError("Content creator agent failed: exhausted retries")
 
@@ -146,6 +155,34 @@ Do not return markdown or prose. Every component must satisfy its required field
 
 {base_user_prompt}
 """
+
+
+def _build_placeholder_artifacts(
+    artifact_types: list[str], theme: str, topic: str,
+) -> list[dict[str, Any]]:
+    placeholders = []
+    for atype in artifact_types:
+        placeholder = ArtifactContent(
+            artifact_type=atype,  # type: ignore[arg-type]
+            theme=theme,
+            title=f"[Cần tạo lại] {topic} — {atype}",
+            sections=[{
+                "components": [{
+                    "type": "heading",
+                    "level": 2,
+                    "text": f"Nội dung {atype} đang chờ tạo lại",
+                }, {
+                    "type": "paragraph",
+                    "text": (
+                        "Hệ thống gặp lỗi khi tạo nội dung tự động. "
+                        "Vui lòng từ chối và yêu cầu tạo lại."
+                    ),
+                }],
+            }],
+            metadata={"placeholder": True, "error": "LLM timeout"},
+        )
+        placeholders.append(placeholder.model_dump())
+    return placeholders
 
 
 def validate_no_cdn(artifacts: list[dict[str, Any]]) -> list[str]:

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Final
 from openai import AsyncOpenAI
 
 from packages.agents.config.models import LLM, MAX_TOKENS
+from packages.agents.llm.transport import complete_non_streaming_chat, complete_streaming_chat
 from packages.agents.observability import trace_llm_call
 
 if TYPE_CHECKING:
@@ -30,6 +31,7 @@ _AGENT_MAX_TOKENS: dict[str, int] = {
     "reviewer": MAX_TOKENS.reviewer,
 }
 _DEFAULT_MAX_TOKENS = MAX_TOKENS.default
+_STREAMING_AGENTS: Final = {"content_creator"}
 
 
 def log_llm_start(agent: str, run_id: str, step: int, model: str, attempt: int) -> float:
@@ -140,61 +142,58 @@ async def complete_json_chat(
         )
 
         with trace_llm_call(agent_name, run_id, request_model, step) as trace:
-            response = await client.chat.completions.create(
-                model=request_model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                extra_body={"metadata": "|".join(tags) if tags else ""},
-            )
-            usage = response.usage.model_dump() if response.usage is not None else None
-            choice_count = len(response.choices)
+            use_stream = agent_name in _STREAMING_AGENTS
+            if use_stream:
+                content = await complete_streaming_chat(
+                    client,
+                    request_model,
+                    messages,
+                    temperature,
+                    max_tokens,
+                    tags,
+                )
+                usage = None
+                choice_count = 1
+                response_id = "stream"
+                response_model = request_model
+            else:
+                result = await complete_non_streaming_chat(
+                    client,
+                    request_model,
+                    messages,
+                    temperature,
+                    max_tokens,
+                    tags,
+                )
+                content = result.content
+                usage = result.usage
+                choice_count = result.choice_count
+                response_id = result.response_id
+                response_model = result.response_model
             _LOGGER.info(
                 "llm.transport.response model=%s response_id=%s response_model=%s "
                 "choices=%s usage=%s duration_s=%.1f",
                 request_model,
-                response.id,
-                response.model,
+                response_id,
+                response_model,
                 choice_count,
                 usage,
                 time.monotonic() - started,
             )
-            if not response.choices:
-                _LOGGER.warning(
-                    "llm.transport.empty_choices model=%s response_id=%s response_model=%s usage=%s",
-                    request_model,
-                    response.id,
-                    response.model,
-                    usage,
-                )
-                raise RuntimeError(
-                    f"9Router returned empty choices for model={model}; response_id={response.id}"
-                )
-            choice = response.choices[0]
-            content = choice.message.content or ""
-            if not content:
-                msg = choice.message
-                reasoning = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None)
-                if reasoning:
-                    if isinstance(reasoning, list):
-                        content = "".join(p.get("text", str(p)) if isinstance(p, dict) else str(p) for p in reasoning)  # noqa: E501
-                    else:
-                        content = str(reasoning)
-                    _LOGGER.info(
-                        "llm.transport.fallback_from_reasoning model=%s response_id=%s fallback_chars=%s",
-                        request_model,
-                        response.id,
-                        len(content),
-                    )
 
             trace.update(
-                input={"messages": len(messages), "temperature": temperature, "max_tokens": max_tokens},
+                input={
+                    "messages": len(messages),
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                },
                 output={"content_length": len(content), "choice_count": choice_count},
                 usage=usage,
                 metadata={
                     "attempt": attempt,
-                    "response_id": response.id,
-                    "response_model": response.model,
+                    "response_id": response_id,
+                    "response_model": response_model,
+                    "stream": use_stream,
                 },
             )
 
@@ -227,7 +226,6 @@ async def complete_json_chat(
             "error_type": error_type,
         })
         raise
-
 
 def chat_messages(system: str, user: str) -> list[ChatCompletionMessageParam]:
     system_message: ChatCompletionSystemMessageParam = {

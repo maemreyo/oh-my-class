@@ -2,16 +2,10 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
-_root = str(Path(__file__).resolve().parents[3])
-if _root not in sys.path:
-    sys.path.insert(0, _root)
 
 from packages.agents.config.models import MAX_TOKENS
 from packages.agents.llm import (
@@ -63,6 +57,21 @@ def _mock_response(content: str = '{"result": "ok"}') -> SimpleNamespace:
             completion_tokens=5,
         ),
     )
+
+
+class _MockStream:
+    def __init__(self, chunks: list[str]) -> None:
+        self._chunks = chunks
+
+    async def __aiter__(self):
+        for chunk in self._chunks:
+            yield SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        delta=SimpleNamespace(content=chunk),
+                    ),
+                ],
+            )
 
 
 _EVENT_PATCHER = patch("packages.agents.events.emit_run_event")
@@ -124,6 +133,27 @@ async def test_unknown_agent_uses_default_max_tokens():
 
         call_kwargs = mock_create.call_args
         assert call_kwargs.kwargs.get("max_tokens") == _DEFAULT_MAX_TOKENS
+
+
+@pytest.mark.asyncio
+async def test_content_creator_uses_streaming_transport():
+    mock_create = AsyncMock(return_value=_MockStream(['{"result": ', '"ok"}']))
+
+    with patch("packages.agents.llm.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+        mock_cls.return_value.chat.completions.create = mock_create
+        messages = [{"role": "user", "content": "hello"}]
+
+        result = await complete_json_chat(
+            model="test-model",
+            messages=messages,
+            temperature=0.5,
+            tags=["agent:content_creator", "run:r1", "attempt:1"],
+        )
+
+        call_kwargs = mock_create.call_args
+        assert call_kwargs.kwargs.get("stream") is True
+        assert call_kwargs.kwargs.get("max_tokens") == _AGENT_MAX_TOKENS["content_creator"]
+        assert result == '{"result": "ok"}'
 
 
 @pytest.mark.asyncio

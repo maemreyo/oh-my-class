@@ -6,7 +6,7 @@ from packages.agents.config.models import LLM, MODELS
 def test_llm_config_defaults() -> None:
     assert LLM.base_url == "http://localhost:20128/v1"
     assert LLM.timeout == 600.0
-    assert LLM.max_retries == 0
+    assert LLM.max_retries == 3
 
 
 def test_model_assignments_defaults() -> None:

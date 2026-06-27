@@ -53,7 +53,9 @@ def healing_node(state: OhMyClassState) -> dict[str, Any]:
 
 
 def route_after_healing(state: OhMyClassState) -> str:
-    """Route: escalate if flagged, otherwise back to generate."""
     if state.get("escalate"):
+        return "escalate_node"
+    artifacts = state.get("artifacts") or []
+    if any(a.get("metadata", {}).get("placeholder") for a in artifacts):
         return "escalate_node"
     return "step_08_generate"

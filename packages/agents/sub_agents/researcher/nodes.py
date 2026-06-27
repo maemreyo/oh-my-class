@@ -7,7 +7,10 @@ Follows the FACT protocol (Find → Assess → Cross-reference → Tag).
 from __future__ import annotations
 
 import json
+import logging
 from typing import TYPE_CHECKING, Any
+
+_LOGGER = logging.getLogger(__name__)
 
 from common.contracts.research_bundle import ResearchBundle
 
@@ -143,7 +146,32 @@ or credibility scores.
             log_llm_failure("researcher", run_id, step, model, attempt_number, started, e)
             if attempt < 2:
                 continue
-            raise ValueError(f"Researcher agent failed: {e}") from e
+            # Graceful degradation: return UNCERTAIN sources instead of crashing
+            # the pipeline. Unverified sources are better than no pipeline at all.
+            _LOGGER.warning(
+                "researcher.fallback_uncertain run_id=%s model=%s error=%s",
+                run_id, model, str(e)[:200],
+            )
+            sources = [
+                {
+                    "title": str(source.get("title", "Unknown")),
+                    "url": str(source.get("url", "")),
+                    "credibility_score": 0.3,
+                    "verification_status": "UNCERTAIN",
+                }
+                for source in source_candidates
+            ]
+            bundle = ResearchBundle.model_validate({
+                "topic": str(topic),
+                "sources": sources,
+                "key_findings": [
+                    "Research agent encountered LLM errors; "
+                    "sources are unverified and provided for teacher review.",
+                ],
+                "cross_references": [],
+                "research_policy": research_policy,
+            })
+            return {"research_bundle": bundle.model_dump()}
 
     raise ValueError("Researcher agent failed: exhausted retries")
 

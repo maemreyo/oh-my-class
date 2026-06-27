@@ -1,8 +1,0 @@
-[2026-06-26T17:34:29+00:00] live flow runner started
-[2026-06-26T17:34:29+00:00] HTTP POST /auth/login started
-[2026-06-26T17:34:29+00:00] HTTP POST /auth/login completed in 0.0s
-[2026-06-26T17:34:29+00:00] login ok
-[2026-06-26T17:34:29+00:00] HTTP POST /run started
-[2026-06-26T17:34:39+00:00] HTTP POST /run still running after 10.0s; watch gateway log: .scratch/api-test-output/gateway.log
-[2026-06-26T17:34:49+00:00] HTTP POST /run still running after 20.0s; watch gateway log: .scratch/api-test-output/gateway.log
-[2026-06-26T17:34:54+00:00] runner failed: POST /run failed 500: {"error_code":"PIPELINE_ERROR","message":"Graph invocation failed: generator didn't stop after throw()","details":[],"request_id":"621730a2-882a-49e9-af58-75d67ef92f7d","run_id":"80947a53-50c3-43ee-b34c-7726273cf157"}
