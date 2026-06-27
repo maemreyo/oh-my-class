@@ -1,0 +1,43 @@
+# ADR-002: Pipeline V2 Stage Architecture
+
+## Status
+
+**Decided** (2026-06-27) — Replace the current linear V1 pipeline with a production-ready Pipeline V2 stage architecture.
+
+## Context
+
+The current pipeline reaches the first teacher gate, but live full-flow runs fail after approval because Researcher and Content Creator are long-running, pack-level, and fragile. The current graph also mixes setup, research, generation, validation, rendering, approval, and export concerns in one mostly linear flow.
+
+Pipeline V2 must prioritize production readiness over patching V1. The teacher-facing journey remains stable: create a request, clarify or confirm when needed, approve the blueprint, watch artifact progress, review rendered previews, and export.
+
+## Decision
+
+Build Pipeline V2 as the replacement architecture. Do not preserve V1 internals or exact legacy step numbering.
+
+Pipeline V2 uses stage boundaries:
+
+1. `setup_contract` — diagnostic mode decision, smart preflight, RunContract resolution, conditional contract/clarification gate.
+2. `preplanning_search` — lightweight search need classification, search plan, optional search-plan HITL, pre-planning search brief.
+3. `planning_blueprint` — Planner creates the lesson blueprint; teacher approves or edits it.
+4. `post_blueprint_research` — Research Engine creates compact shared and artifact-specific research guidance.
+5. `artifact_workflow` — artifact-level generation with bounded parallelism, per-artifact workflow state, validation, and healing.
+6. `render_quality` — render standalone HTML snapshots, validate presentation, and run adaptive quality review.
+7. `teacher_approval` — teacher reviews rendered previews, not raw JSON.
+8. `export_finalize` — export approved snapshots and finalize the run.
+
+A modular top-level graph should call stage nodes or stage subgraphs. Artifact generation starts as an `ArtifactOrchestrator` deep module rather than immediate dynamic LangGraph fan-out.
+
+## Consequences
+
+- The official architecture moves from exact 13-step internals to stage-based V2.
+- UI can still show friendly progress stages rather than low-level node names.
+- Existing V1 code may be used as reference but is not a compatibility constraint.
+- V2 requires new contracts, persistence, executor, gates, research engine, artifact workflow, and UI components.
+
+## Alternatives Considered
+
+| Option | Pros | Cons |
+|--------|------|------|
+| Patch V1 directly | Smaller diff | Preserves fragile pack-level assumptions and synchronous HTTP execution |
+| V2 in parallel with long-lived feature flag | Easier rollback | More compatibility work; user chose not to preserve V1 |
+| Stage-based V2 replacement | Clean production architecture | Larger migration and stronger test requirements |
