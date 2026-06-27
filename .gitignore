@@ -43,3 +43,4 @@ omc_checkpoints.db
 .turbo
 **/tsconfig.tsbuildinfo
 .omo/ralph-loop.local.md
+.playwright-mcp/

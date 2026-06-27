@@ -1,0 +1,308 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from uuid import uuid4
+
+import pytest
+from sqlalchemy import delete
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from services.gateway.models import Base, Run
+from services.gateway.pipeline_v2_snapshot_store import (
+    NonStandaloneSnapshotApprovalError,
+    SnapshotPersistenceError,
+    SnapshotVersionMismatchError,
+    is_standalone_html,
+    remove_answer_keys_from_html,
+    snapshot_content_hash,
+)
+from services.gateway.pipeline_v2_store import (
+    ArtifactSnapshotCreate,
+    PipelineV2RunCreate,
+    PipelineV2RunStore,
+)
+from services.gateway.pipeline_v2_types import RunId, TeacherId
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+DATABASE_URL = "postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class"
+
+
+def test_snapshot_content_hash_uses_canonical_nested_json_order() -> None:
+    first = {
+        "title": "Fractions",
+        "metadata": {"grade": 5, "subject": "math"},
+        "sections": [{"body": "Compare", "title": "Warmup"}],
+    }
+    second = {
+        "sections": [{"title": "Warmup", "body": "Compare"}],
+        "metadata": {"subject": "math", "grade": 5},
+        "title": "Fractions",
+    }
+    html = "<!DOCTYPE html><html><body>oh-my-class</body></html>"
+
+    assert snapshot_content_hash(first, html) == snapshot_content_hash(second, html)
+
+
+def test_standalone_html_allows_non_external_link_references() -> None:
+    html = (
+        '<!DOCTYPE html><html><head><link rel="preload" href="data:text/css,body{}">'
+        '</head><body>oh-my-class</body></html>'
+    )
+
+    assert is_standalone_html(html)
+
+
+def test_standalone_html_rejects_external_link_references() -> None:
+    html = (
+        '<!DOCTYPE html><html><head><link rel="stylesheet" '
+        'href="https://cdn.example.com/style.css"></head><body>oh-my-class</body></html>'
+    )
+
+    assert not is_standalone_html(html)
+
+
+@pytest.fixture
+async def session() -> AsyncIterator[AsyncSession]:
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with engine.begin() as connection:
+        existing_tables = await connection.run_sync(
+            lambda sync_connection: set(Base.metadata.tables),
+        )
+        if "public.artifact_snapshots" not in existing_tables:
+            pytest.skip("Pipeline V2 snapshot tables are not present")
+    async with session_factory() as database_session:
+        yield database_session
+        await database_session.rollback()
+    await engine.dispose()
+
+
+async def test_duplicate_content_hash_does_not_return_other_run_snapshot(
+    session: AsyncSession,
+) -> None:
+    first_run_id = RunId(f"test-{uuid4()}")
+    second_run_id = RunId(f"test-{uuid4()}")
+    store = PipelineV2RunStore(session)
+    for run_id in (first_run_id, second_run_id):
+        await store.create_run(PipelineV2RunCreate(
+            run_id=run_id,
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Teach clouds",
+            class_info={"grade": 2},
+        ))
+
+    await store.create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=f"snap-{uuid4()}",
+        run_id=first_run_id,
+        artifact_id="artifact-1",
+        artifact_type="lesson",
+        content_json={"title": "Clouds"},
+        rendered_html="<!DOCTYPE html><html><body>oh-my-class</body></html>",
+        renderer_version="test-renderer@1",
+    ))
+
+    with pytest.raises(SnapshotPersistenceError):
+        await store.create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=f"snap-{uuid4()}",
+            run_id=second_run_id,
+            artifact_id="artifact-1",
+            artifact_type="lesson",
+            content_json={"title": "Clouds"},
+            rendered_html="<!DOCTYPE html><html><body>oh-my-class</body></html>",
+            renderer_version="test-renderer@1",
+        ))
+
+    await session.execute(delete(Run).where(Run.run_id.in_([first_run_id, second_run_id])))
+    await session.commit()
+
+
+async def test_duplicate_content_hash_blocks_version_mismatch(
+    session: AsyncSession,
+) -> None:
+    run_id = RunId(f"test-{uuid4()}")
+    store = PipelineV2RunStore(session)
+    await store.create_run(PipelineV2RunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-a"),
+        raw_request="Teach clouds",
+        class_info={"grade": 2},
+    ))
+
+    content_json = {"title": "Clouds"}
+    rendered_html = "<!DOCTYPE html><html><body>oh-my-class</body></html>"
+    await store.create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=f"snap-{uuid4()}",
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="lesson",
+        content_json=content_json,
+        rendered_html=rendered_html,
+        renderer_version="test-renderer@1",
+    ))
+
+    with pytest.raises(SnapshotVersionMismatchError):
+        await store.create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=f"snap-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            artifact_type="lesson",
+            content_json=content_json,
+            rendered_html=rendered_html,
+            renderer_version="test-renderer@2",
+        ))
+
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
+
+
+async def test_answer_key_removal_strips_teacher_only_sections(
+    session: AsyncSession,
+) -> None:
+    from services.gateway.pipeline_v2_snapshot_store import PipelineV2SnapshotStore
+
+    run_id = RunId(f"test-{uuid4()}")
+    store = PipelineV2RunStore(session)
+    await store.create_run(PipelineV2RunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-a"),
+        raw_request="Teach with answers",
+        class_info={"grade": 5},
+    ))
+
+    snapshot_id = f"snap-{uuid4()}"
+    student_html_input = (
+        "<!DOCTYPE html><html><body>"
+        "<section>Student Content</section>"
+        "<section data-answer-key=\"true\">Answer Key Here</section>"
+        "<section data-teacher-only=\"true\">Teacher Notes</section>"
+        "</body></html>"
+    )
+    await PipelineV2SnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=snapshot_id,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        content_json={"title": "Quiz"},
+        rendered_html="<!DOCTYPE html><html><body>test</body></html>",
+        renderer_version="test-renderer@1",
+        student_rendered_html=student_html_input,
+    ))
+    snapshot = await PipelineV2SnapshotStore(session).get_snapshot(run_id, snapshot_id)
+
+    assert snapshot is not None
+    assert "Answer Key Here" not in snapshot.student_rendered_html
+    assert "Teacher Notes" not in snapshot.student_rendered_html
+    assert "Student Content" in snapshot.student_rendered_html
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
+
+
+async def test_answer_key_removal_sanitizes_answer_patterns(
+    session: AsyncSession,
+) -> None:
+    from services.gateway.pipeline_v2_snapshot_store import PipelineV2SnapshotStore
+
+    run_id = RunId(f"test-{uuid4()}")
+    store = PipelineV2RunStore(session)
+    await store.create_run(PipelineV2RunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-a"),
+        raw_request="Teach with inline answers",
+        class_info={"grade": 5},
+    ))
+
+    snapshot_id = f"snap-{uuid4()}"
+    student_html_input = (
+        "<!DOCTYPE html><html><body>"
+        "<p>Question: What is 2+2?</p>"
+        "<p>Correct Answer: 4</p>"
+        "<p>Solution: Add the numbers</p>"
+        "</body></html>"
+    )
+    await PipelineV2SnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=snapshot_id,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        content_json={"title": "Quiz"},
+        rendered_html="<!DOCTYPE html><html><body>test</body></html>",
+        renderer_version="test-renderer@1",
+        student_rendered_html=student_html_input,
+    ))
+    snapshot = await PipelineV2SnapshotStore(session).get_snapshot(run_id, snapshot_id)
+
+    assert snapshot is not None
+    student_html_lower = snapshot.student_rendered_html.lower()
+    assert "correct answer" not in student_html_lower
+    assert "solution:" not in student_html_lower
+    assert "what is 2+2" in student_html_lower
+
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
+
+
+async def test_non_standalone_snapshot_blocks_approval(
+    session: AsyncSession,
+) -> None:
+    from services.gateway.pipeline_v2_snapshot_store import PipelineV2SnapshotStore
+
+    run_id = RunId(f"test-{uuid4()}")
+    store = PipelineV2RunStore(session)
+    await store.create_run(PipelineV2RunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-a"),
+        raw_request="Teach with CDN",
+        class_info={"grade": 5},
+    ))
+
+    snapshot_id = f"snap-{uuid4()}"
+    non_standalone_html = (
+        "<!DOCTYPE html><html><head>"
+        '<link rel="stylesheet" href="https://cdn.example.com/style.css">'
+        "</head><body>oh-my-class</body></html>"
+    )
+    await PipelineV2SnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=snapshot_id,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        content_json={"title": "Quiz"},
+        rendered_html=non_standalone_html,
+        renderer_version="test-renderer@1",
+    ))
+    snapshot = await PipelineV2SnapshotStore(session).get_snapshot(run_id, snapshot_id)
+
+    assert snapshot is not None
+    assert not snapshot.standalone_valid
+
+    with pytest.raises(NonStandaloneSnapshotApprovalError):
+        await PipelineV2SnapshotStore(session).approve_snapshots(
+            run_id,
+            [snapshot.snapshot_id],
+        )
+
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
+
+
+def test_answer_key_removal_function() -> None:
+    html_with_keys = (
+        "<!DOCTYPE html><html><body>"
+        "<section>Student Question</section>"
+        "<section data-answer-key=\"true\">The Answer</section>"
+        "<p>Answer Key: 42</p>"
+        "<p>Correct: Yes</p>"
+        "<p>Solution: Use formula</p>"
+        "</body></html>"
+    )
+    cleaned = remove_answer_keys_from_html(html_with_keys)
+
+    assert "The Answer" not in cleaned
+    assert "Answer Key:" not in cleaned
+    assert "Correct:" not in cleaned
+    assert "Solution:" not in cleaned
+    assert "Student Question" in cleaned

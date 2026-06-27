@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from packages.agents.config.models import MAX_TOKENS
-from packages.agents.llm import (
-    _AGENT_MAX_TOKENS,
-    _DEFAULT_MAX_TOKENS,
-    complete_json_chat,
-)
+from packages.agents.llm import complete_json_chat
+from packages.agents.llm.chat_context import _AGENT_MAX_TOKENS, _DEFAULT_MAX_TOKENS
+
+if TYPE_CHECKING:
+    from openai.types.chat import ChatCompletionMessageParam
 
 
 def test_agent_max_tokens_has_all_five_agents():
@@ -59,6 +60,10 @@ def _mock_response(content: str = '{"result": "ok"}') -> SimpleNamespace:
     )
 
 
+def _messages(content: str = "hello") -> list[ChatCompletionMessageParam]:
+    return [{"role": "user", "content": content}]
+
+
 class _MockStream:
     def __init__(self, chunks: list[str]) -> None:
         self._chunks = chunks
@@ -81,9 +86,9 @@ _EVENT_PATCHER = patch("packages.agents.events.emit_run_event")
 async def test_complete_json_chat_passes_max_tokens_to_api():
     mock_create = AsyncMock(return_value=_mock_response())
 
-    with patch("packages.agents.llm.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
-        messages = [{"role": "user", "content": "hello"}]
+        messages = _messages()
 
         await complete_json_chat(
             model="test-model",
@@ -100,9 +105,9 @@ async def test_complete_json_chat_passes_max_tokens_to_api():
 async def test_explicit_max_tokens_overrides_agent_default():
     mock_create = AsyncMock(return_value=_mock_response())
 
-    with patch("packages.agents.llm.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
-        messages = [{"role": "user", "content": "hello"}]
+        messages = _messages()
 
         await complete_json_chat(
             model="test-model",
@@ -120,9 +125,9 @@ async def test_explicit_max_tokens_overrides_agent_default():
 async def test_unknown_agent_uses_default_max_tokens():
     mock_create = AsyncMock(return_value=_mock_response())
 
-    with patch("packages.agents.llm.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
-        messages = [{"role": "user", "content": "hello"}]
+        messages = _messages()
 
         await complete_json_chat(
             model="test-model",
@@ -139,9 +144,9 @@ async def test_unknown_agent_uses_default_max_tokens():
 async def test_content_creator_uses_streaming_transport():
     mock_create = AsyncMock(return_value=_MockStream(['{"result": ', '"ok"}']))
 
-    with patch("packages.agents.llm.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
-        messages = [{"role": "user", "content": "hello"}]
+        messages = _messages()
 
         result = await complete_json_chat(
             model="test-model",
@@ -160,9 +165,9 @@ async def test_content_creator_uses_streaming_transport():
 async def test_no_agent_tag_uses_default_max_tokens():
     mock_create = AsyncMock(return_value=_mock_response())
 
-    with patch("packages.agents.llm.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
-        messages = [{"role": "user", "content": "hello"}]
+        messages = _messages()
 
         await complete_json_chat(
             model="test-model",
@@ -178,15 +183,15 @@ async def test_no_agent_tag_uses_default_max_tokens():
 @pytest.mark.asyncio
 async def test_emits_llm_call_started_and_completed_events():
     mock_create = AsyncMock(return_value=_mock_response("hello"))
-    events: list[tuple[str, dict]] = []
+    events: list[tuple[str, dict[str, object]]] = []
 
-    def capture_event(rid: str, etype: str, data: dict) -> None:
+    def capture_event(rid: str, etype: str, data: dict[str, object]) -> None:
         events.append((etype, data))
 
-    with patch("packages.agents.llm.AsyncOpenAI") as mock_cls, \
+    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, \
          patch("packages.agents.events.emit_run_event", side_effect=capture_event):
         mock_cls.return_value.chat.completions.create = mock_create
-        messages = [{"role": "user", "content": "test"}]
+        messages = _messages("test")
 
         await complete_json_chat(
             model="test-model",
@@ -202,18 +207,18 @@ async def test_emits_llm_call_started_and_completed_events():
 
 @pytest.mark.asyncio
 async def test_emits_llm_call_failed_on_exception():
-    mock_create = AsyncMock(side_effect=RuntimeError("connection timeout"))
-    events: list[tuple[str, dict]] = []
+    mock_create = AsyncMock(side_effect=ValueError("connection timeout"))
+    events: list[tuple[str, dict[str, object]]] = []
 
-    def capture_event(rid: str, etype: str, data: dict) -> None:
+    def capture_event(rid: str, etype: str, data: dict[str, object]) -> None:
         events.append((etype, data))
 
-    with patch("packages.agents.llm.AsyncOpenAI") as mock_cls, \
+    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, \
          patch("packages.agents.events.emit_run_event", side_effect=capture_event):
         mock_cls.return_value.chat.completions.create = mock_create
-        messages = [{"role": "user", "content": "test"}]
+        messages = _messages("test")
 
-        with pytest.raises(RuntimeError, match="connection timeout"):
+        with pytest.raises(ValueError, match="connection timeout"):
             await complete_json_chat(
                 model="test-model",
                 messages=messages,

@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 idempotency, job leases, cancellation, budgets, and backpressure
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, operations, idempotency, jobs, budgets]
 created: 2026-06-27
 order: 13
@@ -73,3 +73,21 @@ Agent-ready tasks:
 ## Rollback
 
 Operational hardening is required for V2 production. If implementation is incomplete, do not expose V2 to real users.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Job leases, sweeper, budgets, backpressure, cancellation, and idempotency are implemented/tested, but full crash timing and live timeout/degrade proof are incomplete.
+
+Evidence:
+- Job table and lease fields are in migration `services/gateway/alembic/versions/004_pipeline_v2_run_jobs.py` and model `services/gateway/pipeline_v2_models.py`.
+- Job store, worker, recovery sweeper, leases, budgets, and backpressure are implemented in `pipeline_v2_job_store.py`, `pipeline_v2_worker.py`, `recovery_sweeper.py`, `worker_lease.py`, `budget.py`, and `backpressure.py`.
+- Idempotency helpers are in `services/gateway/pipeline_v2_idempotency.py`; cancel route behavior is in `services/gateway/routers/pipeline_v2_runs.py`.
+- Tests cover job idempotency, lease reclaim, worker execution/failure, sweeper behavior, budgets, active run limits, and cancellation in `services/gateway/tests/test_pipeline_v2_job_store.py`, `test_pipeline_v2_job_store_leases.py`, `test_pipeline_v2_worker.py`, `test_operations_hardening.py`, and `test_pipeline_v2_runs_router_edges.py`.
+
+Gaps:
+- I found simulated lease/recovery tests, not full crash timing proof for every specified point between stage result, event, and job completion.
+- Live 9Router timeout/degrade behavior was not found.
+- Recovery sweeper functions exist, but reviewer evidence did not find periodic background wiring in `services/gateway/main.py`.
+- Cancel route behavior exists, but actor/reason persistence in the cancel event payload was not verified.
+- Budget logic is in-memory; DB budget ledger/event records, healing budget, concurrency budget, and budget degradation behavior were not verified.
+- Backpressure rejects over-limit requests; no queued/delayed status or UI-visible delayed state was verified.

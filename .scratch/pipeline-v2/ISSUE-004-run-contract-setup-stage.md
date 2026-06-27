@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 RunContract, smart preflight, and setup HITL gates
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, run-contract, hitl]
 created: 2026-06-27
 order: 4
@@ -74,3 +74,20 @@ Agent-ready tasks:
 ## Rollback
 
 Keep the stage behind V2 cutover until the setup gates are stable. No V1 preservation required after V2 cutover.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. RunContract and setup/preflight logic exist, but downstream contract immutability and full gate UX are not fully proven.
+
+Evidence:
+- `RunContract`, revision metadata, execution policy, and artifact/export literals are defined in `common/contracts/run_contract.py`.
+- Setup and preflight behavior is implemented in `services/gateway/run_contract_setup.py` with policy helpers in `services/gateway/run_contract_policy.py`.
+- Run creation/minimized class-info setup is implemented in `services/gateway/run_creation.py`.
+- Gate persistence and append-only contract revision behavior are covered through `services/gateway/pipeline_v2_control_store.py`.
+- Tests exist in `services/gateway/tests/test_run_contract_setup.py`, `test_run_contract_routes.py`, `test_run_creation_security.py`, and `test_pipeline_v2_control_store.py`.
+
+Gaps:
+- I found tests for setup/preflight and contract persistence, but not comprehensive proof that every downstream stage reads only the frozen RunContract snapshot.
+- Contract confirmation UI is part of Issue 010 and remains only partially proven by component tests.
+- `PipelineV2ControlStore.revise_contract()` appends revisions, but monotonic revision ordering is not enforced in Python beyond the DB uniqueness constraint on `(contract_id, revision)`.
+- The generic resume route stores contract gate responses, but reviewer evidence did not find a concrete handler that applies a teacher `edit` response into a new contract revision.

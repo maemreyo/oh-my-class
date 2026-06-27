@@ -41,6 +41,8 @@ def create_access_token(user: User) -> Token:
         role=user.role,
         exp=expires_at,
         iat=now,
+        organization_id=user.organization_id,
+        class_id=user.class_id,
     )
 
     token = jwt.encode(payload.model_dump(), secret, algorithm=algorithm)
@@ -72,4 +74,6 @@ def user_from_payload(payload: TokenPayload) -> User:
         user_id=payload.sub,
         username=payload.sub,  # In real app, look up from DB
         role=payload.role,
+        organization_id=payload.organization_id,
+        class_id=payload.class_id,
     )

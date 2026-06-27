@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 rendered preview snapshots and teacher approval
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, renderer, approval, ui]
 created: 2026-06-27
 order: 8
@@ -72,3 +72,19 @@ Agent-ready tasks:
 ## Rollback
 
 If rendered approval is unstable, block V2 release rather than reverting to JSON approval. Rendered approval is required for production readiness.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Snapshot persistence and preview/approval APIs exist, but renderer integration and browser/manual QA are not fully proven.
+
+Evidence:
+- Snapshot data model and migration exist in `services/gateway/pipeline_v2_snapshot_models.py` and `services/gateway/alembic/versions/006_rendered_snapshot_metadata.py`.
+- Snapshot storage and standalone validation are implemented in `services/gateway/pipeline_v2_snapshot_store.py`.
+- Preview routes and schemas are implemented in `services/gateway/routers/pipeline_v2_previews.py` and `pipeline_v2_preview_schemas.py`.
+- Tests cover metadata without huge HTML, student redaction, teacher preview answer keys, exact approved snapshot ids, non-standalone rejection, non-owner denial, hash stability, and external asset rejection in `services/gateway/tests/test_pipeline_v2_previews.py` and `test_pipeline_v2_snapshot_store.py`.
+
+Gaps:
+- I found API/snapshot evidence, not a full renderer-stage integration proof for every core artifact type.
+- Browser/manual QA for approval preview, narrow viewport, print preview, and iframe sandbox was not found in staged evidence.
+- Student preview rendering appears simplified in the gateway snapshot path rather than proven through the full Eta template renderer.
+- Renderer/template version mismatch blocking, regenerated-after-approval snapshot invalidation, and preview endpoint cross-tenant checks were not fully proven by the reviewed tests.

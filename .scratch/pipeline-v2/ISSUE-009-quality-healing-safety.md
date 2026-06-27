@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 quality gates, typed healing, safety, and export readiness
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, quality, healing, safety]
 created: 2026-06-27
 order: 9
@@ -76,3 +76,19 @@ Agent-ready tasks:
 ## Rollback
 
 Quality/safety gates are release blockers. If a gate is noisy, tune thresholds/config rather than disabling core safety invariants.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Deterministic gates and export readiness exist, but adaptive judge, full healing loops, and pack coherence are not fully proven.
+
+Evidence:
+- Quality contracts are in `common/contracts/quality.py`.
+- Deterministic artifact, snapshot publish, pre-search safety, healing classification, and export readiness checks are implemented in `services/gateway/quality_gates.py` and `services/gateway/quality_workflow.py`.
+- Tests cover placeholder/answer-key/accessibility blocking, valid teacher-only answers, external asset and student key leakage, pre-search PII blocking, healing classifier mapping, and export readiness in `services/gateway/tests/test_quality_gates.py` and `test_quality_workflow.py`.
+- Artifact generation calls `validate_artifact_content` in `services/gateway/artifact_workflow.py` before marking artifacts passed.
+
+Gaps:
+- I did not find a complete adaptive LLM judge implementation, pack-level coherence review, or live 9Router healing path evidence.
+- Healing appears represented by classification/bounded strategy hooks rather than full persisted repair loops for every listed failure class.
+- Pre-search, pre-LLM, and pre-publish safety gates are present, but scoped teacher rejection is only proven on the frontend payload side; backend regeneration routing for selected artifacts/sections was not verified.
+- Factual uncertainty enrichment, pedagogical mismatch routing, and timeout-specific healing executors were not found.

@@ -68,7 +68,7 @@ class TestPlannerAgentFactory:
         from packages.agents.sub_agents.planner.agent import make_planner_agent
 
         mock_llm = _make_llm_mock(VALID_PLAN)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             agent = make_planner_agent()
             result = await agent.ainvoke({
                 "messages": [],
@@ -88,7 +88,7 @@ class TestPlannerAgentFactory:
         from packages.agents.sub_agents.planner.agent import make_planner_agent
 
         mock_llm = _make_llm_mock(VALID_PLAN)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             agent = make_planner_agent()
             result = await agent.ainvoke({
                 "messages": [],
@@ -145,7 +145,7 @@ class TestContentCreatorAgentFactory:
         from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent
 
         mock_llm = _make_llm_mock(VALID_ARTIFACTS)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             agent = make_content_creator_agent()
             result = await agent.ainvoke({
                 "messages": [],

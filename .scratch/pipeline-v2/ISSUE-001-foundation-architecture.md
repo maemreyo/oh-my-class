@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 foundation architecture and stage graph skeleton
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, architecture, foundation]
 created: 2026-06-27
 order: 1
@@ -68,3 +68,21 @@ Agent-ready tasks:
 ## Rollback
 
 Revert V2 skeleton files and docs references. This issue should not modify production V1 routes yet.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. The foundation skeleton is present, but the port/interface scope is not complete.
+
+Evidence:
+- Staged changes add the V2 package skeleton in `packages/agents/pipeline_v2/`: `config.py`, `stages.py`, `ports.py`, `graph.py`, `nodes.py`, and `checkpointing.py`.
+- Stage names/events are centralized in `packages/agents/pipeline_v2/stages.py`; the skeleton graph is constructed in `packages/agents/pipeline_v2/graph.py` with placeholder pure nodes in `nodes.py`.
+- Public contracts exist in `common/contracts/run_contract.py`, `common/contracts/research_brief.py`, `common/contracts/artifact_workflow.py`, and `common/contracts/quality.py`.
+- Tests cover graph/config/stage foundation in `packages/agents/tests/pipeline_v2/test_foundation.py` and checkpointer construction in `packages/agents/tests/pipeline_v2/test_checkpointing.py`.
+
+Review notes:
+- The placeholder stage implementations are intentional for Issue 001 and do not prove downstream behavior.
+- No package-boundary violation was found in the staged Pipeline V2 foundation files from the reviewed import paths.
+
+Gaps:
+- `packages/agents/pipeline_v2/ports.py` covers run store, event writer, snapshot store, and executor ports, but does not define the LLM transport, search/fetch client, or renderer ports named in the issue scope.
+- Some V2 protocol definitions live in service-layer files such as `services/gateway/pipeline_v2_executor.py`, so the architectural seam is not fully centralized in the package-level ports module.

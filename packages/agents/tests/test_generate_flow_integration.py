@@ -79,7 +79,10 @@ async def test_generate_produces_artifacts():
 
         from packages.agents.graph import build_oh_my_class_graph
 
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with (
+            patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+        ):
             graph = build_oh_my_class_graph()
             config = {"configurable": {"thread_id": "test-gen-thread"}}
 
@@ -109,7 +112,10 @@ async def test_pack_scope_and_visual_engine_run_after_approval():
 
         from packages.agents.graph import build_oh_my_class_graph
 
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with (
+            patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+        ):
             graph = build_oh_my_class_graph()
             config = {"configurable": {"thread_id": "test-scope-thread"}}
 
@@ -135,7 +141,10 @@ async def test_artifact_has_required_fields():
 
         from packages.agents.graph import build_oh_my_class_graph
 
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with (
+            patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
+            patch("packages.agents.llm.complete_json_chat", mock_llm),
+        ):
             graph = build_oh_my_class_graph()
             config = {"configurable": {"thread_id": "test-schema-thread"}}
 

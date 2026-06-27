@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "dist/renderer.js",
+  "bin": {
+    "omc-render": "./dist/agent-renderer.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",

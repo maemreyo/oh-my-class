@@ -54,7 +54,10 @@ def _make_llm_mock(content: str) -> AsyncMock:
 def _build_real_graph():
     """Compile the real LangGraph with the shared LLM helper mocked."""
     mock_llm = _make_llm_mock(VALID_PLAN)
-    with patch("packages.agents.llm.complete_json_chat", mock_llm):
+    with (
+        patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
+        patch("packages.agents.llm.complete_json_chat", mock_llm),
+    ):
         from packages.agents.graph import build_oh_my_class_graph
         return build_oh_my_class_graph()
 
@@ -88,7 +91,10 @@ def _initial_state(raw_request: str = "Teach photosynthesis to Grade 5") -> dict
 async def test_graph_reaches_blueprint_approval_with_lesson_plan():
     """Full preflight → quickstart → planner → gate_01 sequence."""
     mock_llm = _make_llm_mock(VALID_PLAN)
-    with patch("packages.agents.llm.complete_json_chat", mock_llm):
+    with (
+        patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
+        patch("packages.agents.llm.complete_json_chat", mock_llm),
+    ):
         from packages.agents.graph import build_oh_my_class_graph
 
         graph = build_oh_my_class_graph()
@@ -152,7 +158,10 @@ def _make_app_with_graph(graph: Any) -> TestClient:
 def test_create_run_reaches_blueprint_approval_via_gateway():
     """POST /run with mocked LLM → 200 + status 'awaiting_approval' + lesson_plan in state."""
     mock_llm = _make_llm_mock(VALID_PLAN)
-    with patch("packages.agents.llm.complete_json_chat", mock_llm):
+    with (
+        patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
+        patch("packages.agents.llm.complete_json_chat", mock_llm),
+    ):
         from packages.agents.graph import build_oh_my_class_graph
 
         graph = build_oh_my_class_graph()

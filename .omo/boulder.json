@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "active_work_id": "pipeline-v2-production-gaps",
+  "works": {
+    "pipeline-v2-production-gaps": {
+      "work_id": "pipeline-v2-production-gaps",
+      "active_plan": ".omo/plans/pipeline-v2-production-gaps.md",
+      "plan_name": "pipeline-v2-production-gaps",
+      "session_ids": ["codex:current"],
+      "status": "active",
+      "worktree_path": null
+    }
+  }
+}

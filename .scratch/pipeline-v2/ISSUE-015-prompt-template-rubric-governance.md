@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 prompt, template, theme, and rubric governance
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, prompts, templates, rubrics, evals]
 created: 2026-06-27
 order: 15
@@ -78,3 +78,20 @@ Agent-ready tasks:
 ## Rollback
 
 Prompt/template/rubric governance is required before V2 release. If registry implementation is incomplete, do not allow uncontrolled prompt/template changes in production.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Prompt/template/theme registries and drift detection exist, but full compiler/eval/rubric governance is incomplete.
+
+Evidence:
+- Prompt registry, drift detection, and seed data are implemented in `packages/agents/prompts/registry.py`, `drift.py`, and `seed.py`.
+- Template registry exists in `packages/renderer/templates/registry.py`; branding registry exists in `common/branding/registry.py`.
+- Tests cover prompt/template/theme registration, semver/hash validation, duplicate detection, drift detection, and seed data in `packages/agents/prompts/tests/test_registry.py`.
+- Prompt metadata hooks exist in `packages/agents/llm/prompt_metadata.py` and transport/prompt gate modules from Issue 006.
+
+Gaps:
+- I did not find a full prompt section compiler with safe compaction, live eval harness, repair prompt suite, or rubric registry implementation.
+- Live 9Router eval evidence for planner/research/generation/healing/judge prompt changes was not found.
+- Structured-output strategy metadata exists only partially through prompt metadata/schema fields; per-task strategy routing was not verified.
+- Locale/subject/artifact overlay composition was not found beyond seeded prompt metadata.
+- Drift detection exists, but CI/startup enforcement that fails uncontrolled body/template/rubric changes was not verified.

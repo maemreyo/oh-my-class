@@ -64,7 +64,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_returns_valid_artifact_content(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
@@ -75,7 +75,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_parses_json_code_fence(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert result["artifacts"][0]["title"] == "Photosynthesis Lesson"
@@ -84,7 +84,7 @@ class TestContentCreatorAgent:
     async def test_parses_generic_code_fence(self):
         wrapped = f"```\n{VALID_ARTIFACT_ARRAY_JSON}\n```"
         mock_llm = _make_llm_mock(return_value=wrapped)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
@@ -93,7 +93,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_parses_bare_json_array(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_ARRAY_JSON)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
@@ -101,7 +101,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_wraps_single_artifact_dict_in_list(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_JSON)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert len(result["artifacts"]) == 1
@@ -110,7 +110,7 @@ class TestContentCreatorAgent:
     async def test_raises_value_error_on_invalid_json(self):
         mock_llm = _make_llm_mock(return_value="not valid json")
         with (
-            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
             pytest.raises(ValueError, match="Content creator agent failed"),
         ):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
@@ -118,7 +118,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_llm_error_returns_placeholder_artifacts(self):
         mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert "artifacts" in result
@@ -129,7 +129,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_calls_llm_with_correct_model(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert mock_llm.call_args.kwargs["model"] == "4omc"
@@ -137,7 +137,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_metadata_tags_include_run_id(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state(run_id="run-xyz")))
 
         tags = mock_llm.call_args.kwargs["tags"]
@@ -148,7 +148,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_missing_lesson_plan_uses_empty_dict(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state(lesson_plan=None)))  # noqa: E501
 
         mock_llm.assert_awaited_once()
@@ -157,7 +157,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_missing_artifact_types_defaults_to_lesson(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state(artifact_types=None)))
 
         user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
@@ -166,7 +166,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_theme_forwarded_to_prompt(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state(theme="ocean")))
 
         user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
@@ -175,7 +175,7 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_artifact_validates_against_schema(self):
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         for artifact_dict in result["artifacts"]:
@@ -187,7 +187,7 @@ class TestContentCreatorAgent:
     async def test_system_prompt_from_external_file(self):
         """Regression: system prompt must come from prompts/system.md, not hardcoded."""
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         system_msg = mock_llm.call_args.kwargs["messages"][0]["content"]
@@ -202,7 +202,7 @@ class TestContentCreatorAgent:
     async def test_temperature_is_03(self):
         """Temperature must be 0.3 for structured JSON output (not 0.7)."""
         mock_llm = _make_llm_mock(return_value=VALID_ARTIFACT_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
         assert mock_llm.call_args.kwargs["temperature"] == 0.3

@@ -6,7 +6,7 @@ Tables: users, runs, artifacts, cost_logs
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -26,6 +26,10 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
     pass
+
+
+def utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 class UserRole(StrEnum):
@@ -55,7 +59,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
     email: Mapped[str | None] = mapped_column(String(256), nullable=True)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False, default=UserRole.TEACHER)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
@@ -67,7 +71,7 @@ class Run(Base):
     run_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[RunStatus] = mapped_column(
-        Enum(RunStatus), nullable=False, default=RunStatus.PENDING,
+        Enum(RunStatus, native_enum=False), nullable=False, default=RunStatus.PENDING,
     )
     current_step: Mapped[int] = mapped_column(Integer, default=1)
     raw_request: Mapped[str] = mapped_column(Text, nullable=False)
@@ -83,10 +87,13 @@ class Run(Base):
     export_formats: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     tokens_used: Mapped[int] = mapped_column(Integer, default=0)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow,
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now,
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    retention_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class Artifact(Base):
@@ -102,7 +109,7 @@ class Artifact(Base):
     content_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     rendered_html: Mapped[str | None] = mapped_column(Text, nullable=True)
     quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
 class CostLog(Base):
@@ -117,4 +124,4 @@ class CostLog(Base):
     prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
     completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

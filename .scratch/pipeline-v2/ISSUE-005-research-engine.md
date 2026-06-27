@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 independent Research Engine
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, research, search, 9router]
 created: 2026-06-27
 order: 5
@@ -78,3 +78,19 @@ Agent-ready tasks:
 ## Rollback
 
 Disable pre-planning search in config only if Research Engine blocks V2 cutover; post-blueprint compact research remains required before production release.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. The independent research engine MVP is implemented with deterministic tests, but live 9Router and full policy coverage are not proven.
+
+Evidence:
+- Research contracts are in `common/contracts/research_brief.py`.
+- Research planning, URL normalization, ranking, safety, collection, and 9Router provider mapping are implemented in `services/gateway/research_engine.py`, `research_urls.py`, `research_safety.py`, `research_collector.py`, `research_provider_9router.py`, and `research_gate.py`.
+- Tests cover targeted Math/English plans, PII scrubbing, dedupe/ranking, compact brief output, fetch failures, search gate behavior, and provider mapping in `services/gateway/tests/test_research_engine.py`, `test_research_collector.py`, `test_research_gate.py`, and `test_research_provider_9router.py`.
+
+Gaps:
+- No live 9Router search/fetch run ids or artifacts were found in the staged evidence.
+- The implementation proves compact curated briefs, but not all requested live Vietnamese Math, English ESL, and Science citation scenarios.
+- Fetch collection is sequential in `services/gateway/research_collector.py`; parallel fetching, timeout policy, and research-cache TTL behavior were not verified.
+- Research need classification and query planning are mostly deterministic/hardcoded; config-driven policy and LLM-assisted planning modes were not found.
+- Search plan confirmation covers ambiguous curriculum/high-budget cases, but sensitive-source and teacher-source-conflict confirmation paths were not verified.

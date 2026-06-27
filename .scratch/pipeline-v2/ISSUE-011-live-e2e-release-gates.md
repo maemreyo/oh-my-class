@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 live E2E release gates and production readiness evidence
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, e2e, release, 9router]
 created: 2026-06-27
 order: 11
@@ -91,3 +91,18 @@ This issue is the test plan. It must produce a release evidence report under `do
 ## Rollback
 
 If any release-gate scenario fails, V2 is not production-ready. Create follow-up issues for root-cause fixes rather than waiving the scenario.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Deterministic E2E and release evidence infrastructure exist, but live production-readiness evidence is missing.
+
+Evidence:
+- E2E tests were added in `tests/e2e/test_pipeline_v2_deterministic.py` and `tests/e2e/test_pipeline_v2_scenarios.py`, with fixtures in `tests/e2e/conftest.py`.
+- Release evidence models and storage are implemented in `services/gateway/release_evidence.py`, `release_evidence_store.py`, and route `services/gateway/routers/release_evidence.py`.
+- Tests cover release evidence fields, event sequence, snapshot IDs, skipped scenarios, privacy, and report generation in `services/gateway/tests/test_release_evidence.py`.
+
+Gaps:
+- The staged files do not include live 9Router run ids, live artifact outputs, or a completed release evidence report under `docs/reports/` or `.scratch/pipeline-v2/artifacts/`.
+- Production readiness should not be claimed until the required live matrix is executed and recorded.
+- The deterministic E2E fixture documents mocked/no-real-API behavior, so it does not satisfy the required live 9Router release matrix.
+- No explicit evidence was found for Langfuse-unavailable mode, SSE refresh/reconnect validation, or create/resume no-long-request timing assertions.

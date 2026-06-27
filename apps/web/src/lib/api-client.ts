@@ -6,6 +6,14 @@
 const GATEWAY_URL =
 	process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:8101";
 
+export function gatewayUrl(): string {
+	return GATEWAY_URL;
+}
+
+export interface RequestOptions {
+	readonly headers?: Readonly<Record<string, string>>;
+}
+
 class APIClient {
 	private baseUrl: string;
 
@@ -32,12 +40,18 @@ class APIClient {
 		return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 	}
 
-	async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+	async request<T>(
+		method: string,
+		path: string,
+		body?: unknown,
+		options: RequestOptions = {},
+	): Promise<T> {
 		const token = this.getToken();
 		const requestId = this.generateRequestId();
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 			"X-Request-ID": requestId,
+			...options.headers,
 		};
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
@@ -63,16 +77,16 @@ class APIClient {
 		return response.json() as Promise<T>;
 	}
 
-	get<T>(path: string): Promise<T> {
-		return this.request<T>("GET", path);
+	get<T>(path: string, options?: RequestOptions): Promise<T> {
+		return this.request<T>("GET", path, undefined, options);
 	}
 
-	post<T>(path: string, body?: unknown): Promise<T> {
-		return this.request<T>("POST", path, body);
+	post<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+		return this.request<T>("POST", path, body, options);
 	}
 
-	put<T>(path: string, body?: unknown): Promise<T> {
-		return this.request<T>("PUT", path, body);
+	put<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+		return this.request<T>("PUT", path, body, options);
 	}
 }
 

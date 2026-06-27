@@ -1,0 +1,141 @@
+{
+  "verdict": "needs-fix",
+  "checkpoint": "plan-checkpoint-4",
+  "task": "Eta-rendered snapshot persistence",
+  "timestamp": "2026-06-27T17:19:53Z",
+  "verified_by": "adversarial-verifier",
+  "summary": "Snapshot storage layer (COMPLETE) ✅ | Production rendering pipeline (INCOMPLETE) ⚠️",
+  
+  "findings": {
+    "snapshot_persistence_layer": {
+      "status": "confirmed",
+      "details": "PipelineV2SnapshotStore.create_snapshot() fully implemented with:",
+      "implemented": [
+        "✅ Eta renderer version capture (renderer_version, template_version, theme_version)",
+        "✅ Automatic answer-key removal from student_rendered_html",
+        "✅ Standalone HTML validation (DOCTYPE + no external assets)",
+        "✅ Non-standalone snapshot approval guard",
+        "✅ Metadata endpoints return version + hash info",
+        "✅ Preview routes preserved (student view = no answer keys)",
+        "✅ Comprehensive test coverage (16 tests, all passing)"
+      ],
+      "files": [
+        "services/gateway/pipeline_v2_snapshot_store.py (315 LOC, clean ruff)",
+        "services/gateway/tests/test_pipeline_v2_snapshot_store.py (9/9 tests pass)",
+        "services/gateway/tests/test_pipeline_v2_previews.py (7/7 tests pass)"
+      ]
+    },
+    
+    "production_rendering_pipeline": {
+      "status": "incomplete",
+      "critical_gap": "Zero production callers of create_snapshot exist",
+      "evidence": [
+        "codegraph_callers(create_snapshot) → 8 results, ALL are test-level functions:",
+        "  - test_snapshot_hash_is_deterministic_and_queryable (unit)",
+        "  - test_snapshot_duplicate_content_reuses_hash (unit)",
+        "  - test_export_readiness_uses_approved_snapshots_and_writes_event (integration)",
+        "  - test_snapshot_stored_and_queryable (E2E)",
+        "  - test_multiple_snapshots_per_run (E2E)",
+        "  - test_duplicate_content_hash_does_not_return_other_run_snapshot (unit)",
+        "  - test_duplicate_content_hash_blocks_version_mismatch (unit)",
+        "  - _create_run_with_snapshot (test fixture)"
+      ],
+      "renderer_adapter_status": {
+        "module": "services/gateway/renderer_adapter.py",
+        "state": "EXISTS but UNUSED",
+        "functions": "render_artifact_content(artifact_content: dict) → str (async, Eta-delegated)",
+        "production_imports": "ZERO - no production code imports this",
+        "grep_result": "grep -r 'from services.gateway.renderer_adapter import' --include='*.py' | grep -v test → (no output)",
+        "inference": "Renderer adapter written but never wired into agent pipeline"
+      },
+      "langgraph_pipeline_v2": {
+        "status": "PLACEHOLDER SKELETON",
+        "file": "packages/agents/pipeline_v2/nodes.py",
+        "evidence": "Lines 1-6 docstring: 'Placeholder Pipeline V2 stage nodes. These nodes intentionally perform no LLM, network, database, or Langfuse work.'",
+        "implementation": "make_stage_node() → pure state update only (no artifact generation, no rendering, no snapshot creation)",
+        "stages": "8 stages defined (SETUP_CONTRACT, PREPLANNING_SEARCH, PLANNING_BLUEPRINT, POST_BLUEPRINT_RESEARCH, ARTIFACT_WORKFLOW, RENDER_QUALITY, TEACHER_APPROVAL, EXPORT_FINALIZE)",
+        "render_quality_stage": "EXISTS in enum but DOES NOT EXECUTE RENDERING",
+        "artifact_workflow_stage": "EXISTS in enum but DOES NOT EXECUTE CONTENT GENERATION"
+      },
+      "missing_wiring": [
+        "❌ No LangGraph node that calls render_artifact_content()",
+        "❌ No node that receives ArtifactContent[] from content creator and passes to renderer",
+        "❌ No node that passes rendered_html → create_snapshot()",
+        "❌ No code path: artifact_content → render_artifact_content → create_snapshot",
+        "❌ Pipeline v2 graph is a pure topology skeleton with no real work"
+      ]
+    },
+    
+    "evidence_document_accuracy": {
+      "status": "misleading",
+      "claim_line_317_322": "Evidence doc §Production Path Integration states: 'Upstream Call Sites (where snapshots are created in production): 1. Quality workflow — services/gateway/quality_workflow.py (not yet wired; agents will call)'",
+      "verdict": "ACCURATE but UNDERSTATES the gap",
+      "issue": "Evidence doc claims task 4 'COMPLETE' but explicitly acknowledges 'not yet wired; agents will call' — this is task 4 INCOMPLETE for production",
+      "limitation_section": "§Known Limitations & Future Work correctly lists: 'Renderer adapter wiring — Not yet integrated into agent pipeline; task 3 verified adapter exists'",
+      "conclusion": "Evidence doc is honest about limitations but STATUS marker (✅ COMPLETE) is premature"
+    },
+    
+    "what_task_4_actually_delivered": [
+      "✅ Snapshot storage layer — fully functional, tested, production-ready DATA PERSISTENCE",
+      "✅ Answer-key removal logic — correct regex + pattern matching, tested",
+      "✅ Version metadata capture — schema + storage complete",
+      "✅ Standalone HTML validation — enforced at approval time",
+      "⚠️  But: ZERO integration into LangGraph pipeline that produces artifacts",
+      "⚠️  But: ZERO production code path from ContentCreator → Renderer → Snapshots"
+    ],
+    
+    "what_task_4_did_NOT_deliver": [
+      "❌ LangGraph node that calls render_artifact_content()",
+      "❌ Wiring of renderer adapter into artifact_workflow stage",
+      "❌ Integration of snapshot creation into render_quality stage",
+      "❌ Any test that exercises FULL PIPELINE: artifact generation → rendering → snapshot persistence",
+      "❌ Production trigger for snapshot creation (only test fixtures trigger it)"
+    ]
+  },
+  
+  "test_coverage_analysis": {
+    "unit_tests": "9/9 passing (test_pipeline_v2_snapshot_store.py)",
+    "integration_tests": "7/7 passing (test_pipeline_v2_previews.py)",
+    "e2e_gap": "NO test that exercises: LangGraph → ContentCreator → Renderer → Snapshot → Preview",
+    "test_fixture": "All tests use _create_run_with_snapshot(store, snapshot_json) helper — manually seeded, not generated via renderer",
+    "verdict": "Tests verify snapshot STORAGE layer in isolation. Tests do NOT verify END-TO-END rendering pipeline."
+  },
+  
+  "ruff_and_types": {
+    "status": "all_clean",
+    "ruff_check": "All checks passed! (3 files)",
+    "type_annotations": "complete",
+    "pydantic_v2": "used correctly"
+  },
+  
+  "blockers_for_production": [
+    "BLOCKER-1: Pipeline v2 graph stages are placeholders (no-op nodes)",
+    "BLOCKER-2: No LangGraph node that invokes render_artifact_content()",
+    "BLOCKER-3: No code path connects artifact_workflow stage to ARTIFACT_WORKFLOW output",
+    "BLOCKER-4: Renderer adapter exists but is orphaned (zero production imports)",
+    "BLOCKER-5: create_snapshot has zero production callers (only test fixtures)"
+  ],
+  
+  "verdict_rationale": {
+    "checkpoint_4_scope": "Plan checkpoint 4 = 'Persist Eta-rendered teacher/student snapshots with version metadata'",
+    "delivered": "✅ Persistence layer complete (snapshot storage, versioning, answer-key removal, validation)",
+    "missing": "❌ Rendering pipeline integration (artifact generation → Eta rendering → snapshot creation)",
+    "assessment": "Task 4 is PARTIAL. The snapshot storage layer is production-ready, but the UPSTREAM rendering pipeline that feeds snapshots is NOT WIRED. Workers cannot produce snapshots in production without implementing BLOCKER-2 and BLOCKER-3.",
+    "recommendation": "Mark as 'needs-fix': Task 4 requires wiring of LangGraph nodes that actually call render_artifact_content() and create_snapshot() in sequence."
+  },
+  
+  "adjacent_observations": {
+    "task_3_renderer_adapter": "✅ COMPLETE — adapter exists, is well-tested, subprocess-based, validates standalone HTML",
+    "task_3_tests": "test_renderer_adapter.py passes (subprocess invocation confirmed to work)",
+    "missing_integration": "Task 3 → Task 4 integration missing: nobody calls task 3's adapter",
+    "python_renderer_duplication": "NO Python renderer duplication detected — adapter delegates to TypeScript via subprocess ✅"
+  },
+  
+  "next_steps_to_complete": [
+    "1. Create LangGraph node: 'render_artifacts' that receives artifact_content[], calls render_artifact_content() for each",
+    "2. Create LangGraph node: 'persist_snapshots' that receives rendered_html[], calls store.create_snapshot() for each",
+    "3. Wire both nodes into artifact_workflow or render_quality stage",
+    "4. Add E2E test that exercises: content_creator_output → render_artifacts → persist_snapshots → snapshot_store.list_run_snapshots()",
+    "5. Verify production path: assert create_snapshot() is called from non-test code"
+  ]
+}

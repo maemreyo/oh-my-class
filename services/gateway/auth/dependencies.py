@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .jwt_handler import user_from_payload, verify_token
-from .models import Role, User
+from .models import ADMIN_ROLES, TEACHER_ROLES, User
 
 security = HTTPBearer()
 
@@ -29,8 +29,7 @@ async def get_current_user(
 async def require_teacher(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
-    """Require teacher or admin role."""
-    if current_user.role not in (Role.TEACHER, Role.ADMIN):
+    if current_user.role not in TEACHER_ROLES:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Teacher or admin role required",
@@ -41,8 +40,7 @@ async def require_teacher(
 async def require_admin(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
-    """Require admin role only."""
-    if current_user.role != Role.ADMIN:
+    if current_user.role not in ADMIN_ROLES:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin role required",

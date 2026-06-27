@@ -36,12 +36,14 @@ Class information:
     from packages.agents.config.models import MODELS
     from packages.agents.llm import (
         chat_messages,
-        complete_json_chat,
+        compiled_json_chat,
         extract_json_text,
         log_llm_failure,
         log_llm_start,
         log_llm_success,
     )
+    from packages.agents.prompts.compiler import PromptCompiler
+    from packages.agents.prompts.seed import create_seeded_registry
 
     model = MODELS.planner
     run_id = str(state.get("run_id", ""))
@@ -52,13 +54,17 @@ Class information:
         "No prose, no explanation, no markdown code fences."
     )
     messages = chat_messages(system_prompt, user_prompt)
+    compiled = PromptCompiler(create_seeded_registry()).compile(
+        module_id="planner_v1", variables={},
+    )
 
     for attempt in range(3):
         attempt_number = attempt + 1
         started = log_llm_start("planner", run_id, step, model, attempt_number)
         try:
-            content = await complete_json_chat(
+            content = await compiled_json_chat(
                 model=model,
+                compiled=compiled,
                 messages=messages,
                 temperature=0.3 if attempt > 0 else 0.7,
                 tags=[

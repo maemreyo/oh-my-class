@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 adaptive LLM transport and Langfuse metadata policy
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, llm, streaming, langfuse, 9router]
 created: 2026-06-27
 order: 6
@@ -73,3 +73,20 @@ Agent-ready tasks:
 ## Rollback
 
 If adaptive policy causes regressions, set config to conservative mode while preserving the V2 transport interface.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Transport policy, prompt gate, metadata, and error summaries exist, but live smoke evidence and timeout-to-stream proof are missing.
+
+Evidence:
+- LLM modules were split into `packages/agents/llm/chat.py`, `chat_context.py`, `transport_policy.py`, `prompt_gate.py`, `prompt_metadata.py`, `json_utils.py`, and `error_summary.py`.
+- `packages/agents/llm/prompt_gate.py` blocks oversized prompts and secret-like prompt content before LLM calls.
+- `packages/agents/llm/transport_policy.py` implements streaming/non-streaming decisions by task characteristics.
+- Tests in `packages/agents/tests/llm/test_transport_policy.py` cover policy decisions, prompt gate behavior, and metadata expectations.
+
+Gaps:
+- I did not find live 9Router smoke evidence for long streamed, short non-streamed, or timeout-to-stream fallback scenarios.
+- Idempotency for already persisted valid artifact output after worker retry is covered indirectly elsewhere, not proven as part of the LLM transport layer.
+- Transport thresholds are hardcoded in `packages/agents/llm/transport_policy.py` rather than loaded from RunContract/config policy.
+- Only prompt-JSON/text-extract style behavior was verified; native schema and JSON-object strategy selection were not proven.
+- No test was found proving Langfuse-down resilience for an LLM call.

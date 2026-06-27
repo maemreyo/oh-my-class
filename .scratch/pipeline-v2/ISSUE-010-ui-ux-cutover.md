@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 frontend UI/UX cutover
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, frontend, ui-ux, gates]
 created: 2026-06-27
 order: 10
@@ -77,3 +77,19 @@ Agent-ready tasks:
 ## Rollback
 
 V2 UI cutover is tied to V2 backend cutover. If incomplete, keep V2 unreleased rather than exposing mixed V1/V2 workflow.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. V2 frontend components/hooks are present with component tests, but complete browser/a11y/manual QA is not proven.
+
+Evidence:
+- V2 UI additions include `apps/web/src/hooks/use-pipeline-v2.ts`, `pipeline-v2-stage-progress.tsx`, `pipeline-v2-gate-shell.tsx`, `pipeline-v2-artifact-progress.tsx`, `pipeline-v2-scoped-rejection.tsx`, and changes to `apps/web/src/app/(dashboard)/runs/[runId]/page.tsx` and `apps/web/src/lib/api-client.ts`.
+- Tests cover hooks and components in `apps/web/tests/hooks.test.ts`, `apps/web/tests/pipeline-v2-components.test.tsx`, and `apps/web/tests/pipeline-v2-artifacts.test.tsx`.
+- UI status/gate/artifact progress surfaces are backed by the V2 API/event model from Issues 003 and 008.
+
+Gaps:
+- Browser QA for full teacher journey, responsive gate dialogs, accessibility focus/keyboard behavior, and SSE reconnect after refresh was not found.
+- Component names indicate generic gate shell/scoped rejection support, but not all named gate bodies from the original scope are independently proven.
+- The V2 SSE hook opens an `EventSource`, but no `Last-Event-ID` replay/reconnect handling was verified on the client side.
+- Rendered preview URL helpers support student/teacher views, but the gate UI was not proven to expose a student/teacher tab or toggle.
+- Search-plan and blueprint gate bodies still appear JSON-oriented rather than fully teacher-friendly structured views.

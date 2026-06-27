@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 notifications and safe admin recovery
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, notifications, admin, recovery]
 created: 2026-06-27
 order: 14
@@ -69,3 +69,20 @@ Agent-ready tasks:
 ## Rollback
 
 If external channel adapters are incomplete, keep them disabled. In-app notification and safe recovery APIs are required for production V2.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. In-app notifications and safe admin recovery primitives exist, but external channels/admin UI hooks are intentionally limited.
+
+Evidence:
+- Notification models and migration exist in `services/gateway/notification_models.py`, `notification_db.py`, and `alembic/versions/008_notifications.py`.
+- Notification store/channel logic is implemented in `services/gateway/notification_store.py` and `notifications.py`; routes are in `services/gateway/routers/notifications.py`.
+- Safe recovery actions are implemented in `services/gateway/admin_recovery.py` and audited through persisted run events.
+- Tests cover notification dedupe/delivery/read/dismiss/isolation, admin recovery actions, audit events, and auth edges in `services/gateway/tests/test_notifications_admin_recovery.py`.
+
+Gaps:
+- Webhook routes still contain TODOs for Telegram/Zalo processing in `services/gateway/routers/webhooks.py`, which is acceptable only because external channels are out of scope.
+- Full admin console UI is not present, and retry-notification/admin summary UI hooks are not proven beyond backend primitives.
+- Notification event types are defined broadly, but helper emitters were verified only for a subset; contract/search/blueprint/content-preview/escalation/timeout notification emission was not fully proven.
+- No admin list/filter endpoint for failed, stuck, escalated, timed-out, or long-awaiting-gate runs was verified.
+- The safe recovery registry does not appear to include a retry-notification action from the issue scope.

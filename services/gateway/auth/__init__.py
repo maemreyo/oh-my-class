@@ -2,9 +2,21 @@
 
 from .dependencies import get_current_user, require_admin, require_teacher
 from .jwt_handler import create_access_token, user_from_payload, verify_token
-from .models import LoginRequest, Role, Token, TokenPayload, User, WebhookSecret
+from .models import (
+    ADMIN_ROLES,
+    TEACHER_ROLES,
+    LoginRequest,
+    Role,
+    Token,
+    TokenPayload,
+    User,
+    WebhookSecret,
+)
+from .ownership import check_run_owner
 
 __all__ = [
+    "ADMIN_ROLES",
+    "TEACHER_ROLES",
     "Role",
     "User",
     "Token",
@@ -17,4 +29,5 @@ __all__ = [
     "get_current_user",
     "require_teacher",
     "require_admin",
+    "check_run_owner",
 ]

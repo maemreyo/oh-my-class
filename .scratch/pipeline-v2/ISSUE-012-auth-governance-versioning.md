@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 tenant auth, data governance, retention, and contract versioning
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, auth, governance, retention, versioning]
 created: 2026-06-27
 order: 12
@@ -73,3 +73,19 @@ Agent-ready tasks:
 ## Rollback
 
 Do not cut over V2 without this issue. Auth/governance gaps are production blockers.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Tenant auth, soft-delete, retention, schema versioning, and identity hashing exist, but generated frontend type drift and previous-version adapters are not fully proven.
+
+Evidence:
+- Auth/ownership changes are in `services/gateway/auth/models.py`, `auth/dependencies.py`, `auth/jwt_handler.py`, and `auth/ownership.py`.
+- Soft-delete and purge/retention are implemented in `services/gateway/soft_delete.py`, `purge.py`, and `retention.py` with migration `007_soft_delete_and_retention.py`.
+- Identity hashing is implemented in `services/gateway/identity_hash.py`; schema version helpers are in `services/gateway/schema_version.py`.
+- Tests cover owner/admin access edges, cross-tenant denial, soft-delete/purge/retention behavior, schema-version no-op migration, and identity hashing in `services/gateway/tests/test_pipeline_v2_auth.py`, `test_pipeline_v2_runs_router_auth_edges.py`, `test_soft_delete_retention.py`, `test_identity_hash.py`, and `test_run_creation_security.py`.
+
+Gaps:
+- `schema_version.py` currently supports only `1.0`; I did not find a real previous-version adapter beyond no-op current-version migration.
+- Generated/mechanically checked frontend OpenAPI type drift enforcement was not found as staged evidence.
+- Core tenant auth, ownership, retention, soft-delete, purge, and identity hashing primitives are implemented, but not every listed endpoint surface was independently proven in this review.
+- Student evidence has a retention class and minimization helpers, but shortest-TTL enforcement through the full pipeline was not proven end-to-end.

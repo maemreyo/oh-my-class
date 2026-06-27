@@ -57,12 +57,14 @@ Return a JSON array of artifacts.
     from packages.agents.config.models import MODELS
     from packages.agents.llm import (
         chat_messages,
-        complete_json_chat,
+        compiled_json_chat,
         extract_json_text,
         log_llm_failure,
         log_llm_start,
         log_llm_success,
     )
+    from packages.agents.prompts.compiler import PromptCompiler
+    from packages.agents.prompts.seed import create_seeded_registry
     from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
 
     model = MODELS.content_creator
@@ -70,6 +72,13 @@ Return a JSON array of artifacts.
     step = int(state.get("current_step", 8))
     system_prompt = load_system_prompt() + _JSON_ONLY_SUFFIX
     messages = chat_messages(system_prompt, user_prompt)
+    prompt_module = (
+        "content_creator_mcq_v1" if "quiz" in artifact_types
+        else "content_creator_lesson_v1"
+    )
+    compiled = PromptCompiler(create_seeded_registry()).compile(
+        module_id=prompt_module, variables={},
+    )
 
     content = None
     last_content = None
@@ -79,8 +88,9 @@ Return a JSON array of artifacts.
             "content_creator", run_id, step, model, attempt_number,
         )
         try:
-            content = await complete_json_chat(
+            content = await compiled_json_chat(
                 model=model,
+                compiled=compiled,
                 messages=messages,
                 temperature=0.3,
                 tags=[

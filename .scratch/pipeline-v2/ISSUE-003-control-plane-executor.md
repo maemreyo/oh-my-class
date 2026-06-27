@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 control plane, executor, resume API, and status machine
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, gateway, executor, gates]
 created: 2026-06-27
 order: 3
@@ -74,3 +74,20 @@ Agent-ready tasks:
 ## Rollback
 
 Disable V2 route wiring before user cutover if executor or resume behavior is unstable.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Control-plane APIs and job execution primitives exist, but long-running production execution semantics are not fully proven.
+
+Evidence:
+- V2 run/resume/cancel/status routes are implemented in `services/gateway/routers/pipeline_v2_runs.py` with helper schemas in `pipeline_v2_schemas.py` and `pipeline_v2_helpers.py`.
+- Gate validation is implemented in `services/gateway/pipeline_v2_gate_registry.py`.
+- Executor and worker code exists in `services/gateway/pipeline_v2_executor.py`, `pipeline_v2_worker.py`, and `pipeline_v2_job_store.py`.
+- Status transitions are centralized in `services/gateway/pipeline_v2_status.py` and persisted through `PipelineV2RunStore.transition_status`.
+- Tests cover route behavior, gate validation, executor failure persistence, worker execution, idempotency, stale gates, cancellation, and SSE replay in `services/gateway/tests/test_pipeline_v2_runs_router.py`, `test_pipeline_v2_runs_router_edges.py`, `test_pipeline_v2_executor.py`, `test_pipeline_v2_worker.py`, `test_pipeline_v2_gate_registry.py`, and `test_pipeline_v2_status.py`.
+
+Gaps:
+- `PipelineV2Executor.enqueue_start` and `enqueue_resume` still schedule `_noop_start` / `_noop_resume`; the job-based methods perform graph invocation, so callers must use the job path for real execution.
+- Evidence shows API/job tests, not a live deployed worker restart/reconnect proof.
+- The status SSE endpoint replays persisted events after `Last-Event-ID`, but no live push/streaming mechanism beyond replay was verified.
+- Lease reclaim logic exists in the job store, but automatic periodic sweeper integration was not verified.

@@ -103,7 +103,7 @@ def _state() -> ContentCreatorState:
 async def test_lesson_only_prompt_stays_under_live_timeout_threshold():
     mock_llm = AsyncMock(return_value=json.dumps([VALID_ARTIFACT]))
 
-    with patch("packages.agents.llm.complete_json_chat", mock_llm):
+    with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
         await content_creator_node(_state())
 
     user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
@@ -114,7 +114,7 @@ async def test_lesson_only_prompt_stays_under_live_timeout_threshold():
 async def test_total_llm_messages_stay_under_live_timeout_threshold():
     mock_llm = AsyncMock(return_value=json.dumps([VALID_ARTIFACT]))
 
-    with patch("packages.agents.llm.complete_json_chat", mock_llm):
+    with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
         await content_creator_node(_state())
 
     messages = mock_llm.call_args.kwargs["messages"]
@@ -126,7 +126,7 @@ async def test_total_llm_messages_stay_under_live_timeout_threshold():
 async def test_runtime_prompt_documents_required_component_fields():
     mock_llm = AsyncMock(return_value=json.dumps([VALID_ARTIFACT]))
 
-    with patch("packages.agents.llm.complete_json_chat", mock_llm):
+    with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
         await content_creator_node(_state())
 
     system_msg = mock_llm.call_args.kwargs["messages"][0]["content"]
@@ -156,7 +156,7 @@ async def test_retry_prompt_preserves_lesson_and_research_context():
     }
     mock_llm = AsyncMock(side_effect=[json.dumps([invalid_artifact]), json.dumps([VALID_ARTIFACT])])
 
-    with patch("packages.agents.llm.complete_json_chat", mock_llm):
+    with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
         await content_creator_node(_state())
 
     retry_user_msg = mock_llm.await_args_list[1].kwargs["messages"][1]["content"]

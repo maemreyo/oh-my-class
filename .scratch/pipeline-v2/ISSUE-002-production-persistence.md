@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 production Postgres persistence
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, persistence, postgres]
 created: 2026-06-27
 order: 2
@@ -74,3 +74,17 @@ Agent-ready tasks:
 ## Rollback
 
 Database migrations should be forward-safe. If rollback is needed before cutover, disable V2 routes and leave V1 untouched until V2 persistence is stable.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Persistence primitives are broadly implemented, but the report overstates production-readiness proof.
+
+Evidence:
+- Alembic migrations add Pipeline V2 persistence tables in `services/gateway/alembic/versions/002_pipeline_v2_persistence.py`, `003_pipeline_v2_control_tables.py`, `004_pipeline_v2_run_jobs.py`, `005_artifact_workflow_state.py`, `006_rendered_snapshot_metadata.py`, `007_soft_delete_and_retention.py`, `008_notifications.py`, and `009_release_evidence.py`.
+- Run/event storage is implemented in `services/gateway/pipeline_v2_store.py`; snapshot storage in `services/gateway/pipeline_v2_snapshot_store.py`; gate/contract/workflow persistence in `services/gateway/pipeline_v2_control_store.py`.
+- Postgres checkpointer wiring exists in `packages/agents/pipeline_v2/checkpointing.py`.
+- Tests cover stores and persistence paths in `services/gateway/tests/test_pipeline_v2_store.py`, `test_pipeline_v2_control_store.py`, `test_pipeline_v2_snapshot_store.py`, `test_artifact_workflow_persistence.py`, and `packages/agents/tests/pipeline_v2/test_checkpointing.py`.
+
+Gaps:
+- I found store-level and integration-style tests, but not a real process-restart recovery proof for the full graph/checkpointer path.
+- The staged evidence proves schema/store behavior, not full production recovery under deployed multi-process conditions.

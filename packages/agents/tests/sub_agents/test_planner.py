@@ -197,7 +197,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
@@ -209,7 +209,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert result["lesson_plan"]["topic"] == "Photosynthesis"
@@ -219,7 +219,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_llm = _make_llm_mock(return_value=VALID_PLAN_GENERIC_FENCE)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
@@ -229,7 +229,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_llm = _make_llm_mock(return_value=VALID_PLAN_JSON)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         assert "lesson_plan" in result
@@ -240,7 +240,7 @@ class TestPlannerAgent:
 
         mock_llm = _make_llm_mock(return_value="not json at all")
         with (
-            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
             pytest.raises(ValueError, match="Planner agent failed"),
         ):
             await design_lesson_plan(cast("PlannerState", self._make_state()))
@@ -251,7 +251,7 @@ class TestPlannerAgent:
 
         mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
         with (
-            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
             pytest.raises(ValueError, match="Planner agent failed"),
         ):
             await design_lesson_plan(cast("PlannerState", self._make_state()))
@@ -263,7 +263,7 @@ class TestPlannerAgent:
         bad_plan = json.dumps({"topic": "T"})  # Missing required fields
         mock_llm = _make_llm_mock(return_value=bad_plan)
         with (
-            patch("packages.agents.llm.complete_json_chat", mock_llm),
+            patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
             pytest.raises(ValueError, match="Planner agent failed"),
         ):
             await design_lesson_plan(cast("PlannerState", self._make_state()))
@@ -273,7 +273,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state(class_info={})))
 
         mock_llm.assert_awaited_once()
@@ -284,7 +284,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         call_kwargs = mock_llm.call_args
@@ -295,7 +295,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             await design_lesson_plan(cast("PlannerState", self._make_state(run_id="my-run-xyz")))
 
         tags = mock_llm.call_args.kwargs["tags"]
@@ -308,7 +308,7 @@ class TestPlannerAgent:
         from packages.agents.sub_agents.planner.nodes import planner_node as design_lesson_plan
 
         mock_llm = _make_llm_mock(return_value=VALID_PLAN_WRAPPED)
-        with patch("packages.agents.llm.complete_json_chat", mock_llm):
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
             result = await design_lesson_plan(cast("PlannerState", self._make_state()))
 
         plan = LessonPlan.model_validate(result["lesson_plan"])

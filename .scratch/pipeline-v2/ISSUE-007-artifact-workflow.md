@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 artifact-level generation workflow
-status: ready-for-agent
+status: review-partial
 labels: [pipeline-v2, artifacts, generation, workflow]
 created: 2026-06-27
 order: 7
@@ -74,3 +74,20 @@ Agent-ready tasks:
 ## Rollback
 
 Reduce artifact concurrency to 1 via RunContract/config if provider behavior is unstable. Do not return to pack-level generation for V2.
+
+## Ultrawork Review — 2026-06-27
+
+Status: PARTIAL. Artifact workflow and persistence are implemented for core artifacts, but live generation/healing scope is not fully proven.
+
+Evidence:
+- Artifact workflow contracts are in `common/contracts/artifact_workflow.py`; persistence mapping is in `services/gateway/pipeline_v2_artifact_models.py` and migration `005_artifact_workflow_state.py`.
+- `services/gateway/artifact_workflow.py` implements `ArtifactOrchestrator`, dependency ordering, bounded parallelism, per-artifact retry, schema/quality validation, and unsupported artifact rejection.
+- Tests cover dependency ordering, concurrency limit, scoped retry, preserving passed artifacts, quality gate failure, unsupported artifacts, long run IDs, and research guidance in `services/gateway/tests/test_artifact_workflow.py`.
+- Persistence round-trip and update behavior are covered in `services/gateway/tests/test_artifact_workflow_persistence.py` and contract tests in `common/contracts/tests/test_artifact_workflow.py`.
+
+Gaps:
+- Live 9Router artifact generation for lesson/worksheet/quiz/recap was not found.
+- Section-level split-on-size/failure is not proven in the reviewed implementation.
+- Repeated failure currently ends in failed state; no verified split-to-section or escalation policy executor was found.
+- Error classification is limited to summarized error text, not distinct malformed JSON / timeout / provider error classes.
+- Backend routing for teacher feedback scoped to a single artifact was not verified.

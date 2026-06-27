@@ -2,10 +2,30 @@
 
 3-layer scoring framework with majority vote across 3 independent judges.
 Generator model ≠ judge model for bias mitigation.
+
+Includes adaptive judge interface (task 6) that selects rubrics by
+artifact type, enforces deterministic hard blocks, and tracks provenance.
 """
 
 from packages.quality.layer4_judge.geval import GEvalScorer
+from packages.quality.layer4_judge.judge_interface import (
+    AdaptiveJudge,
+    JudgeResult,
+    JudgeUnavailableError,
+    UnavailableStrategy,
+)
 from packages.quality.layer4_judge.majority_vote import majority_vote
 from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, score_pedagogical
+from packages.quality.layer4_judge.rubric_selector import RubricSelector
 
-__all__ = ["GEvalScorer", "majority_vote", "PedagogicalScore", "score_pedagogical"]
+__all__ = [
+    "AdaptiveJudge",
+    "GEvalScorer",
+    "JudgeResult",
+    "JudgeUnavailableError",
+    "PedagogicalScore",
+    "RubricSelector",
+    "UnavailableStrategy",
+    "majority_vote",
+    "score_pedagogical",
+]
