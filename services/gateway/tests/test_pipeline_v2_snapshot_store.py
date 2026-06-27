@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from services.gateway.models import Base, Run
 from services.gateway.pipeline_v2_snapshot_store import (
+    AnswerKeyLeakageError,
     NonStandaloneSnapshotApprovalError,
     SnapshotPersistenceError,
     SnapshotVersionMismatchError,
@@ -306,3 +307,80 @@ def test_answer_key_removal_function() -> None:
     assert "Correct:" not in cleaned
     assert "Solution:" not in cleaned
     assert "Student Question" in cleaned
+
+
+async def test_snapshot_answer_keys_not_in_main_rendered_html(
+    session: AsyncSession,
+) -> None:
+    """Regression test: INVARIANT-05 — answer keys must not leak into main persisted rendered_html.
+    
+    Verifies that if ContentCreator puts answer keys outside teacher_only markers,
+    create_snapshot rejects the snapshot and raises AnswerKeyLeakageError.
+    The persisted snapshot.rendered_html must not contain answer patterns in
+    student-facing sections.
+    """
+    from services.gateway.pipeline_v2_snapshot_store import PipelineV2SnapshotStore
+
+    run_id = RunId(f"test-{uuid4()}")
+    store = PipelineV2RunStore(session)
+    await store.create_run(PipelineV2RunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-a"),
+        raw_request="Teach with leaked answers",
+        class_info={"grade": 5},
+    ))
+
+    snapshot_id_leaked = f"snap-{uuid4()}"
+    leaked_html = (
+        "<!DOCTYPE html><html><body>"
+        "<section>Student Question: What is 2+2?</section>"
+        "<p>Answer: 4</p>"
+        "<p>This is the correct answer for students to see.</p>"
+        "</body></html>"
+    )
+    
+    with pytest.raises(AnswerKeyLeakageError) as exc_info:
+        await PipelineV2SnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=snapshot_id_leaked,
+            run_id=run_id,
+            artifact_id="artifact-1",
+            artifact_type="quiz",
+            content_json={"title": "Quiz"},
+            rendered_html=leaked_html,
+            renderer_version="test-renderer@1",
+        ))
+    
+    assert "answer_key_patterns_found_outside_marked_sections" in str(exc_info.value)
+    
+    snapshot_id_safe = f"snap-{uuid4()}"
+    safe_html = (
+        "<!DOCTYPE html><html><body>"
+        "<section>Student Question: What is 2+2?</section>"
+        "<section data-teacher-only=\"true\"><p>Answer: 4</p></section>"
+        "</body></html>"
+    )
+    
+    safe_snapshot = await PipelineV2SnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=snapshot_id_safe,
+        run_id=run_id,
+        artifact_id="artifact-2",
+        artifact_type="quiz",
+        content_json={"title": "Quiz"},
+        rendered_html=safe_html,
+        renderer_version="test-renderer@1",
+    ))
+    
+    assert safe_snapshot is not None
+    assert safe_snapshot.snapshot_id == snapshot_id_safe
+    
+    retrieved_snapshot = await PipelineV2SnapshotStore(session).get_snapshot(
+        run_id,
+        snapshot_id_safe,
+    )
+    assert retrieved_snapshot is not None
+    assert "Student Question" in retrieved_snapshot.rendered_html
+    assert "Answer: 4" in retrieved_snapshot.rendered_html
+    assert "Answer: 4" not in retrieved_snapshot.student_rendered_html
+    
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()

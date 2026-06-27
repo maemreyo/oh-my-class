@@ -1,66 +1,69 @@
+"""Snapshot storage and persistence for artifact rendering.
+
+Main store class and snapshot hashing utilities.
+Imports are re-exported for backward compatibility with existing callers.
+"""
+
 from __future__ import annotations
 
 import json
-import re
-from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
-from html import escape
-from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from services.gateway.pipeline_v2_snapshot_errors import (
+    AnswerKeyLeakageError,
+    NonStandaloneSnapshotApprovalError,
+    SnapshotPersistenceError,
+    SnapshotVersionMismatchError,
+)
+from services.gateway.pipeline_v2_snapshot_html import (
+    is_standalone_html,
+    render_student_preview_html,
+)
 from services.gateway.pipeline_v2_snapshot_models import ArtifactSnapshot
+from services.gateway.pipeline_v2_snapshot_schemas import (
+    ArtifactSnapshotCreate,
+    ArtifactSnapshotRead,
+)
+from services.gateway.pipeline_v2_snapshot_validators import (
+    _validate_snapshot_versions,
+    remove_answer_keys_from_html,
+    validate_answer_key_isolation,
+)
 from services.gateway.pipeline_v2_types import RunId
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from services.gateway.pipeline_v2_types import JsonObject, JsonValue
+    from services.gateway.pipeline_v2_types import JsonObject
 
-
-@dataclass(frozen=True, slots=True)
-class ArtifactSnapshotCreate:
-    snapshot_id: str
-    run_id: RunId
-    artifact_id: str
-    artifact_type: str
-    content_json: JsonObject
-    rendered_html: str
-    renderer_version: str
-    template_version: str = "unknown"
-    theme_version: str = "unknown"
-    student_rendered_html: str | None = None
-    version_mismatch_policy: Literal["block", "warn"] = "block"
-
-
-@dataclass(frozen=True, slots=True)
-class ArtifactSnapshotRead:
-    snapshot_id: str
-    run_id: RunId
-    artifact_id: str
-    artifact_type: str
-    content_hash: str
-    html_hash: str
-    content_json: JsonObject | None
-    rendered_html: str
-    student_rendered_html: str
-    renderer_version: str
-    template_version: str
-    theme_version: str
-    standalone_valid: bool
-    approved_at: datetime | None
-
-
-_CSS_EXTERNAL_ASSET_PATTERN = re.compile(
-    r"(?:@import\s+url\(|url\()\s*['\"]?(?:https?://|//)",
-    re.IGNORECASE,
-)
+# Re-export for backward compatibility
+__all__ = [
+    "PipelineV2SnapshotStore",
+    "ArtifactSnapshotCreate",
+    "ArtifactSnapshotRead",
+    "AnswerKeyLeakageError",
+    "SnapshotPersistenceError",
+    "NonStandaloneSnapshotApprovalError",
+    "SnapshotVersionMismatchError",
+    "snapshot_content_hash",
+    "render_student_preview_html",
+    "remove_answer_keys_from_html",
+    "validate_answer_key_isolation",
+    "is_standalone_html",
+]
 
 
 class PipelineV2SnapshotStore:
+    """Manages persistence and retrieval of artifact snapshots.
+
+    Enforces answer-key isolation (INVARIANT-05) and standalone HTML validation.
+    """
+
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
@@ -76,6 +79,11 @@ class PipelineV2SnapshotStore:
             payload.content_json,
         )
         student_html_safe = remove_answer_keys_from_html(student_html)
+
+        isolation_issues = validate_answer_key_isolation(payload.rendered_html)
+        if isolation_issues:
+            raise AnswerKeyLeakageError(payload.snapshot_id, isolation_issues)
+
         content_hash = snapshot_content_hash(payload.content_json, payload.rendered_html)
         html_hash = sha256(payload.rendered_html.encode()).hexdigest()
         standalone_valid = is_standalone_html(payload.rendered_html)
@@ -159,6 +167,10 @@ class PipelineV2SnapshotStore:
 
 
 def snapshot_content_hash(content_json: JsonObject, rendered_html: str) -> str:
+    """Hash snapshot content for deduplication.
+
+    Combines canonical JSON and rendered HTML into a single content hash.
+    """
     digest = sha256()
     canonical_content = json.dumps(
         content_json,
@@ -172,101 +184,8 @@ def snapshot_content_hash(content_json: JsonObject, rendered_html: str) -> str:
     return digest.hexdigest()
 
 
-def is_standalone_html(rendered_html: str) -> bool:
-    lowered = rendered_html.lower()
-    has_doctype = "<!doctype html" in lowered
-    parser = StandaloneHtmlAssetParser()
-    parser.feed(rendered_html)
-    has_css_external_asset = _CSS_EXTERNAL_ASSET_PATTERN.search(rendered_html) is not None
-    return has_doctype and not parser.has_external_asset and not has_css_external_asset
-
-
-def render_student_preview_html(content_json: JsonObject) -> str:
-    title = escape(str(content_json.get("title", "oh-my-class preview")))
-    sections = content_json.get("sections", [])
-    bodies: list[str] = []
-    if isinstance(sections, list):
-        for section in sections:
-            if isinstance(section, dict) and section.get("teacher_only") is not True:
-                bodies.append(f"<section>{_safe_section_text(section)}</section>")
-    body = "".join(bodies) or "<section>oh-my-class preview</section>"
-    return f"<!DOCTYPE html><html><body><h1>{title}</h1>{body}</body></html>"
-
-
-def _safe_section_text(section: dict[str, JsonValue]) -> str:
-    values = [escape(str(value)) for key, value in section.items() if key != "teacher_only"]
-    return " ".join(values)
-
-
-def remove_answer_keys_from_html(rendered_html: str) -> str:
-    """Remove answer key sections and answer-key-marked content from HTML.
-    
-    Scans the HTML for sections tagged with `data-answer-key="true"` or
-    `data-teacher-only="true"` and removes them. Also sanitizes text patterns
-    like "Answer:", "Correct:", "Solution:" from student-visible content.
-    
-    Returns the cleaned HTML; if no answer keys found, returns the input unchanged.
-    """
-    # Remove sections with data-answer-key or data-teacher-only attributes
-    html = re.sub(
-        r'<section[^>]*(?:data-answer-key="true"|data-teacher-only="true")[^>]*>.*?</section>',
-        '',
-        rendered_html,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    html = re.sub(
-        r'<div[^>]*(?:data-answer-key="true"|data-teacher-only="true")[^>]*>.*?</div>',
-        '',
-        html,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    
-    # Remove common answer-key text patterns
-    html = re.sub(
-        r'(?:Answer\s*(?:Key|:)|Correct\s*(?:Answer|:)|Solution\s*:)[^\n]*',
-        '',
-        html,
-        flags=re.IGNORECASE,
-    )
-    
-    return html
-
-
-class StandaloneHtmlAssetParser(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self.has_external_asset = False
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if self._tag_has_external_reference(tag, attrs):
-            self.has_external_asset = True
-
-    def _tag_has_external_reference(self, tag: str, attrs: list[tuple[str, str | None]]) -> bool:
-        lowered_tag = tag.lower()
-        for name, value in attrs:
-            if value is None:
-                continue
-            lowered_name = name.lower()
-            if lowered_tag == "link" and lowered_name == "href":
-                return not _is_inline_reference_url(value)
-            if lowered_tag == "script" and lowered_name == "src":
-                return True
-            if lowered_name in {"src", "href"} and _is_external_asset_url(value):
-                return True
-        return False
-
-
-def _is_external_asset_url(value: str) -> bool:
-    stripped = value.strip().lower()
-    return stripped.startswith(("http://", "https://", "//"))
-
-
-def _is_inline_reference_url(value: str) -> bool:
-    stripped = value.strip().lower()
-    return stripped.startswith(("data:", "#"))
-
-
 def _read_snapshot(snapshot: ArtifactSnapshot) -> ArtifactSnapshotRead:
+    """Convert ORM ArtifactSnapshot to read schema."""
     return ArtifactSnapshotRead(
         snapshot_id=snapshot.snapshot_id,
         run_id=RunId(snapshot.run_id),
@@ -283,32 +202,3 @@ def _read_snapshot(snapshot: ArtifactSnapshot) -> ArtifactSnapshotRead:
         standalone_valid=snapshot.standalone_valid,
         approved_at=snapshot.approved_at,
     )
-
-
-class SnapshotPersistenceError(RuntimeError):
-    def __init__(self, snapshot_id: str) -> None:
-        super().__init__(snapshot_id)
-
-
-class NonStandaloneSnapshotApprovalError(RuntimeError):
-    def __init__(self, snapshot_id: str) -> None:
-        super().__init__(snapshot_id)
-
-
-class SnapshotVersionMismatchError(RuntimeError):
-    def __init__(self, snapshot_id: str) -> None:
-        super().__init__(snapshot_id)
-
-
-def _validate_snapshot_versions(
-    payload: ArtifactSnapshotCreate,
-    snapshot: ArtifactSnapshot,
-) -> None:
-    if payload.version_mismatch_policy == "warn":
-        return
-    if (
-        snapshot.renderer_version != payload.renderer_version
-        or snapshot.template_version != payload.template_version
-        or snapshot.theme_version != payload.theme_version
-    ):
-        raise SnapshotVersionMismatchError(snapshot.snapshot_id)

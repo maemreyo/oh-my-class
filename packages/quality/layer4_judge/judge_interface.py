@@ -1,13 +1,13 @@
-"""Adaptive judge interface — integrates rubric selection, LLM judge calls,
+"""Adaptive judge interface -- integrates rubric selection, LLM judge calls,
 and deterministic hard-block enforcement.
 
 Design principles:
-- Deterministic gates (Layer 1–3, HTML validator) remain authoritative hard blocks.
+- Deterministic gates (Layer 1-3, HTML validator) remain authoritative hard blocks.
   A high LLM score can NEVER override: missing_doctype, external_assets,
   answer_key_leakage, PII_leakage, native_radio_inputs, unmanaged_js_runtime,
   missing_brand_string, or teacher_gate_state.
 - Judge-unavailable path FAILS CLOSED: raises JudgeUnavailableError so the
-  caller can escalate or fail the run — never silently passes.
+  caller can escalate or fail the run -- never silently passes.
 - LLM transport is injectable for testability (dependency inversion).
 """
 
@@ -15,37 +15,35 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from common.contracts.judge_output import JudgeOutput
+from packages.quality.layer4_judge.hard_blocks import (
+    HARD_BLOCK_CODES,  # noqa: F401 — re-exported for backward-compatible imports
+    enforce_hard_blocks,
+)
+from packages.quality.layer4_judge.judge_prompts import (
+    JUDGE_SYSTEM_PROMPT,
+    build_rubric_text,
+    build_user_prompt,
+)
+from packages.quality.layer4_judge.judge_transport import (
+    LLMTransport,
+    default_litellm_transport,
+)
 from packages.quality.layer4_judge.rubric_selector import RubricSelector
-
-if TYPE_CHECKING:
-    from common.contracts.rubric import Rubric
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Hard blocks — deterministic gate violations that override any LLM score.
-# Sourced from packages/quality/layer3_html/html_validator.py HARD_BLOCKS
-# and common/contracts/quality.py QualityFailureClass values.
-# These are NEVER overridable by LLM judge output.
-# ---------------------------------------------------------------------------
+# Re-export for backward-compatible imports from this module.
+_enforce_hard_blocks = enforce_hard_blocks  # noqa: SLF001
 
-HARD_BLOCK_CODES: frozenset[str] = frozenset({
-    "missing_doctype",
-    "external_assets",          # HTML validator naming
-    "external_asset",           # QualityFailureClass naming
-    "answer_key_leakage",
-    "pii_leakage",
-    "native_radio_inputs",
-    "unmanaged_js_runtime",
-    "missing_brand_string",
-    "schema_invalid",
-})
+
+# ---------------------------------------------------------------------------
+# Strategy and error types
+# ---------------------------------------------------------------------------
 
 
 class UnavailableStrategy(StrEnum):
@@ -66,32 +64,6 @@ class JudgeUnavailableError(Exception):
     ) -> None:
         super().__init__(message)
         self.cause = cause
-
-
-# ---------------------------------------------------------------------------
-# LLM transport protocol — callable matching the async LLM interface.
-# ---------------------------------------------------------------------------
-
-LLMTransport = Callable[..., Coroutine[Any, Any, str]]
-
-
-async def _default_litellm_transport(
-    *,
-    model: str,
-    messages: list[dict[str, str]],
-    temperature: float,
-    extra_body: dict[str, Any],
-) -> str:
-    """Default LLM transport using litellm.acompletion."""
-    import litellm
-
-    response = await litellm.acompletion(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        extra_body=extra_body,
-    )
-    return response.choices[0].message.content
 
 
 # ---------------------------------------------------------------------------
@@ -122,124 +94,6 @@ class JudgeResult:
 
 
 # ---------------------------------------------------------------------------
-# Prompt construction
-# ---------------------------------------------------------------------------
-
-_JUDGE_SYSTEM_PROMPT = """\
-You are an expert educational content reviewer for oh-my-class.
-
-Score the provided teaching artifacts using the rubric below. For each criterion,
-assign a score from 0-10 based on the rubric levels.
-
-Rubric (version {rubric_version}):
-{rubric_text}
-
-IMPORTANT RULES:
-- Write your rationale BEFORE giving numeric scores (think-before-score).
-- Do NOT rate longer answers higher.
-- Be precise and honest — flag real issues.
-- Return ONLY valid JSON matching this schema:
-{{
-  "overall_score": <0-10>,
-  "layer_scores": [{{"layer": "<name>", "score": <0-10>, "weight": <0-1>}}],
-  "critical_issues": ["..."],
-  "passed": <bool>,
-  "rationale": "..."
-}}
-"""
-
-
-def _build_rubric_text(rubric: Rubric) -> str:
-    """Format rubric criteria into a human-readable prompt section."""
-    lines: list[str] = []
-    for criterion in rubric.criteria:
-        lines.append(f"\n### {criterion.name} (weight: {criterion.weight:.0%})")
-        for level in criterion.levels:
-            lines.append(f"  Score {level.score}: {level.description}")
-        if criterion.descriptors:
-            for key, desc in criterion.descriptors.items():
-                lines.append(f"  [{key}] {desc}")
-    return "\n".join(lines)
-
-
-def _build_user_prompt(
-    artifacts: list[dict[str, Any]],
-    lesson_plan: dict[str, Any] | None = None,
-    deterministic_issues: list[str] | None = None,
-) -> str:
-    """Build the user prompt containing artifacts and context."""
-    parts = [
-        "Evaluate the following teaching artifacts:\n",
-        f"Artifacts:\n{json.dumps(artifacts, indent=2, ensure_ascii=False)}",
-    ]
-    if lesson_plan:
-        lp_json = json.dumps(lesson_plan, indent=2, ensure_ascii=False)
-        parts.append(f"\nLesson Plan for alignment:\n{lp_json}")
-    if deterministic_issues:
-        parts.append(
-            f"\n⚠️  Deterministic gates already flagged these issues: "
-            f"{', '.join(deterministic_issues)}\n"
-            f"Focus your review on the areas NOT covered by these flags."
-        )
-    parts.append("\nScore each criterion and provide overall assessment.")
-    return "\n\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
-# Core judge logic
-# ---------------------------------------------------------------------------
-
-
-def _enforce_hard_blocks(
-    judge_output: JudgeOutput,
-    deterministic_issues: list[str],
-    teacher_approved: bool,
-) -> tuple[JudgeOutput, bool, list[str]]:
-    """Enforce deterministic hard blocks on the LLM judge output.
-
-    Returns (modified_judge_output, was_blocked, block_violations).
-    If hard blocks are detected:
-    - passed is forced to False
-    - All hard block codes are added to critical_issues
-    - The overall_score is capped (but not zeroed — for diagnostics)
-    """
-    violations: list[str] = []
-
-    # Check deterministic issues against hard block codes
-    for issue in deterministic_issues:
-        normalized = issue.strip().lower().replace(" ", "_")
-        if normalized in HARD_BLOCK_CODES:
-            violations.append(issue)
-
-    # Check teacher gate state
-    if not teacher_approved:
-        violations.append("teacher_gate_not_approved")
-
-    if not violations:
-        return judge_output, False, []
-
-    # Force fail — override passed and ensure violations are in critical_issues
-    existing_critical = list(judge_output.critical_issues)
-    new_critical = existing_critical.copy()
-    for v in violations:
-        if v not in new_critical:
-            new_critical.append(v)
-
-    overridden = JudgeOutput(
-        overall_score=judge_output.overall_score,
-        layer_scores=list(judge_output.layer_scores),
-        critical_issues=new_critical,
-        passed=False,
-        rationale=(
-            judge_output.rationale
-            + f"\n[Deterministic override: {', '.join(violations)} forced fail]"
-        ),
-    )
-
-    return overridden, True, violations
-
-
-# ---------------------------------------------------------------------------
 # AdaptiveJudge
 # ---------------------------------------------------------------------------
 
@@ -248,10 +102,10 @@ class AdaptiveJudge:
     """Adaptive LLM judge with rubric selection and hard-block enforcement.
 
     Integrates:
-    1. RubricSelector — chooses rubric by (artifact_type, failure_context)
-    2. LLM transport — calls the judge model (injectable for testing)
-    3. Hard-block enforcement — deterministic gates always win
-    4. Fail-closed — judge unavailability escalates per configured strategy
+    1. RubricSelector -- chooses rubric by (artifact_type, failure_context)
+    2. LLM transport -- calls the judge model (injectable for testing)
+    3. Hard-block enforcement -- deterministic gates always win
+    4. Fail-closed -- judge unavailability escalates per configured strategy
 
     Usage::
 
@@ -276,7 +130,7 @@ class AdaptiveJudge:
         unavailable_strategy: UnavailableStrategy = UnavailableStrategy.FAIL_CLOSED,
     ) -> None:
         self._selector = rubric_selector or RubricSelector()
-        self._llm_transport = llm_transport or _default_litellm_transport
+        self._llm_transport = llm_transport or default_litellm_transport
         self._model = model
         self._num_judges = num_judges
         self._pass_threshold = pass_threshold
@@ -334,7 +188,7 @@ class AdaptiveJudge:
                     f"LLM judge unavailable: {exc}",
                     cause=exc,
                 ) from exc
-            # USE_DETERMINISTIC_ONLY: continue with empty outputs → will force fail
+            # USE_DETERMINISTIC_ONLY: continue with empty outputs -> will force fail
 
         # Step 3: Aggregate judge outputs
         if raw_outputs:
@@ -344,7 +198,7 @@ class AdaptiveJudge:
                 from packages.quality.layer4_judge.majority_vote import majority_vote
                 aggregated = majority_vote(raw_outputs, pass_threshold=self._pass_threshold)
         else:
-            # No LLM outputs available — construct a fail result
+            # No LLM outputs available -- construct a fail result
             aggregated = JudgeOutput(
                 overall_score=0.0,
                 layer_scores=[],
@@ -354,7 +208,7 @@ class AdaptiveJudge:
             )
 
         # Step 4: Enforce hard blocks (deterministic gates always win)
-        final_output, was_blocked, violations = _enforce_hard_blocks(
+        final_output, was_blocked, violations = enforce_hard_blocks(
             judge_output=aggregated,
             deterministic_issues=deterministic_issues,
             teacher_approved=teacher_approved,
@@ -373,7 +227,7 @@ class AdaptiveJudge:
         self,
         *,
         artifacts: list[dict[str, Any]],
-        rubric: Rubric,
+        rubric: Any,
         lesson_plan: dict[str, Any] | None,
         deterministic_issues: list[str],
     ) -> list[JudgeOutput]:
@@ -381,15 +235,15 @@ class AdaptiveJudge:
         from packages.quality.layer4_judge.prompts import load_system_prompt
 
         reviewer_system_prompt = load_system_prompt()
-        rubric_text = _build_rubric_text(rubric)
+        rubric_text = build_rubric_text(rubric)
 
-        rubric_prompt = _JUDGE_SYSTEM_PROMPT.format(
+        rubric_prompt = JUDGE_SYSTEM_PROMPT.format(
             rubric_version=rubric.version_id,
             rubric_text=rubric_text,
         )
         system_content = f"{reviewer_system_prompt}\n\n{rubric_prompt}"
 
-        user_prompt = _build_user_prompt(
+        user_prompt = build_user_prompt(
             artifacts=artifacts,
             lesson_plan=lesson_plan,
             deterministic_issues=deterministic_issues,

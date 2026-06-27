@@ -1,7 +1,7 @@
 """Create release_evidence table for production-readiness audit records.
 
 Revision ID: 009_release_evidence
-Revises: 007_soft_delete_and_retention
+Revises: 008_notifications
 Create Date: 2026-06-27
 """
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "009_release_evidence"
-down_revision: str | None = "007_soft_delete_and_retention"
+down_revision: str | None = "008_notifications"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

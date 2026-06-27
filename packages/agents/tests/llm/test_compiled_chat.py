@@ -7,19 +7,13 @@ Covers:
 
 No network calls.  See test_compiled_chat_enrichment.py for integration tests.
 """
-
 from __future__ import annotations
-
-import pytest
 
 from packages.agents.llm.compiled_chat import (
     _HASH_PREFIX_LEN,
     _merge_tags,
     _provenance_tags,
 )
-from packages.agents.llm.prompt_metadata import PromptMetadata
-from packages.agents.prompts.compiler import CompiledPrompt, PromptCompiler
-from packages.agents.prompts.seed import create_seeded_registry
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -35,7 +29,12 @@ def _make_compiled_prompt(
         "ffff7777aaaa8888bbbb9999cccc0000"
     ),
     sections: list[str] | None = None,
-) -> CompiledPrompt:
+) -> object:
+    # Deferred import avoids circular dependency between prompt_metadata
+    # and prompts.compiler at module load time.
+    from packages.agents.llm.prompt_metadata import PromptMetadata
+    from packages.agents.prompts.compiler import CompiledPrompt
+
     metadata = PromptMetadata(
         prompt_id=module_id,
         prompt_version=module_version,
@@ -139,10 +138,16 @@ class TestMergeTags:
 class TestFailureOnMutatedHash:
     """Proves that hash validation catches mutations — the 'red' test."""
 
+    def _compile(self, module_id: str = "judge_v1") -> object:
+        from packages.agents.prompts.compiler import PromptCompiler
+        from packages.agents.prompts.seed import create_seeded_registry
+
+        return PromptCompiler(create_seeded_registry()).compile(
+            module_id=module_id, variables={},
+        )
+
     def test_mutated_content_hash_fails_validation(self) -> None:
-        """Compile a module, then verify a WRONG expected hash fails assertion."""
-        compiler = PromptCompiler(create_seeded_registry())
-        compiled = compiler.compile(module_id="judge_v1", variables={})
+        compiled = self._compile()
 
         wrong_hash = "0" * 64
         assert compiled.metadata.content_hash != wrong_hash, (
@@ -150,9 +155,7 @@ class TestFailureOnMutatedHash:
         )
 
     def test_mutated_compiled_hash_fails_assertion(self) -> None:
-        """Compile a module, then verify a WRONG compiled hash fails assertion."""
-        compiler = PromptCompiler(create_seeded_registry())
-        compiled = compiler.compile(module_id="judge_v1", variables={})
+        compiled = self._compile()
 
         wrong_hash = "f" * 64
         assert compiled.metadata.compiled_hash != wrong_hash, (
@@ -160,9 +163,7 @@ class TestFailureOnMutatedHash:
         )
 
     def test_wrong_sections_fail(self) -> None:
-        """Compile a module, then verify wrong expected sections fail assertion."""
-        compiler = PromptCompiler(create_seeded_registry())
-        compiled = compiler.compile(module_id="judge_v1", variables={})
+        compiled = self._compile()
 
         wrong_sections = ["Nonexistent Section", "Another Fake"]
         assert compiled.metadata.sections != wrong_sections, (
@@ -170,18 +171,14 @@ class TestFailureOnMutatedHash:
         )
 
     def test_wrong_prompt_id_fails(self) -> None:
-        """Compile a module, then verify wrong prompt_id fails assertion."""
-        compiler = PromptCompiler(create_seeded_registry())
-        compiled = compiler.compile(module_id="judge_v1", variables={})
+        compiled = self._compile()
 
         assert compiled.metadata.prompt_id != "wrong_module", (
             "prompt_id should NOT match wrong module name"
         )
 
     def test_hash_prefix_length_enforced(self) -> None:
-        """Verify that hash prefix truncation is exactly _HASH_PREFIX_LEN."""
-        compiler = PromptCompiler(create_seeded_registry())
-        compiled = compiler.compile(module_id="planner_v1", variables={})
+        compiled = self._compile("planner_v1")
         tags = _provenance_tags(compiled)
 
         for tag in tags:

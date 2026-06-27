@@ -81,7 +81,7 @@ Your next move: choose whether to start implementation now or run a high-accurac
   QA scenarios (name the exact tool + invocation): Happy: `curl -sS http://127.0.0.1:20228/v1/models` and chat completion with model `4omc`; Failure: point base URL to an unused port and assert the harness reports provider unavailable without claiming success. Evidence `.omo/evidence/task-1-pipeline-v2-production-gaps.md`.
   Commit: Y | feat(provider): add live 9router evidence harness
 
-- [ ] 2. Wire 9Router provider evidence into gateway release evidence without mocking production proof
+- [x] 2. Wire 9Router provider evidence into gateway release evidence without mocking production proof
   What to do / Must NOT do: Add gateway/service-level evidence collection that records live provider status and model identity in the existing release evidence flow. Keep live proof optional for CI but mandatory for production-readiness evidence. Must not convert live checks into fake/mock success.
   Parallelization: Wave 2 | Blocked by: 1 | Blocks: 11, F3
   References (executor has NO interview context - be exhaustive): `services/gateway/research_provider_9router.py:28`, `services/gateway/research_provider_9router.py:38`, `services/gateway/research_collector.py:85`, `services/gateway/routers/release_evidence.py`, `services/gateway/tests/test_release_evidence.py`, `.scratch/pipeline-v2/PIPERLINE-V2-GAP-REPORT.md`
@@ -97,7 +97,7 @@ Your next move: choose whether to start implementation now or run a high-accurac
   QA scenarios (name the exact tool + invocation): Happy: run adapter against a fixture and inspect saved evidence HTML hash/metadata; Failure: feed malformed artifact JSON and assert typed renderer failure. Evidence `.omo/evidence/task-3-pipeline-v2-production-gaps.md`.
   Commit: Y | feat(renderer): add eta snapshot adapter
 
-- [ ] 4. Persist Eta-rendered teacher/student snapshots with version metadata
+- [x] 4. Persist Eta-rendered teacher/student snapshots with version metadata
   What to do / Must NOT do: First inspect all `PipelineV2SnapshotStore.create_snapshot`/`PipelineV2RunStore.create_snapshot` callers and identify the upstream caller(s) that currently supply rendered HTML/version metadata. Then replace/augment that creation path so it stores Eta-rendered `rendered_html`, student-safe HTML, `renderer_version`, `template_version`, `theme_version`, content/html hashes, and standalone validation results in `PipelineV2SnapshotStore`. Preserve preview routes and approval checks. Must not use `renderArtifactSync` as the new production path.
   Parallelization: Wave 2 | Blocked by: 3 | Blocks: 11, F3
   References (executor has NO interview context - be exhaustive): `services/gateway/pipeline_v2_snapshot_store.py:40`, `services/gateway/pipeline_v2_snapshot_store.py:234`, `services/gateway/routers/pipeline_v2_previews.py:54`, `services/gateway/routers/pipeline_v2_previews.py:83`, `services/gateway/quality_gates.py:66`, `packages/renderer/src/renderer.ts:55`
@@ -113,7 +113,7 @@ Your next move: choose whether to start implementation now or run a high-accurac
   QA scenarios (name the exact tool + invocation): Happy: instantiate a valid default G-Eval rubric and dump/load it; Failure: invalid weight sum or duplicate rubric version raises validation error. Evidence `.omo/evidence/task-5-pipeline-v2-production-gaps.md`.
   Commit: Y | feat(quality): add versioned rubric contracts
 
-- [ ] 6. Integrate adaptive LLM judge with deterministic quality gates
+- [x] 6. Integrate adaptive LLM judge with deterministic quality gates
   What to do / Must NOT do: Add a judge interface that selects rubric/version by artifact type/failure context, calls the LLM judge through existing LLM transport metadata, and returns `JudgeOutput` plus rubric provenance. Deterministic gates remain authoritative hard blocks. Must not let a high LLM score override missing doctype, external assets, answer-key leakage, PII, or teacher gate state.
   Parallelization: Wave 2 | Blocked by: 5 | Blocks: 11
   References (executor has NO interview context - be exhaustive): `services/gateway/quality_gates.py:39`, `services/gateway/quality_gates.py:66`, `services/gateway/quality_gates.py:116`, `common/contracts/judge_output.py`, `packages/agents/llm/chat.py:78`, `packages/quality/tests/test_layer4_judge.py`
@@ -129,7 +129,7 @@ Your next move: choose whether to start implementation now or run a high-accurac
   QA scenarios (name the exact tool + invocation): Happy: compile seeded judge/planner prompt with a safe overlay and assert metadata hashes; Failure: overlay contains a token-like string or unknown variable and compiler rejects before LLM transport. Evidence `.omo/evidence/task-7-pipeline-v2-production-gaps.md`.
   Commit: Y | feat(prompts): add governed prompt compiler
 
-- [ ] 8. Add prompt evaluation harness and migrate LLM callers to compiler metadata
+- [x] 8. Add prompt evaluation harness and migrate LLM callers to compiler metadata
   What to do / Must NOT do: Add deterministic eval fixtures for seeded judge/planner/content-creator prompt modules and migrate only newly touched judge/planner/content-generation LLM paths plus shared `complete_json_chat` metadata support to attach compiler metadata. Preserve existing prompt gate and transport policy. Must not send raw uncompiled prompt strings from newly touched call sites. Do not attempt a repo-wide migration of historical raw prompt callers unless one blocks these paths.
   Parallelization: Wave 2 | Blocked by: 7 | Blocks: 11
   References (executor has NO interview context - be exhaustive): `packages/agents/llm/chat.py:87`, `packages/agents/llm/chat.py:127`, `packages/agents/llm/prompt_metadata.py:77`, `packages/agents/prompts/seed.py:12`, `packages/agents/prompts/tests/test_registry.py`, `packages/agents/tests/llm/test_transport_policy.py`
@@ -153,7 +153,7 @@ Your next move: choose whether to start implementation now or run a high-accurac
   QA scenarios (name the exact tool + invocation): Happy: run Alembic upgrade against test DB and enqueue/claim a due job; Failure: create queued/future job and assert `claim_next` returns no job until promotion/due eligibility. Evidence `.omo/evidence/task-10-pipeline-v2-production-gaps.md`.
   Commit: Y | db(backpressure): add queued job eligibility migration
 
-- [ ] 11. Run full production-readiness verification and evidence consolidation
+- [x] 11. Run full production-readiness verification and evidence consolidation
   What to do / Must NOT do: Run all relevant linters/tests/builds, live provider smoke, API/preview agent-executed surface QA, and evidence report generation. Fix defects found only in the owning slice. Pre-existing or unrelated failures outside the five slices are recorded as known issues and not fixed in this plan. Must not declare done from unit tests alone.
   Parallelization: Wave 3 | Blocked by: 1-10 | Blocks: Final verification
   References (executor has NO interview context - be exhaustive): `AGENTS.md` Manual QA Gate, `.scratch/pipeline-v2/PIPERLINE-V2-GAP-REPORT.md`, `services/gateway/tests/`, `packages/agents/prompts/tests/`, `packages/renderer/__tests__/`, `apps/web`, `.omo/drafts/pipeline-v2-production-gaps.md`
@@ -163,10 +163,10 @@ Your next move: choose whether to start implementation now or run a high-accurac
 
 ## Final verification wave
 > Runs in parallel after ALL todos. ALL must APPROVE. Surface results and wait for the user's explicit okay before declaring complete.
-- [ ] F1. Plan compliance audit: verify every Must Have/Guardrail maps to code, tests, and evidence; reject if any todo was self-reported without command evidence.
-- [ ] F2. Code quality review: read changed files for boundary violations, oversized modules, duplicated rendering/judge/prompt logic, defensive slop, and forbidden provider fallbacks.
-- [ ] F3. Agent-executed surface QA: exercise live 9Router smoke, run creation/backpressure API, snapshot metadata/preview/approval path, and at least one rendered artifact through curl/TestClient/browser automation.
-- [ ] F4. Scope fidelity: confirm no teacher gate bypass, no generated-schema hand edits, no product-code naming regression against the user's no-`pipeline_v2_` preference beyond existing conventions, and no unrelated changes.
+- [x] F1. Plan compliance audit: verify every Must Have/Guardrail maps to code, tests, and evidence; reject if any todo was self-reported without command evidence.
+- [x] F2. Code quality review: read changed files for boundary violations, oversized modules, duplicated rendering/judge/prompt logic, defensive slop, and forbidden provider fallbacks.
+- [x] F3. Agent-executed surface QA: exercise live 9Router smoke, run creation/backpressure API, snapshot metadata/preview/approval path, and at least one rendered artifact through curl/TestClient/browser automation.
+- [x] F4. Scope fidelity: confirm no teacher gate bypass, no generated-schema hand edits, no product-code naming regression against the user's no-`pipeline_v2_` preference beyond existing conventions, and no unrelated changes.
 
 ## Commit strategy
 - Keep commits atomic by slice if the user asks for commits:
