@@ -57,3 +57,11 @@ INFO:     127.0.0.1:59018 - "GET /run/11b31f9c-31f3-4b99-870b-ea9918bb79c0 HTTP/
 INFO:     127.0.0.1:59305 - "GET /run/11b31f9c-31f3-4b99-870b-ea9918bb79c0 HTTP/1.1" 200 OK
 {"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/run/11b31f9c-31f3-4b99-870b-ea9918bb79c0 method=GET", "timestamp": "2026-06-27 03:09:51,807"}
 INFO:     127.0.0.1:59474 - "GET /run/11b31f9c-31f3-4b99-870b-ea9918bb79c0 HTTP/1.1" 200 OK
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/health method=GET", "timestamp": "2026-06-27 09:04:33,054"}
+INFO:     127.0.0.1:56830 - "GET /health HTTP/1.1" 200 OK
+{"level": "INFO", "logger": "services.gateway.request_id", "message": "request.received path=/auth/login method=POST", "timestamp": "2026-06-27 09:04:57,179"}
+INFO:     127.0.0.1:56856 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14165]
