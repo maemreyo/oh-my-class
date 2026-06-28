@@ -1,4 +1,4 @@
-"""Retention configuration and helpers for Pipeline V2 data governance.
+"""Retention configuration and helpers for Teaching Pack data governance.
 
 Each data class has a default retention period (in days).
 Per-run overrides are supported via the ``retention_days`` column on ``runs``.

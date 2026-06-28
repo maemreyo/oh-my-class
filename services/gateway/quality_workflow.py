@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from services.gateway.pipeline_v2_models import PipelineV2EventVisibility
-from services.gateway.pipeline_v2_snapshot_store import PipelineV2SnapshotStore
-from services.gateway.pipeline_v2_store import PipelineV2EventCreate, PipelineV2RunStore
+from services.gateway.teaching_pack_models import TeachingPackEventVisibility
+from services.gateway.teaching_pack_snapshot_store import TeachingPackSnapshotStore
+from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
 from services.gateway.quality_gates import export_readiness
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from common.contracts.quality import ArtifactQualityReport, ExportReadinessReport
-    from services.gateway.pipeline_v2_types import JsonObject, JsonValue, RunId
+    from services.gateway.teaching_pack_types import JsonObject, JsonValue, RunId
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,14 +29,14 @@ async def write_artifact_quality_event(
     run_id: RunId,
     report: ArtifactQualityReport,
 ) -> QualityEventWrite:
-    event_name = "pipeline_v2.quality.artifact_passed"
+    event_name = "teaching_pack.quality.artifact_passed"
     if not report.passed:
-        event_name = "pipeline_v2.quality.artifact_failed"
+        event_name = "teaching_pack.quality.artifact_failed"
     payload = _artifact_quality_payload(report)
-    await PipelineV2RunStore(session).write_event(PipelineV2EventCreate(
+    await TeachingPackRunStore(session).write_event(TeachingPackEventCreate(
         run_id=run_id,
         event_name=event_name,
-        visibility=PipelineV2EventVisibility.INTERNAL,
+        visibility=TeachingPackEventVisibility.INTERNAL,
         payload=payload,
     ))
     return QualityEventWrite(run_id=run_id, event_name=event_name, payload=payload)
@@ -47,15 +47,15 @@ async def evaluate_export_readiness(
     run_id: RunId,
     required_artifact_types: Sequence[str] = ("lesson",),
 ) -> ExportReadinessReport:
-    snapshots = await PipelineV2SnapshotStore(session).list_run_snapshots(run_id)
+    snapshots = await TeachingPackSnapshotStore(session).list_run_snapshots(run_id)
     report = export_readiness(run_id, snapshots, required_artifact_types)
-    event_name = "pipeline_v2.export.readiness_passed"
+    event_name = "teaching_pack.export.readiness_passed"
     if not report.passed:
-        event_name = "pipeline_v2.export.readiness_failed"
-    await PipelineV2RunStore(session).write_event(PipelineV2EventCreate(
+        event_name = "teaching_pack.export.readiness_failed"
+    await TeachingPackRunStore(session).write_event(TeachingPackEventCreate(
         run_id=run_id,
         event_name=event_name,
-        visibility=PipelineV2EventVisibility.TEACHER,
+        visibility=TeachingPackEventVisibility.TEACHER,
         payload=_export_readiness_payload(report),
     ))
     return report

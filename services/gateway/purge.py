@@ -12,10 +12,10 @@ from typing import TYPE_CHECKING
 from sqlalchemy import delete, select
 
 from services.gateway.models import Run
-from services.gateway.pipeline_v2_models import PipelineV2EventVisibility, RunEvent
-from services.gateway.pipeline_v2_snapshot_models import ArtifactSnapshot
-from services.gateway.pipeline_v2_store import PipelineV2EventCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import RunId
+from services.gateway.teaching_pack_models import TeachingPackEventVisibility, RunEvent
+from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot
+from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId
 from services.gateway.retention import RetentionConfig
 
 if TYPE_CHECKING:

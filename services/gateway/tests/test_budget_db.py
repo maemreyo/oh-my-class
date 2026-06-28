@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from services.gateway.budget import BudgetLedger, record_retry, record_usage
 from services.gateway.budget_db import BudgetLedgerRecord, load_budget_ledger, save_budget_ledger
-from services.gateway.pipeline_v2_types import RunId
+from services.gateway.teaching_pack_types import RunId
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator

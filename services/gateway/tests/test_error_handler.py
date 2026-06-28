@@ -10,7 +10,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 # noqa: E402
 import pytest  # noqa: E402
 from fastapi import FastAPI, HTTPException, Request  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
+from starlette.testclient import TestClient  # noqa: E402
 
 from services.gateway.exceptions import (  # noqa: E402
     AuthenticationError,

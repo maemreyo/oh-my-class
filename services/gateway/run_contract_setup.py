@@ -21,7 +21,7 @@ from services.gateway.run_contract_policy import (
 )
 
 if TYPE_CHECKING:
-    from services.gateway.pipeline_v2_types import JsonObject, RunId, TeacherId
+    from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
 
 SetupGateName = Literal["clarification_required", "contract_confirmation"]
 

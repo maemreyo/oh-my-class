@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-from packages.agents.config.models import LLM
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class LLMClientConfig:
-    """Thin wrapper around centralized LLM config for packages/llm_client."""
+class LLMClientConfig(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_prefix="LLM_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
-    def __init__(self) -> None:
-        self.base_url = LLM.base_url
-        self.api_key = LLM.api_key
-        self.timeout_s = LLM.timeout
-        self.max_retries = LLM.max_retries
-        self.temperature = 0.1
+    base_url: str = "http://localhost:20128/v1"
+    api_key: str = ""
+    timeout_s: float = 600.0
+    max_retries: int = 3
+    temperature: float = 0.1

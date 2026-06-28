@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(_PROJECT_ROOT) not in sys.path:
@@ -19,6 +19,10 @@ if str(_PROJECT_ROOT) not in sys.path:
 if "jwt" not in sys.modules:
     sys.modules["jwt"] = MagicMock()
 
+from packages.agents.events import (  # noqa: E402
+    _event_store,
+    _event_subscribers,
+)
 from services.gateway.auth.models import Role, User  # noqa: E402
 from services.gateway.middleware.error_handler import register_exception_handlers  # noqa: E402
 from services.gateway.routers.approvals import (  # noqa: E402
@@ -28,10 +32,6 @@ from services.gateway.routers.approvals import (  # noqa: E402
 )
 from services.gateway.routers.runs import (  # noqa: E402
     _derive_status,
-)
-from packages.agents.events import (  # noqa: E402
-    _event_store,
-    _event_subscribers,
 )
 
 # ── helpers ───────────────────────────────────────────────────────────────────

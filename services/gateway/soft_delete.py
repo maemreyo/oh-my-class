@@ -1,4 +1,4 @@
-"""Soft-delete operations for Pipeline V2 runs.
+"""Soft-delete operations for Teaching Pack runs.
 
 Soft-deleted runs remain in the database but are hidden from normal
 queries.  A background purge job (see ``purge.py``) permanently removes
@@ -13,9 +13,9 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from services.gateway.models import Run
-from services.gateway.pipeline_v2_models import PipelineV2EventVisibility
-from services.gateway.pipeline_v2_store import PipelineV2EventCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import RunId
+from services.gateway.teaching_pack_models import TeachingPackEventVisibility
+from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,11 +42,11 @@ async def soft_delete_run(
     run.deleted_by = deleted_by
     await db.flush()
 
-    store = PipelineV2RunStore(db)
-    await store.write_event(PipelineV2EventCreate(
+    store = TeachingPackRunStore(db)
+    await store.write_event(TeachingPackEventCreate(
         run_id=typed_run_id,
         event_name="run.soft_deleted",
-        visibility=PipelineV2EventVisibility.ADMIN,
+        visibility=TeachingPackEventVisibility.ADMIN,
         payload={"deleted_by": deleted_by},
     ))
     await db.flush()
@@ -72,11 +72,11 @@ async def restore_run(
     run.deleted_by = None
     await db.flush()
 
-    store = PipelineV2RunStore(db)
-    await store.write_event(PipelineV2EventCreate(
+    store = TeachingPackRunStore(db)
+    await store.write_event(TeachingPackEventCreate(
         run_id=typed_run_id,
         event_name="run.restored",
-        visibility=PipelineV2EventVisibility.ADMIN,
+        visibility=TeachingPackEventVisibility.ADMIN,
         payload={"restored_by": restored_by},
     ))
     await db.flush()

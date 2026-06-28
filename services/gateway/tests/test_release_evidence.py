@@ -23,8 +23,8 @@ import services.gateway.routers.release_evidence as release_evidence_router
 from services.gateway.auth.models import Role, User
 from services.gateway.identity_hash import hash_teacher_id
 from services.gateway.models import Base, Run, RunStatus
-from services.gateway.pipeline_v2_models import PipelineV2EventVisibility, RunEvent
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_models import TeachingPackEventVisibility, RunEvent
+from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.release_evidence import (
     ReleaseEvidence,
     ReleaseEvidenceRecord,
@@ -54,7 +54,7 @@ async def session() -> AsyncIterator[AsyncSession]:
     async with engine.begin() as conn:
         existing = await conn.run_sync(lambda c: set(Base.metadata.tables.keys()))
         if "runs" not in existing:
-            pytest.skip("Pipeline V2 tables are not present")
+            pytest.skip("Teaching Pack tables are not present")
     async with session_factory() as db:
         yield db
         await db.rollback()
@@ -157,13 +157,13 @@ class TestReleaseEvidenceDataclass:
             run_id="run-report",
             teacher_id_hash="teacherhash1234",
             status="completed",
-            event_sequence=[{"sequence": 1, "event_name": "pipeline_v2.run.accepted"}],
+            event_sequence=[{"sequence": 1, "event_name": "teaching_pack.run.accepted"}],
         )
 
         report_path = write_evidence_report(evidence, tmp_path)
 
-        assert report_path.name == "pipeline-v2-evidence-run-report.md"
-        assert "Pipeline V2 Release Evidence" in report_path.read_text(encoding="utf-8")
+        assert report_path.name == "teaching-pack-run-evidence-run-report.md"
+        assert "Teaching Pack Release Evidence" in report_path.read_text(encoding="utf-8")
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -226,9 +226,9 @@ class TestEvidenceGeneration:
         event = RunEvent(
             run_id=run_id,
             sequence=1,
-            event_name="pipeline_v2.run.accepted",
+            event_name="teaching_pack.run.accepted",
             stage=None,
-            visibility=PipelineV2EventVisibility.TEACHER,
+            visibility=TeachingPackEventVisibility.TEACHER,
         )
         session.add(event)
         await session.flush()
@@ -254,7 +254,7 @@ class TestEvidenceGeneration:
                     sequence=i + 1,
                     event_name=f"event_{i}",
                     stage=f"stage_{i}",
-                    visibility=PipelineV2EventVisibility.TEACHER,
+                    visibility=TeachingPackEventVisibility.TEACHER,
                 )
             )
         await session.flush()
@@ -410,11 +410,11 @@ class TestEvidenceRouteReports:
             User(user_id="admin", username="admin", role=Role.ADMIN),
             session,
         )
-        report_path = tmp_path / f"pipeline-v2-evidence-{run_id}.md"
+        report_path = tmp_path / f"teaching-pack-run-evidence-{run_id}.md"
 
         assert response.run_id == run_id
         assert report_path.exists()
-        assert "Pipeline V2 Release Evidence" in report_path.read_text(encoding="utf-8")
+        assert "Teaching Pack Release Evidence" in report_path.read_text(encoding="utf-8")
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()
 
@@ -444,9 +444,9 @@ class TestEvidenceCompleteness:
             RunEvent(
                 run_id=run_id,
                 sequence=1,
-                event_name="pipeline_v2.test.started",
+                event_name="teaching_pack.test.started",
                 stage="test_stage",
-                visibility=PipelineV2EventVisibility.TEACHER,
+                visibility=TeachingPackEventVisibility.TEACHER,
                 payload={"key": "value"},
             )
         )

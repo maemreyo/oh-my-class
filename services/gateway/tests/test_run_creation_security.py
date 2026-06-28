@@ -7,8 +7,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from services.gateway.models import Base, Run
-from services.gateway.pipeline_v2_types import TeacherId
-from services.gateway.run_creation import create_pipeline_v2_run_record
+from services.gateway.teaching_pack_types import TeacherId
+from services.gateway.run_creation import create_teaching_pack_run_record
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -26,7 +26,7 @@ async def session() -> AsyncIterator[AsyncSession]:
             lambda sync_connection: set(Base.metadata.tables),
         )
         if "public.runs" not in existing_tables:
-            pytest.skip("Pipeline V2 run tables are not present")
+            pytest.skip("Teaching Pack run tables are not present")
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as database_session:
         yield database_session
@@ -37,7 +37,7 @@ async def session() -> AsyncIterator[AsyncSession]:
 async def test_create_run_record_persists_minimized_class_info(
     session: AsyncSession,
 ) -> None:
-    result = await create_pipeline_v2_run_record(
+    result = await create_teaching_pack_run_record(
         session,
         teacher_id=TeacherId("teacher-security"),
         raw_request="Teach fractions",

@@ -11,7 +11,7 @@ from services.gateway.artifact_snapshot_service import produce_artifact_snapshot
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import Role, User
 from services.gateway.exceptions import AuthorizationError, NotFoundError
-from services.gateway.pipeline_v2_types import RunId
+from services.gateway.teaching_pack_types import RunId
 
 router = APIRouter()
 
@@ -81,7 +81,7 @@ async def produce_snapshot(
     _require_owner(run_data, current_user)
 
     # Get database session from app state
-    async with http_request.app.state.pipeline_v2_session_factory() as session:
+    async with http_request.app.state.teaching_pack_session_factory() as session:
         snapshot_id = await produce_artifact_snapshot(
             session,
             run_id=RunId(run_id),

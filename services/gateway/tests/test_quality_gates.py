@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from common.contracts.quality import HealingStrategy, QualityFailureClass
-from services.gateway.pipeline_v2_snapshot_store import ArtifactSnapshotRead
-from services.gateway.pipeline_v2_types import RunId
+from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotRead
+from services.gateway.teaching_pack_types import RunId
 from services.gateway.quality_gates import (
     classify_healing,
     export_readiness,

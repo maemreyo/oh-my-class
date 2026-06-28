@@ -18,10 +18,10 @@ from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from services.gateway.models import Run
-from services.gateway.pipeline_v2_job_store import PipelineV2JobStore, RunJobCreate
-from services.gateway.pipeline_v2_models import RunJobKind, RunJobStatus
-from services.gateway.pipeline_v2_store import PipelineV2RunCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_job_store import TeachingPackJobStore, RunJobCreate
+from services.gateway.teaching_pack_models import RunJobKind, RunJobStatus
+from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId, TeacherId
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -148,7 +148,7 @@ class TestMigration011ClaimBehavior:
         """A QUEUED job with future eligible_at is NOT claimed."""
         run_id = await _create_run(session)
         future = datetime(2099, 1, 1, tzinfo=UTC)
-        store = PipelineV2JobStore(session)
+        store = TeachingPackJobStore(session)
         await store.enqueue(
             RunJobCreate(
                 job_id=f"job-{uuid4()}",
@@ -161,7 +161,7 @@ class TestMigration011ClaimBehavior:
         )
         await session.flush()
 
-        claimed = await PipelineV2JobStore(session).claim_next(
+        claimed = await TeachingPackJobStore(session).claim_next(
             lease_owner="worker-migration",
             lease_seconds=30,
             now=datetime(2026, 6, 1, tzinfo=UTC),
@@ -179,7 +179,7 @@ class TestMigration011ClaimBehavior:
         run_id = await _create_run(session)
         now = datetime(2026, 6, 1, tzinfo=UTC)
         past_eligible = now - timedelta(seconds=1)
-        queued = await PipelineV2JobStore(session).enqueue(
+        queued = await TeachingPackJobStore(session).enqueue(
             RunJobCreate(
                 job_id=f"job-{uuid4()}",
                 run_id=run_id,
@@ -191,7 +191,7 @@ class TestMigration011ClaimBehavior:
         )
         await session.flush()
 
-        claimed = await PipelineV2JobStore(session).claim_next(
+        claimed = await TeachingPackJobStore(session).claim_next(
             lease_owner="worker-eligible",
             lease_seconds=30,
             now=now,
@@ -209,7 +209,7 @@ class TestMigration011ClaimBehavior:
     ) -> None:
         """Standard PENDING job has NULL eligible_at."""
         run_id = await _create_run(session)
-        store = PipelineV2JobStore(session)
+        store = TeachingPackJobStore(session)
 
         job = await store.enqueue(
             RunJobCreate(
@@ -234,7 +234,7 @@ class TestMigration011ClaimBehavior:
         run_id = await _create_run(session)
         now = datetime(2026, 6, 1, tzinfo=UTC)
         past = now - timedelta(seconds=1)
-        job = await PipelineV2JobStore(session).enqueue(
+        job = await TeachingPackJobStore(session).enqueue(
             RunJobCreate(
                 job_id=f"job-{uuid4()}",
                 run_id=run_id,
@@ -246,7 +246,7 @@ class TestMigration011ClaimBehavior:
         )
         await session.flush()
 
-        promoted = await PipelineV2JobStore(session).promote_eligible(
+        promoted = await TeachingPackJobStore(session).promote_eligible(
             limit=5,
             now=now,
         )
@@ -258,8 +258,8 @@ class TestMigration011ClaimBehavior:
 
 async def _create_run(session: AsyncSession) -> RunId:
     run_id = RunId(f"test-mig-{uuid4()}")
-    await PipelineV2RunStore(session).create_run(
-        PipelineV2RunCreate(
+    await TeachingPackRunStore(session).create_run(
+        TeachingPackRunCreate(
             run_id=run_id,
             teacher_id=TeacherId("teacher-migration-test"),
             raw_request="Test migration 011",

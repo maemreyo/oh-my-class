@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select, update
 
 from services.gateway.models import RunStatus
-from services.gateway.pipeline_v2_models import (
+from services.gateway.teaching_pack_models import (
     GateInterrupt,
     GateInterruptStatus,
     RunJob,

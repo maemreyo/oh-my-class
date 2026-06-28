@@ -10,18 +10,18 @@ from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
-from fastapi.testclient import TestClient
 
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_types import RunId, TeacherId
 
 
 @pytest.mark.asyncio
 async def test_produce_snapshot_endpoint_calls_service():
     """Test that the endpoint successfully calls produce_artifact_snapshot."""
-    from services.gateway.routers.snapshots import produce_snapshot
-    from services.gateway.auth.models import Role, User
-    from unittest.mock import MagicMock
     from contextlib import asynccontextmanager
+    from unittest.mock import MagicMock
+
+    from services.gateway.auth.models import Role, User
+    from services.gateway.routers.snapshots import produce_snapshot
 
     run_id = RunId(f"run-{uuid4().hex[:8]}")
     teacher_id = TeacherId(f"teacher-{uuid4().hex[:8]}")
@@ -43,7 +43,7 @@ async def test_produce_snapshot_endpoint_calls_service():
     mock_request.app.state.runs = {
         run_id: {"teacher_id": teacher_id, "state": {}}
     }
-    mock_request.app.state.pipeline_v2_session_factory = mock_session_factory
+    mock_request.app.state.teaching_pack_session_factory = mock_session_factory
 
     request_body = {
         "artifact_content": {
@@ -54,7 +54,10 @@ async def test_produce_snapshot_endpoint_calls_service():
         "renderer_version": "1.0",
     }
 
-    with patch("services.gateway.routers.snapshots.produce_artifact_snapshot", new_callable=AsyncMock) as mock_produce:
+    with patch(
+        "services.gateway.routers.snapshots.produce_artifact_snapshot",
+        new_callable=AsyncMock,
+    ) as mock_produce:
         mock_produce.return_value = "snapshot-123"
 
         from services.gateway.routers.snapshots import ProduceSnapshotRequest
@@ -71,9 +74,9 @@ async def test_produce_snapshot_endpoint_calls_service():
 
 def test_authorization_rejects_unauthorized_teacher():
     """Test _require_owner rejects unauthorized teacher."""
-    from services.gateway.routers.snapshots import _require_owner
     from services.gateway.auth.models import Role, User
     from services.gateway.exceptions import AuthorizationError
+    from services.gateway.routers.snapshots import _require_owner
 
     teacher1_id = TeacherId(f"teacher-{uuid4().hex[:8]}")
     teacher2_id = TeacherId(f"teacher-{uuid4().hex[:8]}")
@@ -91,8 +94,8 @@ def test_authorization_rejects_unauthorized_teacher():
 
 def test_authorization_allows_teacher_owner():
     """Test _require_owner allows the owner teacher."""
-    from services.gateway.routers.snapshots import _require_owner
     from services.gateway.auth.models import Role, User
+    from services.gateway.routers.snapshots import _require_owner
 
     teacher_id = TeacherId(f"teacher-{uuid4().hex[:8]}")
     run_data = {"teacher_id": teacher_id}
@@ -107,8 +110,8 @@ def test_authorization_allows_teacher_owner():
 
 def test_authorization_allows_admin():
     """Test _require_owner allows ADMIN regardless of owner."""
-    from services.gateway.routers.snapshots import _require_owner
     from services.gateway.auth.models import Role, User
+    from services.gateway.routers.snapshots import _require_owner
 
     teacher_id = TeacherId(f"teacher-{uuid4().hex[:8]}")
     admin_id = TeacherId(f"admin-{uuid4().hex[:8]}")

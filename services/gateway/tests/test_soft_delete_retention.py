@@ -1,7 +1,7 @@
 """Tests for soft-delete, retention, purge, and schema versioning.
 
 Requires a running PostgreSQL instance (DATABASE_URL).
-Follows the same integration-test pattern as test_pipeline_v2_runs_router.py.
+Follows the same integration-test pattern as test_teaching_pack_runs_router.py.
 """
 
 from __future__ import annotations
@@ -13,21 +13,16 @@ from uuid import uuid4
 import anyio
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from starlette.testclient import TestClient
 
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import Role, User
 from services.gateway.models import Base, Run
-from services.gateway.pipeline_v2_control_store import GateInterruptCreate, PipelineV2ControlStore
-from services.gateway.pipeline_v2_db import get_pipeline_v2_session
-from services.gateway.pipeline_v2_models import GateInterrupt, GateResponse, RunJob
-from services.gateway.pipeline_v2_store import PipelineV2RunCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import RunId, TeacherId
 from services.gateway.purge import purge_expired_runs, purge_student_evidence
 from services.gateway.retention import RetentionConfig, get_retention_days, is_expired
-from services.gateway.routers.pipeline_v2_runs import router
+from services.gateway.routers.teaching_pack_runs import router
 from services.gateway.schema_version import (
     SCHEMA_VERSION,
     VersionedContract,
@@ -35,6 +30,14 @@ from services.gateway.schema_version import (
     validate_schema_version,
 )
 from services.gateway.soft_delete import is_run_deleted, soft_delete_run
+from services.gateway.teaching_pack_control_store import (
+    GateInterruptCreate,
+    TeachingPackControlStore,
+)
+from services.gateway.teaching_pack_db import get_teaching_pack_session
+from services.gateway.teaching_pack_models import GateInterrupt, GateResponse, RunJob
+from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId, TeacherId
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
@@ -53,7 +56,7 @@ DATABASE_URL = "postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class"
 def client() -> Iterator[TestClient]:
     anyio.run(_skip_if_schema_missing)
     app = FastAPI()
-    app.include_router(router, prefix="/pipeline-v2")
+    app.include_router(router, prefix="/teaching-packs")
 
     async def override_session() -> AsyncIterator[AsyncSession]:
         engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
@@ -67,7 +70,7 @@ def client() -> Iterator[TestClient]:
         username="teacher-test",
         role=Role.TEACHER,
     )
-    app.dependency_overrides[get_pipeline_v2_session] = override_session
+    app.dependency_overrides[get_teaching_pack_session] = override_session
     with TestClient(app) as test_client:
         yield test_client
 
@@ -82,7 +85,7 @@ class TestSoftDeleteRun:
         run_id = RunId(f"test-{uuid4()}")
         anyio.run(_create_test_run, run_id)
 
-        response = client.delete(f"/pipeline-v2/run/{run_id}")
+        response = client.delete(f"/teaching-packs/run/{run_id}")
         assert response.status_code == 202
         assert response.json()["deleted"] is True
 
@@ -97,7 +100,7 @@ class TestSoftDeleteRun:
         anyio.run(_create_test_run, run_id)
         anyio.run(_soft_delete_run_direct, run_id, "teacher-test")
 
-        response = client.get(f"/pipeline-v2/run/{run_id}/status?replay_only=true")
+        response = client.get(f"/teaching-packs/run/{run_id}/status?replay_only=true")
         assert response.status_code == 404
         anyio.run(_cleanup_run, run_id)
 
@@ -108,7 +111,7 @@ class TestSoftDeleteRun:
         anyio.run(_soft_delete_run_direct, run_id, "teacher-test")
 
         response = client.post(
-            f"/pipeline-v2/run/{run_id}/resume",
+            f"/teaching-packs/run/{run_id}/resume",
             json={
                 "gate_id": gate_id,
                 "gate_name": "blueprint_approval",
@@ -126,7 +129,7 @@ class TestSoftDeleteRun:
 
         assert anyio.run(_check_is_deleted, run_id) is True
 
-        response = client.post(f"/pipeline-v2/run/{run_id}/restore")
+        response = client.post(f"/teaching-packs/run/{run_id}/restore")
         assert response.status_code == 202
         assert response.json()["restored"] is True
 
@@ -314,7 +317,7 @@ async def _skip_if_schema_missing() -> None:
             lambda sync_connection: set(Base.metadata.tables),
         )
         if "public.runs" not in existing_tables:
-            pytest.skip("Pipeline V2 tables are not present")
+            pytest.skip("Teaching Pack tables are not present")
     await engine.dispose()
 
 
@@ -330,7 +333,7 @@ async def _create_test_run(run_id: RunId) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as session:
-        await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+        await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
             run_id=run_id,
             teacher_id=TeacherId("teacher-test"),
             raw_request="Test run",
@@ -344,7 +347,7 @@ async def _create_test_run_with_evidence(run_id: RunId, evidence: dict) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as session:
-        await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+        await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
             run_id=run_id,
             teacher_id=TeacherId("teacher-test"),
             raw_request="Test run with evidence",
@@ -358,13 +361,13 @@ async def _create_run_with_gate(run_id: RunId, gate_id: str) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as session:
-        await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+        await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
             run_id=run_id,
             teacher_id=TeacherId("teacher-test"),
             raw_request="Test run with gate",
             class_info={"grade": 5},
         ))
-        await PipelineV2ControlStore(session).open_gate(GateInterruptCreate(
+        await TeachingPackControlStore(session).open_gate(GateInterruptCreate(
             gate_id=gate_id,
             run_id=run_id,
             gate_name="blueprint_approval",

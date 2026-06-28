@@ -1,4 +1,4 @@
-"""Per-run budget tracking for Pipeline V2.
+"""Per-run budget tracking for Teaching Pack.
 
 Pure in-memory dataclasses — no DB persistence.  Each pipeline run creates
 a ``BudgetLedger`` bounded by a ``BudgetConfig``.  Agents record usage via

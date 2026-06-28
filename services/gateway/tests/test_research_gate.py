@@ -9,10 +9,10 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from common.contracts.run_contract import ContractRevisionMeta, RunContract
 from services.gateway.models import Base, Run
-from services.gateway.pipeline_v2_control_store import PipelineV2ControlStore
-from services.gateway.pipeline_v2_models import GateInterrupt, RunEvent
-from services.gateway.pipeline_v2_store import PipelineV2RunCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_control_store import TeachingPackControlStore
+from services.gateway.teaching_pack_models import GateInterrupt, RunEvent
+from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.research_engine import plan_search
 from services.gateway.research_gate import (
     SearchPlanGateOpened,
@@ -35,7 +35,7 @@ async def session() -> AsyncIterator[AsyncSession]:
     async with engine.begin() as connection:
         tables = await connection.run_sync(lambda _: set(Base.metadata.tables))
         if "public.gate_interrupts" not in tables:
-            pytest.skip("Pipeline V2 control tables are not present")
+            pytest.skip("Teaching Pack control tables are not present")
     async with session_factory() as database_session:
         yield database_session
         await database_session.rollback()
@@ -53,8 +53,8 @@ class TestResearchGate:
         result = await prepare_search_plan_gate(
             run_id=run_id,
             plan=plan_search(_contract(locale="vi-VN", curriculum=None)),
-            control_store=PipelineV2ControlStore(session),
-            run_store=PipelineV2RunStore(session),
+            control_store=TeachingPackControlStore(session),
+            run_store=TeachingPackRunStore(session),
         )
         await session.commit()
 
@@ -64,7 +64,7 @@ class TestResearchGate:
         assert isinstance(result, SearchPlanGateOpened)
         assert gate is not None
         assert gate.gate_name == "search_plan_confirmation"
-        assert event == "pipeline_v2.search_plan_confirmation.opened"
+        assert event == "teaching_pack.search_plan_confirmation.opened"
         await _delete_run(session, run_id)
 
     async def test_skips_search_plan_gate_when_plan_is_safe(self, session: AsyncSession) -> None:
@@ -74,8 +74,8 @@ class TestResearchGate:
         result = await prepare_search_plan_gate(
             run_id=run_id,
             plan=plan_search(_contract()),
-            control_store=PipelineV2ControlStore(session),
-            run_store=PipelineV2RunStore(session),
+            control_store=TeachingPackControlStore(session),
+            run_store=TeachingPackRunStore(session),
         )
         await session.commit()
 
@@ -86,12 +86,12 @@ class TestResearchGate:
 
         assert result == SearchPlanGateSkipped(reason="not_required")
         assert gate_result.scalar_one_or_none() is None
-        assert event == "pipeline_v2.search_plan.skipped_confirmation"
+        assert event == "teaching_pack.search_plan.skipped_confirmation"
         await _delete_run(session, run_id)
 
 
 async def _create_run(session: AsyncSession, run_id: RunId) -> None:
-    await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+    await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
         run_id=run_id,
         teacher_id=TeacherId("teacher-research"),
         raw_request="Teach fractions",

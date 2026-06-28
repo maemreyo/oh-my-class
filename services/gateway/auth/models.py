@@ -58,7 +58,7 @@ class TokenPayload(BaseModel):
     """JWT token payload (decoded).
 
     ``organization_id`` and ``class_id`` are optional for backward
-    compatibility with tokens issued before Pipeline V2 tenant auth.
+    compatibility with tokens issued before Teaching Pack tenant auth.
     """
 
     sub: str  # user_id

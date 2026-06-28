@@ -5,11 +5,11 @@ from json import dumps
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from services.gateway.pipeline_v2_types import JsonObject
+    from services.gateway.teaching_pack_types import JsonObject
 
 SUPPORTED_ARTIFACTS = {"lesson", "worksheet", "quiz", "drill", "recap", "infographic"}
 SUPPORTED_EXPORTS = {"html", "gift", "h5p", "qti", "google_forms"}
-CONFIG_VERSION = "pipeline-v2-contract-setup@1"
+CONFIG_VERSION = "teaching-packs-contract-setup@1"
 DEFAULT_POLICY = {
     "artifact_types": ["lesson", "worksheet", "quiz"],
     "export_formats": ["html"],

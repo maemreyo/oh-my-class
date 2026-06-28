@@ -13,8 +13,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from services.gateway.artifact_snapshot_service import produce_artifact_snapshot
-from services.gateway.pipeline_v2_snapshot_models import ArtifactSnapshot
-from services.gateway.pipeline_v2_types import RunId
+from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot
+from services.gateway.teaching_pack_types import RunId
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ async def test_produce_artifact_snapshot_calls_renderer_and_persists():
         return_value=mock_rendered_html,
     ) as mock_render:
         with patch(
-            "services.gateway.artifact_snapshot_service.PipelineV2SnapshotStore"
+            "services.gateway.artifact_snapshot_service.TeachingPackSnapshotStore"
         ) as mock_store_class:
             # Setup mock snapshot store
             mock_store = MagicMock()
@@ -67,7 +67,7 @@ async def test_produce_artifact_snapshot_calls_renderer_and_persists():
             mock_store_class.return_value = mock_store
 
             # Setup mock snapshot result
-            from services.gateway.pipeline_v2_snapshot_store import ArtifactSnapshotRead
+            from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotRead
             mock_snapshot_result = ArtifactSnapshotRead(
                 snapshot_id="test-snapshot-123",
                 run_id=run_id,
@@ -117,9 +117,9 @@ async def test_produce_artifact_snapshot_generates_artifact_id_if_not_provided()
         return_value=mock_rendered_html,
     ):
         with patch(
-            "services.gateway.artifact_snapshot_service.PipelineV2SnapshotStore"
+            "services.gateway.artifact_snapshot_service.TeachingPackSnapshotStore"
         ) as mock_store_class:
-            from services.gateway.pipeline_v2_snapshot_store import ArtifactSnapshotRead
+            from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotRead
             
             mock_store = AsyncMock()
             mock_store_class.return_value = mock_store
@@ -171,9 +171,9 @@ async def test_produce_artifact_snapshot_preserves_metadata():
         return_value=mock_rendered_html,
     ):
         with patch(
-            "services.gateway.artifact_snapshot_service.PipelineV2SnapshotStore"
+            "services.gateway.artifact_snapshot_service.TeachingPackSnapshotStore"
         ) as mock_store_class:
-            from services.gateway.pipeline_v2_snapshot_store import ArtifactSnapshotRead
+            from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotRead
             
             mock_store = AsyncMock()
             mock_store_class.return_value = mock_store
@@ -241,7 +241,7 @@ async def test_produce_artifact_snapshot_renderer_error_propagates():
 @pytest.mark.asyncio
 async def test_produce_artifact_snapshot_snapshot_store_error_propagates():
     """Test that snapshot store errors propagate to caller."""
-    from services.gateway.pipeline_v2_snapshot_store import SnapshotPersistenceError
+    from services.gateway.teaching_pack_snapshot_store import SnapshotPersistenceError
     
     run_id = RunId(f"test-run-{uuid4().hex[:8]}")
     artifact_content = {"title": "Test"}
@@ -255,7 +255,7 @@ async def test_produce_artifact_snapshot_snapshot_store_error_propagates():
         return_value=mock_rendered_html,
     ):
         with patch(
-            "services.gateway.artifact_snapshot_service.PipelineV2SnapshotStore"
+            "services.gateway.artifact_snapshot_service.TeachingPackSnapshotStore"
         ) as mock_store_class:
             mock_store = MagicMock()
             mock_store.create_snapshot = AsyncMock(

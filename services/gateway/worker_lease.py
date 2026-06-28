@@ -1,4 +1,4 @@
-"""Worker lease management for Pipeline V2 jobs.
+"""Worker lease management for Teaching Pack jobs.
 
 Provides acquire/renew/release semantics over the ``run_jobs`` table.
 Lease coordination uses ``lease_owner`` and ``lease_expires_at`` columns
@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import update
 
-from services.gateway.pipeline_v2_models import RunJob, RunJobStatus
+from services.gateway.teaching_pack_models import RunJob, RunJobStatus
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

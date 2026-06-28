@@ -15,14 +15,14 @@ from sqlalchemy import select
 
 from services.gateway.logging_config import get_logger
 from services.gateway.models import Run, RunStatus
-from services.gateway.pipeline_v2_models import (
+from services.gateway.teaching_pack_models import (
     GateInterrupt,
     GateInterruptStatus,
-    PipelineV2EventVisibility,
+    TeachingPackEventVisibility,
     RunJob,
     RunJobStatus,
 )
-from services.gateway.pipeline_v2_store import PipelineV2EventCreate, PipelineV2RunStore
+from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -283,11 +283,11 @@ async def _emit_audit_event(
     db: AsyncSession,
 ) -> None:
     """Write an audit event to the run_events table."""
-    store = PipelineV2RunStore(db)
-    await store.write_event(PipelineV2EventCreate(
+    store = TeachingPackRunStore(db)
+    await store.write_event(TeachingPackEventCreate(
         run_id=request.run_id,
         event_name=f"admin.recovery.{request.action}",
-        visibility=PipelineV2EventVisibility.ADMIN,
+        visibility=TeachingPackEventVisibility.ADMIN,
         payload={
             "admin_id": request.admin_id,
             "reason": request.reason,

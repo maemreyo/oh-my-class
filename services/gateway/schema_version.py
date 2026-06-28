@@ -1,4 +1,4 @@
-"""Schema versioning for Pipeline V2 JSON contracts.
+"""Schema versioning for Teaching Pack JSON contracts.
 
 Every JSON contract emitted by the pipeline is tagged with a
 ``schema_version`` string.  This module provides validation and

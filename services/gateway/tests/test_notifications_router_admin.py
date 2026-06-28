@@ -5,17 +5,17 @@ from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from starlette.testclient import TestClient
 
 from services.gateway.auth.dependencies import require_admin
 from services.gateway.auth.models import Role, User
 from services.gateway.models import Run
-from services.gateway.pipeline_v2_db import get_pipeline_v2_session
-from services.gateway.pipeline_v2_store import PipelineV2RunCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import RunId, TeacherId
 from services.gateway.routers.notifications import router
+from services.gateway.teaching_pack_db import get_teaching_pack_session
+from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId, TeacherId
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
@@ -42,7 +42,7 @@ def client() -> Iterator[TestClient]:
         username="admin-test",
         role=Role.SYSTEM_ADMIN,
     )
-    app.dependency_overrides[get_pipeline_v2_session] = override_session
+    app.dependency_overrides[get_teaching_pack_session] = override_session
     with TestClient(app) as test_client:
         yield test_client
 
@@ -63,7 +63,7 @@ async def _create_run(run_id: RunId, teacher_id: TeacherId) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as session:
-        await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+        await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
             run_id=run_id,
             teacher_id=teacher_id,
             raw_request="Admin list test",

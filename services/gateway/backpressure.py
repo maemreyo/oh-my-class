@@ -1,4 +1,4 @@
-"""Backpressure checks for Pipeline V2 run creation.
+"""Backpressure checks for Teaching Pack run creation.
 
 Enforces per-teacher and global limits on concurrent active runs to prevent
 resource exhaustion.  When the active limit is hit but the queue has room,
@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import func, select
 
 from services.gateway.models import Run, RunStatus
-from services.gateway.pipeline_v2_models import RunJob, RunJobStatus
+from services.gateway.teaching_pack_models import RunJob, RunJobStatus
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

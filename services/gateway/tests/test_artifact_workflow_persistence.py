@@ -8,16 +8,16 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from common.contracts.artifact_workflow import ArtifactWorkflowState, ArtifactWorkflowStatus
-from packages.agents.pipeline_v2.stages import PipelineV2Stage
+from packages.agents.teaching_pack.stages import TeachingPackStage
 from services.gateway.models import Base, Run
-from services.gateway.pipeline_v2_control_store import PipelineV2ControlStore
-from services.gateway.pipeline_v2_models import ArtifactWorkflow, PipelineV2EventVisibility
-from services.gateway.pipeline_v2_store import (
-    PipelineV2EventCreate,
-    PipelineV2RunCreate,
-    PipelineV2RunStore,
+from services.gateway.teaching_pack_control_store import TeachingPackControlStore
+from services.gateway.teaching_pack_models import ArtifactWorkflow, TeachingPackEventVisibility
+from services.gateway.teaching_pack_store import (
+    TeachingPackEventCreate,
+    TeachingPackRunCreate,
+    TeachingPackRunStore,
 )
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_types import RunId, TeacherId
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -34,7 +34,7 @@ async def session() -> AsyncIterator[AsyncSession]:
     async with engine.begin() as connection:
         tables = await connection.run_sync(lambda _: set(Base.metadata.tables))
         if "public.artifact_workflows" not in tables:
-            pytest.skip("Pipeline V2 artifact workflow table is not present")
+            pytest.skip("Teaching Pack artifact workflow table is not present")
     async with session_factory() as database_session:
         yield database_session
         await database_session.rollback()
@@ -63,22 +63,22 @@ class TestArtifactWorkflowPersistence:
             last_error=None,
         )
 
-        store = PipelineV2ControlStore(session)
+        store = TeachingPackControlStore(session)
         await store.upsert_artifact_workflow_state(state)
-        await PipelineV2RunStore(session).write_event(PipelineV2EventCreate(
+        await TeachingPackRunStore(session).write_event(TeachingPackEventCreate(
             run_id=run_id,
-            event_name="pipeline_v2.artifact.completed",
-            visibility=PipelineV2EventVisibility.TEACHER,
-            stage=PipelineV2Stage.ARTIFACT_WORKFLOW,
+            event_name="teaching_pack.artifact.completed",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            stage=TeachingPackStage.ARTIFACT_WORKFLOW,
             payload={"artifact_id": "artifact-lesson", "artifact_type": "lesson"},
         ))
         await session.commit()
 
         persisted = await store.get_artifact_workflow_state(run_id, "artifact-lesson")
-        events = await PipelineV2RunStore(session).replay_events(run_id)
+        events = await TeachingPackRunStore(session).replay_events(run_id)
 
         assert persisted == state
-        assert events[-1].event_name == "pipeline_v2.artifact.completed"
+        assert events[-1].event_name == "teaching_pack.artifact.completed"
         await _delete_run(session, run_id)
 
     async def test_workflow_state_update_does_not_duplicate_record(
@@ -87,7 +87,7 @@ class TestArtifactWorkflowPersistence:
     ) -> None:
         run_id = RunId(f"test-{uuid4()}")
         await _create_run(session, run_id)
-        store = PipelineV2ControlStore(session)
+        store = TeachingPackControlStore(session)
         queued = _state(run_id, status="queued", attempts=0, last_error=None)
         failed = _state(run_id, status="failed", attempts=1, last_error="timeout: provider")
 
@@ -106,7 +106,7 @@ class TestArtifactWorkflowPersistence:
 
 
 async def _create_run(session: AsyncSession, run_id: RunId) -> None:
-    await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+    await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
         run_id=run_id,
         teacher_id=TeacherId("teacher-artifact-workflow"),
         raw_request="Teach fractions",

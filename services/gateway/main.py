@@ -20,8 +20,8 @@ from .routers import (
     artifacts,
     auth_router,
     notifications,
-    pipeline_v2_previews,
-    pipeline_v2_runs,
+    teaching_pack_previews,
+    teaching_pack_runs,
     release_evidence,
     runs,
     snapshots,
@@ -29,10 +29,10 @@ from .routers import (
 )
 
 
-async def _run_pipeline_v2_sweeper(app: FastAPI) -> None:
+async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
     while True:
         await anyio.sleep(60)
-        async with app.state.pipeline_v2_session_factory() as session:
+        async with app.state.teaching_pack_session_factory() as session:
             from .recovery_sweeper import sweep_escalated_gates, sweep_stuck_jobs
 
             await sweep_stuck_jobs(session)
@@ -55,9 +55,9 @@ async def lifespan(app: FastAPI):
         "DATABASE_URL",
         "postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class",
     )
-    app.state.pipeline_v2_engine = create_async_engine(database_url, pool_pre_ping=True)
-    app.state.pipeline_v2_session_factory = async_sessionmaker(
-        app.state.pipeline_v2_engine,
+    app.state.teaching_pack_engine = create_async_engine(database_url, pool_pre_ping=True)
+    app.state.teaching_pack_session_factory = async_sessionmaker(
+        app.state.teaching_pack_engine,
         expire_on_commit=False,
     )
     app.state.checkpointer = get_checkpointer(environment)
@@ -68,13 +68,13 @@ async def lifespan(app: FastAPI):
     )
 
     async with anyio.create_task_group() as task_group:
-        task_group.start_soon(_run_pipeline_v2_sweeper, app)
+        task_group.start_soon(_run_teaching_pack_sweeper, app)
         try:
             yield
         finally:
             task_group.cancel_scope.cancel()
 
-    await app.state.pipeline_v2_engine.dispose()
+    await app.state.teaching_pack_engine.dispose()
     app.state.runs.clear()
 
 
@@ -101,11 +101,11 @@ app.include_router(runs.router, prefix="/run", tags=["runs"])
 app.include_router(artifacts.router, prefix="/run", tags=["artifacts"])
 app.include_router(snapshots.router, prefix="/run", tags=["snapshots"])
 app.include_router(approvals.router, prefix="/run", tags=["approvals"])
-app.include_router(pipeline_v2_runs.router, prefix="/pipeline-v2", tags=["pipeline-v2"])
-app.include_router(pipeline_v2_previews.router, prefix="/pipeline-v2", tags=["pipeline-v2"])
+app.include_router(teaching_pack_runs.router, prefix="/teaching-packs", tags=["teaching-pack"])
+app.include_router(teaching_pack_previews.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
-app.include_router(release_evidence.router, prefix="/pipeline-v2", tags=["release-evidence"])
+app.include_router(release_evidence.router, prefix="/teaching-packs", tags=["release-evidence"])
 
 
 @app.get("/health")  # pyright: ignore[reportUntypedFunctionDecorator]

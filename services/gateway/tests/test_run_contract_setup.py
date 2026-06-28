@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.run_contract_setup import (
     DEFAULT_POLICY,
     ContractSetupGate,
@@ -10,7 +10,7 @@ from services.gateway.run_contract_setup import (
 )
 
 
-class TestPipelineV2ContractSetup:
+class TestTeachingPackContractSetup:
     def test_missing_required_fields_open_clarification_gate(self) -> None:
         result = resolve_contract_setup(ContractSetupInput(
             run_id=RunId("run-a"),

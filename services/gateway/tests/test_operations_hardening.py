@@ -30,20 +30,20 @@ from services.gateway.budget import (
     record_usage,
 )
 from services.gateway.models import Base, Run, RunStatus
-from services.gateway.pipeline_v2_control_store import (
+from services.gateway.teaching_pack_control_store import (
     GateInterruptCreate,
-    PipelineV2ControlStore,
+    TeachingPackControlStore,
 )
-from services.gateway.pipeline_v2_job_store import PipelineV2JobStore, RunJobCreate, RunJobRead
-from services.gateway.pipeline_v2_models import (
+from services.gateway.teaching_pack_job_store import TeachingPackJobStore, RunJobCreate, RunJobRead
+from services.gateway.teaching_pack_models import (
     GateInterrupt,
     GateInterruptStatus,
     RunJob,
     RunJobKind,
     RunJobStatus,
 )
-from services.gateway.pipeline_v2_store import PipelineV2RunCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.recovery_sweeper import (
     sweep_escalated_gates,
     sweep_stuck_jobs,
@@ -67,7 +67,7 @@ async def session() -> AsyncIterator[AsyncSession]:
             lambda sync_connection: set(Base.metadata.tables),
         )
         if "public.run_jobs" not in existing_tables:
-            pytest.skip("Pipeline V2 run_jobs table is not present")
+            pytest.skip("Teaching Pack run_jobs table is not present")
     async with session_factory() as database_session:
         yield database_session
         await database_session.rollback()
@@ -80,7 +80,7 @@ async def session() -> AsyncIterator[AsyncSession]:
 
 async def _create_run(session: AsyncSession, teacher_id: str = "teacher-a") -> RunId:
     run_id = RunId(f"test-{uuid4()}")
-    await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+    await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
         run_id=run_id,
         teacher_id=TeacherId(teacher_id),
         raw_request="Test hardening",
@@ -91,7 +91,7 @@ async def _create_run(session: AsyncSession, teacher_id: str = "teacher-a") -> R
 
 
 async def _enqueue_job(session: AsyncSession, run_id: RunId) -> RunJobRead:
-    job_store = PipelineV2JobStore(session)
+    job_store = TeachingPackJobStore(session)
     return await job_store.enqueue(RunJobCreate(
         job_id=f"job-{uuid4()}",
         run_id=run_id,
@@ -103,7 +103,7 @@ async def _enqueue_job(session: AsyncSession, run_id: RunId) -> RunJobRead:
 
 async def _claim_job(session: AsyncSession, run_id: RunId) -> RunJobRead:
     await _enqueue_job(session, run_id)
-    claimed = await PipelineV2JobStore(session).claim_next(
+    claimed = await TeachingPackJobStore(session).claim_next(
         lease_owner="worker-a",
         lease_seconds=30,
         now=datetime(2026, 1, 1, tzinfo=UTC),
@@ -145,7 +145,7 @@ class TestWorkerLease:
         await _enqueue_job(session, run_id)
 
         claim_time = datetime.now(UTC) + timedelta(minutes=10)
-        store = PipelineV2JobStore(session)
+        store = TeachingPackJobStore(session)
         claimed = await store.claim_next(
             lease_owner="worker-a",
             lease_seconds=600,
@@ -298,7 +298,7 @@ class TestRecoverySweeper:
     async def test_sweep_escalated_gates(self, session: AsyncSession) -> None:
         run_id = await _create_run(session)
         gate_id = f"gate-{uuid4()}"
-        await PipelineV2ControlStore(session).open_gate(GateInterruptCreate(
+        await TeachingPackControlStore(session).open_gate(GateInterruptCreate(
             gate_id=gate_id,
             run_id=run_id,
             gate_name="blueprint_approval",
@@ -326,7 +326,7 @@ class TestRecoverySweeper:
     ) -> None:
         run_id = await _create_run(session)
         gate_id = f"gate-{uuid4()}"
-        await PipelineV2ControlStore(session).open_gate(GateInterruptCreate(
+        await TeachingPackControlStore(session).open_gate(GateInterruptCreate(
             gate_id=gate_id,
             run_id=run_id,
             gate_name="blueprint_approval",
@@ -838,7 +838,7 @@ async def _enqueue_queued_job(
     teacher_id: str,
 ) -> None:
     run_id = await _create_run(session, teacher_id)
-    await PipelineV2JobStore(session).enqueue(RunJobCreate(
+    await TeachingPackJobStore(session).enqueue(RunJobCreate(
         job_id=f"job-{uuid4()}",
         run_id=run_id,
         kind=RunJobKind.START,

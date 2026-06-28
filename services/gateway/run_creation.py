@@ -5,20 +5,20 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from services.gateway.models import RunStatus
-from services.gateway.pipeline_v2_control_store import (
+from services.gateway.teaching_pack_control_store import (
     GateInterruptCreate,
-    PipelineV2ControlStore,
+    TeachingPackControlStore,
     RunContractCreate,
 )
-from services.gateway.pipeline_v2_job_store import PipelineV2JobStore, RunJobCreate
-from services.gateway.pipeline_v2_models import PipelineV2EventVisibility, RunJobKind
-from services.gateway.pipeline_v2_store import (
-    PipelineV2EventCreate,
-    PipelineV2RunCreate,
-    PipelineV2RunStore,
-    PipelineV2StatusTransition,
+from services.gateway.teaching_pack_job_store import TeachingPackJobStore, RunJobCreate
+from services.gateway.teaching_pack_models import TeachingPackEventVisibility, RunJobKind
+from services.gateway.teaching_pack_store import (
+    TeachingPackEventCreate,
+    TeachingPackRunCreate,
+    TeachingPackRunStore,
+    TeachingPackStatusTransition,
 )
-from services.gateway.pipeline_v2_types import JsonObject, RunId, TeacherId
+from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
 from services.gateway.research_safety import minimize_class_info
 from services.gateway.run_contract_setup import (
     ContractSetupGate,
@@ -34,14 +34,14 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, slots=True)
-class PipelineV2CreateRunResult:
+class TeachingPackCreateRunResult:
     run_id: RunId
     job_id: str | None
     status: RunStatus
     queued: bool = False
 
 
-async def create_pipeline_v2_run_record(
+async def create_teaching_pack_run_record(
     session,
     *,
     teacher_id: TeacherId,
@@ -50,11 +50,11 @@ async def create_pipeline_v2_run_record(
     request_hash: str,
     idempotency_key: str | None,
     eligible_at: datetime | None = None,
-) -> PipelineV2CreateRunResult:
+) -> TeachingPackCreateRunResult:
     run_id = RunId(str(uuid4()))
     minimized_class_info = minimize_class_info(class_info)
-    run_store = PipelineV2RunStore(session)
-    await run_store.create_run(PipelineV2RunCreate(
+    run_store = TeachingPackRunStore(session)
+    await run_store.create_run(TeachingPackRunCreate(
         run_id=run_id,
         teacher_id=teacher_id,
         raw_request=raw_request,
@@ -86,14 +86,14 @@ async def create_pipeline_v2_run_record(
 
 async def _create_ready_run(
     session,
-    run_store: PipelineV2RunStore,
+    run_store: TeachingPackRunStore,
     contract: RunContract,
     request_hash: str,
     idempotency_key: str | None,
     eligible_at: datetime | None = None,
-) -> PipelineV2CreateRunResult:
-    control_store = PipelineV2ControlStore(session)
-    job_store = PipelineV2JobStore(session)
+) -> TeachingPackCreateRunResult:
+    control_store = TeachingPackControlStore(session)
+    job_store = TeachingPackJobStore(session)
     job_id = f"job-{uuid4()}"
     await control_store.create_contract(RunContractCreate(
         contract_id=contract.contract_id,
@@ -101,10 +101,10 @@ async def _create_ready_run(
         teacher_id=TeacherId(contract.teacher_id),
         contract_json=contract.model_dump(mode="json"),
     ))
-    await run_store.write_event(PipelineV2EventCreate(
+    await run_store.write_event(TeachingPackEventCreate(
         run_id=RunId(contract.run_id),
-        event_name="pipeline_v2.run.accepted",
-        visibility=PipelineV2EventVisibility.TEACHER,
+        event_name="teaching_pack.run.accepted",
+        visibility=TeachingPackEventVisibility.TEACHER,
         payload={"job_id": job_id},
     ))
     job = await job_store.enqueue(RunJobCreate(
@@ -119,7 +119,7 @@ async def _create_ready_run(
         },
         eligible_at=eligible_at,
     ))
-    return PipelineV2CreateRunResult(
+    return TeachingPackCreateRunResult(
         run_id=job.run_id,
         job_id=job.job_id,
         status=RunStatus.PENDING,
@@ -128,7 +128,7 @@ async def _create_ready_run(
 
 
 async def _create_gated_run(
-    run_store: PipelineV2RunStore,
+    run_store: TeachingPackRunStore,
     session,
     run_id: RunId,
     gate_name: str,
@@ -136,8 +136,8 @@ async def _create_gated_run(
     contract: RunContract | None,
     request_hash: str,
     idempotency_key: str | None,
-) -> PipelineV2CreateRunResult:
-    control_store = PipelineV2ControlStore(session)
+) -> TeachingPackCreateRunResult:
+    control_store = TeachingPackControlStore(session)
     if contract is not None:
         await control_store.create_contract(RunContractCreate(
             contract_id=contract.contract_id,
@@ -152,20 +152,20 @@ async def _create_gated_run(
         gate_name=gate_name,
         payload={"gate_id": gate_id, **gate_payload},
     ))
-    await run_store.transition_status(PipelineV2StatusTransition(
+    await run_store.transition_status(TeachingPackStatusTransition(
         run_id=run_id,
         status=RunStatus.AWAITING_APPROVAL,
         stage="setup_contract",
         reason=gate_name,
     ))
-    await run_store.write_event(PipelineV2EventCreate(
+    await run_store.write_event(TeachingPackEventCreate(
         run_id=run_id,
-        event_name=f"pipeline_v2.{gate_name}.opened",
-        visibility=PipelineV2EventVisibility.TEACHER,
+        event_name=f"teaching_pack.{gate_name}.opened",
+        visibility=TeachingPackEventVisibility.TEACHER,
         payload={"gate_id": gate_id, "gate_name": gate_name},
     ))
     if idempotency_key is not None:
-        job_store = PipelineV2JobStore(session)
+        job_store = TeachingPackJobStore(session)
         await job_store.enqueue(RunJobCreate(
             job_id=f"job-{uuid4()}",
             run_id=run_id,
@@ -178,4 +178,4 @@ async def _create_gated_run(
             },
         ))
         await job_store.cancel_run_jobs(run_id)
-    return PipelineV2CreateRunResult(run_id=run_id, job_id=None, status=RunStatus.AWAITING_APPROVAL)
+    return TeachingPackCreateRunResult(run_id=run_id, job_id=None, status=RunStatus.AWAITING_APPROVAL)

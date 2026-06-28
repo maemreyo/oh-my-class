@@ -1,6 +1,6 @@
 """Tests for notification system and admin recovery actions.
 
-Tests follow the same pattern as test_pipeline_v2_worker.py:
+Tests follow the same pattern as test_teaching_pack_worker.py:
 async tests against a real PostgreSQL via asyncpg, with cleanup.
 """
 
@@ -43,7 +43,7 @@ from services.gateway.notifications import (
     notify_run_failed,
     notify_search_confirmation,
 )
-from services.gateway.pipeline_v2_models import (
+from services.gateway.teaching_pack_models import (
     GateInterrupt,
     GateInterruptStatus,
     RunJob,
@@ -51,8 +51,8 @@ from services.gateway.pipeline_v2_models import (
     RunJobStatus,
     RunStatusHistory,
 )
-from services.gateway.pipeline_v2_store import PipelineV2RunCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId, TeacherId
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -86,7 +86,7 @@ async def _create_run(
     teacher_id: str = "teacher-test",
 ) -> RunId:
     run_id = RunId(f"test-notif-{uuid4()}")
-    await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+    await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
         run_id=run_id,
         teacher_id=TeacherId(teacher_id),
         raw_request="Test notification run",
@@ -487,8 +487,8 @@ class TestAdminRecovery:
         run_id = await _create_run(session)
 
         # Create a running job
-        from services.gateway.pipeline_v2_job_store import PipelineV2JobStore, RunJobCreate
-        job_store = PipelineV2JobStore(session)
+        from services.gateway.teaching_pack_job_store import TeachingPackJobStore, RunJobCreate
+        job_store = TeachingPackJobStore(session)
         job = await job_store.enqueue(RunJobCreate(
             job_id=f"job-stuck-{uuid4()}",
             run_id=run_id,
@@ -522,8 +522,8 @@ class TestAdminRecovery:
     async def test_retry_failed_artifact(self, session: AsyncSession) -> None:
         run_id = await _create_run(session)
 
-        from services.gateway.pipeline_v2_job_store import PipelineV2JobStore, RunJobCreate
-        job_store = PipelineV2JobStore(session)
+        from services.gateway.teaching_pack_job_store import TeachingPackJobStore, RunJobCreate
+        job_store = TeachingPackJobStore(session)
         job = await job_store.enqueue(RunJobCreate(
             job_id=f"job-fail-{uuid4()}",
             run_id=run_id,
@@ -613,7 +613,7 @@ class TestAdminRecovery:
         self,
         session: AsyncSession,
     ) -> None:
-        from services.gateway.pipeline_v2_store import PipelineV2RunStore
+        from services.gateway.teaching_pack_store import TeachingPackRunStore
         run_id = await _create_run(session)
         request = AdminRecoveryRequest(
             run_id=run_id,
@@ -625,7 +625,7 @@ class TestAdminRecovery:
         await execute_recovery(request, session)
 
         # Verify audit event was written
-        store = PipelineV2RunStore(session)
+        store = TeachingPackRunStore(session)
         events = await store.replay_events(run_id)
         audit_events = [
             e for e in events

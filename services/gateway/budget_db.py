@@ -13,7 +13,7 @@ from services.gateway.models import Base, utc_now
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from services.gateway.pipeline_v2_types import RunId
+    from services.gateway.teaching_pack_types import RunId
 
 
 class BudgetLedgerRecord(Base):

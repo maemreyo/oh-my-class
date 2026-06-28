@@ -1,9 +1,9 @@
 """Release evidence API — query audit records for completed runs.
 
 Endpoints:
-  GET  /pipeline-v2/run/{run_id}/evidence       — evidence for a specific run
-  POST /pipeline-v2/run/{run_id}/evidence       — generate + persist evidence (admin)
-  GET  /pipeline-v2/release-evidence            — list recent evidence (admin)
+  GET  /teaching-packs/run/{run_id}/evidence       — evidence for a specific run
+  POST /teaching-packs/run/{run_id}/evidence       — generate + persist evidence (admin)
+  GET  /teaching-packs/release-evidence            — list recent evidence (admin)
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ from pydantic import BaseModel
 
 from services.gateway.auth.dependencies import require_admin, require_teacher
 from services.gateway.auth.models import User  # noqa: TC001
-from services.gateway.pipeline_v2_db import get_pipeline_v2_session
-from services.gateway.pipeline_v2_types import RunId
+from services.gateway.teaching_pack_db import get_teaching_pack_session
+from services.gateway.teaching_pack_types import RunId
 from services.gateway.provider_evidence import (
     ProviderEvidenceEntry,
     ProviderProbeConfig,
@@ -37,8 +37,8 @@ from services.gateway.release_evidence_store import (
 
 router = APIRouter()
 
-PIPELINE_V2_SESSION = Depends(get_pipeline_v2_session)
-EVIDENCE_REPORT_DIR = Path(".scratch/pipeline-v2/artifacts")
+TEACHING_PACK_SESSION = Depends(get_teaching_pack_session)
+EVIDENCE_REPORT_DIR = Path(".scratch/teaching-packs/artifacts")
 
 # Default 9Router target for provider evidence collection.
 # Override via env for different environments (dev/prod).
@@ -160,7 +160,7 @@ def _with_provider_evidence(
 async def get_run_evidence(
     run_id: str,
     current_user: Annotated[User, Depends(require_teacher)],
-    session=PIPELINE_V2_SESSION,
+    session=TEACHING_PACK_SESSION,
 ) -> ReleaseEvidenceResponse:
     """Get release evidence for a specific run.
 
@@ -192,7 +192,7 @@ async def get_run_evidence(
 async def generate_and_save_evidence(
     run_id: str,
     current_user: Annotated[User, Depends(require_admin)],
-    session=PIPELINE_V2_SESSION,
+    session=TEACHING_PACK_SESSION,
 ) -> ReleaseEvidenceResponse:
     """Generate and persist release evidence for a run (admin only).
 
@@ -223,7 +223,7 @@ async def generate_and_save_evidence(
 )
 async def list_release_evidence(
     current_user: Annotated[User, Depends(require_admin)],
-    session=PIPELINE_V2_SESSION,
+    session=TEACHING_PACK_SESSION,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ) -> ReleaseEvidenceListResponse:
     """List recent release evidence records (admin only)."""

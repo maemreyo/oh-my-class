@@ -9,7 +9,7 @@ from common.contracts.quality import HealingStrategy, QualityFailureClass
 from services.gateway.quality_gates import classify_healing, validate_artifact_content
 
 if TYPE_CHECKING:
-    from services.gateway.pipeline_v2_types import JsonObject, JsonValue
+    from services.gateway.teaching_pack_types import JsonObject, JsonValue
 
 _ANSWER_KEY_PATTERN = re.compile(
     r"\b(?:answer key|answer:|correct:|solution:)",

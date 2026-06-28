@@ -18,8 +18,8 @@ from common.contracts.quality import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from services.gateway.pipeline_v2_snapshot_store import ArtifactSnapshotRead
-    from services.gateway.pipeline_v2_types import JsonObject, RunId
+    from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotRead
+    from services.gateway.teaching_pack_types import JsonObject, RunId
 
 _PLACEHOLDER_PATTERN = re.compile(
     r"\b(?:todo|placeholder|lorem ipsum|tbd)\b|\[tbd\]",

@@ -33,12 +33,12 @@ from ..notification_store import (
     get_notifications,
     mark_read,
 )
-from ..pipeline_v2_db import get_pipeline_v2_session
-from ..pipeline_v2_store import PipelineV2RunStore
-from ..pipeline_v2_types import RunId
+from ..teaching_pack_db import get_teaching_pack_session
+from ..teaching_pack_store import TeachingPackRunStore
+from ..teaching_pack_types import RunId
 
 router = APIRouter()
-PIPELINE_V2_SESSION = Depends(get_pipeline_v2_session)
+TEACHING_PACK_SESSION = Depends(get_teaching_pack_session)
 
 
 # ── Schemas ────────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ async def list_notifications(
     http_request: Request,
     current_user: Annotated[User, Depends(require_teacher)],
     unread_only: bool = False,
-    session: AsyncSession = PIPELINE_V2_SESSION,
+    session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> list[NotificationResponse]:
     """List notifications for the authenticated teacher."""
     notifications = await get_notifications(
@@ -115,7 +115,7 @@ async def read_notification(
     notification_id: str,
     http_request: Request,
     current_user: Annotated[User, Depends(require_teacher)],
-    session: AsyncSession = PIPELINE_V2_SESSION,
+    session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> dict[str, str]:
     """Mark a notification as read."""
     # Verify ownership
@@ -134,7 +134,7 @@ async def dismiss(
     body: DismissRequest,
     http_request: Request,
     current_user: Annotated[User, Depends(require_teacher)],
-    session: AsyncSession = PIPELINE_V2_SESSION,
+    session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> dict[str, str]:
     """Dismiss a notification delivery for a channel."""
     # Verify ownership
@@ -161,7 +161,7 @@ async def list_admin_runs(
     teacher_id: str | None = None,
     limit: int = 50,
     offset: int = 0,
-    session: AsyncSession = PIPELINE_V2_SESSION,
+    session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> AdminRunListResponse:
     bounded_limit = min(max(limit, 1), 100)
     bounded_offset = max(offset, 0)
@@ -200,10 +200,10 @@ async def get_run_summary(
     run_id: str,
     http_request: Request,
     current_user: Annotated[User, Depends(require_admin)],
-    session: AsyncSession = PIPELINE_V2_SESSION,
+    session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> RunSummaryResponse:
     """Safe run summary for admin — no PII beyond teacher_id."""
-    store = PipelineV2RunStore(session)
+    store = TeachingPackRunStore(session)
     run = await store.get_run_by_id(RunId(run_id))
     if run is None:
         raise NotFoundError(message=f"Run {run_id} not found")
@@ -225,11 +225,11 @@ async def recover_run(
     body: RecoveryRequest,
     http_request: Request,
     current_user: Annotated[User, Depends(require_admin)],
-    session: AsyncSession = PIPELINE_V2_SESSION,
+    session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> RecoveryResponse:
     """Execute a safe admin recovery action on a run."""
     # Validate run exists
-    store = PipelineV2RunStore(session)
+    store = TeachingPackRunStore(session)
     run = await store.get_run_by_id(RunId(run_id))
     if run is None:
         raise NotFoundError(message=f"Run {run_id} not found")

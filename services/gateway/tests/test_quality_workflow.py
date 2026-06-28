@@ -9,14 +9,14 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from common.contracts.quality import ArtifactQualityReport, QualityFailureClass, QualityIssue
 from services.gateway.models import Base, Run
-from services.gateway.pipeline_v2_models import RunEvent
-from services.gateway.pipeline_v2_snapshot_models import ArtifactSnapshot
-from services.gateway.pipeline_v2_snapshot_store import (
+from services.gateway.teaching_pack_models import RunEvent
+from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot
+from services.gateway.teaching_pack_snapshot_store import (
     ArtifactSnapshotCreate,
-    PipelineV2SnapshotStore,
+    TeachingPackSnapshotStore,
 )
-from services.gateway.pipeline_v2_store import PipelineV2RunCreate, PipelineV2RunStore
-from services.gateway.pipeline_v2_types import JsonObject, RunId, TeacherId
+from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
 from services.gateway.quality_workflow import (
     evaluate_export_readiness,
     write_artifact_quality_event,
@@ -39,7 +39,7 @@ async def session() -> AsyncIterator[AsyncSession]:
             lambda sync_connection: set(Base.metadata.tables),
         )
         if "public.run_events" not in existing_tables:
-            pytest.skip("Pipeline V2 tables are not present")
+            pytest.skip("Teaching Pack tables are not present")
     async with session_factory() as database_session:
         yield database_session
         await database_session.rollback()
@@ -63,7 +63,7 @@ async def test_quality_event_payload_is_compact(session: AsyncSession) -> None:
     event = await write_artifact_quality_event(session, run_id, report)
     await session.commit()
 
-    assert event.event_name == "pipeline_v2.quality.artifact_failed"
+    assert event.event_name == "teaching_pack.quality.artifact_failed"
     assert event.payload == {
         "artifact_id": "quiz-1",
         "artifact_type": "quiz",
@@ -83,7 +83,7 @@ async def test_export_readiness_uses_approved_snapshots_and_writes_event(
 ) -> None:
     run_id = RunId(f"test-{uuid4()}")
     await _create_run(session, run_id)
-    await PipelineV2SnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+    await TeachingPackSnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
         snapshot_id="snap-lesson",
         run_id=run_id,
         artifact_id="lesson-1",
@@ -92,7 +92,7 @@ async def test_export_readiness_uses_approved_snapshots_and_writes_event(
         rendered_html="<!DOCTYPE html><html><body>oh-my-class</body></html>",
         renderer_version="renderer@test",
     ))
-    await PipelineV2SnapshotStore(session).approve_snapshots(run_id, ["snap-lesson"])
+    await TeachingPackSnapshotStore(session).approve_snapshots(run_id, ["snap-lesson"])
 
     report = await evaluate_export_readiness(session, run_id, ("lesson", "quiz"))
     stored_event = await _latest_event(session, run_id)
@@ -106,7 +106,7 @@ async def test_export_readiness_uses_approved_snapshots_and_writes_event(
 
 
 async def _create_run(session: AsyncSession, run_id: RunId) -> None:
-    await PipelineV2RunStore(session).create_run(PipelineV2RunCreate(
+    await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
         run_id=run_id,
         teacher_id=TeacherId("teacher-quality"),
         raw_request="Teach quality gates",

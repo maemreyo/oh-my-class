@@ -12,7 +12,7 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 from fastapi import FastAPI  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
+from starlette.testclient import TestClient  # noqa: E402
 
 from services.gateway.routers.webhooks import router as webhooks_router  # noqa: E402
 

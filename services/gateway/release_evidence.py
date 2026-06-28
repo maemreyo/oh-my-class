@@ -116,7 +116,7 @@ class ReleaseEvidence:
 # ── Evidence generation ──────────────────────────────────────────────
 
 if TYPE_CHECKING:
-    from services.gateway.pipeline_v2_types import RunId
+    from services.gateway.teaching_pack_types import RunId
 
 
 async def generate_evidence(run_id: RunId, db: AsyncSession) -> ReleaseEvidence:
@@ -128,7 +128,7 @@ async def generate_evidence(run_id: RunId, db: AsyncSession) -> ReleaseEvidence:
     from sqlalchemy import select
 
     from services.gateway.models import Artifact, Run
-    from services.gateway.pipeline_v2_models import ArtifactSnapshot, RunEvent
+    from services.gateway.teaching_pack_models import ArtifactSnapshot, RunEvent
 
     # ── Run ──────────────────────────────────────────────────────────
     run_result = await db.execute(select(Run).where(Run.run_id == run_id))
@@ -227,7 +227,7 @@ def render_evidence_markdown(evidence: ReleaseEvidence) -> str:
 
     return "\n".join(
         (
-            f"# Pipeline V2 Release Evidence — {evidence.run_id}",
+            f"# Teaching Pack Release Evidence — {evidence.run_id}",
             "",
             f"- Status: {evidence.status}",
             f"- Teacher hash: {evidence.teacher_id_hash}",
@@ -248,6 +248,6 @@ def render_evidence_markdown(evidence: ReleaseEvidence) -> str:
 
 def write_evidence_report(evidence: ReleaseEvidence, directory: Path) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
-    report_path = directory / f"pipeline-v2-evidence-{evidence.run_id}.md"
+    report_path = directory / f"teaching-pack-run-evidence-{evidence.run_id}.md"
     report_path.write_text(render_evidence_markdown(evidence), encoding="utf-8")
     return report_path

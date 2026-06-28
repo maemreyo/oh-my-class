@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from services.gateway.pipeline_v2_control_store import GateInterruptCreate, PipelineV2ControlStore
-from services.gateway.pipeline_v2_models import PipelineV2EventVisibility
-from services.gateway.pipeline_v2_store import PipelineV2EventCreate, PipelineV2RunStore
+from services.gateway.teaching_pack_control_store import GateInterruptCreate, TeachingPackControlStore
+from services.gateway.teaching_pack_models import TeachingPackEventVisibility
+from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
 
 if TYPE_CHECKING:
-    from services.gateway.pipeline_v2_types import JsonObject, RunId
+    from services.gateway.teaching_pack_types import JsonObject, RunId
     from services.gateway.research_engine import SearchPlan
 
 
@@ -30,14 +30,14 @@ async def prepare_search_plan_gate(
     *,
     run_id: RunId,
     plan: SearchPlan,
-    control_store: PipelineV2ControlStore,
-    run_store: PipelineV2RunStore,
+    control_store: TeachingPackControlStore,
+    run_store: TeachingPackRunStore,
 ) -> SearchPlanGateResult:
     if not plan.requires_confirmation:
-        await run_store.write_event(PipelineV2EventCreate(
+        await run_store.write_event(TeachingPackEventCreate(
             run_id=run_id,
-            event_name="pipeline_v2.search_plan.skipped_confirmation",
-            visibility=PipelineV2EventVisibility.INTERNAL,
+            event_name="teaching_pack.search_plan.skipped_confirmation",
+            visibility=TeachingPackEventVisibility.INTERNAL,
             payload={"query_count": plan.brief.query_count},
         ))
         return SearchPlanGateSkipped(reason="not_required")
@@ -49,10 +49,10 @@ async def prepare_search_plan_gate(
         gate_name="search_plan_confirmation",
         payload=_gate_payload(gate_id, plan),
     ))
-    await run_store.write_event(PipelineV2EventCreate(
+    await run_store.write_event(TeachingPackEventCreate(
         run_id=run_id,
-        event_name="pipeline_v2.search_plan_confirmation.opened",
-        visibility=PipelineV2EventVisibility.TEACHER,
+        event_name="teaching_pack.search_plan_confirmation.opened",
+        visibility=TeachingPackEventVisibility.TEACHER,
         payload={"gate_id": gate_id, "query_count": plan.brief.query_count},
     ))
     return SearchPlanGateOpened(gate_id=gate_id)

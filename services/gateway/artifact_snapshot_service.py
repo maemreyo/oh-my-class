@@ -7,7 +7,7 @@ The flow:
   1. Accept ArtifactContent (dict with title, sections, theme, etc.)
   2. Render to standalone HTML via renderer_adapter.render_artifact_content()
   3. Strip student answer keys via snapshot_store helpers
-  4. Persist via PipelineV2SnapshotStore.create_snapshot()
+  4. Persist via TeachingPackSnapshotStore.create_snapshot()
 """
 
 from __future__ import annotations
@@ -15,12 +15,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from services.gateway.pipeline_v2_snapshot_store import (
+from services.gateway.teaching_pack_snapshot_store import (
     ArtifactSnapshotCreate,
-    PipelineV2SnapshotStore,
+    TeachingPackSnapshotStore,
 )
 from services.gateway.renderer_adapter import render_artifact_content, RendererConfig
-from services.gateway.pipeline_v2_types import RunId
+from services.gateway.teaching_pack_types import RunId
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,7 +73,7 @@ async def produce_artifact_snapshot(
     # Step 2: Persist via snapshot store
     # The snapshot store handles stripping answer keys internally
     snapshot_id = f"snapshot-{uuid4().hex[:12]}"
-    snapshot_store = PipelineV2SnapshotStore(session)
+    snapshot_store = TeachingPackSnapshotStore(session)
     snapshot_create = ArtifactSnapshotCreate(
         snapshot_id=snapshot_id,
         run_id=run_id,

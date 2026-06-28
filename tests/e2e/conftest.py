@@ -20,19 +20,19 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from services.gateway.models import Base, Run, RunStatus
-from services.gateway.pipeline_v2_models import (
+from services.gateway.teaching_pack_models import (
     ArtifactSnapshot,
     GateInterrupt,
     RunEvent,
     RunStatusHistory,
 )
-from services.gateway.pipeline_v2_store import (
-    PipelineV2EventCreate,
-    PipelineV2RunCreate,
-    PipelineV2RunStore,
-    PipelineV2StatusTransition,
+from services.gateway.teaching_pack_store import (
+    TeachingPackEventCreate,
+    TeachingPackRunCreate,
+    TeachingPackRunStore,
+    TeachingPackStatusTransition,
 )
-from services.gateway.pipeline_v2_types import RunId, TeacherId
+from services.gateway.teaching_pack_types import RunId, TeacherId
 
 if TYPE_CHECKING:
     pass
@@ -50,7 +50,7 @@ async def db_engine():
             lambda c: set(Base.metadata.tables.keys()),
         )
         if "runs" not in existing:
-            pytest.skip("Pipeline V2 tables are not present")
+            pytest.skip("Teaching Pack tables are not present")
     yield engine
     await engine.dispose()
 

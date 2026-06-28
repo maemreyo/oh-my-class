@@ -1,1 +1,1 @@
-"""E2E test suite for Pipeline V2 — deterministic, no real LLM calls."""
+"""E2E test suite for Teaching Pack — deterministic, no real LLM calls."""

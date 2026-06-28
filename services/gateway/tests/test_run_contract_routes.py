@@ -5,24 +5,24 @@ from typing import TYPE_CHECKING
 import anyio
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from starlette.testclient import TestClient
 
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import Role, User
 from services.gateway.backpressure import BackpressureConfig
 from services.gateway.models import Base, Run
-from services.gateway.pipeline_v2_db import get_pipeline_v2_session
-from services.gateway.pipeline_v2_models import (
+from services.gateway.routers.teaching_pack_runs import _default_backpressure_config, router
+from services.gateway.teaching_pack_db import get_teaching_pack_session
+from services.gateway.teaching_pack_models import (
     ContractRevision,
     GateInterrupt,
     GateResponse,
     RunContract,
     RunJob,
 )
-from services.gateway.pipeline_v2_types import RunId
-from services.gateway.routers.pipeline_v2_runs import _default_backpressure_config, router
+from services.gateway.teaching_pack_types import RunId
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
@@ -36,7 +36,7 @@ DATABASE_URL = "postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class"
 def client() -> Iterator[TestClient]:
     anyio.run(_skip_if_schema_missing)
     app = FastAPI()
-    app.include_router(router, prefix="/pipeline-v2")
+    app.include_router(router, prefix="/teaching-packs")
 
     async def override_session() -> AsyncIterator[AsyncSession]:
         engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
@@ -50,7 +50,7 @@ def client() -> Iterator[TestClient]:
         username="teacher-route",
         role=Role.TEACHER,
     )
-    app.dependency_overrides[get_pipeline_v2_session] = override_session
+    app.dependency_overrides[get_teaching_pack_session] = override_session
     app.dependency_overrides[_default_backpressure_config] = lambda: BackpressureConfig(
         max_active_runs_per_teacher=999_999,
         max_total_active_runs=999_999,
@@ -61,7 +61,7 @@ def client() -> Iterator[TestClient]:
 
 class TestRunContractRoutes:
     def test_missing_required_fields_open_clarification_gate(self, client: TestClient) -> None:
-        response = client.post("/pipeline-v2/run", json={"raw_request": " ", "class_info": {}})
+        response = client.post("/teaching-packs/run", json={"raw_request": " ", "class_info": {}})
 
         assert response.status_code == 202
         data = response.json()
@@ -77,7 +77,7 @@ class TestRunContractRoutes:
         client: TestClient,
     ) -> None:
         response = client.post(
-            "/pipeline-v2/run",
+            "/teaching-packs/run",
             json={"raw_request": "Teach fractions", "class_info": {"grade": 5, "subject": "math"}},
         )
 
@@ -95,7 +95,7 @@ class TestRunContractRoutes:
         client: TestClient,
     ) -> None:
         response = client.post(
-            "/pipeline-v2/run",
+            "/teaching-packs/run",
             json={
                 "raw_request": "Fractions",
                 "class_info": {"topic": "Fractions", "grade": 5, "subject": "math"},
@@ -114,7 +114,7 @@ async def _skip_if_schema_missing() -> None:
     async with engine.begin() as connection:
         existing_tables = await connection.run_sync(lambda _: set(Base.metadata.tables))
         if "public.run_jobs" not in existing_tables:
-            pytest.skip("Pipeline V2 route tables are not present")
+            pytest.skip("Teaching Pack route tables are not present")
     await engine.dispose()
 
 
