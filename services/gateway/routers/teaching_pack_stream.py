@@ -21,6 +21,7 @@ stream_router = APIRouter()
 
 
 @stream_router.get("/run/{run_id}/status")
+@stream_router.get("/runs/{run_id}/status")
 async def stream_teaching_pack_status(
     run_id: str,
     current_user: Annotated[User, Depends(require_teacher)],

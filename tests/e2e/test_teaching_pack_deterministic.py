@@ -417,26 +417,26 @@ class TestExport:
         await create_test_run(session, run_id=run_id, teacher_id=teacher_id)
 
         store = TeachingPackRunStore(session)
-        content_hash = f"hash-{uuid4().hex[:8]}"
-        html_hash = f"html-{uuid4().hex[:8]}"
+        content_json = {"title": "Equivalent Fractions Worksheet"}
+        rendered_html = "<!DOCTYPE html><html><body>worksheet</body></html>"
 
         from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate
         await store.create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=f"snap-{uuid4()}",
             run_id=run_id,
             artifact_id="art-001",
             artifact_type="worksheet",
-            content_hash=content_hash,
-            html_hash=html_hash,
-            content_json={"title": "Equivalent Fractions Worksheet"},
-            rendered_html="<!DOCTYPE html><html><body>worksheet</body></html>",
+            content_json=content_json,
+            rendered_html=rendered_html,
             student_rendered_html="<!DOCTYPE html><html><body>student view</body></html>",
             renderer_version="1.0.0",
             template_version="1.0.0",
             theme_version="1.0.0",
-            standalone_valid=True,
         ))
         await session.flush()
 
+        from services.gateway.teaching_pack_snapshot_store import snapshot_content_hash
+        content_hash = snapshot_content_hash(content_json, rendered_html)
         has = await store.has_snapshot(content_hash)
         assert has is True
         has_other = await store.has_snapshot("nonexistent-hash")
@@ -450,23 +450,25 @@ class TestExport:
         from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate
         for i in range(3):
             await store.create_snapshot(ArtifactSnapshotCreate(
+                snapshot_id=f"snap-{i}-{uuid4()}",
                 run_id=run_id,
                 artifact_id=f"art-{i}",
                 artifact_type=["lesson", "worksheet", "quiz"][i],
-                content_hash=f"content-{i}",
-                html_hash=f"html-{i}",
                 content_json={"title": f"Artifact {i}"},
-                rendered_html=f"<html>artifact {i}</html>",
-                student_rendered_html=f"<html>student {i}</html>",
+                rendered_html=f"<!DOCTYPE html><html><body>artifact {i}</body></html>",
+                student_rendered_html=f"<!DOCTYPE html><html><body>student {i}</body></html>",
                 renderer_version="1.0",
                 template_version="1.0",
                 theme_version="1.0",
-                standalone_valid=True,
             ))
         await session.flush()
 
+        from services.gateway.teaching_pack_snapshot_store import snapshot_content_hash
         for i in range(3):
-            assert await store.has_snapshot(f"content-{i}")
+            assert await store.has_snapshot(snapshot_content_hash(
+                {"title": f"Artifact {i}"},
+                f"<!DOCTYPE html><html><body>artifact {i}</body></html>",
+            ))
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -583,8 +585,6 @@ class TestReleaseEvidenceGeneration:
             await save_evidence(ev, session)
         await session.flush()
 
-        items = await list_evidence(session, limit=10)
-        assert len(items) == 3
-        # Created most recently first (all share same created_at so order is by insertion)
+        items = await list_evidence(session, limit=50)
         run_ids = [e.run_id for e in items]
-        assert "run-list-0" in run_ids
+        assert {"run-list-0", "run-list-1", "run-list-2"}.issubset(set(run_ids))

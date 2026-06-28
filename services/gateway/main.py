@@ -40,6 +40,40 @@ async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
             await session.commit()
 
 
+async def _run_teaching_pack_worker(app: FastAPI, task_group: anyio.abc.TaskGroup) -> None:
+    from .teaching_pack_executor import (
+        TeachingPackCompletionRecorder,
+        TeachingPackExecutor,
+        TeachingPackFailureRecorder,
+    )
+    from .teaching_pack_job_store import TeachingPackJobStore
+    from .teaching_pack_store import TeachingPackRunStore
+    from .teaching_pack_worker import TeachingPackWorker, TeachingPackWorkerConfig
+
+    while True:
+        async with app.state.teaching_pack_session_factory() as session:
+            run_store = TeachingPackRunStore(session)
+            executor = TeachingPackExecutor(
+                app.state.teaching_pack_graph,
+                task_group,
+                TeachingPackFailureRecorder(run_store),
+                TeachingPackCompletionRecorder(run_store),
+            )
+            worker = TeachingPackWorker(
+                TeachingPackJobStore(session),
+                executor,
+                TeachingPackWorkerConfig(
+                    worker_id="gateway-worker",
+                    lease_seconds=120,
+                    idle_sleep_seconds=1.0,
+                ),
+            )
+            did_work = await worker.run_one()
+            await session.commit()
+        if not did_work:
+            await anyio.sleep(1)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle — initialize checkpointer, graph, LLM clients."""
@@ -49,6 +83,7 @@ async def lifespan(app: FastAPI):
 
     from packages.agents.checkpointer import get_checkpointer
     from packages.agents.graph import build_oh_my_class_graph
+    from packages.agents.teaching_pack.graph import build_teaching_pack_graph
 
     environment = os.getenv("OMC_ENVIRONMENT", "development")
     database_url = os.getenv(
@@ -66,9 +101,11 @@ async def lifespan(app: FastAPI):
         environment=environment,
         checkpointer=app.state.checkpointer,
     )
+    app.state.teaching_pack_graph = build_teaching_pack_graph()
 
     async with anyio.create_task_group() as task_group:
         task_group.start_soon(_run_teaching_pack_sweeper, app)
+        task_group.start_soon(_run_teaching_pack_worker, app, task_group)
         try:
             yield
         finally:

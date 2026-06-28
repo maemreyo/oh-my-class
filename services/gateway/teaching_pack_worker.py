@@ -95,6 +95,9 @@ def _initial_state(job: RunJobRead) -> JsonObject:
     initial_state = job.payload.get("initial_state")
     if isinstance(initial_state, dict):
         return initial_state
+    contract = job.payload.get("contract")
+    if isinstance(contract, dict):
+        return {"run_id": job.run_id, "contract": contract}
     return {"run_id": job.run_id}
 
 

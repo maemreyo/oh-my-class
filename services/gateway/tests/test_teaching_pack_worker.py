@@ -106,6 +106,34 @@ class TestTeachingPackWorker:
         assert status is RunJobStatus.COMPLETED
         await _delete_run(session, run_id)
 
+    async def test_run_one_passes_contract_to_start_job_initial_state(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        run_id = await _create_run(session)
+        contract = {"run_id": run_id, "topic": "Fractions"}
+        await _enqueue_job(
+            session,
+            run_id,
+            RunJobKind.START,
+            {"contract": contract},
+        )
+        executor = RecordingExecutor()
+        worker = TeachingPackWorker(
+            TeachingPackJobStore(session),
+            executor,
+            TeachingPackWorkerConfig(worker_id="worker-a", lease_seconds=30, idle_sleep_seconds=0),
+        )
+
+        did_work = await worker.run_one()
+
+        assert did_work is True
+        assert executor.start_jobs == [TeachingPackStartJob(
+            run_id=run_id,
+            initial_state={"run_id": run_id, "contract": contract},
+        )]
+        await _delete_run(session, run_id)
+
     async def test_run_one_executes_resume_job_and_marks_completed(
         self,
         session: AsyncSession,

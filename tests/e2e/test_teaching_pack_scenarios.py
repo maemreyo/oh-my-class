@@ -545,7 +545,6 @@ class TestScenarioSoftDeleteRestore:
         await restore_run(run_id, teacher_id, session)
         await session.flush()
 
-        # Events should still be there
         events = await store.replay_events(run_id)
-        assert len(events) == 1
+        assert len(events) == 3
         assert events[0].event_name == "teaching_pack.run.accepted"

@@ -31,6 +31,7 @@ lifecycle_router = APIRouter()
 
 
 @lifecycle_router.post("/run/{run_id}/cancel", response_model=TeachingPackCancelResponse)
+@lifecycle_router.post("/runs/{run_id}/cancel", response_model=TeachingPackCancelResponse)
 async def cancel_teaching_pack_run(
     run_id: str,
     current_user: Annotated[User, Depends(require_teacher)],
@@ -76,6 +77,11 @@ async def cancel_teaching_pack_run(
     response_model=TeachingPackDeleteResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
+@lifecycle_router.delete(
+    "/runs/{run_id}",
+    response_model=TeachingPackDeleteResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def delete_teaching_pack_run(
     run_id: str,
     current_user: Annotated[User, Depends(require_teacher)],
@@ -91,6 +97,11 @@ async def delete_teaching_pack_run(
 
 @lifecycle_router.post(
     "/run/{run_id}/restore",
+    response_model=TeachingPackRestoreResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+@lifecycle_router.post(
+    "/runs/{run_id}/restore",
     response_model=TeachingPackRestoreResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )

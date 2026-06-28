@@ -20,13 +20,73 @@ if TYPE_CHECKING:
 
 
 _JSON_ONLY_SUFFIX = (
-    "\n\nCRITICAL: Respond ONLY with a JSON array of ArtifactContent objects. "
+    "\n\nCRITICAL: Respond ONLY with a single JSON ArtifactContent object. "
     "No prose, no explanation, no markdown code fences. Just the raw JSON."
 )
 
 
+# ── Prompt helpers ─────────────────────────────────────────────────────────
+
+
+def _build_single_artifact_prompt(
+    lesson_summary: dict[str, Any],
+    research_summary: dict[str, Any],
+    artifact_type: str,
+    theme: str,
+) -> str:
+    """Build a user prompt asking for exactly ONE ArtifactContent object."""
+    return f"""Generate a single '{artifact_type}' artifact for the following lesson:
+
+Lesson Plan Summary:
+{json.dumps(lesson_summary, ensure_ascii=False, indent=2)}
+
+Research Summary:
+{json.dumps(research_summary, ensure_ascii=False, indent=2)}
+
+Theme: {theme}
+
+Generate exactly one ArtifactContent JSON object of type '{artifact_type}'.
+Do NOT return an array. Return a single JSON object."""
+
+
+def _retry_single_artifact_prompt(
+    base_user_prompt: str,
+    artifact_type: str,
+    error: BaseException,
+    last_content: str | None = None,
+) -> str:
+    """Build a retry prompt for a single artifact type."""
+    failed_output_section = ""
+    if last_content:
+        failed_output_section = f"""
+Your previous output (which failed validation):
+{last_content[:3000]}
+
+"""
+    return f"""
+{failed_output_section}Previous validation error:
+{str(error)[:1200]}
+
+Fix the specific issues above. Return ONLY a single JSON ArtifactContent object of type '{artifact_type}'.
+Do not return an array. Do not return markdown or prose. Every component must satisfy its required fields:
+- heading: type, level (1|2|3|4), text
+- paragraph: type, text
+- callout: type, variant (note|warning|tip|alert), body
+- question_card: type, id, text, options (dict with A-D keys), answer, explain
+- question_list: type, questions (list of question_card), section_key, group, title
+
+{base_user_prompt}
+"""
+
+
+# ── Main node ──────────────────────────────────────────────────────────────
+
+
 async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
     """Generate lesson artifacts from plan + research.
+
+    Iterates artifact types and makes one LLM call per type, each returning
+    a single ArtifactContent object.
 
     Returns: {"artifacts": [...]}
     """
@@ -36,23 +96,6 @@ async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
     theme = state.get("theme", "default")
     lesson_summary = summarize_lesson_plan(lesson_plan)
     research_summary = summarize_research_bundle(research_bundle)
-
-    user_prompt = f"""
-Generate artifacts for the following lesson:
-
-Lesson Plan Summary:
-{json.dumps(lesson_summary, ensure_ascii=False, indent=2)}
-
-Research Summary:
-{json.dumps(research_summary, ensure_ascii=False, indent=2)}
-
-Artifact types to generate: {artifact_types}
-Theme: {theme}
-
-Please generate one ArtifactContent JSON for each artifact type.
-Return a JSON array of artifacts.
-"""
-    base_user_prompt = user_prompt
 
     from packages.agents.config.models import MODELS
     from packages.agents.llm import (
@@ -71,100 +114,143 @@ Return a JSON array of artifacts.
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 8))
     system_prompt = load_system_prompt() + _JSON_ONLY_SUFFIX
-    messages = chat_messages(system_prompt, user_prompt)
-    prompt_module = (
-        "content_creator_mcq_v1" if "quiz" in artifact_types
-        else "content_creator_lesson_v1"
-    )
-    compiled = PromptCompiler(create_seeded_registry()).compile(
-        module_id=prompt_module, variables={},
-    )
 
-    content = None
-    last_content = None
-    for attempt in range(3):
-        attempt_number = attempt + 1
-        started = log_llm_start(
-            "content_creator", run_id, step, model, attempt_number,
+    validated_artifacts: list[dict[str, Any]] = []
+    artifact_failure_context: list[dict[str, Any]] = []
+
+    for artifact_type in artifact_types:
+        user_prompt = _build_single_artifact_prompt(
+            lesson_summary, research_summary, artifact_type, theme,
         )
-        try:
-            content = await compiled_json_chat(
-                model=model,
-                compiled=compiled,
-                messages=messages,
-                temperature=0.3,
-                tags=[
-                    "agent:content_creator",
-                    f"step:{state.get('current_step', 8)}",
-                    f"run:{state.get('run_id', '')}",
-                    f"attempt:{attempt_number}",
-                    "pipeline:oh-my-class",
-                ],
+        base_user_prompt = user_prompt
+        messages = chat_messages(system_prompt, user_prompt)
+
+        prompt_module = (
+            "content_creator_mcq_v1" if artifact_type == "quiz"
+            else "content_creator_lesson_v1"
+        )
+        compiled = PromptCompiler(create_seeded_registry()).compile(
+            module_id=prompt_module, variables={},
+        )
+
+        content = None
+        last_content = None
+        for attempt in range(3):
+            attempt_number = attempt + 1
+            started = log_llm_start(
+                "content_creator", run_id, step, model, attempt_number,
             )
-            last_content = content
-            log_llm_success("content_creator", run_id, step, model, attempt_number, started)
-            json_str = extract_json_text(content)
-            artifacts_data = json.loads(json_str)
-
-            if isinstance(artifacts_data, dict):
-                # LLM returned single object — wrap in array
-                artifacts_data = [artifacts_data]
-
-            artifacts = []
-            for artifact_data in artifacts_data:
-                artifact = ArtifactContent.model_validate(artifact_data)
-                artifacts.append(artifact.model_dump())
-
-            return {"artifacts": artifacts}
-        except (ValueError, json.JSONDecodeError) as parse_err:
-            log_llm_failure(
-                "content_creator", run_id, step, model, attempt_number, started, parse_err,
-            )
-            if attempt < 2:
-                messages = chat_messages(
-                    system_prompt,
-                    _retry_prompt(base_user_prompt, parse_err, last_content),
+            try:
+                content = await compiled_json_chat(
+                    model=model,
+                    compiled=compiled,
+                    messages=messages,
+                    temperature=0.3,
+                    tags=[
+                        "agent:content_creator",
+                        f"step:{state.get('current_step', 8)}",
+                        f"run:{state.get('run_id', '')}",
+                        f"attempt:{attempt_number}",
+                        f"artifact:{artifact_type}",
+                        "pipeline:oh-my-class",
+                    ],
                 )
-                continue
-            raise ValueError(f"Content creator agent failed: {parse_err}") from parse_err
-        except Exception as e:
-            log_llm_failure("content_creator", run_id, step, model, attempt_number, started, e)
-            if attempt < 2:
-                messages = chat_messages(system_prompt, _retry_prompt(base_user_prompt, e, last_content))
-                continue
-            _LOGGER.warning(
-                "content_creator.fallback_placeholder run_id=%s model=%s error=%s",
-                run_id, model, str(e)[:200],
-            )
-            topic = lesson_plan.get("topic", "Bài học")
-            placeholders = _build_placeholder_artifacts(artifact_types, theme, topic)
-            return {"artifacts": placeholders}
+                last_content = content
+                log_llm_success(
+                    "content_creator", run_id, step, model, attempt_number, started,
+                )
+                json_str = extract_json_text(content)
+                artifact_data = json.loads(json_str)
 
-    raise ValueError("Content creator agent failed: exhausted retries")
+                # Unwrap array — LLM should return single object but handle array too
+                if isinstance(artifact_data, list):
+                    if not artifact_data:
+                        raise ValueError("LLM returned empty array")
+                    artifact_data = artifact_data[0]
+
+                if not isinstance(artifact_data, dict):
+                    raise ValueError(
+                        f"Expected dict, got {type(artifact_data).__name__}",
+                    )
+
+                # Validate artifact_type matches request
+                returned_type = artifact_data.get("artifact_type")
+                if returned_type != artifact_type:
+                    raise ValueError(
+                        f"Artifact type mismatch: expected '{artifact_type}', "
+                        f"got '{returned_type}'",
+                    )
+
+                artifact = ArtifactContent.model_validate(artifact_data)
+                validated_artifacts.append(artifact.model_dump())
+                break  # success — move to next artifact type
+
+            except (ValueError, json.JSONDecodeError) as parse_err:
+                log_llm_failure(
+                    "content_creator", run_id, step, model,
+                    attempt_number, started, parse_err,
+                )
+                error_class = type(parse_err).__name__
+                _LOGGER.warning(
+                    "content_creator.artifact_failed artifact_type=%s "
+                    "attempts=%d error=%s",
+                    artifact_type, attempt_number, str(parse_err)[:200],
+                )
+                if attempt < 2:
+                    messages = chat_messages(
+                        system_prompt,
+                        _retry_single_artifact_prompt(
+                            base_user_prompt, artifact_type, parse_err, last_content,
+                        ),
+                    )
+                    continue
+                artifact_failure_context.append({
+                    "artifact_type": artifact_type,
+                    "attempts": attempt_number,
+                    "error_class": error_class,
+                    "last_error": str(parse_err)[:500],
+                })
+                raise ValueError(
+                    f"Content creator failed for '{artifact_type}' "
+                    f"({error_class}, after {attempt_number} attempts): "
+                    f"{parse_err}",
+                ) from parse_err
+
+            except Exception as e:
+                log_llm_failure(
+                    "content_creator", run_id, step, model,
+                    attempt_number, started, e,
+                )
+                error_class = type(e).__name__
+                _LOGGER.warning(
+                    "content_creator.artifact_failed artifact_type=%s "
+                    "attempts=%d error=%s",
+                    artifact_type, attempt_number, str(e)[:200],
+                )
+                if attempt < 2:
+                    messages = chat_messages(
+                        system_prompt,
+                        _retry_single_artifact_prompt(
+                            base_user_prompt, artifact_type, e, last_content,
+                        ),
+                    )
+                    continue
+                artifact_failure_context.append({
+                    "artifact_type": artifact_type,
+                    "attempts": attempt_number,
+                    "error_class": error_class,
+                    "last_error": str(e)[:500],
+                })
+                raise ValueError(
+                    f"Content creator failed for '{artifact_type}' "
+                    f"({error_class}, after {attempt_number} attempts): "
+                    f"{e}",
+                ) from e
+
+    return {"artifacts": validated_artifacts}
 
 
-def _retry_prompt(base_user_prompt: str, error: BaseException, last_content: str | None = None) -> str:
-    failed_output_section = ""
-    if last_content:
-        failed_output_section = f"""
-Your previous output (which failed validation):
-{last_content[:3000]}
-
-"""
-    return f"""
-{failed_output_section}Previous validation error:
-{str(error)[:1200]}
-
-Fix the specific issues above. Return ONLY a JSON array of ArtifactContent objects.
-Do not return markdown or prose. Every component must satisfy its required fields:
-- heading: type, level (1|2|3|4), text
-- paragraph: type, text
-- callout: type, variant (note|warning|tip|alert), body
-- question_card: type, id, text, options (dict with A-D keys), answer, explain
-- question_list: type, questions (list of question_card), section_key, group, title
-
-{base_user_prompt}
-"""
+# ── Placeholder fallback (kept for emergency use) ──────────────────────────
 
 
 def _build_placeholder_artifacts(
@@ -193,6 +279,9 @@ def _build_placeholder_artifacts(
         )
         placeholders.append(placeholder.model_dump())
     return placeholders
+
+
+# ── Validation utilities ───────────────────────────────────────────────────
 
 
 def validate_no_cdn(artifacts: list[dict[str, Any]]) -> list[str]:

@@ -37,6 +37,10 @@ PREVIEW_SECURITY_HEADERS = {
     "/run/{run_id}/snapshots/{snapshot_id}",
     response_model=RenderedSnapshotMetadataResponse,
 )
+@router.get(
+    "/runs/{run_id}/snapshots/{snapshot_id}",
+    response_model=RenderedSnapshotMetadataResponse,
+)
 async def get_rendered_snapshot_metadata(
     run_id: str,
     snapshot_id: str,
@@ -52,6 +56,7 @@ async def get_rendered_snapshot_metadata(
 
 
 @router.get("/run/{run_id}/snapshots/{snapshot_id}/preview")
+@router.get("/runs/{run_id}/snapshots/{snapshot_id}/preview")
 async def preview_rendered_snapshot(
     run_id: str,
     snapshot_id: str,
@@ -78,6 +83,10 @@ async def preview_rendered_snapshot(
 
 @router.post(
     "/run/{run_id}/approved-snapshots",
+    response_model=SnapshotApprovalResponse,
+)
+@router.post(
+    "/runs/{run_id}/approved-snapshots",
     response_model=SnapshotApprovalResponse,
 )
 async def approve_rendered_snapshots(

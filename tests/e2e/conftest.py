@@ -49,7 +49,7 @@ async def db_engine():
         existing = await conn.run_sync(
             lambda c: set(Base.metadata.tables.keys()),
         )
-        if "runs" not in existing:
+        if "public.runs" not in existing:
             pytest.skip("Teaching Pack tables are not present")
     yield engine
     await engine.dispose()
@@ -100,7 +100,13 @@ async def create_test_run(
         tokens_used=1234,
         cost_usd=0.042,
     )
-    session.add(run)
+    history = RunStatusHistory(
+        run_id=run_id,
+        status=status,
+        stage=None,
+        reason="created",
+    )
+    session.add_all([run, history])
     await session.flush()
 
 

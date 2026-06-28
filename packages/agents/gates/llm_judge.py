@@ -4,21 +4,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from packages.agents.config.gate_config import GateConfig
+from packages.agents.gates.artifact_extract import extract_student_text
 from packages.quality.layer2_content.component_scorer import score_component_usage
 
 if TYPE_CHECKING:
     from packages.agents.state import OhMyClassState
-
-
-def _extract_text_content(artifact: dict[str, Any]) -> str:
-    """Extract concatenated text from an artifact's sections list."""
-    sections = artifact.get("sections") or []
-    parts: list[str] = []
-    for section in sections:
-        text = section.get("content", "")
-        if isinstance(text, str) and text.strip():
-            parts.append(text.strip())
-    return "\n".join(parts)
 
 
 def _word_count(text: str) -> int:
@@ -44,7 +34,7 @@ def _score_artifact(
     """Score artifact strength until the real multi-judge is wired."""
     from packages.agents.config.gate_config import GateConfig
     config = GateConfig()
-    content = _extract_text_content(artifact)
+    content = extract_student_text(artifact)
     if not content or not content.strip():
         return 0.0
     artifact_type = str(artifact.get("artifact_type", "lesson"))

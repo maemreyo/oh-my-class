@@ -141,6 +141,16 @@ class TeachingPackRunStore:
             stage=payload.stage,
             reason=payload.reason,
         ))
+        await self.write_event(TeachingPackEventCreate(
+            run_id=payload.run_id,
+            event_name="teaching_pack.status.changed",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            payload={
+                "status": payload.status.value,
+                "stage": payload.stage,
+                "reason": payload.reason,
+            },
+        ))
         await self._session.flush()
 
     async def mark_stage_started(self, run_id: str, stage: TeachingPackStage) -> None:

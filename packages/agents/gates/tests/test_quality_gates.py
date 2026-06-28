@@ -491,3 +491,340 @@ class TestAnswerKeyGuard:
         artifact = {"artifact_type": "recap", "content": "Correct answer: B"}
         result = check_answer_key_leakage(artifact)
         assert result["passed"] is False
+
+
+class TestStep12Finalize:
+    """Tests for step_12_finalize URL checking and renderer optimization."""
+
+    def test_component_url_blocked(self):
+        """External URL inside a paragraph component blocks finalize."""
+        from packages.agents.nodes.finalize import _check_no_external_urls
+
+        artifact = {
+            "artifact_type": "lesson",
+            "title": "Test Lesson",
+            "sections": [
+                {
+                    "title": "Intro",
+                    "components": [
+                        {
+                            "type": "paragraph",
+                            "text": "See the diagram at https://cdn.example.com/diagram.png",
+                        },
+                    ],
+                },
+            ],
+        }
+        errors = _check_no_external_urls(artifact)
+        assert len(errors) == 1
+        assert "https://cdn.example.com/diagram.png" in errors[0]
+
+    def test_clean_component_passes(self):
+        """Artifact with clean component-only content passes URL check."""
+        from packages.agents.nodes.finalize import _check_no_external_urls
+
+        artifact = {
+            "artifact_type": "lesson",
+            "title": "Clean Lesson",
+            "sections": [
+                {
+                    "title": "Concept Map",
+                    "components": [
+                        {
+                            "type": "concept_map",
+                            "nodes": [{"id": "a", "label": "Sunlight"}],
+                            "edges": [],
+                        },
+                    ],
+                },
+            ],
+        }
+        errors = _check_no_external_urls(artifact)
+        assert errors == []
+
+    def test_section_content_url_still_caught(self):
+        """External URL in section.content is still caught (backward compat)."""
+        from packages.agents.nodes.finalize import _check_no_external_urls
+
+        artifact = {
+            "artifact_type": "lesson",
+            "title": "Legacy Lesson",
+            "sections": [
+                {
+                    "content": "Visit https://external.com/resource for more info",
+                },
+            ],
+        }
+        errors = _check_no_external_urls(artifact)
+        assert len(errors) == 1
+        assert "https://external.com/resource" in errors[0]
+
+    def test_teacher_only_section_urls_not_flagged(self):
+        """URLs inside teacher_only sections are NOT flagged."""
+        from packages.agents.nodes.finalize import _check_no_external_urls
+
+        artifact = {
+            "artifact_type": "lesson",
+            "title": "Teacher Lesson",
+            "sections": [
+                {
+                    "title": "Answer Key",
+                    "teacher_only": True,
+                    "content": "See https://teacher-only.com/answers for details",
+                },
+                {
+                    "title": "Student Work",
+                    "content": "Write your answer below.",
+                },
+            ],
+        }
+        errors = _check_no_external_urls(artifact)
+        assert errors == []
+
+    def test_component_callout_url_blocked(self):
+        """URL inside a callout component body blocks finalize."""
+        from packages.agents.nodes.finalize import _check_no_external_urls
+
+        artifact = {
+            "artifact_type": "worksheet",
+            "title": "Test Worksheet",
+            "sections": [
+                {
+                    "components": [
+                        {
+                            "type": "callout",
+                            "variant": "tip",
+                            "body": "Watch the video at https://youtube.com/watch?v=abc123",
+                        },
+                    ],
+                },
+            ],
+        }
+        errors = _check_no_external_urls(artifact)
+        assert len(errors) == 1
+        assert "https://youtube.com/watch?v=abc123" in errors[0]
+
+    def test_step_12_finalize_returns_export_ready_false_on_url(self):
+        """Full step_12_finalize returns export_ready=False when URLs found."""
+        from unittest.mock import patch
+
+        from packages.agents.nodes.finalize import step_12_finalize
+
+        artifact = {
+            "artifact_type": "lesson",
+            "title": "Bad Lesson",
+            "sections": [
+                {
+                    "components": [
+                        {
+                            "type": "paragraph",
+                            "text": "Go to https://cdn.example.com/x.png",
+                        },
+                    ],
+                },
+            ],
+        }
+        state = make_base_state(
+            artifacts=[artifact],
+            export_formats=["html"],
+        )
+        with patch("packages.agents.nodes.finalize._build_renderer"):
+            with patch("packages.agents.nodes.finalize._render_artifact_with_renderer"):
+                result = step_12_finalize(state)
+        assert result["export_ready"] is False
+        assert result["fail_layer"] == "export"
+        assert result["fail_type"] == "invariant"
+        assert len(result["fail_context"]["errors"]) == 1
+
+    def test_step_12_finalize_runs_build_once(self):
+        """Renderer build is called once, not per artifact."""
+        from unittest.mock import MagicMock, patch
+
+        from packages.agents.nodes.finalize import step_12_finalize
+
+        artifacts = [
+            {
+                "artifact_type": "lesson",
+                "title": f"Lesson {i}",
+                "sections": [{"content": f"Content for lesson {i}"}],
+            }
+            for i in range(3)
+        ]
+        state = make_base_state(
+            artifacts=artifacts,
+            export_formats=["html"],
+        )
+        mock_build = MagicMock()
+        mock_render = MagicMock(return_value="<html></html>")
+        with patch("packages.agents.nodes.finalize._build_renderer", mock_build):
+            with patch("packages.agents.nodes.finalize._render_artifact_with_renderer", mock_render):
+                result = step_12_finalize(state)
+        assert mock_build.call_count == 1
+        assert mock_render.call_count == 3
+        assert len(result["exported_files"]) == 3
+
+    def test_teacher_only_artifacts_skipped(self):
+        """teacher_only artifacts are skipped in export."""
+        from unittest.mock import MagicMock, patch
+
+        from packages.agents.nodes.finalize import step_12_finalize
+
+        artifacts = [
+            {
+                "artifact_type": "lesson",
+                "title": "Student Lesson",
+                "sections": [{"content": "Hello students"}],
+            },
+            {
+                "artifact_type": "lesson",
+                "title": "Teacher Guide",
+                "teacher_only": True,
+                "sections": [{"content": "Answer key here"}],
+            },
+        ]
+        state = make_base_state(
+            artifacts=artifacts,
+            export_formats=["html"],
+        )
+        mock_render = MagicMock(return_value="<html></html>")
+        with patch("packages.agents.nodes.finalize._build_renderer"):
+            with patch("packages.agents.nodes.finalize._render_artifact_with_renderer", mock_render):
+                result = step_12_finalize(state)
+        assert mock_render.call_count == 1
+        assert len(result["exported_files"]) == 1
+        assert result["exported_files"][0]["title"] == "Student Lesson"
+
+
+COMPONENT_ONLY_LESSON = {
+    "artifact_type": "lesson",
+    "title": "Component-Only Photosynthesis",
+    "sections": [
+        {
+            "title": "Introduction",
+            "components": [
+                {
+                    "type": "paragraph",
+                    "text": (
+                        "Photosynthesis is the process by which plants convert "
+                        "sunlight, water, and carbon dioxide into glucose and "
+                        "oxygen. This lesson explores each stage in detail."
+                    ),
+                },
+                {
+                    "type": "concept_map",
+                    "nodes": [
+                        {"id": "sun", "label": "Sunlight"},
+                        {"id": "water", "label": "Water"},
+                        {"id": "glucose", "label": "Glucose"},
+                    ],
+                    "edges": [
+                        {"from": "sun", "to": "glucose", "label": "energy"},
+                    ],
+                },
+            ],
+        },
+        {
+            "title": "Key Concepts",
+            "components": [
+                {
+                    "type": "paragraph",
+                    "text": (
+                        "During the light-dependent reactions, chlorophyll absorbs "
+                        "sunlight and splits water molecules to release oxygen. "
+                        "The energy is stored as ATP and NADPH for the next stage."
+                    ),
+                },
+                {
+                    "type": "question_card",
+                    "text": "Which gas do plants release during photosynthesis?",
+                    "options": {"A": "Carbon dioxide", "B": "Oxygen"},
+                    "answer": "B",
+                    "explain": "Plants release oxygen as a byproduct.",
+                },
+            ],
+        },
+        {
+            "title": "Practice",
+            "components": [
+                {
+                    "type": "callout",
+                    "variant": "tip",
+                    "body": (
+                        "Remember: plants need carbon dioxide from the air and "
+                        "water from the soil to produce glucose."
+                    ),
+                },
+            ],
+        },
+    ],
+}
+
+
+class TestComponentFirstArtifacts:
+    def test_component_only_lesson_passes_content_review(self):
+        from packages.agents.gates.content_reviewer import step_10_content_review
+
+        state = make_base_state(artifacts=[COMPONENT_ONLY_LESSON])
+        result = step_10_content_review(state)
+        assert result["content_review_passed"] is True
+
+    def test_component_only_lesson_gets_nonzero_judge_score(self):
+        from packages.agents.gates.llm_judge import step_10b_llm_judge
+
+        state = make_base_state(artifacts=[COMPONENT_ONLY_LESSON])
+        result = step_10b_llm_judge(state)
+        assert result["judge_score"] > 0.0
+
+    def test_empty_components_fails_content_review(self):
+        from packages.agents.gates.content_reviewer import step_10_content_review
+
+        artifact = {
+            "artifact_type": "lesson",
+            "title": "Empty Components",
+            "sections": [
+                {"components": []},
+            ],
+        }
+        state = make_base_state(artifacts=[artifact])
+        result = step_10_content_review(state)
+        assert result["content_review_passed"] is False
+        assert result["fail_layer"] == "content"
+
+    def test_teacher_only_component_excluded_from_judge(self):
+        from packages.agents.gates.llm_judge import _score_artifact
+
+        artifact = {
+            "artifact_type": "lesson",
+            "title": "Teacher Weight Test",
+            "sections": [
+                {
+                    "title": "Answer Key",
+                    "teacher_only": True,
+                    "components": [
+                        {
+                            "type": "paragraph",
+                            "text": " ".join(
+                                [
+                                    "The correct answer is B because plants absorb "
+                                    "carbon dioxide during photosynthesis."
+                                ]
+                                * 20,
+                            ),
+                        },
+                    ],
+                },
+                {
+                    "title": "Student Work",
+                    "components": [
+                        {
+                            "type": "paragraph",
+                            "text": "Name three products of photosynthesis.",
+                        },
+                    ],
+                },
+            ],
+        }
+        score = _score_artifact(artifact, None, component_score=5.0)
+        # Teacher-only section text must NOT inflate word count;
+        # if counted, score would be ~8.0; with exclusion, only section/structure bonuses
+        assert score < 5.0

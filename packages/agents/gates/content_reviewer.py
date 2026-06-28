@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from packages.agents.config.gate_config import GateConfig
+from packages.agents.gates.artifact_extract import extract_student_text
 from packages.agents.gates.fact_check import run_fact_check
 from packages.agents.gates.presentation import (
     check_age_appropriateness,
@@ -33,17 +34,7 @@ def step_10_content_review(state: OhMyClassState) -> dict[str, Any]:
     methodology_tags = (lesson_plan.get("methodology") or {}).get("tags") or []
 
     for artifact in artifacts:
-        # Extract text content from sections (ArtifactContent contract)
-        sections = artifact.get("sections") or []
-        raw_parts = [
-            s.get("content", "") for s in sections
-            if isinstance(s, dict) and s.get("content")
-        ]
-        content = "\n".join(
-            str(p) if not isinstance(p, str) else p
-            for p in raw_parts
-            if str(p).strip()
-        )
+        content = extract_student_text(artifact)
         artifact_type = artifact.get("artifact_type", "")
 
         errors.extend(validate_component_minimums(artifact))

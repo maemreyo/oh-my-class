@@ -111,20 +111,18 @@ class TestContentCreatorAgent:
         mock_llm = _make_llm_mock(return_value="not valid json")
         with (
             patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
-            pytest.raises(ValueError, match="Content creator agent failed"),
+            pytest.raises(ValueError, match="Content creator failed"),
         ):
             await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
     @pytest.mark.asyncio
-    async def test_llm_error_returns_placeholder_artifacts(self):
+    async def test_llm_error_raises_value_error(self):
         mock_llm = _make_llm_mock(side_effect=RuntimeError("API timeout"))
-        with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
-            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
-
-        assert "artifacts" in result
-        assert len(result["artifacts"]) >= 1
-        for a in result["artifacts"]:
-            assert a.get("metadata", {}).get("placeholder") is True
+        with (
+            patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm),
+            pytest.raises(ValueError, match="Content creator failed"),
+        ):
+            await generate_artifacts(cast("ContentCreatorState", _make_state()))
 
     @pytest.mark.asyncio
     async def test_calls_llm_with_correct_model(self):
@@ -210,19 +208,19 @@ class TestContentCreatorAgent:
     @pytest.mark.asyncio
     async def test_retry_includes_failed_output(self):
         """Retry prompt must include the failed LLM output for self-repair."""
-        from packages.agents.sub_agents.content_creator.nodes import _retry_prompt
+        from packages.agents.sub_agents.content_creator.nodes import _retry_single_artifact_prompt
 
         failed_output = '{"bad": "json"}'
-        result = _retry_prompt("base prompt", ValueError("missing field"), failed_output)
+        result = _retry_single_artifact_prompt("base prompt", "lesson", ValueError("missing field"), failed_output)
         assert "Previous output" in result or "previous output" in result
         assert failed_output in result
 
     @pytest.mark.asyncio
     async def test_retry_without_failed_output(self):
         """Retry prompt works when no previous output available."""
-        from packages.agents.sub_agents.content_creator.nodes import _retry_prompt
+        from packages.agents.sub_agents.content_creator.nodes import _retry_single_artifact_prompt
 
-        result = _retry_prompt("base prompt", ValueError("error"), None)
+        result = _retry_single_artifact_prompt("base prompt", "lesson", ValueError("error"), None)
         assert "base prompt" in result
         assert "Validation error" in result or "validation error" in result
 

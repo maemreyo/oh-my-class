@@ -133,6 +133,18 @@ class TeachingPackControlStore:
         ))
         await self._session.flush()
 
+    async def list_active_gates(self, run_id: RunId) -> list[GateInterrupt]:
+        statement = (
+            select(GateInterrupt)
+            .where(
+                GateInterrupt.run_id == run_id,
+                GateInterrupt.status == GateInterruptStatus.ACTIVE,
+            )
+            .order_by(GateInterrupt.created_at)
+        )
+        result = await self._session.execute(statement)
+        return list(result.scalars().all())
+
     async def respond_to_gate(self, payload: GateResponseCreate) -> None:
         statement = select(GateInterrupt).where(
             GateInterrupt.gate_id == payload.gate_id,

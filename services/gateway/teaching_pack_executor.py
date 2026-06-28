@@ -67,8 +67,45 @@ class TeachingPackFailureRecorder:
         ))
 
 
+class TeachingPackCompletionRecorder:
+    def __init__(self, store: TeachingPackFailureStore) -> None:
+        self._store = store
+
+    async def persist_completion(self, run_id: RunId, state: JsonObject) -> None:
+        if _has_export_evidence(state):
+            await self._store.transition_status(TeachingPackStatusTransition(
+                run_id=run_id,
+                status=RunStatus.COMPLETED,
+                stage=None,
+                reason="completed",
+            ))
+            await self._store.write_event(TeachingPackEventCreate(
+                run_id=run_id,
+                event_name="teaching_pack.run.completed",
+                visibility=TeachingPackEventVisibility.TEACHER,
+                payload={"exported_files": state.get("exported_files", [])},
+            ))
+            return
+        await self._store.transition_status(TeachingPackStatusTransition(
+            run_id=run_id,
+            status=RunStatus.FAILED,
+            stage=None,
+            reason="missing_export_evidence",
+        ))
+        await self._store.write_event(TeachingPackEventCreate(
+            run_id=run_id,
+            event_name="teaching_pack.run.failed",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            payload={"error": "V2 graph completed without export evidence"},
+        ))
+
+
 class TeachingPackFailureSink(Protocol):
     async def persist_failure(self, run_id: RunId, error_summary: str) -> None: ...
+
+
+class TeachingPackCompletionSink(Protocol):
+    async def persist_completion(self, run_id: RunId, state: JsonObject) -> None: ...
 
 
 class TeachingPackExecutor:
@@ -77,10 +114,12 @@ class TeachingPackExecutor:
         graph: TeachingPackGraph,
         task_group: TeachingPackTaskGroup,
         failure_sink: TeachingPackFailureSink | None = None,
+        completion_sink: TeachingPackCompletionSink | None = None,
     ) -> None:
         self._graph = graph
         self._task_group = task_group
         self._failure_sink = failure_sink
+        self._completion_sink = completion_sink
 
     async def enqueue_start(self, run_id: str) -> None:
         self._task_group.start_soon(self._noop_start, RunId(run_id))
@@ -109,10 +148,11 @@ class TeachingPackExecutor:
 
     async def _run_start_job(self, job: TeachingPackStartJob) -> None:
         try:
-            await self._graph.ainvoke(
+            state = await self._graph.ainvoke(
                 job.initial_state,
                 config=teaching_pack_thread_config(job.run_id),
             )
+            await self._persist_completion(job.run_id, state)
         except Exception as exc:
             await self._persist_failure(job.run_id, exc)
             raise
@@ -132,6 +172,11 @@ class TeachingPackExecutor:
             return
         await self._failure_sink.persist_failure(run_id, _error_summary(error))
 
+    async def _persist_completion(self, run_id: RunId, state: JsonObject) -> None:
+        if self._completion_sink is None:
+            return
+        await self._completion_sink.persist_completion(run_id, state)
+
     async def _noop_start(self, run_id: RunId) -> None:
         _ = run_id
 
@@ -141,3 +186,8 @@ class TeachingPackExecutor:
 
 def _error_summary(error: Exception) -> str:
     return safe_error_summary(error)
+
+
+def _has_export_evidence(state: JsonObject) -> bool:
+    exported_files = state.get("exported_files")
+    return isinstance(exported_files, list) and len(exported_files) > 0

@@ -110,7 +110,7 @@ Use only these approved component types. Each component must match the JSON shap
 | `flow_step` | Step-by-step process | `steps` [{ `time`, `title`, `body` }] |
 | `question_card` | Single assessment question | `id`, `text`, `options` {}, `answer`, `explain`, `wrong_reasons?`, `essence?`, `tip?` |
 | `question_list` | Multiple questions bundle | `questions` (question_card[]) |
-| `concept_map` | Concept relationship diagram | `nodes` [{ `id`, `label` }], `edges` [{ `from`, `to`, `label` }] |
+| `concept_map` | Concept relationship diagram | `nodes` [{ `id`, `label` }], `edges` [{ `source`, `target`, `relation`, `label?` }] |
 | `timeline` | Chronological events | `events` [{ `time`, `label` }] |
 | `vocab_cluster` | Vocabulary grouped by theme | `title`, `items` [{ `word`, `definition`, `example` }] |
 | `contrastive_pairs` | Side-by-side comparisons | `rows` [{ `terms`, `distinction` }] |
@@ -166,7 +166,7 @@ These are non-negotiable. The quality gate will reject artifacts that fall below
   "components": [
     { "type": "heading", "level": 2, "text": "Core Concept" },
     { "type": "paragraph", "text": "Photosynthesis converts light energy into chemical energy stored in glucose." },
-    { "type": "concept_map", "nodes": [{"id":"sun","label":"Sunlight"},{"id":"chloro","label":"Chlorophyll"},{"id":"glucose","label":"Glucose"}], "edges": [{"from":"sun","to":"chloro","label":"energy"},{"from":"chloro","to":"glucose","label":"synthesizes"}] },
+    { "type": "concept_map", "nodes": [{"id":"sun","label":"Sunlight"},{"id":"chloro","label":"Chlorophyll"},{"id":"glucose","label":"Glucose"}], "edges": [{"source":"sun","target":"chloro","relation":"example_of","label":"energy"},{"source":"chloro","target":"glucose","relation":"part_of","label":"synthesizes"}] },
     { "type": "callout", "variant": "tip", "body": "Remember: plants breathe in CO₂ and breathe out O₂ during photosynthesis." },
     { "type": "question_card", "id": 1, "text": "What pigment captures light energy?", "options": {"A":"Hemoglobin","B":"Chlorophyll","C":"Melanin","D":"Carotene"}, "answer": "B", "explain": "Chlorophyll is the green pigment in chloroplasts that absorbs light." }
   ]

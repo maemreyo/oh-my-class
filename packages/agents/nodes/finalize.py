@@ -3,25 +3,29 @@
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 from typing import Any
 
+from packages.agents.gates.artifact_extract import extract_external_urls
 from packages.agents.state import (
     OhMyClassState,  # noqa: TC001  needed at runtime for LangGraph get_type_hints
 )
 
-_EXTERNAL_URL_PATTERN = re.compile(r"https?://", re.IGNORECASE)
 _RENDERER_DIR = "packages/renderer"
 
 
-def _render_artifact_with_renderer(artifact: dict[str, Any]) -> str:
+def _build_renderer() -> None:
+    """Build the renderer once. Called once per finalize run, not per artifact."""
     subprocess.run(
         ["pnpm", "--dir", _RENDERER_DIR, "build"],
         check=True,
         capture_output=True,
         text=True,
     )
+
+
+def _render_artifact_with_renderer(artifact: dict[str, Any]) -> str:
+    """Render a single artifact to HTML via the pre-built renderer."""
     result = subprocess.run(
         ["node", f"{_RENDERER_DIR}/dist/agent-renderer.js"],
         input=json.dumps(artifact),
@@ -33,21 +37,14 @@ def _render_artifact_with_renderer(artifact: dict[str, Any]) -> str:
 
 
 def _check_no_external_urls(artifact: dict[str, Any]) -> list[str]:
-    errors: list[str] = []
-    sections = artifact.get("sections") or []
-    for i, section in enumerate(sections):
-        if not isinstance(section, dict):
-            continue
-        if section.get("teacher_only"):
-            continue
-        content = section.get("content", "")
-        if isinstance(content, str):
-            match = _EXTERNAL_URL_PATTERN.search(content)
-            if match:
-                errors.append(
-                    f"Section[{i}] contains external URL: {match.group()}"
-                )
-    return errors
+    """Return error strings for any external URLs in student-facing content.
+
+    Delegates to ``extract_external_urls`` which scans both ``section.content``
+    strings and nested component dicts — covering component-first artifacts
+    that have no ``section.content`` at all.
+    """
+    urls = extract_external_urls(artifact)
+    return [f"External URL found in student content: {url}" for url in urls]
 
 
 def step_12_finalize(state: OhMyClassState) -> dict[str, Any]:
@@ -59,6 +56,9 @@ def step_12_finalize(state: OhMyClassState) -> dict[str, Any]:
     errors: list[str] = []
 
     if "html" in export_formats:
+        # Build renderer ONCE before iterating artifacts.
+        _build_renderer()
+
         for i, artifact in enumerate(artifacts):
             if artifact.get("teacher_only"):
                 continue

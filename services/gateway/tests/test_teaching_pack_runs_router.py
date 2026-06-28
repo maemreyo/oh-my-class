@@ -87,6 +87,20 @@ class TestTeachingPackRunsRouter:
         assert job_kind is RunJobKind.START
         anyio.run(_delete_run, RunId(data["run_id"]))
 
+    def test_create_run_plural_alias_matches_frontend_route(self, client: TestClient) -> None:
+        payload = {
+            "raw_request": "Fractions",
+            "class_info": {"topic": "Fractions", "grade": 5, "subject": "math"},
+        }
+        response = client.post("/teaching-packs/runs", json=payload)
+
+        assert response.status_code == 202
+        data = response.json()
+        assert data["status"] == "pending"
+        assert data["run_id"]
+        assert data["job_id"]
+        anyio.run(_delete_run, RunId(data["run_id"]))
+
     def test_resume_persists_gate_response_and_resume_job(self, client: TestClient) -> None:
         run_id = RunId(f"test-{uuid4()}")
         gate_id = f"gate-{uuid4()}"
@@ -108,6 +122,26 @@ class TestTeachingPackRunsRouter:
 
         persisted = anyio.run(_get_resume_result, run_id, data["job_id"])
         assert persisted == (RunJobKind.RESUME, "approve")
+        anyio.run(_delete_run, run_id)
+
+    def test_resume_plural_alias_matches_frontend_route(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        gate_id = f"gate-{uuid4()}"
+        anyio.run(_create_run_with_gate, run_id, gate_id)
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/resume",
+            json={
+                "gate_id": gate_id,
+                "gate_name": "blueprint_approval",
+                "action": "approve",
+                "response": {"feedback": "Looks good"},
+            },
+        )
+
+        assert response.status_code == 202
+        data = response.json()
+        assert data["run_id"] == run_id
         anyio.run(_delete_run, run_id)
 
     def test_resume_rejects_action_not_allowed_for_gate(self, client: TestClient) -> None:

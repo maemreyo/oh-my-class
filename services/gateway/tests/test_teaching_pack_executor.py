@@ -7,6 +7,7 @@ import pytest
 
 from services.gateway.models import RunStatus
 from services.gateway.teaching_pack_executor import (
+    TeachingPackCompletionRecorder,
     TeachingPackExecutor,
     TeachingPackFailureRecorder,
     TeachingPackResumeJob,
@@ -154,4 +155,24 @@ class TestTeachingPackExecutor:
             event_name="teaching_pack.run.failed",
             visibility=TeachingPackEventVisibility.TEACHER,
             payload={"error": "RuntimeError: graph failed"},
+        )]
+
+    @pytest.mark.anyio
+    async def test_completion_recorder_fails_closed_without_export_evidence(self) -> None:
+        store = RecordingFailureStore()
+        recorder = TeachingPackCompletionRecorder(store)
+
+        await recorder.persist_completion(RunId("run-1"), {"run_id": "run-1"})
+
+        assert store.transitions == [TeachingPackStatusTransition(
+            run_id=RunId("run-1"),
+            status=RunStatus.FAILED,
+            stage=None,
+            reason="missing_export_evidence",
+        )]
+        assert store.events == [TeachingPackEventCreate(
+            run_id=RunId("run-1"),
+            event_name="teaching_pack.run.failed",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            payload={"error": "V2 graph completed without export evidence"},
         )]

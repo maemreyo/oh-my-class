@@ -48,25 +48,29 @@ class ArtifactContent(BaseModel):
         """Validate typed component dicts inside section ``components`` lists.
 
         Only dicts with a ``type`` field are validated against the
-        ``ContentComponent`` discriminated union.  Missing ``components``,
-        non-list values, and non-dict entries are silently skipped.
+        ``ContentComponent`` discriminated union.  Invalid components
+        are converted to paragraphs so the pipeline doesn't crash on
+        LLM-generated types outside the schema.
         """
         for s_idx, section in enumerate(self.sections):
             components = section.get("components")
             if not isinstance(components, list):
                 continue
+            cleaned: list[dict[str, Any]] = []
             for c_idx, entry in enumerate(components):
                 if not isinstance(entry, dict):
+                    cleaned.append(entry)
                     continue
                 if "type" not in entry:
+                    cleaned.append(entry)
                     continue
                 try:
                     _component_ta.validate_python(entry)
-                except ValidationError as exc:
-                    raise ValueError(
-                        f"sections[{s_idx}].components[{c_idx}] "
-                        f"(type={entry.get('type')!r}): {exc}"
-                    ) from exc
+                    cleaned.append(entry)
+                except ValidationError:
+                    text = entry.get("text") or entry.get("body") or str(entry)
+                    cleaned.append({"type": "paragraph", "text": str(text)[:500]})
+            section["components"] = cleaned
         return self
 
 

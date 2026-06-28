@@ -140,28 +140,24 @@ async def test_runtime_prompt_documents_required_component_fields():
 
 @pytest.mark.asyncio
 async def test_retry_prompt_preserves_lesson_and_research_context():
-    invalid_artifact = {
-        "artifact_type": "lesson",
+    wrong_type_artifact = {
+        "artifact_type": "worksheet",
         "theme": "default",
-        "title": "Equivalent Fractions Lesson",
-        "sections": [
-            {
-                "type": "concept",
-                "title": "Start",
-                "components": [{"type": "heading", "text": "Equivalent Fractions"}],
-            }
-        ],
+        "title": "Equivalent Fractions Worksheet",
+        "sections": [{"type": "intro", "content": "Equivalent fractions preserve value."}],
         "metadata": {},
         "accessibility": {"language": "vi"},
     }
-    mock_llm = AsyncMock(side_effect=[json.dumps([invalid_artifact]), json.dumps([VALID_ARTIFACT])])
+    mock_llm = AsyncMock(side_effect=[json.dumps(wrong_type_artifact), json.dumps(VALID_ARTIFACT)])
 
     with patch("packages.agents.llm.compiled_chat.complete_json_chat", mock_llm):
         await content_creator_node(_state())
 
     retry_user_msg = mock_llm.await_args_list[1].kwargs["messages"][1]["content"]
     assert "Previous validation error" in retry_user_msg
+    assert "Artifact type mismatch" in retry_user_msg
     assert "Lesson Plan Summary" in retry_user_msg
     assert "Research Summary" in retry_user_msg
     assert "Phân số tương đương" in retry_user_msg
+    assert "lesson" in retry_user_msg
     assert len(retry_user_msg) < 15000

@@ -62,6 +62,11 @@ router.include_router(lifecycle_router)
     response_model=TeachingPackRunAcceptedResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
+@router.post(
+    "/runs",
+    response_model=TeachingPackRunAcceptedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def create_teaching_pack_run(
     payload: TeachingPackCreateRunRequest,
     current_user: Annotated[User, Depends(require_teacher)],
@@ -125,6 +130,11 @@ async def create_teaching_pack_run(
 
 @router.post(
     "/run/{run_id}/resume",
+    response_model=TeachingPackResumeAcceptedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+@router.post(
+    "/runs/{run_id}/resume",
     response_model=TeachingPackResumeAcceptedResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
