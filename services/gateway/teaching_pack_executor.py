@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Protocol
+from uuid import uuid4
 
 from langgraph.types import Command
 
@@ -9,8 +10,10 @@ from packages.agents.llm.error_summary import safe_error_summary
 from packages.agents.teaching_pack.graph import LangGraphRunnableConfig, teaching_pack_thread_config
 from services.gateway.models import RunStatus
 from services.gateway.teaching_pack_models import TeachingPackEventVisibility
+from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate
 from services.gateway.teaching_pack_store import (
     TeachingPackEventCreate,
+    TeachingPackGateCreate,
     TeachingPackStatusTransition,
 )
 from services.gateway.teaching_pack_types import JsonObject, RunId
@@ -47,6 +50,10 @@ class TeachingPackFailureStore(Protocol):
 
     async def write_event(self, payload: TeachingPackEventCreate): ...
 
+    async def create_snapshot(self, payload: ArtifactSnapshotCreate) -> str: ...
+
+    async def open_gate(self, payload: TeachingPackGateCreate) -> None: ...
+
 
 class TeachingPackFailureRecorder:
     def __init__(self, store: TeachingPackFailureStore) -> None:
@@ -72,7 +79,17 @@ class TeachingPackCompletionRecorder:
         self._store = store
 
     async def persist_completion(self, run_id: RunId, state: JsonObject) -> None:
+        gate_payload = _content_gate_payload(state)
+        if gate_payload is not None:
+            await self._persist_content_gate(run_id, gate_payload)
+            return
         if _has_export_evidence(state):
+            await self._store.transition_status(TeachingPackStatusTransition(
+                run_id=run_id,
+                status=RunStatus.EXPORTING,
+                stage="export_finalize",
+                reason="export_started",
+            ))
             await self._store.transition_status(TeachingPackStatusTransition(
                 run_id=run_id,
                 status=RunStatus.COMPLETED,
@@ -97,6 +114,40 @@ class TeachingPackCompletionRecorder:
             event_name="teaching_pack.run.failed",
             visibility=TeachingPackEventVisibility.TEACHER,
             payload={"error": "V2 graph completed without export evidence"},
+        ))
+
+    async def _persist_content_gate(self, run_id: RunId, gate_payload: JsonObject) -> None:
+        for snapshot in _rendered_snapshots(gate_payload):
+            await self._store.create_snapshot(ArtifactSnapshotCreate(
+                snapshot_id=str(snapshot["snapshot_id"]),
+                run_id=run_id,
+                artifact_id=str(snapshot["artifact_id"]),
+                artifact_type=str(snapshot["artifact_type"]),
+                content_json=_json_object(snapshot.get("content_json")),
+                rendered_html=str(snapshot["rendered_html"]),
+                student_rendered_html=str(snapshot.get("student_rendered_html", snapshot["rendered_html"])),
+                renderer_version=str(snapshot.get("renderer_version", "pipeline-v2-python")),
+                template_version=str(snapshot.get("template_version", "pipeline-v2-minimal")),
+                theme_version=str(snapshot.get("theme_version", "default")),
+            ))
+        gate_id = f"gate-{uuid4()}"
+        await self._store.open_gate(TeachingPackGateCreate(
+            gate_id=gate_id,
+            run_id=run_id,
+            gate_name="content_approval",
+            payload={"gate_id": gate_id, **gate_payload},
+        ))
+        await self._store.transition_status(TeachingPackStatusTransition(
+            run_id=run_id,
+            status=RunStatus.AWAITING_APPROVAL,
+            stage="content_approval",
+            reason="content_approval",
+        ))
+        await self._store.write_event(TeachingPackEventCreate(
+            run_id=run_id,
+            event_name="teaching_pack.content_approval.opened",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            payload={"gate_id": gate_id, "snapshot_ids": gate_payload.get("snapshot_ids", [])},
         ))
 
 
@@ -159,10 +210,11 @@ class TeachingPackExecutor:
 
     async def _run_resume_job(self, job: TeachingPackResumeJob) -> None:
         try:
-            await self._graph.ainvoke(
+            state = await self._graph.ainvoke(
                 Command(resume=job.resume_payload),
                 config=teaching_pack_thread_config(job.run_id),
             )
+            await self._persist_completion(job.run_id, state)
         except Exception as exc:
             await self._persist_failure(job.run_id, exc)
             raise
@@ -191,3 +243,33 @@ def _error_summary(error: Exception) -> str:
 def _has_export_evidence(state: JsonObject) -> bool:
     exported_files = state.get("exported_files")
     return isinstance(exported_files, list) and len(exported_files) > 0
+
+
+def _content_gate_payload(state: JsonObject) -> JsonObject | None:
+    interrupt_values = state.get("__interrupt__")
+    if isinstance(interrupt_values, list) and interrupt_values:
+        value = _interrupt_value(interrupt_values[0])
+        if value.get("gate") == "content_approval":
+            return value
+    return None
+
+
+def _interrupt_value(interrupt_data) -> JsonObject:
+    if isinstance(interrupt_data, dict):
+        value = interrupt_data.get("value", interrupt_data)
+        return _json_object(value)
+    value = getattr(interrupt_data, "value", {})
+    return _json_object(value)
+
+
+def _rendered_snapshots(gate_payload: JsonObject) -> list[JsonObject]:
+    values = gate_payload.get("rendered_snapshots")
+    if not isinstance(values, list):
+        return []
+    return [_json_object(value) for value in values if isinstance(value, dict)]
+
+
+def _json_object(value) -> JsonObject:
+    if isinstance(value, dict):
+        return value
+    return {}

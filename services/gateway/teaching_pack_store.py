@@ -7,6 +7,8 @@ from sqlalchemy import func, select, text
 
 from services.gateway.models import Run, RunStatus
 from services.gateway.teaching_pack_models import (
+    GateInterrupt,
+    GateInterruptStatus,
     TeachingPackEventVisibility,
     RunEvent,
     RunStatusHistory,
@@ -66,6 +68,14 @@ class TeachingPackStatusTransition:
     status: RunStatus
     stage: str | None
     reason: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class TeachingPackGateCreate:
+    gate_id: str
+    run_id: RunId
+    gate_name: str
+    payload: JsonObject
 
 
 class TeachingPackRunStore:
@@ -230,6 +240,17 @@ class TeachingPackRunStore:
     async def create_snapshot(self, payload: ArtifactSnapshotCreate) -> str:
         snapshot = await TeachingPackSnapshotStore(self._session).create_snapshot(payload)
         return snapshot.content_hash
+
+    async def open_gate(self, payload: TeachingPackGateCreate) -> None:
+        self._session.add(GateInterrupt(
+            gate_id=payload.gate_id,
+            run_id=payload.run_id,
+            gate_name=payload.gate_name,
+            status=GateInterruptStatus.ACTIVE,
+            payload=payload.payload,
+            expires_at=None,
+        ))
+        await self._session.flush()
 
     async def _next_sequence(self, run_id: RunId) -> int:
         await self._session.execute(

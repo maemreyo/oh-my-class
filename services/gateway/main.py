@@ -101,7 +101,7 @@ async def lifespan(app: FastAPI):
         environment=environment,
         checkpointer=app.state.checkpointer,
     )
-    app.state.teaching_pack_graph = build_teaching_pack_graph()
+    app.state.teaching_pack_graph = build_teaching_pack_graph(checkpointer=app.state.checkpointer)
 
     async with anyio.create_task_group() as task_group:
         task_group.start_soon(_run_teaching_pack_sweeper, app)

@@ -28,6 +28,10 @@ from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot  # n
 type OrmJsonValue = str | int | float | bool | None | list[OrmJsonValue] | dict[str, OrmJsonValue]
 type OrmJsonObject = dict[str, OrmJsonValue]
 
+
+def _enum_values(enum_class):
+    return [member.value for member in enum_class]
+
 __all__ = [
     "ArtifactCheckStatus",
     "ArtifactSnapshot",
@@ -149,7 +153,7 @@ class GateInterrupt(Base):
     )
     gate_name: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[GateInterruptStatus] = mapped_column(
-        Enum(GateInterruptStatus, native_enum=False), nullable=False,
+        Enum(GateInterruptStatus, native_enum=False, values_callable=_enum_values), nullable=False,
     )
     payload: Mapped[OrmJsonObject] = mapped_column(JSON, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
@@ -215,9 +219,11 @@ class RunJob(Base):
     run_id: Mapped[str] = mapped_column(
         String(64), ForeignKey("public.runs.run_id", ondelete="CASCADE"), nullable=False,
     )
-    kind: Mapped[RunJobKind] = mapped_column(Enum(RunJobKind, native_enum=False), nullable=False)
+    kind: Mapped[RunJobKind] = mapped_column(
+        Enum(RunJobKind, native_enum=False, values_callable=_enum_values), nullable=False,
+    )
     status: Mapped[RunJobStatus] = mapped_column(
-        Enum(RunJobStatus, native_enum=False), nullable=False,
+        Enum(RunJobStatus, native_enum=False, values_callable=_enum_values), nullable=False,
     )
     idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False)
     payload: Mapped[OrmJsonObject] = mapped_column(JSON, nullable=False)
