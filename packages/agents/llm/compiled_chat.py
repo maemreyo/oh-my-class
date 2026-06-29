@@ -45,12 +45,17 @@ _HASH_PREFIX_LEN: int = 16
 def _provenance_tags(compiled: CompiledPrompt) -> list[str]:
     """Extract provenance tags from a CompiledPrompt's metadata."""
     meta = compiled.metadata
-    return [
+    tags = [
         f"prompt_id:{meta.prompt_id}",
         f"prompt_version:{meta.prompt_version}",
         f"content_hash:{meta.content_hash[:_HASH_PREFIX_LEN]}",
         f"compiled_hash:{meta.compiled_hash[:_HASH_PREFIX_LEN]}",
     ]
+    if meta.overlay_ids:
+        tags.append(f"overlay_ids:{','.join(meta.overlay_ids)}")
+    if meta.structured_output_strategy is not None:
+        tags.append(f"json_strategy:{meta.structured_output_strategy}")
+    return tags
 
 
 def _merge_tags(base: list[str], provenance: list[str]) -> list[str]:

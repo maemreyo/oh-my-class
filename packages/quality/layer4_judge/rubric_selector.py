@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 
 from common.contracts.rubric import Rubric, RubricCriterion, RubricLevel, RubricRegistry
+from packages.quality.layer4_judge.judge_policy import JudgePolicyContext, JudgeRiskLevel, rubric_version_id
 
 logger = logging.getLogger(__name__)
 
@@ -137,13 +138,24 @@ def _build_criteria_for_type(
     return criteria
 
 
-def _make_version_id(artifact_type: str, failure_context: list[str] | None) -> str:
+def _make_version_id(
+    artifact_type: str,
+    failure_context: list[str] | None,
+    *,
+    subject: str | None = None,
+    locale: str | None = None,
+    curriculum: str | None = None,
+    risk_level: JudgeRiskLevel = "standard",
+) -> str:
     """Generate a deterministic version_id from the selection parameters."""
-    suffix = ""
-    if failure_context:
-        sorted_failures = sorted(set(failure_context))
-        suffix = "-".join(sorted_failures)
-    return f"rubric-{artifact_type}-{suffix}" if suffix else f"rubric-{artifact_type}"
+    return rubric_version_id(JudgePolicyContext(
+        artifact_type=artifact_type,
+        deterministic_issues=tuple(failure_context or ()),
+        subject=subject,
+        locale=locale,
+        curriculum=curriculum,
+        risk_level=risk_level,
+    ))
 
 
 class RubricSelector:
@@ -184,6 +196,11 @@ class RubricSelector:
         self,
         artifact_type: str,
         failure_context: list[str] | None = None,
+        *,
+        subject: str | None = None,
+        locale: str | None = None,
+        curriculum: str | None = None,
+        risk_level: JudgeRiskLevel = "standard",
     ) -> Rubric:
         """Select rubric for the given artifact type and failure context.
 
@@ -199,7 +216,14 @@ class RubricSelector:
         Returns:
             The selected Rubric with the appropriate version_id.
         """
-        version_id = _make_version_id(artifact_type, failure_context)
+        version_id = _make_version_id(
+            artifact_type,
+            failure_context,
+            subject=subject,
+            locale=locale,
+            curriculum=curriculum,
+            risk_level=risk_level,
+        )
 
         # Check registry for existing rubric
         existing = self._registry.get(version_id)

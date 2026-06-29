@@ -24,6 +24,7 @@ from ..admin_recovery import (
     SafeRecoveryAction,
     execute_recovery,
 )
+from ..admin_run_filters import AdminRunOperationalFilter, apply_operational_filter
 from ..auth.dependencies import require_admin, require_teacher
 from ..auth.models import User  # noqa: TC001
 from ..exceptions import NotFoundError
@@ -107,7 +108,7 @@ async def list_notifications(
     notifications = await get_notifications(
         current_user.user_id, session, unread_only=unread_only,
     )
-    return [NotificationResponse(**n) for n in notifications]
+    return [_notification_response(item) for item in notifications]
 
 
 @router.post("/{notification_id}/read", response_model=dict[str, str])  # pyright: ignore[reportUntypedFunctionDecorator]
@@ -158,6 +159,7 @@ async def list_admin_runs(
     http_request: Request,
     current_user: Annotated[User, Depends(require_admin)],
     status_filter: list[RunStatus] | None = None,
+    operational_filter: AdminRunOperationalFilter | None = None,
     teacher_id: str | None = None,
     limit: int = 50,
     offset: int = 0,
@@ -173,6 +175,8 @@ async def list_admin_runs(
     )
     if status_filter:
         statement = statement.where(Run.status.in_(status_filter))
+    if operational_filter is not None:
+        statement = apply_operational_filter(statement, operational_filter)
     if teacher_id is not None:
         statement = statement.where(Run.teacher_id == teacher_id)
     result = await session.execute(statement)
@@ -190,6 +194,25 @@ async def list_admin_runs(
         limit=bounded_limit,
         offset=bounded_offset,
     )
+
+def _notification_response(item: dict[str, object]) -> NotificationResponse:
+    return NotificationResponse(
+        notification_id=str(item["notification_id"]),
+        run_id=str(item["run_id"]),
+        teacher_id=str(item["teacher_id"]),
+        event_type=str(item["event_type"]),
+        title=str(item["title"]),
+        message=str(item["message"]),
+        metadata=_metadata_dict(item["metadata"]),
+        created_at=item["created_at"],
+        read_at=item["read_at"],
+    )
+
+
+def _metadata_dict(value: object) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    return {str(key): item for key, item in value.items()}
 
 
 @router.get(  # pyright: ignore[reportUntypedFunctionDecorator]

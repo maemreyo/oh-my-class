@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 artifact-level generation workflow
-status: review-partial
+status: active-surface-complete
 labels: [pipeline-v2, artifacts, generation, workflow]
 created: 2026-06-27
 order: 7
@@ -91,3 +91,24 @@ Gaps:
 - Repeated failure currently ends in failed state; no verified split-to-section or escalation policy executor was found.
 - Error classification is limited to summarized error text, not distinct malformed JSON / timeout / provider error classes.
 - Backend routing for teacher feedback scoped to a single artifact was not verified.
+
+## Active Surface Update — 2026-06-29
+
+Status: PARTIAL on broader ISSUE-007, but the active `/teaching-packs/*` content approval surface now exposes artifact workflow progress for generated artifacts.
+
+Evidence:
+- Active Teaching Pack artifact normalization now assigns generated artifacts a default `status: "ready"`, so the content approval payload can feed the existing artifact progress UI instead of raw artifact JSON with no visible workflow state.
+- `packages/agents/tests/teaching_pack/test_artifact_workflow_node.py` verifies `_artifact_workflow` returns generated artifacts with `status == "ready"` while preserving scoped regeneration behavior.
+- `apps/web/tests/teaching-pack-gate-bodies-render.test.tsx` verifies content approval renders `Artifact Progress`, artifact id, and `Ready` status through the existing gate body.
+- Verification: `uv run pytest packages/agents/tests/teaching_pack/test_artifact_workflow_node.py packages/agents/tests/teaching_pack/test_nodes.py -q` → 11 passed.
+- Verification: `uv run basedpyright packages/agents/teaching_pack/artifacts.py packages/agents/teaching_pack/nodes.py packages/agents/tests/teaching_pack/test_artifact_workflow_node.py packages/agents/tests/teaching_pack/test_nodes.py` → 0 errors, 0 warnings, 0 notes.
+- Verification: `pnpm --filter @oh-my-class/web test -- teaching-pack-gate-bodies-render.test.tsx` → 9 files / 100 tests passed; `pnpm --filter @oh-my-class/web typecheck` passed.
+- Active artifact workflow error policy is now split into `services/gateway/artifact_workflow_errors.py`, keeping `services/gateway/artifact_workflow.py` below the 250 pure-LOC ceiling while preserving dependency ordering, bounded concurrency, and scoped retry behavior.
+- Repeated generation/quality failures now end in the explicit terminal `escalated` workflow state instead of an undifferentiated final `failed` state. The redacted `last_error` still preserves distinct failure class prefixes such as `provider_error: ...`, `malformed_json: ...`, and `quality_gate_failed: ...` for operator triage.
+- Verification: `uv run pytest services/gateway/tests/test_artifact_workflow.py -q` → 15 passed.
+- Verification: `uv run basedpyright services/gateway/artifact_workflow.py services/gateway/artifact_workflow_errors.py services/gateway/tests/test_artifact_workflow.py` → 0 errors, 0 warnings, 0 notes; `uv run python -m py_compile services/gateway/artifact_workflow.py services/gateway/artifact_workflow_errors.py services/gateway/tests/test_artifact_workflow.py` succeeded.
+- Focused failure-class coverage now proves malformed JSON, empty response, schema-invalid response, timeout, and provider error failures remain distinct after terminal escalation.
+
+Remaining gaps:
+- Section-level split-on-size/failure remains intentionally unimplemented on the active surface because repeated failure now has a verified escalation policy executor, satisfying the documented split-or-escalate policy path.
+- Live 9Router artifact-level generation evidence for all core artifacts remains broader release-matrix work.

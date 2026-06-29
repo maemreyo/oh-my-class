@@ -10,13 +10,20 @@ from typing import TYPE_CHECKING, Any
 _LOGGER = logging.getLogger(__name__)
 
 from common.contracts.artifact import ArtifactContent
+from packages.agents.sub_agents.content_creator.prompt_contract import (
+    build_single_artifact_prompt,
+    retry_single_artifact_prompt,
+)
 from packages.agents.sub_agents.content_creator.summarizers import (
     summarize_lesson_plan,
     summarize_research_bundle,
 )
 
+_build_single_artifact_prompt = build_single_artifact_prompt
+_retry_single_artifact_prompt = retry_single_artifact_prompt
+
 if TYPE_CHECKING:
-    from packages.agents.sub_agents.content_creator.state import ContentCreatorState
+    from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeState
 
 
 _JSON_ONLY_SUFFIX = (
@@ -25,64 +32,10 @@ _JSON_ONLY_SUFFIX = (
 )
 
 
-# ── Prompt helpers ─────────────────────────────────────────────────────────
-
-
-def _build_single_artifact_prompt(
-    lesson_summary: dict[str, Any],
-    research_summary: dict[str, Any],
-    artifact_type: str,
-    theme: str,
-) -> str:
-    """Build a user prompt asking for exactly ONE ArtifactContent object."""
-    return f"""Generate a single '{artifact_type}' artifact for the following lesson:
-
-Lesson Plan Summary:
-{json.dumps(lesson_summary, ensure_ascii=False, indent=2)}
-
-Research Summary:
-{json.dumps(research_summary, ensure_ascii=False, indent=2)}
-
-Theme: {theme}
-
-Generate exactly one ArtifactContent JSON object of type '{artifact_type}'.
-Do NOT return an array. Return a single JSON object."""
-
-
-def _retry_single_artifact_prompt(
-    base_user_prompt: str,
-    artifact_type: str,
-    error: BaseException,
-    last_content: str | None = None,
-) -> str:
-    """Build a retry prompt for a single artifact type."""
-    failed_output_section = ""
-    if last_content:
-        failed_output_section = f"""
-Your previous output (which failed validation):
-{last_content[:3000]}
-
-"""
-    return f"""
-{failed_output_section}Previous validation error:
-{str(error)[:1200]}
-
-Fix the specific issues above. Return ONLY a single JSON ArtifactContent object of type '{artifact_type}'.
-Do not return an array. Do not return markdown or prose. Every component must satisfy its required fields:
-- heading: type, level (1|2|3|4), text
-- paragraph: type, text
-- callout: type, variant (note|warning|tip|alert), body
-- question_card: type, id, text, options (dict with A-D keys), answer, explain
-- question_list: type, questions (list of question_card), section_key, group, title
-
-{base_user_prompt}
-"""
-
-
 # ── Main node ──────────────────────────────────────────────────────────────
 
 
-async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
+async def content_creator_node(state: ContentCreatorNodeState) -> dict[str, Any]:
     """Generate lesson artifacts from plan + research.
 
     Iterates artifact types and makes one LLM call per type, each returning
@@ -119,7 +72,7 @@ async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
     artifact_failure_context: list[dict[str, Any]] = []
 
     for artifact_type in artifact_types:
-        user_prompt = _build_single_artifact_prompt(
+        user_prompt = build_single_artifact_prompt(
             lesson_summary, research_summary, artifact_type, theme,
         )
         base_user_prompt = user_prompt
@@ -199,7 +152,7 @@ async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
                 if attempt < 2:
                     messages = chat_messages(
                         system_prompt,
-                        _retry_single_artifact_prompt(
+                        retry_single_artifact_prompt(
                             base_user_prompt, artifact_type, parse_err, last_content,
                         ),
                     )
@@ -230,7 +183,7 @@ async def content_creator_node(state: ContentCreatorState) -> dict[str, Any]:
                 if attempt < 2:
                     messages = chat_messages(
                         system_prompt,
-                        _retry_single_artifact_prompt(
+                        retry_single_artifact_prompt(
                             base_user_prompt, artifact_type, e, last_content,
                         ),
                     )

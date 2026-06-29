@@ -8,6 +8,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from services.gateway.teaching_pack_types import JsonObject
 
 # Default retention periods by data class (days).
 _DEFAULT_RETENTION: dict[str, int] = {
@@ -57,6 +61,12 @@ def get_retention_days(data_class: str) -> int:
         KeyError: If *data_class* is not a recognised data class.
     """
     return _DEFAULT_RETENTION[data_class]
+
+
+def retention_days_for_class_info(class_info: "JsonObject") -> int:
+    if isinstance(class_info.get("student_evidence"), dict):
+        return min(_DEFAULT_CONFIG.run_metadata, _DEFAULT_CONFIG.student_evidence)
+    return _DEFAULT_CONFIG.run_metadata
 
 
 def is_expired(deleted_at: datetime | None, retention_days: int) -> bool:

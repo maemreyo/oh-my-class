@@ -23,6 +23,8 @@ def normalize_generated_artifacts(value: JsonValue | object, requested_types: li
         artifact["artifact_type"] = artifact_type
         if not _has_text(artifact.get("artifact_id")):
             artifact["artifact_id"] = f"{artifact_type}-{index + 1}"
+        if not _has_text(artifact.get("status")):
+            artifact["status"] = "ready"
         artifact["sections"] = _normalize_sections(artifact.get("sections"))
         artifacts.append(artifact)
     return artifacts

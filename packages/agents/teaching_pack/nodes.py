@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NotRequired, TypedDict, assert_never
 
+from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeState
+from packages.agents.sub_agents.planner.state import PlannerNodeState
+from packages.agents.sub_agents.researcher.state import ResearcherNodeState
+
 from packages.agents.teaching_pack.artifacts import normalize_generated_artifacts
 from packages.agents.teaching_pack.quality import TeachingPackQualityGateError, quality_issues
 from packages.agents.teaching_pack.quality_routing import (
@@ -103,13 +107,14 @@ async def _planning_blueprint(state: TeachingPackState) -> TeachingPackState:
     contract = state.get("contract", {})
     from packages.agents.sub_agents.planner.nodes import planner_node
 
-    result = await planner_node({
+    planner_state: PlannerNodeState = {
         "raw_request": _string_field(contract, "raw_request", _topic(contract)),
         "class_info": _class_info(contract),
         "run_id": state["run_id"],
         "current_step": 3,
         "lesson_plan": None,
-    })
+    }
+    result = await planner_node(planner_state)
     return {"run_id": state["run_id"], "lesson_plan": _json_object(result.get("lesson_plan"))}
 
 
@@ -117,13 +122,14 @@ async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackStat
     contract = state.get("contract", {})
     from packages.agents.sub_agents.researcher.nodes import researcher_node
 
-    result = await researcher_node({
+    researcher_state: ResearcherNodeState = {
         "lesson_plan": state.get("lesson_plan", {}),
         "research_policy": _string_field(contract, "research_policy", "standard"),
         "run_id": state["run_id"],
         "current_step": 7,
         "research_bundle": state.get("research_brief", {}),
-    })
+    }
+    result = await researcher_node(researcher_state)
     return {"run_id": state["run_id"], "research_brief": _json_object(result.get("research_bundle"))}
 
 
@@ -132,7 +138,7 @@ async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
     from packages.agents.sub_agents.content_creator.nodes import content_creator_node
 
     artifact_types = _artifact_types_for_generation(state, contract)
-    result = await content_creator_node({
+    creator_state: ContentCreatorNodeState = {
         "lesson_plan": state.get("lesson_plan", {}),
         "research_bundle": state.get("research_brief", {}),
         "artifact_types": artifact_types,
@@ -141,7 +147,8 @@ async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
         "current_step": 8,
         "artifacts": None,
         "revision_feedback": state.get("revision_feedback", ""),
-    })
+    }
+    result = await content_creator_node(creator_state)
     generated = normalize_generated_artifacts(result.get("artifacts", []), artifact_types)
     artifacts = _merge_regenerated_artifacts(state, generated)
     return {"run_id": state["run_id"], "artifacts": artifacts}
@@ -152,7 +159,13 @@ def _render_quality(state: TeachingPackState) -> TeachingPackState:
     issues = quality_issues(artifacts)
     if issues:
         if pack_coherence_issues(issues):
-            return render_quality_failure(state["run_id"], issues)
+            failure = render_quality_failure(state["run_id"], issues)
+            return {
+                "run_id": state["run_id"],
+                "quality_issues": issues,
+                "quality_recovery_route": _string_field(failure, "quality_recovery_route", "repair"),
+                "quality_scores": _json_object(failure.get("quality_scores")),
+            }
         raise TeachingPackQualityGateError(issues)
     snapshots = [build_snapshot(state["run_id"], artifact) for artifact in artifacts]
     return {
@@ -173,9 +186,9 @@ def _teacher_approval(state: TeachingPackState) -> TeachingPackState:
     gate_payload: JsonObject = {
         "gate": "content_approval",
         "gate_name": "content_approval",
-        "snapshot_ids": snapshot_ids,
-        "rendered_snapshots": state.get("rendered_snapshots", []),
-        "artifacts": artifacts,
+        "snapshot_ids": [*snapshot_ids],
+        "rendered_snapshots": [*state.get("rendered_snapshots", [])],
+        "artifacts": [*artifacts],
         "quality_scores": state.get("quality_scores", {}),
         "run_id": state["run_id"],
     }

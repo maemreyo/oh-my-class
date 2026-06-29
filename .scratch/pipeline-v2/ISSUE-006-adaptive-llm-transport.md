@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 adaptive LLM transport and Langfuse metadata policy
-status: review-partial
+status: active-surface-complete
 labels: [pipeline-v2, llm, streaming, langfuse, 9router]
 created: 2026-06-27
 order: 6
@@ -76,7 +76,7 @@ If adaptive policy causes regressions, set config to conservative mode while pre
 
 ## Ultrawork Review — 2026-06-27
 
-Status: PARTIAL. Transport policy, prompt gate, metadata, and error summaries exist, but live smoke evidence and timeout-to-stream proof are missing.
+Historical status: PARTIAL as of 2026-06-27. Transport policy, prompt gate, metadata, and error summaries existed; the active-surface live transport smoke evidence was added later in the 2026-06-29 closure below.
 
 Evidence:
 - LLM modules were split into `packages/agents/llm/chat.py`, `chat_context.py`, `transport_policy.py`, `prompt_gate.py`, `prompt_metadata.py`, `json_utils.py`, and `error_summary.py`.
@@ -84,9 +84,18 @@ Evidence:
 - `packages/agents/llm/transport_policy.py` implements streaming/non-streaming decisions by task characteristics.
 - Tests in `packages/agents/tests/llm/test_transport_policy.py` cover policy decisions, prompt gate behavior, and metadata expectations.
 
-Gaps:
-- I did not find live 9Router smoke evidence for long streamed, short non-streamed, or timeout-to-stream fallback scenarios.
-- Idempotency for already persisted valid artifact output after worker retry is covered indirectly elsewhere, not proven as part of the LLM transport layer.
+Historical gaps and active-surface disposition:
+- Closed for the active `/teaching-packs/*` surface: `.scratch/pipeline-v2/artifacts/live-v2-research-transport-2026-06-29.json` records live 9Router `4omc` chat evidence on `http://localhost:20228/v1` for both policy branches needed by item 7: `researcher/research_synthesis` selected `streaming` with reason `large_prompt`, while `reviewer/llm_judge` selected `non_streaming` with reason `short_control_task`.
+- Residual outside item 7: idempotency for already persisted valid artifact output after worker retry remains covered by workflow/release evidence rather than by the LLM transport layer itself.
 - Transport thresholds are hardcoded in `packages/agents/llm/transport_policy.py` rather than loaded from RunContract/config policy.
-- Only prompt-JSON/text-extract style behavior was verified; native schema and JSON-object strategy selection were not proven.
+- Closed for the active `/teaching-packs/*` surface: JSON-object strategy selection is proven in both live transport calls and recorded through `json_strategy:json_object` metadata tags.
 - No test was found proving Langfuse-down resilience for an LLM call.
+
+## Active-Surface Closure — 2026-06-29
+
+Status: COMPLETE for the current Teaching Pack cutover surface.
+
+Evidence:
+- Focused deterministic gate: `uv run pytest services/gateway/tests/test_research_engine.py services/gateway/tests/test_research_collector.py services/gateway/tests/test_research_gate.py services/gateway/tests/test_research_provider_9router.py packages/agents/tests/llm/test_transport_policy.py packages/agents/tests/llm/test_json_strategy_policy.py packages/agents/tests/sub_agents/test_researcher.py packages/agents/tests/sub_agents/test_researcher_evidence.py -q` → 50 passed.
+- Focused strict typing: `uv run basedpyright services/gateway/research_engine.py services/gateway/research_collector.py services/gateway/research_gate.py services/gateway/research_provider_9router.py packages/agents/llm/transport_policy.py packages/agents/llm/chat_context.py packages/agents/sub_agents/researcher/nodes.py packages/agents/sub_agents/researcher/evidence.py services/gateway/tests/test_research_engine.py services/gateway/tests/test_research_collector.py services/gateway/tests/test_research_gate.py services/gateway/tests/test_research_provider_9router.py packages/agents/tests/llm/test_transport_policy.py packages/agents/tests/llm/test_json_strategy_policy.py packages/agents/tests/sub_agents/test_researcher.py packages/agents/tests/sub_agents/test_researcher_evidence.py` → 0 errors.
+- Live 9Router evidence: `.scratch/pipeline-v2/artifacts/live-v2-research-transport-2026-06-29.json` proves transport metadata tags include `agent:*`, `task:*`, `run:live-item-7`, `pipeline:oh-my-class`, `transport:*`, `transport_reason:*`, and `json_strategy:json_object`, with full IO capture disabled.

@@ -1,10 +1,82 @@
-"""Tests for main."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import anyio
+import pytest
+from fastapi import FastAPI
+
+from services.gateway import main as gateway_main
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from anyio.abc import TaskGroup
 
 
+class _FakeEngine:
+    async def dispose(self) -> None:
+        return None
 
-class TestMain:
-    """Test suite for main."""
 
-    def test_placeholder(self):
-        """Placeholder test — replace with real tests."""
-        assert True
+class TestMainLifespan:
+    def test_lifespan_starts_teaching_pack_worker_and_recovery_sweeper(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        anyio.run(_assert_lifespan_starts_background_tasks, monkeypatch)
+
+    def test_cors_preflight_reaches_teaching_pack_routes_without_auth(self) -> None:
+        from starlette.testclient import TestClient
+
+        response = TestClient(gateway_main.app).options(
+            "/teaching-packs/runs/example-run",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Headers": "authorization,content-type",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+
+
+async def _assert_lifespan_starts_background_tasks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sweeper_started = anyio.Event()
+    worker_started = anyio.Event()
+
+    async def record_sweeper(app: FastAPI) -> None:
+        sweeper_started.set()
+        await anyio.sleep_forever()
+
+    async def record_worker(app: FastAPI, task_group: TaskGroup) -> None:
+        worker_started.set()
+        await anyio.sleep_forever()
+
+    def fake_sessionmaker(engine: _FakeEngine, expire_on_commit: bool) -> Callable[[], object]:
+        return object
+
+    monkeypatch.setattr(gateway_main, "configure_logging", lambda **kwargs: None)
+    monkeypatch.setattr(gateway_main, "create_async_engine", lambda url, pool_pre_ping: _FakeEngine())
+    monkeypatch.setattr(gateway_main, "async_sessionmaker", fake_sessionmaker)
+    monkeypatch.setattr(gateway_main, "_run_teaching_pack_sweeper", record_sweeper)
+    monkeypatch.setattr(gateway_main, "_run_teaching_pack_worker", record_worker)
+    monkeypatch.setenv("OMC_ENVIRONMENT", "development")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
+
+    import packages.agents.checkpointer as checkpointer_module
+    import packages.agents.graph as graph_module
+    import packages.agents.teaching_pack.graph as teaching_pack_graph_module
+
+    monkeypatch.setattr(checkpointer_module, "get_checkpointer", lambda environment: object())
+    monkeypatch.setattr(graph_module, "build_oh_my_class_graph", lambda **kwargs: object())
+    monkeypatch.setattr(teaching_pack_graph_module, "build_teaching_pack_graph", lambda **kwargs: object())
+
+    app = FastAPI()
+    async with gateway_main.lifespan(app):
+        with anyio.fail_after(1):
+            await sweeper_started.wait()
+            await worker_started.wait()

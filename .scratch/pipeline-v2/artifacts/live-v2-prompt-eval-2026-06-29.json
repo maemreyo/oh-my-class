@@ -1,0 +1,110 @@
+{
+  "probe": "LIVE_PROMPT_EVAL_STRICT_2026_06_29",
+  "started_at": "2026-06-29T07:05:47.465684+00:00",
+  "completed_at": "2026-06-29T07:08:21.481068+00:00",
+  "base_url": "http://localhost:20228/v1",
+  "model": "4omc",
+  "max_tokens": 4096,
+  "modules": [
+    {
+      "module_id": "planner_v1",
+      "task": "lesson_planning",
+      "ok": true,
+      "duration_s": 33.588,
+      "response_chars": 235,
+      "valid_json_object": true,
+      "json_error": null,
+      "response_preview": "{\"topic\":\"Fractions\",\"grade_level\":\"Grade 5\",\"subject\":\"Math\",\"duration_minutes\":45,\"learning_objectives\":[{\"description\":\"Compare fractions\",\"bloom_level\":\"understand\"},{\"description\":\"Solve fraction problems\",\"bloom_level\":\"apply\"}]}",
+      "structured_output_strategy": "json_object",
+      "langfuse_strategy": "json_object",
+      "json_strategy_tags": [
+        "json_strategy:json_object"
+      ],
+      "provenance_tags_present": true
+    },
+    {
+      "module_id": "content_creator_mcq_v1",
+      "task": "mcq_generation",
+      "ok": true,
+      "duration_s": 34.582,
+      "response_chars": 148,
+      "valid_json_object": true,
+      "json_error": null,
+      "response_preview": "{\"artifact_type\":\"quiz\",\"title\":\"Fraction Quiz\",\"sections\":[{\"title\":\"Questions\",\"items\":[\"What is 1/2?\"]}],\"teacher_only\":{\"answers\":[\"one half\"]}}",
+      "structured_output_strategy": "json_object",
+      "langfuse_strategy": "json_object",
+      "json_strategy_tags": [
+        "json_strategy:json_object"
+      ],
+      "provenance_tags_present": true
+    },
+    {
+      "module_id": "content_creator_lesson_v1",
+      "task": "lesson_generation",
+      "ok": true,
+      "duration_s": 12.769,
+      "response_chars": 115,
+      "valid_json_object": true,
+      "json_error": null,
+      "response_preview": "{\"artifact_type\":\"lesson\",\"title\":\"Fraction Lesson\",\"sections\":[{\"title\":\"Warm up\",\"content\":\"Use paper strips.\"}]}",
+      "structured_output_strategy": "json_object",
+      "langfuse_strategy": "json_object",
+      "json_strategy_tags": [
+        "json_strategy:json_object"
+      ],
+      "provenance_tags_present": true
+    },
+    {
+      "module_id": "researcher_v1",
+      "task": "research",
+      "ok": true,
+      "duration_s": 16.288,
+      "response_chars": 149,
+      "valid_json_object": true,
+      "json_error": null,
+      "response_preview": "{\"sources\":[{\"title\":\"Source A\",\"url\":\"offline:a\"},{\"title\":\"Source B\",\"url\":\"offline:b\"}],\"synthesis\":\"Fractions can be taught with visual models.\"}",
+      "structured_output_strategy": "json_object",
+      "langfuse_strategy": "json_object",
+      "json_strategy_tags": [
+        "json_strategy:json_object"
+      ],
+      "provenance_tags_present": true
+    },
+    {
+      "module_id": "judge_v1",
+      "task": "quality_review",
+      "ok": true,
+      "duration_s": 25.083,
+      "response_chars": 91,
+      "valid_json_object": true,
+      "json_error": null,
+      "response_preview": "{\"overall_score\":8,\"layers\":{\"format\":8,\"content\":8,\"presentation\":8},\"critical_issues\":[]}",
+      "structured_output_strategy": "json_object",
+      "langfuse_strategy": "json_object",
+      "json_strategy_tags": [
+        "json_strategy:json_object"
+      ],
+      "provenance_tags_present": true
+    },
+    {
+      "module_id": "repair_v1",
+      "task": "repair",
+      "ok": true,
+      "duration_s": 31.693,
+      "response_chars": 143,
+      "valid_json_object": true,
+      "json_error": null,
+      "response_preview": "{\"artifacts\":[{\"artifact_type\":\"lesson\",\"title\":\"Repaired\",\"sections\":[{\"title\":\"Fixed\"}]}],\"repair_notes\":[\"Separated teacher-only answers.\"]}",
+      "structured_output_strategy": "json_object",
+      "langfuse_strategy": "json_object",
+      "json_strategy_tags": [
+        "json_strategy:json_object"
+      ],
+      "provenance_tags_present": true
+    }
+  ],
+  "all_calls_ok": true,
+  "all_valid_json_objects": true,
+  "all_strategy_tags_present": true,
+  "all_provenance_tags_present": true
+}

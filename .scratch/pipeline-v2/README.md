@@ -4,6 +4,16 @@ This folder contains the indexed issue set for the Pipeline V2 production rearch
 
 Issue metadata uses `order` and `blocked_by` so agents know execution sequence. All issues remain in one folder to keep the V2 migration backlog together.
 
+## Active Surface Note
+
+The current implementation surface has been hard-cut to Teaching Pack naming and routes. Treat older `pipeline_v2_*`, `PipelineV2*`, and `/pipeline-v2/*` references in the 2026-06-27 Ultrawork Review sections as historical evidence only. New implementation and verification work must use the active equivalents:
+
+- `packages/agents/teaching_pack/*` for graph/stage/node code.
+- `services/gateway/teaching_pack_*` and `services/gateway/routers/teaching_pack_*` for gateway persistence, control plane, snapshots, streaming, lifecycle, and previews.
+- `/teaching-packs/*` for public HTTP/browser QA.
+
+Do not create compatibility aliases or new implementation modules under the old `pipeline_v2_*` names.
+
 ## Execution Order
 
 1. `ISSUE-001-foundation-architecture.md` — establish V2 package boundaries, contracts, config loading, and stage graph skeleton.

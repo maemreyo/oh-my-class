@@ -12,12 +12,17 @@ Covers all invariants required by ISSUE-015:
 from __future__ import annotations
 
 import hashlib
+from typing import TYPE_CHECKING
 
 import pytest
 
 from packages.agents.prompts.drift import DriftReport, detect_drift, detect_drift_all
 from packages.agents.prompts.registry import PromptModule, PromptRegistry, _sha256
 from packages.agents.prompts.seed import SEED_MODULES, create_seeded_registry
+
+if TYPE_CHECKING:
+    from common.branding.registry import ThemeModule
+    from packages.renderer.templates.registry import TemplateModule
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -61,7 +66,7 @@ class TestPromptModule:
         assert module.metadata == {}
 
     def test_metadata_preserved(self) -> None:
-        meta = {"task": "planning", "locale": "vi"}
+        meta: dict[str, object] = {"task": "planning", "locale": "vi"}
         module = PromptModule.create(id="test_v1", version="1.0.0", body="body", metadata=meta)
         assert module.metadata == meta
 
@@ -238,7 +243,7 @@ class TestDriftDetection:
 class TestTemplateRegistry:
     """Tests for TemplateModule and TemplateRegistry."""
 
-    def _make_template(self, id: str = "quiz_v1", version: str = "1.0.0", content_hash: str = "") -> object:
+    def _make_template(self, id: str = "quiz_v1", version: str = "1.0.0", content_hash: str = "") -> TemplateModule:
         from packages.renderer.templates.registry import TemplateModule
         if not content_hash:
             content_hash = _sha256("<html>quiz template</html>")
@@ -307,7 +312,7 @@ class TestTemplateRegistry:
 class TestThemeRegistry:
     """Tests for ThemeModule and ThemeRegistry."""
 
-    def _make_theme(self, id: str = "ocean", version: str = "1.0.0", json_content: str = '{"color":"blue"}', css_content: str = ":root { --color: blue; }") -> object:
+    def _make_theme(self, id: str = "ocean", version: str = "1.0.0", json_content: str = '{"color":"blue"}', css_content: str = ":root { --color: blue; }") -> ThemeModule:
         from common.branding.registry import ThemeModule
         return ThemeModule(
             id=id,
@@ -437,6 +442,7 @@ class TestPromptMetadata:
             compiled_hash="def456",
             sections=["Intro", "Steps"],
             output_schema_version="1.0",
+            overlay_ids=["vi_vn", "math"],
         )
         langfuse = to_langfuse_metadata(meta)
 
@@ -446,6 +452,7 @@ class TestPromptMetadata:
         assert langfuse["compiled_hash"] == "def456"
         assert langfuse["sections"] == ["Intro", "Steps"]
         assert langfuse["output_schema_version"] == "1.0"
+        assert langfuse["overlay_ids"] == ["vi_vn", "math"]
 
     def test_langfuse_metadata_none_schema(self) -> None:
         from packages.agents.llm.prompt_metadata import PromptMetadata, to_langfuse_metadata
@@ -458,6 +465,7 @@ class TestPromptMetadata:
         )
         langfuse = to_langfuse_metadata(meta)
         assert langfuse["output_schema_version"] is None
+        assert langfuse["overlay_ids"] == []
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

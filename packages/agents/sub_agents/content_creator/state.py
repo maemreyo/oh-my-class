@@ -1,8 +1,19 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, NotRequired, TypedDict
 
 from langgraph.graph import MessagesState
+
+
+class ContentCreatorNodeState(TypedDict):
+    lesson_plan: dict[str, Any]
+    research_bundle: dict[str, Any]
+    artifact_types: list[str]
+    theme: str
+    run_id: str
+    current_step: int
+    artifacts: list[dict[str, Any]] | None
+    revision_feedback: NotRequired[str]
 
 
 class ContentCreatorState(MessagesState):

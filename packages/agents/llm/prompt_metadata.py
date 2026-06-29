@@ -9,9 +9,20 @@ from __future__ import annotations
 
 import hashlib
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Final
 
-from packages.agents.prompts.registry import PromptModule
+from packages.agents.llm.transport_policy import JsonStrategy
+
+_STRUCTURED_OUTPUT_STRATEGIES: Final[dict[str, JsonStrategy]] = {
+    "native_schema": "native_schema",
+    "json_object": "json_object",
+    "prompt_json": "prompt_json",
+    "text_extract": "text_extract",
+}
+
+if TYPE_CHECKING:
+    from packages.agents.prompts.registry import PromptModule
 
 
 def _sha256(content: str) -> str:
@@ -38,6 +49,18 @@ class PromptMetadata:
     compiled_hash: str
     sections: list[str]
     output_schema_version: str | None = None
+    structured_output_strategy: JsonStrategy | None = None
+    overlay_ids: list[str] = field(default_factory=list)
+    compacted: bool = False
+    dropped_sections: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True, slots=True)
+class InvalidStructuredOutputStrategyError(ValueError):
+    strategy: str
+
+    def __str__(self) -> str:
+        return f"Invalid structured output strategy: {self.strategy}"
 
 
 def _extract_sections(body: str) -> list[str]:
@@ -51,6 +74,9 @@ def build_prompt_metadata(
     compiled_body: str,
     *,
     output_schema_version: str | None = None,
+    overlay_ids: list[str] | None = None,
+    compacted: bool = False,
+    dropped_sections: list[str] | None = None,
 ) -> PromptMetadata:
     """Build :class:`PromptMetadata` from a module and its compiled output.
 
@@ -71,6 +97,10 @@ def build_prompt_metadata(
         compiled_hash=_sha256(compiled_body),
         sections=_extract_sections(module.body),
         output_schema_version=output_schema_version,
+        structured_output_strategy=_structured_output_strategy(module),
+        overlay_ids=overlay_ids or [],
+        compacted=compacted,
+        dropped_sections=dropped_sections or [],
     )
 
 
@@ -87,4 +117,22 @@ def to_langfuse_metadata(meta: PromptMetadata) -> dict[str, object]:
         "compiled_hash": meta.compiled_hash,
         "sections": meta.sections,
         "output_schema_version": meta.output_schema_version,
+        "structured_output_strategy": meta.structured_output_strategy,
+        "overlay_ids": meta.overlay_ids,
+        "compacted": meta.compacted,
+        "dropped_sections": meta.dropped_sections,
     }
+
+
+def _structured_output_strategy(module: PromptModule) -> JsonStrategy | None:
+    raw_strategy = module.metadata.get("structured_output_strategy")
+    match raw_strategy:
+        case None:
+            return "json_object" if module.output_schema is not None else None
+        case str() as strategy:
+            selected_strategy = _STRUCTURED_OUTPUT_STRATEGIES.get(strategy)
+            if selected_strategy is None:
+                raise InvalidStructuredOutputStrategyError(strategy=strategy)
+            return selected_strategy
+        case invalid:
+            raise InvalidStructuredOutputStrategyError(strategy=repr(invalid))

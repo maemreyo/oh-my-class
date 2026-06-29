@@ -133,12 +133,12 @@ class TestCompilerErrorContracts:
     """Tests that compiler error types are well-formed."""
 
     def test_missing_variable_error_has_fields(self) -> None:
-        err = MissingVariableError(missing={"x"})
+        err = MissingVariableError(missing=frozenset({"x"}))
         assert err.missing == {"x"}
         assert "x" in str(err)
 
     def test_unknown_variable_error_has_fields(self) -> None:
-        err = UnknownVariableError(unknown={"z"})
+        err = UnknownVariableError(unknown=frozenset({"z"}))
         assert err.unknown == {"z"}
         assert "z" in str(err)
 
@@ -283,6 +283,7 @@ class TestOverlayGovernance:
         assert "Base body." in result.compiled_body
         assert "## Extra\nAppended." in result.compiled_body
         assert result.overlay_ids == ["ov1"]
+        assert result.metadata.overlay_ids == ["ov1"]
 
     def test_multiple_overlays_sorted_by_order_then_id(self) -> None:
         """Overlay application is deterministic: sorted by (order, id)."""

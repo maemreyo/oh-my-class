@@ -103,7 +103,7 @@ class TestArtifactOrchestrator:
         assert [artifact.artifact_type for artifact in result.passed_artifacts] == ["lesson"]
         quiz_state = next(state for state in result.states if state.artifact_type == "quiz")
         recap_state = next(state for state in result.states if state.artifact_type == "recap")
-        assert quiz_state.status == "failed"
+        assert quiz_state.status == "escalated"
         assert quiz_state.last_error == "provider_error: provider failed"
         assert recap_state.status == "skipped"
 
@@ -132,6 +132,39 @@ class TestArtifactOrchestrator:
         assert len(quiz_state.last_error) <= 500
 
     @pytest.mark.anyio
+    @pytest.mark.parametrize(
+        ("error_type", "message"),
+        [
+            ("malformed_json", "unterminated JSON object"),
+            ("empty_response", "model returned no content"),
+            ("schema_invalid", "missing title"),
+            ("timeout", "provider timed out"),
+            ("provider_error", "upstream failed"),
+        ],
+    )
+    async def test_generation_error_class_remains_distinct_after_escalation(
+        self,
+        error_type: str,
+        message: str,
+    ) -> None:
+        generator = RecordingGenerator()
+        orchestrator = ArtifactOrchestrator(
+            generator,
+            ArtifactOrchestratorConfig(max_parallel_artifacts=1, max_attempts=1),
+        )
+
+        async def fail_with_class(payload: ArtifactGenerationInput) -> ArtifactContent:
+            raise GenerationError(error_type, message)
+
+        generator.generate = fail_with_class
+
+        result = await orchestrator.generate_core_artifacts(_request(["lesson"]))
+
+        lesson_state = result.states[0]
+        assert lesson_state.status == "escalated"
+        assert lesson_state.last_error == f"{error_type}: {message}"
+
+    @pytest.mark.anyio
     async def test_quality_gate_blocks_invalid_generated_artifact(self) -> None:
         generator = RecordingGenerator()
         orchestrator = ArtifactOrchestrator(
@@ -152,7 +185,7 @@ class TestArtifactOrchestrator:
 
         lesson_state = result.states[0]
         assert result.passed_artifacts == []
-        assert lesson_state.status == "failed"
+        assert lesson_state.status == "escalated"
         assert lesson_state.last_error == "quality_gate_failed: placeholder_content"
 
     @pytest.mark.anyio

@@ -11,15 +11,16 @@ class QualityRecoveryState(TypedDict, total=False):
 
 
 def render_quality_failure(run_id: str, issues: list[str]) -> JsonObject:
+    quality_scores: JsonObject = {
+        "overall": 0.0,
+        "passed": False,
+        "issue_count": len(issues),
+    }
     return {
         "run_id": run_id,
-        "quality_issues": issues,
+        "quality_issues": [*issues],
         "quality_recovery_route": quality_recovery_route(issues),
-        "quality_scores": {
-            "overall": 0.0,
-            "passed": False,
-            "issue_count": len(issues),
-        },
+        "quality_scores": quality_scores,
     }
 
 

@@ -9,6 +9,7 @@
 		"start": "next start",
 		"lint": "next lint .",
 		"format": "prettier --write .",
+		"typecheck": "tsc --noEmit",
 		"test": "vitest run"
 	},
 	"dependencies": {

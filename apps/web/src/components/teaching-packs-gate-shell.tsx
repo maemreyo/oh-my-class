@@ -58,7 +58,7 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 						{labelFor(gateName)}
 					</h2>
 				</div>
-				<p className="font-mono text-xs text-muted-foreground">{gateId}</p>
+				<p className="break-all font-mono text-xs text-muted-foreground">{gateId}</p>
 			</div>
 
 			<div className="mt-4 rounded-md bg-muted p-4">

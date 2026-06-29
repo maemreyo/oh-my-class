@@ -12,13 +12,18 @@ from common.contracts.artifact_workflow import (
     CoreArtifactType,
 )
 from common.contracts.research_brief import ArtifactResearchGuidance
-from packages.agents.llm.error_summary import safe_message_summary
+from services.gateway.artifact_workflow_errors import (
+    GenerationError,
+    UnsupportedArtifactTypeError,
+    generation_error_summary,
+    quality_error_summary,
+    terminal_generation_failure,
+)
 from services.gateway.healing_executors import try_heal_artifact
 from services.gateway.quality_gates import validate_artifact_content
 
 if TYPE_CHECKING:
     from common.contracts.artifact import ArtifactContent
-    from common.contracts.quality import QualityFailureClass
     from common.contracts.run_contract import ArtifactType
 
 _CORE_ARTIFACTS: tuple[CoreArtifactType, ...] = ("lesson", "worksheet", "quiz", "recap")
@@ -33,23 +38,6 @@ _DEPENDENCIES: dict[CoreArtifactType, tuple[CoreArtifactType, ...]] = {
 class ArtifactGenerator(Protocol):
     async def generate(self, payload: ArtifactGenerationInput) -> ArtifactContent:
         ...
-
-
-@dataclass(frozen=True, slots=True)
-class GenerationError(RuntimeError):
-    error_type: str
-    message: str
-
-    def __str__(self) -> str:
-        return f"{self.error_type}: {self.message}"
-
-
-@dataclass(frozen=True, slots=True)
-class UnsupportedArtifactTypeError(ValueError):
-    artifact_type: ArtifactType
-
-    def __str__(self) -> str:
-        return f"unsupported V2 artifact type: {self.artifact_type}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -151,14 +139,17 @@ class ArtifactOrchestrator:
                             states[artifact_type] = _passed_state(state)
                             passed[artifact_type] = healed
                             return
-                        state = _failed_state(state, _quality_error(report.issues[0].failure_class))
+                        state = _failed_state(
+                            state,
+                            quality_error_summary(report.issues[0].failure_class),
+                        )
                         continue
                     states[artifact_type] = _passed_state(state)
                     passed[artifact_type] = artifact
                     return
                 except GenerationError as exc:
-                    state = _failed_state(state, _classify_error(exc))
-            states[artifact_type] = state
+                    state = _failed_state(state, generation_error_summary(exc))
+            states[artifact_type] = terminal_generation_failure(state)
 
 
 def _execution_waves(plan: list[ArtifactPlanItem]) -> list[list[ArtifactPlanItem]]:
@@ -259,11 +250,3 @@ def _skip_state(state: ArtifactWorkflowState) -> ArtifactWorkflowState:
         "validation_status": "skipped",
         "judge_status": "skipped",
     })
-
-
-def _classify_error(exc: GenerationError) -> str:
-    return safe_message_summary(str(exc), limit=500)
-
-
-def _quality_error(failure_class: QualityFailureClass) -> str:
-    return safe_message_summary(f"quality_gate_failed: {failure_class}", limit=500)

@@ -12,10 +12,10 @@ from typing import TYPE_CHECKING, Any
 from common.contracts.lesson_plan import LessonPlan
 
 if TYPE_CHECKING:
-    from packages.agents.sub_agents.planner.state import PlannerState
+    from packages.agents.sub_agents.planner.state import PlannerNodeState
 
 
-async def planner_node(state: PlannerState) -> dict[str, Any]:
+async def planner_node(state: PlannerNodeState) -> dict[str, Any]:
     """Design a lesson blueprint from raw_request + class_info.
 
     Returns: {"lesson_plan": {...}}

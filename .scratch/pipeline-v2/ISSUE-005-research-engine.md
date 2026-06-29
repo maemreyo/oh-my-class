@@ -1,6 +1,6 @@
 ---
 title: Pipeline V2 independent Research Engine
-status: review-partial
+status: active-surface-complete
 labels: [pipeline-v2, research, search, 9router]
 created: 2026-06-27
 order: 5
@@ -81,16 +81,25 @@ Disable pre-planning search in config only if Research Engine blocks V2 cutover;
 
 ## Ultrawork Review — 2026-06-27
 
-Status: PARTIAL. The independent research engine MVP is implemented with deterministic tests, but live 9Router and full policy coverage are not proven.
+Historical status: PARTIAL as of 2026-06-27. The independent research engine MVP was implemented with deterministic tests; the active-surface live 9Router proof was added later in the 2026-06-29 closure below.
 
 Evidence:
 - Research contracts are in `common/contracts/research_brief.py`.
 - Research planning, URL normalization, ranking, safety, collection, and 9Router provider mapping are implemented in `services/gateway/research_engine.py`, `research_urls.py`, `research_safety.py`, `research_collector.py`, `research_provider_9router.py`, and `research_gate.py`.
 - Tests cover targeted Math/English plans, PII scrubbing, dedupe/ranking, compact brief output, fetch failures, search gate behavior, and provider mapping in `services/gateway/tests/test_research_engine.py`, `test_research_collector.py`, `test_research_gate.py`, and `test_research_provider_9router.py`.
 
-Gaps:
-- No live 9Router search/fetch run ids or artifacts were found in the staged evidence.
-- The implementation proves compact curated briefs, but not all requested live Vietnamese Math, English ESL, and Science citation scenarios.
+Historical gaps and active-surface disposition:
+- Closed for the active `/teaching-packs/*` surface: `.scratch/pipeline-v2/artifacts/live-v2-research-transport-2026-06-29.json` records live 9Router `4omc.search` and `4omc.fetch` evidence on `http://localhost:20228/v1` for Vietnamese Math, English ESL, and Science citation scenarios. Each scenario returned search results, citation ids, and compact research briefs with max key finding length ≤ 240 chars.
+- Closed for the active `/teaching-packs/*` surface: raw fetched pages remain outside the produced compact briefs; the live artifact records `raw_content_in_brief: false` for all three scenarios.
 - Fetch collection is sequential in `services/gateway/research_collector.py`; parallel fetching, timeout policy, and research-cache TTL behavior were not verified.
 - Research need classification and query planning are mostly deterministic/hardcoded; config-driven policy and LLM-assisted planning modes were not found.
 - Search plan confirmation covers ambiguous curriculum/high-budget cases, but sensitive-source and teacher-source-conflict confirmation paths were not verified.
+
+## Active-Surface Closure — 2026-06-29
+
+Status: COMPLETE for the current Teaching Pack cutover surface.
+
+Evidence:
+- Focused deterministic gate: `uv run pytest services/gateway/tests/test_research_engine.py services/gateway/tests/test_research_collector.py services/gateway/tests/test_research_gate.py services/gateway/tests/test_research_provider_9router.py packages/agents/tests/llm/test_transport_policy.py packages/agents/tests/llm/test_json_strategy_policy.py packages/agents/tests/sub_agents/test_researcher.py packages/agents/tests/sub_agents/test_researcher_evidence.py -q` → 50 passed.
+- Focused strict typing: `uv run basedpyright services/gateway/research_engine.py services/gateway/research_collector.py services/gateway/research_gate.py services/gateway/research_provider_9router.py packages/agents/llm/transport_policy.py packages/agents/llm/chat_context.py packages/agents/sub_agents/researcher/nodes.py packages/agents/sub_agents/researcher/evidence.py services/gateway/tests/test_research_engine.py services/gateway/tests/test_research_collector.py services/gateway/tests/test_research_gate.py services/gateway/tests/test_research_provider_9router.py packages/agents/tests/llm/test_transport_policy.py packages/agents/tests/llm/test_json_strategy_policy.py packages/agents/tests/sub_agents/test_researcher.py packages/agents/tests/sub_agents/test_researcher_evidence.py` → 0 errors.
+- Live 9Router evidence: `.scratch/pipeline-v2/artifacts/live-v2-research-transport-2026-06-29.json` proves Vietnamese Math, English ESL, and Science citation scenarios produce compact cited briefs using `4omc.search` and `4omc.fetch` through `http://localhost:20228/v1`.

@@ -1,8 +1,16 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
 
 from langgraph.graph import MessagesState
+
+
+class PlannerNodeState(TypedDict):
+    raw_request: str
+    class_info: dict[str, Any]
+    run_id: str
+    current_step: int
+    lesson_plan: dict[str, Any] | None
 
 
 class PlannerState(MessagesState):

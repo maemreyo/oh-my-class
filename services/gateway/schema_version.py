@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from services.gateway.teaching_pack_types import JsonObject
+
 SCHEMA_VERSION: str = "1.0"
 SUPPORTED_VERSIONS: frozenset[str] = frozenset({"0.9", "1.0"})
 
@@ -33,14 +35,19 @@ def validate_schema_version(version: str) -> bool:
       - Any version not in ``SUPPORTED_VERSIONS``
       - Any version string that is not a valid ``MAJOR.MINOR`` format
     """
+    major_minor = version.split(".")
+    if len(major_minor) != 2:
+        return False
+    if not all(part.isdecimal() for part in major_minor):
+        return False
     return version in SUPPORTED_VERSIONS
 
 
 def migrate_contract(
-    data: dict,
+    data: JsonObject,
     from_version: str,
     to_version: str = SCHEMA_VERSION,
-) -> dict:
+) -> JsonObject:
     """Migrate *data* from *from_version* to *to_version*.
 
     Handles the previous V2 draft shape ``0.9`` and the current ``1.0``.
@@ -53,7 +60,7 @@ def migrate_contract(
     if to_version not in SUPPORTED_VERSIONS:
         raise ValueError(f"Unsupported target version: {to_version}")
 
-    migrated = dict(data)
+    migrated: JsonObject = dict(data)
 
     if from_version == "1.0" and to_version == "1.0":
         return migrated

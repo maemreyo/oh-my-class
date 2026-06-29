@@ -155,6 +155,13 @@ class TeachingPackControlStore:
         result = await self._session.execute(statement)
         return list(result.scalars().all())
 
+    async def cancel_active_gates(self, run_id: RunId) -> int:
+        gates = await self.list_active_gates(run_id)
+        for gate in gates:
+            gate.status = GateInterruptStatus.CANCELLED
+        await self._session.flush()
+        return len(gates)
+
     async def respond_to_gate(self, payload: GateResponseCreate) -> None:
         statement = select(GateInterrupt).where(
             GateInterrupt.gate_id == payload.gate_id,

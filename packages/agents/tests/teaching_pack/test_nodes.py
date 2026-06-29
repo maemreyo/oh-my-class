@@ -58,7 +58,8 @@ class TestTeachingPackPlanningResearch:
             "current_step": 3,
             "lesson_plan": None,
         }]
-        assert result["lesson_plan"]["topic"] == "Fractions"
+        lesson_plan = result.get("lesson_plan", {})
+        assert lesson_plan.get("topic") == "Fractions"
 
     @pytest.mark.anyio
     async def test_post_blueprint_research_delegates_to_researcher_node(self, monkeypatch) -> None:
@@ -94,7 +95,8 @@ class TestTeachingPackPlanningResearch:
             "current_step": 7,
             "research_bundle": {"sources": []},
         }]
-        assert result["research_brief"]["topic"] == "Fractions"
+        research_brief = result.get("research_brief", {})
+        assert research_brief.get("topic") == "Fractions"
 
 
 class TestTeachingPackApprovalExport:
@@ -111,7 +113,7 @@ class TestTeachingPackApprovalExport:
 
         result = _export_finalize(state)
 
-        assert result["exported_files"] == ["exports/run-approval/snap-approved.html"]
+        assert result.get("exported_files") == ["exports/run-approval/snap-approved.html"]
 
     def test_export_blocks_when_teacher_rejects_content(self) -> None:
         state = TeachingPackState(
@@ -122,7 +124,7 @@ class TestTeachingPackApprovalExport:
 
         result = _export_finalize(state)
 
-        assert result["exported_files"] == []
+        assert result.get("exported_files") == []
 
     def test_scoped_rejection_routes_back_to_artifact_workflow(self) -> None:
         state = TeachingPackState(

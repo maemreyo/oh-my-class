@@ -2,7 +2,21 @@ from __future__ import annotations
 
 import pytest
 
-from packages.agents.teaching_pack.nodes import TeachingPackState, _render_quality
+from packages.agents.teaching_pack.nodes import JsonObject, TeachingPackState, _render_quality
+
+
+def _artifacts(result: TeachingPackState) -> list[JsonObject]:
+    return result.get("artifacts", [])
+
+
+def _json_list(value: JsonObject, key: str) -> list[JsonObject]:
+    items = value.get(key)
+    assert isinstance(items, list)
+    narrowed: list[JsonObject] = []
+    for item in items:
+        assert isinstance(item, dict)
+        narrowed.append(item)
+    return narrowed
 
 
 class TestTeachingPackArtifactWorkflow:
@@ -48,7 +62,8 @@ class TestTeachingPackArtifactWorkflow:
             "artifacts": None,
             "revision_feedback": "",
         }]
-        assert result["artifacts"][0]["title"] == "Generated Lesson"
+        assert _artifacts(result)[0].get("title") == "Generated Lesson"
+        assert _artifacts(result)[0].get("status") == "ready"
 
     @pytest.mark.anyio
     async def test_artifact_workflow_adds_stable_ids_when_creator_omits_them(self, monkeypatch) -> None:
@@ -80,11 +95,12 @@ class TestTeachingPackArtifactWorkflow:
 
         render_result = _render_quality(TeachingPackState(
             run_id="run-normalize",
-            artifacts=result["artifacts"],
+            artifacts=_artifacts(result),
         ))
 
-        assert result["artifacts"][0]["artifact_id"] == "lesson-1"
-        assert render_result["rendered_snapshots"][0]["artifact_id"] == "lesson-1"
+        assert _artifacts(result)[0].get("artifact_id") == "lesson-1"
+        snapshots = render_result.get("rendered_snapshots", [])
+        assert snapshots[0].get("artifact_id") == "lesson-1"
 
     @pytest.mark.anyio
     async def test_artifact_workflow_marks_generated_answer_key_sections_teacher_only(
@@ -121,11 +137,12 @@ class TestTeachingPackArtifactWorkflow:
         ))
         render_result = _render_quality(TeachingPackState(
             run_id="run-answer-key",
-            artifacts=result["artifacts"],
+            artifacts=_artifacts(result),
         ))
 
-        assert result["artifacts"][0]["sections"][1]["teacher_only"] is True
-        assert render_result["quality_scores"]["passed"] is True
+        sections = _json_list(_artifacts(result)[0], "sections")
+        assert sections[1].get("teacher_only") is True
+        assert render_result.get("quality_scores", {}).get("passed") is True
 
     @pytest.mark.anyio
     async def test_artifact_workflow_marks_correct_answer_sections_teacher_only(
@@ -162,11 +179,12 @@ class TestTeachingPackArtifactWorkflow:
         ))
         render_result = _render_quality(TeachingPackState(
             run_id="run-correct-answer",
-            artifacts=result["artifacts"],
+            artifacts=_artifacts(result),
         ))
 
-        assert result["artifacts"][0]["sections"][1]["teacher_only"] is True
-        assert render_result["quality_scores"]["passed"] is True
+        sections = _json_list(_artifacts(result)[0], "sections")
+        assert sections[1].get("teacher_only") is True
+        assert render_result.get("quality_scores", {}).get("passed") is True
 
     @pytest.mark.anyio
     async def test_artifact_workflow_regenerates_only_scoped_rejected_artifacts(
@@ -230,7 +248,7 @@ class TestTeachingPackArtifactWorkflow:
 
         assert calls[0]["artifact_types"] == ["quiz"]
         assert calls[0]["revision_feedback"] == "Need easier distractors."
-        assert [artifact["title"] for artifact in result["artifacts"]] == [
+        assert [artifact.get("title") for artifact in _artifacts(result)] == [
             "Accepted Lesson",
             "Regenerated Quiz",
         ]

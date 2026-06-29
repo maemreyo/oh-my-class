@@ -7,7 +7,15 @@ import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from services.gateway.budget import BudgetLedger, record_retry, record_usage
-from services.gateway.budget_db import BudgetLedgerRecord, load_budget_ledger, save_budget_ledger
+from services.gateway.budget_db import (
+    budget_ledger_payload,
+    load_budget_ledger,
+    save_budget_ledger,
+    write_budget_ledger_event,
+)
+from services.gateway.models import Base
+from services.gateway.teaching_pack_models import TeachingPackEventVisibility
+from services.gateway.teaching_pack_store import TeachingPackEventCreate
 from services.gateway.teaching_pack_types import RunId
 
 if TYPE_CHECKING:
@@ -24,8 +32,9 @@ async def session() -> AsyncIterator[AsyncSession]:
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with engine.begin() as connection:
         await connection.run_sync(
-            lambda sync_connection: BudgetLedgerRecord.__table__.create(
-                sync_connection, checkfirst=True,
+            lambda sync_connection: Base.metadata.create_all(
+                sync_connection,
+                checkfirst=True,
             ),
         )
     async with session_factory() as database_session:
@@ -63,3 +72,44 @@ class TestBudgetDb:
         loaded = await load_budget_ledger(session, run_id)
 
         assert loaded.tokens_used == 20
+
+    def test_budget_ledger_payload_is_replay_safe_json(self) -> None:
+        ledger = BudgetLedger(
+            tokens_used=25,
+            searches_used=2,
+            fetches_used=3,
+            retries_used={"artifact-1": 1},
+        )
+
+        assert budget_ledger_payload(ledger) == {
+            "tokens_used": 25,
+            "searches_used": 2,
+            "fetches_used": 3,
+            "retries_used": {"artifact-1": 1},
+        }
+
+    async def test_write_budget_ledger_event_records_internal_event(self) -> None:
+        store = RecordingBudgetEventStore()
+        ledger = BudgetLedger(tokens_used=25, searches_used=2)
+
+        await write_budget_ledger_event(store, run_id=RunId("budget-event"), ledger=ledger)
+
+        assert store.events == [TeachingPackEventCreate(
+            run_id=RunId("budget-event"),
+            event_name="teaching_pack.budget.ledger_recorded",
+            visibility=TeachingPackEventVisibility.INTERNAL,
+            payload={
+                "tokens_used": 25,
+                "searches_used": 2,
+                "fetches_used": 0,
+                "retries_used": {},
+            },
+        )]
+
+
+class RecordingBudgetEventStore:
+    def __init__(self) -> None:
+        self.events: list[TeachingPackEventCreate] = []
+
+    async def write_event(self, payload: TeachingPackEventCreate) -> None:
+        self.events.append(payload)

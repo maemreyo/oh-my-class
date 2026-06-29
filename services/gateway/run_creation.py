@@ -21,6 +21,7 @@ from services.gateway.teaching_pack_store import (
 )
 from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
 from services.gateway.research_safety import minimize_class_info
+from services.gateway.retention import retention_days_for_class_info
 from services.gateway.run_contract_setup import (
     ContractSetupGate,
     ContractSetupInput,
@@ -60,6 +61,7 @@ async def create_teaching_pack_run_record(
         teacher_id=teacher_id,
         raw_request=raw_request,
         class_info=minimized_class_info,
+        retention_days=retention_days_for_class_info(minimized_class_info),
     ))
     setup = resolve_contract_setup(ContractSetupInput(
         run_id=run_id,

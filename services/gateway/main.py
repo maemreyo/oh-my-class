@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """FastAPI Gateway — entry point for oh-my-class pipeline.
 
 Embeds LangGraph runtime. Exposes REST + WebSocket (SSE) for the teacher dashboard.
@@ -5,6 +7,7 @@ Port: 8001
 """
 
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 import anyio
 from fastapi import FastAPI
@@ -28,6 +31,9 @@ from .routers import (
     webhooks,
 )
 
+if TYPE_CHECKING:
+    from anyio.abc import TaskGroup
+
 
 async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
     while True:
@@ -40,12 +46,13 @@ async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
             await session.commit()
 
 
-async def _run_teaching_pack_worker(app: FastAPI, task_group: anyio.abc.TaskGroup) -> None:
+async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None:
     from .teaching_pack_executor import (
-        TeachingPackCompletionRecorder,
         TeachingPackExecutor,
         TeachingPackFailureRecorder,
     )
+    from .teaching_pack_completion import TeachingPackCompletionRecorder
+    from .teaching_pack_executor_types import InAppTeachingPackNotificationSink
     from .teaching_pack_job_store import TeachingPackJobStore
     from .teaching_pack_store import TeachingPackRunStore
     from .teaching_pack_worker import TeachingPackWorker, TeachingPackWorkerConfig
@@ -55,9 +62,15 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: anyio.abc.TaskGrou
             run_store = TeachingPackRunStore(session)
             executor = TeachingPackExecutor(
                 app.state.teaching_pack_graph,
-                task_group,
-                TeachingPackFailureRecorder(run_store),
-                TeachingPackCompletionRecorder(run_store),
+                _AnyioTeachingPackTaskGroup(task_group),
+                TeachingPackFailureRecorder(
+                    run_store,
+                    InAppTeachingPackNotificationSink(session),
+                ),
+                TeachingPackCompletionRecorder(
+                    run_store,
+                    notifications=InAppTeachingPackNotificationSink(session),
+                ),
             )
             worker = TeachingPackWorker(
                 TeachingPackJobStore(session),
@@ -72,6 +85,14 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: anyio.abc.TaskGrou
             await session.commit()
         if not did_work:
             await anyio.sleep(1)
+
+
+class _AnyioTeachingPackTaskGroup:
+    def __init__(self, task_group: TaskGroup) -> None:
+        self._task_group = task_group
+
+    def start_soon(self, func, *args) -> None:
+        self._task_group.start_soon(func, *args)
 
 
 @asynccontextmanager
@@ -123,6 +144,8 @@ app = FastAPI(
 
 register_exception_handlers(app)
 
+app.add_middleware(JWTMiddleware)
+app.add_middleware(RequestIDMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -135,9 +158,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(JWTMiddleware)
-app.add_middleware(RequestIDMiddleware)
 
 app.include_router(auth_router.router)
 app.include_router(runs.router, prefix="/run", tags=["runs"])

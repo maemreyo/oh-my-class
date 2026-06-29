@@ -385,7 +385,7 @@ class TestNotificationHelpers:
         notifs = await get_notifications("teacher-test", session)
         assert len(notifs) == 1
         assert notifs[0]["event_type"] == "clarification_required"
-        assert "blueprint" in notifs[0]["title"].lower()
+        assert "blueprint" in str(notifs[0]["title"]).lower()
         await _delete_run(session, run_id)
 
     async def test_notify_run_completed(self, session: AsyncSession) -> None:
@@ -408,7 +408,7 @@ class TestNotificationHelpers:
         notifs = await get_notifications("teacher-test", session)
         assert len(notifs) == 1
         assert notifs[0]["event_type"] == "run_failed"
-        assert "LLM timeout" in notifs[0]["message"]
+        assert "LLM timeout" in str(notifs[0]["message"])
         await _delete_run(session, run_id)
 
     async def test_all_pipeline_event_helpers_emit_notifications(
@@ -656,4 +656,65 @@ class TestAdminRecovery:
 
         assert result.success is False
         assert "no stuck" in result.message.lower()
+        await _delete_run(session, run_id)
+
+    async def test_retry_notification_retries_failed_delivery(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        run_id = await _create_run(session)
+        event = _make_event(run_id)
+        notification_id = await create_notification(event, session)
+        delivery = NotificationDeliveryRecord(
+            id=f"del-failed-{uuid4()}",
+            notification_id=notification_id,
+            channel="in_app",
+            status="failed",
+        )
+        session.add(delivery)
+        await session.flush()
+
+        request = AdminRecoveryRequest(
+            run_id=run_id,
+            action=SafeRecoveryAction.RETRY_NOTIFICATION,
+            reason="Retry failed in-app notification",
+            admin_id="admin-1",
+        )
+
+        result = await execute_recovery(request, session)
+
+        assert result.success is True
+        stmt = select(NotificationDeliveryRecord).where(
+            NotificationDeliveryRecord.id == delivery.id,
+        )
+        updated = (await session.execute(stmt)).scalar_one()
+        assert updated.status == "delivered"
+        assert updated.delivered_at is not None
+        await _delete_run(session, run_id)
+
+    async def test_retry_notification_does_not_duplicate_delivered_delivery(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        run_id = await _create_run(session)
+        event = _make_event(run_id)
+        notification_id = await create_notification(event, session)
+        await deliver_notification(notification_id, "in_app", session)
+
+        request = AdminRecoveryRequest(
+            run_id=run_id,
+            action=SafeRecoveryAction.RETRY_NOTIFICATION,
+            reason="Retry already delivered notification",
+            admin_id="admin-1",
+        )
+
+        result = await execute_recovery(request, session)
+
+        assert result.success is False
+        stmt = select(NotificationDeliveryRecord).where(
+            NotificationDeliveryRecord.notification_id == notification_id,
+        )
+        deliveries = (await session.execute(stmt)).scalars().all()
+        assert len(deliveries) == 1
+        assert deliveries[0].status == "delivered"
         await _delete_run(session, run_id)

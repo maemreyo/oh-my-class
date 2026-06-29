@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
 
 const { mockPost } = vi.hoisted(() => ({
 	mockPost: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock("@/components/ui/badge", () => ({ Badge: () => null }));
 vi.mock("@/components/ui/button", () => ({ Button: ({ children }: { children: React.ReactNode }) => null }));
 
 import { snapshotPreviewUrl } from "@/hooks/use-teaching-packs";
+import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
 
 type GateName =
 	| "clarification_required"
@@ -214,6 +216,29 @@ describe("snapshotPreviewUrl", () => {
 	it("builds student preview URL", () => {
 		expect(snapshotPreviewUrl("run-1", "snap-2", "student")).toBe(
 			"http://gateway.test/teaching-packs/runs/run-1/snapshots/snap-2/preview?view=student",
+		);
+	});
+});
+
+describe("TeachingPackGateBody content preview", () => {
+	it("renders student and teacher preview controls for content approval", () => {
+		const html = renderToStaticMarkup(
+			<TeachingPackGateBody
+				runId="run-1"
+				gateName="content_approval"
+				event={{
+					snapshot_ids: ["snap-1"],
+					artifacts: [
+						{ artifact_id: "artifact-1", artifact_type: "lesson", status: "ready" },
+					],
+				}}
+			/>,
+		);
+
+		expect(html).toContain("Student view");
+		expect(html).toContain("Teacher view");
+		expect(html).toContain(
+			"http://gateway.test/teaching-packs/runs/run-1/snapshots/snap-1/preview?view=student",
 		);
 	});
 });

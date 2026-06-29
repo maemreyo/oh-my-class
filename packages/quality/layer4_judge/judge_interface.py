@@ -21,7 +21,7 @@ from typing import Any
 
 from common.contracts.judge_output import JudgeOutput
 from packages.quality.layer4_judge.hard_blocks import (
-    HARD_BLOCK_CODES,  # noqa: F401 — re-exported for backward-compatible imports
+    HARD_BLOCK_CODES as _HARD_BLOCK_CODES,
     enforce_hard_blocks,
 )
 from packages.quality.layer4_judge.judge_prompts import (
@@ -33,11 +33,17 @@ from packages.quality.layer4_judge.judge_transport import (
     LLMTransport,
     default_litellm_transport,
 )
+from packages.quality.layer4_judge.judge_policy import (
+    JudgePolicyContext,
+    JudgeRiskLevel,
+    judge_policy_decision,
+)
 from packages.quality.layer4_judge.rubric_selector import RubricSelector
 
 logger = logging.getLogger(__name__)
 
 # Re-export for backward-compatible imports from this module.
+HARD_BLOCK_CODES = _HARD_BLOCK_CODES
 _enforce_hard_blocks = enforce_hard_blocks  # noqa: SLF001
 
 
@@ -91,6 +97,8 @@ class JudgeResult:
     deterministic_blocked: bool
     hard_block_violations: list[str]
     llm_available: bool = True
+    policy_triggered: bool = False
+    policy_reasons: tuple[str, ...] = ()
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +152,11 @@ class AdaptiveJudge:
         deterministic_issues: list[str] | None = None,
         lesson_plan: dict[str, Any] | None = None,
         teacher_approved: bool = True,
+        subject: str | None = None,
+        locale: str | None = None,
+        curriculum: str | None = None,
+        risk_level: JudgeRiskLevel = "standard",
+        borderline_score: float | None = None,
     ) -> JudgeResult:
         """Run the adaptive judge pipeline.
 
@@ -164,9 +177,27 @@ class AdaptiveJudge:
         Raises:
             JudgeUnavailableError: When the LLM is unreachable and strategy is FAIL_CLOSED.
         """
-        # Step 1: Select rubric
-        rubric = self._selector.select(artifact_type, deterministic_issues)
         deterministic_issues = deterministic_issues or []
+        policy_context = JudgePolicyContext(
+            artifact_type=artifact_type,
+            deterministic_issues=tuple(deterministic_issues),
+            subject=subject,
+            locale=locale,
+            curriculum=curriculum,
+            risk_level=risk_level,
+            borderline_score=borderline_score,
+        )
+        policy_decision = judge_policy_decision(policy_context)
+
+        # Step 1: Select rubric
+        rubric = self._selector.select(
+            artifact_type,
+            deterministic_issues,
+            subject=subject,
+            locale=locale,
+            curriculum=curriculum,
+            risk_level=risk_level,
+        )
 
         # Step 2: Call LLM judge(s)
         llm_available = True
@@ -221,6 +252,8 @@ class AdaptiveJudge:
             deterministic_blocked=was_blocked,
             hard_block_violations=violations,
             llm_available=llm_available,
+            policy_triggered=policy_decision.should_judge,
+            policy_reasons=policy_decision.reasons,
         )
 
     async def _call_llm_judges(

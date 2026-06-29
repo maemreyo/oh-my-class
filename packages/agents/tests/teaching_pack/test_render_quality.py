@@ -68,8 +68,8 @@ class TestTeachingPackRenderQuality:
 
         result = _render_quality(state)
 
-        assert result["quality_recovery_route"] == "artifact_workflow"
-        assert "pack.coherence: quiz_not_aligned_with_lesson" in result["quality_issues"]
+        assert result.get("quality_recovery_route") == "artifact_workflow"
+        assert "pack.coherence: quiz_not_aligned_with_lesson" in result.get("quality_issues", [])
         assert route_after_render_quality(TeachingPackState(**result)) == "artifact_workflow"
 
     def test_render_quality_routes_artifacts_that_miss_lesson_objectives(self) -> None:
@@ -97,8 +97,8 @@ class TestTeachingPackRenderQuality:
 
         result = _render_quality(state)
 
-        assert result["quality_recovery_route"] == "planning_blueprint"
-        assert "pack.coherence: worksheet_not_aligned_with_objectives" in result["quality_issues"]
+        assert result.get("quality_recovery_route") == "planning_blueprint"
+        assert "pack.coherence: worksheet_not_aligned_with_objectives" in result.get("quality_issues", [])
         assert route_after_render_quality(TeachingPackState(**result)) == "planning_blueprint"
 
     def test_render_quality_routes_vocabulary_drift_across_student_artifacts(self) -> None:
@@ -126,8 +126,8 @@ class TestTeachingPackRenderQuality:
 
         result = _render_quality(state)
 
-        assert result["quality_recovery_route"] == "artifact_workflow"
-        assert "pack.coherence: quiz_missing_lesson_vocabulary" in result["quality_issues"]
+        assert result.get("quality_recovery_route") == "artifact_workflow"
+        assert "pack.coherence: quiz_missing_lesson_vocabulary" in result.get("quality_issues", [])
         assert route_after_render_quality(TeachingPackState(**result)) == "artifact_workflow"
 
     def test_render_quality_routes_invalid_vietnamese_difficulty_distribution(self) -> None:
@@ -162,6 +162,6 @@ class TestTeachingPackRenderQuality:
 
         result = _render_quality(state)
 
-        assert result["quality_recovery_route"] == "planning_blueprint"
-        assert "pack.coherence: quiz_invalid_vietnamese_difficulty_distribution" in result["quality_issues"]
+        assert result.get("quality_recovery_route") == "planning_blueprint"
+        assert "pack.coherence: quiz_invalid_vietnamese_difficulty_distribution" in result.get("quality_issues", [])
         assert route_after_render_quality(TeachingPackState(**result)) == "planning_blueprint"

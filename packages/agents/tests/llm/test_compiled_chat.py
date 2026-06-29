@@ -9,11 +9,16 @@ No network calls.  See test_compiled_chat_enrichment.py for integration tests.
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from packages.agents.llm.compiled_chat import (
     _HASH_PREFIX_LEN,
     _merge_tags,
     _provenance_tags,
 )
+
+if TYPE_CHECKING:
+    from packages.agents.prompts.compiler import CompiledPrompt
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -29,7 +34,8 @@ def _make_compiled_prompt(
         "ffff7777aaaa8888bbbb9999cccc0000"
     ),
     sections: list[str] | None = None,
-) -> object:
+    overlay_ids: list[str] | None = None,
+) -> CompiledPrompt:
     # Deferred import avoids circular dependency between prompt_metadata
     # and prompts.compiler at module load time.
     from packages.agents.llm.prompt_metadata import PromptMetadata
@@ -41,6 +47,7 @@ def _make_compiled_prompt(
         content_hash=content_hash,
         compiled_hash=compiled_hash,
         sections=sections or ["Judge"],
+        overlay_ids=overlay_ids or [],
     )
     return CompiledPrompt(
         module_id=module_id,
@@ -91,6 +98,13 @@ class TestProvenanceTags:
         assert len(prefix) == _HASH_PREFIX_LEN
         assert prefix == "b" * _HASH_PREFIX_LEN
 
+    def test_overlay_ids_included_when_present(self) -> None:
+        cp = _make_compiled_prompt(overlay_ids=["vi_vn", "math"])
+
+        tags = _provenance_tags(cp)
+
+        assert "overlay_ids:vi_vn,math" in tags
+
 
 # ── Unit: _merge_tags ───────────────────────────────────────────────────────
 
@@ -138,7 +152,7 @@ class TestMergeTags:
 class TestFailureOnMutatedHash:
     """Proves that hash validation catches mutations — the 'red' test."""
 
-    def _compile(self, module_id: str = "judge_v1") -> object:
+    def _compile(self, module_id: str = "judge_v1") -> CompiledPrompt:
         from packages.agents.prompts.compiler import PromptCompiler
         from packages.agents.prompts.seed import create_seeded_registry
 

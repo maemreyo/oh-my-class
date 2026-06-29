@@ -77,6 +77,8 @@ If rendered approval is unstable, block V2 release rather than reverting to JSON
 
 Status: PARTIAL. Snapshot persistence and preview/approval APIs exist, but renderer integration and browser/manual QA are not fully proven.
 
+Active-surface reconciliation: the historical review below names `pipeline_v2_snapshot_*` and `pipeline_v2_previews` files. The active rendered-preview surface is `services/gateway/teaching_pack_snapshot_store.py`, `teaching_pack_snapshot_models.py`, `artifact_snapshot_service.py`, `renderer_adapter.py`, `teaching_pack_export_writer.py`, and `services/gateway/routers/teaching_pack_previews.py`.
+
 Evidence:
 - Snapshot data model and migration exist in `services/gateway/pipeline_v2_snapshot_models.py` and `services/gateway/alembic/versions/006_rendered_snapshot_metadata.py`.
 - Snapshot storage and standalone validation are implemented in `services/gateway/pipeline_v2_snapshot_store.py`.

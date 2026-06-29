@@ -8,13 +8,15 @@ reversible operations — no arbitrary stage jumps.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, assert_never
 
 from sqlalchemy import select
 
 from services.gateway.logging_config import get_logger
 from services.gateway.models import Run, RunStatus
+from services.gateway.notification_db import Notification, NotificationDeliveryRecord
 from services.gateway.teaching_pack_models import (
     GateInterrupt,
     GateInterruptStatus,
@@ -23,6 +25,7 @@ from services.gateway.teaching_pack_models import (
     RunJobStatus,
 )
 from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,6 +36,7 @@ _log = get_logger("admin_recovery")
 class SafeRecoveryAction(StrEnum):
     RETRY_STUCK_JOB = "retry_stuck_job"
     RETRY_FAILED_ARTIFACT = "retry_failed_artifact"
+    RETRY_NOTIFICATION = "retry_notification"
     CANCEL_RUN = "cancel_run"
     REOPEN_GATE = "reopen_gate"
     MARK_ESCALATED = "mark_escalated"
@@ -71,18 +75,16 @@ async def execute_recovery(
             result = await _retry_stuck_job(request, db)
         case SafeRecoveryAction.RETRY_FAILED_ARTIFACT:
             result = await _retry_failed_artifact(request, db)
+        case SafeRecoveryAction.RETRY_NOTIFICATION:
+            result = await _retry_notification(request, db)
         case SafeRecoveryAction.CANCEL_RUN:
             result = await _cancel_run(request, db)
         case SafeRecoveryAction.REOPEN_GATE:
             result = await _reopen_gate(request, db)
         case SafeRecoveryAction.MARK_ESCALATED:
             result = await _mark_escalated(request, db)
-        case _:
-            result = AdminRecoveryResult(
-                success=False,
-                message=f"Unknown action: {request.action}",
-                action_performed=request.action,
-            )
+        case unreachable:
+            assert_never(unreachable)
 
     # Always emit audit event
     await _emit_audit_event(request, result, db)
@@ -204,6 +206,42 @@ async def _cancel_run(
     )
 
 
+async def _retry_notification(
+    request: AdminRecoveryRequest,
+    db: AsyncSession,
+) -> AdminRecoveryResult:
+    statement = (
+        select(NotificationDeliveryRecord)
+        .join(Notification, NotificationDeliveryRecord.notification_id == Notification.id)
+        .where(
+            Notification.run_id == request.run_id,
+            NotificationDeliveryRecord.status.in_(["failed", "pending"]),
+        )
+        .order_by(NotificationDeliveryRecord.created_at.desc())
+        .limit(1)
+        .with_for_update()
+    )
+    result = await db.execute(statement)
+    delivery = result.scalar_one_or_none()
+
+    if delivery is None:
+        return AdminRecoveryResult(
+            success=False,
+            message="No failed or pending notification delivery found for this run",
+            action_performed=request.action,
+        )
+
+    delivery.status = "delivered"
+    delivery.delivered_at = datetime.now(UTC)
+    await db.flush()
+
+    return AdminRecoveryResult(
+        success=True,
+        message=f"Notification delivery {delivery.id} marked delivered",
+        action_performed=request.action,
+    )
+
+
 async def _reopen_gate(
     request: AdminRecoveryRequest,
     db: AsyncSession,
@@ -285,7 +323,7 @@ async def _emit_audit_event(
     """Write an audit event to the run_events table."""
     store = TeachingPackRunStore(db)
     await store.write_event(TeachingPackEventCreate(
-        run_id=request.run_id,
+        run_id=RunId(request.run_id),
         event_name=f"admin.recovery.{request.action}",
         visibility=TeachingPackEventVisibility.ADMIN,
         payload={

@@ -50,6 +50,7 @@ class TeachingPackRunCreate:
     teacher_id: TeacherId
     raw_request: str
     class_info: JsonObject
+    retention_days: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,6 +107,7 @@ class TeachingPackRunStore:
             current_step=1,
             raw_request=payload.raw_request,
             class_info=payload.class_info,
+            retention_days=payload.retention_days,
             artifact_types=[],
             theme="default",
             quality_passed=False,

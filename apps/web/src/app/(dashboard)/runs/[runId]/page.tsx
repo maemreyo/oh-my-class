@@ -53,7 +53,7 @@ export default function RunDetailPage() {
 		<div className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
 			<div>
 				<p className="text-sm font-medium text-muted-foreground">Teaching Pack run</p>
-				<h1 className="mt-1 text-3xl font-bold tracking-tight">{runId}</h1>
+				<h1 className="mt-1 break-all text-3xl font-bold tracking-tight">{runId}</h1>
 			</div>
 
 			<TeachingPackStageProgress status={run?.status ?? "unknown"} />
@@ -75,7 +75,7 @@ export default function RunDetailPage() {
 					{teachingPackEvents.map((event, index) => (
 						<div key={`teaching-pack-${event.name}-${index}`} className="border-b border-border py-2 last:border-b-0">
 							<span className="text-primary">{event.name}</span>{" "}
-							<span className="text-muted-foreground">{JSON.stringify(event.payload)}</span>
+						<span className="break-all text-muted-foreground">{JSON.stringify(event.payload)}</span>
 						</div>
 					))}
 				</div>

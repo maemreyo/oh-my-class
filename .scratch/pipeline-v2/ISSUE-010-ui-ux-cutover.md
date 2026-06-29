@@ -80,16 +80,28 @@ V2 UI cutover is tied to V2 backend cutover. If incomplete, keep V2 unreleased r
 
 ## Ultrawork Review — 2026-06-27
 
-Status: PARTIAL. V2 frontend components/hooks are present with component tests, but complete browser/a11y/manual QA is not proven.
+Status: REVIEW-PARTIAL. Active Teaching Pack frontend components/hooks are present with component tests, and responsive browser QA for the live run-detail/list/approvals surfaces is now proven. Full accessibility/focus-trap QA and complete teacher-journey browser coverage remain broader release work.
+
+Active-surface reconciliation: the historical review below names `pipeline-v2-*` frontend components/hooks. Current UI/browser QA must target the Teaching Pack dashboard flow and active `/teaching-packs/*` API/SSE routes. Do not add old `/pipeline-v2/*` client paths or compatibility hooks.
 
 Evidence:
 - V2 UI additions include `apps/web/src/hooks/use-pipeline-v2.ts`, `pipeline-v2-stage-progress.tsx`, `pipeline-v2-gate-shell.tsx`, `pipeline-v2-artifact-progress.tsx`, `pipeline-v2-scoped-rejection.tsx`, and changes to `apps/web/src/app/(dashboard)/runs/[runId]/page.tsx` and `apps/web/src/lib/api-client.ts`.
 - Tests cover hooks and components in `apps/web/tests/hooks.test.ts`, `apps/web/tests/pipeline-v2-components.test.tsx`, and `apps/web/tests/pipeline-v2-artifacts.test.tsx`.
 - UI status/gate/artifact progress surfaces are backed by the V2 API/event model from Issues 003 and 008.
+- Active UI/CORS browser QA evidence, 2026-06-29: `.scratch/pipeline-v2/artifacts/live-v2-ui-ux-browser-qa-2026-06-29.json` records passing Playwright coverage for run `231401e0-9ac8-49ef-afab-e6bf91579b69` across `/runs/{runId}`, `/runs`, and `/approvals`; screenshots are persisted at `live-v2-ui-ux-desktop/tablet/mobile/runs-list/approvals-2026-06-29.png`.
+- Browser QA passed desktop `1280x900`, tablet `768x900`, and mobile `375x812` with `loadedRunDetail=true`, progress visible, gate/event UI visible, no gateway-unavailable state, no console errors, and `showsHorizontalOverflow=false` at every breakpoint.
+- Runtime CORS preflight for active Teaching Pack routes was fixed by making `CORSMiddleware` outermost relative to auth middleware; `services/gateway/tests/test_main.py` covers unauthenticated preflight to Teaching Pack routes.
+- Responsive overflow fixes landed in the active dashboard shell and run/gate detail surfaces: `apps/web/src/app/(dashboard)/layout.tsx`, `apps/web/src/app/(dashboard)/runs/[runId]/page.tsx`, and `apps/web/src/components/teaching-packs-gate-shell.tsx`.
+- Content approval preview toggle is now directly regression-tested on the active gate body. `apps/web/tests/teaching-packs-components.test.tsx` renders `TeachingPackGateBody` for `content_approval` and asserts both `Student view` and `Teacher view` controls plus the default student preview iframe URL are present; `snapshotPreviewUrl` coverage also proves teacher preview URL construction.
+- Evidence: `pnpm --filter @oh-my-class/web test -- teaching-packs-components.test.tsx` → 7 files / 96 tests passed; `pnpm --filter @oh-my-class/web typecheck` → passed.
+- SSE reconnect/replay is now directly regression-tested for the active Teaching Pack hook. `apps/web/tests/teaching-pack-status-sse.test.ts` stubs `EventSource`, receives `teaching_pack.content_approval.opened` with `lastEventId=42`, triggers `onerror`, advances the reconnect timer, and asserts the next connection URL includes `?last_event_id=42` with credentials enabled.
+- Evidence: `pnpm --filter @oh-my-class/web test -- teaching-pack-status-sse.test.ts` → 8 files / 97 tests passed; `pnpm --filter @oh-my-class/web typecheck` → passed.
+- Search-plan and blueprint gate bodies now render teacher-readable summaries instead of making raw JSON the primary UX. `SearchPlanSummary` surfaces reason, estimated work, budget, query list, and source policy; `BlueprintSummary` surfaces topic, grade, subject, duration, learning objectives, and assessment checkpoints.
+- Evidence: `apps/web/tests/teaching-pack-gate-bodies-render.test.tsx` renders both active gate bodies and asserts readable labels/content are present while raw JSON key dumps such as `&quot;query_plan&quot;` and `&quot;learning_objectives&quot;` are absent from the primary view. `pnpm --filter @oh-my-class/web test -- teaching-pack-gate-bodies-render.test.tsx` → 9 files / 99 tests passed; `pnpm --filter @oh-my-class/web typecheck` → passed.
 
 Gaps:
-- Browser QA for full teacher journey, responsive gate dialogs, accessibility focus/keyboard behavior, and SSE reconnect after refresh was not found.
+- Browser QA for the full teacher journey, accessibility focus/keyboard behavior, and SSE reconnect after refresh remains release work beyond the responsive run-detail/list/approvals proof above.
 - Component names indicate generic gate shell/scoped rejection support, but not all named gate bodies from the original scope are independently proven.
-- The V2 SSE hook opens an `EventSource`, but no `Last-Event-ID` replay/reconnect handling was verified on the client side.
-- Rendered preview URL helpers support student/teacher views, but the gate UI was not proven to expose a student/teacher tab or toggle.
-- Search-plan and blueprint gate bodies still appear JSON-oriented rather than fully teacher-friendly structured views.
+- The active Teaching Pack SSE hook now has direct client-side replay/reconnect proof for `last_event_id`; remaining SSE work is full browser refresh/reconnect QA, not hook behavior.
+- Rendered preview URL helpers and active content-approval gate UI now have direct component evidence for student/teacher preview controls; remaining preview work is browser/manual QA of the rendered iframe content itself.
+- Search-plan and blueprint gate bodies now have structured-view regression coverage. Remaining gate-body proof is full browser/a11y interaction QA, not primary rendering shape.

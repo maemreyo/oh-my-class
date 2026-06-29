@@ -16,9 +16,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from packages.agents.llm.prompt_metadata import PromptMetadata, build_prompt_metadata
+from packages.agents.prompts.compaction import PromptCompactionError as _PromptCompactionError
+from packages.agents.prompts.compaction import compact_prompt
 from packages.agents.prompts.drift import detect_drift
 
 if TYPE_CHECKING:
@@ -27,6 +29,9 @@ if TYPE_CHECKING:
 # ── Variable pattern ────────────────────────────────────────────────────────
 
 _VAR_PATTERN: re.Pattern[str] = re.compile(r"\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}")
+_JSON_OBJECT_PATTERN: Final[re.Pattern[str]] = re.compile(r"(?i)\bjson\s+object\b")
+_JSON_ARRAY_PATTERN: Final[re.Pattern[str]] = re.compile(r"(?i)\bjson\s+array\b")
+PromptCompactionError = _PromptCompactionError
 
 
 def _extract_variables(body: str) -> set[str]:
@@ -109,6 +114,16 @@ class DriftRejectionError(ValueError):
         return f"Drift rejected for '{self.module_id}': {'; '.join(self.issues)}"
 
 
+@dataclass(frozen=True, slots=True)
+class StructuredOutputContradictionError(ValueError):
+    formats: frozenset[str]
+
+    def __str__(self) -> str:
+        return "Contradictory structured output instructions: " + ", ".join(
+            sorted(self.formats),
+        )
+
+
 # ── Value objects ────────────────────────────────────────────────────────────
 
 
@@ -170,6 +185,7 @@ class PromptCompiler:
         variables: dict[str, str],
         overlays: list[Overlay] | None = None,
         version: str | None = None,
+        max_chars: int | None = None,
     ) -> CompiledPrompt:
         """Compile a prompt module with variable substitution and overlay application.
 
@@ -223,8 +239,22 @@ class PromptCompiler:
             applied_ids = [ov.id for ov in sorted_overlays]
             compiled_body = "\n".join([compiled_body, *overlay_bodies])
 
+        dropped_sections: list[str] = []
+        if max_chars is not None:
+            compacted = compact_prompt(compiled_body, max_chars)
+            compiled_body = compacted.body
+            dropped_sections = compacted.dropped_sections
+
+        self._reject_structured_output_contradiction(compiled_body)
+
         # 6. Build provenance metadata.
-        metadata = build_prompt_metadata(module, compiled_body)
+        metadata = build_prompt_metadata(
+            module,
+            compiled_body,
+            overlay_ids=applied_ids,
+            compacted=bool(dropped_sections),
+            dropped_sections=dropped_sections,
+        )
 
         return CompiledPrompt(
             module_id=module.id,
@@ -280,3 +310,18 @@ class PromptCompiler:
         for ov in overlays:
             if _has_secret_like_content(ov.body):
                 raise SecretOverlayError(overlay_id=ov.id)
+
+    @staticmethod
+    def _reject_structured_output_contradiction(compiled_body: str) -> None:
+        formats = _structured_output_formats(compiled_body)
+        if len(formats) > 1:
+            raise StructuredOutputContradictionError(formats=formats)
+
+
+def _structured_output_formats(compiled_body: str) -> frozenset[str]:
+    formats: set[str] = set()
+    if _JSON_OBJECT_PATTERN.search(compiled_body):
+        formats.add("object")
+    if _JSON_ARRAY_PATTERN.search(compiled_body):
+        formats.add("array")
+    return frozenset(formats)

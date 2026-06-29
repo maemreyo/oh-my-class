@@ -79,6 +79,8 @@ Database migrations should be forward-safe. If rollback is needed before cutover
 
 Status: PARTIAL. Persistence primitives are broadly implemented, but the report overstates production-readiness proof.
 
+Active-surface reconciliation: the historical review below names `pipeline_v2_*` files. The active persistence surface is `services/gateway/teaching_pack_store.py`, `teaching_pack_control_store.py`, `teaching_pack_job_store.py`, `teaching_pack_snapshot_store.py`, `teaching_pack_models.py`, `teaching_pack_snapshot_models.py`, and the active Teaching Pack graph/checkpointer wiring. New work must use those Teaching Pack files.
+
 Evidence:
 - Alembic migrations add Pipeline V2 persistence tables in `services/gateway/alembic/versions/002_pipeline_v2_persistence.py`, `003_pipeline_v2_control_tables.py`, `004_pipeline_v2_run_jobs.py`, `005_artifact_workflow_state.py`, `006_rendered_snapshot_metadata.py`, `007_soft_delete_and_retention.py`, `008_notifications.py`, and `009_release_evidence.py`.
 - Run/event storage is implemented in `services/gateway/pipeline_v2_store.py`; snapshot storage in `services/gateway/pipeline_v2_snapshot_store.py`; gate/contract/workflow persistence in `services/gateway/pipeline_v2_control_store.py`.

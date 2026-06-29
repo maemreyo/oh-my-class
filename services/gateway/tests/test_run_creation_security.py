@@ -64,6 +64,7 @@ async def test_create_run_record_persists_minimized_class_info(
     assert class_info["student_evidence"] == {
         "misconceptions": ["equivalent fractions"],
     }
+    assert stored.retention_days == 30
     await session.execute(delete(Run).where(Run.run_id == result.run_id))
     await session.commit()
 

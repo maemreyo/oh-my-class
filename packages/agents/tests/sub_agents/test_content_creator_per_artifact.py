@@ -13,10 +13,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from packages.agents.sub_agents.content_creator.nodes import (
-    _build_single_artifact_prompt,
-    content_creator_node,
-)
+from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+from packages.agents.sub_agents.content_creator.prompt_contract import build_single_artifact_prompt
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.content_creator.state import ContentCreatorState
@@ -265,14 +263,14 @@ class TestBuildSingleArtifactPrompt:
     """Unit test for the prompt builder helper."""
 
     def test_prompt_contains_artifact_type(self):
-        prompt = _build_single_artifact_prompt(
+        prompt = build_single_artifact_prompt(
             {"topic": "Math"}, {"topic": "Math"}, "quiz", "ocean",
         )
         assert "'quiz'" in prompt
         assert "ocean" in prompt
 
     def test_prompt_does_not_contain_other_types(self):
-        prompt = _build_single_artifact_prompt(
+        prompt = build_single_artifact_prompt(
             {"topic": "Math"}, {"topic": "Math"}, "lesson", "default",
         )
         assert "lesson" in prompt

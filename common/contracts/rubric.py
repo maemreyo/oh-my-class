@@ -12,12 +12,20 @@ Python quality gates and the TypeScript renderer reference the same schema.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+
+
+def _sha256_rubric(rubric: Rubric) -> str:
+    payload = rubric.model_dump(mode="json", exclude={"content_hash"})
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 class RubricLevel(BaseModel):
@@ -78,6 +86,10 @@ class Rubric(BaseModel):
     )
     criteria: list[RubricCriterion] = Field(..., min_length=1)
     description: str = ""
+    content_hash: str = Field(
+        default="",
+        description="SHA-256 digest of the canonical rubric body",
+    )
 
     def __hash__(self) -> int:
         return hash(self.version_id)
@@ -98,6 +110,17 @@ class Rubric(BaseModel):
         names = [c.name for c in self.criteria]
         if len(names) != len(set(names)):
             msg = "Rubric criterion names must be unique"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _validate_or_set_content_hash(self) -> Rubric:
+        expected = _sha256_rubric(self)
+        if self.content_hash == "":
+            object.__setattr__(self, "content_hash", expected)
+            return self
+        if self.content_hash != expected:
+            msg = "Content hash mismatch"
             raise ValueError(msg)
         return self
 
@@ -141,6 +164,12 @@ class RubricRegistry:
         if version_id not in self._rubrics:
             raise KeyError(version_id)
         del self._rubrics[version_id]
+
+    def validate_hash(self, version_id: str) -> bool:
+        rubric = self.get(version_id)
+        if rubric is None:
+            raise KeyError(version_id)
+        return rubric.content_hash == _sha256_rubric(rubric)
 
     def list_versions(self) -> list[str]:
         """Return sorted list of all registered version IDs."""

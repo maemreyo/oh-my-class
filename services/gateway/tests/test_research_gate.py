@@ -58,10 +58,10 @@ class TestResearchGate:
         )
         await session.commit()
 
+        assert isinstance(result, SearchPlanGateOpened)
         gate = await session.get(GateInterrupt, result.gate_id)
         event = await _latest_event(session, run_id)
 
-        assert isinstance(result, SearchPlanGateOpened)
         assert gate is not None
         assert gate.gate_name == "search_plan_confirmation"
         assert event == "teaching_pack.search_plan_confirmation.opened"

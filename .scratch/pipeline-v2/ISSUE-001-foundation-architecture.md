@@ -73,6 +73,8 @@ Revert V2 skeleton files and docs references. This issue should not modify produ
 
 Status: PARTIAL. The foundation skeleton is present, but the port/interface scope is not complete.
 
+Active-surface reconciliation: the historical review below names `packages/agents/pipeline_v2/*`; the current codebase uses `packages/agents/teaching_pack/*` for the active graph, stages, nodes, and ports. Future implementation must continue on the Teaching Pack surface and must not recreate the old package name.
+
 Evidence:
 - Staged changes add the V2 package skeleton in `packages/agents/pipeline_v2/`: `config.py`, `stages.py`, `ports.py`, `graph.py`, `nodes.py`, and `checkpointing.py`.
 - Stage names/events are centralized in `packages/agents/pipeline_v2/stages.py`; the skeleton graph is constructed in `packages/agents/pipeline_v2/graph.py` with placeholder pure nodes in `nodes.py`.

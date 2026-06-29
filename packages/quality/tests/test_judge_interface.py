@@ -20,6 +20,7 @@ from packages.quality.layer4_judge.judge_interface import (
     UnavailableStrategy,
     _enforce_hard_blocks,
 )
+from packages.quality.layer4_judge.judge_policy import JudgePolicyContext, judge_policy_decision
 from packages.quality.layer4_judge.rubric_selector import RubricSelector
 
 # ── helpers ───────────────────────────────────────────────────────────────────
@@ -89,6 +90,22 @@ class TestRubricSelector:
         selector = RubricSelector()
         rubric = selector.select("quiz", ["answer_key_leakage"])
         assert rubric.version_id == "rubric-quiz-answer_key_leakage"
+
+    def test_select_composes_contextual_version_id(self):
+        selector = RubricSelector()
+        rubric = selector.select(
+            "quiz",
+            ["answer_key_leakage"],
+            subject="Math",
+            locale="vi-VN",
+            curriculum="CT 2018",
+            risk_level="rigorous",
+        )
+
+        assert rubric.version_id == (
+            "rubric-quiz-subject-math-locale-vi-vn-curriculum-ct-2018-"
+            "risk-rigorous-answer_key_leakage"
+        )
 
     def test_select_with_multiple_failures_sorts_alphabetically(self):
         selector = RubricSelector()
@@ -257,6 +274,17 @@ class TestHardBlockEnforcement:
 # ── AdaptiveJudge integration tests ──────────────────────────────────────────
 
 class TestAdaptiveJudge:
+    def test_policy_decision_triggers_for_risk_deterministic_and_borderline(self):
+        decision = judge_policy_decision(JudgePolicyContext(
+            artifact_type="quiz",
+            deterministic_issues=("answer_key_leakage",),
+            risk_level="high",
+            borderline_score=7.0,
+        ))
+
+        assert decision.should_judge is True
+        assert decision.reasons == ("risk:high", "deterministic_issues", "borderline_score")
+
     @pytest.mark.asyncio
     async def test_judge_returns_judge_result_with_provenance(self):
         fake_llm = _make_fake_llm_transport(_make_passing_judge_output(8.0))
@@ -410,6 +438,33 @@ class TestAdaptiveJudge:
         assert "drill" in result.rubric_description.lower()
         assert result.rubric_description != ""
 
+    @pytest.mark.asyncio
+    async def test_judge_exposes_policy_and_contextual_rubric_provenance(self):
+        fake_llm = _make_fake_llm_transport(_make_passing_judge_output(8.0))
+        judge = AdaptiveJudge(llm_transport=fake_llm, num_judges=1)
+
+        result = await judge.judge(
+            artifacts=[{"artifact_type": "quiz"}],
+            artifact_type="quiz",
+            deterministic_issues=["answer_key_leakage"],
+            subject="Math",
+            locale="vi-VN",
+            curriculum="CT 2018",
+            risk_level="rigorous",
+            borderline_score=7.0,
+        )
+
+        assert result.rubric_version == (
+            "rubric-quiz-subject-math-locale-vi-vn-curriculum-ct-2018-"
+            "risk-rigorous-answer_key_leakage"
+        )
+        assert result.policy_triggered is True
+        assert result.policy_reasons == (
+            "risk:rigorous",
+            "deterministic_issues",
+            "borderline_score",
+        )
+
 
 # ── Hard block code coverage tests ───────────────────────────────────────────
 
@@ -450,7 +505,11 @@ class TestLLMTransportMetadata:
         received_tags: list[list[str]] = []
 
         async def capturing_transport(
-            *, model: str, messages: list, temperature: float, extra_body: dict
+            *,
+            model: str,
+            messages: list[dict[str, str]],
+            temperature: float,
+            extra_body: dict[str, Any],
         ) -> str:
             received_tags.append(extra_body["metadata"]["tags"])
             return _make_passing_judge_output(8.0).model_dump_json()
@@ -472,7 +531,11 @@ class TestLLMTransportMetadata:
         temps: list[float] = []
 
         async def capturing_transport(
-            *, model: str, messages: list, temperature: float, extra_body: dict
+            *,
+            model: str,
+            messages: list[dict[str, str]],
+            temperature: float,
+            extra_body: dict[str, Any],
         ) -> str:
             temps.append(temperature)
             return _make_passing_judge_output(8.0).model_dump_json()

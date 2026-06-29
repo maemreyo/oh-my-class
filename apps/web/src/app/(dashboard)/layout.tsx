@@ -8,9 +8,9 @@ export default function DashboardLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<div className="flex min-h-screen">
+		<div className="flex min-h-[100dvh] flex-col md:flex-row">
 			{/* Sidebar */}
-			<aside className="w-64 border-r border-border bg-card p-4">
+			<aside className="w-full border-b border-border bg-card p-4 md:w-64 md:border-b-0 md:border-r">
 				<h1 className="text-lg font-semibold">oh-my-class</h1>
 				<nav className="mt-6 space-y-1">
 					<a
@@ -29,7 +29,7 @@ export default function DashboardLayout({
 			</aside>
 
 			{/* Main content */}
-			<main className="flex-1 p-6">
+			<main className="min-w-0 flex-1 p-4 md:p-6">
 				<ErrorBoundary>{children}</ErrorBoundary>
 			</main>
 		</div>

@@ -184,6 +184,14 @@ class TestRubricRoundtrip:
         restored = Rubric.model_validate_json(json_str)
         assert restored == rubric
 
+    def test_content_hash_is_computed_from_rubric_body(self) -> None:
+        rubric = _make_valid_rubric()
+        assert len(rubric.content_hash) == 64
+
+    def test_rejects_mismatched_content_hash(self) -> None:
+        with pytest.raises(ValidationError, match="Content hash mismatch"):
+            _make_valid_rubric(content_hash="bad_hash")
+
 
 # ---------------------------------------------------------------------------
 # RubricRegistry
@@ -233,6 +241,15 @@ class TestRubricRegistry:
         reg = RubricRegistry()
         with pytest.raises(KeyError):
             reg.remove("nonexistent")
+
+    def test_validate_hash_detects_registered_rubric_drift(self) -> None:
+        reg = RubricRegistry()
+        rubric = _make_valid_rubric(version_id="geval-v1")
+        reg.register(rubric)
+
+        rubric.criteria.append(RubricCriterion(name="drift", weight=0.0))
+
+        assert reg.validate_hash("geval-v1") is False
 
 
 # ---------------------------------------------------------------------------

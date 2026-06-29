@@ -79,6 +79,8 @@ Disable V2 route wiring before user cutover if executor or resume behavior is un
 
 Status: PARTIAL. Control-plane APIs and job execution primitives exist, but long-running production execution semantics are not fully proven.
 
+Active-surface reconciliation: the historical review below names `/pipeline-v2/*` route and `pipeline_v2_*` service files. The active control plane is `/teaching-packs/*` with `services/gateway/routers/teaching_pack_runs.py`, `teaching_pack_lifecycle.py`, `teaching_pack_stream.py`, `teaching_pack_previews.py`, `teaching_pack_executor.py`, `teaching_pack_worker.py`, `teaching_pack_job_store.py`, `teaching_pack_gate_registry.py`, and `teaching_pack_status.py`.
+
 Evidence:
 - V2 run/resume/cancel/status routes are implemented in `services/gateway/routers/pipeline_v2_runs.py` with helper schemas in `pipeline_v2_schemas.py` and `pipeline_v2_helpers.py`.
 - Gate validation is implemented in `services/gateway/pipeline_v2_gate_registry.py`.

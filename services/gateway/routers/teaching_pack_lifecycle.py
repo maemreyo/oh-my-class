@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import Role, User  # noqa: TC001
 from services.gateway.models import RunStatus
+from services.gateway.teaching_pack_control_store import TeachingPackControlStore
 from services.gateway.teaching_pack_job_store import TeachingPackJobStore
 from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_store import (
@@ -58,6 +59,7 @@ async def cancel_teaching_pack_run(
     run_store = TeachingPackRunStore(session)
 
     cancelled_jobs = await TeachingPackJobStore(session).cancel_run_jobs(typed_run_id)
+    cancelled_gates = await TeachingPackControlStore(session).cancel_active_gates(typed_run_id)
     try:
         await run_store.transition_status(TeachingPackStatusTransition(
             run_id=typed_run_id,
@@ -78,6 +80,7 @@ async def cancel_teaching_pack_run(
             "actor_id": current_user.user_id,
             "reason": "teacher_cancelled",
             "cancelled_jobs": cancelled_jobs,
+            "cancelled_gates": cancelled_gates,
         },
     ))
     await session.commit()

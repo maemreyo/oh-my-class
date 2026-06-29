@@ -3,53 +3,25 @@
 import { useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient, gatewayUrl } from "@/lib/api-client";
+import type {
+	TeachingPackCreateRunRequest,
+	TeachingPackGateName,
+	TeachingPackResumeAcceptedResponse,
+	TeachingPackResumeRequest,
+	TeachingPackRunAcceptedResponse,
+	TeachingPackRunStatusResponse,
+} from "@/types/teaching-pack-api";
 
-export type TeachingPackRunStatus =
-	| "pending"
-	| "running"
-	| "awaiting_approval"
-	| "completed"
-	| "failed"
-	| "cancelled";
-
-export type TeachingPackGateName =
-	| "clarification_required"
-	| "contract_confirmation"
-	| "search_plan_confirmation"
-	| "blueprint_approval"
-	| "content_approval";
-
-export type TeachingPackGateAction = "answer" | "approve" | "edit" | "reject";
-
-export interface TeachingPackCreateRunRequest {
-	readonly raw_request: string;
-	readonly class_info: Readonly<Record<string, unknown>>;
-}
-
-export interface TeachingPackRunAcceptedResponse {
-	readonly run_id: string;
-	readonly job_id: string | null;
-	readonly status: TeachingPackRunStatus;
-}
-
-export interface TeachingPackRunStatusResponse {
-	readonly run_id: string;
-	readonly status: TeachingPackRunStatus;
-	readonly raw_request: string;
-}
-
-export interface TeachingPackResumeRequest {
-	readonly gate_id: string;
-	readonly gate_name: TeachingPackGateName;
-	readonly action: TeachingPackGateAction;
-	readonly response?: Readonly<Record<string, unknown>>;
-}
-
-export interface TeachingPackResumeAcceptedResponse {
-	readonly run_id: string;
-	readonly response_id: string;
-	readonly job_id: string | null;
-}
+export type {
+	TeachingPackCreateRunRequest,
+	TeachingPackGateAction,
+	TeachingPackGateName,
+	TeachingPackResumeAcceptedResponse,
+	TeachingPackResumeRequest,
+	TeachingPackRunAcceptedResponse,
+	TeachingPackRunStatus,
+	TeachingPackRunStatusResponse,
+} from "@/types/teaching-pack-api";
 
 export interface ArtifactProgressItem {
 	readonly artifact_id: string;

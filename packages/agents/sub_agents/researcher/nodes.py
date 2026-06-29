@@ -15,10 +15,10 @@ _LOGGER = logging.getLogger(__name__)
 from common.contracts.research_bundle import ResearchBundle
 
 if TYPE_CHECKING:
-    from packages.agents.sub_agents.researcher.state import ResearcherState
+    from packages.agents.sub_agents.researcher.state import ResearcherNodeState
 
 
-async def researcher_node(state: ResearcherState) -> dict[str, Any]:
+async def researcher_node(state: ResearcherNodeState) -> dict[str, Any]:
     """Search and synthesize research sources for the lesson plan.
 
     Returns: {"research_bundle": {...}}
