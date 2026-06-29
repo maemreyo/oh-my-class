@@ -73,3 +73,45 @@
 - **create_run can return at gate**: The POST /run endpoint invokes the graph and may return mid-pipeline at an interrupt, so the initial response may already be `"awaiting_approval"`.
 - **LLM_BASE_URL guard**: Check for `:20228` in env var at startup; `--force` bypasses. Prevents accidental runs against wrong LLM endpoint.
 - **Script LOC**: Test scripts for full pipeline (5 scenarios, 2 gates, polling, structured output) run ~434 LOC. Acceptable for a standalone test harness.
+
+## F2 Code Quality Review Findings (2026-06-30)
+
+### Positive Patterns
+- Per-artifact retry loop is bounded (max 3) with proper failure metadata capture
+- Placeholder function exists but is dead code — failures raise ValueError instead
+- Healing orchestrator detects placeholders and routes to escalation
+- Prompt summarizers truncate data to keep total prompt budget ~5-7K tokens
+- All exception chains preserved with `from` syntax
+- No bare `except:` clauses anywhere in changed files
+
+### Architecture Observations
+- Lazy imports in node functions avoid circular dependencies
+- `_build_placeholder_artifacts()` is "kept for emergency use" but currently unreachable
+- Schema validator catches placeholder artifacts if they were ever injected
+- Test coverage is strong: 13 test methods for content_creator_node alone
+
+### Test Quality Insights
+- Mock LLM pattern with `AsyncMock(side_effect=[...])` enables precise failure scenario testing
+- Integration tests use real PostgreSQL with test-specific fixtures
+- Tests verify error message content (artifact_type, attempt_count), not just exception type
+
+## F1 Plan Compliance Audit (2026-06-30)
+
+### Key Evidence Points
+
+- Per-artifact generation verified: `nodes.py` loops over `artifact_types` with separate `compiled_json_chat` calls (lines 74-139)
+- Graph shape preserved: returns `{"artifacts": validated_artifacts}` (line 203)
+- Component-aware extraction: `artifact_extract.py` handles both `section.content` and `section.components`
+- Package boundaries clean: zero `from services/*` or `from apps/*` imports in `packages/agents/`
+- Teacher gates intact: both use `interrupt()` from LangGraph, no bypass code
+- Placeholder dead code: `_build_placeholder_artifacts()` defined but never called in main path
+- E2E harness validates 9router URL (`:20228`) at startup, exits if wrong
+
+### Audit Methodology
+
+- Read plan file for Must Have/Must NOT Have requirements
+- Read all 10 changed source files listed in task
+- Used grep to verify forbidden patterns (imports, bypass, mock LLM)
+- Checked git status for unrelated worktree changes
+- Traced each file to specific plan requirement
+- Evidence file created: `.omo/evidence/f1-real-llm-pipeline-wiring.md`

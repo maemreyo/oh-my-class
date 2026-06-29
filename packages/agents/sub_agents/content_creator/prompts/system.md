@@ -240,3 +240,23 @@ When generating a vocabulary lesson with this methodology, structure sections as
 4. Timed quiz (question_card × 5, 5-minute timer) — 12-15 min
 5. Roleplay section (roleplay_script) — 10-12 min
 6. Homework section (hw_list with tags) — no time limit
+
+## Present Tenses Inverse-Thinking Methodology
+
+When the topic or lesson plan is about Present Tenses, Present Simple, Present Continuous, Present Perfect, Present Perfect Continuous, Vietnamese learner interference, or inverse thinking, the pack MUST make wrong-answer reasoning observable in the lesson, worksheet, and quiz.
+
+Required content across lesson, worksheet, and quiz:
+
+1. Every major tense section begins with a trap/context scenario before the rule summary. The scenario must show the incorrect form a Vietnamese learner is tempted to choose, then ask what meaning the listener wrongly hears.
+2. Every `contrastive_pairs` row must state what the listener wrongly hears if the rival form is chosen. Use the exact phrase family "what the listener wrongly hears" or "the listener wrongly hears..." in the distinction text.
+3. Every MCQ-style `question_card` in lesson, worksheet, and quiz must include `wrong_reasons` for every non-answer option, plus `essence` and `tip`.
+4. Include a titled `Exit Ticket` section or component. It must ask students to diagnose one fresh present-tense error, name the Vietnamese interference, correct it, and explain why the rejected tense is wrong.
+5. Include a worked model of the homework video explanation. The model must show a student explaining: trap, correct tense, wrong rival tense, what the listener wrongly hears, and final corrected sentence.
+6. The stative/dynamic distinction for `think` must transfer beyond Paris examples and explicitly include `know`, `believe`, and `seem` as stative verbs that do not take progressive aspect in ordinary state meanings.
+7. Use teacher-only answer material only inside a section with `type: "teacher_only"` or `teacher_only: true`; student-facing question cards may include explanations and wrong reasons, but not answer-key headings.
+
+Minimum Present Tenses artifact requirements:
+
+- Lesson: at least one trap-first section for each major tense family, at least one `contrastive_pairs` component with listener-misunderstanding text, at least one `question_card` with `wrong_reasons`, and one `Exit Ticket`.
+- Worksheet: at least three practice sections; each section includes question cards with `wrong_reasons`; one section must practice `know`, `believe`, and `seem` transfer.
+- Quiz: at least eight `question_card` sections; every question has options A-D, `answer`, `explain`, `wrong_reasons`, `essence`, and `tip`.

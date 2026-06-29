@@ -35,12 +35,20 @@
       "plan_name": "real-llm-pipeline-wiring",
       "status": "completed",
       "started_at": "2026-06-28T05:51:32.454Z",
-      "updated_at": "2026-06-28T06:37:53.034Z",
+      "updated_at": "2026-06-29T18:31:57.632Z",
       "session_ids": [
-        "opencode:ses_101f37697ffeFUHacVST9n3XYz"
+        "opencode:ses_101f37697ffeFUHacVST9n3XYz",
+        "opencode:ses_0eb5c5707ffe0o5nVzC873mnUK",
+        "opencode:ses_0eb5b7511ffetghdG1SkfGHNez",
+        "opencode:ses_0eb5a2707ffebOKQkw0YhWe7pR",
+        "opencode:ses_0eb5908edffea6sFUE8s3gCCmc"
       ],
       "session_origins": {
-        "opencode:ses_101f37697ffeFUHacVST9n3XYz": "direct"
+        "opencode:ses_101f37697ffeFUHacVST9n3XYz": "direct",
+        "opencode:ses_0eb5c5707ffe0o5nVzC873mnUK": "appended",
+        "opencode:ses_0eb5b7511ffetghdG1SkfGHNez": "appended",
+        "opencode:ses_0eb5a2707ffebOKQkw0YhWe7pR": "appended",
+        "opencode:ses_0eb5908edffea6sFUE8s3gCCmc": "appended"
       },
       "agent": "atlas",
       "task_sessions": {
@@ -89,10 +97,18 @@
     }
   },
   "session_ids": [
-    "opencode:ses_101f37697ffeFUHacVST9n3XYz"
+    "opencode:ses_101f37697ffeFUHacVST9n3XYz",
+    "opencode:ses_0eb5c5707ffe0o5nVzC873mnUK",
+    "opencode:ses_0eb5b7511ffetghdG1SkfGHNez",
+    "opencode:ses_0eb5a2707ffebOKQkw0YhWe7pR",
+    "opencode:ses_0eb5908edffea6sFUE8s3gCCmc"
   ],
   "session_origins": {
-    "opencode:ses_101f37697ffeFUHacVST9n3XYz": "direct"
+    "opencode:ses_101f37697ffeFUHacVST9n3XYz": "direct",
+    "opencode:ses_0eb5c5707ffe0o5nVzC873mnUK": "appended",
+    "opencode:ses_0eb5b7511ffetghdG1SkfGHNez": "appended",
+    "opencode:ses_0eb5a2707ffebOKQkw0YhWe7pR": "appended",
+    "opencode:ses_0eb5908edffea6sFUE8s3gCCmc": "appended"
   },
   "task_sessions": {
     "todo:1": {
@@ -139,7 +155,7 @@
   "plan_name": "real-llm-pipeline-wiring",
   "status": "completed",
   "started_at": "2026-06-28T05:51:32.454Z",
-  "updated_at": "2026-06-28T06:37:53.034Z",
+  "updated_at": "2026-06-29T18:31:57.632Z",
   "agent": "atlas",
   "ended_at": "2026-06-28T06:37:53.034Z",
   "elapsed_ms": 2780580

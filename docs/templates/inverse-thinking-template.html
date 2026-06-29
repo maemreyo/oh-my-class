@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hồ sơ điều tra: Thì Hiện tại — Giáo án tư duy đảo ngược</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E6DFCB;
+    --paper-card:#FAF7EE;
+    --folder:#C49A56;
+    --folder-dark:#8F6A33;
+    --ink:#202A36;
+    --ink-soft:#5C6573;
+    --red:#9B2B1F;
+    --red-deep:#6F1F16;
+    --blue:#274B72;
+    --blue-soft:#DEE7F0;
+    --gold:#B9852A;
+    --gold-soft:#F4E2AE;
+    --line:rgba(32,42,54,.18);
+    --shadow:0 14px 34px rgba(40,30,14,.22);
+    --font-d:'Oswald',sans-serif;
+    --font-b:'Be Vietnam Pro',sans-serif;
+    --font-m:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:var(--font-b);
+    color:var(--ink);
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 8% 12%, rgba(0,0,0,.05), transparent 40%),
+      radial-gradient(circle at 95% 80%, rgba(0,0,0,.05), transparent 45%);
+    line-height:1.5;
+  }
+  .page{max-width:1020px;margin:0 auto;padding:0 18px 60px;}
+
+  /* ===== COVER ===== */
+  .cover{
+    position:relative;
+    background:var(--folder);
+    color:var(--ink);
+    margin:0 -18px 56px;
+    padding:38px 28px 46px;
+    overflow:hidden;
+  }
+  .cover::after{
+    content:"";
+    position:absolute;left:0;right:0;bottom:-1px;height:18px;
+    background:
+      linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0/16px 18px repeat-x,
+      linear-gradient(45deg, var(--paper) 50%, transparent 50%) 0 0/16px 18px repeat-x;
+  }
+  .eyebrow{
+    font-family:var(--font-m);
+    font-size:.72rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--red-deep);
+    font-weight:700;
+  }
+  .cover h1{
+    font-family:var(--font-d);
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    font-size:clamp(2.4rem,7vw,4.2rem);
+    margin:.1em 0 0;
+    line-height:.98;
+  }
+  .cover .sub{
+    font-size:1.02rem;
+    font-weight:600;
+    color:var(--red-deep);
+    margin-top:.3em;
+  }
+  .cover .desc{
+    max-width:560px;
+    margin-top:14px;
+    font-size:.97rem;
+    color:#3a2e16;
+  }
+  .meta-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
+  .chip{
+    background:rgba(250,247,238,.55);
+    border:1px solid rgba(32,42,54,.3);
+    border-radius:3px;
+    padding:5px 11px;
+    font-size:.76rem;
+    font-weight:600;
+    letter-spacing:.02em;
+  }
+  .stamp{
+    position:absolute;
+    top:30px; right:24px;
+    border:3px double var(--red);
+    color:var(--red);
+    font-family:var(--font-d);
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    font-weight:700;
+    font-size:.85rem;
+    padding:8px 14px;
+    transform:rotate(-9deg);
+    mix-blend-mode:multiply;
+    border-radius:3px;
+    background:transparent;
+  }
+  .stamp small{display:block;font-size:.6rem;letter-spacing:.1em;font-weight:600;margin-top:2px;}
+
+  /* ===== NAV ===== */
+  nav.tabs{
+    position:sticky; top:0; z-index:50;
+    display:flex; gap:4px; overflow-x:auto;
+    background:var(--paper);
+    padding:10px 0 0;
+    margin-bottom:34px;
+    border-bottom:2px solid var(--ink);
+    scrollbar-width:thin;
+  }
+  nav.tabs a{
+    flex:0 0 auto;
+    font-family:var(--font-d);
+    font-size:.74rem;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--ink);
+    background:var(--folder);
+    border:1px solid var(--folder-dark);
+    border-bottom:none;
+    border-radius:6px 6px 0 0;
+    padding:9px 13px 8px;
+    transform:translateY(3px);
+    transition:transform .15s, background .15s, color .15s;
+    white-space:nowrap;
+  }
+  nav.tabs a:hover{transform:translateY(0);}
+  nav.tabs a.active{
+    background:var(--ink);
+    color:var(--paper-card);
+    border-color:var(--ink);
+    transform:translateY(0);
+  }
+
+  /* ===== INTRO / PROCESS ===== */
+  .intro{margin-bottom:46px;}
+  .intro h2{
+    font-family:var(--font-d);
+    text-transform:uppercase;
+    font-size:1.2rem;
+    letter-spacing:.04em;
+    margin:0 0 6px;
+  }
+  .intro p{color:var(--ink-soft);max-width:680px;margin:0 0 18px;font-size:.93rem;}
+  .process-strip{
+    display:flex; flex-wrap:wrap; gap:0;
+    border:1px solid var(--line);
+    background:var(--paper-card);
+  }
+  .pstep{
+    flex:1 1 180px;
+    padding:14px 16px;
+    border-right:1px dashed var(--line);
+    position:relative;
+  }
+  .pstep:last-child{border-right:none;}
+  .pstep .n{
+    font-family:var(--font-d);
+    color:var(--red);
+    font-size:1.5rem;
+    font-weight:700;
+    display:block;
+  }
+  .pstep .t{font-weight:700;font-size:.83rem;text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
+  .pstep .d{font-size:.78rem;color:var(--ink-soft);margin-top:4px;}
+
+  /* ===== CASE CARD ===== */
+  section.case{
+    position:relative;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    box-shadow:var(--shadow);
+    padding:34px 28px 28px;
+    margin-bottom:56px;
+    scroll-margin-top:64px;
+    opacity:0; transform:translateY(18px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  section.case.is-visible{opacity:1; transform:translateY(0);}
+  section.case:nth-child(even){transform:rotate(-.25deg) translateY(18px);}
+  section.case:nth-child(even).is-visible{transform:rotate(-.25deg) translateY(0);}
+  section.case:nth-child(odd){transform:rotate(.25deg) translateY(18px);}
+  section.case:nth-child(odd).is-visible{transform:rotate(.25deg) translateY(0);}
+
+  .case-tag{
+    position:absolute; top:-16px; left:26px;
+    background:var(--red);
+    color:#fff;
+    font-family:var(--font-d);
+    font-size:.78rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    padding:6px 14px;
+    transform:rotate(-3deg);
+    box-shadow:0 4px 10px rgba(0,0,0,.25);
+  }
+  .case-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px; margin-bottom:18px;}
+  .case-head h2{
+    font-family:var(--font-d);
+    text-transform:uppercase;
+    font-size:clamp(1.4rem,3vw,1.9rem);
+    margin:0;
+    letter-spacing:.01em;
+  }
+  .case-head .alias{
+    font-style:italic; color:var(--ink-soft); font-size:.92rem;
+  }
+  .case-head .alias::before{content:"— biệt danh: ";font-style:normal;}
+
+  .lineup{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+    margin-bottom:22px;
+  }
+  .lineup .lcard{
+    border:1px solid var(--line); background:#fff; padding:10px 12px;
+  }
+  .lineup .lcard h4{margin:0 0 3px;font-size:.78rem;text-transform:uppercase;letter-spacing:.03em;color:var(--blue);font-family:var(--font-d);}
+  .lineup .lcard p{margin:0;font-size:.78rem;color:var(--ink-soft);}
+  .lineup .lcard p.ex{margin-top:4px;font-style:italic;color:var(--ink);}
+
+  .exhibit{margin-bottom:24px;}
+  .exhibit-label{
+    font-family:var(--font-m);
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--red);
+    font-weight:700;
+    margin-bottom:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .exhibit-label::after{content:"";flex:1;border-bottom:1px dashed var(--line);}
+
+  .evidence{
+    display:grid; grid-template-columns:1fr;
+    gap:0;
+    border:1px solid var(--line);
+    background:#fff;
+    position:relative;
+  }
+  .evidence::before{
+    content:"";
+    position:absolute; top:-7px; right:18px; width:22px; height:34px;
+    border:3px solid var(--ink-soft);
+    border-radius:11px 11px 0 0;
+    border-bottom:none;
+    opacity:.55;
+  }
+  .foil-sentence{
+    font-family:var(--font-m);
+    font-size:.92rem;
+    padding:14px 18px;
+    border-bottom:1px dashed var(--line);
+    background:repeating-linear-gradient(var(--paper-card) 0px, var(--paper-card) 27px, rgba(32,42,54,.06) 28px);
+  }
+  .foil-sentence q{quotes:"“" "”";}
+  .disaster-row{
+    display:flex; gap:10px; padding:13px 18px;
+    align-items:flex-start;
+  }
+  .disaster-row .arrow{
+    font-family:var(--font-d); color:var(--red); font-weight:700; font-size:.78rem;
+    letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; flex:0 0 auto; margin-top:2px;
+  }
+  .disaster-row p{margin:0; font-size:.92rem;}
+
+  .key-row{padding:0 18px 14px; display:flex; flex-wrap:wrap; gap:8px;}
+  .key-chip{
+    font-family:var(--font-m);
+    font-size:.74rem;
+    font-weight:700;
+    letter-spacing:.02em;
+    background:var(--gold-soft);
+    border:1px dashed var(--gold);
+    color:var(--red-deep);
+    padding:4px 10px;
+    transform:rotate(-1.4deg);
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .key-chip::before{content:"MANH MỐI:"; font-weight:800; color:var(--ink);}
+
+  .safe-zone{
+    border-top:1px solid var(--line);
+    background:var(--blue-soft);
+    padding:13px 18px;
+  }
+  .safe-zone .sz-label{
+    font-family:var(--font-d); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--blue); font-weight:700; margin-bottom:4px;
+  }
+  .safe-zone p{margin:0; font-size:.88rem; color:#1f3147;}
+
+  .filing-note{
+    font-family:var(--font-m);
+    font-size:.74rem;
+    color:var(--ink-soft);
+    border:1px dashed var(--line);
+    background:var(--paper);
+    padding:8px 12px;
+    margin-top:8px;
+  }
+  .filing-note b{color:var(--ink);}
+
+  /* ===== MASTER TABLE ===== */
+  section.master{margin-bottom:56px;}
+  section.master h2, section.video h2{
+    font-family:var(--font-d); text-transform:uppercase; font-size:1.5rem; letter-spacing:.02em; margin:0 0 6px;
+  }
+  section.master p.lead, section.video p.lead{color:var(--ink-soft); font-size:.9rem; max-width:680px; margin:0 0 18px;}
+  .table-wrap{overflow-x:auto; border:1px solid var(--ink); box-shadow:var(--shadow);}
+  table.master-table{width:100%; border-collapse:collapse; min-width:760px; background:var(--paper-card);}
+  table.master-table thead th{
+    background:var(--ink); color:var(--paper-card);
+    font-family:var(--font-d); text-transform:uppercase; letter-spacing:.04em; font-size:.72rem;
+    text-align:left; padding:11px 12px; position:sticky; top:0;
+  }
+  table.master-table td{
+    padding:11px 12px; font-size:.83rem; border-bottom:1px solid var(--line); vertical-align:top;
+  }
+  table.master-table tbody tr:nth-child(even){background:rgba(32,42,54,.035);}
+  table.master-table td.tag{
+    font-family:var(--font-m); font-weight:700; color:var(--red); white-space:nowrap;
+  }
+  td.soul-cell{font-style:italic; color:var(--ink-soft); cursor:text;}
+  td.soul-cell:empty:before{content:attr(data-ph);}
+  td.soul-cell:focus{outline:2px solid var(--gold); background:var(--gold-soft); color:var(--ink); font-style:normal;}
+
+  /* ===== VIDEO CHALLENGE ===== */
+  .video-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:18px;}
+  .wanted-card{
+    background:var(--paper-card);
+    border:1px dashed var(--ink-soft);
+    padding:16px 16px 14px;
+    position:relative;
+    box-shadow:var(--shadow);
+  }
+  .wanted-card::before{
+    content:""; position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+    width:11px; height:11px; border-radius:50%;
+    background:var(--red); box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  .wanted-tag{
+    font-family:var(--font-m); font-size:.7rem; font-weight:700; color:#fff;
+    background:var(--blue); display:inline-block; padding:3px 8px; margin-bottom:9px; letter-spacing:.04em;
+  }
+  .wanted-card q{
+    display:block; font-style:italic; font-size:.88rem; margin:0 0 10px;
+    quotes:"“" "”";
+  }
+  .wanted-card details{margin-bottom:10px;}
+  .wanted-card summary{
+    cursor:pointer; font-family:var(--font-d); font-size:.74rem; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--red-deep); font-weight:700;
+  }
+  .wanted-card .answer{font-size:.86rem; margin-top:6px;}
+  .task-list{list-style:none; margin:0; padding:0; font-size:.82rem;}
+  .task-list li{padding-left:1.3em; position:relative; margin-bottom:5px;}
+  .task-list li::before{content:"▢"; position:absolute; left:0; color:var(--ink-soft);}
+
+  /* ===== FOOTER ===== */
+  footer.footer{
+    border-top:2px solid var(--ink); padding-top:24px; margin-top:10px;
+    display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start; justify-content:space-between;
+  }
+  footer.footer .order h3{
+    font-family:var(--font-d); text-transform:uppercase; font-size:1.05rem; margin:0 0 8px;
+  }
+  footer.footer .order ol{margin:0; padding-left:1.2em; font-size:.88rem; max-width:560px;}
+  footer.footer .order li{margin-bottom:7px;}
+  .footer-stamp{
+    border:3px double var(--red); color:var(--red); font-family:var(--font-d);
+    text-transform:uppercase; letter-spacing:.14em; font-weight:700; font-size:.82rem;
+    padding:10px 16px; transform:rotate(6deg); white-space:nowrap; mix-blend-mode:multiply;
+  }
+
+  .print-btn{
+    position:fixed; right:18px; bottom:18px; z-index:60;
+    font-family:var(--font-d); text-transform:uppercase; letter-spacing:.06em; font-size:.78rem; font-weight:700;
+    background:var(--ink); color:var(--paper-card); border:none; padding:11px 16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.3); cursor:pointer;
+  }
+  .print-btn:hover{background:var(--red);}
+
+  a{color:var(--blue);}
+  :focus-visible{outline:2px solid var(--red); outline-offset:2px;}
+
+  @media (max-width:640px){
+    .lineup{grid-template-columns:1fr 1fr;}
+    .cover{padding:30px 18px 40px;}
+    .stamp{position:static; display:inline-block; margin-top:14px;}
+  }
+
+  @media print{
+    nav.tabs, .print-btn{display:none;}
+    body{background:#fff;}
+    section.case, .table-wrap, .wanted-card{box-shadow:none; transform:none !important; opacity:1 !important;}
+    .cover{background:#fff; color:#000;}
+    .stamp{mix-blend-mode:normal;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+    section.case{opacity:1 !important; transform:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="cover">
+    <span class="eyebrow">Hồ sơ điều tra ngữ pháp · Unit 1</span>
+    <h1>Thì Hiện Tại</h1>
+    <div class="sub">Present Time — phương pháp tư duy đảo ngược (disaster-first)</div>
+    <p class="desc">Không học quy tắc trước. Mỗi nghi phạm (thì/động từ) bị đưa ra hiện trường một câu nói gây hậu quả cụ thể trước — học sinh phải tự lần ra manh mối để biết khi nào dùng, khi nào tuyệt đối không.</p>
+    <div class="meta-chips">
+      <span class="chip">Cấp độ: B2 — Destination</span>
+      <span class="chip">5 nghi phạm cần thẩm vấn</span>
+      <span class="chip">10 dòng biên bản tổng hợp</span>
+      <span class="chip">10 vụ án thử thách video</span>
+    </div>
+    <div class="stamp">Mật<small>Giáo án</small></div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <a href="#case01">01 · Hiện tại đơn</a>
+    <a href="#case02">02 · Tiếp diễn</a>
+    <a href="#case03">03 · HT hoàn thành</a>
+    <a href="#case04">04 · HTHT tiếp diễn</a>
+    <a href="#case05">05 · Trạng thái</a>
+    <a href="#master">Hồ sơ tổng hợp</a>
+    <a href="#video">Thử thách video</a>
+  </nav>
+
+  <main>
+
+    <section class="intro">
+      <h2>Quy trình điều tra — 4 bước, không có bước "học quy tắc"</h2>
+      <p>Mỗi nghi phạm dưới đây được xử lý theo đúng 4 bước này, theo thứ tự cố định. Học sinh không được nghe quy tắc trước khi tự tìm ra nó.</p>
+      <div class="process-strip">
+        <div class="pstep"><span class="n">01</span><span class="t">Hiện trường</span><span class="d">Một câu dùng sai (nghi phạm = đối thủ) gây hậu quả cụ thể, có thật.</span></div>
+        <div class="pstep"><span class="n">02</span><span class="t">Manh mối</span><span class="d">Gọi đúng tên từ/cụm khiến đáp án trở nên bắt buộc.</span></div>
+        <div class="pstep"><span class="n">03</span><span class="t">Vùng an toàn</span><span class="d">Chỉ ra nơi đối thủ lại đúng — ranh giới nằm ở đâu.</span></div>
+        <div class="pstep"><span class="n">04</span><span class="t">Biên bản</span><span class="d">Chốt vào bảng 4 cột; cột cuối để trống cho học sinh tự đề cử.</span></div>
+      </div>
+    </section>
+
+    <!-- CASE 01 -->
+    <section class="case" id="case01">
+      <span class="case-tag">Case 01</span>
+      <div class="case-head">
+        <h2>Hiện tại đơn</h2>
+        <span class="alias">Nhân Chứng Bất Biến</span>
+      </div>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit A — hiện trường hôn nhân</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>I am living with my wife in Hanoi.</q></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Vợ lập tức xếp đồ về nhà ngoại — "tiếp diễn" ngầm báo đây chỉ là chỗ ở tạm, có thể đổi bất cứ lúc nào.</p></div>
+          <div class="key-row"><span class="key-chip">không có mốc "tạm thời" nào trong tình huống thật</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Vùng an toàn của tiếp diễn</div>
+            <p>Khi có giới hạn thời gian rõ ràng: <q>We're staying in a hotel this week.</q> Dùng đơn ở đây ("We stay in a hotel") lại biến chuyện ở tạm thành... định cư luôn trong khách sạn.</p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 01:</b> Bản chất = trạng thái/sự thật lâu dài · Phe A = tiếp diễn (sai) · Phe B = hiện tại đơn (đúng)</div>
+      </article>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit B — vũ khí phản bác</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>"You don't like going by bus, do you?" "Actually, I like going by bus."</q></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Lời cãi lại quá hiền, không đủ lực bật ngược — đối phương vẫn tin chắc bạn ghét xe buýt. Cuộc tranh luận coi như thua.</p></div>
+          <div class="key-row"><span class="key-chip">Actually</span><span class="key-chip">cấu trúc "..., don't you?"</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Vùng an toàn của khẳng định trơn</div>
+            <p>Không có ai phản bác thì không cần do/does: <q>I like going by bus.</q> Thêm "do" vào một câu trung lập nghe gượng và thừa.</p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 02:</b> Bản chất = nhấn mạnh để phản bác · Phe A = khẳng định trơn · Phe B = do/does + V</div>
+      </article>
+    </section>
+
+    <!-- CASE 02 -->
+    <section class="case" id="case02">
+      <span class="case-tag">Case 02</span>
+      <div class="case-head">
+        <h2>Hiện tại tiếp diễn</h2>
+        <span class="alias">Kẻ Tạm Trú</span>
+      </div>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit A — hiện trường bản tin sai</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>Holidays abroad become increasingly popular.</q></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Câu ngầm khẳng định số người đi du lịch nước ngoài đứng yên mãi mãi — trong khi thực tế con số đang tăng từng năm. Tòa soạn chê bài viết lỗi thời ngay từ câu đầu.</p></div>
+          <div class="key-row"><span class="key-chip">increasingly</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Vùng an toàn của hiện tại đơn</div>
+            <p>Số liệu/sự thật đã cố định không cần "đang đổi": <q>Vietnam has a population of over 90 million.</q> Chia tiếp diễn ở đây ("is having") nghe sai bản chất hoàn toàn.</p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 03:</b> Bản chất = xu hướng đang đổi, chưa kết thúc · Phe A = hiện tại đơn (sai) · Phe B = tiếp diễn (đúng)</div>
+      </article>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit B — hiện trường gây bực</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>Dad always cleans the car.</q> <span style="color:var(--ink-soft);font-style:italic;">(nói trong lúc đang trễ hẹn vì xe bị lau đúng lúc cần dùng)</span></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Câu nghe như đang khen bố chăm chỉ — không ai nhận ra bạn đang phát điên vì bị muộn hẹn với người yêu.</p></div>
+          <div class="key-row"><span class="key-chip">always + sắc thái phàn nàn</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Vùng an toàn của hiện tại đơn</div>
+            <p>"Always" vẫn đi với đơn khi chỉ đơn thuần thông báo, không có cảm xúc bực bội: <q>Dad always cleans the car on Sundays.</q></p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 04:</b> Bản chất = thói quen gây bực, cảm xúc tức thì · Phe A = đơn (trung lập) · Phe B = tiếp diễn (phàn nàn)</div>
+      </article>
+    </section>
+
+    <!-- CASE 03 -->
+    <section class="case" id="case03">
+      <span class="case-tag">Case 03</span>
+      <div class="case-head">
+        <h2>Hiện tại hoàn thành đơn</h2>
+        <span class="alias">Cây Cầu Thời Gian</span>
+      </div>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit A — hiện trường mất cơ hội mua xe</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>She had her motorbike for over six years.</q></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Nghe như cô ấy đã bán xe hoặc xe đã hỏng từ lâu — bạn vừa đánh mất cơ hội ngỏ lời mua lại chiếc xe đó.</p></div>
+          <div class="key-row"><span class="key-chip">liên kết còn nguyên tới hiện tại</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Vùng an toàn của quá khứ đơn</div>
+            <p>Khi có mốc kết thúc rõ ràng: <q>She had that motorbike until 2019.</q> Mốc 2019 cắt đứt liên kết — quá khứ đơn lúc này mới đúng.</p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 05:</b> Bản chất = liên kết quá khứ–hiện tại còn hay đứt · Phe A = quá khứ đơn (đứt) · Phe B = hiện tại hoàn thành (còn)</div>
+      </article>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit B — hiện trường đếm nhầm</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>It's the second time I am on a plane.</q></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Sai cấu trúc kinh điển trong đề thi B2 — mất điểm oan dù từ vựng hoàn toàn đúng.</p></div>
+          <div class="key-row"><span class="key-chip">It's the first/second/... time</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Vùng an toàn của tiếp diễn (mục đích khác)</div>
+            <p>Khi chỉ tả việc đang xảy ra, không đếm số lần, tiếp diễn vẫn đúng việc của nó: <q>I am sitting on a plane right now.</q></p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 06:</b> Bản chất = đếm dồn trải nghiệm tới hiện tại · Phe A = hiện tại đơn (sai) · Phe B = hiện tại hoàn thành (đúng)</div>
+      </article>
+    </section>
+
+    <!-- CASE 04 -->
+    <section class="case" id="case04">
+      <span class="case-tag">Case 04</span>
+      <div class="case-head">
+        <h2>Hiện tại hoàn thành tiếp diễn</h2>
+        <span class="alias">Nạn Nhân Hổn Hển</span>
+      </div>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit A — hiện trường thở dốc</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>I ran to get here.</q> <span style="color:var(--ink-soft);font-style:italic;">(nói trong lúc vẫn còn đang thở hổn hển trước mặt giáo viên)</span></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Nghe như chuyện đã xong từ lâu — không giải thích được vì sao ngay-lúc-này bạn vẫn thở không ra hơi. Giáo viên không tin, vẫn ghi sổ đầu bài.</p></div>
+          <div class="key-row"><span class="key-chip">hậu quả còn lộ rõ ngay bây giờ</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Vùng an toàn của hoàn thành đơn</div>
+            <p>Khi muốn khoe kết quả/số lượng, không phải than mệt: <q>We have driven 300 kilometers.</q></p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 07:</b> Bản chất = giải thích hậu quả đang lộ rõ ngay bây giờ · Phe A = quá khứ đơn · Phe B = HTHT tiếp diễn</div>
+      </article>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit B — hiện trường "Tây giả"</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>Have you ever been flying in a helicopter?</q></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Nghe rất "Tây" nhưng sai hoàn toàn — học sinh tự tin nộp bài và mất điểm oan.</p></div>
+          <div class="key-row"><span class="key-chip">ever / never = hỏi hồ sơ trải nghiệm</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Vùng an toàn của tiếp diễn</div>
+            <p>Khi có for/since/all day để kể khổ về quá trình (không đi cùng ever): <q>I've been waiting for two hours.</q></p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 08:</b> Bản chất = hồ sơ trải nghiệm vs quá trình mệt mỏi · Phe A = tiếp diễn (sai với ever) · Phe B = hoàn thành đơn (đúng)</div>
+      </article>
+    </section>
+
+    <!-- CASE 05 -->
+    <section class="case" id="case05">
+      <span class="case-tag">Case 05</span>
+      <div class="case-head">
+        <h2>Động từ trạng thái</h2>
+        <span class="alias">Điệp Viên Hai Mang</span>
+      </div>
+
+      <div class="lineup">
+        <div class="lcard"><h4>Tư duy</h4><p>believe, know, think, understand</p><p class="ex">I know the answer.</p></div>
+        <div class="lcard"><h4>Tồn tại</h4><p>be, exist</p><p class="ex">Life exists on Earth.</p></div>
+        <div class="lcard"><h4>Cảm xúc / nhu cầu</h4><p>like, love, want, need</p><p class="ex">She wants a break.</p></div>
+        <div class="lcard"><h4>Giác quan</h4><p>see, hear, smell, taste</p><p class="ex">The food tastes delicious.</p></div>
+        <div class="lcard"><h4>Diện mạo</h4><p>seem, look, appear, resemble</p><p class="ex">You look tired.</p></div>
+        <div class="lcard"><h4>Sở hữu / quan hệ</h4><p>have, own, belong to, include</p><p class="ex">This bag belongs to me.</p></div>
+      </div>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit A — vụ án "HAVE"</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>Are you having lunch at the moment?</q> — đặt cạnh — <q>Do you have your plane ticket with you?</q></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa nếu đảo ngược:</span><p>Nếu chia "Are you having your ticket" — bạn đang hỏi người ta "đang sở hữu vé" như một hành động cơ học, nghe ngớ ngẩn. Ngược lại "Do you have lunch" lại mất hẳn sắc thái "đang ăn ngay lúc này".</p></div>
+          <div class="key-row"><span class="key-chip">sở hữu = trạng thái</span><span class="key-chip">ăn uống = hành động</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Ranh giới hai mặt</div>
+            <p>Have = sở hữu → cấm -ing. Have = ăn/uống/trải nghiệm cụ thể → được -ing thoải mái.</p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 09:</b> Bản chất = sở hữu (trạng thái) vs ăn uống (hành động) · Phe A = have sở hữu · Phe B = having ăn uống</div>
+      </article>
+
+      <article class="exhibit">
+        <div class="exhibit-label">Exhibit B — vụ án "THINK" (báo cáo chuyên gia)</div>
+        <div class="evidence">
+          <div class="foil-sentence"><q>I am thinking Paris is beautiful.</q> <span style="color:var(--ink-soft);font-style:italic;">(viết trong bài luận để nêu quan điểm cá nhân)</span></div>
+          <div class="disaster-row"><span class="arrow">→ Thảm họa:</span><p>Giám khảo gạch đỏ ngay — câu nghe như bạn đang vắt óc tính toán xem Paris đẹp hay không ngay lúc viết, chứ không phải đang nêu một ý kiến có sẵn.</p></div>
+          <div class="key-row"><span class="key-chip">think = niềm tin/ý kiến</span><span class="key-chip">think về/of = đang cân nhắc</span></div>
+          <div class="safe-zone">
+            <div class="sz-label">Hai thân phận của THINK</div>
+            <p><b>Ổ cứng đã lưu</b> (quan điểm có sẵn, không tốn năng lượng não): <q>I think Paris is beautiful.</q> — cấm -ing.<br><b>CPU đang chạy</b> (não đang vận động, thường đi với about/of): <q>I am thinking about my holiday.</q> — được -ing.</p>
+          </div>
+        </div>
+        <div class="filing-note"><b>→ Biên bản dòng 10:</b> Bản chất = ý kiến có sẵn vs đang vận hành · Phe A = tiếp diễn (sai) · Phe B = đơn (đúng)</div>
+      </article>
+    </section>
+
+    <!-- MASTER TABLE -->
+    <section class="master" id="master">
+      <h2>Hồ sơ tổng hợp</h2>
+      <p class="lead">Toàn bộ 10 dòng biên bản, gộp từ 5 nghi phạm. Cột cuối để trống — bấm vào và để học sinh tự đề cử câu mà các em nhớ nhất, kèm ghi chú bối cảnh ngắn.</p>
+      <div class="table-wrap">
+        <table class="master-table">
+          <thead>
+            <tr><th>#</th><th>Bản chất cốt lõi</th><th>Phe A</th><th>Phe B</th><th>Câu linh hồn của lớp (bấm để điền)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="tag">01</td><td>Trạng thái / sự thật lâu dài</td><td>Tiếp diễn — <i>I am living...</i></td><td>Hiện tại đơn — <i>I live...</i></td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">02</td><td>Nhấn mạnh để phản bác</td><td>Khẳng định trơn</td><td>do/does + V</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">03</td><td>Xu hướng đang đổi</td><td>Hiện tại đơn (sai)</td><td>Tiếp diễn (đúng)</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">04</td><td>Thói quen gây bực</td><td>Đơn (trung lập)</td><td>Tiếp diễn (phàn nàn)</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">05</td><td>Liên kết còn hay đứt</td><td>Quá khứ đơn (đứt)</td><td>HT hoàn thành (còn)</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">06</td><td>Đếm dồn trải nghiệm</td><td>Hiện tại đơn (sai)</td><td>HT hoàn thành (đúng)</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">07</td><td>Hậu quả lộ rõ ngay bây giờ</td><td>Quá khứ đơn</td><td>HTHT tiếp diễn</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">08</td><td>Hồ sơ trải nghiệm vs quá trình mệt</td><td>HTHT tiếp diễn (sai)</td><td>HT hoàn thành (đúng)</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">09</td><td>Sở hữu vs ăn uống</td><td>have (sở hữu)</td><td>having (ăn uống)</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+            <tr><td class="tag">10</td><td>Ý kiến có sẵn vs đang vận hành</td><td>Tiếp diễn (sai)</td><td>Đơn (đúng)</td><td class="soul-cell" contenteditable="true" data-ph="✍️ bấm để điền câu của lớp..."></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIDEO CHALLENGE -->
+    <section class="video" id="video">
+      <h2>Thử thách hiện trường — quay video</h2>
+      <p class="lead">Mỗi thẻ dưới đây lấy từ một bài tập (A→J). Học sinh quay video dưới 3 phút, mỗi câu chỉ cần nói đúng 2 việc: gọi tên <b>manh mối</b>, và mô tả <b>thảm họa cụ thể</b> nếu lỡ chọn đáp án đối thủ.</p>
+      <div class="video-grid">
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài A · câu 7</span>
+          <q>You always come / 're always coming up with excuses... It's so annoying!</q>
+          <details><summary>Mở đáp án</summary><div class="answer">'re always coming</div></details>
+          <ul class="task-list">
+            <li>Manh mối: "It's so annoying!"</li>
+            <li>Thảm họa nếu chọn "always come": nghe như đang khen một thói quen tốt, mất hết sắc thái bực bội.</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài B · câu 4</span>
+          <q>It's the first time I'm ever having a party at home.</q>
+          <details><summary>Mở đáp án</summary><div class="answer">sửa thành: I've ever had</div></details>
+          <ul class="task-list">
+            <li>Manh mối: "It's the first time"</li>
+            <li>Thảm họa nếu giữ "I'm having": phá vỡ công thức bắt buộc, mất điểm cấu trúc cơ bản.</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài C · câu 4</span>
+          <q>She ___ (write) that essay for hours now and still hasn't finished!</q>
+          <details><summary>Mở đáp án</summary><div class="answer">has been writing</div></details>
+          <ul class="task-list">
+            <li>Manh mối: "for hours now" + "still hasn't finished"</li>
+            <li>Thảm họa nếu chọn quá khứ đơn "wrote": nghe như việc đã xong, mâu thuẫn ngay với "still hasn't finished".</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài D · câu 8</span>
+          <q>It's eleven o'clock and Todd ___ hasn't come home.</q>
+          <details><summary>Mở đáp án</summary><div class="answer">still</div></details>
+          <ul class="task-list">
+            <li>Manh mối: vị trí ngay trước "hasn't" (so với "yet" đứng cuối câu)</li>
+            <li>Thảm họa nếu dùng "yet" sai vị trí: câu vẫn đúng nghĩa nhưng mất hẳn sắc thái sốt ruột.</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài E · câu 10</span>
+          <q>Actually, I ___ a cup of tea every morning but then switch to coffee.</q>
+          <details><summary>Mở đáp án</summary><div class="answer">do drink</div></details>
+          <ul class="task-list">
+            <li>Manh mối: "Actually"</li>
+            <li>Thảm họa nếu chọn "drink" trơn: mất sạch sắc thái đính chính, nghe như kể chuyện bình thường chứ không phải cãi lại ai.</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài F · câu 9</span>
+          <q>...but a few people ___ believe it's possible.</q>
+          <details><summary>Mở đáp án</summary><div class="answer">do</div></details>
+          <ul class="task-list">
+            <li>Manh mối: "but" tạo thế đối lập với số đông không tin</li>
+            <li>Thảm họa nếu bỏ "do": câu mất hết lực nhấn, thiểu số "vẫn tin" không còn nổi bật.</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài G · câu 7&8</span>
+          <q>Andy is... / Andy is being... → "not old enough" / "very annoying at the moment"</q>
+          <details><summary>Mở đáp án</summary><div class="answer">7–E, 8–G</div></details>
+          <ul class="task-list">
+            <li>Manh mối: "at the moment" ở câu 8</li>
+            <li>Thảm họa nếu nối ngược: biến hành vi tạm thời (đang giở chứng) thành bản chất cố định, đổ oan Andy là người khó chịu vĩnh viễn.</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài H · câu 2</span>
+          <q>It's the first time I've ever been going abroad...</q>
+          <details><summary>Mở đáp án</summary><div class="answer">từ thừa: going</div></details>
+          <ul class="task-list">
+            <li>Manh mối: "It's the first time" đòi hoàn thành đơn, không phải dạng tiếp diễn</li>
+            <li>Thảm họa nếu giữ "been going": lộ ngay lỗi cấu trúc cơ bản trong bài thi.</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài I · ô 4</span>
+          <q>'Mum! Dad! Please!' said Alison. 'You're both ___ very silly.'</q>
+          <details><summary>Mở đáp án</summary><div class="answer">being</div></details>
+          <ul class="task-list">
+            <li>Manh mối: bối cảnh "ngay lúc này đang cãi nhau ở ga tàu"</li>
+            <li>Thảm họa nếu dùng "are" trơn: biến lời nhắc tạm thời thành lời buộc tội bố mẹ ngu ngốc vĩnh viễn — cả nhà "toang".</li>
+          </ul>
+        </div>
+
+        <div class="wanted-card">
+          <span class="wanted-tag">Bài J · câu 9</span>
+          <q>Paul ___ surprises, just not on his birthday!</q>
+          <details><summary>Mở đáp án</summary><div class="answer">does enjoy</div></details>
+          <ul class="task-list">
+            <li>Manh mối: tương phản "just not on his birthday"</li>
+            <li>Thảm họa nếu giữ "enjoys" trơn: mất sắc thái nhấn mạnh đối lập mà đề yêu cầu.</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="order">
+      <h3>Lệnh thi hành (BTVN)</h3>
+      <ol>
+        <li><b>Hồ sơ giấy:</b> hoàn thành Bài A–J (sách trang 10–13), dán bảng "Hồ sơ tổng hợp" vào vở.</li>
+        <li><b>Dựng lại hiện trường (video ≤ 3 phút):</b> chọn ít nhất 5/10 vụ án ở mục Thử thách video — mỗi vụ nói đúng 2 việc: manh mối + thảm họa.</li>
+        <li><b>Hạn nộp:</b> trước buổi học tiếp theo.</li>
+      </ol>
+    </div>
+    <div class="footer-stamp">Đã duyệt</div>
+  </footer>
+
+</div>
+
+<button class="print-btn" onclick="window.print()">In hồ sơ</button>
+
+<script>
+  // reveal-on-scroll for case files
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cases = document.querySelectorAll('section.case');
+  if (reduceMotion || !('IntersectionObserver' in window)) {
+    cases.forEach(function(el){ el.classList.add('is-visible'); });
+  } else {
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, {threshold:.12, rootMargin:'0px 0px -40px 0px'});
+    cases.forEach(function(el){ obs.observe(el); });
+  }
+
+  // active tab tracking
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('nav.tabs a'));
+  var sections = navLinks.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  if ('IntersectionObserver' in window) {
+    var navObs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var idx = sections.indexOf(entry.target);
+        if (idx === -1) return;
+        if (entry.isIntersecting) {
+          navLinks.forEach(function(a){ a.classList.remove('active'); });
+          navLinks[idx].classList.add('active');
+        }
+      });
+    }, {rootMargin:'-30% 0px -55% 0px', threshold:0});
+    sections.forEach(function(s){ navObs.observe(s); });
+  }
+</script>
+</body>
+</html>

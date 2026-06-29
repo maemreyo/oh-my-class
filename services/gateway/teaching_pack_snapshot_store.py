@@ -75,9 +75,7 @@ class TeachingPackSnapshotStore:
         return result.scalar_one_or_none() is not None
 
     async def create_snapshot(self, payload: ArtifactSnapshotCreate) -> ArtifactSnapshotRead:
-        student_html = payload.student_rendered_html or render_student_preview_html(
-            payload.content_json,
-        )
+        student_html = payload.student_rendered_html or payload.rendered_html
         student_html_safe = remove_answer_keys_from_html(student_html)
 
         isolation_issues = validate_answer_key_isolation(payload.rendered_html)
@@ -87,22 +85,26 @@ class TeachingPackSnapshotStore:
         content_hash = snapshot_content_hash(payload.content_json, payload.rendered_html)
         html_hash = sha256(payload.rendered_html.encode()).hexdigest()
         standalone_valid = is_standalone_html(payload.rendered_html)
-        statement = pg_insert(ArtifactSnapshot).values(
-            snapshot_id=payload.snapshot_id,
-            run_id=payload.run_id,
-            artifact_id=payload.artifact_id,
-            artifact_type=payload.artifact_type,
-            content_hash=content_hash,
-            html_hash=html_hash,
-            content_json=payload.content_json,
-            rendered_html=payload.rendered_html,
-            student_rendered_html=student_html_safe,
-            renderer_version=payload.renderer_version,
-            template_version=payload.template_version,
-            theme_version=payload.theme_version,
-            standalone_valid=standalone_valid,
-        ).on_conflict_do_nothing(
-            index_elements=["content_hash"],
+        statement = (
+            pg_insert(ArtifactSnapshot)
+            .values(
+                snapshot_id=payload.snapshot_id,
+                run_id=payload.run_id,
+                artifact_id=payload.artifact_id,
+                artifact_type=payload.artifact_type,
+                content_hash=content_hash,
+                html_hash=html_hash,
+                content_json=payload.content_json,
+                rendered_html=payload.rendered_html,
+                student_rendered_html=student_html_safe,
+                renderer_version=payload.renderer_version,
+                template_version=payload.template_version,
+                theme_version=payload.theme_version,
+                standalone_valid=standalone_valid,
+            )
+            .on_conflict_do_nothing(
+                index_elements=["content_hash"],
+            )
         )
         await self._session.execute(statement)
         existing_snapshot = await self._get_by_content_hash(content_hash)
@@ -152,10 +154,14 @@ class TeachingPackSnapshotStore:
         return [_read_snapshot(snapshot) for snapshot in result.scalars().all()]
 
     async def approve_snapshots(self, run_id: RunId, snapshot_ids: list[str]) -> int:
-        statement = select(ArtifactSnapshot).where(
-            ArtifactSnapshot.run_id == run_id,
-            ArtifactSnapshot.snapshot_id.in_(snapshot_ids),
-        ).with_for_update()
+        statement = (
+            select(ArtifactSnapshot)
+            .where(
+                ArtifactSnapshot.run_id == run_id,
+                ArtifactSnapshot.snapshot_id.in_(snapshot_ids),
+            )
+            .with_for_update()
+        )
         result = await self._session.execute(statement)
         snapshots = list(result.scalars().all())
         for snapshot in snapshots:

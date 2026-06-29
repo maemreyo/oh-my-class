@@ -1,0 +1,3139 @@
+{
+  "run_id": "cf1bf05f-dbf5-48bd-858a-2956c59dbb49",
+  "marker": "75969cab-2b81-4f5d-8da7-7772b7744a93",
+  "final_status": "completed",
+  "preview_paths": [
+    ".scratch/teaching-pack-present-tenses/artifacts/live-exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-df36108befb2f3bd178c33a5-student.html",
+    ".scratch/teaching-pack-present-tenses/artifacts/live-exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-40fa97c7f356893ff64f5491-student.html",
+    ".scratch/teaching-pack-present-tenses/artifacts/live-exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-d481d39aae76b35a2c63c76e-student.html"
+  ],
+  "export_paths": [],
+  "state": {
+    "run": [
+      {
+        "run_id": "cf1bf05f-dbf5-48bd-858a-2956c59dbb49",
+        "teacher_id": "u-001",
+        "status": "COMPLETED",
+        "updated_at": "2026-06-29 17:23:46.099586"
+      }
+    ],
+    "jobs": [
+      {
+        "job_id": "job-4dc445ae-442c-4779-9dc8-f8e24ed79a46",
+        "kind": "start",
+        "status": "cancelled",
+        "attempts": 0,
+        "lease_owner": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": "job-3427183b-1411-4b6f-93ef-063882dae631",
+        "kind": "start",
+        "status": "completed",
+        "attempts": 1,
+        "lease_owner": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": "job-b13ca86a-5280-4e87-9e16-a0a099efc24d",
+        "kind": "resume",
+        "status": "completed",
+        "attempts": 1,
+        "lease_owner": null,
+        "lease_expires_at": null
+      }
+    ],
+    "gates": [
+      {
+        "gate_id": "gate-0721d634-c8aa-4690-9a39-3b20c813585a",
+        "gate_name": "contract_confirmation",
+        "status": "responded",
+        "payload": {
+          "gate_id": "gate-0721d634-c8aa-4690-9a39-3b20c813585a",
+          "inferred_fields": [
+            {
+              "field": "topic",
+              "value": "PRESENT_TENSES_INVERSE_THINKING_LIVE 75969cab-2b81-4f5d-8da7-7772b7744a93: Create a B2 English teaching pack for Vietnamese learners on Present Tenses. Use inverse thinking: start from wrong tense tra",
+              "reason": "inferred_from_request"
+            },
+            {
+              "field": "curriculum",
+              "value": "English ESL",
+              "reason": "locale_default"
+            }
+          ],
+          "contract": {
+            "contract_id": "contract-cf1bf05f-dbf5-48bd-858a-2956c59dbb49",
+            "run_id": "cf1bf05f-dbf5-48bd-858a-2956c59dbb49",
+            "teacher_id": "u-001",
+            "mode": "generate_pack",
+            "topic": "PRESENT_TENSES_INVERSE_THINKING_LIVE 75969cab-2b81-4f5d-8da7-7772b7744a93: Create a B2 English teaching pack for Vietnamese learners on Present Tenses. Use inverse thinking: start from wrong tense tra",
+            "grade_band": "Grade 10",
+            "subject": "English",
+            "locale": "en-US",
+            "instruction_language": "en",
+            "curriculum": "English ESL",
+            "citation_locale": "en-US",
+            "artifact_types": [
+              "lesson",
+              "worksheet",
+              "quiz"
+            ],
+            "export_formats": [
+              "html"
+            ],
+            "research_policy": "standard",
+            "config_version": "teaching-packs-contract-setup@1",
+            "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+            "student_evidence": null,
+            "revision_meta": {
+              "revision": 1,
+              "actor": "system",
+              "source": "request",
+              "reason": "initial_contract_setup",
+              "effective_stage": "setup_contract"
+            }
+          }
+        }
+      },
+      {
+        "gate_id": "gate-729f7963-7300-445b-b1f2-a1f9a7d1c1ef",
+        "gate_name": "content_approval",
+        "status": "responded",
+        "payload": {
+          "gate_id": "gate-729f7963-7300-445b-b1f2-a1f9a7d1c1ef",
+          "gate": "content_approval",
+          "gate_name": "content_approval",
+          "snapshot_ids": [
+            "snap-df36108befb2f3bd178c33a5",
+            "snap-40fa97c7f356893ff64f5491",
+            "snap-d481d39aae76b35a2c63c76e"
+          ],
+          "rendered_snapshots": [
+            {
+              "snapshot_id": "snap-df36108befb2f3bd178c33a5",
+              "run_id": "cf1bf05f-dbf5-48bd-858a-2956c59dbb49",
+              "artifact_id": "lesson-1",
+              "artifact_type": "lesson",
+              "content_json": {
+                "artifact_type": "lesson",
+                "theme": "default",
+                "title": "Present Tenses Mastery through Inverse Thinking for Vietnamese Learners",
+                "sections": [
+                  {
+                    "type": "teaching",
+                    "title": "Warm-Up: Diagnostic Listening & Lesson Objectives",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Hook: Listen for the Errors"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Open with a 60-second audio clip of Vietnamese speakers producing characteristic English present tense errors such as 'She is know the answer', 'I am having 18 years old', or 'He go to school everyday'. Students raise a hand each time they hear a present-tense error and jot down what they think the verb should be. This reveals L1 transfer patterns and activates prior knowledge."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "title": "Listening Tip",
+                        "body": "Focus only on the verb form, not the meaning. Count: how many errors did you catch? Compare with your shoulder partner."
+                      },
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Inverse Thinking: Your Mindset for Today"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Instead of memorizing tense rules and then producing sentences, we will start from broken sentences and work backward to the rules. This is called inverse thinking. When you meet a wrong sentence, ask: (1) What tense is this trying to express? (2) Which form signals that meaning in English? (3) What marker is missing or wrong? Reverse-engineering errors strengthens long-term rule retention far more than forward memorization."
+                      },
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Lesson Objectives"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "By the end of this 90-minute lesson, you will be able to: (1) Identify and recall the four present tense forms and their structural markers. (2) Explain the rules and typical usage contexts of each present tense, contrasting them with Vietnamese interference patterns. (3) Correct sentences containing typical Vietnamese-learner errors using the inverse thinking workflow. (4) Analyze a paragraph with mixed present tense errors and categorize each error by type and source of interference. (5) Evaluate a peer's paragraph for present tense accuracy and provide constructive corrective feedback. (6) Create a short dialogue or narrative that deliberately and correctly uses all four present tenses in context."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Present Tense Matrix \u2014 The 2\u00d72 Framework",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Time \u00d7 Aspect: A Two-Dimensional Map"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "English present tenses combine a TIME axis (simple vs perfect) with an ASPECT axis (simple aspect vs progressive aspect). Crossing these two axes gives the four present tense cells. The simple time axis treats the action as a whole fact or event. The perfect time axis links a past starting point to the present. The simple aspect treats the action as a single point or repeated event. The progressive aspect treats the action as ongoing, in progress."
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "{'type': 'concept_map', 'title': 'Four Present Tense Cells', 'nodes': [{'id': 'ps', 'label': 'Present Simple'}, {'id': 'pc', 'label': 'Present Continuous'}, {'id': 'pp', 'label': 'Present Perfect'}, {'id': 'ppc', 'label': 'Present Perfect Continuous'}], 'edges': [{'source': 'ps', 'target': 'pc', 'relation': 'aspect_shift', 'label': '+ progressive (is V-ing)'}, {'source': 'ps', 'target': 'pp', 'relation': 'time_shift', 'label': '+ perfect (have V3)'}, {'source': 'pc', 'target': 'ppc', 'relation':"
+                      },
+                      {
+                        "type": "table",
+                        "title": "Structural Markers and Typical Usage of the Four Present Tenses",
+                        "columns": [
+                          "Tense",
+                          "Structure",
+                          "Key Markers",
+                          "Typical Usage"
+                        ],
+                        "rows": [
+                          [
+                            "Present Simple",
+                            "S + V(-s/-es) for 3rd person he/she/it",
+                            "always, usually, often, never, every day",
+                            "Habits, routines, general truths, permanent states"
+                          ],
+                          [
+                            "Present Continuous",
+                            "S + am/is/are + V-ing",
+                            "now, right now, at the moment, today",
+                            "Actions happening now, temporary situations, trends"
+                          ],
+                          [
+                            "Present Perfect",
+                            "S + have/has + V3 (past participle)",
+                            "already, yet, just, ever, never, since, so far",
+                            "Past actions with present relevance, life experience, recent events"
+                          ],
+                          [
+                            "Present Perfect Continuous",
+                            "S + have/has + been + V-ing",
+                            "for, since, all day, recently, lately",
+                            "Continuous actions from past to present, cause of present result"
+                          ]
+                        ],
+                        "caption": "Cross-reference this table whenever you analyze an error sentence."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "title": "Why Vietnamese Learners Struggle",
+                        "body": "Vietnamese does not conjugate verbs for person, number, or tense. The same base form '\u0111i' covers 'I go', 'she goes', 'I went', and 'I am going'. Vietnamese encodes aspect and time through pre-verbal particles such as '\u0111ang' (progressive), 'th\u01b0\u1eddng/hay' (habitual), 'v\u1eeba m\u1edbi/m\u1edbi' (recently completed), and 'r\u1ed3i' (already done). English requires overt auxiliary verbs (am/is/are, have/has, have/has been) that Vietnamese simply does not have. Inverse thinking works precisely because it forces you to insert the missing English auxiliaries that your L1 does not require."
+                      },
+                      {
+                        "type": "active_recall_prompt",
+                        "instruction": "Cover the table. From memory, write the structure formulas for all four present tenses in two minutes. Then check: are your -ing, V3, and have/has slots correct?",
+                        "time_minutes": 2
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Vietnamese Interference Patterns: Contrastive Analysis",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Where the L1 Pushes You Off Course"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Five high-frequency interference patterns account for most Vietnamese-learner present tense errors. We will examine each pair, identify the Vietnamese source, and state the English rule that overrides it."
+                      },
+                      {
+                        "type": "contrastive_pairs",
+                        "title": "Vietnamese vs English: Five Interference Pairs",
+                        "rows": [
+                          {
+                            "terms": "VI: 'T\u00f4i \u0111i' (no marker) \u2194 EN: 'I go' / 'I am going'",
+                            "distinction": "English always marks 3rd-person singular with -s/-es AND requires aspect choice. Habit = simple, happening-now = continuous."
+                          },
+                          {
+                            "terms": "VI: 'C\u00f4 \u1ea5y \u0111ang \u0103n' (\u0111ang = progressive particle) \u2194 EN: 'She is eating'",
+                            "distinction": "English requires am/is/are as the progressive auxiliary. Drop '\u0111ang', add 'is' + V-ing."
+                          },
+                          {
+                            "terms": "VI: 'T\u00f4i \u0111\u00e3 \u0103n r\u1ed3i' (\u0111\u00e3 + r\u1ed3i = completed action) \u2194 EN: 'I have eaten'",
+                            "distinction": "English connects past action to present with have/has + V3. Avoid slipping into simple past 'I ate' when the present relevance is implied."
+                          },
+                          {
+                            "terms": "VI: 'T\u00f4i l\u00e0m vi\u1ec7c \u1edf \u0111\u00e2y 5 n\u0103m' (no tense shift for ongoing duration) \u2194 EN: 'I have been working here for 5 years'",
+                            "distinction": "Actions that started in the past AND continue to the present require present perfect continuous (have/has been + V-ing)."
+                          },
+                          {
+                            "terms": "VI: 'T\u00f4i bi\u1ebft ti\u1ebfng Anh' (bi\u1ebft = state, no progress marker) \u2194 EN: 'I know English' (NOT 'I am knowing')",
+                            "distinction": "Stative verbs (know, want, like, believe, own) take simple present, never continuous. Vietnamese does not flag this \u2014 English does."
+                          }
+                        ]
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "warning",
+                        "title": "Don't Translate Mechanically",
+                        "body": "Vietnamese particles like '\u0111ang', '\u0111\u00e3', 'r\u1ed3i' are hints about ASPECT, not direct substitutes for English auxiliaries. Always ask: what English structure signals this meaning?"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Worked Examples: Modeling Inverse Thinking Aloud",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Three Think-Aloud Demonstrations"
+                      },
+                      {
+                        "type": "flow_step",
+                        "title": "The Four-Step Inverse Thinking Workflow",
+                        "steps": [
+                          {
+                            "time": "Step 1",
+                            "title": "Spot the error",
+                            "body": "Locate the verb phrase. Which cell of the matrix is it filling? Is the form in the right slot?"
+                          },
+                          {
+                            "time": "Step 2",
+                            "title": "Recover intended meaning",
+                            "body": "Ask: Is the speaker describing a habit, an action now, a past-to-present result, or an ongoing duration? Read the time markers around the verb."
+                          },
+                          {
+                            "time": "Step 3",
+                            "title": "Choose the correct cell",
+                            "body": "Match meaning to cell. Habit \u2192 simple; happening now \u2192 continuous; past-with-present-result \u2192 perfect; past-and-still-going \u2192 perfect continuous."
+                          },
+                          {
+                            "time": "Step 4",
+                            "title": "Rewrite with correct marker",
+                            "body": "Insert the correct auxiliary (am/is/are, have/has, have/has been) and verb form (-s, -ing, V3)."
+                          },
+                          {
+                            "time": "Example 1",
+                            "title": "Error: 'I am knowing her since 2018.'",
+                            "body": "Step 1: V-ing slot used with 'know' (stative verb) AND 'since 2018' (duration marker). Step 2: Speaker means 'past-to-present, still ongoing'. Step 3: Perfect continuous cell. Step 4: 'I have been knowing her since 2018' \u2014 but 'know' is stative, so we shift to 'I have known her since 2018.' The meaning is duration completed, so present perfect is acceptable."
+                          },
+                          {
+                            "time": "Example 2",
+                            "title": "Error: 'She goes to school now.'",
+                            "body": "Step 1: Simple present with 'now' marker. Step 2: 'Now' signals happening-this-moment, not habit. Step 3: Continuous cell. Step 4: 'She is going to school now.' The marker 'now' is your strongest clue."
+                          },
+                          {
+                            "time": "Example 3",
+                            "title": "Error: 'I have 25 years old.'",
+                            "body": "Step 1: 'have' used without past participle. Step 2: Age is a permanent fact, not an action. Step 3: Neither perfect nor continuous \u2014 it's an equation of state. Step 4: 'I am 25 years old.' Use be + number, not have + adjective."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Guided Practice \u2014 Error Analysis Worksheet",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Identify, Justify, Correct"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Apply the four-step inverse thinking workflow to each sentence below. (1) Identify the error. (2) Name the intended tense cell. (3) Provide the corrected sentence. Use the answer key provided to the teacher only after attempting all items."
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "{'type': 'question_list', 'title': 'Worksheet: 8 Inverse-Thinking Error Items', 'questions': [{'type': 'question_card', 'id': 'q1', 'text': \"'She is know the answer.' Which cell is the writer trying to fill, and what should the correction be?\", 'options': {'A': \"Present Simple \u2014 'She knows the answer.'\", 'B': \"Present Continuous \u2014 'She is knowing the answer.'\", 'C': \"Present Perfect \u2014 'She has known the answer.'\", 'D': 'Leave it as is'}, 'answer': 'A', 'explain': \"'Know' is a stative verb that t"
+                      },
+                      {
+                        "type": "active_recall_prompt",
+                        "instruction": "Without looking back at the worksheet, recite the four-step inverse thinking workflow from memory. Then rewrite the framework on a blank paper: SPOT \u2192 RECOVER MEANING \u2192 CHOOSE CELL \u2192 REWRITE.",
+                        "time_minutes": 3,
+                        "scaffold_hint": "Picture the 2x2 matrix in your mind and trace which corner each example belongs to."
+                      }
+                    ],
+                    "teacher_only": true
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Stations Activity \u2014 Rotating 4-Minute Checks",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Four Stations, Four Skills"
+                      },
+                      {
+                        "type": "phase_timeline",
+                        "title": "16-Minute Station Rotation",
+                        "phases": [
+                          {
+                            "title": "Station 1 \u2014 Tense Identification",
+                            "when": "0:00\u20134:00",
+                            "goal": "Label each verb phrase in 12 short sentences with the correct present tense cell.",
+                            "output": "Annotate the matrix corner next to each sentence."
+                          },
+                          {
+                            "title": "Station 2 \u2014 Error Correction",
+                            "when": "4:00\u20138:00",
+                            "goal": "Rewrite 8 Vietnamese-flavored error sentences correctly.",
+                            "output": "Cross out the error, write the correction, circle the new marker."
+                          },
+                          {
+                            "title": "Station 3 \u2014 Justification Drill",
+                            "when": "8:00\u201312:00",
+                            "goal": "For each correction in Station 2, write one sentence explaining WHY using a tense marker as evidence.",
+                            "output": "Sentence-frame: 'I changed X to Y because the marker Z signals aspect A.'"
+                          },
+                          {
+                            "title": "Station 4 \u2014 Creative Rewriting",
+                            "when": "12:00\u201316:00",
+                            "goal": "Take one correct sentence from Station 2 and rewrite it using a DIFFERENT present tense without changing the core meaning drastically.",
+                            "output": "Two versions of the same idea, two different tense cells."
+                          }
+                        ]
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "title": "Station Survival Tips",
+                        "body": "Keep the 2x2 matrix visible at every station. Time markers are your best friends: never decide tense without first circling every word like NOW, ALWAYS, SINCE, JUST, ALREADY, YET, FOR, RECENTLY."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Creative Application \u2014 Dialogue or Narrative",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Capstone Task: Vietnamese Context, Four Tenses Aligned"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Write a 120\u2013150 word dialogue between two Vietnamese students OR a short narrative about a familiar Vietnamese context such as a school day, c\u01a1m gia \u0111\u00ecnh (family meal), a T\u1ebft celebration, or a soccer match at your local s\u00e2n b\u00f3ng. Your writing must deliberately and correctly use ALL four present tenses at least once: Present Simple, Present Continuous, Present Perfect, and Present Perfect Continuous. Underline or color-code each tense in your draft and add a short justification note next to it."
+                      },
+                      {
+                        "type": "vocab_cluster",
+                        "title": "High-Yield Expressions for Your Dialogue",
+                        "items": [
+                          {
+                            "word": "These days / L\u00fac n\u00e0y",
+                            "definition": "Marks a current trend or temporary situation",
+                            "example": "These days my brother is studying harder than before."
+                          },
+                          {
+                            "word": "Right now / Ngay b\u00e2y gi\u1edd",
+                            "definition": "Strict present-moment marker, demands continuous",
+                            "example": "Right now I am waiting for the bus at the corner."
+                          },
+                          {
+                            "word": "For + duration / su\u1ed1t + kho\u1ea3ng th\u1eddi gian",
+                            "definition": "Triggers present perfect continuous for ongoing actions",
+                            "example": "I have been practicing piano for three years."
+                          },
+                          {
+                            "word": "Since + starting point / t\u1eeb + m\u1ed1c th\u1eddi gian",
+                            "definition": "Triggers present perfect or perfect continuous",
+                            "example": "She has lived in Da Nang since 2019."
+                          },
+                          {
+                            "word": "Just / already / yet / V\u1eeba / R\u1ed3i / Ch\u01b0a",
+                            "definition": "Recent-completion markers for present perfect",
+                            "example": "I have just finished my homework."
+                          }
+                        ]
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "title": "Self-Check Before Submission",
+                        "body": "Have you used each tense at least once? Have you underlined your four target sentences? Can a peer identify each tense without your help? If yes, you are ready to submit."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "alert",
+                        "title": "Peer Evaluation Step",
+                        "body": "Before turning in your draft, exchange with a partner. Each peer must (1) circle any tense errors, (2) propose a correction, and (3) write one sentence of constructive feedback. This is your chance to apply Bloom's analyze and evaluate skills before the teacher grades."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teacher_only",
+                    "title": "Answer Key & Teacher Notes",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Question Card Answer Key"
+                      },
+                      {
+                        "type": "table",
+                        "title": "Worksheet Answers",
+                        "columns": [
+                          "Item ID",
+                          "Correct Answer",
+                          "One-Line Correction",
+                          "Common Misconception to Address"
+                        ],
+                        "rows": [
+                          [
+                            "q1",
+                            "A",
+                            "She knows the answer.",
+                            "Stative verbs reject -ing."
+                          ],
+                          [
+                            "q2",
+                            "B",
+                            "I am 25 years old.",
+                            "Age uses BE + number, not HAVE."
+                          ],
+                          [
+                            "q3",
+                            "A",
+                            "He goes to school every day.",
+                            "3rd-person singular -s."
+                          ],
+                          [
+                            "q4",
+                            "B",
+                            "They have been studying since 8 a.m.",
+                            "Subject-auxiliary agreement: they \u2192 have."
+                          ],
+                          [
+                            "q5",
+                            "B",
+                            "I have been studying English since 2020.",
+                            "Since + duration requires perfect continuous."
+                          ],
+                          [
+                            "q6",
+                            "A",
+                            "She doesn't know the answer.",
+                            "Does not + base form (no -s on main verb)."
+                          ],
+                          [
+                            "q7",
+                            "B",
+                            "I went to Hanoi last summer.",
+                            "Finished time marker \u2192 simple past, not perfect."
+                          ],
+                          [
+                            "q8",
+                            "B",
+                            "Right now, my brother is playing video games.",
+                            "'Right now' overrides 'always'; use continuous."
+                          ]
+                        ],
+                        "caption": "Refer students back to the wrong-reasons in each question_card for targeted misconception remediation."
+                      },
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Stations Observation Checklist"
+                      },
+                      {
+                        "type": "table",
+                        "title": "Teacher Checklist During Rotations",
+                        "columns": [
+                          "Station",
+                          "Look For",
+                          "Listen For"
+                        ],
+                        "rows": [
+                          [
+                            "Station 1",
+                            "Accurate labeling of all 12 sentences",
+                            "Students citing marker words aloud"
+                          ],
+                          [
+                            "Station 2",
+                            "Corrections that include the right auxiliary",
+                            "Students checking 3rd-person -s agreement"
+                          ],
+                          [
+                            "Station 3",
+                            "Justifications referencing marker evidence",
+                            "Sentence-frame usage"
+                          ],
+                          [
+                            "Station 4",
+                            "Two valid tense cells per idea",
+                            "Comparison language: 'same meaning, different aspect'"
+                          ]
+                        ],
+                        "caption": "Use this checklist during the 16-minute rotation to record observations for the formative assessment."
+                      },
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Capstone Rubric (Summative Assessment)"
+                      },
+                      {
+                        "type": "table",
+                        "title": "Capstone Dialogue/Narrative Rubric",
+                        "columns": [
+                          "Criterion",
+                          "Excellent (4)",
+                          "Proficient (3)",
+                          "Developing (2)",
+                          "Beginning (1)"
+                        ],
+                        "rows": [
+                          [
+                            "Accuracy",
+                            "All four tenses used correctly",
+                            "Three tenses correct",
+                            "Two tenses correct",
+                            "One or fewer correct"
+                          ],
+                          [
+                            "Range",
+                            "Each tense appears at least twice",
+                            "Each tense appears once",
+                            "Some tenses missing",
+                            "Mostly one tense throughout"
+                          ],
+                          [
+                            "Vietnamese Context",
+                            "Authentic, vivid local setting",
+                            "Clear Vietnamese context",
+                            "Surface-level references",
+                            "No cultural markers"
+                          ],
+                          [
+                            "Justification Notes",
+                            "Every tense clearly justified with marker evidence",
+                            "Most tenses justified",
+                            "Some justification",
+                            "Missing or vague"
+                          ]
+                        ]
+                      }
+                    ],
+                    "teacher_only": true
+                  },
+                  {
+                    "type": "closure",
+                    "title": "Closure, Reflection & Homework",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "What We Mastered Today"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "We moved from broken sentences to a 2x2 tense matrix, traced the Vietnamese interference patterns behind five high-frequency error types, modeled inverse thinking aloud on three worked examples, analyzed eight error items, rotated through four stations, and drafted a dialogue that deploys all four present tenses. The shift from forward memorization to backward reasoning is the key insight: every error is a clue to the missing English structure."
+                      },
+                      {
+                        "type": "stat_grid",
+                        "title": "The Four Present Tense Cells at a Glance",
+                        "stats": [
+                          {
+                            "label": "Present Simple",
+                            "value": "Habit / Fact"
+                          },
+                          {
+                            "label": "Present Continuous",
+                            "value": "Now / Temporary"
+                          },
+                          {
+                            "label": "Present Perfect",
+                            "value": "Past \u2192 Present Result"
+                          },
+                          {
+                            "label": "Present Perfect Continuous",
+                            "value": "Ongoing Duration"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "title": "Inverse Thinking Mantra",
+                        "body": "Spot the error \u2192 Recover the meaning \u2192 Choose the cell \u2192 Rewrite with the right marker. Use this four-line mantra whenever a sentence feels wrong."
+                      },
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Homework"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "{'type': 'hw_list', 'title': 'Assignments Due Next Class', 'items': [{'tag': 'Writing', 'text': 'Finalize your 120\u2013150 word dialogue or narrative. Underline each of the four present tenses and attach a one-line justification for each.'}, {'tag': 'Error Hunt', 'text': 'Find three English present-tense errors in your own past writing samples (notebooks, essays, or chats) and apply inverse thinking to correct each one. Bring them to class.'}, {'tag': 'Reflection', 'text': 'Write a 5-sentence reflec"
+                      }
+                    ]
+                  }
+                ],
+                "metadata": {
+                  "duration_minutes": 90,
+                  "grade_level": "Grade 10",
+                  "subject": "English",
+                  "topic": "Present Tenses Mastery through Inverse Thinking for Vietnamese Learners",
+                  "bloom_levels_addressed": [
+                    "remember",
+                    "understand",
+                    "apply",
+                    "analyze",
+                    "evaluate",
+                    "create"
+                  ],
+                  "methodology_tags_applied": [
+                    "inverse_thinking",
+                    "contrastive_analysis",
+                    "worked_examples",
+                    "stations",
+                    "peer_evaluation",
+                    "creative_production"
+                  ],
+                  "assessment_checkpoints": [
+                    {
+                      "type": "Diagnostic",
+                      "trigger": "Audio listening at lesson start",
+                      "tool": "Error-count tally"
+                    },
+                    {
+                      "type": "Formative",
+                      "trigger": "After worked examples",
+                      "tool": "Worksheet (8 items) with peer check"
+                    },
+                    {
+                      "type": "Formative",
+                      "trigger": "Stations rotation (16 min)",
+                      "tool": "Teacher observation checklist"
+                    },
+                    {
+                      "type": "Summative",
+                      "trigger": "End of lesson",
+                      "tool": "Capstone dialogue rubric (4 criteria, 4-level scale)"
+                    }
+                  ],
+                  "vietnamese_interference_patterns_addressed": [
+                    "Stative verbs taking -ing",
+                    "Age expressed with HAVE instead of BE",
+                    "3rd-person singular -s omission",
+                    "Subject-auxiliary agreement with have/has",
+                    "Since/for duration requiring perfect continuous",
+                    "Does not + base form rule",
+                    "Finished-time markers requiring simple past",
+                    "Right now / always aspect conflict"
+                  ]
+                },
+                "accessibility": {
+                  "language": "en",
+                  "reading_level": "Grade 10 (intermediate)",
+                  "alt_texts": {
+                    "concept_map_present_tenses": "Concept map showing four present tense cells (Present Simple, Present Continuous, Present Perfect, Present Perfect Continuous) connected by aspect shift and time shift edges that add progressive or perfect markers.",
+                    "matrix_table": "A 2x2 matrix table listing the four present tense names, structure formulas, key markers, and typical usages."
+                  },
+                  "differentiations": {
+                    "support": "Provide a printed matrix table at each station; pair stronger students with newer learners; allow bilingual dictionaries for vocabulary lookup.",
+                    "extension": "Ask confident writers to include past or future tenses as a stretch goal, or to write their dialogue in two different Vietnamese regional contexts.",
+                    "shy_student_support": "Allow written submission of peer feedback instead of oral, and let students choose dialogue OR narrative based on comfort with conversation simulation."
+                  }
+                },
+                "artifact_id": "lesson-1"
+              },
+              "rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Present Tenses Mastery through Inverse Thinking for Vietnamese Learners</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}.brand{font-weight:700}.teacher-only{border-top:1px solid #ddd;margin-top:2rem;padding-top:1rem}</style></head><body><header class=\"brand\">oh-my-class</header><main><h1>Present Tenses Mastery through Inverse Thinking for Vietnamese Learners</h1><section><h2>Warm-Up: Diagnostic Listening &amp; Lesson Objectives</h2><p></p></section><section><h2>Present Tense Matrix \u2014 The 2\u00d72 Framework</h2><p></p></section><section><h2>Vietnamese Interference Patterns: Contrastive Analysis</h2><p></p></section><section><h2>Worked Examples: Modeling Inverse Thinking Aloud</h2><p></p></section><section data-teacher-only=\"true\"><h2>Guided Practice \u2014 Error Analysis Worksheet</h2><p></p></section><section><h2>Stations Activity \u2014 Rotating 4-Minute Checks</h2><p></p></section><section><h2>Creative Application \u2014 Dialogue or Narrative</h2><p></p></section><section data-teacher-only=\"true\"><h2>Answer Key &amp; Teacher Notes</h2><p></p></section><section><h2>Closure, Reflection &amp; Homework</h2><p></p></section></main><section class=\"teacher-only\" data-teacher-only=\"true\"><h2>Teacher only</h2><p>Answer key is separated here.</p></section></body></html>",
+              "student_rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Present Tenses Mastery through Inverse Thinking for Vietnamese Learners</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}</style></head><body><header>oh-my-class</header><main><h1>Present Tenses Mastery through Inverse Thinking for Vietnamese Learners</h1><section><h2>Warm-Up: Diagnostic Listening &amp; Lesson Objectives</h2><p></p></section><section><h2>Present Tense Matrix \u2014 The 2\u00d72 Framework</h2><p></p></section><section><h2>Vietnamese Interference Patterns: Contrastive Analysis</h2><p></p></section><section><h2>Worked Examples: Modeling Inverse Thinking Aloud</h2><p></p></section><section><h2>Stations Activity \u2014 Rotating 4-Minute Checks</h2><p></p></section><section><h2>Creative Application \u2014 Dialogue or Narrative</h2><p></p></section><section><h2>Closure, Reflection &amp; Homework</h2><p></p></section></main></body></html>",
+              "renderer_version": "pipeline-v2-python",
+              "template_version": "pipeline-v2-minimal",
+              "theme_version": "default"
+            },
+            {
+              "snapshot_id": "snap-40fa97c7f356893ff64f5491",
+              "run_id": "cf1bf05f-dbf5-48bd-858a-2956c59dbb49",
+              "artifact_id": "worksheet-2",
+              "artifact_type": "worksheet",
+              "content_json": {
+                "artifact_type": "worksheet",
+                "theme": "default",
+                "title": "Present Tenses Mastery \u2014 Inverse Thinking Practice for Vietnamese Learners",
+                "sections": [
+                  {
+                    "type": "practice",
+                    "title": "Section 1: Present Tense Identification",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Identify the correct present tense form"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Read each sentence carefully and decide which present tense form is used or required. Vietnamese has no verb conjugation, so do NOT rely on the verb shape alone \u2014 look at time markers (every day, now, already, for two years, since 2010) and aspectual clues."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "title": "Quick Reference",
+                        "body": "Simple Present = habits/facts (every day, usually, always). Present Continuous = action now (now, right now, at the moment). Present Perfect = past action with present relevance (already, yet, just, ever, never). Present Perfect Continuous = duration from past to now (for, since, how long)."
+                      },
+                      {
+                        "type": "table",
+                        "columns": [
+                          "Tense",
+                          "Structure",
+                          "Key Time Markers",
+                          "Vietnamese Equivalent"
+                        ],
+                        "rows": [
+                          [
+                            "Present Simple",
+                            "S + V(-s/-es)",
+                            "every day, usually, always",
+                            "th\u01b0\u1eddng, hay, m\u1ed7i ng\u00e0y"
+                          ],
+                          [
+                            "Present Continuous",
+                            "am/is/are + V-ing",
+                            "now, right now, at the moment",
+                            "\u0111ang"
+                          ],
+                          [
+                            "Present Perfect",
+                            "have/has + V3",
+                            "already, yet, just, ever, never",
+                            "r\u1ed3i, v\u1eeba m\u1edbi, \u0111\u00e3"
+                          ],
+                          [
+                            "Present Perfect Continuous",
+                            "have/has been + V-ing",
+                            "for, since, how long",
+                            "\u0111\u00e3 \u2026 \u0111\u01b0\u1ee3c (kho\u1ea3ng th\u1eddi gian)"
+                          ]
+                        ],
+                        "caption": "Reference matrix for Section 1"
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q1",
+                        "text": "Identify the tense: 'My mother works in a hospital.'",
+                        "options": {
+                          "A": "Present Simple",
+                          "B": "Present Continuous",
+                          "C": "Present Perfect",
+                          "D": "Present Perfect Continuous"
+                        },
+                        "answer": "A",
+                        "explain": "Habitual/factual action with no time marker of duration or 'now'. Vietnamese equivalent: 'M\u1eb9 t\u00f4i l\u00e0m vi\u1ec7c \u1edf b\u1ec7nh vi\u1ec7n' \u2014 the uninflected verb 'l\u00e0m' expresses a general fact."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q2",
+                        "text": "Identify the tense: 'Listen! The birds are singing outside the window.'",
+                        "options": {
+                          "A": "Present Simple",
+                          "B": "Present Continuous",
+                          "C": "Present Perfect",
+                          "D": "Present Perfect Continuous"
+                        },
+                        "answer": "B",
+                        "explain": "Action happening at the moment of speaking. 'Listen!' signals right-now. Vietnamese: 'Chim \u0111ang h\u00f3t' \u2014 particle '\u0111ang' marks the progressive."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q3",
+                        "text": "Identify the tense: 'I have lived in Hanoi since 2015.'",
+                        "options": {
+                          "A": "Present Simple",
+                          "B": "Present Continuous",
+                          "C": "Present Perfect",
+                          "D": "Present Perfect Continuous"
+                        },
+                        "answer": "C",
+                        "explain": "Action began in 2015 and continues now, but the focus is on the RESULT (I still live there), not the duration. 'Since 2015' with a stative verb 'live' \u2192 Present Perfect."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q4",
+                        "text": "Identify the tense: 'She has been waiting for the bus for twenty minutes.'",
+                        "options": {
+                          "A": "Present Simple",
+                          "B": "Present Continuous",
+                          "C": "Present Perfect",
+                          "D": "Present Perfect Continuous"
+                        },
+                        "answer": "D",
+                        "explain": "Focus on DURATION of an ongoing activity. 'For twenty minutes' with a dynamic verb in -ing form = Present Perfect Continuous."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q5",
+                        "text": "Identify the tense: 'Water boils at 100 degrees Celsius.'",
+                        "options": {
+                          "A": "Present Simple",
+                          "B": "Present Continuous",
+                          "C": "Present Perfect",
+                          "D": "Present Perfect Continuous"
+                        },
+                        "answer": "A",
+                        "explain": "General scientific fact, not an action happening now. No progressive meaning here. Vietnamese: 'N\u01b0\u1edbc s\u00f4i \u1edf 100 \u0111\u1ed9 C' \u2014 bare verb states a fact."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Section 2: Error Correction Using Inverse Thinking",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Apply the inverse-thinking workflow"
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "title": "Inverse-Thinking Workflow",
+                        "body": "Step 1 \u2014 Spot the broken verb. Step 2 \u2014 Ask: 'What tense does the TIME MARKER demand?' Step 3 \u2014 Ask: 'What did Vietnamese tempt me to write instead?' Step 4 \u2014 Rewrite using the correct English structure. Always write the correction AND a short justification."
+                      },
+                      {
+                        "type": "table",
+                        "columns": [
+                          "Vietnamese Interference",
+                          "What Vietnamese Does",
+                          "Common Error in English"
+                        ],
+                        "rows": [
+                          [
+                            "No person/number on verbs",
+                            "'T\u00f4i \u0111i' = 'C\u00f4 \u1ea5y \u0111i' (same verb)",
+                            "She don't / He go"
+                          ],
+                          [
+                            "No progressive/stative distinction",
+                            "'Bi\u1ebft' is one verb for know & knowing",
+                            "I am knowing the answer"
+                          ],
+                          [
+                            "Particles, not auxiliaries",
+                            "'\u0111\u00e3', '\u0111ang', 'r\u1ed3i' added BEFORE verb",
+                            "Missing have/has or am/is/are"
+                          ],
+                          [
+                            "Aspect uses '\u0111ang' for any duration",
+                            "'\u0111ang l\u00e0m' for both now and for hours",
+                            "Over-using -ing instead of have been -ing"
+                          ]
+                        ],
+                        "caption": "Top Vietnamese-transfer traps"
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q6",
+                        "text": "Error: 'She don't like coffee.' Choose the correct version and identify the interference.",
+                        "options": {
+                          "A": "She doesn't like coffee. \u2014 Vietnamese has no -s on third-person verbs.",
+                          "B": "She not like coffee. \u2014 Vietnamese negative uses 'kh\u00f4ng' before the verb.",
+                          "C": "She isn't like coffee. \u2014 Negative needs 'not' after the auxiliary.",
+                          "D": "She doesn't likes coffee. \u2014 Keep both -s and 'not' for emphasis."
+                        },
+                        "answer": "A",
+                        "explain": "Third-person singular requires 'doesn't'. Vietnamese uses the same verb 'th\u00edch' for all persons, so learners transfer the uninflected form."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q7",
+                        "text": "Error: 'I am knowing the answer.' Choose the correct rewrite.",
+                        "options": {
+                          "A": "I know the answer. \u2014 'know' is a stative verb, no continuous form.",
+                          "B": "I am knowing the answer for ten minutes. \u2014 Add 'for' to make it continuous.",
+                          "C": "I have been knowing her since primary school. \u2014 'Have been knowing' is allowed.",
+                          "D": "I am know the answer. \u2014 Drop the -ing on 'know'."
+                        },
+                        "answer": "A",
+                        "explain": "'Know' is a stative verb \u2014 it never takes -ing. Vietnamese 'bi\u1ebft' is one verb for both 'know' and 'knowing', which causes this error."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q8",
+                        "text": "Error: 'They has been working here since January.' Choose the correct rewrite.",
+                        "options": {
+                          "A": "They have been working here since January. \u2014 'They' takes 'have', not 'has'.",
+                          "B": "They has worked here since January. \u2014 Use perfect, not perfect continuous.",
+                          "C": "They are working here since January. \u2014 Replace the auxiliary.",
+                          "D": "They has been working here since January. \u2014 Plural 'they' keeps 'has'."
+                        },
+                        "answer": "A",
+                        "explain": "'They' is plural and requires 'have'. Vietnamese does not mark plural on verbs, so learners carry 'has' from singular practice."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q9",
+                        "text": "Error: 'I have been studied English for three years.' Choose the correct rewrite.",
+                        "options": {
+                          "A": "I have been studying English for three years. \u2014 After 'have been', use V-ing.",
+                          "B": "I have studied English for three years. \u2014 Simple perfect replaces the duration focus.",
+                          "C": "I am studying English for three years. \u2014 Use continuous for duration.",
+                          "D": "I have study English for three years. \u2014 Drop the -ed on the main verb."
+                        },
+                        "answer": "A",
+                        "explain": "Present Perfect Continuous structure = have/has + been + V-ing. The bare past form 'studied' is incorrect here. Vietnamese '\u0111\u00e3 h\u1ecdc' tempts learners to drop the -ing."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q10",
+                        "text": "Error: 'I am playing football when my friend called me yesterday.' Choose the correct rewrite.",
+                        "options": {
+                          "A": "I was playing football when my friend called me yesterday. \u2014 'yesterday' triggers past.",
+                          "B": "I am playing football when my friend calls me yesterday. \u2014 Keep present, drop 'yesterday'.",
+                          "C": "I have been playing football when my friend called me. \u2014 Use perfect continuous.",
+                          "D": "I am playing football when my friend is calling me. \u2014 Change 'called' to -ing."
+                        },
+                        "answer": "A",
+                        "explain": "'Yesterday' is a finished past time marker. Both verbs must shift to past (past continuous + simple past). Vietnamese allows '\u0111ang' with any time marker, which causes this slip."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Section 3: Paragraph Error Triage",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Triage the learner paragraph"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Read the paragraph below, written by a Grade-10 Vietnamese learner. For each numbered line, write: (i) the error type if any, (ii) the Vietnamese interference cause, (iii) a correct rewrite. Then answer the multiple-choice check that follows."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "title": "Paragraph by 'Nam'",
+                        "body": "1) My name is Nam and I have 17 years old. 2) I study English every day after school. 3) Right now, I am study for my final exam. 4) I have been learning English since I am 12 years old. 5) I am usually play football on Saturday. 6) I just have finished my homework when my mother called. 7) My teacher always gives me a lot of homework."
+                      },
+                      {
+                        "type": "table",
+                        "columns": [
+                          "Line",
+                          "Sentence",
+                          "Error? (Y/N)",
+                          "Correct Rewrite"
+                        ],
+                        "rows": [
+                          [
+                            "1",
+                            "My name is Nam and I have 17 years old.",
+                            "Y \u2014 wrong verb (have\u2192am)",
+                            "My name is Nam and I am 17 years old."
+                          ],
+                          [
+                            "2",
+                            "I study English every day after school.",
+                            "N",
+                            "\u2014"
+                          ],
+                          [
+                            "3",
+                            "Right now, I am study for my final exam.",
+                            "Y \u2014 missing -ing",
+                            "Right now, I am studying for my final exam."
+                          ],
+                          [
+                            "4",
+                            "I have been learning English since I am 12 years old.",
+                            "Y \u2014 'since' clause needs past simple, not present",
+                            "I have been learning English since I was 12 years old."
+                          ],
+                          [
+                            "5",
+                            "I am usually play football on Saturday.",
+                            "Y \u2014 continuous + 'usually' clash",
+                            "I usually play football on Saturday."
+                          ],
+                          [
+                            "6",
+                            "I just have finished my homework when my mother called.",
+                            "Y \u2014 past time marker demands past",
+                            "I had just finished my homework when my mother called."
+                          ],
+                          [
+                            "7",
+                            "My teacher always gives me a lot of homework.",
+                            "N",
+                            "\u2014"
+                          ]
+                        ],
+                        "caption": "Triage reference (do not peek until you have tried it yourself)"
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q11",
+                        "text": "How many present-tense-related errors are there in Nam's paragraph?",
+                        "options": {
+                          "A": "3",
+                          "B": "4",
+                          "C": "5",
+                          "D": "6"
+                        },
+                        "answer": "B",
+                        "explain": "Four errors involving present-tense logic: lines 1 (verb choice), 3 (missing -ing), 4 (since-clause tense), and 5 (continuous vs simple with 'usually'). Line 6 is a PAST-tense error \u2014 counted separately."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q12",
+                        "text": "Which error is BEST explained by Vietnamese particle '\u0111ang' tempting the learner?",
+                        "options": {
+                          "A": "Line 1",
+                          "B": "Line 3",
+                          "C": "Line 4",
+                          "D": "Line 7"
+                        },
+                        "answer": "B",
+                        "explain": "'\u0110ang' is the Vietnamese progressive particle \u2014 equivalent to am/is/are + V-ing. Line 3 ('I am study') shows the learner remembered the auxiliary but forgot the -ing."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Section 4: Short-Answer Production",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Write the correct verb form"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "For each prompt, write the correct present-tense verb form in the blank. Then on the line labelled 'WHY', write one sentence in English explaining which time marker triggered your choice."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "title": "Self-check before you write",
+                        "body": "Circle every time marker. If you see 'now/right now', expect continuous. If you see 'for/since/how long', expect perfect or perfect continuous. If you see 'every day/usually/always', expect simple."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q13",
+                        "text": "She __________ (teach) English at our school for fifteen years. WHY: ___________________________________________________",
+                        "options": {},
+                        "answer": "has been teaching \u2014 WHY should mention 'for fifteen years' with a dynamic verb \u2192 Present Perfect Continuous emphasizing duration.",
+                        "explain": "Dynamic verb + 'for fifteen years' = Present Perfect Continuous. Accept 'has taught' as a less-emphatic but still correct alternative."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q14",
+                        "text": "Quiet please! The baby __________ (sleep). WHY: ___________________________________________________",
+                        "options": {},
+                        "answer": "is sleeping \u2014 WHY should mention 'Quiet please!' signals right-now action \u2192 Present Continuous.",
+                        "explain": "'Quiet please!' is a hot-context cue equivalent to Vietnamese '\u0111ang ng\u1ee7'."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q15",
+                        "text": "My brother __________ (play) video games every evening after dinner. WHY: ___________________________________________________",
+                        "options": {},
+                        "answer": "plays \u2014 WHY should mention 'every evening' \u2192 habitual action \u2192 Present Simple.",
+                        "explain": "Habitual time marker 'every evening' with third-person singular subject \u2192 'plays'."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q16",
+                        "text": "We __________ (not / eat) Vietnamese food since we moved to Singapore. WHY: ___________________________________________________",
+                        "options": {},
+                        "answer": "haven't eaten \u2014 WHY should mention 'since we moved' \u2192 action that started in past and continues now \u2192 Present Perfect.",
+                        "explain": "Stative verb 'eat' + 'since + clause' + negative \u2192 Present Perfect Simple. (Perfect Continuous is also defensible with dynamic verbs.)"
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q17",
+                        "text": "Look at those dark clouds. It __________ (rain). WHY: ___________________________________________________",
+                        "options": {},
+                        "answer": "is going to rain OR is raining \u2014 WHY should mention visible present evidence \u2192 Present Continuous for the unfolding now.",
+                        "explain": "Visible present evidence + 'Look!' = continuous. Accept 'is raining' or 'is about to rain' with justification."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Section 5: Mixed Application",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Higher-order discrimination"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "These items require you to choose between two closely related tenses. Read both clauses before answering."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q18",
+                        "text": "Choose the more natural sentence and explain why in one sentence.",
+                        "options": {
+                          "A": "I have been knowing her since childhood.",
+                          "B": "I have known her since childhood.",
+                          "C": "Both are equally natural.",
+                          "D": "Neither is grammatical."
+                        },
+                        "answer": "B",
+                        "explain": "'Know' is stative \u2014 it cannot be used in the perfect continuous. Option A is ungrammatical; Vietnamese '\u0111\u00e3 bi\u1ebft' tempts learners into this form."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q19",
+                        "text": "Choose the sentence that correctly matches time marker and verb.",
+                        "options": {
+                          "A": "I have lived here since five years.",
+                          "B": "I am living here since 2019.",
+                          "C": "I have been living here for five years.",
+                          "D": "I live here since 2019."
+                        },
+                        "answer": "C",
+                        "explain": "'For + duration' pairs with Present Perfect Continuous for a dynamic 'living' verb. A uses 'since' with a duration; B uses continuous with 'since'; D uses simple with 'since'."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": "q20",
+                        "text": "Which sentence BEST expresses a complaint about an action that began in the past and is STILL happening now?",
+                        "options": {
+                          "A": "You make too much noise.",
+                          "B": "You are making too much noise.",
+                          "C": "You have made too much noise.",
+                          "D": "You have been making too much noise for an hour!"
+                        },
+                        "answer": "D",
+                        "explain": "Duration complaint = Present Perfect Continuous + 'for/since'. Vietnamese learners often stop at (C) because '\u0111\u00e3 l\u00e0m \u1ed3n' feels complete; the English nuance requires the -ing continuation."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teacher_only",
+                    "title": "Answer Key & Teaching Notes",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Answer Key (Teacher Only)"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Q1=A, Q2=B, Q3=C, Q4=D, Q5=A, Q6=A, Q7=A, Q8=A, Q9=A, Q10=A, Q11=B, Q12=B, Q13='has been teaching' (alt 'has taught'), Q14='is sleeping', Q15='plays', Q16='haven't eaten', Q17='is going to rain' or 'is raining', Q18=B, Q19=C, Q20=D."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "title": "Marking guidance for short-answer items",
+                        "body": "Award full credit when the verb form is correct AND the WHY sentence names a time marker and a tense. Deduct 1 mark if the WHY is missing, and another if it cites the wrong marker."
+                      },
+                      {
+                        "type": "table",
+                        "columns": [
+                          "Vietnamese Interference",
+                          "Error Pattern",
+                          "Quick Repair Cue"
+                        ],
+                        "rows": [
+                          [
+                            "No person/number morphology",
+                            "She don't / He go / They has",
+                            "Drill 'he/she/it \u2192 -s/-es' and 'I/you/we/they \u2192 base form'"
+                          ],
+                          [
+                            "One verb for state & action",
+                            "I am knowing / I am believing",
+                            "Memorise the stative-verb list (know, believe, own, want, like, need)"
+                          ],
+                          [
+                            "Particle '\u0111ang' for any duration",
+                            "I am play (instead of study)",
+                            "Mark time markers before deciding tense, not verb meaning"
+                          ],
+                          [
+                            "Particle '\u0111\u00e3' without auxiliary",
+                            "I studied since 2019 (instead of have studied)",
+                            "Insert 'have/has' first, then choose V3 or been + V-ing"
+                          ],
+                          [
+                            "No plural marking",
+                            "They has / The people is",
+                            "Match subject and auxiliary BEFORE writing the main verb"
+                          ]
+                        ],
+                        "caption": "Repair cue sheet for live feedback"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "{'type': 'hw_list', 'items': [{'tag': 'Drill', 'text': 'Write 3 original sentences for EACH tense using a Vietnamese-context topic (school day, family meal, weekend plans). Highlight every time marker.'}, {'tag': 'Error hunt', 'text': 'Find 5 real present-tense errors in any English text you encounter today (subtitles, songs, social media). Classify each using the Section 2 categories.'}, {'tag': 'Reflection', 'text': 'In 60 words, write in English: which Vietnamese interference is hardest for Y"
+                      }
+                    ],
+                    "teacher_only": true
+                  }
+                ],
+                "metadata": {
+                  "duration_minutes": 90,
+                  "grade_level": "Grade 10",
+                  "subject": "English Grammar \u2014 Present Tenses",
+                  "topic": "Present Tenses Mastery through Inverse Thinking",
+                  "total_questions": 20,
+                  "estimated_completion_minutes": 35
+                },
+                "accessibility": {
+                  "language": "en",
+                  "reading_level": "intermediate",
+                  "alt_texts": {
+                    "reference_matrix": "Four-column table mapping each present tense to its English structure, common time markers, and the Vietnamese particle that performs the same job."
+                  }
+                },
+                "artifact_id": "worksheet-2"
+              },
+              "rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Present Tenses Mastery \u2014 Inverse Thinking Practice for Vietnamese Learners</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}.brand{font-weight:700}.teacher-only{border-top:1px solid #ddd;margin-top:2rem;padding-top:1rem}</style></head><body><header class=\"brand\">oh-my-class</header><main><h1>Present Tenses Mastery \u2014 Inverse Thinking Practice for Vietnamese Learners</h1><section><h2>Section 1: Present Tense Identification</h2><p></p></section><section><h2>Section 2: Error Correction Using Inverse Thinking</h2><p></p></section><section><h2>Section 3: Paragraph Error Triage</h2><p></p></section><section><h2>Section 4: Short-Answer Production</h2><p></p></section><section><h2>Section 5: Mixed Application</h2><p></p></section><section data-teacher-only=\"true\"><h2>Answer Key &amp; Teaching Notes</h2><p></p></section></main><section class=\"teacher-only\" data-teacher-only=\"true\"><h2>Teacher only</h2><p>Answer key is separated here.</p></section></body></html>",
+              "student_rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Present Tenses Mastery \u2014 Inverse Thinking Practice for Vietnamese Learners</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}</style></head><body><header>oh-my-class</header><main><h1>Present Tenses Mastery \u2014 Inverse Thinking Practice for Vietnamese Learners</h1><section><h2>Section 1: Present Tense Identification</h2><p></p></section><section><h2>Section 2: Error Correction Using Inverse Thinking</h2><p></p></section><section><h2>Section 3: Paragraph Error Triage</h2><p></p></section><section><h2>Section 4: Short-Answer Production</h2><p></p></section><section><h2>Section 5: Mixed Application</h2><p></p></section></main></body></html>",
+              "renderer_version": "pipeline-v2-python",
+              "template_version": "pipeline-v2-minimal",
+              "theme_version": "default"
+            },
+            {
+              "snapshot_id": "snap-d481d39aae76b35a2c63c76e",
+              "run_id": "cf1bf05f-dbf5-48bd-858a-2956c59dbb49",
+              "artifact_id": "quiz-3",
+              "artifact_type": "quiz",
+              "content_json": {
+                "artifact_type": "quiz",
+                "theme": "default",
+                "title": "Present Tenses Mastery Quiz \u2013 Inverse Thinking for Vietnamese Learners",
+                "sections": [
+                  {
+                    "type": "assessment",
+                    "title": "Question 1",
+                    "components": [
+                      {
+                        "type": "question_card",
+                        "id": "q1",
+                        "text": "She ______ (know) the answer.",
+                        "options": {
+                          "A": "knows",
+                          "B": "is knowing",
+                          "C": "has known",
+                          "D": "has been knowing"
+                        },
+                        "answer": "A",
+                        "explain": "Know is a stative verb; we use present simple for states, not continuous forms.",
+                        "wrong_reasons": {
+                          "B": "Stative verbs like know are not used in progressive aspect.",
+                          "C": "Present perfect would imply a past action with present relevance, but the sentence expresses a current state.",
+                          "D": "Present perfect continuous is inappropriate for stative verbs and adds unnecessary duration."
+                        },
+                        "essence": "Stative verbs resist progressive aspect; use simple present for current states.",
+                        "tip": "If the verb describes a feeling, thought, or possession, choose simple present."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Question 2",
+                    "components": [
+                      {
+                        "type": "question_card",
+                        "id": "q2",
+                        "text": "Look! The bus ______ (come).",
+                        "options": {
+                          "A": "comes",
+                          "B": "is coming",
+                          "C": "has come",
+                          "D": "has been coming"
+                        },
+                        "answer": "B",
+                        "explain": "The speaker sees the bus arriving right now, so present continuous is needed.",
+                        "wrong_reasons": {
+                          "A": "Simple present expresses habit or general truth, not an action in progress at this moment.",
+                          "C": "Present perfect focuses on a completed action with present relevance, not the ongoing arrival.",
+                          "D": "Present perfect continuous stresses duration up to now, which doesn't fit a punctual arrival."
+                        },
+                        "essence": "Use present continuous for actions happening at the moment of speaking.",
+                        "tip": "Look for time expressions like 'now', 'look', 'listen' signalling immediate action."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Question 3",
+                    "components": [
+                      {
+                        "type": "question_card",
+                        "id": "q3",
+                        "text": "I ______ (visit) Ha Long Bay twice.",
+                        "options": {
+                          "A": "visit",
+                          "B": "am visiting",
+                          "C": "have visited",
+                          "D": "have been visiting"
+                        },
+                        "answer": "C",
+                        "explain": "The sentence talks about life experience up to now; present perfect is appropriate.",
+                        "wrong_reasons": {
+                          "A": "Simple present would imply a regular habit, not a specific number of past visits.",
+                          "B": "Present continuous suggests the visits are happening right now, which is illogical.",
+                          "D": "Present perfect continuous emphasizes the duration of the activity, not the count of occurrences."
+                        },
+                        "essence": "Present perfect expresses experiences without specifying when they occurred.",
+                        "tip": "With adverbs like 'ever', 'never', 'twice', 'before', think present perfect."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Question 4",
+                    "components": [
+                      {
+                        "type": "question_card",
+                        "id": "q4",
+                        "text": "We ______ (study) English for three years.",
+                        "options": {
+                          "A": "study",
+                          "B": "are studying",
+                          "C": "have studied",
+                          "D": "have been studying"
+                        },
+                        "answer": "D",
+                        "explain": "The sentence emphasizes the duration of study up to the present; present perfect continuous is used.",
+                        "wrong_reasons": {
+                          "A": "Simple present would state a general fact, not the ongoing duration.",
+                          "B": "Present continuous describes an action happening now, not a period leading up to now.",
+                          "C": "Present perfect focuses on the fact of completion, not the continuous effort over time."
+                        },
+                        "essence": "Present perfect continuous highlights an action that started in the past and continues to now.",
+                        "tip": "When you see 'for' or 'since' with a duration, consider present perfect continuous."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Question 5",
+                    "components": [
+                      {
+                        "type": "question_card",
+                        "id": "q5",
+                        "text": "She is know the answer.",
+                        "options": {
+                          "A": "She knows the answer.",
+                          "B": "She is knowing the answer.",
+                          "C": "She has known the answer.",
+                          "D": "She has been knowing the answer."
+                        },
+                        "answer": "A",
+                        "explain": "The original sentence incorrectly uses a progressive form with a stative verb; correct form is present simple.",
+                        "wrong_reasons": {
+                          "B": "Repeats the error; stative verbs resist progressive aspect.",
+                          "C": "Present perfect changes meaning to a past\u2011to\u2011present relevance, not a current state.",
+                          "D": "Combines two errors: progressive aspect with a stative verb and unnecessary perfect aspect."
+                        },
+                        "essence": "Stative verbs like know, believe, own are not used in continuous tenses.",
+                        "tip": "If the verb describes a state, not an action, choose simple present or perfect as needed."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Question 6",
+                    "components": [
+                      {
+                        "type": "question_card",
+                        "id": "q6",
+                        "text": "He ______ (go) to school by bike every day.",
+                        "options": {
+                          "A": "goes",
+                          "B": "is going",
+                          "C": "has gone",
+                          "D": "has been going"
+                        },
+                        "answer": "A",
+                        "explain": "The adverb 'every day' signals a habitual action, requiring present simple.",
+                        "wrong_reasons": {
+                          "B": "Present continuous would suggest the action is happening right now, not a routine.",
+                          "C": "Present perfect would imply the action is completed with present relevance, not a repeated habit.",
+                          "D": "Present perfect continuous adds unnecessary duration nuance for a simple habit."
+                        },
+                        "essence": "Use present simple for regular, repeated actions.",
+                        "tip": "Time expressions like 'every day', 'usually', 'often' cue present simple."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Question 7",
+                    "components": [
+                      {
+                        "type": "question_card",
+                        "id": "q7",
+                        "text": "I have been knowing him for 5 years.",
+                        "options": {
+                          "A": "I know him for 5 years.",
+                          "B": "I have known him for 5 years.",
+                          "C": "I am knowing him for 5 years.",
+                          "D": "I knew him for 5 years."
+                        },
+                        "answer": "B",
+                        "explain": "Know is stative; the correct form is present perfect to express a state that began in the past and continues.",
+                        "wrong_reasons": {
+                          "A": "Simple present lacks the sense of duration from past to now.",
+                          "C": "Incorrectly uses progressive aspect with a stative verb.",
+                          "D": "Past simple places the knowledge entirely in the past, contradicting 'for 5 years' leading to now."
+                        },
+                        "essence": "With stative verbs, use present perfect (not continuous) to express duration up to present.",
+                        "tip": "Replace 'have been knowing' with 'have known' for verbs like know, like, believe."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Question 8",
+                    "components": [
+                      {
+                        "type": "question_card",
+                        "id": "q8",
+                        "text": "She ______ (just/finish) her homework.",
+                        "options": {
+                          "A": "just finishes",
+                          "B": "just is finishing",
+                          "C": "has just finished",
+                          "D": "has just been finishing"
+                        },
+                        "answer": "C",
+                        "explain": "The adverb 'just' with a recent completed action calls for present perfect.",
+                        "wrong_reasons": {
+                          "A": "Simple present with 'just' is ungrammatical; 'just' requires perfect aspect.",
+                          "B": "Present continuous cannot combine with 'just' to express a recently completed action.",
+                          "D": "Present perfect continuous adds unnecessary duration; the focus is on the completed action."
+                        },
+                        "essence": "Present perfect with 'just' announces a very recent past action with present relevance.",
+                        "tip": "When you see 'just', 'already', 'yet' with a past action, think present perfect."
+                      }
+                    ]
+                  }
+                ],
+                "metadata": {
+                  "duration_minutes": 20,
+                  "grade_level": "Grade 10"
+                },
+                "accessibility": {
+                  "language": "en",
+                  "reading_level": "intermediate",
+                  "alt_texts": {}
+                },
+                "artifact_id": "quiz-3"
+              },
+              "rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Present Tenses Mastery Quiz \u2013 Inverse Thinking for Vietnamese Learners</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}.brand{font-weight:700}.teacher-only{border-top:1px solid #ddd;margin-top:2rem;padding-top:1rem}</style></head><body><header class=\"brand\">oh-my-class</header><main><h1>Present Tenses Mastery Quiz \u2013 Inverse Thinking for Vietnamese Learners</h1><section><h2>Question 1</h2><p></p></section><section><h2>Question 2</h2><p></p></section><section><h2>Question 3</h2><p></p></section><section><h2>Question 4</h2><p></p></section><section><h2>Question 5</h2><p></p></section><section><h2>Question 6</h2><p></p></section><section><h2>Question 7</h2><p></p></section><section><h2>Question 8</h2><p></p></section></main><section class=\"teacher-only\" data-teacher-only=\"true\"><h2>Teacher only</h2><p>Answer key is separated here.</p></section></body></html>",
+              "student_rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Present Tenses Mastery Quiz \u2013 Inverse Thinking for Vietnamese Learners</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}</style></head><body><header>oh-my-class</header><main><h1>Present Tenses Mastery Quiz \u2013 Inverse Thinking for Vietnamese Learners</h1><section><h2>Question 1</h2><p></p></section><section><h2>Question 2</h2><p></p></section><section><h2>Question 3</h2><p></p></section><section><h2>Question 4</h2><p></p></section><section><h2>Question 5</h2><p></p></section><section><h2>Question 6</h2><p></p></section><section><h2>Question 7</h2><p></p></section><section><h2>Question 8</h2><p></p></section></main></body></html>",
+              "renderer_version": "pipeline-v2-python",
+              "template_version": "pipeline-v2-minimal",
+              "theme_version": "default"
+            }
+          ],
+          "artifacts": [
+            {
+              "artifact_type": "lesson",
+              "theme": "default",
+              "title": "Present Tenses Mastery through Inverse Thinking for Vietnamese Learners",
+              "sections": [
+                {
+                  "type": "teaching",
+                  "title": "Warm-Up: Diagnostic Listening & Lesson Objectives",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Hook: Listen for the Errors"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Open with a 60-second audio clip of Vietnamese speakers producing characteristic English present tense errors such as 'She is know the answer', 'I am having 18 years old', or 'He go to school everyday'. Students raise a hand each time they hear a present-tense error and jot down what they think the verb should be. This reveals L1 transfer patterns and activates prior knowledge."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "title": "Listening Tip",
+                      "body": "Focus only on the verb form, not the meaning. Count: how many errors did you catch? Compare with your shoulder partner."
+                    },
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Inverse Thinking: Your Mindset for Today"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Instead of memorizing tense rules and then producing sentences, we will start from broken sentences and work backward to the rules. This is called inverse thinking. When you meet a wrong sentence, ask: (1) What tense is this trying to express? (2) Which form signals that meaning in English? (3) What marker is missing or wrong? Reverse-engineering errors strengthens long-term rule retention far more than forward memorization."
+                    },
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Lesson Objectives"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "By the end of this 90-minute lesson, you will be able to: (1) Identify and recall the four present tense forms and their structural markers. (2) Explain the rules and typical usage contexts of each present tense, contrasting them with Vietnamese interference patterns. (3) Correct sentences containing typical Vietnamese-learner errors using the inverse thinking workflow. (4) Analyze a paragraph with mixed present tense errors and categorize each error by type and source of interference. (5) Evaluate a peer's paragraph for present tense accuracy and provide constructive corrective feedback. (6) Create a short dialogue or narrative that deliberately and correctly uses all four present tenses in context."
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Present Tense Matrix \u2014 The 2\u00d72 Framework",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Time \u00d7 Aspect: A Two-Dimensional Map"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "English present tenses combine a TIME axis (simple vs perfect) with an ASPECT axis (simple aspect vs progressive aspect). Crossing these two axes gives the four present tense cells. The simple time axis treats the action as a whole fact or event. The perfect time axis links a past starting point to the present. The simple aspect treats the action as a single point or repeated event. The progressive aspect treats the action as ongoing, in progress."
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "{'type': 'concept_map', 'title': 'Four Present Tense Cells', 'nodes': [{'id': 'ps', 'label': 'Present Simple'}, {'id': 'pc', 'label': 'Present Continuous'}, {'id': 'pp', 'label': 'Present Perfect'}, {'id': 'ppc', 'label': 'Present Perfect Continuous'}], 'edges': [{'source': 'ps', 'target': 'pc', 'relation': 'aspect_shift', 'label': '+ progressive (is V-ing)'}, {'source': 'ps', 'target': 'pp', 'relation': 'time_shift', 'label': '+ perfect (have V3)'}, {'source': 'pc', 'target': 'ppc', 'relation':"
+                    },
+                    {
+                      "type": "table",
+                      "title": "Structural Markers and Typical Usage of the Four Present Tenses",
+                      "columns": [
+                        "Tense",
+                        "Structure",
+                        "Key Markers",
+                        "Typical Usage"
+                      ],
+                      "rows": [
+                        [
+                          "Present Simple",
+                          "S + V(-s/-es) for 3rd person he/she/it",
+                          "always, usually, often, never, every day",
+                          "Habits, routines, general truths, permanent states"
+                        ],
+                        [
+                          "Present Continuous",
+                          "S + am/is/are + V-ing",
+                          "now, right now, at the moment, today",
+                          "Actions happening now, temporary situations, trends"
+                        ],
+                        [
+                          "Present Perfect",
+                          "S + have/has + V3 (past participle)",
+                          "already, yet, just, ever, never, since, so far",
+                          "Past actions with present relevance, life experience, recent events"
+                        ],
+                        [
+                          "Present Perfect Continuous",
+                          "S + have/has + been + V-ing",
+                          "for, since, all day, recently, lately",
+                          "Continuous actions from past to present, cause of present result"
+                        ]
+                      ],
+                      "caption": "Cross-reference this table whenever you analyze an error sentence."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "title": "Why Vietnamese Learners Struggle",
+                      "body": "Vietnamese does not conjugate verbs for person, number, or tense. The same base form '\u0111i' covers 'I go', 'she goes', 'I went', and 'I am going'. Vietnamese encodes aspect and time through pre-verbal particles such as '\u0111ang' (progressive), 'th\u01b0\u1eddng/hay' (habitual), 'v\u1eeba m\u1edbi/m\u1edbi' (recently completed), and 'r\u1ed3i' (already done). English requires overt auxiliary verbs (am/is/are, have/has, have/has been) that Vietnamese simply does not have. Inverse thinking works precisely because it forces you to insert the missing English auxiliaries that your L1 does not require."
+                    },
+                    {
+                      "type": "active_recall_prompt",
+                      "instruction": "Cover the table. From memory, write the structure formulas for all four present tenses in two minutes. Then check: are your -ing, V3, and have/has slots correct?",
+                      "time_minutes": 2
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Vietnamese Interference Patterns: Contrastive Analysis",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Where the L1 Pushes You Off Course"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Five high-frequency interference patterns account for most Vietnamese-learner present tense errors. We will examine each pair, identify the Vietnamese source, and state the English rule that overrides it."
+                    },
+                    {
+                      "type": "contrastive_pairs",
+                      "title": "Vietnamese vs English: Five Interference Pairs",
+                      "rows": [
+                        {
+                          "terms": "VI: 'T\u00f4i \u0111i' (no marker) \u2194 EN: 'I go' / 'I am going'",
+                          "distinction": "English always marks 3rd-person singular with -s/-es AND requires aspect choice. Habit = simple, happening-now = continuous."
+                        },
+                        {
+                          "terms": "VI: 'C\u00f4 \u1ea5y \u0111ang \u0103n' (\u0111ang = progressive particle) \u2194 EN: 'She is eating'",
+                          "distinction": "English requires am/is/are as the progressive auxiliary. Drop '\u0111ang', add 'is' + V-ing."
+                        },
+                        {
+                          "terms": "VI: 'T\u00f4i \u0111\u00e3 \u0103n r\u1ed3i' (\u0111\u00e3 + r\u1ed3i = completed action) \u2194 EN: 'I have eaten'",
+                          "distinction": "English connects past action to present with have/has + V3. Avoid slipping into simple past 'I ate' when the present relevance is implied."
+                        },
+                        {
+                          "terms": "VI: 'T\u00f4i l\u00e0m vi\u1ec7c \u1edf \u0111\u00e2y 5 n\u0103m' (no tense shift for ongoing duration) \u2194 EN: 'I have been working here for 5 years'",
+                          "distinction": "Actions that started in the past AND continue to the present require present perfect continuous (have/has been + V-ing)."
+                        },
+                        {
+                          "terms": "VI: 'T\u00f4i bi\u1ebft ti\u1ebfng Anh' (bi\u1ebft = state, no progress marker) \u2194 EN: 'I know English' (NOT 'I am knowing')",
+                          "distinction": "Stative verbs (know, want, like, believe, own) take simple present, never continuous. Vietnamese does not flag this \u2014 English does."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "warning",
+                      "title": "Don't Translate Mechanically",
+                      "body": "Vietnamese particles like '\u0111ang', '\u0111\u00e3', 'r\u1ed3i' are hints about ASPECT, not direct substitutes for English auxiliaries. Always ask: what English structure signals this meaning?"
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Worked Examples: Modeling Inverse Thinking Aloud",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Three Think-Aloud Demonstrations"
+                    },
+                    {
+                      "type": "flow_step",
+                      "title": "The Four-Step Inverse Thinking Workflow",
+                      "steps": [
+                        {
+                          "time": "Step 1",
+                          "title": "Spot the error",
+                          "body": "Locate the verb phrase. Which cell of the matrix is it filling? Is the form in the right slot?"
+                        },
+                        {
+                          "time": "Step 2",
+                          "title": "Recover intended meaning",
+                          "body": "Ask: Is the speaker describing a habit, an action now, a past-to-present result, or an ongoing duration? Read the time markers around the verb."
+                        },
+                        {
+                          "time": "Step 3",
+                          "title": "Choose the correct cell",
+                          "body": "Match meaning to cell. Habit \u2192 simple; happening now \u2192 continuous; past-with-present-result \u2192 perfect; past-and-still-going \u2192 perfect continuous."
+                        },
+                        {
+                          "time": "Step 4",
+                          "title": "Rewrite with correct marker",
+                          "body": "Insert the correct auxiliary (am/is/are, have/has, have/has been) and verb form (-s, -ing, V3)."
+                        },
+                        {
+                          "time": "Example 1",
+                          "title": "Error: 'I am knowing her since 2018.'",
+                          "body": "Step 1: V-ing slot used with 'know' (stative verb) AND 'since 2018' (duration marker). Step 2: Speaker means 'past-to-present, still ongoing'. Step 3: Perfect continuous cell. Step 4: 'I have been knowing her since 2018' \u2014 but 'know' is stative, so we shift to 'I have known her since 2018.' The meaning is duration completed, so present perfect is acceptable."
+                        },
+                        {
+                          "time": "Example 2",
+                          "title": "Error: 'She goes to school now.'",
+                          "body": "Step 1: Simple present with 'now' marker. Step 2: 'Now' signals happening-this-moment, not habit. Step 3: Continuous cell. Step 4: 'She is going to school now.' The marker 'now' is your strongest clue."
+                        },
+                        {
+                          "time": "Example 3",
+                          "title": "Error: 'I have 25 years old.'",
+                          "body": "Step 1: 'have' used without past participle. Step 2: Age is a permanent fact, not an action. Step 3: Neither perfect nor continuous \u2014 it's an equation of state. Step 4: 'I am 25 years old.' Use be + number, not have + adjective."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Guided Practice \u2014 Error Analysis Worksheet",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Identify, Justify, Correct"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Apply the four-step inverse thinking workflow to each sentence below. (1) Identify the error. (2) Name the intended tense cell. (3) Provide the corrected sentence. Use the answer key provided to the teacher only after attempting all items."
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "{'type': 'question_list', 'title': 'Worksheet: 8 Inverse-Thinking Error Items', 'questions': [{'type': 'question_card', 'id': 'q1', 'text': \"'She is know the answer.' Which cell is the writer trying to fill, and what should the correction be?\", 'options': {'A': \"Present Simple \u2014 'She knows the answer.'\", 'B': \"Present Continuous \u2014 'She is knowing the answer.'\", 'C': \"Present Perfect \u2014 'She has known the answer.'\", 'D': 'Leave it as is'}, 'answer': 'A', 'explain': \"'Know' is a stative verb that t"
+                    },
+                    {
+                      "type": "active_recall_prompt",
+                      "instruction": "Without looking back at the worksheet, recite the four-step inverse thinking workflow from memory. Then rewrite the framework on a blank paper: SPOT \u2192 RECOVER MEANING \u2192 CHOOSE CELL \u2192 REWRITE.",
+                      "time_minutes": 3,
+                      "scaffold_hint": "Picture the 2x2 matrix in your mind and trace which corner each example belongs to."
+                    }
+                  ],
+                  "teacher_only": true
+                },
+                {
+                  "type": "practice",
+                  "title": "Stations Activity \u2014 Rotating 4-Minute Checks",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Four Stations, Four Skills"
+                    },
+                    {
+                      "type": "phase_timeline",
+                      "title": "16-Minute Station Rotation",
+                      "phases": [
+                        {
+                          "title": "Station 1 \u2014 Tense Identification",
+                          "when": "0:00\u20134:00",
+                          "goal": "Label each verb phrase in 12 short sentences with the correct present tense cell.",
+                          "output": "Annotate the matrix corner next to each sentence."
+                        },
+                        {
+                          "title": "Station 2 \u2014 Error Correction",
+                          "when": "4:00\u20138:00",
+                          "goal": "Rewrite 8 Vietnamese-flavored error sentences correctly.",
+                          "output": "Cross out the error, write the correction, circle the new marker."
+                        },
+                        {
+                          "title": "Station 3 \u2014 Justification Drill",
+                          "when": "8:00\u201312:00",
+                          "goal": "For each correction in Station 2, write one sentence explaining WHY using a tense marker as evidence.",
+                          "output": "Sentence-frame: 'I changed X to Y because the marker Z signals aspect A.'"
+                        },
+                        {
+                          "title": "Station 4 \u2014 Creative Rewriting",
+                          "when": "12:00\u201316:00",
+                          "goal": "Take one correct sentence from Station 2 and rewrite it using a DIFFERENT present tense without changing the core meaning drastically.",
+                          "output": "Two versions of the same idea, two different tense cells."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "title": "Station Survival Tips",
+                      "body": "Keep the 2x2 matrix visible at every station. Time markers are your best friends: never decide tense without first circling every word like NOW, ALWAYS, SINCE, JUST, ALREADY, YET, FOR, RECENTLY."
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Creative Application \u2014 Dialogue or Narrative",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Capstone Task: Vietnamese Context, Four Tenses Aligned"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Write a 120\u2013150 word dialogue between two Vietnamese students OR a short narrative about a familiar Vietnamese context such as a school day, c\u01a1m gia \u0111\u00ecnh (family meal), a T\u1ebft celebration, or a soccer match at your local s\u00e2n b\u00f3ng. Your writing must deliberately and correctly use ALL four present tenses at least once: Present Simple, Present Continuous, Present Perfect, and Present Perfect Continuous. Underline or color-code each tense in your draft and add a short justification note next to it."
+                    },
+                    {
+                      "type": "vocab_cluster",
+                      "title": "High-Yield Expressions for Your Dialogue",
+                      "items": [
+                        {
+                          "word": "These days / L\u00fac n\u00e0y",
+                          "definition": "Marks a current trend or temporary situation",
+                          "example": "These days my brother is studying harder than before."
+                        },
+                        {
+                          "word": "Right now / Ngay b\u00e2y gi\u1edd",
+                          "definition": "Strict present-moment marker, demands continuous",
+                          "example": "Right now I am waiting for the bus at the corner."
+                        },
+                        {
+                          "word": "For + duration / su\u1ed1t + kho\u1ea3ng th\u1eddi gian",
+                          "definition": "Triggers present perfect continuous for ongoing actions",
+                          "example": "I have been practicing piano for three years."
+                        },
+                        {
+                          "word": "Since + starting point / t\u1eeb + m\u1ed1c th\u1eddi gian",
+                          "definition": "Triggers present perfect or perfect continuous",
+                          "example": "She has lived in Da Nang since 2019."
+                        },
+                        {
+                          "word": "Just / already / yet / V\u1eeba / R\u1ed3i / Ch\u01b0a",
+                          "definition": "Recent-completion markers for present perfect",
+                          "example": "I have just finished my homework."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "title": "Self-Check Before Submission",
+                      "body": "Have you used each tense at least once? Have you underlined your four target sentences? Can a peer identify each tense without your help? If yes, you are ready to submit."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "alert",
+                      "title": "Peer Evaluation Step",
+                      "body": "Before turning in your draft, exchange with a partner. Each peer must (1) circle any tense errors, (2) propose a correction, and (3) write one sentence of constructive feedback. This is your chance to apply Bloom's analyze and evaluate skills before the teacher grades."
+                    }
+                  ]
+                },
+                {
+                  "type": "teacher_only",
+                  "title": "Answer Key & Teacher Notes",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Question Card Answer Key"
+                    },
+                    {
+                      "type": "table",
+                      "title": "Worksheet Answers",
+                      "columns": [
+                        "Item ID",
+                        "Correct Answer",
+                        "One-Line Correction",
+                        "Common Misconception to Address"
+                      ],
+                      "rows": [
+                        [
+                          "q1",
+                          "A",
+                          "She knows the answer.",
+                          "Stative verbs reject -ing."
+                        ],
+                        [
+                          "q2",
+                          "B",
+                          "I am 25 years old.",
+                          "Age uses BE + number, not HAVE."
+                        ],
+                        [
+                          "q3",
+                          "A",
+                          "He goes to school every day.",
+                          "3rd-person singular -s."
+                        ],
+                        [
+                          "q4",
+                          "B",
+                          "They have been studying since 8 a.m.",
+                          "Subject-auxiliary agreement: they \u2192 have."
+                        ],
+                        [
+                          "q5",
+                          "B",
+                          "I have been studying English since 2020.",
+                          "Since + duration requires perfect continuous."
+                        ],
+                        [
+                          "q6",
+                          "A",
+                          "She doesn't know the answer.",
+                          "Does not + base form (no -s on main verb)."
+                        ],
+                        [
+                          "q7",
+                          "B",
+                          "I went to Hanoi last summer.",
+                          "Finished time marker \u2192 simple past, not perfect."
+                        ],
+                        [
+                          "q8",
+                          "B",
+                          "Right now, my brother is playing video games.",
+                          "'Right now' overrides 'always'; use continuous."
+                        ]
+                      ],
+                      "caption": "Refer students back to the wrong-reasons in each question_card for targeted misconception remediation."
+                    },
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Stations Observation Checklist"
+                    },
+                    {
+                      "type": "table",
+                      "title": "Teacher Checklist During Rotations",
+                      "columns": [
+                        "Station",
+                        "Look For",
+                        "Listen For"
+                      ],
+                      "rows": [
+                        [
+                          "Station 1",
+                          "Accurate labeling of all 12 sentences",
+                          "Students citing marker words aloud"
+                        ],
+                        [
+                          "Station 2",
+                          "Corrections that include the right auxiliary",
+                          "Students checking 3rd-person -s agreement"
+                        ],
+                        [
+                          "Station 3",
+                          "Justifications referencing marker evidence",
+                          "Sentence-frame usage"
+                        ],
+                        [
+                          "Station 4",
+                          "Two valid tense cells per idea",
+                          "Comparison language: 'same meaning, different aspect'"
+                        ]
+                      ],
+                      "caption": "Use this checklist during the 16-minute rotation to record observations for the formative assessment."
+                    },
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Capstone Rubric (Summative Assessment)"
+                    },
+                    {
+                      "type": "table",
+                      "title": "Capstone Dialogue/Narrative Rubric",
+                      "columns": [
+                        "Criterion",
+                        "Excellent (4)",
+                        "Proficient (3)",
+                        "Developing (2)",
+                        "Beginning (1)"
+                      ],
+                      "rows": [
+                        [
+                          "Accuracy",
+                          "All four tenses used correctly",
+                          "Three tenses correct",
+                          "Two tenses correct",
+                          "One or fewer correct"
+                        ],
+                        [
+                          "Range",
+                          "Each tense appears at least twice",
+                          "Each tense appears once",
+                          "Some tenses missing",
+                          "Mostly one tense throughout"
+                        ],
+                        [
+                          "Vietnamese Context",
+                          "Authentic, vivid local setting",
+                          "Clear Vietnamese context",
+                          "Surface-level references",
+                          "No cultural markers"
+                        ],
+                        [
+                          "Justification Notes",
+                          "Every tense clearly justified with marker evidence",
+                          "Most tenses justified",
+                          "Some justification",
+                          "Missing or vague"
+                        ]
+                      ]
+                    }
+                  ],
+                  "teacher_only": true
+                },
+                {
+                  "type": "closure",
+                  "title": "Closure, Reflection & Homework",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "What We Mastered Today"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "We moved from broken sentences to a 2x2 tense matrix, traced the Vietnamese interference patterns behind five high-frequency error types, modeled inverse thinking aloud on three worked examples, analyzed eight error items, rotated through four stations, and drafted a dialogue that deploys all four present tenses. The shift from forward memorization to backward reasoning is the key insight: every error is a clue to the missing English structure."
+                    },
+                    {
+                      "type": "stat_grid",
+                      "title": "The Four Present Tense Cells at a Glance",
+                      "stats": [
+                        {
+                          "label": "Present Simple",
+                          "value": "Habit / Fact"
+                        },
+                        {
+                          "label": "Present Continuous",
+                          "value": "Now / Temporary"
+                        },
+                        {
+                          "label": "Present Perfect",
+                          "value": "Past \u2192 Present Result"
+                        },
+                        {
+                          "label": "Present Perfect Continuous",
+                          "value": "Ongoing Duration"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "title": "Inverse Thinking Mantra",
+                      "body": "Spot the error \u2192 Recover the meaning \u2192 Choose the cell \u2192 Rewrite with the right marker. Use this four-line mantra whenever a sentence feels wrong."
+                    },
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Homework"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "{'type': 'hw_list', 'title': 'Assignments Due Next Class', 'items': [{'tag': 'Writing', 'text': 'Finalize your 120\u2013150 word dialogue or narrative. Underline each of the four present tenses and attach a one-line justification for each.'}, {'tag': 'Error Hunt', 'text': 'Find three English present-tense errors in your own past writing samples (notebooks, essays, or chats) and apply inverse thinking to correct each one. Bring them to class.'}, {'tag': 'Reflection', 'text': 'Write a 5-sentence reflec"
+                    }
+                  ]
+                }
+              ],
+              "metadata": {
+                "duration_minutes": 90,
+                "grade_level": "Grade 10",
+                "subject": "English",
+                "topic": "Present Tenses Mastery through Inverse Thinking for Vietnamese Learners",
+                "bloom_levels_addressed": [
+                  "remember",
+                  "understand",
+                  "apply",
+                  "analyze",
+                  "evaluate",
+                  "create"
+                ],
+                "methodology_tags_applied": [
+                  "inverse_thinking",
+                  "contrastive_analysis",
+                  "worked_examples",
+                  "stations",
+                  "peer_evaluation",
+                  "creative_production"
+                ],
+                "assessment_checkpoints": [
+                  {
+                    "type": "Diagnostic",
+                    "trigger": "Audio listening at lesson start",
+                    "tool": "Error-count tally"
+                  },
+                  {
+                    "type": "Formative",
+                    "trigger": "After worked examples",
+                    "tool": "Worksheet (8 items) with peer check"
+                  },
+                  {
+                    "type": "Formative",
+                    "trigger": "Stations rotation (16 min)",
+                    "tool": "Teacher observation checklist"
+                  },
+                  {
+                    "type": "Summative",
+                    "trigger": "End of lesson",
+                    "tool": "Capstone dialogue rubric (4 criteria, 4-level scale)"
+                  }
+                ],
+                "vietnamese_interference_patterns_addressed": [
+                  "Stative verbs taking -ing",
+                  "Age expressed with HAVE instead of BE",
+                  "3rd-person singular -s omission",
+                  "Subject-auxiliary agreement with have/has",
+                  "Since/for duration requiring perfect continuous",
+                  "Does not + base form rule",
+                  "Finished-time markers requiring simple past",
+                  "Right now / always aspect conflict"
+                ]
+              },
+              "accessibility": {
+                "language": "en",
+                "reading_level": "Grade 10 (intermediate)",
+                "alt_texts": {
+                  "concept_map_present_tenses": "Concept map showing four present tense cells (Present Simple, Present Continuous, Present Perfect, Present Perfect Continuous) connected by aspect shift and time shift edges that add progressive or perfect markers.",
+                  "matrix_table": "A 2x2 matrix table listing the four present tense names, structure formulas, key markers, and typical usages."
+                },
+                "differentiations": {
+                  "support": "Provide a printed matrix table at each station; pair stronger students with newer learners; allow bilingual dictionaries for vocabulary lookup.",
+                  "extension": "Ask confident writers to include past or future tenses as a stretch goal, or to write their dialogue in two different Vietnamese regional contexts.",
+                  "shy_student_support": "Allow written submission of peer feedback instead of oral, and let students choose dialogue OR narrative based on comfort with conversation simulation."
+                }
+              },
+              "artifact_id": "lesson-1"
+            },
+            {
+              "artifact_type": "worksheet",
+              "theme": "default",
+              "title": "Present Tenses Mastery \u2014 Inverse Thinking Practice for Vietnamese Learners",
+              "sections": [
+                {
+                  "type": "practice",
+                  "title": "Section 1: Present Tense Identification",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Identify the correct present tense form"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Read each sentence carefully and decide which present tense form is used or required. Vietnamese has no verb conjugation, so do NOT rely on the verb shape alone \u2014 look at time markers (every day, now, already, for two years, since 2010) and aspectual clues."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "title": "Quick Reference",
+                      "body": "Simple Present = habits/facts (every day, usually, always). Present Continuous = action now (now, right now, at the moment). Present Perfect = past action with present relevance (already, yet, just, ever, never). Present Perfect Continuous = duration from past to now (for, since, how long)."
+                    },
+                    {
+                      "type": "table",
+                      "columns": [
+                        "Tense",
+                        "Structure",
+                        "Key Time Markers",
+                        "Vietnamese Equivalent"
+                      ],
+                      "rows": [
+                        [
+                          "Present Simple",
+                          "S + V(-s/-es)",
+                          "every day, usually, always",
+                          "th\u01b0\u1eddng, hay, m\u1ed7i ng\u00e0y"
+                        ],
+                        [
+                          "Present Continuous",
+                          "am/is/are + V-ing",
+                          "now, right now, at the moment",
+                          "\u0111ang"
+                        ],
+                        [
+                          "Present Perfect",
+                          "have/has + V3",
+                          "already, yet, just, ever, never",
+                          "r\u1ed3i, v\u1eeba m\u1edbi, \u0111\u00e3"
+                        ],
+                        [
+                          "Present Perfect Continuous",
+                          "have/has been + V-ing",
+                          "for, since, how long",
+                          "\u0111\u00e3 \u2026 \u0111\u01b0\u1ee3c (kho\u1ea3ng th\u1eddi gian)"
+                        ]
+                      ],
+                      "caption": "Reference matrix for Section 1"
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q1",
+                      "text": "Identify the tense: 'My mother works in a hospital.'",
+                      "options": {
+                        "A": "Present Simple",
+                        "B": "Present Continuous",
+                        "C": "Present Perfect",
+                        "D": "Present Perfect Continuous"
+                      },
+                      "answer": "A",
+                      "explain": "Habitual/factual action with no time marker of duration or 'now'. Vietnamese equivalent: 'M\u1eb9 t\u00f4i l\u00e0m vi\u1ec7c \u1edf b\u1ec7nh vi\u1ec7n' \u2014 the uninflected verb 'l\u00e0m' expresses a general fact."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q2",
+                      "text": "Identify the tense: 'Listen! The birds are singing outside the window.'",
+                      "options": {
+                        "A": "Present Simple",
+                        "B": "Present Continuous",
+                        "C": "Present Perfect",
+                        "D": "Present Perfect Continuous"
+                      },
+                      "answer": "B",
+                      "explain": "Action happening at the moment of speaking. 'Listen!' signals right-now. Vietnamese: 'Chim \u0111ang h\u00f3t' \u2014 particle '\u0111ang' marks the progressive."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q3",
+                      "text": "Identify the tense: 'I have lived in Hanoi since 2015.'",
+                      "options": {
+                        "A": "Present Simple",
+                        "B": "Present Continuous",
+                        "C": "Present Perfect",
+                        "D": "Present Perfect Continuous"
+                      },
+                      "answer": "C",
+                      "explain": "Action began in 2015 and continues now, but the focus is on the RESULT (I still live there), not the duration. 'Since 2015' with a stative verb 'live' \u2192 Present Perfect."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q4",
+                      "text": "Identify the tense: 'She has been waiting for the bus for twenty minutes.'",
+                      "options": {
+                        "A": "Present Simple",
+                        "B": "Present Continuous",
+                        "C": "Present Perfect",
+                        "D": "Present Perfect Continuous"
+                      },
+                      "answer": "D",
+                      "explain": "Focus on DURATION of an ongoing activity. 'For twenty minutes' with a dynamic verb in -ing form = Present Perfect Continuous."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q5",
+                      "text": "Identify the tense: 'Water boils at 100 degrees Celsius.'",
+                      "options": {
+                        "A": "Present Simple",
+                        "B": "Present Continuous",
+                        "C": "Present Perfect",
+                        "D": "Present Perfect Continuous"
+                      },
+                      "answer": "A",
+                      "explain": "General scientific fact, not an action happening now. No progressive meaning here. Vietnamese: 'N\u01b0\u1edbc s\u00f4i \u1edf 100 \u0111\u1ed9 C' \u2014 bare verb states a fact."
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Section 2: Error Correction Using Inverse Thinking",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Apply the inverse-thinking workflow"
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "title": "Inverse-Thinking Workflow",
+                      "body": "Step 1 \u2014 Spot the broken verb. Step 2 \u2014 Ask: 'What tense does the TIME MARKER demand?' Step 3 \u2014 Ask: 'What did Vietnamese tempt me to write instead?' Step 4 \u2014 Rewrite using the correct English structure. Always write the correction AND a short justification."
+                    },
+                    {
+                      "type": "table",
+                      "columns": [
+                        "Vietnamese Interference",
+                        "What Vietnamese Does",
+                        "Common Error in English"
+                      ],
+                      "rows": [
+                        [
+                          "No person/number on verbs",
+                          "'T\u00f4i \u0111i' = 'C\u00f4 \u1ea5y \u0111i' (same verb)",
+                          "She don't / He go"
+                        ],
+                        [
+                          "No progressive/stative distinction",
+                          "'Bi\u1ebft' is one verb for know & knowing",
+                          "I am knowing the answer"
+                        ],
+                        [
+                          "Particles, not auxiliaries",
+                          "'\u0111\u00e3', '\u0111ang', 'r\u1ed3i' added BEFORE verb",
+                          "Missing have/has or am/is/are"
+                        ],
+                        [
+                          "Aspect uses '\u0111ang' for any duration",
+                          "'\u0111ang l\u00e0m' for both now and for hours",
+                          "Over-using -ing instead of have been -ing"
+                        ]
+                      ],
+                      "caption": "Top Vietnamese-transfer traps"
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q6",
+                      "text": "Error: 'She don't like coffee.' Choose the correct version and identify the interference.",
+                      "options": {
+                        "A": "She doesn't like coffee. \u2014 Vietnamese has no -s on third-person verbs.",
+                        "B": "She not like coffee. \u2014 Vietnamese negative uses 'kh\u00f4ng' before the verb.",
+                        "C": "She isn't like coffee. \u2014 Negative needs 'not' after the auxiliary.",
+                        "D": "She doesn't likes coffee. \u2014 Keep both -s and 'not' for emphasis."
+                      },
+                      "answer": "A",
+                      "explain": "Third-person singular requires 'doesn't'. Vietnamese uses the same verb 'th\u00edch' for all persons, so learners transfer the uninflected form."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q7",
+                      "text": "Error: 'I am knowing the answer.' Choose the correct rewrite.",
+                      "options": {
+                        "A": "I know the answer. \u2014 'know' is a stative verb, no continuous form.",
+                        "B": "I am knowing the answer for ten minutes. \u2014 Add 'for' to make it continuous.",
+                        "C": "I have been knowing her since primary school. \u2014 'Have been knowing' is allowed.",
+                        "D": "I am know the answer. \u2014 Drop the -ing on 'know'."
+                      },
+                      "answer": "A",
+                      "explain": "'Know' is a stative verb \u2014 it never takes -ing. Vietnamese 'bi\u1ebft' is one verb for both 'know' and 'knowing', which causes this error."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q8",
+                      "text": "Error: 'They has been working here since January.' Choose the correct rewrite.",
+                      "options": {
+                        "A": "They have been working here since January. \u2014 'They' takes 'have', not 'has'.",
+                        "B": "They has worked here since January. \u2014 Use perfect, not perfect continuous.",
+                        "C": "They are working here since January. \u2014 Replace the auxiliary.",
+                        "D": "They has been working here since January. \u2014 Plural 'they' keeps 'has'."
+                      },
+                      "answer": "A",
+                      "explain": "'They' is plural and requires 'have'. Vietnamese does not mark plural on verbs, so learners carry 'has' from singular practice."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q9",
+                      "text": "Error: 'I have been studied English for three years.' Choose the correct rewrite.",
+                      "options": {
+                        "A": "I have been studying English for three years. \u2014 After 'have been', use V-ing.",
+                        "B": "I have studied English for three years. \u2014 Simple perfect replaces the duration focus.",
+                        "C": "I am studying English for three years. \u2014 Use continuous for duration.",
+                        "D": "I have study English for three years. \u2014 Drop the -ed on the main verb."
+                      },
+                      "answer": "A",
+                      "explain": "Present Perfect Continuous structure = have/has + been + V-ing. The bare past form 'studied' is incorrect here. Vietnamese '\u0111\u00e3 h\u1ecdc' tempts learners to drop the -ing."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q10",
+                      "text": "Error: 'I am playing football when my friend called me yesterday.' Choose the correct rewrite.",
+                      "options": {
+                        "A": "I was playing football when my friend called me yesterday. \u2014 'yesterday' triggers past.",
+                        "B": "I am playing football when my friend calls me yesterday. \u2014 Keep present, drop 'yesterday'.",
+                        "C": "I have been playing football when my friend called me. \u2014 Use perfect continuous.",
+                        "D": "I am playing football when my friend is calling me. \u2014 Change 'called' to -ing."
+                      },
+                      "answer": "A",
+                      "explain": "'Yesterday' is a finished past time marker. Both verbs must shift to past (past continuous + simple past). Vietnamese allows '\u0111ang' with any time marker, which causes this slip."
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Section 3: Paragraph Error Triage",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Triage the learner paragraph"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Read the paragraph below, written by a Grade-10 Vietnamese learner. For each numbered line, write: (i) the error type if any, (ii) the Vietnamese interference cause, (iii) a correct rewrite. Then answer the multiple-choice check that follows."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "title": "Paragraph by 'Nam'",
+                      "body": "1) My name is Nam and I have 17 years old. 2) I study English every day after school. 3) Right now, I am study for my final exam. 4) I have been learning English since I am 12 years old. 5) I am usually play football on Saturday. 6) I just have finished my homework when my mother called. 7) My teacher always gives me a lot of homework."
+                    },
+                    {
+                      "type": "table",
+                      "columns": [
+                        "Line",
+                        "Sentence",
+                        "Error? (Y/N)",
+                        "Correct Rewrite"
+                      ],
+                      "rows": [
+                        [
+                          "1",
+                          "My name is Nam and I have 17 years old.",
+                          "Y \u2014 wrong verb (have\u2192am)",
+                          "My name is Nam and I am 17 years old."
+                        ],
+                        [
+                          "2",
+                          "I study English every day after school.",
+                          "N",
+                          "\u2014"
+                        ],
+                        [
+                          "3",
+                          "Right now, I am study for my final exam.",
+                          "Y \u2014 missing -ing",
+                          "Right now, I am studying for my final exam."
+                        ],
+                        [
+                          "4",
+                          "I have been learning English since I am 12 years old.",
+                          "Y \u2014 'since' clause needs past simple, not present",
+                          "I have been learning English since I was 12 years old."
+                        ],
+                        [
+                          "5",
+                          "I am usually play football on Saturday.",
+                          "Y \u2014 continuous + 'usually' clash",
+                          "I usually play football on Saturday."
+                        ],
+                        [
+                          "6",
+                          "I just have finished my homework when my mother called.",
+                          "Y \u2014 past time marker demands past",
+                          "I had just finished my homework when my mother called."
+                        ],
+                        [
+                          "7",
+                          "My teacher always gives me a lot of homework.",
+                          "N",
+                          "\u2014"
+                        ]
+                      ],
+                      "caption": "Triage reference (do not peek until you have tried it yourself)"
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q11",
+                      "text": "How many present-tense-related errors are there in Nam's paragraph?",
+                      "options": {
+                        "A": "3",
+                        "B": "4",
+                        "C": "5",
+                        "D": "6"
+                      },
+                      "answer": "B",
+                      "explain": "Four errors involving present-tense logic: lines 1 (verb choice), 3 (missing -ing), 4 (since-clause tense), and 5 (continuous vs simple with 'usually'). Line 6 is a PAST-tense error \u2014 counted separately."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q12",
+                      "text": "Which error is BEST explained by Vietnamese particle '\u0111ang' tempting the learner?",
+                      "options": {
+                        "A": "Line 1",
+                        "B": "Line 3",
+                        "C": "Line 4",
+                        "D": "Line 7"
+                      },
+                      "answer": "B",
+                      "explain": "'\u0110ang' is the Vietnamese progressive particle \u2014 equivalent to am/is/are + V-ing. Line 3 ('I am study') shows the learner remembered the auxiliary but forgot the -ing."
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Section 4: Short-Answer Production",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Write the correct verb form"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "For each prompt, write the correct present-tense verb form in the blank. Then on the line labelled 'WHY', write one sentence in English explaining which time marker triggered your choice."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "title": "Self-check before you write",
+                      "body": "Circle every time marker. If you see 'now/right now', expect continuous. If you see 'for/since/how long', expect perfect or perfect continuous. If you see 'every day/usually/always', expect simple."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q13",
+                      "text": "She __________ (teach) English at our school for fifteen years. WHY: ___________________________________________________",
+                      "options": {},
+                      "answer": "has been teaching \u2014 WHY should mention 'for fifteen years' with a dynamic verb \u2192 Present Perfect Continuous emphasizing duration.",
+                      "explain": "Dynamic verb + 'for fifteen years' = Present Perfect Continuous. Accept 'has taught' as a less-emphatic but still correct alternative."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q14",
+                      "text": "Quiet please! The baby __________ (sleep). WHY: ___________________________________________________",
+                      "options": {},
+                      "answer": "is sleeping \u2014 WHY should mention 'Quiet please!' signals right-now action \u2192 Present Continuous.",
+                      "explain": "'Quiet please!' is a hot-context cue equivalent to Vietnamese '\u0111ang ng\u1ee7'."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q15",
+                      "text": "My brother __________ (play) video games every evening after dinner. WHY: ___________________________________________________",
+                      "options": {},
+                      "answer": "plays \u2014 WHY should mention 'every evening' \u2192 habitual action \u2192 Present Simple.",
+                      "explain": "Habitual time marker 'every evening' with third-person singular subject \u2192 'plays'."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q16",
+                      "text": "We __________ (not / eat) Vietnamese food since we moved to Singapore. WHY: ___________________________________________________",
+                      "options": {},
+                      "answer": "haven't eaten \u2014 WHY should mention 'since we moved' \u2192 action that started in past and continues now \u2192 Present Perfect.",
+                      "explain": "Stative verb 'eat' + 'since + clause' + negative \u2192 Present Perfect Simple. (Perfect Continuous is also defensible with dynamic verbs.)"
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q17",
+                      "text": "Look at those dark clouds. It __________ (rain). WHY: ___________________________________________________",
+                      "options": {},
+                      "answer": "is going to rain OR is raining \u2014 WHY should mention visible present evidence \u2192 Present Continuous for the unfolding now.",
+                      "explain": "Visible present evidence + 'Look!' = continuous. Accept 'is raining' or 'is about to rain' with justification."
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Section 5: Mixed Application",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Higher-order discrimination"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "These items require you to choose between two closely related tenses. Read both clauses before answering."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q18",
+                      "text": "Choose the more natural sentence and explain why in one sentence.",
+                      "options": {
+                        "A": "I have been knowing her since childhood.",
+                        "B": "I have known her since childhood.",
+                        "C": "Both are equally natural.",
+                        "D": "Neither is grammatical."
+                      },
+                      "answer": "B",
+                      "explain": "'Know' is stative \u2014 it cannot be used in the perfect continuous. Option A is ungrammatical; Vietnamese '\u0111\u00e3 bi\u1ebft' tempts learners into this form."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q19",
+                      "text": "Choose the sentence that correctly matches time marker and verb.",
+                      "options": {
+                        "A": "I have lived here since five years.",
+                        "B": "I am living here since 2019.",
+                        "C": "I have been living here for five years.",
+                        "D": "I live here since 2019."
+                      },
+                      "answer": "C",
+                      "explain": "'For + duration' pairs with Present Perfect Continuous for a dynamic 'living' verb. A uses 'since' with a duration; B uses continuous with 'since'; D uses simple with 'since'."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": "q20",
+                      "text": "Which sentence BEST expresses a complaint about an action that began in the past and is STILL happening now?",
+                      "options": {
+                        "A": "You make too much noise.",
+                        "B": "You are making too much noise.",
+                        "C": "You have made too much noise.",
+                        "D": "You have been making too much noise for an hour!"
+                      },
+                      "answer": "D",
+                      "explain": "Duration complaint = Present Perfect Continuous + 'for/since'. Vietnamese learners often stop at (C) because '\u0111\u00e3 l\u00e0m \u1ed3n' feels complete; the English nuance requires the -ing continuation."
+                    }
+                  ]
+                },
+                {
+                  "type": "teacher_only",
+                  "title": "Answer Key & Teaching Notes",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Answer Key (Teacher Only)"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Q1=A, Q2=B, Q3=C, Q4=D, Q5=A, Q6=A, Q7=A, Q8=A, Q9=A, Q10=A, Q11=B, Q12=B, Q13='has been teaching' (alt 'has taught'), Q14='is sleeping', Q15='plays', Q16='haven't eaten', Q17='is going to rain' or 'is raining', Q18=B, Q19=C, Q20=D."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "title": "Marking guidance for short-answer items",
+                      "body": "Award full credit when the verb form is correct AND the WHY sentence names a time marker and a tense. Deduct 1 mark if the WHY is missing, and another if it cites the wrong marker."
+                    },
+                    {
+                      "type": "table",
+                      "columns": [
+                        "Vietnamese Interference",
+                        "Error Pattern",
+                        "Quick Repair Cue"
+                      ],
+                      "rows": [
+                        [
+                          "No person/number morphology",
+                          "She don't / He go / They has",
+                          "Drill 'he/she/it \u2192 -s/-es' and 'I/you/we/they \u2192 base form'"
+                        ],
+                        [
+                          "One verb for state & action",
+                          "I am knowing / I am believing",
+                          "Memorise the stative-verb list (know, believe, own, want, like, need)"
+                        ],
+                        [
+                          "Particle '\u0111ang' for any duration",
+                          "I am play (instead of study)",
+                          "Mark time markers before deciding tense, not verb meaning"
+                        ],
+                        [
+                          "Particle '\u0111\u00e3' without auxiliary",
+                          "I studied since 2019 (instead of have studied)",
+                          "Insert 'have/has' first, then choose V3 or been + V-ing"
+                        ],
+                        [
+                          "No plural marking",
+                          "They has / The people is",
+                          "Match subject and auxiliary BEFORE writing the main verb"
+                        ]
+                      ],
+                      "caption": "Repair cue sheet for live feedback"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "{'type': 'hw_list', 'items': [{'tag': 'Drill', 'text': 'Write 3 original sentences for EACH tense using a Vietnamese-context topic (school day, family meal, weekend plans). Highlight every time marker.'}, {'tag': 'Error hunt', 'text': 'Find 5 real present-tense errors in any English text you encounter today (subtitles, songs, social media). Classify each using the Section 2 categories.'}, {'tag': 'Reflection', 'text': 'In 60 words, write in English: which Vietnamese interference is hardest for Y"
+                    }
+                  ],
+                  "teacher_only": true
+                }
+              ],
+              "metadata": {
+                "duration_minutes": 90,
+                "grade_level": "Grade 10",
+                "subject": "English Grammar \u2014 Present Tenses",
+                "topic": "Present Tenses Mastery through Inverse Thinking",
+                "total_questions": 20,
+                "estimated_completion_minutes": 35
+              },
+              "accessibility": {
+                "language": "en",
+                "reading_level": "intermediate",
+                "alt_texts": {
+                  "reference_matrix": "Four-column table mapping each present tense to its English structure, common time markers, and the Vietnamese particle that performs the same job."
+                }
+              },
+              "artifact_id": "worksheet-2"
+            },
+            {
+              "artifact_type": "quiz",
+              "theme": "default",
+              "title": "Present Tenses Mastery Quiz \u2013 Inverse Thinking for Vietnamese Learners",
+              "sections": [
+                {
+                  "type": "assessment",
+                  "title": "Question 1",
+                  "components": [
+                    {
+                      "type": "question_card",
+                      "id": "q1",
+                      "text": "She ______ (know) the answer.",
+                      "options": {
+                        "A": "knows",
+                        "B": "is knowing",
+                        "C": "has known",
+                        "D": "has been knowing"
+                      },
+                      "answer": "A",
+                      "explain": "Know is a stative verb; we use present simple for states, not continuous forms.",
+                      "wrong_reasons": {
+                        "B": "Stative verbs like know are not used in progressive aspect.",
+                        "C": "Present perfect would imply a past action with present relevance, but the sentence expresses a current state.",
+                        "D": "Present perfect continuous is inappropriate for stative verbs and adds unnecessary duration."
+                      },
+                      "essence": "Stative verbs resist progressive aspect; use simple present for current states.",
+                      "tip": "If the verb describes a feeling, thought, or possession, choose simple present."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Question 2",
+                  "components": [
+                    {
+                      "type": "question_card",
+                      "id": "q2",
+                      "text": "Look! The bus ______ (come).",
+                      "options": {
+                        "A": "comes",
+                        "B": "is coming",
+                        "C": "has come",
+                        "D": "has been coming"
+                      },
+                      "answer": "B",
+                      "explain": "The speaker sees the bus arriving right now, so present continuous is needed.",
+                      "wrong_reasons": {
+                        "A": "Simple present expresses habit or general truth, not an action in progress at this moment.",
+                        "C": "Present perfect focuses on a completed action with present relevance, not the ongoing arrival.",
+                        "D": "Present perfect continuous stresses duration up to now, which doesn't fit a punctual arrival."
+                      },
+                      "essence": "Use present continuous for actions happening at the moment of speaking.",
+                      "tip": "Look for time expressions like 'now', 'look', 'listen' signalling immediate action."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Question 3",
+                  "components": [
+                    {
+                      "type": "question_card",
+                      "id": "q3",
+                      "text": "I ______ (visit) Ha Long Bay twice.",
+                      "options": {
+                        "A": "visit",
+                        "B": "am visiting",
+                        "C": "have visited",
+                        "D": "have been visiting"
+                      },
+                      "answer": "C",
+                      "explain": "The sentence talks about life experience up to now; present perfect is appropriate.",
+                      "wrong_reasons": {
+                        "A": "Simple present would imply a regular habit, not a specific number of past visits.",
+                        "B": "Present continuous suggests the visits are happening right now, which is illogical.",
+                        "D": "Present perfect continuous emphasizes the duration of the activity, not the count of occurrences."
+                      },
+                      "essence": "Present perfect expresses experiences without specifying when they occurred.",
+                      "tip": "With adverbs like 'ever', 'never', 'twice', 'before', think present perfect."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Question 4",
+                  "components": [
+                    {
+                      "type": "question_card",
+                      "id": "q4",
+                      "text": "We ______ (study) English for three years.",
+                      "options": {
+                        "A": "study",
+                        "B": "are studying",
+                        "C": "have studied",
+                        "D": "have been studying"
+                      },
+                      "answer": "D",
+                      "explain": "The sentence emphasizes the duration of study up to the present; present perfect continuous is used.",
+                      "wrong_reasons": {
+                        "A": "Simple present would state a general fact, not the ongoing duration.",
+                        "B": "Present continuous describes an action happening now, not a period leading up to now.",
+                        "C": "Present perfect focuses on the fact of completion, not the continuous effort over time."
+                      },
+                      "essence": "Present perfect continuous highlights an action that started in the past and continues to now.",
+                      "tip": "When you see 'for' or 'since' with a duration, consider present perfect continuous."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Question 5",
+                  "components": [
+                    {
+                      "type": "question_card",
+                      "id": "q5",
+                      "text": "She is know the answer.",
+                      "options": {
+                        "A": "She knows the answer.",
+                        "B": "She is knowing the answer.",
+                        "C": "She has known the answer.",
+                        "D": "She has been knowing the answer."
+                      },
+                      "answer": "A",
+                      "explain": "The original sentence incorrectly uses a progressive form with a stative verb; correct form is present simple.",
+                      "wrong_reasons": {
+                        "B": "Repeats the error; stative verbs resist progressive aspect.",
+                        "C": "Present perfect changes meaning to a past\u2011to\u2011present relevance, not a current state.",
+                        "D": "Combines two errors: progressive aspect with a stative verb and unnecessary perfect aspect."
+                      },
+                      "essence": "Stative verbs like know, believe, own are not used in continuous tenses.",
+                      "tip": "If the verb describes a state, not an action, choose simple present or perfect as needed."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Question 6",
+                  "components": [
+                    {
+                      "type": "question_card",
+                      "id": "q6",
+                      "text": "He ______ (go) to school by bike every day.",
+                      "options": {
+                        "A": "goes",
+                        "B": "is going",
+                        "C": "has gone",
+                        "D": "has been going"
+                      },
+                      "answer": "A",
+                      "explain": "The adverb 'every day' signals a habitual action, requiring present simple.",
+                      "wrong_reasons": {
+                        "B": "Present continuous would suggest the action is happening right now, not a routine.",
+                        "C": "Present perfect would imply the action is completed with present relevance, not a repeated habit.",
+                        "D": "Present perfect continuous adds unnecessary duration nuance for a simple habit."
+                      },
+                      "essence": "Use present simple for regular, repeated actions.",
+                      "tip": "Time expressions like 'every day', 'usually', 'often' cue present simple."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Question 7",
+                  "components": [
+                    {
+                      "type": "question_card",
+                      "id": "q7",
+                      "text": "I have been knowing him for 5 years.",
+                      "options": {
+                        "A": "I know him for 5 years.",
+                        "B": "I have known him for 5 years.",
+                        "C": "I am knowing him for 5 years.",
+                        "D": "I knew him for 5 years."
+                      },
+                      "answer": "B",
+                      "explain": "Know is stative; the correct form is present perfect to express a state that began in the past and continues.",
+                      "wrong_reasons": {
+                        "A": "Simple present lacks the sense of duration from past to now.",
+                        "C": "Incorrectly uses progressive aspect with a stative verb.",
+                        "D": "Past simple places the knowledge entirely in the past, contradicting 'for 5 years' leading to now."
+                      },
+                      "essence": "With stative verbs, use present perfect (not continuous) to express duration up to present.",
+                      "tip": "Replace 'have been knowing' with 'have known' for verbs like know, like, believe."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Question 8",
+                  "components": [
+                    {
+                      "type": "question_card",
+                      "id": "q8",
+                      "text": "She ______ (just/finish) her homework.",
+                      "options": {
+                        "A": "just finishes",
+                        "B": "just is finishing",
+                        "C": "has just finished",
+                        "D": "has just been finishing"
+                      },
+                      "answer": "C",
+                      "explain": "The adverb 'just' with a recent completed action calls for present perfect.",
+                      "wrong_reasons": {
+                        "A": "Simple present with 'just' is ungrammatical; 'just' requires perfect aspect.",
+                        "B": "Present continuous cannot combine with 'just' to express a recently completed action.",
+                        "D": "Present perfect continuous adds unnecessary duration; the focus is on the completed action."
+                      },
+                      "essence": "Present perfect with 'just' announces a very recent past action with present relevance.",
+                      "tip": "When you see 'just', 'already', 'yet' with a past action, think present perfect."
+                    }
+                  ]
+                }
+              ],
+              "metadata": {
+                "duration_minutes": 20,
+                "grade_level": "Grade 10"
+              },
+              "accessibility": {
+                "language": "en",
+                "reading_level": "intermediate",
+                "alt_texts": {}
+              },
+              "artifact_id": "quiz-3"
+            }
+          ],
+          "quality_scores": {
+            "overall": 8.0,
+            "passed": true,
+            "snapshot_count": 3
+          },
+          "run_id": "cf1bf05f-dbf5-48bd-858a-2956c59dbb49"
+        }
+      }
+    ],
+    "snaps": [
+      {
+        "snapshot_id": "snap-df36108befb2f3bd178c33a5",
+        "artifact_id": "lesson-1",
+        "artifact_type": "lesson",
+        "standalone_valid": true,
+        "approved_at": "2026-06-29 17:23:45.344743+00:00",
+        "student_html_len": 7933
+      },
+      {
+        "snapshot_id": "snap-40fa97c7f356893ff64f5491",
+        "artifact_id": "worksheet-2",
+        "artifact_type": "worksheet",
+        "standalone_valid": true,
+        "approved_at": "2026-06-29 17:23:45.344775+00:00",
+        "student_html_len": 6961
+      },
+      {
+        "snapshot_id": "snap-d481d39aae76b35a2c63c76e",
+        "artifact_id": "quiz-3",
+        "artifact_type": "quiz",
+        "standalone_valid": true,
+        "approved_at": "2026-06-29 17:23:45.344777+00:00",
+        "student_html_len": 1264
+      }
+    ],
+    "events_tail": [
+      {
+        "sequence": 1,
+        "event_name": "teaching_pack.status.changed",
+        "payload": {
+          "status": "awaiting_approval",
+          "stage": "setup_contract",
+          "reason": "contract_confirmation"
+        }
+      },
+      {
+        "sequence": 2,
+        "event_name": "teaching_pack.contract_confirmation.opened",
+        "payload": {
+          "gate_id": "gate-0721d634-c8aa-4690-9a39-3b20c813585a",
+          "gate_name": "contract_confirmation"
+        }
+      },
+      {
+        "sequence": 3,
+        "event_name": "teaching_pack.search_plan.skipped_confirmation",
+        "payload": {
+          "query_count": 2
+        }
+      },
+      {
+        "sequence": 4,
+        "event_name": "teaching_pack.status.changed",
+        "payload": {
+          "status": "awaiting_approval",
+          "stage": "content_approval",
+          "reason": "content_approval"
+        }
+      },
+      {
+        "sequence": 5,
+        "event_name": "teaching_pack.content_approval.opened",
+        "payload": {
+          "gate_id": "gate-729f7963-7300-445b-b1f2-a1f9a7d1c1ef",
+          "snapshot_ids": [
+            "snap-df36108befb2f3bd178c33a5",
+            "snap-40fa97c7f356893ff64f5491",
+            "snap-d481d39aae76b35a2c63c76e"
+          ]
+        }
+      },
+      {
+        "sequence": 6,
+        "event_name": "teaching_pack.content.approved_snapshots",
+        "payload": {
+          "snapshot_ids": [
+            "snap-df36108befb2f3bd178c33a5",
+            "snap-40fa97c7f356893ff64f5491",
+            "snap-d481d39aae76b35a2c63c76e"
+          ]
+        }
+      },
+      {
+        "sequence": 7,
+        "event_name": "teaching_pack.status.changed",
+        "payload": {
+          "status": "exporting",
+          "stage": "export_finalize",
+          "reason": "export_started"
+        }
+      },
+      {
+        "sequence": 8,
+        "event_name": "teaching_pack.status.changed",
+        "payload": {
+          "status": "completed",
+          "stage": null,
+          "reason": "completed"
+        }
+      },
+      {
+        "sequence": 9,
+        "event_name": "teaching_pack.run.completed",
+        "payload": {
+          "exported_files": [
+            ".scratch/pipeline-v2/artifacts/exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-df36108befb2f3bd178c33a5.html",
+            ".scratch/pipeline-v2/artifacts/exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-40fa97c7f356893ff64f5491.html",
+            ".scratch/pipeline-v2/artifacts/exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-d481d39aae76b35a2c63c76e.html"
+          ]
+        }
+      }
+    ],
+    "history": [
+      {
+        "status": "PENDING",
+        "stage": null,
+        "reason": "created"
+      },
+      {
+        "status": "AWAITING_APPROVAL",
+        "stage": "setup_contract",
+        "reason": "contract_confirmation"
+      },
+      {
+        "status": "AWAITING_APPROVAL",
+        "stage": "content_approval",
+        "reason": "content_approval"
+      },
+      {
+        "status": "EXPORTING",
+        "stage": "export_finalize",
+        "reason": "export_started"
+      },
+      {
+        "status": "COMPLETED",
+        "stage": null,
+        "reason": "completed"
+      }
+    ]
+  },
+  "evidence": {
+    "run_id": "cf1bf05f-dbf5-48bd-858a-2956c59dbb49",
+    "teacher_id_hash": "125050a2ae9ec93e",
+    "status": "completed",
+    "event_sequence": [
+      {
+        "sequence": 1,
+        "event_name": "teaching_pack.status.changed",
+        "stage": null,
+        "created_at": "2026-06-29T17:09:41.049121"
+      },
+      {
+        "sequence": 2,
+        "event_name": "teaching_pack.contract_confirmation.opened",
+        "stage": null,
+        "created_at": "2026-06-29T17:09:41.058369"
+      },
+      {
+        "sequence": 3,
+        "event_name": "teaching_pack.search_plan.skipped_confirmation",
+        "stage": null,
+        "created_at": "2026-06-29T17:09:41.266155"
+      },
+      {
+        "sequence": 4,
+        "event_name": "teaching_pack.status.changed",
+        "stage": null,
+        "created_at": "2026-06-29T17:23:42.772199"
+      },
+      {
+        "sequence": 5,
+        "event_name": "teaching_pack.content_approval.opened",
+        "stage": null,
+        "created_at": "2026-06-29T17:23:42.778034"
+      },
+      {
+        "sequence": 6,
+        "event_name": "teaching_pack.content.approved_snapshots",
+        "stage": null,
+        "created_at": "2026-06-29T17:23:45.349543"
+      },
+      {
+        "sequence": 7,
+        "event_name": "teaching_pack.status.changed",
+        "stage": null,
+        "created_at": "2026-06-29T17:23:46.096078"
+      },
+      {
+        "sequence": 8,
+        "event_name": "teaching_pack.status.changed",
+        "stage": null,
+        "created_at": "2026-06-29T17:23:46.102354"
+      },
+      {
+        "sequence": 9,
+        "event_name": "teaching_pack.run.completed",
+        "stage": null,
+        "created_at": "2026-06-29T17:23:46.104595"
+      }
+    ],
+    "artifact_ids": [],
+    "snapshot_ids": [
+      "snap-df36108befb2f3bd178c33a5",
+      "snap-40fa97c7f356893ff64f5491",
+      "snap-d481d39aae76b35a2c63c76e"
+    ],
+    "export_files": [
+      ".scratch/pipeline-v2/artifacts/exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-df36108befb2f3bd178c33a5.html",
+      ".scratch/pipeline-v2/artifacts/exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-40fa97c7f356893ff64f5491.html",
+      ".scratch/pipeline-v2/artifacts/exports/cf1bf05f-dbf5-48bd-858a-2956c59dbb49/snap-d481d39aae76b35a2c63c76e.html"
+    ],
+    "trace_ids": [],
+    "provider_evidence": [],
+    "total_duration_ms": 845128,
+    "per_stage_duration_ms": {},
+    "tokens_used": 0,
+    "cost_usd": 0.0,
+    "created_at": "2026-06-29T17:09:40.970923",
+    "completed_at": "2026-06-29T17:23:46.099586"
+  }
+}
