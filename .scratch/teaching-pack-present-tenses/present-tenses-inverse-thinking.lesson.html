@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Present Tenses: Học bằng tư duy đảo ngược — oh-my-class</title>
+  <style>
+    /* Theme + Lesson CSS — NO external assets */
+    :root { --color-bg: #FBF4F0;
+      --color-bg-card: #FFFFFF;
+      --color-bg-deep: #F3E2D9;
+      --color-text: #22273A;
+      --color-text-soft: #5C6275;
+      --color-text-faint: #8B8FA0;
+      --color-border: #E8D8CD;
+      --color-border-soft: #EFE3DA;
+      --color-accent: #B23A2E;
+      --color-accent-deep: #8C2C22;
+      --color-accent-tint: rgba(178,58,46,0.07);
+      --color-success: #2E6F4E;
+      --color-warning: #A8782E;
+      --color-error: #B23A2E;
+      --color-category-a: #33508F;
+      --color-category-a-tint: rgba(51,80,143,0.08);
+      --color-category-b: #B9762A;
+      --color-category-b-tint: rgba(185,118,42,0.09);
+      --color-category-c: #3C7A4E;
+      --color-category-c-tint: rgba(60,122,78,0.08);
+      --color-category-d: #1F7A8C;
+      --color-category-d-tint: rgba(31,122,140,0.08);
+      --color-category-e: #8A4F7E;
+      --color-category-e-tint: rgba(138,79,126,0.08);
+      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace; }
+    :root {
+      /* category color aliases */
+      --c-a: var(--color-category-a, #33508F); --c-a-tint: var(--color-category-a-tint, rgba(51,80,143,0.08));
+      --c-b: var(--color-category-b, #B9762A); --c-b-tint: var(--color-category-b-tint, rgba(185,118,42,0.09));
+      --c-c: var(--color-category-c, #3C7A4E); --c-c-tint: var(--color-category-c-tint, rgba(60,122,78,0.08));
+      --c-d: var(--color-category-d, #1F7A8C); --c-d-tint: var(--color-category-d-tint, rgba(31,122,140,0.08));
+      --c-e: var(--color-category-e, #8A4F7E); --c-e-tint: var(--color-category-e-tint, rgba(138,79,126,0.08));
+      --paper: var(--color-bg, #FBF4F0); --card: var(--color-bg-card, #FFFFFF);
+      --ink: var(--color-text, #22273A); --ink-soft: var(--color-text-soft, #5C6275);
+      --ink-faint: var(--color-text-faint, #8B8FA0); --line: var(--color-border, #E8D8CD);
+      --line-soft: var(--color-border-soft, #EFE3DA); --red: var(--color-accent, #B23A2E);
+      --red-deep: var(--color-accent-deep, #8C2C22); --red-tint: var(--color-accent-tint, rgba(178,58,46,0.07));
+      --gold: var(--color-warning, #A8782E); --gold-tint: rgba(168,120,46,0.09);
+      --green: var(--color-success, #2E6F4E); --green-tint: rgba(46,111,78,0.08);
+      --radius: 12px; --shadow: 0 1px 2px rgba(40,20,10,0.04), 0 8px 24px -16px rgba(40,20,10,0.25);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink);
+      font-family: var(--font-body, system-ui, -apple-system, 'Segoe UI', sans-serif);
+      line-height: 1.65; font-size: 15.5px; }
+    h1,h2,h3,h4 { font-family: var(--font-heading, Georgia, serif); margin: 0; color: var(--ink); font-weight: 700; }
+    p { margin: 0 0 10px; } ul,ol { margin: 0; padding-left: 20px; } li { margin-bottom: 5px; }
+    a { color: var(--c-a); text-decoration: none; }
+
+    /* Shell */
+    .shell { position: relative; z-index: 1; display: flex; max-width: 1280px; margin: 0 auto; min-height: 100vh; }
+    .sidebar { width: 252px; flex-shrink: 0; position: sticky; top: 0; align-self: flex-start;
+      height: 100vh; overflow-y: auto; padding: 26px 18px 40px 26px; border-right: 1px solid var(--line); }
+    .main { flex: 1; min-width: 0; padding: 38px 46px 110px; }
+
+    /* Sidebar */
+    .side-title { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 16px; line-height: 1.3; margin-bottom: 4px; }
+    .side-sub { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 18px; }
+    .side-stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; }
+    .side-stat .k { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 3px; }
+    .side-stat .v { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 16.5px; color: var(--ink); }
+    .side-nav { display: flex; flex-direction: column; gap: 2px; margin: 18px 0; }
+    .side-nav a { display: flex; align-items: baseline; gap: 8px; padding: 7px 9px; border-radius: 7px; font-size: 12.8px; color: var(--ink); }
+    .side-nav a:hover { background: var(--card); }
+    .side-nav a .nn { font-size: 10.5px; color: var(--ink-faint); flex-shrink: 0; }
+    .linkback { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--ink-soft); }
+
+    /* Hero */
+    .hero { margin-bottom: 32px; }
+    .eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--red-deep); font-weight: 700; margin-bottom: 10px; }
+    .hero h1 { font-size: 27px; line-height: 1.28; max-width: 680px; }
+    .hero .lede { max-width: 680px; color: var(--ink-soft); font-size: 14.6px; margin-top: 12px; }
+    .note-box { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 10px; padding: 13px 17px; margin-top: 18px; font-size: 13.4px; color: var(--ink-soft); max-width: 700px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 11px; margin-top: 20px; max-width: 840px; }
+    .stat-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); }
+    .stat-card .k { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 5px; }
+    .stat-card .v { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 18px; line-height: 1.2; }
+    .stat-card .v small { font-size: 12px; color: var(--ink-soft); }
+    .obj-card { background: var(--c-a-tint); border: 1px solid rgba(51,80,143,0.2); border-radius: 10px; padding: 14px 18px; margin-top: 18px; max-width: 760px; }
+    .obj-card .ot { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; color: var(--c-a); margin-bottom: 8px; }
+    .obj-card ol { padding-left: 20px; }
+    .obj-card li { font-size: 13.6px; color: var(--ink); margin-bottom: 6px; }
+
+    /* Legacy objectives */
+    .component-learning-objective { background: var(--c-a-tint); border: 1px solid rgba(51,80,143,0.2); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; }
+    .objective-heading { font-size: 14px; margin-bottom: 6px; }
+    .objective-list { padding-left: 18px; }
+    .objective-item { font-size: 13.6px; }
+
+    /* Sections */
+    .section { margin-bottom: 46px; }
+    .lesson-section { margin-bottom: 28px; }
+    .section-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-bottom: 11px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .section-head h2 { font-size: 19.5px; }
+    .section-head .time { margin-left: auto; font-size: 12px; font-weight: 700; color: #fff; background: var(--ink); padding: 3px 10px; border-radius: 20px; }
+    .section-heading { font-size: 19.5px; margin-bottom: 12px; }
+    .section-intro, .section-body { font-size: 13.8px; color: var(--ink-soft); margin-bottom: 14px; max-width: 780px; }
+    .h3 { font-size: 15.5px; margin: 22px 0 11px; color: var(--ink); }
+    .note-callout { background: var(--gold-tint); border: 1px solid rgba(168,120,46,0.3); border-radius: 10px; padding: 12px 16px; font-size: 13.2px; color: var(--ink); margin: 13px 0; }
+
+    /* Concept box */
+    .concept-box { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--c-a); border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+    .cb-title { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 15.5px; margin-bottom: 3px; }
+    .cb-link { font-size: 12px; color: var(--red-deep); margin-bottom: 10px; display: block; }
+    .tri { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 10px 0; }
+    .tri-card { background: var(--paper, #FBF4F0); border-radius: 9px; padding: 10px 13px; }
+    .tri-card b { display: block; font-size: 13px; color: var(--c-a); margin-bottom: 4px; }
+    .tri-card span { font-size: 12.6px; color: var(--ink-soft); }
+    .tri-card em { display: block; margin-top: 5px; font-size: 12.2px; color: var(--ink); font-style: italic; }
+    .fiveset { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin: 10px 0; }
+    .fcard { background: var(--paper, #FBF4F0); border-radius: 8px; padding: 9px 10px; font-size: 12.3px; color: var(--ink-soft); }
+    .fcard b { display: block; color: var(--c-a); margin-bottom: 3px; font-size: 12.8px; }
+
+    /* Quick pairs table */
+    .quickpairs { width: 100%; border-collapse: collapse; font-size: 13.2px; margin-top: 6px; }
+    .quickpairs th { background: var(--ink); color: #fff; text-align: left; padding: 7px 11px; font-size: 10.5px; text-transform: uppercase; }
+    .quickpairs td { padding: 7px 11px; border-bottom: 1px solid var(--line-soft); }
+    .quickpairs tr:nth-child(even) td { background: rgba(140,90,70,0.025); }
+
+    /* Film */
+    .film-opt { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 14px; }
+    .film-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 13px 16px; }
+    .film-card .ft { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 14.5px; margin-bottom: 4px; }
+    .film-card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+    .huntsheet { background: var(--paper, #FBF4F0); border: 1px dashed var(--ink-faint); border-radius: 10px; padding: 13px 17px; font-size: 13.3px; color: var(--ink-soft); }
+    .chiplist { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+    .chip { font-size: 11.5px; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 4px 11px; color: var(--ink); }
+
+    /* Phrasal verbs */
+    .pv-clusters { display: grid; grid-template-columns: repeat(2,1fr); gap: 11px; margin: 10px 0; }
+    .pv-cluster { border-radius: 10px; padding: 12px 15px; }
+    .pvt { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; font-weight: 700; margin-bottom: 7px; display: block; }
+    .pv-item { font-size: 13px; margin-bottom: 3px; color: var(--ink); }
+    .pv-item strong { font-weight: 700; }
+
+    /* Practice questions */
+    .pq { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; border-left: 4px solid var(--c-a); }
+    .pq-n { font-size: 11px; font-weight: 700; color: var(--c-a); margin-right: 6px; }
+    .pq-text { font-size: 13.8px; color: var(--ink); }
+    .pq-opts { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0; font-size: 13px; color: var(--ink-soft); }
+    .pq-ans { font-size: 12.6px; background: var(--green-tint); color: var(--green); border-radius: 6px; padding: 5px 10px; display: inline-block; font-weight: 600; }
+    .pq-why { font-size: 12.6px; color: var(--ink-soft); margin-top: 5px; }
+
+    /* MCQ question component */
+    .component-question-mc { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+    .question-prompt { font-size: 14px; margin-bottom: 10px; }
+    .options-grid { display: flex; flex-direction: column; gap: 6px; }
+    .option { border: 1px solid var(--line-soft); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .option--correct { border-color: var(--green); background: var(--green-tint); }
+    .question-explanation { margin-top: 10px; padding: 8px 12px; background: var(--c-a-tint); border-radius: 8px; font-size: 13px; }
+    .question-wrong-reasons { margin-top: 10px; padding: 8px 12px; background: var(--red-tint); border-radius: 8px; }
+    .wrong-reasons-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--red-deep); display: block; margin-bottom: 6px; }
+    .wrong-reason-item { display: flex; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+    .wrong-letter { font-weight: 700; color: var(--red-deep); flex-shrink: 0; }
+    .question-essence { margin-top: 8px; font-size: 13px; padding: 6px 10px; background: var(--gold-tint); border-radius: 6px; }
+    .essence-label { font-weight: 700; color: var(--gold); margin-right: 6px; font-size: 11px; text-transform: uppercase; }
+    .question-tip { margin-top: 6px; font-size: 13px; padding: 6px 10px; background: var(--green-tint); border-radius: 6px; }
+    .tip-label { font-weight: 700; color: var(--green); margin-right: 6px; font-size: 11px; text-transform: uppercase; }
+
+    /* Roleplay */
+    .script { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; box-shadow: var(--shadow); }
+    .script .line { display: flex; gap: 12px; margin-bottom: 9px; font-size: 13.6px; }
+    .script .who { font-weight: 700; font-size: 12px; flex-shrink: 0; width: 84px; padding-top: 1px; }
+    .script .who.A { color: var(--c-b); }
+    .script .who.B { color: var(--c-d); }
+    .script .what { flex: 1; color: var(--ink); }
+    .script .blank { background: var(--paper, #FBF4F0); border-radius: 4px; padding: 1px 6px; color: var(--ink-faint); font-style: italic; }
+    .script-key { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 12.6px; color: var(--ink-soft); }
+
+    /* HW list */
+    .hw-list { list-style: none; padding: 0; }
+    .hw-list li { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; font-size: 13.4px; color: var(--ink-soft); }
+    .hwtag { font-size: 10.5px; font-weight: 700; color: #fff; background: var(--c-a); border-radius: 5px; padding: 2px 7px; flex-shrink: 0; margin-top: 2px; }
+
+    /* Legacy vocab grid */
+    .lesson-vocabulary { margin-bottom: 32px; }
+    .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+    .component-vocabulary-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .vocab-header { display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; }
+    .vocab-term { font-weight: 700; font-size: 15px; }
+    .vocab-pos { font-size: 11px; color: var(--ink-faint); font-style: italic; }
+    .vocab-definition { font-size: 13.5px; }
+    .vocab-example { font-size: 12.5px; color: var(--ink-soft); }
+
+    @media (max-width: 880px) {
+      .shell { flex-direction: column; }
+      .sidebar { position: static; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); padding: 18px 18px 14px; }
+      .main { padding: 26px 18px 90px; }
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
+      .tri { grid-template-columns: 1fr; }
+      .fiveset { grid-template-columns: repeat(2,1fr); }
+      .film-opt { grid-template-columns: 1fr; }
+      .pv-clusters { grid-template-columns: 1fr; }
+    }
+    @media print {
+      .sidebar, .no-print { display: none; }
+      .shell { display: block; }
+      .main { padding: 0; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body class="artifact artifact--lesson">
+<div class="shell">
+
+  
+  <main class="main" id="main-content">
+
+        <div class="hero">
+      <div class="eyebrow">lesson</div>      <h1>Present Tenses: Học bằng tư duy đảo ngược</h1>
+      <p class="lede">A context-first inverse-thinking lesson on Present Tenses for fast high-performing learners.</p>                                <div class="obj-card">
+          <div class="ot">Mục tiêu buổi học</div>
+          <ol><li>Hôm nay học sinh không bắt đầu bằng công thức. Câu hỏi trung tâm là: nếu dùng thì đối thủ ở đây, nghĩa sẽ bị méo như thế nào? Mục tiêu là đọc được context, cảm xúc tức thì, kết quả hiện tại và quá trình kéo dài.</li></ol>
+        </div>
+          </div>
+    
+        <section class="section" id="opening-trap">
+              <div class="section-head">
+          <h2>Mở bài: đừng học thì như đọc sách</h2>          <span class="time">8 phút</span>        </div>
+            <p class="section-intro">Hôm nay học sinh không bắt đầu bằng công thức. Câu hỏi trung tâm là: nếu dùng thì đối thủ ở đây, nghĩa sẽ bị méo như thế nào? Mục tiêu là đọc được context, cảm xúc tức thì, kết quả hiện tại và quá trình kéo dài.</p>                      <div class="comp-callout comp-callout--tip" role="note">
+  <strong class="callout-title">Câu hỏi neo</strong>  <div class="callout-body">If I use the rival tense here, what meaning breaks?</div>
+</div>
+                  </section>
+        <section class="section" id="present-simple">
+              <div class="section-head">
+          <h2>1. Present Simple — cái neo ổn định của thế giới</h2>          <span class="time">18 phút</span>        </div>
+            <p class="section-intro">Present Simple dùng khi người nói muốn đóng đinh một điều là ổn định: thói quen, nghề nghiệp, sự thật, trạng thái. Đảo ngược: nếu dùng Present Continuous cho một sự thật ổn định, câu nghe như tình huống chỉ tạm thời hoặc sắp thay đổi.</p>                      <h3 class="h3">Stable job hay temporary job?</h3><table class="quickpairs">
+  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
+  <tbody>
+          <tr><td><strong>Carlo works in a travel agent's. / Carlo is working in a travel agent's.</strong></td><td>Present Simple nghe như nghề ổn định; Present Continuous nghe như việc tạm thời.</td></tr>
+      </tbody>
+</table>
+                              <div class="comp-callout comp-callout--note" role="note">
+  <strong class="callout-title">Emphasis</strong>  <div class="callout-body">Actually, I do like going by bus. Ở đây do không thừa; nó là lực phản bác.</div>
+</div>
+                  </section>
+        <section class="section" id="present-continuous">
+              <div class="section-head">
+          <h2>2. Present Continuous — context và cảm xúc tức thì</h2>          <span class="time">22 phút</span>        </div>
+            <p class="section-intro">Present Continuous không chỉ là đang làm gì. Nó kéo người nghe vào bối cảnh hiện tại: tạm thời, đang thay đổi, hoặc cảm xúc đang bùng lên. Khi đi với always, nó thường biến thói quen thành lời phàn nàn.</p>                      <p class="section-intro">Đọc đoạn thoại và hỏi học sinh vì sao Continuous làm câu nghe tạm thời.</p><div class="script">
+      <div class="line">
+      <span class="who A">Teacher</span>
+      <span class="what">I am living with my wife in Hanoi.</span>
+    </div>
+      <div class="line">
+      <span class="who A">Student</span>
+      <span class="what">Sao lại am living? Thầy đang ở tạm với vợ à?</span>
+    </div>
+      <div class="line">
+      <span class="who A">Teacher</span>
+      <span class="what">Exactly. Continuous làm context nghe tạm thời.</span>
+    </div>
+    </div>
+                              <article class="qcard g-a" id="q-pc-1">
+  <div class="qhead">
+    <span class="qnum">pc-1</span>
+    <p class="qtext">Dad always cleans / is always cleaning the car when I want to use it. It's so annoying!</p>
+  </div>
+  <div class="options">
+        <div class="option">
+      <b class="letter">A</b>
+      <span>always cleans</span>
+    </div>
+        <div class="option correct">
+      <b class="letter">B</b>
+      <span>is always cleaning</span>
+    </div>
+        <div class="option">
+      <b class="letter">C</b>
+      <span>has always cleaned</span>
+    </div>
+        <div class="option">
+      <b class="letter">D</b>
+      <span>has been cleaning</span>
+    </div>
+      </div>
+  <div class="panel">
+    <div class="prow explain">
+      <span class="plabel">Giải thích</span>
+      <span class="ptext">It's so annoying tạo cảm xúc bực bội tức thì, không phải thói quen trung lập.</span>
+    </div>
+          </div>
+  </article>
+                  </section>
+        <section class="section" id="present-perfect-simple">
+              <div class="section-head">
+          <h2>3. Present Perfect Simple — cây cầu nối quá khứ với hiện tại</h2>          <span class="time">22 phút</span>        </div>
+            <p class="section-intro">Present Perfect Simple dùng khi quá khứ vẫn còn chạm vào hiện tại: tình trạng còn đúng, kết quả hiện tại, trải nghiệm cộng dồn, hoặc cấu trúc It's the first/second time. Đảo ngược: Past Simple cắt đứt cây cầu đó.</p>                      <h3 class="h3">Cây cầu còn nối hay đã đứt?</h3><table class="quickpairs">
+  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
+  <tbody>
+          <tr><td><strong>She had her motorbike... / She's had her motorbike...</strong></td><td>Past Simple cắt hiện tại; Present Perfect Simple nói cô ấy vẫn có xe.</td></tr>
+      </tbody>
+</table>
+                              <div class="comp-callout comp-callout--note" role="note">
+  <strong class="callout-title">Kết quả hiện tại</strong>  <div class="callout-body">I've booked the coach tickets = chuyện quan trọng là bây giờ chúng ta có vé rồi.</div>
+</div>
+                  </section>
+        <section class="section" id="present-perfect-continuous">
+              <div class="section-head">
+          <h2>4. Present Perfect Continuous — quá trình để lại dấu vết</h2>          <span class="time">22 phút</span>        </div>
+            <p class="section-intro">Present Perfect Continuous nhấn vào quá trình kéo dài hoặc vừa dứt, thường để giải thích dấu vết hiện tại: mệt, thở hổn hển, chưa xong, khó chịu. Nó không khoe kết quả; nó cho người nghe thấy sự tiêu hao của quá trình.</p>                      <article class="qcard g-a" id="q-ppc-1">
+  <div class="qhead">
+    <span class="qnum">ppc-1</span>
+    <p class="qtext">I'm out of breath because I ran / I've run / I've been running to get here in time.</p>
+  </div>
+  <div class="options">
+        <div class="option">
+      <b class="letter">A</b>
+      <span>ran</span>
+    </div>
+        <div class="option">
+      <b class="letter">B</b>
+      <span>have run</span>
+    </div>
+        <div class="option correct">
+      <b class="letter">C</b>
+      <span>have been running</span>
+    </div>
+        <div class="option">
+      <b class="letter">D</b>
+      <span>am running</span>
+    </div>
+      </div>
+  <div class="panel">
+    <div class="prow explain">
+      <span class="plabel">Giải thích</span>
+      <span class="ptext">Dấu vết hiện tại là out of breath; cần nhấn vào quá trình vừa dứt.</span>
+    </div>
+          </div>
+  </article>
+                              <h3 class="h3">Finished result hay unfinished process?</h3><table class="quickpairs">
+  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
+  <tbody>
+          <tr><td><strong>I have read that book. / I have been reading that book.</strong></td><td>Perfect Simple = đã đọc xong; Perfect Continuous = vẫn đang đọc dở hoặc nhấn quá trình.</td></tr>
+      </tbody>
+</table>
+                  </section>
+        <section class="section" id="stative-think">
+              <div class="section-head">
+          <h2>5. Stative verbs — đặc biệt là think</h2>          <span class="time">18 phút</span>        </div>
+            <p class="section-intro">Stative verbs mô tả trạng thái như biết, tin, sở hữu, cảm giác. Nhưng một số từ hai mặt có thể chuyển thành hành động. Think là ví dụ khó: think = opinion đã lưu thì không dùng -ing; think about/of = đang cân nhắc thì dùng -ing được.</p>                      <h3 class="h3">Ổ cứng hay CPU đang chạy?</h3><table class="quickpairs">
+  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
+  <tbody>
+          <tr><td><strong>I think Paris is beautiful. / I'm thinking of moving to Paris.</strong></td><td>Think = opinion đã lưu; am thinking of = đang cân nhắc, não đang xử lý.</td></tr>
+      </tbody>
+</table>
+                              <div class="comp-callout comp-callout--tip" role="note">
+  <strong class="callout-title">Have cũng hai mặt</strong>  <div class="callout-body">Do you have your ticket? = sở hữu. Are you having lunch? = hành động ăn trưa.</div>
+</div>
+                  </section>
+        <section class="section" id="student-notes-homework">
+              <div class="section-head">
+          <h2>6. Ghi chép và bài tập về nhà</h2>          <span class="time">10 phút</span>        </div>
+            <p class="section-intro">Học sinh ghi bảng 4 cột: tense/cặp dễ nhầm, core message/context clue, nếu dùng rival form thì hỏng gì, ultimate example + note. Bài tập về nhà: làm toàn bộ bài viết, rồi mỗi nhóm bài chọn một câu khó nhất quay video giải thích 60-90 giây.</p>                      <div class="tbl-wrap">
+  <table class="dtable">
+        <thead><tr>
+      <th>Cặp</th><th>Context clue</th><th>Sai thì hỏng gì</th><th>Ví dụ neo</th>    </tr></thead>
+        <tbody>
+            <tr><td>Simple vs Continuous</td><td>stable vs temporary</td><td>biến ổn định thành tạm thời</td><td>I live vs I am living</td></tr>
+            <tr><td>Perfect Simple vs Perfect Continuous</td><td>result vs process</td><td>khoe kết quả thay vì kể quá trình</td><td>I have read vs I have been reading</td></tr>
+            <tr><td>think vs am thinking</td><td>opinion vs active consideration</td><td>biến ý kiến thành đang cân nhắc</td><td>I think Paris is beautiful vs I'm thinking of moving</td></tr>
+          </tbody>
+  </table>
+  </div>
+                  </section>
+    
+    
+    <footer>
+      <span>Generated by oh-my-class</span>
+    </footer>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,203 @@
+{
+  "topic": "Present Tenses through Inverse Thinking",
+  "grade_level": "B2 English learners / high-performing Vietnamese secondary or high-school students",
+  "subject": "English grammar",
+  "duration_minutes": 120,
+  "learning_objectives": [
+    {
+      "description": "Explain why Present Simple, Present Continuous, Present Perfect Simple, and Present Perfect Continuous exist by identifying the communication problem each tense solves.",
+      "bloom_level": "understand",
+      "assessment_method": "Students orally justify tense choices from reversed wrong-context prompts."
+    },
+    {
+      "description": "Choose the correct present tense from contextual clues such as permanence, temporary context, emotional immediacy, present result, cumulative experience, and process fatigue.",
+      "bloom_level": "apply",
+      "assessment_method": "Timed contrastive sentence selection and correction tasks."
+    },
+    {
+      "description": "Analyze confusing pairs such as live/am living, always comes/is always coming, have read/have been reading, and think/am thinking by separating state, action, result, and process.",
+      "bloom_level": "analyze",
+      "assessment_method": "One-minute video explanation of the most ambiguous item in each exercise set."
+    },
+    {
+      "description": "Create inverse-thinking explanations for selected trap questions so that classmates understand not only which answer is correct but why the alternative distorts the context.",
+      "bloom_level": "create",
+      "assessment_method": "Student-generated trap explanation using the four-column thinking table."
+    }
+  ],
+  "prerequisite_knowledge": [
+    "Basic form of Present Simple: base verb / s-es, do-does negatives and questions.",
+    "Basic form of Present Continuous: am/is/are + V-ing.",
+    "Basic form of Present Perfect Simple: have/has + V3/ed.",
+    "Basic form of Present Perfect Continuous: have/has been + V-ing.",
+    "Recognition of common adverbs and context clues: always, ever, never, for, since, all day, increasingly, at the moment, still, yet, actually.",
+    "Basic vocabulary for travel and transport contexts from the unit."
+  ],
+  "learning_plan": {
+    "event_1_gain_attention": {
+      "duration_minutes": 8,
+      "teacher_move": "Open with a wrong-world challenge: ban Present Simple and force students to describe facts using Present Continuous. Use absurd consequences to create cognitive dissonance.",
+      "student_task": "React to sentences such as 'I am living with my wife' or 'The sun is rising in the East' and explain what sounds unstable or temporary.",
+      "inverse_thinking_principle": "Start from the damage caused by the wrong tense, then infer why the correct tense exists."
+    },
+    "event_2_inform_objectives": {
+      "duration_minutes": 4,
+      "teacher_move": "State that the lesson goal is not memorizing formulas, but detecting what message a tense sends about time, emotion, and context.",
+      "student_task": "Write the master question: 'If I use the rival tense here, what meaning breaks?'"
+    },
+    "event_3_stimulate_prior_recall": {
+      "duration_minutes": 10,
+      "teacher_move": "Quick-fire forms only: students rebuild four tense structures from memory before meaning work begins.",
+      "student_task": "Complete mini forms for Simple, Continuous, Perfect Simple, and Perfect Continuous without examples.",
+      "checkpoint": "If form fluency is weak, pause for a two-minute repair drill before continuing."
+    },
+    "event_4_present_content_inverse_cases": {
+      "duration_minutes": 38,
+      "teacher_move": "Teach each tense through one trap scenario rather than a definition.",
+      "segments": [
+        {
+          "focus": "Present Simple",
+          "core_message": "The anchor tense: permanent truth, repeated habit, stable state, and emphatic do/does for contradiction.",
+          "trap": "Use Continuous for a stable fact and ask what becomes temporary or suspicious.",
+          "examples": [
+            "Carlo works in a travel agent's. = stable job, not just today.",
+            "Actually, I do like going by bus. = emphatic pushback."
+          ]
+        },
+        {
+          "focus": "Present Continuous",
+          "core_message": "The context-and-emotion tense: now, temporary situation, changing trend, or immediate annoyance.",
+          "trap": "Use Simple where context is moving or emotionally charged and ask what feeling disappears.",
+          "examples": [
+            "I am living with my wife in Hanoi. = temporary/unstable implication.",
+            "Dad is always cleaning the car when I want to use it. = complaint, not neutral habit.",
+            "Air travel is getting increasingly safe. = developing trend."
+          ]
+        },
+        {
+          "focus": "Present Perfect Simple",
+          "core_message": "The bridge tense: past event connected to now through result, current truth, accumulated experience, or counted occurrence.",
+          "trap": "Use Past Simple and ask whether the present connection is cut.",
+          "examples": [
+            "She's had her motorbike for over six years. = she still has it.",
+            "I've booked the coach tickets. = current result: we have tickets.",
+            "It's the second time I've been on a plane. = counting experience up to now."
+          ]
+        },
+        {
+          "focus": "Present Perfect Continuous",
+          "core_message": "The process-evidence tense: the action has been continuing or has just stopped and explains a visible present result.",
+          "trap": "Use Perfect Simple and ask whether the sentence now counts achievement instead of showing process/fatigue.",
+          "examples": [
+            "I've been running to get here in time. = current breathlessness explained.",
+            "We've been driving for hours. = fatigue/process, not distance achievement.",
+            "I have read the book vs I have been reading the book. = finished result vs unfinished process."
+          ]
+        },
+        {
+          "focus": "Stative verbs, especially think",
+          "core_message": "State verbs resist Continuous unless their meaning turns into an action.",
+          "trap": "Ask whether the verb is a saved belief or the brain actively processing right now.",
+          "examples": [
+            "I think Paris is beautiful. = opinion already stored, no -ing.",
+            "I am thinking of moving to Paris. = active consideration, -ing allowed.",
+            "Do you have your ticket? vs Are you having lunch? = possession vs action."
+          ]
+        }
+      ]
+    },
+    "event_5_provide_guided_practice": {
+      "duration_minutes": 25,
+      "teacher_move": "Run contrastive-pair drills. Each item must be answered with the wrong-answer consequence, not only the right answer.",
+      "student_task": "For each pair, say: correct tense, context clue, why the rival tense fails.",
+      "sample_items": [
+        "Does air travel get / Is air travel getting increasingly safe?",
+        "You always come / You're always coming up with excuses. It's so annoying!",
+        "I have read / have been reading that book about cruise ships.",
+        "I think / am thinking travelling by plane is expensive.",
+        "I think / am thinking about my summer holiday."
+      ]
+    },
+    "event_6_elicit_performance": {
+      "duration_minutes": 15,
+      "teacher_move": "Students complete a mini trap set individually, then choose the one they were most tempted to get wrong.",
+      "student_task": "Produce a 30-second oral inverse explanation for that chosen trap."
+    },
+    "event_7_provide_feedback": {
+      "duration_minutes": 8,
+      "teacher_move": "Feedback focuses on reasoning quality: did the student name the context clue, the speaker intention, and the meaning distortion?",
+      "student_task": "Revise one explanation using the four-column table."
+    },
+    "event_8_assess_performance": {
+      "duration_minutes": 8,
+      "teacher_move": "Exit ticket: students solve three mixed items and write one sentence explaining why the wrong answer is wrong.",
+      "student_task": "Submit answers plus one inverse-thinking explanation."
+    },
+    "event_9_enhance_retention_transfer": {
+      "duration_minutes": 4,
+      "teacher_move": "Assign homework: complete the exercise set and record one short video for the most ambiguous item in each exercise group.",
+      "student_task": "Use the template: answer → context clue → wrong-answer consequence → final rule."
+    },
+    "student_note_system": {
+      "required_format": "Four-column thinking table",
+      "columns": [
+        "Tense or confusing pair",
+        "Core message / context clue",
+        "What breaks if I use the rival form?",
+        "Ultimate example + emotional/context note"
+      ],
+      "rationale": "The table preserves the reasoning and the memorable scenario, not just the grammar label."
+    },
+    "homework_video_protocol": {
+      "scope": "Students finish the written exercises normally, then choose one hardest/most ambiguous item from each exercise group for a short explanation video.",
+      "duration_limit": "60-90 seconds per chosen item, or one stitched video under 8 minutes.",
+      "explanation_template": [
+        "I choose ___ because ___.",
+        "The context clue is ___.",
+        "If I choose the other answer, it wrongly means ___.",
+        "So the rule is not a formula; it is a message about ___."
+      ],
+      "suggested_trap_items": [
+        "A4: Is air travel getting increasingly safe? — increasingly = developing trend.",
+        "A6: You're always coming up with excuses — annoying = emotional complaint.",
+        "B4/H2: It's the first time I've ever had/been abroad — counted experience up to now.",
+        "C4: Tracy has been writing for hours and still hasn't finished — process/fatigue.",
+        "E10/J9: do drink / does enjoy — emphatic correction or contrast.",
+        "G7-G8/I4: is vs is being — stable identity vs temporary behavior.",
+        "Think pair: I think Paris is beautiful vs I am thinking of moving to Paris — stored opinion vs active consideration."
+      ]
+    }
+  },
+  "assessment_checkpoints": [
+    {
+      "type": "cold_call_reasoning",
+      "description": "Students explain the absurd implication of a wrong tense before the teacher gives the rule.",
+      "trigger": "after_event_1"
+    },
+    {
+      "type": "contrastive_pair_quiz",
+      "description": "Students identify correct tense, context clue, and wrong-answer consequence for five mixed pairs.",
+      "trigger": "after_event_5"
+    },
+    {
+      "type": "exit_ticket",
+      "description": "Students solve three mixed present-tense items and write one inverse explanation.",
+      "trigger": "after_event_8"
+    },
+    {
+      "type": "homework_video",
+      "description": "Students submit one explanation video covering the most ambiguous item from each assigned exercise group.",
+      "trigger": "after_lesson"
+    }
+  ],
+  "methodology": {
+    "tags": [
+      "contrastive_pairs",
+      "active_recall",
+      "why_wrong_reasoning",
+      "roleplay_script"
+    ],
+    "target_skill_area": "B2 present-tense selection through context, speaker intention, and wrong-answer consequence analysis",
+    "student_profile_notes": "Fast high-performing learners who can complete large written exercise sets quickly; lesson should add desirable difficulty by forcing oral/video reasoning, not by increasing worksheet volume."
+  }
+}

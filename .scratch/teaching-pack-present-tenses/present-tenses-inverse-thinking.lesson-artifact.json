@@ -1,0 +1,179 @@
+{
+  "artifact_type": "lesson",
+  "theme": "default",
+  "title": "Present Tenses: Học bằng tư duy đảo ngược",
+  "sections": [
+    {
+      "id": "opening-trap",
+      "type": "objective",
+      "title": "Mở bài: đừng học thì như đọc sách",
+      "time": "8 phút",
+      "content": "Hôm nay học sinh không bắt đầu bằng công thức. Câu hỏi trung tâm là: nếu dùng thì đối thủ ở đây, nghĩa sẽ bị méo như thế nào? Mục tiêu là đọc được context, cảm xúc tức thì, kết quả hiện tại và quá trình kéo dài.",
+      "components": [
+        {
+          "type": "callout",
+          "variant": "tip",
+          "title": "Câu hỏi neo",
+          "body": "If I use the rival tense here, what meaning breaks?"
+        }
+      ]
+    },
+    {
+      "id": "present-simple",
+      "title": "1. Present Simple — cái neo ổn định của thế giới",
+      "time": "18 phút",
+      "content": "Present Simple dùng khi người nói muốn đóng đinh một điều là ổn định: thói quen, nghề nghiệp, sự thật, trạng thái. Đảo ngược: nếu dùng Present Continuous cho một sự thật ổn định, câu nghe như tình huống chỉ tạm thời hoặc sắp thay đổi.",
+      "components": [
+        {
+          "type": "contrastive_pairs",
+          "title": "Stable job hay temporary job?",
+          "rows": [
+            {
+              "terms": "Carlo works in a travel agent's. / Carlo is working in a travel agent's.",
+              "distinction": "Present Simple nghe như nghề ổn định; Present Continuous nghe như việc tạm thời."
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "variant": "note",
+          "title": "Emphasis",
+          "body": "Actually, I do like going by bus. Ở đây do không thừa; nó là lực phản bác."
+        }
+      ]
+    },
+    {
+      "id": "present-continuous",
+      "title": "2. Present Continuous — context và cảm xúc tức thì",
+      "time": "22 phút",
+      "content": "Present Continuous không chỉ là đang làm gì. Nó kéo người nghe vào bối cảnh hiện tại: tạm thời, đang thay đổi, hoặc cảm xúc đang bùng lên. Khi đi với always, nó thường biến thói quen thành lời phàn nàn.",
+      "components": [
+        {
+          "type": "roleplay_script",
+          "instruction": "Đọc đoạn thoại và hỏi học sinh vì sao Continuous làm câu nghe tạm thời.",
+          "lines": [
+            {"speaker": "Teacher", "text": "I am living with my wife in Hanoi."},
+            {"speaker": "Student", "text": "Sao lại am living? Thầy đang ở tạm với vợ à?"},
+            {"speaker": "Teacher", "text": "Exactly. Continuous làm context nghe tạm thời."}
+          ]
+        },
+        {
+          "type": "question_card",
+          "id": "pc-1",
+          "text": "Dad always cleans / is always cleaning the car when I want to use it. It's so annoying!",
+          "options": {"A": "always cleans", "B": "is always cleaning", "C": "has always cleaned", "D": "has been cleaning"},
+          "answer": "B",
+          "explain": "It's so annoying tạo cảm xúc bực bội tức thì, không phải thói quen trung lập."
+        }
+      ]
+    },
+    {
+      "id": "present-perfect-simple",
+      "title": "3. Present Perfect Simple — cây cầu nối quá khứ với hiện tại",
+      "time": "22 phút",
+      "content": "Present Perfect Simple dùng khi quá khứ vẫn còn chạm vào hiện tại: tình trạng còn đúng, kết quả hiện tại, trải nghiệm cộng dồn, hoặc cấu trúc It's the first/second time. Đảo ngược: Past Simple cắt đứt cây cầu đó.",
+      "components": [
+        {
+          "type": "contrastive_pairs",
+          "title": "Cây cầu còn nối hay đã đứt?",
+          "rows": [
+            {
+              "terms": "She had her motorbike... / She's had her motorbike...",
+              "distinction": "Past Simple cắt hiện tại; Present Perfect Simple nói cô ấy vẫn có xe."
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "variant": "note",
+          "title": "Kết quả hiện tại",
+          "body": "I've booked the coach tickets = chuyện quan trọng là bây giờ chúng ta có vé rồi."
+        }
+      ]
+    },
+    {
+      "id": "present-perfect-continuous",
+      "title": "4. Present Perfect Continuous — quá trình để lại dấu vết",
+      "time": "22 phút",
+      "content": "Present Perfect Continuous nhấn vào quá trình kéo dài hoặc vừa dứt, thường để giải thích dấu vết hiện tại: mệt, thở hổn hển, chưa xong, khó chịu. Nó không khoe kết quả; nó cho người nghe thấy sự tiêu hao của quá trình.",
+      "components": [
+        {
+          "type": "question_card",
+          "id": "ppc-1",
+          "text": "I'm out of breath because I ran / I've run / I've been running to get here in time.",
+          "options": {"A": "ran", "B": "have run", "C": "have been running", "D": "am running"},
+          "answer": "C",
+          "explain": "Dấu vết hiện tại là out of breath; cần nhấn vào quá trình vừa dứt."
+        },
+        {
+          "type": "contrastive_pairs",
+          "title": "Finished result hay unfinished process?",
+          "rows": [
+            {
+              "terms": "I have read that book. / I have been reading that book.",
+              "distinction": "Perfect Simple = đã đọc xong; Perfect Continuous = vẫn đang đọc dở hoặc nhấn quá trình."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stative-think",
+      "title": "5. Stative verbs — đặc biệt là think",
+      "time": "18 phút",
+      "content": "Stative verbs mô tả trạng thái như biết, tin, sở hữu, cảm giác. Nhưng một số từ hai mặt có thể chuyển thành hành động. Think là ví dụ khó: think = opinion đã lưu thì không dùng -ing; think about/of = đang cân nhắc thì dùng -ing được.",
+      "components": [
+        {
+          "type": "contrastive_pairs",
+          "title": "Ổ cứng hay CPU đang chạy?",
+          "rows": [
+            {
+              "terms": "I think Paris is beautiful. / I'm thinking of moving to Paris.",
+              "distinction": "Think = opinion đã lưu; am thinking of = đang cân nhắc, não đang xử lý."
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "variant": "tip",
+          "title": "Have cũng hai mặt",
+          "body": "Do you have your ticket? = sở hữu. Are you having lunch? = hành động ăn trưa."
+        }
+      ]
+    },
+    {
+      "id": "student-notes-homework",
+      "title": "6. Ghi chép và bài tập về nhà",
+      "time": "10 phút",
+      "content": "Học sinh ghi bảng 4 cột: tense/cặp dễ nhầm, core message/context clue, nếu dùng rival form thì hỏng gì, ultimate example + note. Bài tập về nhà: làm toàn bộ bài viết, rồi mỗi nhóm bài chọn một câu khó nhất quay video giải thích 60-90 giây.",
+      "components": [
+        {
+          "type": "table",
+          "columns": ["Cặp", "Context clue", "Sai thì hỏng gì", "Ví dụ neo"],
+          "rows": [
+            ["Simple vs Continuous", "stable vs temporary", "biến ổn định thành tạm thời", "I live vs I am living"],
+            ["Perfect Simple vs Perfect Continuous", "result vs process", "khoe kết quả thay vì kể quá trình", "I have read vs I have been reading"],
+            ["think vs am thinking", "opinion vs active consideration", "biến ý kiến thành đang cân nhắc", "I think Paris is beautiful vs I'm thinking of moving"]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "teacher-only-key",
+      "teacher_only": true,
+      "title": "Teacher-only answer notes",
+      "content": "Key reasoning: A4 is getting because increasingly signals development; A6 is always coming because annoying signals complaint; C4 has been writing because for hours plus still not finished signals ongoing process; think is stative for opinion but dynamic for active consideration."
+    }
+  ],
+  "metadata": {
+    "subject": "English grammar",
+    "grade_level": "B2",
+    "summary": "A context-first inverse-thinking lesson on Present Tenses for fast high-performing learners.",
+    "duration_minutes": 120,
+    "methodology": "inverse_thinking"
+  },
+  "accessibility": {
+    "language": "vi",
+    "reading_level": "B2"
+  }
+}
