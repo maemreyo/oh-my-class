@@ -26,7 +26,7 @@ def build_snapshot(run_id: str, artifact: JsonObject) -> JsonObject:
 
 def render_teacher_html(artifact: JsonObject) -> str:
     title = str(artifact["title"])
-    section_html = _sections_html(artifact)
+    section_html = _sections_html(artifact, include_teacher_only=True)
     return (
         "<!DOCTYPE html>"
         "<html lang=\"en\"><head><meta charset=\"utf-8\">"
@@ -44,7 +44,7 @@ def render_teacher_html(artifact: JsonObject) -> str:
 
 def render_student_html(artifact: JsonObject) -> str:
     title = str(artifact["title"])
-    section_html = _sections_html(artifact)
+    section_html = _sections_html(artifact, include_teacher_only=False)
     return (
         "<!DOCTYPE html>"
         "<html lang=\"en\"><head><meta charset=\"utf-8\">"
@@ -56,17 +56,23 @@ def render_student_html(artifact: JsonObject) -> str:
     )
 
 
-def _sections_html(artifact: JsonObject) -> str:
+def _sections_html(artifact: JsonObject, *, include_teacher_only: bool) -> str:
     sections = artifact.get("sections", [])
     if not isinstance(sections, list):
         return ""
-    return "".join(_section_html(section) for section in sections if isinstance(section, dict))
+    return "".join(
+        _section_html(section, include_teacher_only=include_teacher_only)
+        for section in sections
+        if isinstance(section, dict) and (include_teacher_only or section.get("teacher_only") is not True)
+    )
 
 
-def _section_html(section: JsonObject) -> str:
-    heading = str(section.get("heading", "Section"))
-    body = str(section.get("body", ""))
-    return f"<section><h2>{_escape(heading)}</h2><p>{_escape(body)}</p></section>"
+def _section_html(section: JsonObject, *, include_teacher_only: bool) -> str:
+    heading = str(section.get("heading") or section.get("title") or "Section")
+    body = str(section.get("body") or section.get("content") or section.get("text") or "")
+    teacher_only = include_teacher_only and section.get("teacher_only") is True
+    attr = ' data-teacher-only="true"' if teacher_only else ""
+    return f"<section{attr}><h2>{_escape(heading)}</h2><p>{_escape(body)}</p></section>"
 
 
 def _stable_id(run_id: str, value: str) -> str:

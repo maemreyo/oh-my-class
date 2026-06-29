@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -142,7 +143,13 @@ class ContractRevision(Base):
 class GateInterrupt(Base):
     __tablename__ = "gate_interrupts"
     __table_args__ = (
-        UniqueConstraint("run_id", "gate_name", "status", name="uq_gate_interrupts_status"),
+        Index(
+            "uq_gate_interrupts_active",
+            "run_id",
+            "gate_name",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+        ),
         Index("ix_gate_interrupts_run_id", "run_id"),
         {"schema": "public"},
     )

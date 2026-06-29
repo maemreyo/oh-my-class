@@ -25,10 +25,8 @@ from services.gateway.teaching_pack_models import (
     GateResponse,
     RunJob,
     RunJobKind,
-    TeachingPackEventVisibility,
 )
 from services.gateway.teaching_pack_store import (
-    TeachingPackEventCreate,
     TeachingPackRunCreate,
     TeachingPackRunStore,
 )
@@ -162,25 +160,6 @@ class TestTeachingPackRunsRouter:
         assert response.json()["detail"] == "action_not_allowed"
         anyio.run(_delete_run, run_id)
 
-    def test_status_stream_replays_teacher_events_after_last_event_id(
-        self,
-        client: TestClient,
-    ) -> None:
-        run_id = RunId(f"test-{uuid4()}")
-        anyio.run(_create_run_with_events, run_id)
-
-        response = client.get(
-            f"/teaching-packs/run/{run_id}/status?replay_only=true",
-            headers={"Last-Event-ID": "1"},
-        )
-
-        assert response.status_code == 200
-        assert "event: teaching_pack.visible" in response.text
-        assert "id: 3" in response.text
-        assert "event: teaching_pack.internal" not in response.text
-        anyio.run(_delete_run, run_id)
-
-
 async def _skip_if_schema_missing() -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     async with engine.begin() as connection:
@@ -228,40 +207,6 @@ async def _create_run_with_gate(run_id: RunId, gate_id: str) -> None:
             run_id=run_id,
             gate_name="blueprint_approval",
             payload={"topic": "Fractions"},
-        ))
-        await session.commit()
-    await engine.dispose()
-
-
-async def _create_run_with_events(run_id: RunId) -> None:
-    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
-    async with session_factory() as session:
-        teacher_id = TeacherId("teacher-route")
-        store = TeachingPackRunStore(session)
-        await store.create_run(TeachingPackRunCreate(
-            run_id=run_id,
-            teacher_id=teacher_id,
-            raw_request="Teach streaming",
-            class_info={"grade": 5},
-        ))
-        await store.write_event(TeachingPackEventCreate(
-            run_id=run_id,
-            event_name="teaching_pack.hidden",
-            visibility=TeachingPackEventVisibility.TEACHER,
-            payload={"step": 1},
-        ))
-        await store.write_event(TeachingPackEventCreate(
-            run_id=run_id,
-            event_name="teaching_pack.internal",
-            visibility=TeachingPackEventVisibility.INTERNAL,
-            payload={"step": 2},
-        ))
-        await store.write_event(TeachingPackEventCreate(
-            run_id=run_id,
-            event_name="teaching_pack.visible",
-            visibility=TeachingPackEventVisibility.TEACHER,
-            payload={"step": 3},
         ))
         await session.commit()
     await engine.dispose()

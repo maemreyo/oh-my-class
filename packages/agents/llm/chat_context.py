@@ -8,6 +8,7 @@ from packages.agents.config.models import MAX_TOKENS
 from packages.agents.llm.error_summary import safe_error_summary
 from packages.agents.llm.prompt_gate import PromptGateError, enforce_prompt_gate
 from packages.agents.llm.transport_policy import (
+    JsonStrategy,
     TransportPolicyDecision,
     TransportPolicyInput,
     decide_transport,
@@ -44,6 +45,9 @@ class ParsedTags:
     step: int
     task_name: str
     previous_error_type: str | None
+    requested_json_strategy: JsonStrategy | None
+    model_supports_native_schema: bool
+    model_supports_json_object: bool
 
     @classmethod
     def from_tags(cls, tags: list[str]) -> ParsedTags:
@@ -56,6 +60,9 @@ class ParsedTags:
             step=int(values.get("step", "0")),
             task_name=values.get("task", agent),
             previous_error_type=values.get("previous_error"),
+            requested_json_strategy=_json_strategy(values.get("json_strategy")),
+            model_supports_native_schema=_is_true(values.get("supports_native_schema")),
+            model_supports_json_object=not _is_false(values.get("supports_json_object")),
         )
 
 
@@ -157,6 +164,9 @@ def build_call_context(
         previous_error_type=parsed.previous_error_type,
         requires_strict_json=True,
         safe_to_stream=True,
+        requested_json_strategy=parsed.requested_json_strategy,
+        model_supports_native_schema=parsed.model_supports_native_schema,
+        model_supports_json_object=parsed.model_supports_json_object,
     ))
     return CallContext(
         request_model=model.removeprefix("openai/"),
@@ -193,3 +203,21 @@ def error_type(exc: Exception) -> str:
     if "empty" in text:
         return "empty_response"
     return type(exc).__name__.lower()
+
+
+def _json_strategy(value: str | None) -> JsonStrategy | None:
+    match value:
+        case "native_schema" | "json_object" | "prompt_json" | "text_extract":
+            return value
+        case None:
+            return None
+        case _:
+            return None
+
+
+def _is_true(value: str | None) -> bool:
+    return value == "true"
+
+
+def _is_false(value: str | None) -> bool:
+    return value == "false"

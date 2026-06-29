@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { renderAgentArtifact } from "../src/agent-renderer.js";
 
 describe("renderAgentArtifact", () => {
-  it("uses explicit quiz answer fields instead of falling back to A", async () => {
+  it("does not render explicit quiz answer fields in student HTML", async () => {
     const html = await renderAgentArtifact({
       artifact_type: "quiz",
       title: "Animal Quiz",
@@ -19,8 +19,8 @@ describe("renderAgentArtifact", () => {
       ],
     });
 
-    expect(html).toContain("Đáp án: B");
-    expect(html).toContain("Elephants use trunks");
+    expect(html).not.toContain("Đáp án: B");
+    expect(html).not.toContain("Elephants use trunks");
     expect(html).not.toContain("Đáp án: A");
   });
 
@@ -68,6 +68,34 @@ describe("renderAgentArtifact", () => {
     expect(html).toContain("Joyful");
     expect(html).toContain("Giải thích");
     expect(html).toContain("Joyful means feeling or expressing great pleasure.");
+  });
+
+  it("does not render roleplay answer keys in lesson student HTML", async () => {
+    const html = await renderAgentArtifact({
+      artifact_type: "lesson",
+      title: "Classroom Objects Lesson",
+      metadata: { subject: "English", grade_level: "Grade 5" },
+      sections: [
+        {
+          title: "Roleplay",
+          content: "Practice asking for classroom objects.",
+          components: [
+            {
+              type: "roleplay_script",
+              lines: [
+                { speaker: "A", text: "May I borrow a [blank_1]?" },
+                { speaker: "B", text: "Here you are." },
+              ],
+              answer_key: ["pencil"],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(html).toContain("May I borrow a");
+    expect(html).not.toContain("Đáp án");
+    expect(html).not.toContain("pencil");
   });
 
   it("renders vocab_cluster component from lesson section", async () => {

@@ -14,6 +14,8 @@ class QualityFailureClass(StrEnum):
     MISSING_DOCTYPE = "missing_doctype"
     MISSING_ACCESSIBILITY = "missing_accessibility"
     UNSUPPORTED_COMPONENT = "unsupported_component"
+    FACTUAL_UNCERTAINTY = "factual_uncertainty"
+    PEDAGOGICAL_MISMATCH = "pedagogical_mismatch"
     EXPORT_NOT_READY = "export_not_ready"
 
 
@@ -24,6 +26,8 @@ class HealingStrategy(StrEnum):
     PRESENTATION_REPAIR = "presentation_repair"
     ACCESSIBILITY_REPAIR = "accessibility_repair"
     REGENERATE_ARTIFACT = "regenerate_artifact"
+    RESEARCH_ENRICHMENT = "research_enrichment"
+    REPLAN_BLUEPRINT = "replan_blueprint"
     ESCALATE = "escalate"
 
 

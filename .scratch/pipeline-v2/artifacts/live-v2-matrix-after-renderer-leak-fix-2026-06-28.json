@@ -1,0 +1,12 @@
+[
+  {
+    "name": "esl",
+    "error": "RuntimeError",
+    "message": "POST /teaching-packs/runs failed: 500 {\"error_code\":\"INTERNAL_ERROR\",\"message\":\"Internal server error\",\"request_id\":\"84991fec-8f4c-4493-aafb-d14f1852d381\",\"details\":[]}"
+  },
+  {
+    "name": "science",
+    "error": "RuntimeError",
+    "message": "POST /teaching-packs/runs failed: 500 {\"error_code\":\"INTERNAL_ERROR\",\"message\":\"Internal server error\",\"request_id\":\"e821d411-bc76-475b-9c8a-7e02d46b7004\",\"details\":[]}"
+  }
+]

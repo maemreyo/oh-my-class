@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useResumeTeachingPackRun } from "@/hooks/use-teaching-packs";
-import type { TeachingPackEventPayload, TeachingPackGateName } from "@/hooks/use-teaching-packs";
+import type { TeachingPackEventPayload, TeachingPackGateAction, TeachingPackGateName } from "@/hooks/use-teaching-packs";
 import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
 import { TeachingPackScopedRejection } from "@/components/teaching-packs-scoped-rejection";
 import type { ArtifactRejection } from "@/components/teaching-packs-scoped-rejection";
@@ -23,12 +23,12 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 
 	if (!gateName || !gateId) return null;
 
-	const submit = async (action: "approve" | "edit" | "reject") => {
+	const submit = async (action: TeachingPackGateAction) => {
 		await resume.mutateAsync({
 			gate_id: gateId,
 			gate_name: gateName,
 			action,
-			response: feedback.trim() ? { feedback } : {},
+			response: responseFor(gateName, feedback),
 		});
 		onResolved?.();
 	};
@@ -62,7 +62,7 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 			</div>
 
 			<div className="mt-4 rounded-md bg-muted p-4">
-					<TeachingPackGateBody runId={runId} gateName={gateName} event={event} />
+				<TeachingPackGateBody runId={runId} gateName={gateName} event={event} />
 			</div>
 
 			{scopedRejectionMode && showScopedRejection ? (
@@ -85,14 +85,14 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 			) : (
 				<>
 					<label className="mt-4 block text-sm font-medium" htmlFor="teaching-packs-gate-feedback">
-						Feedback or edit notes
+						{gateName === "clarification_required" ? "Clarification answer" : "Feedback or edit notes"}
 					</label>
 					<textarea
 						id="teaching-packs-gate-feedback"
 						className="mt-2 min-h-24 w-full rounded-md border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
 						value={feedback}
 						onChange={(event_) => setFeedback(event_.target.value)}
-						placeholder="Tell the pipeline what to change, or leave blank to approve."
+						placeholder={gateName === "clarification_required" ? "Answer the clarification questions." : "Tell the pipeline what to change, or leave blank to approve."}
 					/>
 				</>
 			)}
@@ -109,22 +109,34 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 						Reject specific artifacts
 					</button>
 				) : null}
-				{!scopedRejectionMode && (
-					<>
-						<Button type="button" variant="outline" disabled={resume.isPending} onClick={() => submit("reject")}>
-							Reject
+					{!scopedRejectionMode && gateName === "clarification_required" ? (
+						<Button type="button" disabled={resume.isPending} onClick={() => submit("answer")}>
+							{resume.isPending ? "Submitting..." : "Submit answer"}
 						</Button>
-						<Button type="button" variant="secondary" disabled={resume.isPending} onClick={() => submit("edit")}>
-							Request edits
-						</Button>
-						<Button type="button" disabled={resume.isPending} onClick={() => submit("approve")}>
-							{resume.isPending ? "Submitting..." : "Approve"}
-						</Button>
-					</>
-				)}
-			</div>
-		</section>
+					) : null}
+					{!scopedRejectionMode && gateName !== "clarification_required" ? (
+						<>
+							<Button type="button" variant="outline" disabled={resume.isPending} onClick={() => submit("reject")}>
+								Reject
+							</Button>
+							<Button type="button" variant="secondary" disabled={resume.isPending} onClick={() => submit("edit")}>
+								Request edits
+							</Button>
+							<Button type="button" disabled={resume.isPending} onClick={() => submit("approve")}>
+								{resume.isPending ? "Submitting..." : "Approve"}
+							</Button>
+						</>
+					) : null}
+				</div>
+			</section>
 	);
+}
+
+function responseFor(gateName: TeachingPackGateName, feedback: string): Readonly<Record<string, unknown>> {
+	const trimmed = feedback.trim();
+	if (!trimmed) return {};
+	if (gateName === "clarification_required") return { answer: trimmed };
+	return { feedback: trimmed };
 }
 
 function gateNameFor(event: TeachingPackEventPayload): TeachingPackGateName | null {

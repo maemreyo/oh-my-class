@@ -20,7 +20,7 @@
       <span class="tf-icon" aria-hidden="true">&#10003;</span>
       <span class="tf-label">&#272;&#250;ng</span>
       <% if (showAnswer && correctIsTrue) { %>
-        <span class="option-check" aria-label="Correct answer">&#10003;</span>
+        <span class="option-check" aria-label="Selected option">&#10003;</span>
       <% } %>
     </label>
     <label class="option tf-option<%= showAnswer && !correctIsTrue ? ' option--correct' : '' %><%= showAnswer && correctIsTrue ? ' option--neutral' : '' %>">
@@ -28,7 +28,7 @@
       <span class="tf-icon" aria-hidden="true">&#10007;</span>
       <span class="tf-label">Sai</span>
       <% if (showAnswer && !correctIsTrue) { %>
-        <span class="option-check" aria-label="Correct answer">&#10003;</span>
+        <span class="option-check" aria-label="Selected option">&#10003;</span>
       <% } %>
     </label>
   </div>

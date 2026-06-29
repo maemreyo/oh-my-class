@@ -252,7 +252,7 @@ async def _create_run_with_snapshot(
                 ],
             },
             rendered_html=rendered_html or (
-                f"<!DOCTYPE html><html><body><h1>Fractions {snapshot_id}</h1>"
+                f"<!DOCTYPE html><html><body><header>oh-my-class</header><h1>Fractions {snapshot_id}</h1>"
                 "<section>Student question</section>"
                 '<section data-teacher-only="true">Answer Key Correct answer</section>'
                 "</body></html>"

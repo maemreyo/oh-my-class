@@ -2,21 +2,41 @@
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .jwt_handler import user_from_payload, verify_token
 from .models import ADMIN_ROLES, TEACHER_ROLES, User
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
 ) -> User:
     """Extract and verify JWT from Authorization header."""
     try:
+        if credentials is None:
+            raise ValueError("Missing or invalid Authorization header")
         payload = verify_token(credentials.credentials)
+        return user_from_payload(payload)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from e
+
+
+async def get_current_user_for_status_stream(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    auth_token: Annotated[str | None, Cookie(alias="auth-token")] = None,
+) -> User:
+    try:
+        token = credentials.credentials if credentials is not None else auth_token
+        if token is None:
+            raise ValueError("Missing or invalid Authorization header")
+        payload = verify_token(token)
         return user_from_payload(payload)
     except ValueError as e:
         raise HTTPException(

@@ -30,22 +30,11 @@
       content += '<input type="radio" name="q-' + q.id + '" value="' + opt.label + '"' + (showAnswers ? ' disabled' : '') + '>';
       content += '<span class="option-label" aria-hidden="true">' + opt.label + '</span>';
       content += '<span class="option-text">' + opt.text + '</span>';
-      if (isCorrect) content += '<span class="option-check" aria-label="Correct answer">&#10003;</span>';
+      if (isCorrect) content += '<span class="option-check" aria-label="Selected option">&#10003;</span>';
       content += '</label>';
     }
     content += '</div>';
-    if (!showAnswers && q.answer) {
-      // Reveal toggle
-      content += '<button class="reveal-btn no-print" aria-expanded="false" aria-controls="reveal-' + q.id + '"';
-      content += ' onclick="(function(b){var e=b.getAttribute(\'aria-expanded\')===\'true\';';
-      content += 'b.setAttribute(\'aria-expanded\',e?\'false\':\'true\');';
-      content += 'document.getElementById(\'reveal-' + q.id + '\').hidden=e;})(this)">';
-      content += 'Xem &#273;&#225;p &#225;n</button>';
-      content += '<div id="reveal-' + q.id + '" class="reveal-content" hidden role="region">';
-      content += '<strong>&#272;&#225;p &#225;n: ' + q.answer + '</strong>';
-      if (q.explain) content += '<p class="reveal-explain">' + q.explain + '</p>';
-      content += '</div>';
-    } else if (q.explain) {
+    if (showAnswers && q.explain) {
       content += '<div class="question-explanation" role="note"><span class="explanation-label">Gi&#7843;i th&#237;ch:</span> ' + q.explain + '</div>';
     }
     content += '</article></li>';

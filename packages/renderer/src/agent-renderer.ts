@@ -51,6 +51,16 @@ function preserveComponents(section: ArtifactRecord): readonly ContentComponent[
   return raw.filter(isContentComponent);
 }
 
+function preserveStudentComponents(section: ArtifactRecord): readonly ContentComponent[] {
+  return preserveComponents(section).map((component) => {
+    if (component.type !== "roleplay_script") {
+      return component;
+    }
+    const { answer_key: _answerKey, ...studentComponent } = component;
+    return studentComponent;
+  });
+}
+
 function lessonData(artifact: ArtifactRecord): LessonData {
   const sections = asRecordArray(artifact.sections).filter((section) => section.teacher_only !== true);
   const objectives = sections
@@ -64,7 +74,7 @@ function lessonData(artifact: ArtifactRecord): LessonData {
       body: asString(section.content, asString(section.text, "")),
       id: asString(section.id, `section-${index + 1}`),
       time: asString(section.time, ""),
-      components: preserveComponents(section),
+      components: preserveStudentComponents(section),
     })),
     hero: {
       eyebrow: asString(artifact.artifact_type, "lesson"),

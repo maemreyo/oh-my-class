@@ -30,7 +30,13 @@ class TeachingPackResumeRequest(BaseModel):
 class TeachingPackResumeAcceptedResponse(BaseModel):
     run_id: str
     response_id: str
-    job_id: str
+    job_id: str | None
+
+
+class TeachingPackRunStatusResponse(BaseModel):
+    run_id: str
+    status: RunStatus
+    raw_request: str
 
 
 class TeachingPackCancelResponse(BaseModel):

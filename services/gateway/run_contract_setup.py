@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
 
 SetupGateName = Literal["clarification_required", "contract_confirmation"]
+MAX_TOPIC_LENGTH = 200
 
 
 @dataclass(frozen=True, slots=True)
@@ -127,7 +128,7 @@ def _build_contract(
         run_id=payload.run_id,
         teacher_id=payload.teacher_id,
         mode=_mode(class_info),
-        topic=_text(class_info, "topic") or _topic_from(raw_request) or raw_request,
+        topic=_topic_text(class_info, raw_request),
         grade_band=_text(class_info, "grade_band") or f"Grade {class_info['grade']}",
         subject=str(class_info["subject"]),
         locale=locale,
@@ -193,8 +194,23 @@ def _questions_for(missing: list[str], unsupported: list[dict[str, str]]) -> lis
 def _topic_from(raw_request: str) -> str | None:
     words = raw_request.strip().split()
     if len(words) >= 2:
-        return " ".join(words[1:]) if words[0].lower() in {"teach", "dạy"} else raw_request
+        topic = " ".join(words[1:]) if words[0].lower() in {"teach", "dạy"} else raw_request
+        return _cap_topic(topic)
     return None
+
+
+def _topic_text(class_info: JsonObject, raw_request: str) -> str:
+    explicit_topic = _text(class_info, "topic")
+    if explicit_topic is not None:
+        return _cap_topic(explicit_topic)
+    return _topic_from(raw_request) or _cap_topic(raw_request)
+
+
+def _cap_topic(value: str) -> str:
+    topic = value.strip()
+    if len(topic) <= MAX_TOPIC_LENGTH:
+        return topic
+    return topic[:MAX_TOPIC_LENGTH].rstrip()
 
 
 def _language_for(locale: str) -> str:

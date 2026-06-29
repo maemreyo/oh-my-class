@@ -1,0 +1,72 @@
+[
+  {
+    "name": "esl",
+    "teacher": "teacher-rerun-esl-dffd44e6",
+    "marker": "LIVE_V2_ESL_ANSWER_KEY_FIX_1c324917-9acf-488e-8ac6-8a3ed964df48",
+    "run_id": "c48fe3bd-7b6c-4807-8913-42e861bd5758",
+    "final_state": {
+      "run": [
+        {
+          "run_id": "c48fe3bd-7b6c-4807-8913-42e861bd5758",
+          "teacher_id": "teacher-rerun-esl-dffd44e6",
+          "status": "FAILED",
+          "updated_at": "2026-06-28 12:40:51.190142"
+        }
+      ],
+      "jobs": [
+        {
+          "job_id": "job-c485516f-c01c-4748-82cc-7e995fcaf988",
+          "kind": "start",
+          "status": "failed",
+          "attempts": 1,
+          "lease_owner": null,
+          "lease_expires_at": null
+        }
+      ],
+      "gates": [],
+      "snaps": [],
+      "events_tail": [
+        {
+          "sequence": 1,
+          "event_name": "teaching_pack.run.accepted",
+          "payload": {
+            "job_id": "job-c485516f-c01c-4748-82cc-7e995fcaf988"
+          }
+        },
+        {
+          "sequence": 2,
+          "event_name": "teaching_pack.status.changed",
+          "payload": {
+            "status": "failed",
+            "stage": null,
+            "reason": "AnswerKeyLeakageError: snapshot snap-3c3610be22b1dcc0a88a0f5d: [redacted]: Answer key patterns detected in student-facing content outside teacher_only markers"
+          }
+        },
+        {
+          "sequence": 3,
+          "event_name": "teaching_pack.run.failed",
+          "payload": {
+            "error": "AnswerKeyLeakageError: snapshot snap-3c3610be22b1dcc0a88a0f5d: [redacted]: Answer key patterns detected in student-facing content outside teacher_only markers"
+          }
+        }
+      ],
+      "history": [
+        {
+          "status": "PENDING",
+          "stage": null,
+          "reason": "created"
+        },
+        {
+          "status": "FAILED",
+          "stage": null,
+          "reason": "AnswerKeyLeakageError: snapshot snap-3c3610be22b1dcc0a88a0f5d: [redacted]: Answer key patterns detected in student-facing content outside teacher_only markers"
+        }
+      ]
+    }
+  },
+  {
+    "name": "science",
+    "error": "TimeoutError",
+    "message": "{\n  \"run\": [\n    {\n      \"run_id\": \"706c9ee9-addb-4555-8064-13fb075df464\",\n      \"teacher_id\": \"teacher-rerun-science-1bf4283a\",\n      \"status\": \"PENDING\",\n      \"updated_at\": \"2026-06-28 12:40:53.066296\"\n    }\n  ],\n  \"jobs\": [\n    {\n      \"job_id\": \"job-d0b8eb4c-37ae-493d-b9ef-39a962c930c2\",\n      \"kind\": \"start\",\n      \"status\": \"queued\",\n      \"attempts\": 0,\n      \"lease_owner\": null,\n      \"lease_expires_at\": null\n    }\n  ],\n  \"gates\": [],\n  \"snaps\": [],\n  \"events_tail\": [\n    {\n      \"sequence\": 1,\n      \"event_name\": \"teaching_pack.run.accepted\",\n      \"payload\": {\n        \"job_id\": \"job-d0b8eb4c-37ae-493d-b9ef-39a962c930c2\"\n      }\n    }\n  ],\n  \"history\": [\n    {\n      \"status\": \"PENDING\",\n      \"stage\": null,\n      \"reason\": \"created\"\n    }\n  ]\n}"
+  }
+]

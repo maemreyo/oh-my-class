@@ -22,6 +22,7 @@ from services.gateway.teaching_pack_models import (
     ContractRevision,
     GateInterrupt,
     GateInterruptStatus,
+    GateResponse,
     RunContract,
 )
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
@@ -158,6 +159,71 @@ class TestTeachingPackControlStore:
         assert contract is not None
         assert contract.current_revision == 2
         assert [revision for revision, _ in revisions.all()] == [1, 2]
+
+        await session.execute(delete(Run).where(Run.run_id == run_id))
+        await session.commit()
+
+    async def test_allows_sequential_same_name_gate_responses(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        teacher_id = TeacherId("teacher-a")
+        control_store = TeachingPackControlStore(session)
+        await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
+            run_id=run_id,
+            teacher_id=teacher_id,
+            raw_request="Teach force and motion",
+            class_info={"grade": 6},
+        ))
+
+        first_gate_id = f"gate-{uuid4()}"
+        await control_store.open_gate(GateInterruptCreate(
+            gate_id=first_gate_id,
+            run_id=run_id,
+            gate_name="content_approval",
+            payload={"snapshot_ids": ["snap-first"]},
+        ))
+        await control_store.respond_to_gate(GateResponseCreate(
+            response_id=f"response-{uuid4()}",
+            gate_id=first_gate_id,
+            run_id=run_id,
+            teacher_id=teacher_id,
+            response_json={"action": "reject", "scope": {"artifact_ids": ["quiz-1"]}},
+        ))
+
+        second_gate_id = f"gate-{uuid4()}"
+        await control_store.open_gate(GateInterruptCreate(
+            gate_id=second_gate_id,
+            run_id=run_id,
+            gate_name="content_approval",
+            payload={"snapshot_ids": ["snap-second"]},
+        ))
+        await control_store.respond_to_gate(GateResponseCreate(
+            response_id=f"response-{uuid4()}",
+            gate_id=second_gate_id,
+            run_id=run_id,
+            teacher_id=teacher_id,
+            response_json={"action": "approve"},
+        ))
+        await session.commit()
+
+        gates = await session.execute(
+            select(GateInterrupt.status)
+            .where(GateInterrupt.run_id == run_id)
+            .order_by(GateInterrupt.created_at),
+        )
+        responses = await session.execute(
+            select(GateResponse.gate_id)
+            .where(GateResponse.run_id == run_id)
+            .order_by(GateResponse.created_at),
+        )
+
+        assert list(gates.scalars().all()) == [
+            GateInterruptStatus.RESPONDED,
+            GateInterruptStatus.RESPONDED,
+        ]
+        assert list(responses.scalars().all()) == [first_gate_id, second_gate_id]
 
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()

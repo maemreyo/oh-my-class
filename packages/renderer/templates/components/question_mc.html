@@ -28,7 +28,7 @@
         <span class="option-label" aria-hidden="true"><%= opt.label %></span>
         <span class="option-text"><%= opt.text %></span>
         <% if (isCorrect) { %>
-          <span class="option-check" aria-label="Correct answer">&#10003;</span>
+          <span class="option-check" aria-label="Selected option">&#10003;</span>
         <% } %>
       </label>
     <% } %>
@@ -36,7 +36,7 @@
 
   <% if (showAnswer && it.wrong_reasons && Object.keys(it.wrong_reasons).length > 0) { %>
     <div class="question-wrong-reasons" role="note">
-      <span class="wrong-reasons-label">Tại sao các đáp án khác sai:</span>
+      <span class="wrong-reasons-label">Tại sao các lựa chọn khác chưa phù hợp:</span>
       <% for (const opt of (it.options || [])) { if (opt.label !== it.answer && it.wrong_reasons[opt.label]) { %>
         <div class="wrong-reason-item">
           <span class="wrong-letter"><%= opt.label %></span>

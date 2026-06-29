@@ -79,6 +79,20 @@ def test_healing_classifier_maps_failure_to_bounded_strategy() -> None:
     assert decision.max_attempts == 2
 
 
+def test_healing_classifier_routes_factual_uncertainty_to_research_enrichment() -> None:
+    decision = classify_healing(QualityFailureClass.FACTUAL_UNCERTAINTY)
+
+    assert decision.strategy is HealingStrategy.RESEARCH_ENRICHMENT
+    assert decision.max_attempts == 1
+
+
+def test_healing_classifier_routes_pedagogical_mismatch_to_blueprint_replan() -> None:
+    decision = classify_healing(QualityFailureClass.PEDAGOGICAL_MISMATCH)
+
+    assert decision.strategy is HealingStrategy.REPLAN_BLUEPRINT
+    assert decision.max_attempts == 1
+
+
 def test_export_readiness_requires_approved_standalone_required_artifacts() -> None:
     report = export_readiness(
         run_id=RunId("run-1"),

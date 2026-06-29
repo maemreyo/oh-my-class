@@ -24,6 +24,9 @@ class TransportPolicyInput:
     previous_error_type: str | None
     requires_strict_json: bool
     safe_to_stream: bool
+    requested_json_strategy: JsonStrategy | None = None
+    model_supports_native_schema: bool = False
+    model_supports_json_object: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,6 +73,23 @@ def _decision(
     return TransportPolicyDecision(
         transport=transport,
         reason=reason,
-        json_strategy="text_extract" if payload.requires_strict_json else "prompt_json",
+        json_strategy=_json_strategy(payload),
         capture_full_io=False,
     )
+
+
+def _json_strategy(payload: TransportPolicyInput) -> JsonStrategy:
+    if not payload.requires_strict_json:
+        return "prompt_json"
+    match payload.requested_json_strategy:
+        case "native_schema" if payload.model_supports_native_schema:
+            return "native_schema"
+        case "json_object" if payload.model_supports_json_object:
+            return "json_object"
+        case "prompt_json" | "text_extract" as strategy:
+            return strategy
+        case "native_schema" | "json_object" | None:
+            pass
+    if payload.model_supports_json_object:
+        return "json_object"
+    return "text_extract"

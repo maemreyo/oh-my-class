@@ -412,3 +412,24 @@ class TestRetryRecovery:
         assert mock_llm.await_count == 3
         types = [a["artifact_type"] for a in result["artifacts"]]
         assert types == ["lesson", "worksheet"]
+
+    @pytest.mark.asyncio
+    async def test_timeout_exception_retries_and_recovers_for_target_artifact(self):
+        mock_llm = AsyncMock(side_effect=[
+            TimeoutError("provider timeout"),
+            _artifact_json(_VALID_QUIZ),
+        ])
+        state = cast(
+            "ContentCreatorState",
+            _make_state(artifact_types=["quiz"]),
+        )
+        with patch(
+            "packages.agents.llm.compiled_chat.complete_json_chat", mock_llm,
+        ):
+            result = await content_creator_node(state)
+
+        assert mock_llm.await_count == 2
+        assert result["artifacts"][0]["artifact_type"] == "quiz"
+        retry_user_msg = mock_llm.call_args_list[1].kwargs["messages"][1]["content"]
+        assert "provider timeout" in retry_user_msg
+        assert "quiz" in retry_user_msg

@@ -212,7 +212,7 @@ class TestResearcherAgent:
 
         user_msg = mock_llm.call_args.kwargs["messages"][1]["content"]
         assert "rigorous" in user_msg
-        assert "Fetched evidence from 4omc.fetch" in user_msg
+        assert "Compact fetched evidence from 4omc.fetch" in user_msg
         assert "Fetched page content" in user_msg
 
     @pytest.mark.asyncio

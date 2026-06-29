@@ -127,6 +127,10 @@ def classify_healing(failure_class: QualityFailureClass) -> HealingDecision:
             return _decision(failure_class, HealingStrategy.ACCESSIBILITY_REPAIR, 1)
         case QualityFailureClass.PLACEHOLDER_CONTENT | QualityFailureClass.UNSUPPORTED_COMPONENT:
             return _decision(failure_class, HealingStrategy.REGENERATE_ARTIFACT, 2)
+        case QualityFailureClass.FACTUAL_UNCERTAINTY:
+            return _decision(failure_class, HealingStrategy.RESEARCH_ENRICHMENT, 1)
+        case QualityFailureClass.PEDAGOGICAL_MISMATCH:
+            return _decision(failure_class, HealingStrategy.REPLAN_BLUEPRINT, 1)
         case QualityFailureClass.EXPORT_NOT_READY:
             return _decision(failure_class, HealingStrategy.ESCALATE, 0)
         case unreachable:

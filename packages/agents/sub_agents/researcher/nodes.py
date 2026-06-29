@@ -30,11 +30,12 @@ async def researcher_node(state: ResearcherState) -> dict[str, Any]:
     lesson_plan = state.get("lesson_plan") or {}
     research_policy = state.get("research_policy", "standard")
     topic = lesson_plan.get("topic", "General topic")
+    from packages.agents.sub_agents.researcher.evidence import build_research_evidence
     from packages.agents.sub_agents.researcher.tools import web_fetch
     from packages.agents.tools.web_search import web_search
 
     source_candidates = await web_search(str(topic), num_results=NINEROUTER.search_results, min_sources=NINEROUTER.min_sources)
-    research_evidence = await _build_research_evidence(
+    research_evidence = await build_research_evidence(
         source_candidates,
         fetch_limit=_fetch_limit(str(research_policy)),
         web_fetcher=web_fetch,
@@ -51,7 +52,7 @@ Learning objectives:
 Source candidates from the web_search tool:
 {json.dumps(source_candidates, indent=2)}
 
-Fetched evidence from 4omc.fetch:
+Compact fetched evidence from 4omc.fetch:
 {json.dumps(research_evidence, indent=2) }
 
 Please gather and verify sources following the FACT protocol.
@@ -206,34 +207,3 @@ def _synthetic_sources(topic: str, research_policy: str) -> list[dict[str, Any]]
             "verification_status": "UNCERTAIN",
         },
     ]
-
-
-async def _build_research_evidence(
-    source_candidates: list[dict[str, Any]],
-    *,
-    fetch_limit: int,
-    web_fetcher,
-) -> list[dict[str, Any]]:
-    from packages.agents.config.models import NINEROUTER
-    evidence: list[dict[str, Any]] = []
-    for source in source_candidates[:fetch_limit]:
-        url = source.get("url")
-        if not isinstance(url, str) or not url:
-            evidence.append({"source": source, "fetch_status": "SKIPPED", "content": ""})
-            continue
-        try:
-            content = await web_fetcher(url)
-        except Exception as error:
-            evidence.append({
-                "source": source,
-                "fetch_status": "FAILED",
-                "error": str(error)[:200],
-                "content": "",
-            })
-            continue
-        evidence.append({
-            "source": source,
-            "fetch_status": "FETCHED",
-            "content": content[:NINEROUTER.content_truncate],
-        })
-    return evidence

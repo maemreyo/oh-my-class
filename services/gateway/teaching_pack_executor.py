@@ -9,6 +9,12 @@ from langgraph.types import Command
 from packages.agents.llm.error_summary import safe_error_summary
 from packages.agents.teaching_pack.graph import LangGraphRunnableConfig, teaching_pack_thread_config
 from services.gateway.models import RunStatus
+from services.gateway.teaching_pack_export_writer import (
+    FileSystemTeachingPackExportWriter,
+    RendererAdapterSnapshotRenderer,
+    TeachingPackExportWriter,
+    TeachingPackSnapshotRenderer,
+)
 from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate
 from services.gateway.teaching_pack_store import (
@@ -75,8 +81,17 @@ class TeachingPackFailureRecorder:
 
 
 class TeachingPackCompletionRecorder:
-    def __init__(self, store: TeachingPackFailureStore) -> None:
+    def __init__(
+        self,
+        store: TeachingPackFailureStore,
+        renderer: TeachingPackSnapshotRenderer | None = None,
+        export_writer: TeachingPackExportWriter | None = None,
+    ) -> None:
         self._store = store
+        self._renderer = renderer or RendererAdapterSnapshotRenderer()
+        self._export_writer = export_writer or FileSystemTeachingPackExportWriter(
+            renderer=self._renderer,
+        )
 
     async def persist_completion(self, run_id: RunId, state: JsonObject) -> None:
         gate_payload = _content_gate_payload(state)
@@ -84,6 +99,7 @@ class TeachingPackCompletionRecorder:
             await self._persist_content_gate(run_id, gate_payload)
             return
         if _has_export_evidence(state):
+            exported_files = await self._export_writer.write_exports(run_id, state)
             await self._store.transition_status(TeachingPackStatusTransition(
                 run_id=run_id,
                 status=RunStatus.EXPORTING,
@@ -100,7 +116,7 @@ class TeachingPackCompletionRecorder:
                 run_id=run_id,
                 event_name="teaching_pack.run.completed",
                 visibility=TeachingPackEventVisibility.TEACHER,
-                payload={"exported_files": state.get("exported_files", [])},
+                payload={"exported_files": exported_files},
             ))
             return
         await self._store.transition_status(TeachingPackStatusTransition(
@@ -118,16 +134,18 @@ class TeachingPackCompletionRecorder:
 
     async def _persist_content_gate(self, run_id: RunId, gate_payload: JsonObject) -> None:
         for snapshot in _rendered_snapshots(gate_payload):
+            content_json = _json_object(snapshot.get("content_json"))
+            rendered_html = await self._renderer.render(content_json)
             await self._store.create_snapshot(ArtifactSnapshotCreate(
                 snapshot_id=str(snapshot["snapshot_id"]),
                 run_id=run_id,
                 artifact_id=str(snapshot["artifact_id"]),
                 artifact_type=str(snapshot["artifact_type"]),
-                content_json=_json_object(snapshot.get("content_json")),
-                rendered_html=str(snapshot["rendered_html"]),
-                student_rendered_html=str(snapshot.get("student_rendered_html", snapshot["rendered_html"])),
-                renderer_version=str(snapshot.get("renderer_version", "pipeline-v2-python")),
-                template_version=str(snapshot.get("template_version", "pipeline-v2-minimal")),
+                content_json=content_json,
+                rendered_html=rendered_html,
+                student_rendered_html=None,
+                renderer_version=str(snapshot.get("renderer_version", "renderer-adapter")),
+                template_version=str(snapshot.get("template_version", "eta-agent-renderer")),
                 theme_version=str(snapshot.get("theme_version", "default")),
             ))
         gate_id = f"gate-{uuid4()}"

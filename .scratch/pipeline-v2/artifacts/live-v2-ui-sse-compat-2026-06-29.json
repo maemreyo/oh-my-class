@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-06-29T01:38:00+07:00",
+  "surface": "apps/web + /teaching-packs/*",
+  "web": "http://localhost:3000",
+  "gateway": "http://localhost:8101",
+  "marker": "LIVE_V2_UI_BROWSER_9cdc4645-3c2b-4996-83ca-573756d41fae",
+  "scenario": "ui_generated_client_sse_cookie_auth_and_clarification_resume",
+  "run_id": "584ae7e8-4bea-425e-92b4-67f9b6c6bf40",
+  "teacher_id": "teacher-ui-browser-proof",
+  "observations": {
+    "browser_create": {
+      "status_code": 202,
+      "body": {
+        "run_id": "584ae7e8-4bea-425e-92b4-67f9b6c6bf40",
+        "job_id": null,
+        "status": "awaiting_approval",
+        "queued": false
+      }
+    },
+    "detail_page": {
+      "url": "http://localhost:3000/runs/584ae7e8-4bea-425e-92b4-67f9b6c6bf40",
+      "title": "oh-my-class — Teacher Dashboard",
+      "rendered_status": "awaiting_approval",
+      "rendered_gate": "Clarification required",
+      "rendered_gate_id": "gate-ac232057-8f41-4644-89c4-6fdc2a5e9455",
+      "rendered_sse_event": "teaching_pack.clarification_required.opened",
+      "console_errors_after_submit": 0
+    },
+    "browser_network": {
+      "status_get": "GET http://localhost:8101/teaching-packs/runs/584ae7e8-4bea-425e-92b4-67f9b6c6bf40 => 200 OK",
+      "resume_post": "POST http://localhost:8101/teaching-packs/runs/584ae7e8-4bea-425e-92b4-67f9b6c6bf40/resume => 202 Accepted",
+      "status_refetch": "GET http://localhost:8101/teaching-packs/runs/584ae7e8-4bea-425e-92b4-67f9b6c6bf40 => 200 OK"
+    },
+    "database": {
+      "run_status_before_cleanup": "AWAITING_APPROVAL",
+      "gate": {
+        "gate_id": "gate-ac232057-8f41-4644-89c4-6fdc2a5e9455",
+        "gate_name": "clarification_required",
+        "status": "responded"
+      },
+      "response": {
+        "response_id": "response-b699aae4-4e59-4cb3-90a9-c0856649cb01",
+        "response_json": {
+          "action": "answer",
+          "answer": "Grade 5 Math"
+        }
+      },
+      "events": [
+        "teaching_pack.status.changed",
+        "teaching_pack.clarification_required.opened"
+      ],
+      "jobs_after_resume_before_cleanup": [
+        {
+          "kind": "start",
+          "status": "cancelled",
+          "attempts": 0
+        },
+        {
+          "kind": "resume",
+          "status": "pending",
+          "attempts": 0
+        }
+      ]
+    },
+    "cleanup": {
+      "status_code": 200,
+      "body": {
+        "run_id": "584ae7e8-4bea-425e-92b4-67f9b6c6bf40",
+        "status": "cancelled",
+        "cancelled_jobs": 1
+      }
+    }
+  },
+  "fixes_proven": {
+    "gateway_cors_allows_localhost_browser_origin": true,
+    "gateway_cookie_auth_supports_eventsource": true,
+    "teaching_pack_json_status_endpoint_available": true,
+    "frontend_resume_type_allows_nullable_job_id": true,
+    "frontend_clarification_gate_uses_answer_action": true
+  },
+  "assertions": {
+    "browser_create_accepted": true,
+    "detail_page_loaded_teaching_pack_json_status": true,
+    "sse_replayed_gate_event_into_ui": true,
+    "clarification_gate_rendered_submit_answer": true,
+    "generated_client_resume_returned_202": true,
+    "db_gate_response_persisted_answer_action": true,
+    "console_errors_after_submit_zero": true,
+    "cleanup_cancel_succeeded": true
+  },
+  "passed": true
+}

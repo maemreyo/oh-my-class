@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-06-29T02:04:00+07:00",
+  "surface": "active Teaching Pack /teaching-packs/* plus active content creator node",
+  "scenario": "timeout_malformed_json_healing_review",
+  "status": "blocked_for_live_forced_9router_path",
+  "findings": {
+    "active_graph_generation_path": "packages/agents/teaching_pack/nodes.py::_artifact_workflow calls packages/agents/sub_agents/content_creator/nodes.py::content_creator_node directly",
+    "active_content_creator_behavior": {
+      "malformed_json": "content_creator_node catches json.JSONDecodeError/ValueError, logs failure, builds a retry prompt containing the failed output, and retries up to 3 attempts for only the requested artifact type",
+      "timeout_or_provider_error": "content_creator_node catches non-parse exceptions, logs failure, builds a retry prompt containing the previous output when available, and retries up to 3 attempts for only the requested artifact type",
+      "exhausted_attempts": "raises ValueError naming the failing artifact type, error class, and attempt count; TeachingPackExecutor persists run failure and TeachingPackWorker marks the job failed"
+    },
+    "older_artifact_workflow_behavior": {
+      "malformed_json": "services/gateway/artifact_workflow.py retries GenerationError('malformed_json', ...) for only the affected artifact and preserves passed artifacts",
+      "answer_key_healing": "services/gateway/healing_executors.py can repair answer-key leakage before regeneration for deterministic quality failures",
+      "limitation": "this orchestrator is not the active graph generation path for /teaching-packs/*"
+    },
+    "verification": {
+      "pytest": "uv run pytest packages/agents/tests/sub_agents/test_content_creator.py packages/agents/tests/sub_agents/test_content_creator_per_artifact.py services/gateway/tests/test_artifact_workflow.py services/gateway/tests/test_teaching_pack_executor.py services/gateway/tests/test_teaching_pack_worker.py -q => 80 passed",
+      "py_compile": "uv run python -m py_compile packages/agents/sub_agents/content_creator/nodes.py packages/agents/teaching_pack/nodes.py services/gateway/artifact_workflow.py services/gateway/healing_executors.py services/gateway/teaching_pack_executor.py services/gateway/teaching_pack_worker.py => success"
+    }
+  },
+  "unclosed_live_requirement": {
+    "issue_011_requirement": "Timeout/malformed JSON path that triggers adaptive streaming or typed healing",
+    "reason": "Current live 9Router/public-flow harness has no deterministic provider fault-injection control to force malformed JSON or a timeout from live 9Router without replacing live 9Router with a fake upstream. Existing live evidence proves successful 9Router flows and deterministic retry/fail-closed behavior, but not a live provider-induced malformed/timeout event.",
+    "required_follow_up": "Add a production-safe fault-injection test seam or a 9Router sandbox scenario that can deterministically emit one malformed JSON response or one timeout while preserving live HTTP/worker behavior, then rerun through /teaching-packs/* and capture run id/events/retry count."
+  },
+  "passed": false
+}

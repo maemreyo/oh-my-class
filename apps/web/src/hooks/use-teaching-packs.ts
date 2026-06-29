@@ -19,7 +19,7 @@ export type TeachingPackGateName =
 	| "blueprint_approval"
 	| "content_approval";
 
-export type TeachingPackGateAction = "approve" | "edit" | "reject";
+export type TeachingPackGateAction = "answer" | "approve" | "edit" | "reject";
 
 export interface TeachingPackCreateRunRequest {
 	readonly raw_request: string;
@@ -32,6 +32,12 @@ export interface TeachingPackRunAcceptedResponse {
 	readonly status: TeachingPackRunStatus;
 }
 
+export interface TeachingPackRunStatusResponse {
+	readonly run_id: string;
+	readonly status: TeachingPackRunStatus;
+	readonly raw_request: string;
+}
+
 export interface TeachingPackResumeRequest {
 	readonly gate_id: string;
 	readonly gate_name: TeachingPackGateName;
@@ -42,7 +48,7 @@ export interface TeachingPackResumeRequest {
 export interface TeachingPackResumeAcceptedResponse {
 	readonly run_id: string;
 	readonly response_id: string;
-	readonly job_id: string;
+	readonly job_id: string | null;
 }
 
 export interface ArtifactProgressItem {
@@ -110,44 +116,55 @@ export function useResumeTeachingPackRun(runId: string) {
 	});
 }
 
-	export function useTeachingPackStatus(runId: string | null) {
-		const lastEventIdRef = useRef<string | null>(null);
-		const subscribe = useCallback((callback: (event: TeachingPackStatusEvent) => void) => {
-			if (!runId) return () => {};
-			let closed = false;
-			let retryTimer: ReturnType<typeof setTimeout> | null = null;
-			let eventSource: EventSource | null = null;
+export function useTeachingPackRun(runId: string | null) {
+	return {
+		queryKey: ["teaching-pack", "run", runId] as const,
+		queryFn: async () => {
+			if (!runId) throw new Error("No run ID");
+			return apiClient.get<TeachingPackRunStatusResponse>(`/teaching-packs/runs/${runId}`);
+		},
+		enabled: !!runId,
+	};
+}
 
-			const connect = () => {
-				const url = new URL(`${gatewayUrl()}/teaching-packs/runs/${runId}/status`);
-				if (lastEventIdRef.current) {
-					url.searchParams.set("last_event_id", lastEventIdRef.current);
-				}
-				eventSource = new EventSource(url.toString());
-				for (const eventName of TEACHING_PACK_EVENT_NAMES) {
-					eventSource.addEventListener(eventName, handleMessage);
-				}
-				eventSource.onerror = () => {
-					eventSource?.close();
-					if (!closed) retryTimer = setTimeout(connect, 1_000);
-				};
-			};
+export function useTeachingPackStatus(runId: string | null) {
+	const lastEventIdRef = useRef<string | null>(null);
+	const subscribe = useCallback((callback: (event: TeachingPackStatusEvent) => void) => {
+		if (!runId) return () => {};
+		let closed = false;
+		let retryTimer: ReturnType<typeof setTimeout> | null = null;
+		let eventSource: EventSource | null = null;
 
-			const handleMessage = (event: Event) => {
-				if (event instanceof MessageEvent && typeof event.data === "string") {
-					if (event.lastEventId) lastEventIdRef.current = event.lastEventId;
-					callback({ name: event.type, payload: parsePayload(event.data) });
-				}
-			};
-			connect();
-			return () => {
-				closed = true;
-				if (retryTimer) clearTimeout(retryTimer);
+		const connect = () => {
+			const url = new URL(`${gatewayUrl()}/teaching-packs/runs/${runId}/status`);
+			if (lastEventIdRef.current) {
+				url.searchParams.set("last_event_id", lastEventIdRef.current);
+			}
+			eventSource = new EventSource(url.toString(), { withCredentials: true });
+			for (const eventName of TEACHING_PACK_EVENT_NAMES) {
+				eventSource.addEventListener(eventName, handleMessage);
+			}
+			eventSource.onerror = () => {
 				eventSource?.close();
+				if (!closed) retryTimer = setTimeout(connect, 1_000);
 			};
-		}, [runId]);
-		return { subscribe };
-	}
+		};
+
+		const handleMessage = (event: Event) => {
+			if (event instanceof MessageEvent && typeof event.data === "string") {
+				if (event.lastEventId) lastEventIdRef.current = event.lastEventId;
+				callback({ name: event.type, payload: parsePayload(event.data) });
+			}
+		};
+		connect();
+		return () => {
+			closed = true;
+			if (retryTimer) clearTimeout(retryTimer);
+			eventSource?.close();
+		};
+	}, [runId]);
+	return { subscribe };
+}
 
 export function snapshotPreviewUrl(
 	runId: string,

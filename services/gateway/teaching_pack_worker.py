@@ -52,8 +52,8 @@ class TeachingPackWorker:
             await self._execute(job)
         except Exception:
             await self._job_store.mark_failed(job.job_id)
-            raise
-        await self._job_store.mark_completed(job.job_id)
+        else:
+            await self._job_store.mark_completed(job.job_id)
         await self._job_store.promote_eligible(
             limit=self._config.promote_batch_size,
             now=now,

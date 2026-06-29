@@ -50,15 +50,18 @@ class RecordingExecutor:
     start_jobs: list[TeachingPackStartJob] = field(default_factory=list)
     resume_jobs: list[TeachingPackResumeJob] = field(default_factory=list)
     fail: bool = False
+    fail_once: bool = False
 
     async def run_start_job(self, job: TeachingPackStartJob) -> None:
         self.start_jobs.append(job)
-        if self.fail:
+        if self.fail or self.fail_once:
+            self.fail_once = False
             raise RuntimeError("worker graph failed")
 
     async def run_resume_job(self, job: TeachingPackResumeJob) -> None:
         self.resume_jobs.append(job)
-        if self.fail:
+        if self.fail or self.fail_once:
+            self.fail_once = False
             raise RuntimeError("worker graph failed")
 
 
@@ -185,10 +188,10 @@ class TestTeachingPackWorker:
             TeachingPackWorkerConfig(worker_id="worker-a", lease_seconds=30, idle_sleep_seconds=0),
         )
 
-        with pytest.raises(RuntimeError, match="worker graph failed"):
-            await worker.run_one()
+        did_work = await worker.run_one()
         status = await _job_status(session, job.job_id)
 
+        assert did_work is True
         assert status is RunJobStatus.FAILED
         await _delete_run(session, run_id)
 

@@ -152,6 +152,7 @@ async def generate_evidence(run_id: RunId, db: AsyncSession) -> ReleaseEvidence:
         }
         for e in events
     ]
+    export_files = _export_files_from_events(events)
 
     # ── Snapshots ────────────────────────────────────────────────────
     snapshots_result = await db.execute(
@@ -193,7 +194,7 @@ async def generate_evidence(run_id: RunId, db: AsyncSession) -> ReleaseEvidence:
         event_sequence=event_sequence,
         artifact_ids=artifact_ids,
         snapshot_ids=snapshot_ids,
-        export_files=[],  # populated at export time
+        export_files=export_files,
         trace_ids=[],  # populated by Langfuse integration if enabled
         total_duration_ms=total_duration_ms,
         per_stage_duration_ms=per_stage,
@@ -202,6 +203,17 @@ async def generate_evidence(run_id: RunId, db: AsyncSession) -> ReleaseEvidence:
         created_at=run.created_at,
         completed_at=run.updated_at if run.status.value == "completed" else None,
     )
+
+
+def _export_files_from_events(events) -> list[str]:
+    exported: list[str] = []
+    for event in events:
+        if event.event_name != "teaching_pack.run.completed" or not isinstance(event.payload, dict):
+            continue
+        values = event.payload.get("exported_files")
+        if isinstance(values, list):
+            exported.extend(str(value) for value in values if isinstance(value, str))
+    return list(dict.fromkeys(exported))
 
 
 def render_evidence_markdown(evidence: ReleaseEvidence) -> str:

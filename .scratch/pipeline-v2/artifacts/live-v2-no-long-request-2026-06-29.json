@@ -1,0 +1,103 @@
+{
+  "generated_at": "2026-06-29T00:55:59+0700",
+  "surface": "/teaching-packs/*",
+  "gateway": "http://127.0.0.1:8101",
+  "marker": "LIVE_V2_NO_LONG_REQUEST_d35dc0a0-e8ee-43cd-9ff2-44a1c08bc765",
+  "scenario": "create_resume_no_long_request_timing",
+  "thresholds_seconds": {
+    "create": 2.0,
+    "resume": 2.0
+  },
+  "run_id": "4fa1b299-79d4-4c38-a29d-e517209e2556",
+  "observations": {
+    "first_create": {
+      "status_code": 202,
+      "elapsed_seconds": 0.1088,
+      "body": {
+        "run_id": "4fa1b299-79d4-4c38-a29d-e517209e2556",
+        "job_id": null,
+        "status": "awaiting_approval",
+        "queued": false
+      }
+    },
+    "duplicate_create": {
+      "status_code": 202,
+      "elapsed_seconds": 0.0055,
+      "body": {
+        "run_id": "4fa1b299-79d4-4c38-a29d-e517209e2556",
+        "job_id": null,
+        "status": "awaiting_approval",
+        "queued": false
+      }
+    },
+    "active_gate_before_resume": {
+      "gate_id": "gate-1a8e4dbe-68fa-4617-9264-195b5d18a2ee",
+      "gate_name": "clarification_required",
+      "status": "active",
+      "payload": {
+        "gate_id": "gate-1a8e4dbe-68fa-4617-9264-195b5d18a2ee",
+        "questions": [
+          {
+            "field": "grade_band",
+            "prompt": "Please provide grade_band."
+          },
+          {
+            "field": "subject",
+            "prompt": "Please provide subject."
+          }
+        ],
+        "missing_fields": [
+          "grade_band",
+          "subject"
+        ],
+        "unsupported_values": []
+      }
+    },
+    "clarification_resume": {
+      "status_code": 202,
+      "elapsed_seconds": 0.0119,
+      "body": {
+        "run_id": "4fa1b299-79d4-4c38-a29d-e517209e2556",
+        "response_id": "response-29a66480-586e-4b66-804b-8b05204dafba",
+        "job_id": "job-5f3b3464-a5b5-4ad0-8095-19593f024f60"
+      }
+    },
+    "jobs_after_resume": [
+      {
+        "job_id": "job-5a52b09e-f540-41f8-aff6-3ad49f88ec93",
+        "kind": "start",
+        "status": "cancelled",
+        "attempts": 0,
+        "lease_owner": null
+      },
+      {
+        "job_id": "job-5f3b3464-a5b5-4ad0-8095-19593f024f60",
+        "kind": "resume",
+        "status": "cancelled",
+        "attempts": 0,
+        "lease_owner": null
+      }
+    ],
+    "cleanup": {
+      "status_code": 200,
+      "elapsed_seconds": 0.0145,
+      "body": {
+        "run_id": "4fa1b299-79d4-4c38-a29d-e517209e2556",
+        "status": "cancelled",
+        "cancelled_jobs": 1
+      }
+    }
+  },
+  "assertions": {
+    "create_returned_202": true,
+    "create_returned_under_threshold": true,
+    "duplicate_create_returned_under_threshold": true,
+    "duplicate_create_reused_run": true,
+    "create_stopped_at_gate_without_job": true,
+    "clarification_gate_was_active": true,
+    "resume_returned_202": true,
+    "resume_returned_under_threshold": true,
+    "resume_queued_job_instead_of_running_inline": true
+  },
+  "passed": true
+}

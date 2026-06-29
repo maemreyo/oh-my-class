@@ -17,6 +17,10 @@ from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import User  # noqa: TC001
 from services.gateway.backpressure import BackpressureConfig, check_backpressure
 from services.gateway.models import RunStatus
+from services.gateway.teaching_pack_search_resume import (
+    SearchPlanResumeContext,
+    open_search_plan_gate_if_required,
+)
 from services.gateway.teaching_pack_control_store import (
     GateResponseCreate,
     TeachingPackControlStore,
@@ -204,22 +208,53 @@ async def resume_teaching_pack_run(
             if isinstance(edits, dict):
                 next_revision = await control_store.apply_contract_edits(typed_run_id, edits)
                 resume_payload = {**resume_payload, "contract_revision": next_revision}
+        if validation.gate_name is TeachingPackGateName.CONTRACT_CONFIRMATION:
+            contract_json = await control_store.get_contract_json(typed_run_id)
+            if await open_search_plan_gate_if_required(
+                SearchPlanResumeContext(typed_run_id, teacher_id, session, control_store),
+                contract_json,
+            ):
+                await session.commit()
+                return TeachingPackResumeAcceptedResponse(
+                    run_id=typed_run_id,
+                    response_id=response_id,
+                    job_id=None,
+                )
+            job_kind = RunJobKind.START
+            job_payload = {
+                "response_id": response_id,
+                "request_hash": request_hash,
+                "resume_payload": resume_payload,
+                "contract": contract_json,
+            }
+        elif validation.gate_name is TeachingPackGateName.SEARCH_PLAN_CONFIRMATION:
+            contract_json = await control_store.get_contract_json(typed_run_id)
+            job_kind = RunJobKind.START
+            job_payload = {
+                "response_id": response_id,
+                "request_hash": request_hash,
+                "resume_payload": resume_payload,
+                "contract": contract_json,
+            }
+        else:
+            job_kind = RunJobKind.RESUME
+            job_payload = {
+                "response_id": response_id,
+                "request_hash": request_hash,
+                "resume_payload": resume_payload,
+            }
     except StaleGateResponseError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="stale_gate") from exc
     job = await job_store.enqueue(RunJobCreate(
         job_id=f"job-{uuid4()}",
         run_id=typed_run_id,
-        kind=RunJobKind.RESUME,
+        kind=job_kind,
         idempotency_key=(
             scoped_resume_idempotency_key(typed_run_id, teacher_id, idempotency_key)
             if idempotency_key is not None
             else f"resume:{response_id}"
         ),
-        payload={
-            "response_id": response_id,
-            "request_hash": request_hash,
-            "resume_payload": resume_payload,
-        },
+        payload=job_payload,
     ))
     await session.commit()
     return TeachingPackResumeAcceptedResponse(

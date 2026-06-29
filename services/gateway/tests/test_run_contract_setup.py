@@ -75,6 +75,24 @@ class TestTeachingPackContractSetup:
         assert result.contract is not None
         assert result.payload["inferred_fields"][0]["field"] == "topic"
 
+    def test_long_inferred_topic_is_capped_to_contract_limit(self) -> None:
+        result = resolve_contract_setup(ContractSetupInput(
+            run_id=RunId("run-long-topic"),
+            teacher_id=TeacherId("teacher-a"),
+            raw_request=(
+                "Teach Grade 5 English ESL food vocabulary with lesson quiz worksheet "
+                "teacher-only answer key student preview export evidence and additional "
+                "instructions that exceed the topic schema limit by a wide margin. "
+                "Include a recap artifact, content approval previews, standalone HTML export, "
+                "release evidence, and no answer-key leakage in the student-facing preview."
+            ),
+            class_info={"grade": 5, "subject": "English"},
+        ))
+
+        assert isinstance(result, ContractSetupGate)
+        assert result.contract is not None
+        assert len(result.contract.topic) <= 200
+
     def test_diagnosis_mode_requires_evidence_and_minimizes_pii(self) -> None:
         missing = resolve_contract_setup(ContractSetupInput(
             run_id=RunId("run-d"),

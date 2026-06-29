@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-06-28T22:27:38+07:00",
+  "surface": "/teaching-packs/* and /notifications",
+  "gateway": "http://127.0.0.1:8101",
+  "marker": "LIVE_V2_NOTIFICATION_FIXED_CHECK",
+  "scenario": "gate_notification_creation_fixed",
+  "teacher_id": "live-notification-teacher-1059cea2-5586-4500-bdac-b4c12d1dc30c",
+  "run_id": "93e69793-a910-4ab2-b165-a403468cf37c",
+  "notification_id": "fa165ea7-18f9-4b14-a93c-a992ffba703c",
+  "observations": {
+    "create": {
+      "status_code": 202,
+      "run_status": "awaiting_approval",
+      "job_id": null
+    },
+    "notifications_after_gate_create": {
+      "status_code": 200,
+      "count": 1,
+      "event_type": "clarification_required",
+      "metadata": {
+        "gate_name": "clarification_required"
+      },
+      "teacher_id": "live-notification-teacher-1059cea2-5586-4500-bdac-b4c12d1dc30c"
+    },
+    "cleanup_cancel": {
+      "status_code": 200,
+      "run_status": "cancelled"
+    }
+  },
+  "assertions": {
+    "create_stopped_at_gate": true,
+    "notification_list_ok": true,
+    "gate_notification_emitted": true,
+    "notification_is_clarification": true,
+    "notification_owned_by_teacher": true,
+    "cleanup_cancelled": true
+  },
+  "regression": {
+    "test": "services/gateway/tests/test_run_creation_security.py::test_gated_create_emits_teacher_notification",
+    "red_before_fix": "failed because no Notification row existed for the gated run",
+    "green_after_fix": "passed"
+  },
+  "passed": true
+}

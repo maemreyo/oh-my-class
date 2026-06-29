@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from common.contracts.artifact_workflow import ArtifactWorkflowState
+from services.gateway.teaching_pack_contract_edits import EDITABLE_CONTRACT_FIELDS
 from services.gateway.teaching_pack_models import (
     ArtifactCheckStatus,
     ArtifactWorkflow,
@@ -113,7 +114,11 @@ class TeachingPackControlStore:
         result = await self._session.execute(statement)
         contract = result.scalar_one()
         next_revision = contract.current_revision + 1
-        revised_contract = {**contract.contract_json, **edits}
+        editable_edits = {
+            key: value for key, value in edits.items()
+            if key in EDITABLE_CONTRACT_FIELDS
+        }
+        revised_contract = {**contract.contract_json, **editable_edits}
         await self.revise_contract(ContractRevisionCreate(
             contract_id=contract.contract_id,
             run_id=run_id,
@@ -121,6 +126,11 @@ class TeachingPackControlStore:
             contract_json=revised_contract,
         ))
         return next_revision
+
+    async def get_contract_json(self, run_id: RunId) -> JsonObject:
+        statement = select(RunContract.contract_json).where(RunContract.run_id == run_id)
+        result = await self._session.execute(statement)
+        return result.scalar_one()
 
     async def open_gate(self, payload: GateInterruptCreate) -> None:
         self._session.add(GateInterrupt(

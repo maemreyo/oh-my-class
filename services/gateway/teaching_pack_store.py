@@ -3,9 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func, select, text
+from sqlalchemy import event, func, select, text
+from sqlalchemy.orm import Session
 
 from services.gateway.models import Run, RunStatus
+from services.gateway.teaching_pack_event_bus import notify_run_event
 from services.gateway.teaching_pack_models import (
     GateInterrupt,
     GateInterruptStatus,
@@ -22,6 +24,20 @@ from services.gateway.teaching_pack_status import (
     validate_status_transition,
 )
 from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
+
+_PENDING_EVENT_RUN_IDS = "teaching_pack_event_run_ids"
+
+
+@event.listens_for(Session, "after_commit")
+def _notify_teaching_pack_events_after_commit(session: Session) -> None:
+    run_ids = session.info.pop(_PENDING_EVENT_RUN_IDS, set())
+    for run_id in run_ids:
+        notify_run_event(RunId(run_id))
+
+
+@event.listens_for(Session, "after_rollback")
+def _clear_teaching_pack_events_after_rollback(session: Session) -> None:
+    session.info.pop(_PENDING_EVENT_RUN_IDS, None)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -204,6 +220,8 @@ class TeachingPackRunStore:
         )
         self._session.add(event)
         await self._session.flush()
+        run_ids = self._session.sync_session.info.setdefault(_PENDING_EVENT_RUN_IDS, set())
+        run_ids.add(str(payload.run_id))
         return TeachingPackEventRead(
             run_id=payload.run_id,
             sequence=sequence,

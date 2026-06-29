@@ -170,6 +170,33 @@ describe("renderArtifact (async, typed)", () => {
     const html = await renderArtifact("quiz", data);
     expect(html).toContain('lang="en"');
   });
+
+  it("does not expose answer data in student quiz HTML", async () => {
+    // Given: a quiz question carries teacher-only answer metadata from the agent.
+    const data: ArtifactDataMap["quiz"] = {
+      ...minimalData.quiz,
+      questions: [
+        {
+          id: "q-secret",
+          prompt: "Choose the correct option.",
+          options: [
+            { label: "A", text: "Distractor" },
+            { label: "B", text: "Correct-looking option" },
+          ],
+          answer: "SECRET_ANSWER_TOKEN",
+          explain: "SECRET_EXPLANATION_TOKEN",
+        },
+      ],
+    };
+
+    // When: the normal student quiz artifact is rendered.
+    const html = await renderArtifact("quiz", data);
+
+    // Then: answer metadata is absent from the student-facing HTML.
+    expect(html).not.toContain("SECRET_ANSWER_TOKEN");
+    expect(html).not.toContain("SECRET_EXPLANATION_TOKEN");
+    expect(html).not.toMatch(/Correct answer|Answer:|Correct:|Solution:/i);
+  });
 });
 
 // ── Smoke test: all 10 artifact types ────────────────────────────────────────

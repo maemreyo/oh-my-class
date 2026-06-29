@@ -19,7 +19,7 @@ def _contains_answer_key_patterns(text: str) -> bool:
     Matches: "Answer Key", "Answer:", "Correct Answer", "Correct:", "Solution:"
     Case-insensitive.
     """
-    pattern = r'(?:Answer\s*(?:Key|:)|Correct\s*(?:Answer|:)|Solution\s*:)'
+    pattern = r'(?:Answer\s*(?:Key|:)|Correct\s*(?:Answer|:)|Solution\s*:|Đáp\s*án\s*)'
     return bool(re.search(pattern, text, re.IGNORECASE))
 
 
@@ -78,7 +78,7 @@ def remove_answer_keys_from_html(rendered_html: str) -> str:
 
     # Remove common answer-key text patterns
     html = re.sub(
-        r'(?:Answer\s*(?:Key|:)|Correct\s*(?:Answer|:)|Solution\s*:)[^\n]*',
+        r'(?:Answer\s*(?:Key|:)|Correct\s*(?:Answer|:)|Solution\s*:|Đáp\s*án\s*)[^\n]*',
         '',
         html,
         flags=re.IGNORECASE,

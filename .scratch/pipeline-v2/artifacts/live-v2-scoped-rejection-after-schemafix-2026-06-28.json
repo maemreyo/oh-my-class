@@ -1,0 +1,3577 @@
+{
+  "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+  "owner_id": "live-scoped-reject-d9aad2c9-21eb-4902-8feb-435f0c08a56b",
+  "before_active_content_gates": [
+    [
+      "gate-09805c07-682d-484f-928b-2200d11d51b0",
+      "active"
+    ]
+  ],
+  "operations": [
+    {
+      "owner_status_before": {
+        "status": 405,
+        "body": "{\"error_code\":\"PIPELINE_ERROR\",\"message\":\"Method Not Allowed\",\"request_id\":\"5ded61de-4592-471b-99a6-7aa6c114a4fc\",\"details\":[]}"
+      }
+    },
+    {
+      "approve_snapshots": {
+        "status": 200,
+        "body": {
+          "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+          "approved_snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-9e08466ce78cc981749d83d7"
+          ]
+        }
+      }
+    },
+    {
+      "resume": {
+        "status": 202,
+        "body": {
+          "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+          "response_id": "response-04be4d18-8b09-4da7-ac47-7186ff5d51ef",
+          "job_id": "job-29e1359e-3235-41b2-966c-7945ba9cd9c0"
+        }
+      }
+    }
+  ],
+  "final_status": "failed",
+  "responded_content_gate_count": 2,
+  "completed_event_has_exports": false,
+  "exported_files": [],
+  "evidence_status": 200,
+  "evidence_body": {
+    "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+    "teacher_id_hash": "d031703669b21b67",
+    "status": "failed",
+    "event_sequence": [
+      {
+        "sequence": 1,
+        "event_name": "teaching_pack.status.changed",
+        "stage": null,
+        "created_at": "2026-06-28T16:15:50.152715"
+      },
+      {
+        "sequence": 2,
+        "event_name": "teaching_pack.contract_confirmation.opened",
+        "stage": null,
+        "created_at": "2026-06-28T16:15:50.157242"
+      },
+      {
+        "sequence": 3,
+        "event_name": "teaching_pack.status.changed",
+        "stage": null,
+        "created_at": "2026-06-28T16:22:46.330659"
+      },
+      {
+        "sequence": 4,
+        "event_name": "teaching_pack.content_approval.opened",
+        "stage": null,
+        "created_at": "2026-06-28T16:22:46.333395"
+      },
+      {
+        "sequence": 5,
+        "event_name": "teaching_pack.status.changed",
+        "stage": null,
+        "created_at": "2026-06-28T16:25:06.546975"
+      },
+      {
+        "sequence": 6,
+        "event_name": "teaching_pack.content_approval.opened",
+        "stage": null,
+        "created_at": "2026-06-28T16:25:06.549444"
+      },
+      {
+        "sequence": 7,
+        "event_name": "teaching_pack.content.approved_snapshots",
+        "stage": null,
+        "created_at": "2026-06-28T16:25:06.874413"
+      },
+      {
+        "sequence": 8,
+        "event_name": "teaching_pack.content.approved_snapshots",
+        "stage": null,
+        "created_at": "2026-06-28T16:33:43.767258"
+      },
+      {
+        "sequence": 9,
+        "event_name": "teaching_pack.content.approved_snapshots",
+        "stage": null,
+        "created_at": "2026-06-28T17:04:36.807028"
+      },
+      {
+        "sequence": 10,
+        "event_name": "teaching_pack.status.changed",
+        "stage": null,
+        "created_at": "2026-06-28T17:04:37.382358"
+      },
+      {
+        "sequence": 11,
+        "event_name": "teaching_pack.run.failed",
+        "stage": null,
+        "created_at": "2026-06-28T17:04:37.384270"
+      }
+    ],
+    "artifact_ids": [],
+    "snapshot_ids": [
+      "snap-536ee7ff61142eb48497c91a",
+      "snap-ac7d4f6e2f50453c0be4857a",
+      "snap-9e08466ce78cc981749d83d7"
+    ],
+    "export_files": [],
+    "trace_ids": [],
+    "provider_evidence": [],
+    "total_duration_ms": 2927248,
+    "per_stage_duration_ms": {},
+    "tokens_used": 0,
+    "cost_usd": 0.0,
+    "created_at": "2026-06-28T16:15:50.127564",
+    "completed_at": null
+  },
+  "final_state": {
+    "run": [
+      {
+        "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+        "teacher_id": "live-scoped-reject-d9aad2c9-21eb-4902-8feb-435f0c08a56b",
+        "status": "FAILED",
+        "current_step": 1,
+        "raw_request": "LIVE_V2_SCOPED_REJECTION_7c0da320-d394-4b40-af34-fda4e8928af4: Grade 5 English lesson and quiz on classroom objects. Keep lesson if accepted; regenerate only rejected quiz.",
+        "class_info": {
+          "topic": "Classroom objects",
+          "grade": 5,
+          "subject": "English",
+          "student_count": 24,
+          "language": "en",
+          "artifact_types": [
+            "lesson",
+            "quiz"
+          ],
+          "export_formats": [
+            "html"
+          ]
+        },
+        "lesson_plan": null,
+        "artifact_types": [],
+        "theme": "default",
+        "quality_scores": null,
+        "quality_passed": false,
+        "teacher_approved": false,
+        "revision_count": 0,
+        "revision_feedback": null,
+        "export_formats": [
+          "html"
+        ],
+        "tokens_used": 0,
+        "cost_usd": 0.0,
+        "created_at": "2026-06-28 16:15:50.127564",
+        "updated_at": "2026-06-28 17:04:37.376140",
+        "deleted_at": null,
+        "deleted_by": null,
+        "retention_days": null
+      }
+    ],
+    "gates": [
+      {
+        "gate_id": "gate-f85e9678-17fa-47f6-8d4b-e4f9fbcd20be",
+        "gate_name": "contract_confirmation",
+        "status": "responded",
+        "payload": {
+          "gate_id": "gate-f85e9678-17fa-47f6-8d4b-e4f9fbcd20be",
+          "inferred_fields": [
+            {
+              "field": "curriculum",
+              "value": "English ESL",
+              "reason": "locale_default"
+            }
+          ],
+          "contract": {
+            "contract_id": "contract-cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+            "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+            "teacher_id": "live-scoped-reject-d9aad2c9-21eb-4902-8feb-435f0c08a56b",
+            "mode": "generate_pack",
+            "topic": "Classroom objects",
+            "grade_band": "Grade 5",
+            "subject": "English",
+            "locale": "en-US",
+            "instruction_language": "en",
+            "curriculum": "English ESL",
+            "citation_locale": "en-US",
+            "artifact_types": [
+              "lesson",
+              "quiz"
+            ],
+            "export_formats": [
+              "html"
+            ],
+            "research_policy": "standard",
+            "config_version": "teaching-packs-contract-setup@1",
+            "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+            "student_evidence": null,
+            "revision_meta": {
+              "revision": 1,
+              "actor": "system",
+              "source": "request",
+              "reason": "initial_contract_setup",
+              "effective_stage": "setup_contract"
+            }
+          }
+        },
+        "created_at": "2026-06-28 16:15:50.140663+00:00"
+      },
+      {
+        "gate_id": "gate-105de61d-a463-4a9f-b952-446a229ea7f8",
+        "gate_name": "content_approval",
+        "status": "responded",
+        "payload": {
+          "gate_id": "gate-105de61d-a463-4a9f-b952-446a229ea7f8",
+          "gate": "content_approval",
+          "gate_name": "content_approval",
+          "snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-ac7d4f6e2f50453c0be4857a"
+          ],
+          "rendered_snapshots": [
+            {
+              "snapshot_id": "snap-536ee7ff61142eb48497c91a",
+              "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+              "artifact_id": "lesson-1",
+              "artifact_type": "lesson",
+              "content_json": {
+                "artifact_type": "lesson",
+                "theme": "default",
+                "title": "Classroom Objects: Vocabulary, Functions, and Functional Use in English",
+                "sections": [
+                  {
+                    "type": "teaching",
+                    "title": "Mystery Object Warm-up",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Mystery Object Warm-up"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "The teacher holds a wrapped classroom object. Students raise hands to guess what it is, using English words they know. This activates prior knowledge and builds excitement for the lesson."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "body": "Encourage full sentences: 'I think it is a ...'."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Lesson Goals",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Lesson Goals"
+                      },
+                      {
+                        "type": "table",
+                        "columns": [
+                          "Objective",
+                          "Bloom\u2019s Level"
+                        ],
+                        "rows": [
+                          [
+                            "Name 12 classroom objects when shown pictures or real items",
+                            "Remember"
+                          ],
+                          [
+                            "Describe each object\u2019s purpose using \u2018This is a ___\u2019 and \u2018I use it to ___\u2019",
+                            "Understand"
+                          ],
+                          [
+                            "Give and follow two\u2011step classroom instructions with a partner",
+                            "Apply"
+                          ],
+                          [
+                            "Sort the objects into functional groups and explain the groupings",
+                            "Analyze"
+                          ],
+                          [
+                            "Create a short spoken or written description of a classroom scene using at least five target words",
+                            "Create"
+                          ]
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "What Do You Already Know?",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "What Do You Already Know?"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Students quickly share any English classroom words they remember (e.g., book, pen). The teacher writes them on the board and highlights correct pronunciations."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "body": "Celebrate correct attempts; gently correct mispronunciations."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Introducing the 12 Classroom Objects",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Introducing the 12 Classroom Objects"
+                      },
+                      {
+                        "type": "vocab_cluster",
+                        "title": "Classroom Vocabulary",
+                        "items": [
+                          {
+                            "word": "desk",
+                            "definition": "a flat surface for writing and studying",
+                            "example": "This is a desk. I use it to write and study."
+                          },
+                          {
+                            "word": "chair",
+                            "definition": "a seat for one person",
+                            "example": "This is a chair. I use it to sit while I work."
+                          },
+                          {
+                            "word": "whiteboard",
+                            "definition": "a smooth white surface for writing with markers",
+                            "example": "This is a whiteboard. I use it to show lessons and notes."
+                          },
+                          {
+                            "word": "marker",
+                            "definition": "a pen that writes on whiteboards",
+                            "example": "This is a marker. I use it to write on the whiteboard."
+                          },
+                          {
+                            "word": "eraser",
+                            "definition": "a tool that removes pencil marks",
+                            "example": "This is an eraser. I use it to erase mistakes."
+                          },
+                          {
+                            "word": "book",
+                            "definition": "a set of pages bound together for reading",
+                            "example": "This is a book. I use it to read and learn."
+                          },
+                          {
+                            "word": "pencil",
+                            "definition": "a thin tool for writing or drawing",
+                            "example": "This is a pencil. I use it to write and draw."
+                          },
+                          {
+                            "word": "ruler",
+                            "definition": "a straight strip for measuring length",
+                            "example": "This is a ruler. I use it to measure lines and draw straight edges."
+                          },
+                          {
+                            "word": "backpack",
+                            "definition": "a bag worn on the back to carry belongings",
+                            "example": "This is a backpack. I use it to carry my books and supplies."
+                          },
+                          {
+                            "word": "clock",
+                            "definition": "a device that shows the time",
+                            "example": "This is a clock. I use it to know what time it is."
+                          },
+                          {
+                            "word": "scissors",
+                            "definition": "a tool with two blades for cutting paper",
+                            "example": "This is a pair of scissors. I use it to cut paper and craft."
+                          },
+                          {
+                            "word": "notebook",
+                            "definition": "a book with blank pages for writing notes",
+                            "example": "This is a notebook. I use it to take notes and do homework."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Memory Aid & Sentence Frames",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Memory Aid & Sentence Frames"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Teacher shares a simple first\u2011letter mnemonic: \u2018Dogs Can Wear Bright Elegant Badges, Please Run Cheerfully Silently\u2019 (Desk, Chair, Whiteboard, Marker, Eraser, Book, Pencil, Ruler, Backpack, Clock, Scissors, Notebook). Then models the sentence frames \u2018This is a ___.\u2019 and \u2018I use it to ___.\u2019 with each object."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "body": "Say the object name first, then add the purpose sentence. Practice slowly, then speed up."
+                      },
+                      {
+                        "type": "flow_step",
+                        "title": "Chaining Vocabulary into Instructions",
+                        "steps": [
+                          {
+                            "time": "1 min",
+                            "title": "Identify the object",
+                            "body": "Say the object\u2019s name aloud."
+                          },
+                          {
+                            "time": "1 min",
+                            "title": "State the name",
+                            "body": "Say \u2018This is a ___.\u2019"
+                          },
+                          {
+                            "time": "1 min",
+                            "title": "State the use",
+                            "body": "Say \u2018I use it to ___.\u2019"
+                          },
+                          {
+                            "time": "1 min",
+                            "title": "Chain two objects",
+                            "body": "Combine: \u2018This is a pencil. I use it to write. Then take the ruler and measure the line.\u2019"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Choral Repetition & Pair Practice",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Choral Repetition & Pair Practice"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "First, three minutes of choral repetition: the teacher says each word and sentence frame; students repeat together. Then, eight minutes of paired practice: Student A holds up an object card, says the name and a use sentence; Student B listens, repeats, then gives a two\u2011step instruction using that object (e.g., \u2018Pick up the pencil and write your name.\u2019)."
+                      },
+                      {
+                        "type": "flow_step",
+                        "title": "Pair Practice Steps",
+                        "steps": [
+                          {
+                            "time": "2 min",
+                            "title": "Show & Name",
+                            "body": "Student A shows the card and says the object\u2019s name."
+                          },
+                          {
+                            "time": "2 min",
+                            "title": "Say the Use Sentence",
+                            "body": "Student A says \u2018I use it to ___.\u2019"
+                          },
+                          {
+                            "time": "2 min",
+                            "title": "Listen & Repeat",
+                            "body": "Student B listens, then repeats both sentences."
+                          },
+                          {
+                            "time": "2 min",
+                            "title": "Give a Two\u2011Step Instruction",
+                            "body": "Student B creates a simple two\u2011step command using the object."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Teacher Feedback & Correction",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Teacher Feedback & Correction"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "While pairs work, the teacher circulates, listening for correct pronunciation of object names and proper use of the sentence frames. Errors are noted and corrected on the spot with gentle modeling."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "warning",
+                        "body": "Watch for common slips: \u2018desk\u2019 pronounced /d\u025bsk/, not /d\u025bsk/ with extra vowel; \u2018marker\u2019 vs \u2018marker\u2019."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Individual Check: Flashcard Oral",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Individual Check: Flashcard Oral"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "{'type': 'question_list', 'questions': [{'id': 1, 'text': 'What is this object?', 'options': {'A': 'Desk', 'B': 'Chair', 'C': 'Whiteboard', 'D': 'Marker'}, 'answer': 'A', 'explain': 'The picture shows a flat surface with legs \u2013 a desk.'}, {'id': 2, 'text': 'What is this object?', 'options': {'A': 'Eraser', 'B': 'Ruler', 'C': 'Scissors', 'D': 'Backpack'}, 'answer': 'B', 'explain': 'The long straight tool with markings is a ruler.'}, {'id': 3, 'text': 'What is this object?', 'options': {'A': 'Book"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Group Sorting & Justification",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Group Sorting & Justification"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "In groups of three or four, students sort the twelve object cards into five functional groups: Writing Tools, Seating, Display/Board, Storage, Reference. Each group must explain why each object belongs in its category using the sentence frames."
+                      },
+                      {
+                        "type": "taxonomy_grid",
+                        "title": "Functional Groups",
+                        "items": [
+                          {
+                            "icon": "\ud83d\udd8a\ufe0f",
+                            "title": "Writing Tools",
+                            "body": "Objects used for writing or drawing.",
+                            "example": "Pencil, pen, marker, eraser, ruler"
+                          },
+                          {
+                            "icon": "\ud83e\ude91",
+                            "title": "Seating",
+                            "body": "Objects for sitting.",
+                            "example": "Chair, stool"
+                          },
+                          {
+                            "icon": "\u2b1c",
+                            "title": "Display/Board",
+                            "body": "Surfaces for showing information.",
+                            "example": "Whiteboard, blackboard, chart paper"
+                          },
+                          {
+                            "icon": "\ud83c\udf92",
+                            "title": "Storage",
+                            "body": "Containers for holding belongings.",
+                            "example": "Backpack, desk drawer, notebook"
+                          },
+                          {
+                            "icon": "\ud83d\udd52",
+                            "title": "Reference",
+                            "body": "Objects that provide information.",
+                            "example": "Clock, calendar, textbook"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teacher_only",
+                    "title": "Answer Key & Teaching Notes",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Answer Key & Teaching Notes"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "{'type': 'question_list', 'questions': [{'id': 1, 'text': 'What is this object?', 'options': {'A': 'Desk', 'B': 'Chair', 'C': 'Whiteboard', 'D': 'Marker'}, 'answer': 'A', 'explain': 'Flat surface with legs \u2013 desk.'}, {'id': 2, 'text': 'What is this object?', 'options': {'A': 'Eraser', 'B': 'Ruler', 'C': 'Scissors', 'D': 'Backpack'}, 'answer': 'B', 'explain': 'Straight tool with markings \u2013 ruler.'}, {'id': 3, 'text': 'What is this object?', 'options': {'A': 'Book', 'B': 'Pencil', 'C': 'Notebook',"
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "body": "Pronunciation tips: desk /d\u025bsk/, chair /t\u0283er/, whiteboard /\u02c8wa\u026atb\u0254\u02d0rd/, marker /\u02c8m\u0251\u02d0rk\u0259r/, eraser /\u026a\u02c8re\u026az\u0259r/, book /b\u028ak/, pencil /\u02c8p\u025bns\u0259l/, ruler /\u02c8ru\u02d0l\u0259r/, backpack /\u02c8b\u00e6k\u02ccp\u00e6k/, clock /kl\u0252k/, scissors /\u02c8s\u026az\u0259rz/, notebook /\u02c8no\u028atb\u028ak/."
+                      }
+                    ],
+                    "teacher_only": true
+                  }
+                ],
+                "metadata": {
+                  "duration_minutes": 45,
+                  "grade_level": "Grade 5"
+                },
+                "accessibility": {
+                  "language": "en",
+                  "reading_level": "Grade 5",
+                  "alt_texts": {}
+                },
+                "artifact_id": "lesson-1"
+              },
+              "rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Classroom Objects: Vocabulary, Functions, and Functional Use in English</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}.brand{font-weight:700}.teacher-only{border-top:1px solid #ddd;margin-top:2rem;padding-top:1rem}</style></head><body><header class=\"brand\">oh-my-class</header><main><h1>Classroom Objects: Vocabulary, Functions, and Functional Use in English</h1><section><h2>Mystery Object Warm-up</h2><p></p></section><section><h2>Lesson Goals</h2><p></p></section><section><h2>What Do You Already Know?</h2><p></p></section><section><h2>Introducing the 12 Classroom Objects</h2><p></p></section><section><h2>Memory Aid &amp; Sentence Frames</h2><p></p></section><section><h2>Choral Repetition &amp; Pair Practice</h2><p></p></section><section><h2>Teacher Feedback &amp; Correction</h2><p></p></section><section><h2>Individual Check: Flashcard Oral</h2><p></p></section><section><h2>Group Sorting &amp; Justification</h2><p></p></section><section data-teacher-only=\"true\"><h2>Answer Key &amp; Teaching Notes</h2><p></p></section></main><section class=\"teacher-only\" data-teacher-only=\"true\"><h2>Teacher only</h2><p>Answer key is separated here.</p></section></body></html>",
+              "student_rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Classroom Objects: Vocabulary, Functions, and Functional Use in English</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}</style></head><body><header>oh-my-class</header><main><h1>Classroom Objects: Vocabulary, Functions, and Functional Use in English</h1><section><h2>Mystery Object Warm-up</h2><p></p></section><section><h2>Lesson Goals</h2><p></p></section><section><h2>What Do You Already Know?</h2><p></p></section><section><h2>Introducing the 12 Classroom Objects</h2><p></p></section><section><h2>Memory Aid &amp; Sentence Frames</h2><p></p></section><section><h2>Choral Repetition &amp; Pair Practice</h2><p></p></section><section><h2>Teacher Feedback &amp; Correction</h2><p></p></section><section><h2>Individual Check: Flashcard Oral</h2><p></p></section><section><h2>Group Sorting &amp; Justification</h2><p></p></section></main></body></html>",
+              "renderer_version": "pipeline-v2-python",
+              "template_version": "pipeline-v2-minimal",
+              "theme_version": "default"
+            },
+            {
+              "snapshot_id": "snap-ac7d4f6e2f50453c0be4857a",
+              "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+              "artifact_id": "quiz-2",
+              "artifact_type": "quiz",
+              "content_json": {
+                "artifact_type": "quiz",
+                "theme": "default",
+                "title": "Classroom Objects Vocabulary & Functions \u2014 Grade 5 Quiz",
+                "sections": [
+                  {
+                    "type": "assessment",
+                    "title": "Section A \u2014 Identify the Object",
+                    "content": "Look at each description and choose the correct classroom object.",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Section A \u2014 Identify the Object"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "For each question, choose the object that matches the description. Use the sentence frames 'This is a ___' or 'It is a ___' when you say your answer aloud."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 1,
+                        "text": "Which object is a flat surface that students use to write or do their work at school?",
+                        "options": {
+                          "A": "Desk",
+                          "B": "Chair",
+                          "C": "Book",
+                          "D": "Clock"
+                        },
+                        "answer": "A",
+                        "explain": "A desk is the flat surface where a student sits to write and study.",
+                        "wrong_reasons": {
+                          "B": "A chair is for sitting, not for writing on.",
+                          "C": "A book holds words and pictures to read, it is not a work surface.",
+                          "D": "A clock shows the time, it is not a work surface."
+                        },
+                        "essence": "A desk = writing/studying surface.",
+                        "tip": "Think of where you put your paper and pencil to work."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 2,
+                        "text": "Which object do you sit on while you work at your desk?",
+                        "options": {
+                          "A": "Ruler",
+                          "B": "Backpack",
+                          "C": "Chair",
+                          "D": "Eraser"
+                        },
+                        "answer": "C",
+                        "explain": "A chair is the object you sit on at your desk.",
+                        "wrong_reasons": {
+                          "A": "A ruler measures length, you cannot sit on it.",
+                          "B": "A backpack carries your things, you do not sit on it.",
+                          "D": "An eraser removes pencil marks, you do not sit on it."
+                        },
+                        "essence": "A chair = seating object.",
+                        "tip": "It usually has four legs and a back."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 3,
+                        "text": "Which object tells you the time during the school day?",
+                        "options": {
+                          "A": "Whiteboard",
+                          "B": "Scissors",
+                          "C": "Notebook",
+                          "D": "Clock"
+                        },
+                        "answer": "D",
+                        "explain": "A clock is the object that shows the time of day.",
+                        "wrong_reasons": {
+                          "A": "A whiteboard is for writing lessons, not telling time.",
+                          "B": "Scissors cut paper, they do not tell time.",
+                          "C": "A notebook is for writing notes, not telling time."
+                        },
+                        "essence": "A clock = time-telling tool.",
+                        "tip": "Look for the round object with numbers or hands on the wall."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 4,
+                        "text": "Which object is the large, smooth surface at the front of the room where the teacher writes?",
+                        "options": {
+                          "A": "Desk",
+                          "B": "Backpack",
+                          "C": "Whiteboard",
+                          "D": "Book"
+                        },
+                        "answer": "C",
+                        "explain": "A whiteboard is the large, smooth surface at the front of the classroom where the teacher writes and shows lessons.",
+                        "wrong_reasons": {
+                          "A": "A desk is small and personal, used by one student.",
+                          "B": "A backpack carries items, it does not display lessons.",
+                          "D": "A book holds reading material, it is not a wall-sized display."
+                        },
+                        "essence": "A whiteboard = instructional display surface.",
+                        "tip": "The teacher uses a marker to write on it."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 5,
+                        "text": "Which object is a set of pages with a cover that you read for information or stories?",
+                        "options": {
+                          "A": "Notebook",
+                          "B": "Pencil",
+                          "C": "Book",
+                          "D": "Marker"
+                        },
+                        "answer": "C",
+                        "explain": "A book is a set of bound pages with a cover that you read for stories or information.",
+                        "wrong_reasons": {
+                          "A": "A notebook is usually blank or lined for writing your own notes, not for reading stories.",
+                          "B": "A pencil writes, it is not a reading object.",
+                          "D": "A marker writes on the whiteboard, it is not a reading object."
+                        },
+                        "essence": "A book = reading material with bound pages.",
+                        "tip": "Books and notebooks are similar but books are for reading, notebooks are for writing."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Section B \u2014 Functional Use (Sentence Frames)",
+                    "content": "Choose the correct object to complete each sentence using the frame 'I use a ___ to ___.'",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Section B \u2014 Functional Use"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Complete each sentence with the correct classroom object. Remember the frame: 'I use a ___ to ___.'"
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 6,
+                        "text": "I use a ___ to write words and numbers on paper.",
+                        "options": {
+                          "A": "Ruler",
+                          "B": "Pencil",
+                          "C": "Eraser",
+                          "D": "Scissors"
+                        },
+                        "answer": "B",
+                        "explain": "A pencil is used to write words and numbers on paper.",
+                        "wrong_reasons": {
+                          "A": "A ruler measures length, it does not write words.",
+                          "C": "An eraser removes marks, it does not write words.",
+                          "D": "Scissors cut paper, they do not write words."
+                        },
+                        "essence": "Writing tool = pencil (and pen).",
+                        "tip": "Pencils make marks on paper; erasers remove them."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 7,
+                        "text": "I use a ___ to erase a mistake I made with my pencil.",
+                        "options": {
+                          "A": "Marker",
+                          "B": "Book",
+                          "C": "Backpack",
+                          "D": "Eraser"
+                        },
+                        "answer": "D",
+                        "explain": "An eraser is used to remove pencil marks from paper.",
+                        "wrong_reasons": {
+                          "A": "A marker adds more writing, it does not erase.",
+                          "B": "A book is for reading, it does not erase.",
+                          "C": "A backpack carries things, it does not erase."
+                        },
+                        "essence": "Eraser = tool that removes pencil marks.",
+                        "tip": "In British English this is called a 'rubber'."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 8,
+                        "text": "I use a ___ to measure how long my notebook is.",
+                        "options": {
+                          "A": "Ruler",
+                          "B": "Clock",
+                          "C": "Chair",
+                          "D": "Marker"
+                        },
+                        "answer": "A",
+                        "explain": "A ruler is used to measure length or distance.",
+                        "wrong_reasons": {
+                          "B": "A clock measures time, not length.",
+                          "C": "A chair is for sitting, it does not measure length.",
+                          "D": "A marker writes on the whiteboard, it does not measure length."
+                        },
+                        "essence": "Ruler = measuring tool for length.",
+                        "tip": "Rulers have numbered marks for centimeters or inches."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 9,
+                        "text": "I use a ___ to cut paper for an art project.",
+                        "options": {
+                          "A": "Eraser",
+                          "B": "Notebook",
+                          "C": "Scissors",
+                          "D": "Clock"
+                        },
+                        "answer": "C",
+                        "explain": "Scissors are used to cut paper and other thin materials.",
+                        "wrong_reasons": {
+                          "A": "An eraser removes pencil marks, it does not cut paper.",
+                          "B": "A notebook holds pages, it does not cut paper.",
+                          "D": "A clock tells time, it does not cut paper."
+                        },
+                        "essence": "Scissors = cutting tool with two blades.",
+                        "tip": "Always be careful \u2014 scissors are sharp."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 10,
+                        "text": "I put my books and pencil case into my ___ before I walk home from school.",
+                        "options": {
+                          "A": "Whiteboard",
+                          "B": "Backpack",
+                          "C": "Desk",
+                          "D": "Ruler"
+                        },
+                        "answer": "B",
+                        "explain": "A backpack is used to carry books, pencils, and other school supplies.",
+                        "wrong_reasons": {
+                          "A": "A whiteboard is on the wall, it cannot carry anything.",
+                          "C": "A desk stays in the classroom, it cannot walk home with you.",
+                          "D": "A ruler is too small to hold books."
+                        },
+                        "essence": "Backpack = carrying/storage tool for school supplies.",
+                        "tip": "Backpacks are worn on the back with two straps."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teacher_only",
+                    "title": "Answer Key & Teacher Notes",
+                    "content": "Use this section for scoring and review after students complete the quiz.",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Answer Key"
+                      },
+                      {
+                        "type": "table",
+                        "caption": "Quick-reference answer key for all 10 questions.",
+                        "columns": [
+                          "Question",
+                          "Correct Answer",
+                          "Object Tested",
+                          "Skill Tested"
+                        ],
+                        "rows": [
+                          [
+                            "1",
+                            "A \u2014 Desk",
+                            "desk",
+                            "Identify by function"
+                          ],
+                          [
+                            "2",
+                            "C \u2014 Chair",
+                            "chair",
+                            "Identify by function"
+                          ],
+                          [
+                            "3",
+                            "D \u2014 Clock",
+                            "clock",
+                            "Identify by function"
+                          ],
+                          [
+                            "4",
+                            "C \u2014 Whiteboard",
+                            "whiteboard",
+                            "Identify by description"
+                          ],
+                          [
+                            "5",
+                            "C \u2014 Book",
+                            "book",
+                            "Distinguish book vs. notebook"
+                          ],
+                          [
+                            "6",
+                            "B \u2014 Pencil",
+                            "pencil",
+                            "Functional use (write)"
+                          ],
+                          [
+                            "7",
+                            "D \u2014 Eraser",
+                            "eraser",
+                            "Functional use (erase)"
+                          ],
+                          [
+                            "8",
+                            "A \u2014 Ruler",
+                            "ruler",
+                            "Functional use (measure)"
+                          ],
+                          [
+                            "9",
+                            "C \u2014 Scissors",
+                            "scissors",
+                            "Functional use (cut)"
+                          ],
+                          [
+                            "10",
+                            "B \u2014 Backpack",
+                            "backpack",
+                            "Functional use (carry)"
+                          ]
+                        ]
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "title": "Scoring Guidance",
+                        "body": "Each correct answer = 1 point. Total: 10 points. Suggested bands: 9\u201310 = Excellent; 7\u20138 = Good; 5\u20136 = Developing; below 5 = Needs reteaching of vocabulary + sentence frames."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "title": "Coverage Check",
+                        "body": "This quiz covers 10 of the 12 target objects. The two objects not directly tested (marker, notebook) are intentionally reserved for the follow-up classroom-scene writing task in the next lesson segment."
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "If a student misses 3 or more questions in Section B, revisit the 'I use a ___ to ___' sentence frame before moving on to the categorization activity. Pair the student with a stronger peer for the next paired practice."
+                      }
+                    ],
+                    "teacher_only": true
+                  }
+                ],
+                "metadata": {
+                  "duration_minutes": 15,
+                  "grade_level": "Grade 5",
+                  "total_questions": 10,
+                  "total_points": 10,
+                  "vocabulary_coverage": [
+                    "desk",
+                    "chair",
+                    "clock",
+                    "whiteboard",
+                    "book",
+                    "pencil",
+                    "eraser",
+                    "ruler",
+                    "scissors",
+                    "backpack"
+                  ]
+                },
+                "accessibility": {
+                  "language": "en",
+                  "reading_level": "Grade 5",
+                  "alt_texts": {
+                    "overall": "A 10-question multiple-choice quiz for Grade 5 students covering classroom object names, identification by function, and completion of the sentence frame 'I use a ___ to ___.'"
+                  }
+                },
+                "artifact_id": "quiz-2"
+              },
+              "rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Classroom Objects Vocabulary &amp; Functions \u2014 Grade 5 Quiz</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}.brand{font-weight:700}.teacher-only{border-top:1px solid #ddd;margin-top:2rem;padding-top:1rem}</style></head><body><header class=\"brand\">oh-my-class</header><main><h1>Classroom Objects Vocabulary &amp; Functions \u2014 Grade 5 Quiz</h1><section><h2>Section A \u2014 Identify the Object</h2><p>Look at each description and choose the correct classroom object.</p></section><section><h2>Section B \u2014 Functional Use (Sentence Frames)</h2><p>Choose the correct object to complete each sentence using the frame 'I use a ___ to ___.'</p></section><section data-teacher-only=\"true\"><h2>Answer Key &amp; Teacher Notes</h2><p>Use this section for scoring and review after students complete the quiz.</p></section></main><section class=\"teacher-only\" data-teacher-only=\"true\"><h2>Teacher only</h2><p>Answer key is separated here.</p></section></body></html>",
+              "student_rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Classroom Objects Vocabulary &amp; Functions \u2014 Grade 5 Quiz</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}</style></head><body><header>oh-my-class</header><main><h1>Classroom Objects Vocabulary &amp; Functions \u2014 Grade 5 Quiz</h1><section><h2>Section A \u2014 Identify the Object</h2><p>Look at each description and choose the correct classroom object.</p></section><section><h2>Section B \u2014 Functional Use (Sentence Frames)</h2><p>Choose the correct object to complete each sentence using the frame 'I use a ___ to ___.'</p></section></main></body></html>",
+              "renderer_version": "pipeline-v2-python",
+              "template_version": "pipeline-v2-minimal",
+              "theme_version": "default"
+            }
+          ],
+          "artifacts": [
+            {
+              "artifact_type": "lesson",
+              "theme": "default",
+              "title": "Classroom Objects: Vocabulary, Functions, and Functional Use in English",
+              "sections": [
+                {
+                  "type": "teaching",
+                  "title": "Mystery Object Warm-up",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Mystery Object Warm-up"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "The teacher holds a wrapped classroom object. Students raise hands to guess what it is, using English words they know. This activates prior knowledge and builds excitement for the lesson."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "body": "Encourage full sentences: 'I think it is a ...'."
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Lesson Goals",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Lesson Goals"
+                    },
+                    {
+                      "type": "table",
+                      "columns": [
+                        "Objective",
+                        "Bloom\u2019s Level"
+                      ],
+                      "rows": [
+                        [
+                          "Name 12 classroom objects when shown pictures or real items",
+                          "Remember"
+                        ],
+                        [
+                          "Describe each object\u2019s purpose using \u2018This is a ___\u2019 and \u2018I use it to ___\u2019",
+                          "Understand"
+                        ],
+                        [
+                          "Give and follow two\u2011step classroom instructions with a partner",
+                          "Apply"
+                        ],
+                        [
+                          "Sort the objects into functional groups and explain the groupings",
+                          "Analyze"
+                        ],
+                        [
+                          "Create a short spoken or written description of a classroom scene using at least five target words",
+                          "Create"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "What Do You Already Know?",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "What Do You Already Know?"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Students quickly share any English classroom words they remember (e.g., book, pen). The teacher writes them on the board and highlights correct pronunciations."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "body": "Celebrate correct attempts; gently correct mispronunciations."
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Introducing the 12 Classroom Objects",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Introducing the 12 Classroom Objects"
+                    },
+                    {
+                      "type": "vocab_cluster",
+                      "title": "Classroom Vocabulary",
+                      "items": [
+                        {
+                          "word": "desk",
+                          "definition": "a flat surface for writing and studying",
+                          "example": "This is a desk. I use it to write and study."
+                        },
+                        {
+                          "word": "chair",
+                          "definition": "a seat for one person",
+                          "example": "This is a chair. I use it to sit while I work."
+                        },
+                        {
+                          "word": "whiteboard",
+                          "definition": "a smooth white surface for writing with markers",
+                          "example": "This is a whiteboard. I use it to show lessons and notes."
+                        },
+                        {
+                          "word": "marker",
+                          "definition": "a pen that writes on whiteboards",
+                          "example": "This is a marker. I use it to write on the whiteboard."
+                        },
+                        {
+                          "word": "eraser",
+                          "definition": "a tool that removes pencil marks",
+                          "example": "This is an eraser. I use it to erase mistakes."
+                        },
+                        {
+                          "word": "book",
+                          "definition": "a set of pages bound together for reading",
+                          "example": "This is a book. I use it to read and learn."
+                        },
+                        {
+                          "word": "pencil",
+                          "definition": "a thin tool for writing or drawing",
+                          "example": "This is a pencil. I use it to write and draw."
+                        },
+                        {
+                          "word": "ruler",
+                          "definition": "a straight strip for measuring length",
+                          "example": "This is a ruler. I use it to measure lines and draw straight edges."
+                        },
+                        {
+                          "word": "backpack",
+                          "definition": "a bag worn on the back to carry belongings",
+                          "example": "This is a backpack. I use it to carry my books and supplies."
+                        },
+                        {
+                          "word": "clock",
+                          "definition": "a device that shows the time",
+                          "example": "This is a clock. I use it to know what time it is."
+                        },
+                        {
+                          "word": "scissors",
+                          "definition": "a tool with two blades for cutting paper",
+                          "example": "This is a pair of scissors. I use it to cut paper and craft."
+                        },
+                        {
+                          "word": "notebook",
+                          "definition": "a book with blank pages for writing notes",
+                          "example": "This is a notebook. I use it to take notes and do homework."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Memory Aid & Sentence Frames",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Memory Aid & Sentence Frames"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Teacher shares a simple first\u2011letter mnemonic: \u2018Dogs Can Wear Bright Elegant Badges, Please Run Cheerfully Silently\u2019 (Desk, Chair, Whiteboard, Marker, Eraser, Book, Pencil, Ruler, Backpack, Clock, Scissors, Notebook). Then models the sentence frames \u2018This is a ___.\u2019 and \u2018I use it to ___.\u2019 with each object."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "body": "Say the object name first, then add the purpose sentence. Practice slowly, then speed up."
+                    },
+                    {
+                      "type": "flow_step",
+                      "title": "Chaining Vocabulary into Instructions",
+                      "steps": [
+                        {
+                          "time": "1 min",
+                          "title": "Identify the object",
+                          "body": "Say the object\u2019s name aloud."
+                        },
+                        {
+                          "time": "1 min",
+                          "title": "State the name",
+                          "body": "Say \u2018This is a ___.\u2019"
+                        },
+                        {
+                          "time": "1 min",
+                          "title": "State the use",
+                          "body": "Say \u2018I use it to ___.\u2019"
+                        },
+                        {
+                          "time": "1 min",
+                          "title": "Chain two objects",
+                          "body": "Combine: \u2018This is a pencil. I use it to write. Then take the ruler and measure the line.\u2019"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Choral Repetition & Pair Practice",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Choral Repetition & Pair Practice"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "First, three minutes of choral repetition: the teacher says each word and sentence frame; students repeat together. Then, eight minutes of paired practice: Student A holds up an object card, says the name and a use sentence; Student B listens, repeats, then gives a two\u2011step instruction using that object (e.g., \u2018Pick up the pencil and write your name.\u2019)."
+                    },
+                    {
+                      "type": "flow_step",
+                      "title": "Pair Practice Steps",
+                      "steps": [
+                        {
+                          "time": "2 min",
+                          "title": "Show & Name",
+                          "body": "Student A shows the card and says the object\u2019s name."
+                        },
+                        {
+                          "time": "2 min",
+                          "title": "Say the Use Sentence",
+                          "body": "Student A says \u2018I use it to ___.\u2019"
+                        },
+                        {
+                          "time": "2 min",
+                          "title": "Listen & Repeat",
+                          "body": "Student B listens, then repeats both sentences."
+                        },
+                        {
+                          "time": "2 min",
+                          "title": "Give a Two\u2011Step Instruction",
+                          "body": "Student B creates a simple two\u2011step command using the object."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Teacher Feedback & Correction",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Teacher Feedback & Correction"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "While pairs work, the teacher circulates, listening for correct pronunciation of object names and proper use of the sentence frames. Errors are noted and corrected on the spot with gentle modeling."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "warning",
+                      "body": "Watch for common slips: \u2018desk\u2019 pronounced /d\u025bsk/, not /d\u025bsk/ with extra vowel; \u2018marker\u2019 vs \u2018marker\u2019."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Individual Check: Flashcard Oral",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Individual Check: Flashcard Oral"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "{'type': 'question_list', 'questions': [{'id': 1, 'text': 'What is this object?', 'options': {'A': 'Desk', 'B': 'Chair', 'C': 'Whiteboard', 'D': 'Marker'}, 'answer': 'A', 'explain': 'The picture shows a flat surface with legs \u2013 a desk.'}, {'id': 2, 'text': 'What is this object?', 'options': {'A': 'Eraser', 'B': 'Ruler', 'C': 'Scissors', 'D': 'Backpack'}, 'answer': 'B', 'explain': 'The long straight tool with markings is a ruler.'}, {'id': 3, 'text': 'What is this object?', 'options': {'A': 'Book"
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Group Sorting & Justification",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Group Sorting & Justification"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "In groups of three or four, students sort the twelve object cards into five functional groups: Writing Tools, Seating, Display/Board, Storage, Reference. Each group must explain why each object belongs in its category using the sentence frames."
+                    },
+                    {
+                      "type": "taxonomy_grid",
+                      "title": "Functional Groups",
+                      "items": [
+                        {
+                          "icon": "\ud83d\udd8a\ufe0f",
+                          "title": "Writing Tools",
+                          "body": "Objects used for writing or drawing.",
+                          "example": "Pencil, pen, marker, eraser, ruler"
+                        },
+                        {
+                          "icon": "\ud83e\ude91",
+                          "title": "Seating",
+                          "body": "Objects for sitting.",
+                          "example": "Chair, stool"
+                        },
+                        {
+                          "icon": "\u2b1c",
+                          "title": "Display/Board",
+                          "body": "Surfaces for showing information.",
+                          "example": "Whiteboard, blackboard, chart paper"
+                        },
+                        {
+                          "icon": "\ud83c\udf92",
+                          "title": "Storage",
+                          "body": "Containers for holding belongings.",
+                          "example": "Backpack, desk drawer, notebook"
+                        },
+                        {
+                          "icon": "\ud83d\udd52",
+                          "title": "Reference",
+                          "body": "Objects that provide information.",
+                          "example": "Clock, calendar, textbook"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "teacher_only",
+                  "title": "Answer Key & Teaching Notes",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Answer Key & Teaching Notes"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "{'type': 'question_list', 'questions': [{'id': 1, 'text': 'What is this object?', 'options': {'A': 'Desk', 'B': 'Chair', 'C': 'Whiteboard', 'D': 'Marker'}, 'answer': 'A', 'explain': 'Flat surface with legs \u2013 desk.'}, {'id': 2, 'text': 'What is this object?', 'options': {'A': 'Eraser', 'B': 'Ruler', 'C': 'Scissors', 'D': 'Backpack'}, 'answer': 'B', 'explain': 'Straight tool with markings \u2013 ruler.'}, {'id': 3, 'text': 'What is this object?', 'options': {'A': 'Book', 'B': 'Pencil', 'C': 'Notebook',"
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "body": "Pronunciation tips: desk /d\u025bsk/, chair /t\u0283er/, whiteboard /\u02c8wa\u026atb\u0254\u02d0rd/, marker /\u02c8m\u0251\u02d0rk\u0259r/, eraser /\u026a\u02c8re\u026az\u0259r/, book /b\u028ak/, pencil /\u02c8p\u025bns\u0259l/, ruler /\u02c8ru\u02d0l\u0259r/, backpack /\u02c8b\u00e6k\u02ccp\u00e6k/, clock /kl\u0252k/, scissors /\u02c8s\u026az\u0259rz/, notebook /\u02c8no\u028atb\u028ak/."
+                    }
+                  ],
+                  "teacher_only": true
+                }
+              ],
+              "metadata": {
+                "duration_minutes": 45,
+                "grade_level": "Grade 5"
+              },
+              "accessibility": {
+                "language": "en",
+                "reading_level": "Grade 5",
+                "alt_texts": {}
+              },
+              "artifact_id": "lesson-1"
+            },
+            {
+              "artifact_type": "quiz",
+              "theme": "default",
+              "title": "Classroom Objects Vocabulary & Functions \u2014 Grade 5 Quiz",
+              "sections": [
+                {
+                  "type": "assessment",
+                  "title": "Section A \u2014 Identify the Object",
+                  "content": "Look at each description and choose the correct classroom object.",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Section A \u2014 Identify the Object"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "For each question, choose the object that matches the description. Use the sentence frames 'This is a ___' or 'It is a ___' when you say your answer aloud."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 1,
+                      "text": "Which object is a flat surface that students use to write or do their work at school?",
+                      "options": {
+                        "A": "Desk",
+                        "B": "Chair",
+                        "C": "Book",
+                        "D": "Clock"
+                      },
+                      "answer": "A",
+                      "explain": "A desk is the flat surface where a student sits to write and study.",
+                      "wrong_reasons": {
+                        "B": "A chair is for sitting, not for writing on.",
+                        "C": "A book holds words and pictures to read, it is not a work surface.",
+                        "D": "A clock shows the time, it is not a work surface."
+                      },
+                      "essence": "A desk = writing/studying surface.",
+                      "tip": "Think of where you put your paper and pencil to work."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 2,
+                      "text": "Which object do you sit on while you work at your desk?",
+                      "options": {
+                        "A": "Ruler",
+                        "B": "Backpack",
+                        "C": "Chair",
+                        "D": "Eraser"
+                      },
+                      "answer": "C",
+                      "explain": "A chair is the object you sit on at your desk.",
+                      "wrong_reasons": {
+                        "A": "A ruler measures length, you cannot sit on it.",
+                        "B": "A backpack carries your things, you do not sit on it.",
+                        "D": "An eraser removes pencil marks, you do not sit on it."
+                      },
+                      "essence": "A chair = seating object.",
+                      "tip": "It usually has four legs and a back."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 3,
+                      "text": "Which object tells you the time during the school day?",
+                      "options": {
+                        "A": "Whiteboard",
+                        "B": "Scissors",
+                        "C": "Notebook",
+                        "D": "Clock"
+                      },
+                      "answer": "D",
+                      "explain": "A clock is the object that shows the time of day.",
+                      "wrong_reasons": {
+                        "A": "A whiteboard is for writing lessons, not telling time.",
+                        "B": "Scissors cut paper, they do not tell time.",
+                        "C": "A notebook is for writing notes, not telling time."
+                      },
+                      "essence": "A clock = time-telling tool.",
+                      "tip": "Look for the round object with numbers or hands on the wall."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 4,
+                      "text": "Which object is the large, smooth surface at the front of the room where the teacher writes?",
+                      "options": {
+                        "A": "Desk",
+                        "B": "Backpack",
+                        "C": "Whiteboard",
+                        "D": "Book"
+                      },
+                      "answer": "C",
+                      "explain": "A whiteboard is the large, smooth surface at the front of the classroom where the teacher writes and shows lessons.",
+                      "wrong_reasons": {
+                        "A": "A desk is small and personal, used by one student.",
+                        "B": "A backpack carries items, it does not display lessons.",
+                        "D": "A book holds reading material, it is not a wall-sized display."
+                      },
+                      "essence": "A whiteboard = instructional display surface.",
+                      "tip": "The teacher uses a marker to write on it."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 5,
+                      "text": "Which object is a set of pages with a cover that you read for information or stories?",
+                      "options": {
+                        "A": "Notebook",
+                        "B": "Pencil",
+                        "C": "Book",
+                        "D": "Marker"
+                      },
+                      "answer": "C",
+                      "explain": "A book is a set of bound pages with a cover that you read for stories or information.",
+                      "wrong_reasons": {
+                        "A": "A notebook is usually blank or lined for writing your own notes, not for reading stories.",
+                        "B": "A pencil writes, it is not a reading object.",
+                        "D": "A marker writes on the whiteboard, it is not a reading object."
+                      },
+                      "essence": "A book = reading material with bound pages.",
+                      "tip": "Books and notebooks are similar but books are for reading, notebooks are for writing."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Section B \u2014 Functional Use (Sentence Frames)",
+                  "content": "Choose the correct object to complete each sentence using the frame 'I use a ___ to ___.'",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Section B \u2014 Functional Use"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Complete each sentence with the correct classroom object. Remember the frame: 'I use a ___ to ___.'"
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 6,
+                      "text": "I use a ___ to write words and numbers on paper.",
+                      "options": {
+                        "A": "Ruler",
+                        "B": "Pencil",
+                        "C": "Eraser",
+                        "D": "Scissors"
+                      },
+                      "answer": "B",
+                      "explain": "A pencil is used to write words and numbers on paper.",
+                      "wrong_reasons": {
+                        "A": "A ruler measures length, it does not write words.",
+                        "C": "An eraser removes marks, it does not write words.",
+                        "D": "Scissors cut paper, they do not write words."
+                      },
+                      "essence": "Writing tool = pencil (and pen).",
+                      "tip": "Pencils make marks on paper; erasers remove them."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 7,
+                      "text": "I use a ___ to erase a mistake I made with my pencil.",
+                      "options": {
+                        "A": "Marker",
+                        "B": "Book",
+                        "C": "Backpack",
+                        "D": "Eraser"
+                      },
+                      "answer": "D",
+                      "explain": "An eraser is used to remove pencil marks from paper.",
+                      "wrong_reasons": {
+                        "A": "A marker adds more writing, it does not erase.",
+                        "B": "A book is for reading, it does not erase.",
+                        "C": "A backpack carries things, it does not erase."
+                      },
+                      "essence": "Eraser = tool that removes pencil marks.",
+                      "tip": "In British English this is called a 'rubber'."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 8,
+                      "text": "I use a ___ to measure how long my notebook is.",
+                      "options": {
+                        "A": "Ruler",
+                        "B": "Clock",
+                        "C": "Chair",
+                        "D": "Marker"
+                      },
+                      "answer": "A",
+                      "explain": "A ruler is used to measure length or distance.",
+                      "wrong_reasons": {
+                        "B": "A clock measures time, not length.",
+                        "C": "A chair is for sitting, it does not measure length.",
+                        "D": "A marker writes on the whiteboard, it does not measure length."
+                      },
+                      "essence": "Ruler = measuring tool for length.",
+                      "tip": "Rulers have numbered marks for centimeters or inches."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 9,
+                      "text": "I use a ___ to cut paper for an art project.",
+                      "options": {
+                        "A": "Eraser",
+                        "B": "Notebook",
+                        "C": "Scissors",
+                        "D": "Clock"
+                      },
+                      "answer": "C",
+                      "explain": "Scissors are used to cut paper and other thin materials.",
+                      "wrong_reasons": {
+                        "A": "An eraser removes pencil marks, it does not cut paper.",
+                        "B": "A notebook holds pages, it does not cut paper.",
+                        "D": "A clock tells time, it does not cut paper."
+                      },
+                      "essence": "Scissors = cutting tool with two blades.",
+                      "tip": "Always be careful \u2014 scissors are sharp."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 10,
+                      "text": "I put my books and pencil case into my ___ before I walk home from school.",
+                      "options": {
+                        "A": "Whiteboard",
+                        "B": "Backpack",
+                        "C": "Desk",
+                        "D": "Ruler"
+                      },
+                      "answer": "B",
+                      "explain": "A backpack is used to carry books, pencils, and other school supplies.",
+                      "wrong_reasons": {
+                        "A": "A whiteboard is on the wall, it cannot carry anything.",
+                        "C": "A desk stays in the classroom, it cannot walk home with you.",
+                        "D": "A ruler is too small to hold books."
+                      },
+                      "essence": "Backpack = carrying/storage tool for school supplies.",
+                      "tip": "Backpacks are worn on the back with two straps."
+                    }
+                  ]
+                },
+                {
+                  "type": "teacher_only",
+                  "title": "Answer Key & Teacher Notes",
+                  "content": "Use this section for scoring and review after students complete the quiz.",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Answer Key"
+                    },
+                    {
+                      "type": "table",
+                      "caption": "Quick-reference answer key for all 10 questions.",
+                      "columns": [
+                        "Question",
+                        "Correct Answer",
+                        "Object Tested",
+                        "Skill Tested"
+                      ],
+                      "rows": [
+                        [
+                          "1",
+                          "A \u2014 Desk",
+                          "desk",
+                          "Identify by function"
+                        ],
+                        [
+                          "2",
+                          "C \u2014 Chair",
+                          "chair",
+                          "Identify by function"
+                        ],
+                        [
+                          "3",
+                          "D \u2014 Clock",
+                          "clock",
+                          "Identify by function"
+                        ],
+                        [
+                          "4",
+                          "C \u2014 Whiteboard",
+                          "whiteboard",
+                          "Identify by description"
+                        ],
+                        [
+                          "5",
+                          "C \u2014 Book",
+                          "book",
+                          "Distinguish book vs. notebook"
+                        ],
+                        [
+                          "6",
+                          "B \u2014 Pencil",
+                          "pencil",
+                          "Functional use (write)"
+                        ],
+                        [
+                          "7",
+                          "D \u2014 Eraser",
+                          "eraser",
+                          "Functional use (erase)"
+                        ],
+                        [
+                          "8",
+                          "A \u2014 Ruler",
+                          "ruler",
+                          "Functional use (measure)"
+                        ],
+                        [
+                          "9",
+                          "C \u2014 Scissors",
+                          "scissors",
+                          "Functional use (cut)"
+                        ],
+                        [
+                          "10",
+                          "B \u2014 Backpack",
+                          "backpack",
+                          "Functional use (carry)"
+                        ]
+                      ]
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "title": "Scoring Guidance",
+                      "body": "Each correct answer = 1 point. Total: 10 points. Suggested bands: 9\u201310 = Excellent; 7\u20138 = Good; 5\u20136 = Developing; below 5 = Needs reteaching of vocabulary + sentence frames."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "title": "Coverage Check",
+                      "body": "This quiz covers 10 of the 12 target objects. The two objects not directly tested (marker, notebook) are intentionally reserved for the follow-up classroom-scene writing task in the next lesson segment."
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "If a student misses 3 or more questions in Section B, revisit the 'I use a ___ to ___' sentence frame before moving on to the categorization activity. Pair the student with a stronger peer for the next paired practice."
+                    }
+                  ],
+                  "teacher_only": true
+                }
+              ],
+              "metadata": {
+                "duration_minutes": 15,
+                "grade_level": "Grade 5",
+                "total_questions": 10,
+                "total_points": 10,
+                "vocabulary_coverage": [
+                  "desk",
+                  "chair",
+                  "clock",
+                  "whiteboard",
+                  "book",
+                  "pencil",
+                  "eraser",
+                  "ruler",
+                  "scissors",
+                  "backpack"
+                ]
+              },
+              "accessibility": {
+                "language": "en",
+                "reading_level": "Grade 5",
+                "alt_texts": {
+                  "overall": "A 10-question multiple-choice quiz for Grade 5 students covering classroom object names, identification by function, and completion of the sentence frame 'I use a ___ to ___.'"
+                }
+              },
+              "artifact_id": "quiz-2"
+            }
+          ],
+          "quality_scores": {
+            "overall": 8.0,
+            "passed": true,
+            "snapshot_count": 2
+          },
+          "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c"
+        },
+        "created_at": "2026-06-28 16:22:46.321080+00:00"
+      },
+      {
+        "gate_id": "gate-09805c07-682d-484f-928b-2200d11d51b0",
+        "gate_name": "content_approval",
+        "status": "responded",
+        "payload": {
+          "gate_id": "gate-09805c07-682d-484f-928b-2200d11d51b0",
+          "gate": "content_approval",
+          "gate_name": "content_approval",
+          "snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-9e08466ce78cc981749d83d7"
+          ],
+          "rendered_snapshots": [
+            {
+              "snapshot_id": "snap-536ee7ff61142eb48497c91a",
+              "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+              "artifact_id": "lesson-1",
+              "artifact_type": "lesson",
+              "content_json": {
+                "artifact_type": "lesson",
+                "theme": "default",
+                "title": "Classroom Objects: Vocabulary, Functions, and Functional Use in English",
+                "sections": [
+                  {
+                    "type": "teaching",
+                    "title": "Mystery Object Warm-up",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Mystery Object Warm-up"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "The teacher holds a wrapped classroom object. Students raise hands to guess what it is, using English words they know. This activates prior knowledge and builds excitement for the lesson."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "body": "Encourage full sentences: 'I think it is a ...'."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Lesson Goals",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Lesson Goals"
+                      },
+                      {
+                        "type": "table",
+                        "columns": [
+                          "Objective",
+                          "Bloom\u2019s Level"
+                        ],
+                        "rows": [
+                          [
+                            "Name 12 classroom objects when shown pictures or real items",
+                            "Remember"
+                          ],
+                          [
+                            "Describe each object\u2019s purpose using \u2018This is a ___\u2019 and \u2018I use it to ___\u2019",
+                            "Understand"
+                          ],
+                          [
+                            "Give and follow two\u2011step classroom instructions with a partner",
+                            "Apply"
+                          ],
+                          [
+                            "Sort the objects into functional groups and explain the groupings",
+                            "Analyze"
+                          ],
+                          [
+                            "Create a short spoken or written description of a classroom scene using at least five target words",
+                            "Create"
+                          ]
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "What Do You Already Know?",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "What Do You Already Know?"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Students quickly share any English classroom words they remember (e.g., book, pen). The teacher writes them on the board and highlights correct pronunciations."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "body": "Celebrate correct attempts; gently correct mispronunciations."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Introducing the 12 Classroom Objects",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Introducing the 12 Classroom Objects"
+                      },
+                      {
+                        "type": "vocab_cluster",
+                        "title": "Classroom Vocabulary",
+                        "items": [
+                          {
+                            "word": "desk",
+                            "definition": "a flat surface for writing and studying",
+                            "example": "This is a desk. I use it to write and study."
+                          },
+                          {
+                            "word": "chair",
+                            "definition": "a seat for one person",
+                            "example": "This is a chair. I use it to sit while I work."
+                          },
+                          {
+                            "word": "whiteboard",
+                            "definition": "a smooth white surface for writing with markers",
+                            "example": "This is a whiteboard. I use it to show lessons and notes."
+                          },
+                          {
+                            "word": "marker",
+                            "definition": "a pen that writes on whiteboards",
+                            "example": "This is a marker. I use it to write on the whiteboard."
+                          },
+                          {
+                            "word": "eraser",
+                            "definition": "a tool that removes pencil marks",
+                            "example": "This is an eraser. I use it to erase mistakes."
+                          },
+                          {
+                            "word": "book",
+                            "definition": "a set of pages bound together for reading",
+                            "example": "This is a book. I use it to read and learn."
+                          },
+                          {
+                            "word": "pencil",
+                            "definition": "a thin tool for writing or drawing",
+                            "example": "This is a pencil. I use it to write and draw."
+                          },
+                          {
+                            "word": "ruler",
+                            "definition": "a straight strip for measuring length",
+                            "example": "This is a ruler. I use it to measure lines and draw straight edges."
+                          },
+                          {
+                            "word": "backpack",
+                            "definition": "a bag worn on the back to carry belongings",
+                            "example": "This is a backpack. I use it to carry my books and supplies."
+                          },
+                          {
+                            "word": "clock",
+                            "definition": "a device that shows the time",
+                            "example": "This is a clock. I use it to know what time it is."
+                          },
+                          {
+                            "word": "scissors",
+                            "definition": "a tool with two blades for cutting paper",
+                            "example": "This is a pair of scissors. I use it to cut paper and craft."
+                          },
+                          {
+                            "word": "notebook",
+                            "definition": "a book with blank pages for writing notes",
+                            "example": "This is a notebook. I use it to take notes and do homework."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Memory Aid & Sentence Frames",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Memory Aid & Sentence Frames"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Teacher shares a simple first\u2011letter mnemonic: \u2018Dogs Can Wear Bright Elegant Badges, Please Run Cheerfully Silently\u2019 (Desk, Chair, Whiteboard, Marker, Eraser, Book, Pencil, Ruler, Backpack, Clock, Scissors, Notebook). Then models the sentence frames \u2018This is a ___.\u2019 and \u2018I use it to ___.\u2019 with each object."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "tip",
+                        "body": "Say the object name first, then add the purpose sentence. Practice slowly, then speed up."
+                      },
+                      {
+                        "type": "flow_step",
+                        "title": "Chaining Vocabulary into Instructions",
+                        "steps": [
+                          {
+                            "time": "1 min",
+                            "title": "Identify the object",
+                            "body": "Say the object\u2019s name aloud."
+                          },
+                          {
+                            "time": "1 min",
+                            "title": "State the name",
+                            "body": "Say \u2018This is a ___.\u2019"
+                          },
+                          {
+                            "time": "1 min",
+                            "title": "State the use",
+                            "body": "Say \u2018I use it to ___.\u2019"
+                          },
+                          {
+                            "time": "1 min",
+                            "title": "Chain two objects",
+                            "body": "Combine: \u2018This is a pencil. I use it to write. Then take the ruler and measure the line.\u2019"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Choral Repetition & Pair Practice",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Choral Repetition & Pair Practice"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "First, three minutes of choral repetition: the teacher says each word and sentence frame; students repeat together. Then, eight minutes of paired practice: Student A holds up an object card, says the name and a use sentence; Student B listens, repeats, then gives a two\u2011step instruction using that object (e.g., \u2018Pick up the pencil and write your name.\u2019)."
+                      },
+                      {
+                        "type": "flow_step",
+                        "title": "Pair Practice Steps",
+                        "steps": [
+                          {
+                            "time": "2 min",
+                            "title": "Show & Name",
+                            "body": "Student A shows the card and says the object\u2019s name."
+                          },
+                          {
+                            "time": "2 min",
+                            "title": "Say the Use Sentence",
+                            "body": "Student A says \u2018I use it to ___.\u2019"
+                          },
+                          {
+                            "time": "2 min",
+                            "title": "Listen & Repeat",
+                            "body": "Student B listens, then repeats both sentences."
+                          },
+                          {
+                            "time": "2 min",
+                            "title": "Give a Two\u2011Step Instruction",
+                            "body": "Student B creates a simple two\u2011step command using the object."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teaching",
+                    "title": "Teacher Feedback & Correction",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Teacher Feedback & Correction"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "While pairs work, the teacher circulates, listening for correct pronunciation of object names and proper use of the sentence frames. Errors are noted and corrected on the spot with gentle modeling."
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "warning",
+                        "body": "Watch for common slips: \u2018desk\u2019 pronounced /d\u025bsk/, not /d\u025bsk/ with extra vowel; \u2018marker\u2019 vs \u2018marker\u2019."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Individual Check: Flashcard Oral",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Individual Check: Flashcard Oral"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "{'type': 'question_list', 'questions': [{'id': 1, 'text': 'What is this object?', 'options': {'A': 'Desk', 'B': 'Chair', 'C': 'Whiteboard', 'D': 'Marker'}, 'answer': 'A', 'explain': 'The picture shows a flat surface with legs \u2013 a desk.'}, {'id': 2, 'text': 'What is this object?', 'options': {'A': 'Eraser', 'B': 'Ruler', 'C': 'Scissors', 'D': 'Backpack'}, 'answer': 'B', 'explain': 'The long straight tool with markings is a ruler.'}, {'id': 3, 'text': 'What is this object?', 'options': {'A': 'Book"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "practice",
+                    "title": "Group Sorting & Justification",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Group Sorting & Justification"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "In groups of three or four, students sort the twelve object cards into five functional groups: Writing Tools, Seating, Display/Board, Storage, Reference. Each group must explain why each object belongs in its category using the sentence frames."
+                      },
+                      {
+                        "type": "taxonomy_grid",
+                        "title": "Functional Groups",
+                        "items": [
+                          {
+                            "icon": "\ud83d\udd8a\ufe0f",
+                            "title": "Writing Tools",
+                            "body": "Objects used for writing or drawing.",
+                            "example": "Pencil, pen, marker, eraser, ruler"
+                          },
+                          {
+                            "icon": "\ud83e\ude91",
+                            "title": "Seating",
+                            "body": "Objects for sitting.",
+                            "example": "Chair, stool"
+                          },
+                          {
+                            "icon": "\u2b1c",
+                            "title": "Display/Board",
+                            "body": "Surfaces for showing information.",
+                            "example": "Whiteboard, blackboard, chart paper"
+                          },
+                          {
+                            "icon": "\ud83c\udf92",
+                            "title": "Storage",
+                            "body": "Containers for holding belongings.",
+                            "example": "Backpack, desk drawer, notebook"
+                          },
+                          {
+                            "icon": "\ud83d\udd52",
+                            "title": "Reference",
+                            "body": "Objects that provide information.",
+                            "example": "Clock, calendar, textbook"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "teacher_only",
+                    "title": "Answer Key & Teaching Notes",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Answer Key & Teaching Notes"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "{'type': 'question_list', 'questions': [{'id': 1, 'text': 'What is this object?', 'options': {'A': 'Desk', 'B': 'Chair', 'C': 'Whiteboard', 'D': 'Marker'}, 'answer': 'A', 'explain': 'Flat surface with legs \u2013 desk.'}, {'id': 2, 'text': 'What is this object?', 'options': {'A': 'Eraser', 'B': 'Ruler', 'C': 'Scissors', 'D': 'Backpack'}, 'answer': 'B', 'explain': 'Straight tool with markings \u2013 ruler.'}, {'id': 3, 'text': 'What is this object?', 'options': {'A': 'Book', 'B': 'Pencil', 'C': 'Notebook',"
+                      },
+                      {
+                        "type": "callout",
+                        "variant": "note",
+                        "body": "Pronunciation tips: desk /d\u025bsk/, chair /t\u0283er/, whiteboard /\u02c8wa\u026atb\u0254\u02d0rd/, marker /\u02c8m\u0251\u02d0rk\u0259r/, eraser /\u026a\u02c8re\u026az\u0259r/, book /b\u028ak/, pencil /\u02c8p\u025bns\u0259l/, ruler /\u02c8ru\u02d0l\u0259r/, backpack /\u02c8b\u00e6k\u02ccp\u00e6k/, clock /kl\u0252k/, scissors /\u02c8s\u026az\u0259rz/, notebook /\u02c8no\u028atb\u028ak/."
+                      }
+                    ],
+                    "teacher_only": true
+                  }
+                ],
+                "metadata": {
+                  "duration_minutes": 45,
+                  "grade_level": "Grade 5"
+                },
+                "accessibility": {
+                  "language": "en",
+                  "reading_level": "Grade 5",
+                  "alt_texts": {}
+                },
+                "artifact_id": "lesson-1"
+              },
+              "rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Classroom Objects: Vocabulary, Functions, and Functional Use in English</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}.brand{font-weight:700}.teacher-only{border-top:1px solid #ddd;margin-top:2rem;padding-top:1rem}</style></head><body><header class=\"brand\">oh-my-class</header><main><h1>Classroom Objects: Vocabulary, Functions, and Functional Use in English</h1><section><h2>Mystery Object Warm-up</h2><p></p></section><section><h2>Lesson Goals</h2><p></p></section><section><h2>What Do You Already Know?</h2><p></p></section><section><h2>Introducing the 12 Classroom Objects</h2><p></p></section><section><h2>Memory Aid &amp; Sentence Frames</h2><p></p></section><section><h2>Choral Repetition &amp; Pair Practice</h2><p></p></section><section><h2>Teacher Feedback &amp; Correction</h2><p></p></section><section><h2>Individual Check: Flashcard Oral</h2><p></p></section><section><h2>Group Sorting &amp; Justification</h2><p></p></section><section data-teacher-only=\"true\"><h2>Answer Key &amp; Teaching Notes</h2><p></p></section></main><section class=\"teacher-only\" data-teacher-only=\"true\"><h2>Teacher only</h2><p>Answer key is separated here.</p></section></body></html>",
+              "student_rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Classroom Objects: Vocabulary, Functions, and Functional Use in English</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}</style></head><body><header>oh-my-class</header><main><h1>Classroom Objects: Vocabulary, Functions, and Functional Use in English</h1><section><h2>Mystery Object Warm-up</h2><p></p></section><section><h2>Lesson Goals</h2><p></p></section><section><h2>What Do You Already Know?</h2><p></p></section><section><h2>Introducing the 12 Classroom Objects</h2><p></p></section><section><h2>Memory Aid &amp; Sentence Frames</h2><p></p></section><section><h2>Choral Repetition &amp; Pair Practice</h2><p></p></section><section><h2>Teacher Feedback &amp; Correction</h2><p></p></section><section><h2>Individual Check: Flashcard Oral</h2><p></p></section><section><h2>Group Sorting &amp; Justification</h2><p></p></section></main></body></html>",
+              "renderer_version": "pipeline-v2-python",
+              "template_version": "pipeline-v2-minimal",
+              "theme_version": "default"
+            },
+            {
+              "snapshot_id": "snap-9e08466ce78cc981749d83d7",
+              "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c",
+              "artifact_id": "quiz-1",
+              "artifact_type": "quiz",
+              "content_json": {
+                "artifact_type": "quiz",
+                "theme": "default",
+                "title": "Classroom Objects Quiz \u2014 Vocabulary, Functions & Instructions",
+                "sections": [
+                  {
+                    "type": "assessment",
+                    "title": "Part A \u2014 Name That Object",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Part A \u2014 Name That Object"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Read each clue and choose the correct classroom object."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 1,
+                        "text": "You sit on this every day in class. What is it?",
+                        "options": {
+                          "A": "Desk",
+                          "B": "Chair",
+                          "C": "Backpack",
+                          "D": "Ruler"
+                        },
+                        "answer": "B",
+                        "explain": "A chair is the object you sit on. A desk is the surface you write on, a backpack carries your things, and a ruler measures length.",
+                        "wrong_reasons": {
+                          "A": "A desk is a flat surface for writing and working, not for sitting.",
+                          "C": "A backpack is used to carry books and supplies, not for sitting.",
+                          "D": "A ruler is a tool for measuring or drawing straight lines."
+                        },
+                        "essence": "Matching an object to its primary function (seating).",
+                        "tip": "I sit ON a chair. I write AT a desk."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 2,
+                        "text": "The teacher writes on this with a marker so the whole class can see. What is it?",
+                        "options": {
+                          "A": "Notebook",
+                          "B": "Book",
+                          "C": "Whiteboard",
+                          "D": "Clock"
+                        },
+                        "answer": "C",
+                        "explain": "A whiteboard is the large board at the front of the classroom where the teacher writes notes and instructions for everyone to see.",
+                        "wrong_reasons": {
+                          "A": "A notebook is for students to write in privately, not for the teacher to display to the class.",
+                          "B": "A book is for reading, not for writing on with a marker.",
+                          "D": "A clock shows the time; nothing is written on it."
+                        },
+                        "essence": "Identifying the display surface used by the teacher.",
+                        "tip": "White + board = the white board the teacher writes on."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 3,
+                        "text": "You use this to remove pencil marks from paper. What is it?",
+                        "options": {
+                          "A": "Marker",
+                          "B": "Eraser",
+                          "C": "Ruler",
+                          "D": "Scissors"
+                        },
+                        "answer": "B",
+                        "explain": "An eraser removes pencil marks from paper. It is a key tool for correcting mistakes.",
+                        "wrong_reasons": {
+                          "A": "A marker adds ink to a whiteboard; it does not remove marks.",
+                          "C": "A ruler measures length or draws straight lines.",
+                          "D": "Scissors cut paper; they do not erase marks."
+                        },
+                        "essence": "Matching the object to its function (removing marks).",
+                        "tip": "Erase + er = eraser removes what you wrote."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 4,
+                        "text": "You carry your books and supplies in this on your back. What is it?",
+                        "options": {
+                          "A": "Desk",
+                          "B": "Chair",
+                          "C": "Backpack",
+                          "D": "Clock"
+                        },
+                        "answer": "C",
+                        "explain": "A backpack is a bag worn on the back used to carry books, notebooks, and supplies to and from school.",
+                        "wrong_reasons": {
+                          "A": "A desk stays in the classroom; you do not carry it.",
+                          "B": "A chair is furniture for sitting, not for carrying items.",
+                          "D": "A clock tells time and does not carry anything."
+                        },
+                        "essence": "Identifying the portable storage object.",
+                        "tip": "Back + pack = you pack things on your back."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Part B \u2014 What Is It Used For?",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Part B \u2014 What Is It Used For?"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Choose the correct function for each object."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 5,
+                        "text": "Complete the sentence: 'I use a ruler to ___ .'",
+                        "options": {
+                          "A": "Write a story",
+                          "B": "Measure length",
+                          "C": "Erase marks",
+                          "D": "Carry books"
+                        },
+                        "answer": "B",
+                        "explain": "A ruler is used to measure length or draw straight lines. It has centimeter and inch markings.",
+                        "wrong_reasons": {
+                          "A": "You write a story with a pen or pencil, not a ruler.",
+                          "C": "An eraser removes marks, not a ruler.",
+                          "D": "A backpack carries books, not a ruler."
+                        },
+                        "essence": "Matching the ruler to its measuring function.",
+                        "tip": "A ruler has numbers \u2014 numbers help you measure."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 6,
+                        "text": "Complete the sentence: 'I use scissors to ___ .'",
+                        "options": {
+                          "A": "Tell the time",
+                          "B": "Write notes",
+                          "C": "Cut paper",
+                          "D": "Sit down"
+                        },
+                        "answer": "C",
+                        "explain": "Scissors are a two-bladed tool used to cut paper, cardboard, and other materials.",
+                        "wrong_reasons": {
+                          "A": "A clock tells the time, not scissors.",
+                          "B": "A pen or pencil is used to write notes.",
+                          "D": "A chair is for sitting, not scissors."
+                        },
+                        "essence": "Matching scissors to their cutting function.",
+                        "tip": "Scissors have two blades that open and close to cut."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 7,
+                        "text": "Complete the sentence: 'I use a clock to ___ .'",
+                        "options": {
+                          "A": "Know the time",
+                          "B": "Write on the board",
+                          "C": "Measure paper",
+                          "D": "Carry supplies"
+                        },
+                        "answer": "A",
+                        "explain": "A clock displays the current time so students and teachers know when class starts, ends, or how much time remains.",
+                        "wrong_reasons": {
+                          "B": "A marker is used to write on the board.",
+                          "C": "A ruler measures paper, not a clock.",
+                          "D": "A backpack carries supplies, not a clock."
+                        },
+                        "essence": "Matching the clock to its time-telling function.",
+                        "tip": "Clock = time. Check the clock to know what time it is."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 8,
+                        "text": "Complete the sentence: 'I use a notebook to ___ .'",
+                        "options": {
+                          "A": "Cut paper",
+                          "B": "Sit comfortably",
+                          "C": "Write and take notes",
+                          "D": "Display information to the class"
+                        },
+                        "answer": "C",
+                        "explain": "A notebook is a bound collection of blank or lined pages where students write notes, do exercises, and record information.",
+                        "wrong_reasons": {
+                          "A": "Scissors cut paper, not a notebook.",
+                          "B": "A chair helps you sit comfortably.",
+                          "D": "A whiteboard displays information to the class."
+                        },
+                        "essence": "Matching the notebook to its note-taking function.",
+                        "tip": "Note + book = a book for notes."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Part C \u2014 Categorize the Objects",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Part C \u2014 Categorize the Objects"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Decide which functional group each object or set of objects belongs to."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 9,
+                        "text": "Which group do 'pencil', 'pen', 'eraser', and 'ruler' belong to?",
+                        "options": {
+                          "A": "Seating",
+                          "B": "Writing tools",
+                          "C": "Display / Board",
+                          "D": "Storage"
+                        },
+                        "answer": "B",
+                        "explain": "Pencil, pen, eraser, and ruler are all writing tools \u2014 they are used together for writing, drawing, and correcting work.",
+                        "wrong_reasons": {
+                          "A": "Seating includes chair and desk \u2014 objects you sit at or on.",
+                          "C": "Display/Board includes whiteboard and marker \u2014 objects for showing information.",
+                          "D": "Storage includes backpack \u2014 an object for carrying and storing items."
+                        },
+                        "essence": "Grouping objects by shared function (writing).",
+                        "tip": "If you use it to write, draw, or correct \u2014 it is a writing tool."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 10,
+                        "text": "Which group do 'desk' and 'chair' belong to?",
+                        "options": {
+                          "A": "Writing tools",
+                          "B": "Reference",
+                          "C": "Seating",
+                          "D": "Display / Board"
+                        },
+                        "answer": "C",
+                        "explain": "Desk and chair are seating furniture \u2014 the desk is the surface for working and the chair is for sitting.",
+                        "wrong_reasons": {
+                          "A": "Writing tools are pencil, pen, eraser, and ruler.",
+                          "B": "Reference includes book and clock \u2014 objects that provide information.",
+                          "D": "Display/Board includes whiteboard and marker."
+                        },
+                        "essence": "Grouping furniture by its seating function.",
+                        "tip": "You sit ON a chair and work AT a desk \u2014 both are seating."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 11,
+                        "text": "Which group do 'whiteboard' and 'marker' belong to?",
+                        "options": {
+                          "A": "Writing tools",
+                          "B": "Display / Board",
+                          "C": "Storage",
+                          "D": "Seating"
+                        },
+                        "answer": "B",
+                        "explain": "The whiteboard and marker are used together to display information to the whole class \u2014 the teacher writes on the board with the marker.",
+                        "wrong_reasons": {
+                          "A": "Writing tools are for individual student use (pencil, pen, eraser, ruler).",
+                          "C": "Storage includes backpack \u2014 for carrying items.",
+                          "D": "Seating includes desk and chair."
+                        },
+                        "essence": "Grouping objects by their display/instruction function.",
+                        "tip": "The teacher uses the board to show everyone \u2014 that is display."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 12,
+                        "text": "Which group does 'backpack' belong to?",
+                        "options": {
+                          "A": "Writing tools",
+                          "B": "Seating",
+                          "C": "Display / Board",
+                          "D": "Storage"
+                        },
+                        "answer": "D",
+                        "explain": "A backpack is a storage item \u2014 it holds and carries books, notebooks, and supplies to and from school.",
+                        "wrong_reasons": {
+                          "A": "Writing tools are pencil, pen, eraser, and ruler.",
+                          "B": "Seating includes desk and chair.",
+                          "C": "Display/Board includes whiteboard and marker."
+                        },
+                        "essence": "Grouping the backpack by its carrying/storage function.",
+                        "tip": "You pack things INTO a backpack \u2014 it stores your supplies."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "assessment",
+                    "title": "Part D \u2014 Follow the Instructions",
+                    "components": [
+                      {
+                        "type": "heading",
+                        "level": 2,
+                        "text": "Part D \u2014 Follow the Instructions"
+                      },
+                      {
+                        "type": "paragraph",
+                        "text": "Read each 2-step classroom instruction and choose the correct objects needed."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 13,
+                        "text": "Instruction: 'Take out your pencil and draw a straight line.' Which two objects do you need?",
+                        "options": {
+                          "A": "Pencil and eraser",
+                          "B": "Pencil and ruler",
+                          "C": "Marker and whiteboard",
+                          "D": "Scissors and notebook"
+                        },
+                        "answer": "B",
+                        "explain": "You need a pencil to draw and a ruler to make the line straight. The instruction says 'draw a straight line,' so both are required.",
+                        "wrong_reasons": {
+                          "A": "An eraser removes marks; the instruction does not mention erasing.",
+                          "C": "A marker and whiteboard are for the teacher to display, not for drawing a line on paper.",
+                          "D": "Scissors cut paper and a notebook holds pages \u2014 neither draws a straight line."
+                        },
+                        "essence": "Identifying objects needed for a 2-step classroom instruction.",
+                        "tip": "Read carefully: 'draw' needs a pencil, 'straight line' needs a ruler."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 14,
+                        "text": "Instruction: 'Open your notebook and write the date.' Which two objects do you need?",
+                        "options": {
+                          "A": "Notebook and pen",
+                          "B": "Notebook and clock",
+                          "C": "Backpack and ruler",
+                          "D": "Whiteboard and marker"
+                        },
+                        "answer": "A",
+                        "explain": "You need a notebook to open and a pen (or pencil) to write the date. The instruction requires both a surface to write on and a tool to write with.",
+                        "wrong_reasons": {
+                          "B": "A clock tells the time but cannot write.",
+                          "C": "A backpack carries items and a ruler measures \u2014 neither writes a date.",
+                          "D": "A whiteboard and marker are for the teacher, not for individual student writing."
+                        },
+                        "essence": "Matching instruction steps to the correct objects.",
+                        "tip": "'Open' needs a book or surface; 'write' needs a pen or pencil."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 15,
+                        "text": "Instruction: 'Cut the paper and put it in your backpack.' Which two objects do you need?",
+                        "options": {
+                          "A": "Ruler and eraser",
+                          "B": "Scissors and backpack",
+                          "C": "Marker and whiteboard",
+                          "D": "Pencil and notebook"
+                        },
+                        "answer": "B",
+                        "explain": "You need scissors to cut the paper and a backpack to store it. Each step in the instruction matches one object.",
+                        "wrong_reasons": {
+                          "A": "A ruler measures and an eraser removes marks \u2014 neither cuts nor stores.",
+                          "C": "A marker and whiteboard are for displaying information to the class.",
+                          "D": "A pencil writes and a notebook holds pages \u2014 neither cuts nor stores."
+                        },
+                        "essence": "Matching each instruction step to its required object.",
+                        "tip": "'Cut' = scissors; 'put it in' = backpack for storage."
+                      },
+                      {
+                        "type": "question_card",
+                        "id": 16,
+                        "text": "Instruction: 'Look at the clock and tell me the time.' Which object do you need?",
+                        "options": {
+                          "A": "Ruler",
+                          "B": "Clock",
+                          "C": "Eraser",
+                          "D": "Scissors"
+                        },
+                        "answer": "B",
+                        "explain": "A clock shows the time. The instruction asks you to 'look at the clock,' so the clock is the object needed.",
+                        "wrong_reasons": {
+                          "A": "A ruler measures length, not time.",
+                          "C": "An eraser removes pencil marks.",
+                          "D": "Scissors cut paper."
+                        },
+                        "essence": "Identifying the object that provides time information.",
+                        "tip": "Clock = time. Always check the clock to know the time."
+                      }
+                    ]
+                  }
+                ],
+                "metadata": {
+                  "duration_minutes": 20,
+                  "grade_level": "Grade 5",
+                  "total_questions": 16,
+                  "parts": [
+                    "Part A \u2014 Name That Object",
+                    "Part B \u2014 What Is It Used For?",
+                    "Part C \u2014 Categorize the Objects",
+                    "Part D \u2014 Follow the Instructions"
+                  ],
+                  "target_vocabulary": [
+                    "desk",
+                    "chair",
+                    "whiteboard",
+                    "marker",
+                    "eraser",
+                    "ruler",
+                    "pencil",
+                    "pen",
+                    "notebook",
+                    "book",
+                    "backpack",
+                    "scissors",
+                    "clock"
+                  ],
+                  "learning_objectives_covered": [
+                    "Identify 12 classroom objects",
+                    "Describe object purpose with sentence frames",
+                    "Apply vocabulary in 2-step instructions",
+                    "Categorize objects into functional groups"
+                  ]
+                },
+                "accessibility": {
+                  "language": "en",
+                  "reading_level": "Grade 5",
+                  "alt_texts": {}
+                },
+                "artifact_id": "quiz-1"
+              },
+              "rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Classroom Objects Quiz \u2014 Vocabulary, Functions &amp; Instructions</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}.brand{font-weight:700}.teacher-only{border-top:1px solid #ddd;margin-top:2rem;padding-top:1rem}</style></head><body><header class=\"brand\">oh-my-class</header><main><h1>Classroom Objects Quiz \u2014 Vocabulary, Functions &amp; Instructions</h1><section><h2>Part A \u2014 Name That Object</h2><p></p></section><section><h2>Part B \u2014 What Is It Used For?</h2><p></p></section><section><h2>Part C \u2014 Categorize the Objects</h2><p></p></section><section><h2>Part D \u2014 Follow the Instructions</h2><p></p></section></main><section class=\"teacher-only\" data-teacher-only=\"true\"><h2>Teacher only</h2><p>Answer key is separated here.</p></section></body></html>",
+              "student_rendered_html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Classroom Objects Quiz \u2014 Vocabulary, Functions &amp; Instructions</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:2rem;line-height:1.5}</style></head><body><header>oh-my-class</header><main><h1>Classroom Objects Quiz \u2014 Vocabulary, Functions &amp; Instructions</h1><section><h2>Part A \u2014 Name That Object</h2><p></p></section><section><h2>Part B \u2014 What Is It Used For?</h2><p></p></section><section><h2>Part C \u2014 Categorize the Objects</h2><p></p></section><section><h2>Part D \u2014 Follow the Instructions</h2><p></p></section></main></body></html>",
+              "renderer_version": "pipeline-v2-python",
+              "template_version": "pipeline-v2-minimal",
+              "theme_version": "default"
+            }
+          ],
+          "artifacts": [
+            {
+              "artifact_type": "lesson",
+              "theme": "default",
+              "title": "Classroom Objects: Vocabulary, Functions, and Functional Use in English",
+              "sections": [
+                {
+                  "type": "teaching",
+                  "title": "Mystery Object Warm-up",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Mystery Object Warm-up"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "The teacher holds a wrapped classroom object. Students raise hands to guess what it is, using English words they know. This activates prior knowledge and builds excitement for the lesson."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "body": "Encourage full sentences: 'I think it is a ...'."
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Lesson Goals",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Lesson Goals"
+                    },
+                    {
+                      "type": "table",
+                      "columns": [
+                        "Objective",
+                        "Bloom\u2019s Level"
+                      ],
+                      "rows": [
+                        [
+                          "Name 12 classroom objects when shown pictures or real items",
+                          "Remember"
+                        ],
+                        [
+                          "Describe each object\u2019s purpose using \u2018This is a ___\u2019 and \u2018I use it to ___\u2019",
+                          "Understand"
+                        ],
+                        [
+                          "Give and follow two\u2011step classroom instructions with a partner",
+                          "Apply"
+                        ],
+                        [
+                          "Sort the objects into functional groups and explain the groupings",
+                          "Analyze"
+                        ],
+                        [
+                          "Create a short spoken or written description of a classroom scene using at least five target words",
+                          "Create"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "What Do You Already Know?",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "What Do You Already Know?"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Students quickly share any English classroom words they remember (e.g., book, pen). The teacher writes them on the board and highlights correct pronunciations."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "body": "Celebrate correct attempts; gently correct mispronunciations."
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Introducing the 12 Classroom Objects",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Introducing the 12 Classroom Objects"
+                    },
+                    {
+                      "type": "vocab_cluster",
+                      "title": "Classroom Vocabulary",
+                      "items": [
+                        {
+                          "word": "desk",
+                          "definition": "a flat surface for writing and studying",
+                          "example": "This is a desk. I use it to write and study."
+                        },
+                        {
+                          "word": "chair",
+                          "definition": "a seat for one person",
+                          "example": "This is a chair. I use it to sit while I work."
+                        },
+                        {
+                          "word": "whiteboard",
+                          "definition": "a smooth white surface for writing with markers",
+                          "example": "This is a whiteboard. I use it to show lessons and notes."
+                        },
+                        {
+                          "word": "marker",
+                          "definition": "a pen that writes on whiteboards",
+                          "example": "This is a marker. I use it to write on the whiteboard."
+                        },
+                        {
+                          "word": "eraser",
+                          "definition": "a tool that removes pencil marks",
+                          "example": "This is an eraser. I use it to erase mistakes."
+                        },
+                        {
+                          "word": "book",
+                          "definition": "a set of pages bound together for reading",
+                          "example": "This is a book. I use it to read and learn."
+                        },
+                        {
+                          "word": "pencil",
+                          "definition": "a thin tool for writing or drawing",
+                          "example": "This is a pencil. I use it to write and draw."
+                        },
+                        {
+                          "word": "ruler",
+                          "definition": "a straight strip for measuring length",
+                          "example": "This is a ruler. I use it to measure lines and draw straight edges."
+                        },
+                        {
+                          "word": "backpack",
+                          "definition": "a bag worn on the back to carry belongings",
+                          "example": "This is a backpack. I use it to carry my books and supplies."
+                        },
+                        {
+                          "word": "clock",
+                          "definition": "a device that shows the time",
+                          "example": "This is a clock. I use it to know what time it is."
+                        },
+                        {
+                          "word": "scissors",
+                          "definition": "a tool with two blades for cutting paper",
+                          "example": "This is a pair of scissors. I use it to cut paper and craft."
+                        },
+                        {
+                          "word": "notebook",
+                          "definition": "a book with blank pages for writing notes",
+                          "example": "This is a notebook. I use it to take notes and do homework."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Memory Aid & Sentence Frames",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Memory Aid & Sentence Frames"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Teacher shares a simple first\u2011letter mnemonic: \u2018Dogs Can Wear Bright Elegant Badges, Please Run Cheerfully Silently\u2019 (Desk, Chair, Whiteboard, Marker, Eraser, Book, Pencil, Ruler, Backpack, Clock, Scissors, Notebook). Then models the sentence frames \u2018This is a ___.\u2019 and \u2018I use it to ___.\u2019 with each object."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "tip",
+                      "body": "Say the object name first, then add the purpose sentence. Practice slowly, then speed up."
+                    },
+                    {
+                      "type": "flow_step",
+                      "title": "Chaining Vocabulary into Instructions",
+                      "steps": [
+                        {
+                          "time": "1 min",
+                          "title": "Identify the object",
+                          "body": "Say the object\u2019s name aloud."
+                        },
+                        {
+                          "time": "1 min",
+                          "title": "State the name",
+                          "body": "Say \u2018This is a ___.\u2019"
+                        },
+                        {
+                          "time": "1 min",
+                          "title": "State the use",
+                          "body": "Say \u2018I use it to ___.\u2019"
+                        },
+                        {
+                          "time": "1 min",
+                          "title": "Chain two objects",
+                          "body": "Combine: \u2018This is a pencil. I use it to write. Then take the ruler and measure the line.\u2019"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Choral Repetition & Pair Practice",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Choral Repetition & Pair Practice"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "First, three minutes of choral repetition: the teacher says each word and sentence frame; students repeat together. Then, eight minutes of paired practice: Student A holds up an object card, says the name and a use sentence; Student B listens, repeats, then gives a two\u2011step instruction using that object (e.g., \u2018Pick up the pencil and write your name.\u2019)."
+                    },
+                    {
+                      "type": "flow_step",
+                      "title": "Pair Practice Steps",
+                      "steps": [
+                        {
+                          "time": "2 min",
+                          "title": "Show & Name",
+                          "body": "Student A shows the card and says the object\u2019s name."
+                        },
+                        {
+                          "time": "2 min",
+                          "title": "Say the Use Sentence",
+                          "body": "Student A says \u2018I use it to ___.\u2019"
+                        },
+                        {
+                          "time": "2 min",
+                          "title": "Listen & Repeat",
+                          "body": "Student B listens, then repeats both sentences."
+                        },
+                        {
+                          "time": "2 min",
+                          "title": "Give a Two\u2011Step Instruction",
+                          "body": "Student B creates a simple two\u2011step command using the object."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "teaching",
+                  "title": "Teacher Feedback & Correction",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Teacher Feedback & Correction"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "While pairs work, the teacher circulates, listening for correct pronunciation of object names and proper use of the sentence frames. Errors are noted and corrected on the spot with gentle modeling."
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "warning",
+                      "body": "Watch for common slips: \u2018desk\u2019 pronounced /d\u025bsk/, not /d\u025bsk/ with extra vowel; \u2018marker\u2019 vs \u2018marker\u2019."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Individual Check: Flashcard Oral",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Individual Check: Flashcard Oral"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "{'type': 'question_list', 'questions': [{'id': 1, 'text': 'What is this object?', 'options': {'A': 'Desk', 'B': 'Chair', 'C': 'Whiteboard', 'D': 'Marker'}, 'answer': 'A', 'explain': 'The picture shows a flat surface with legs \u2013 a desk.'}, {'id': 2, 'text': 'What is this object?', 'options': {'A': 'Eraser', 'B': 'Ruler', 'C': 'Scissors', 'D': 'Backpack'}, 'answer': 'B', 'explain': 'The long straight tool with markings is a ruler.'}, {'id': 3, 'text': 'What is this object?', 'options': {'A': 'Book"
+                    }
+                  ]
+                },
+                {
+                  "type": "practice",
+                  "title": "Group Sorting & Justification",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Group Sorting & Justification"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "In groups of three or four, students sort the twelve object cards into five functional groups: Writing Tools, Seating, Display/Board, Storage, Reference. Each group must explain why each object belongs in its category using the sentence frames."
+                    },
+                    {
+                      "type": "taxonomy_grid",
+                      "title": "Functional Groups",
+                      "items": [
+                        {
+                          "icon": "\ud83d\udd8a\ufe0f",
+                          "title": "Writing Tools",
+                          "body": "Objects used for writing or drawing.",
+                          "example": "Pencil, pen, marker, eraser, ruler"
+                        },
+                        {
+                          "icon": "\ud83e\ude91",
+                          "title": "Seating",
+                          "body": "Objects for sitting.",
+                          "example": "Chair, stool"
+                        },
+                        {
+                          "icon": "\u2b1c",
+                          "title": "Display/Board",
+                          "body": "Surfaces for showing information.",
+                          "example": "Whiteboard, blackboard, chart paper"
+                        },
+                        {
+                          "icon": "\ud83c\udf92",
+                          "title": "Storage",
+                          "body": "Containers for holding belongings.",
+                          "example": "Backpack, desk drawer, notebook"
+                        },
+                        {
+                          "icon": "\ud83d\udd52",
+                          "title": "Reference",
+                          "body": "Objects that provide information.",
+                          "example": "Clock, calendar, textbook"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "teacher_only",
+                  "title": "Answer Key & Teaching Notes",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Answer Key & Teaching Notes"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "{'type': 'question_list', 'questions': [{'id': 1, 'text': 'What is this object?', 'options': {'A': 'Desk', 'B': 'Chair', 'C': 'Whiteboard', 'D': 'Marker'}, 'answer': 'A', 'explain': 'Flat surface with legs \u2013 desk.'}, {'id': 2, 'text': 'What is this object?', 'options': {'A': 'Eraser', 'B': 'Ruler', 'C': 'Scissors', 'D': 'Backpack'}, 'answer': 'B', 'explain': 'Straight tool with markings \u2013 ruler.'}, {'id': 3, 'text': 'What is this object?', 'options': {'A': 'Book', 'B': 'Pencil', 'C': 'Notebook',"
+                    },
+                    {
+                      "type": "callout",
+                      "variant": "note",
+                      "body": "Pronunciation tips: desk /d\u025bsk/, chair /t\u0283er/, whiteboard /\u02c8wa\u026atb\u0254\u02d0rd/, marker /\u02c8m\u0251\u02d0rk\u0259r/, eraser /\u026a\u02c8re\u026az\u0259r/, book /b\u028ak/, pencil /\u02c8p\u025bns\u0259l/, ruler /\u02c8ru\u02d0l\u0259r/, backpack /\u02c8b\u00e6k\u02ccp\u00e6k/, clock /kl\u0252k/, scissors /\u02c8s\u026az\u0259rz/, notebook /\u02c8no\u028atb\u028ak/."
+                    }
+                  ],
+                  "teacher_only": true
+                }
+              ],
+              "metadata": {
+                "duration_minutes": 45,
+                "grade_level": "Grade 5"
+              },
+              "accessibility": {
+                "language": "en",
+                "reading_level": "Grade 5",
+                "alt_texts": {}
+              },
+              "artifact_id": "lesson-1"
+            },
+            {
+              "artifact_type": "quiz",
+              "theme": "default",
+              "title": "Classroom Objects Quiz \u2014 Vocabulary, Functions & Instructions",
+              "sections": [
+                {
+                  "type": "assessment",
+                  "title": "Part A \u2014 Name That Object",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Part A \u2014 Name That Object"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Read each clue and choose the correct classroom object."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 1,
+                      "text": "You sit on this every day in class. What is it?",
+                      "options": {
+                        "A": "Desk",
+                        "B": "Chair",
+                        "C": "Backpack",
+                        "D": "Ruler"
+                      },
+                      "answer": "B",
+                      "explain": "A chair is the object you sit on. A desk is the surface you write on, a backpack carries your things, and a ruler measures length.",
+                      "wrong_reasons": {
+                        "A": "A desk is a flat surface for writing and working, not for sitting.",
+                        "C": "A backpack is used to carry books and supplies, not for sitting.",
+                        "D": "A ruler is a tool for measuring or drawing straight lines."
+                      },
+                      "essence": "Matching an object to its primary function (seating).",
+                      "tip": "I sit ON a chair. I write AT a desk."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 2,
+                      "text": "The teacher writes on this with a marker so the whole class can see. What is it?",
+                      "options": {
+                        "A": "Notebook",
+                        "B": "Book",
+                        "C": "Whiteboard",
+                        "D": "Clock"
+                      },
+                      "answer": "C",
+                      "explain": "A whiteboard is the large board at the front of the classroom where the teacher writes notes and instructions for everyone to see.",
+                      "wrong_reasons": {
+                        "A": "A notebook is for students to write in privately, not for the teacher to display to the class.",
+                        "B": "A book is for reading, not for writing on with a marker.",
+                        "D": "A clock shows the time; nothing is written on it."
+                      },
+                      "essence": "Identifying the display surface used by the teacher.",
+                      "tip": "White + board = the white board the teacher writes on."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 3,
+                      "text": "You use this to remove pencil marks from paper. What is it?",
+                      "options": {
+                        "A": "Marker",
+                        "B": "Eraser",
+                        "C": "Ruler",
+                        "D": "Scissors"
+                      },
+                      "answer": "B",
+                      "explain": "An eraser removes pencil marks from paper. It is a key tool for correcting mistakes.",
+                      "wrong_reasons": {
+                        "A": "A marker adds ink to a whiteboard; it does not remove marks.",
+                        "C": "A ruler measures length or draws straight lines.",
+                        "D": "Scissors cut paper; they do not erase marks."
+                      },
+                      "essence": "Matching the object to its function (removing marks).",
+                      "tip": "Erase + er = eraser removes what you wrote."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 4,
+                      "text": "You carry your books and supplies in this on your back. What is it?",
+                      "options": {
+                        "A": "Desk",
+                        "B": "Chair",
+                        "C": "Backpack",
+                        "D": "Clock"
+                      },
+                      "answer": "C",
+                      "explain": "A backpack is a bag worn on the back used to carry books, notebooks, and supplies to and from school.",
+                      "wrong_reasons": {
+                        "A": "A desk stays in the classroom; you do not carry it.",
+                        "B": "A chair is furniture for sitting, not for carrying items.",
+                        "D": "A clock tells time and does not carry anything."
+                      },
+                      "essence": "Identifying the portable storage object.",
+                      "tip": "Back + pack = you pack things on your back."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Part B \u2014 What Is It Used For?",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Part B \u2014 What Is It Used For?"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Choose the correct function for each object."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 5,
+                      "text": "Complete the sentence: 'I use a ruler to ___ .'",
+                      "options": {
+                        "A": "Write a story",
+                        "B": "Measure length",
+                        "C": "Erase marks",
+                        "D": "Carry books"
+                      },
+                      "answer": "B",
+                      "explain": "A ruler is used to measure length or draw straight lines. It has centimeter and inch markings.",
+                      "wrong_reasons": {
+                        "A": "You write a story with a pen or pencil, not a ruler.",
+                        "C": "An eraser removes marks, not a ruler.",
+                        "D": "A backpack carries books, not a ruler."
+                      },
+                      "essence": "Matching the ruler to its measuring function.",
+                      "tip": "A ruler has numbers \u2014 numbers help you measure."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 6,
+                      "text": "Complete the sentence: 'I use scissors to ___ .'",
+                      "options": {
+                        "A": "Tell the time",
+                        "B": "Write notes",
+                        "C": "Cut paper",
+                        "D": "Sit down"
+                      },
+                      "answer": "C",
+                      "explain": "Scissors are a two-bladed tool used to cut paper, cardboard, and other materials.",
+                      "wrong_reasons": {
+                        "A": "A clock tells the time, not scissors.",
+                        "B": "A pen or pencil is used to write notes.",
+                        "D": "A chair is for sitting, not scissors."
+                      },
+                      "essence": "Matching scissors to their cutting function.",
+                      "tip": "Scissors have two blades that open and close to cut."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 7,
+                      "text": "Complete the sentence: 'I use a clock to ___ .'",
+                      "options": {
+                        "A": "Know the time",
+                        "B": "Write on the board",
+                        "C": "Measure paper",
+                        "D": "Carry supplies"
+                      },
+                      "answer": "A",
+                      "explain": "A clock displays the current time so students and teachers know when class starts, ends, or how much time remains.",
+                      "wrong_reasons": {
+                        "B": "A marker is used to write on the board.",
+                        "C": "A ruler measures paper, not a clock.",
+                        "D": "A backpack carries supplies, not a clock."
+                      },
+                      "essence": "Matching the clock to its time-telling function.",
+                      "tip": "Clock = time. Check the clock to know what time it is."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 8,
+                      "text": "Complete the sentence: 'I use a notebook to ___ .'",
+                      "options": {
+                        "A": "Cut paper",
+                        "B": "Sit comfortably",
+                        "C": "Write and take notes",
+                        "D": "Display information to the class"
+                      },
+                      "answer": "C",
+                      "explain": "A notebook is a bound collection of blank or lined pages where students write notes, do exercises, and record information.",
+                      "wrong_reasons": {
+                        "A": "Scissors cut paper, not a notebook.",
+                        "B": "A chair helps you sit comfortably.",
+                        "D": "A whiteboard displays information to the class."
+                      },
+                      "essence": "Matching the notebook to its note-taking function.",
+                      "tip": "Note + book = a book for notes."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Part C \u2014 Categorize the Objects",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Part C \u2014 Categorize the Objects"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Decide which functional group each object or set of objects belongs to."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 9,
+                      "text": "Which group do 'pencil', 'pen', 'eraser', and 'ruler' belong to?",
+                      "options": {
+                        "A": "Seating",
+                        "B": "Writing tools",
+                        "C": "Display / Board",
+                        "D": "Storage"
+                      },
+                      "answer": "B",
+                      "explain": "Pencil, pen, eraser, and ruler are all writing tools \u2014 they are used together for writing, drawing, and correcting work.",
+                      "wrong_reasons": {
+                        "A": "Seating includes chair and desk \u2014 objects you sit at or on.",
+                        "C": "Display/Board includes whiteboard and marker \u2014 objects for showing information.",
+                        "D": "Storage includes backpack \u2014 an object for carrying and storing items."
+                      },
+                      "essence": "Grouping objects by shared function (writing).",
+                      "tip": "If you use it to write, draw, or correct \u2014 it is a writing tool."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 10,
+                      "text": "Which group do 'desk' and 'chair' belong to?",
+                      "options": {
+                        "A": "Writing tools",
+                        "B": "Reference",
+                        "C": "Seating",
+                        "D": "Display / Board"
+                      },
+                      "answer": "C",
+                      "explain": "Desk and chair are seating furniture \u2014 the desk is the surface for working and the chair is for sitting.",
+                      "wrong_reasons": {
+                        "A": "Writing tools are pencil, pen, eraser, and ruler.",
+                        "B": "Reference includes book and clock \u2014 objects that provide information.",
+                        "D": "Display/Board includes whiteboard and marker."
+                      },
+                      "essence": "Grouping furniture by its seating function.",
+                      "tip": "You sit ON a chair and work AT a desk \u2014 both are seating."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 11,
+                      "text": "Which group do 'whiteboard' and 'marker' belong to?",
+                      "options": {
+                        "A": "Writing tools",
+                        "B": "Display / Board",
+                        "C": "Storage",
+                        "D": "Seating"
+                      },
+                      "answer": "B",
+                      "explain": "The whiteboard and marker are used together to display information to the whole class \u2014 the teacher writes on the board with the marker.",
+                      "wrong_reasons": {
+                        "A": "Writing tools are for individual student use (pencil, pen, eraser, ruler).",
+                        "C": "Storage includes backpack \u2014 for carrying items.",
+                        "D": "Seating includes desk and chair."
+                      },
+                      "essence": "Grouping objects by their display/instruction function.",
+                      "tip": "The teacher uses the board to show everyone \u2014 that is display."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 12,
+                      "text": "Which group does 'backpack' belong to?",
+                      "options": {
+                        "A": "Writing tools",
+                        "B": "Seating",
+                        "C": "Display / Board",
+                        "D": "Storage"
+                      },
+                      "answer": "D",
+                      "explain": "A backpack is a storage item \u2014 it holds and carries books, notebooks, and supplies to and from school.",
+                      "wrong_reasons": {
+                        "A": "Writing tools are pencil, pen, eraser, and ruler.",
+                        "B": "Seating includes desk and chair.",
+                        "C": "Display/Board includes whiteboard and marker."
+                      },
+                      "essence": "Grouping the backpack by its carrying/storage function.",
+                      "tip": "You pack things INTO a backpack \u2014 it stores your supplies."
+                    }
+                  ]
+                },
+                {
+                  "type": "assessment",
+                  "title": "Part D \u2014 Follow the Instructions",
+                  "components": [
+                    {
+                      "type": "heading",
+                      "level": 2,
+                      "text": "Part D \u2014 Follow the Instructions"
+                    },
+                    {
+                      "type": "paragraph",
+                      "text": "Read each 2-step classroom instruction and choose the correct objects needed."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 13,
+                      "text": "Instruction: 'Take out your pencil and draw a straight line.' Which two objects do you need?",
+                      "options": {
+                        "A": "Pencil and eraser",
+                        "B": "Pencil and ruler",
+                        "C": "Marker and whiteboard",
+                        "D": "Scissors and notebook"
+                      },
+                      "answer": "B",
+                      "explain": "You need a pencil to draw and a ruler to make the line straight. The instruction says 'draw a straight line,' so both are required.",
+                      "wrong_reasons": {
+                        "A": "An eraser removes marks; the instruction does not mention erasing.",
+                        "C": "A marker and whiteboard are for the teacher to display, not for drawing a line on paper.",
+                        "D": "Scissors cut paper and a notebook holds pages \u2014 neither draws a straight line."
+                      },
+                      "essence": "Identifying objects needed for a 2-step classroom instruction.",
+                      "tip": "Read carefully: 'draw' needs a pencil, 'straight line' needs a ruler."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 14,
+                      "text": "Instruction: 'Open your notebook and write the date.' Which two objects do you need?",
+                      "options": {
+                        "A": "Notebook and pen",
+                        "B": "Notebook and clock",
+                        "C": "Backpack and ruler",
+                        "D": "Whiteboard and marker"
+                      },
+                      "answer": "A",
+                      "explain": "You need a notebook to open and a pen (or pencil) to write the date. The instruction requires both a surface to write on and a tool to write with.",
+                      "wrong_reasons": {
+                        "B": "A clock tells the time but cannot write.",
+                        "C": "A backpack carries items and a ruler measures \u2014 neither writes a date.",
+                        "D": "A whiteboard and marker are for the teacher, not for individual student writing."
+                      },
+                      "essence": "Matching instruction steps to the correct objects.",
+                      "tip": "'Open' needs a book or surface; 'write' needs a pen or pencil."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 15,
+                      "text": "Instruction: 'Cut the paper and put it in your backpack.' Which two objects do you need?",
+                      "options": {
+                        "A": "Ruler and eraser",
+                        "B": "Scissors and backpack",
+                        "C": "Marker and whiteboard",
+                        "D": "Pencil and notebook"
+                      },
+                      "answer": "B",
+                      "explain": "You need scissors to cut the paper and a backpack to store it. Each step in the instruction matches one object.",
+                      "wrong_reasons": {
+                        "A": "A ruler measures and an eraser removes marks \u2014 neither cuts nor stores.",
+                        "C": "A marker and whiteboard are for displaying information to the class.",
+                        "D": "A pencil writes and a notebook holds pages \u2014 neither cuts nor stores."
+                      },
+                      "essence": "Matching each instruction step to its required object.",
+                      "tip": "'Cut' = scissors; 'put it in' = backpack for storage."
+                    },
+                    {
+                      "type": "question_card",
+                      "id": 16,
+                      "text": "Instruction: 'Look at the clock and tell me the time.' Which object do you need?",
+                      "options": {
+                        "A": "Ruler",
+                        "B": "Clock",
+                        "C": "Eraser",
+                        "D": "Scissors"
+                      },
+                      "answer": "B",
+                      "explain": "A clock shows the time. The instruction asks you to 'look at the clock,' so the clock is the object needed.",
+                      "wrong_reasons": {
+                        "A": "A ruler measures length, not time.",
+                        "C": "An eraser removes pencil marks.",
+                        "D": "Scissors cut paper."
+                      },
+                      "essence": "Identifying the object that provides time information.",
+                      "tip": "Clock = time. Always check the clock to know the time."
+                    }
+                  ]
+                }
+              ],
+              "metadata": {
+                "duration_minutes": 20,
+                "grade_level": "Grade 5",
+                "total_questions": 16,
+                "parts": [
+                  "Part A \u2014 Name That Object",
+                  "Part B \u2014 What Is It Used For?",
+                  "Part C \u2014 Categorize the Objects",
+                  "Part D \u2014 Follow the Instructions"
+                ],
+                "target_vocabulary": [
+                  "desk",
+                  "chair",
+                  "whiteboard",
+                  "marker",
+                  "eraser",
+                  "ruler",
+                  "pencil",
+                  "pen",
+                  "notebook",
+                  "book",
+                  "backpack",
+                  "scissors",
+                  "clock"
+                ],
+                "learning_objectives_covered": [
+                  "Identify 12 classroom objects",
+                  "Describe object purpose with sentence frames",
+                  "Apply vocabulary in 2-step instructions",
+                  "Categorize objects into functional groups"
+                ]
+              },
+              "accessibility": {
+                "language": "en",
+                "reading_level": "Grade 5",
+                "alt_texts": {}
+              },
+              "artifact_id": "quiz-1"
+            }
+          ],
+          "quality_scores": {
+            "overall": 8.0,
+            "passed": true,
+            "snapshot_count": 2
+          },
+          "run_id": "cdcfe1ca-8e9b-416e-a46e-6966153fbc6c"
+        },
+        "created_at": "2026-06-28 16:25:06.533478+00:00"
+      }
+    ],
+    "responses": [
+      {
+        "response_id": "response-1c48b87c-8459-413b-b84b-ce1e1d1090dc",
+        "gate_id": "gate-f85e9678-17fa-47f6-8d4b-e4f9fbcd20be",
+        "response_json": {
+          "action": "approve"
+        },
+        "created_at": "2026-06-28 16:15:50.234946+00:00"
+      },
+      {
+        "response_id": "response-00038d69-85fb-4e2f-860e-8ab05b44c047",
+        "gate_id": "gate-105de61d-a463-4a9f-b952-446a229ea7f8",
+        "response_json": {
+          "action": "reject",
+          "feedback": "Regenerate only the quiz with easier distractors; keep the lesson unchanged.",
+          "rejection_type": "scoped",
+          "artifact_rejections": [
+            {
+              "artifact_id": "quiz-2",
+              "reason": "Quiz distractors are too hard."
+            }
+          ]
+        },
+        "created_at": "2026-06-28 16:22:46.431157+00:00"
+      },
+      {
+        "response_id": "response-04be4d18-8b09-4da7-ac47-7186ff5d51ef",
+        "gate_id": "gate-09805c07-682d-484f-928b-2200d11d51b0",
+        "response_json": {
+          "action": "approve",
+          "approved_snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-9e08466ce78cc981749d83d7"
+          ]
+        },
+        "created_at": "2026-06-28 17:04:36.826923+00:00"
+      }
+    ],
+    "events": [
+      {
+        "sequence": 1,
+        "event_name": "teaching_pack.status.changed",
+        "payload": {
+          "status": "awaiting_approval",
+          "stage": "setup_contract",
+          "reason": "contract_confirmation"
+        },
+        "created_at": "2026-06-28 16:15:50.152715"
+      },
+      {
+        "sequence": 2,
+        "event_name": "teaching_pack.contract_confirmation.opened",
+        "payload": {
+          "gate_id": "gate-f85e9678-17fa-47f6-8d4b-e4f9fbcd20be",
+          "gate_name": "contract_confirmation"
+        },
+        "created_at": "2026-06-28 16:15:50.157242"
+      },
+      {
+        "sequence": 3,
+        "event_name": "teaching_pack.status.changed",
+        "payload": {
+          "status": "awaiting_approval",
+          "stage": "content_approval",
+          "reason": "content_approval"
+        },
+        "created_at": "2026-06-28 16:22:46.330659"
+      },
+      {
+        "sequence": 4,
+        "event_name": "teaching_pack.content_approval.opened",
+        "payload": {
+          "gate_id": "gate-105de61d-a463-4a9f-b952-446a229ea7f8",
+          "snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-ac7d4f6e2f50453c0be4857a"
+          ]
+        },
+        "created_at": "2026-06-28 16:22:46.333395"
+      },
+      {
+        "sequence": 5,
+        "event_name": "teaching_pack.status.changed",
+        "payload": {
+          "status": "awaiting_approval",
+          "stage": "content_approval",
+          "reason": "content_approval"
+        },
+        "created_at": "2026-06-28 16:25:06.546975"
+      },
+      {
+        "sequence": 6,
+        "event_name": "teaching_pack.content_approval.opened",
+        "payload": {
+          "gate_id": "gate-09805c07-682d-484f-928b-2200d11d51b0",
+          "snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-9e08466ce78cc981749d83d7"
+          ]
+        },
+        "created_at": "2026-06-28 16:25:06.549444"
+      },
+      {
+        "sequence": 7,
+        "event_name": "teaching_pack.content.approved_snapshots",
+        "payload": {
+          "snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-9e08466ce78cc981749d83d7"
+          ]
+        },
+        "created_at": "2026-06-28 16:25:06.874413"
+      },
+      {
+        "sequence": 8,
+        "event_name": "teaching_pack.content.approved_snapshots",
+        "payload": {
+          "snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-9e08466ce78cc981749d83d7"
+          ]
+        },
+        "created_at": "2026-06-28 16:33:43.767258"
+      },
+      {
+        "sequence": 9,
+        "event_name": "teaching_pack.content.approved_snapshots",
+        "payload": {
+          "snapshot_ids": [
+            "snap-536ee7ff61142eb48497c91a",
+            "snap-9e08466ce78cc981749d83d7"
+          ]
+        },
+        "created_at": "2026-06-28 17:04:36.807028"
+      },
+      {
+        "sequence": 10,
+        "event_name": "teaching_pack.status.changed",
+        "payload": {
+          "status": "failed",
+          "stage": null,
+          "reason": "KeyError: 'run_id'"
+        },
+        "created_at": "2026-06-28 17:04:37.382358"
+      },
+      {
+        "sequence": 11,
+        "event_name": "teaching_pack.run.failed",
+        "payload": {
+          "error": "KeyError: 'run_id'"
+        },
+        "created_at": "2026-06-28 17:04:37.384270"
+      }
+    ],
+    "snaps": [
+      {
+        "snapshot_id": "snap-536ee7ff61142eb48497c91a",
+        "artifact_id": "lesson-1",
+        "artifact_type": "lesson",
+        "approved_at": "2026-06-28 17:04:36.799318+00:00",
+        "standalone_valid": true
+      },
+      {
+        "snapshot_id": "snap-ac7d4f6e2f50453c0be4857a",
+        "artifact_id": "quiz-2",
+        "artifact_type": "quiz",
+        "approved_at": null,
+        "standalone_valid": true
+      },
+      {
+        "snapshot_id": "snap-9e08466ce78cc981749d83d7",
+        "artifact_id": "quiz-1",
+        "artifact_type": "quiz",
+        "approved_at": "2026-06-28 17:04:36.799359+00:00",
+        "standalone_valid": true
+      }
+    ],
+    "jobs": [
+      {
+        "job_id": "job-e0166364-0331-4a3e-a13c-6fbdb0aeb286",
+        "kind": "start",
+        "status": "cancelled",
+        "attempts": 0
+      },
+      {
+        "job_id": "job-2c98c0e6-aaf4-4a12-b67c-9939190248d1",
+        "kind": "start",
+        "status": "completed",
+        "attempts": 1
+      },
+      {
+        "job_id": "job-8049b43d-4661-443a-9bee-856592d66f22",
+        "kind": "resume",
+        "status": "completed",
+        "attempts": 1
+      },
+      {
+        "job_id": "job-29e1359e-3235-41b2-966c-7945ba9cd9c0",
+        "kind": "resume",
+        "status": "failed",
+        "attempts": 1
+      }
+    ]
+  },
+  "passed": false
+}

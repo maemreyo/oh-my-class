@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-06-28T21:45:00+07:00",
+  "surface": "/teaching-packs/*",
+  "gateway": "http://127.0.0.1:8101",
+  "marker": "LIVE_V2_SOFT_DELETE_2596fea2-f41e-441b-98e7-5433cf1a3e50",
+  "scenario": "soft_delete_access_revocation_restore_cleanup",
+  "run_id": "18e449be-f48d-469d-922b-9504355bc650",
+  "observations": {
+    "create": {
+      "status_code": 202,
+      "run_status": "awaiting_approval",
+      "job_id": null
+    },
+    "delete": {
+      "status_code": 202,
+      "deleted": true
+    },
+    "status_after_delete": {
+      "status_code": 404,
+      "message": "run_not_found"
+    },
+    "resume_after_delete": {
+      "status_code": 404,
+      "message": "run_not_found"
+    },
+    "restore_cleanup": {
+      "status_code": 202,
+      "restored": true
+    },
+    "cancel_cleanup": {
+      "status_code": 200,
+      "run_status": "cancelled"
+    }
+  },
+  "assertions": {
+    "created_awaiting_approval": true,
+    "delete_accepted": true,
+    "status_hidden_after_delete": true,
+    "resume_hidden_after_delete": true,
+    "restore_accepted": true,
+    "cancel_after_restore_accepted": true
+  },
+  "passed": true
+}

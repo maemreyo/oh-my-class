@@ -68,10 +68,11 @@ def is_standalone_html(rendered_html: str) -> bool:
     """
     lowered = rendered_html.lower()
     has_doctype = "<!doctype html" in lowered
+    has_brand = "oh-my-class" in lowered
     parser = StandaloneHtmlAssetParser()
     parser.feed(rendered_html)
     has_css_external_asset = _CSS_EXTERNAL_ASSET_PATTERN.search(rendered_html) is not None
-    return has_doctype and not parser.has_external_asset and not has_css_external_asset
+    return has_doctype and has_brand and not parser.has_external_asset and not has_css_external_asset
 
 
 def render_student_preview_html(content_json: JsonObject) -> str:
@@ -88,10 +89,28 @@ def render_student_preview_html(content_json: JsonObject) -> str:
             if isinstance(section, dict) and section.get("teacher_only") is not True:
                 bodies.append(f"<section>{_safe_section_text(section)}</section>")
     body = "".join(bodies) or "<section>oh-my-class preview</section>"
-    return f"<!DOCTYPE html><html><body><h1>{title}</h1>{body}</body></html>"
+    return f"<!DOCTYPE html><html><body><header>oh-my-class</header><h1>{title}</h1>{body}</body></html>"
 
 
 def _safe_section_text(section: dict[str, JsonValue]) -> str:
     """Extract and escape text from a section dict, excluding teacher_only key."""
-    values = [escape(str(value)) for key, value in section.items() if key != "teacher_only"]
+    values = [_safe_value_text(value) for key, value in section.items() if key != "teacher_only"]
     return " ".join(values)
+
+
+def _safe_value_text(value: JsonValue) -> str:
+    if isinstance(value, list):
+        return " ".join(_safe_component_text(item) for item in value if isinstance(item, dict))
+    return escape(str(value))
+
+
+def _safe_component_text(component: dict[str, JsonValue]) -> str:
+    visible_keys = ("title", "text", "body", "options")
+    values = [component.get(key) for key in visible_keys if key in component]
+    return " ".join(_safe_component_field_text(value) for value in values)
+
+
+def _safe_component_field_text(value: JsonValue) -> str:
+    if isinstance(value, dict):
+        return " ".join(escape(str(entry)) for entry in value.values())
+    return escape(str(value))

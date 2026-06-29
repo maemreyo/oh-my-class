@@ -22,6 +22,9 @@ class JWTMiddleware(BaseHTTPMiddleware):
     PUBLIC_PREFIXES = ("/webhook/",)
 
     async def dispatch(self, request: Request, call_next):
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # Skip auth for public paths
         if request.url.path in self.PUBLIC_PATHS:
             return await call_next(request)
@@ -37,10 +40,18 @@ class JWTMiddleware(BaseHTTPMiddleware):
         # Check for Authorization header
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Missing or invalid Authorization header"},
-            )
+            cookie_token = request.cookies.get("auth-token", "")
+            if not cookie_token:
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Missing or invalid Authorization header"},
+                )
+            if not _allows_cookie_auth(request.url.path):
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Missing or invalid Authorization header"},
+                )
+            auth_header = f"Bearer {cookie_token}"
 
         token = auth_header[7:]  # Remove "Bearer " prefix
         try:
@@ -55,3 +66,13 @@ class JWTMiddleware(BaseHTTPMiddleware):
             )
 
         return await call_next(request)
+
+
+def _allows_cookie_auth(path: str) -> bool:
+    parts = path.strip("/").split("/")
+    return (
+        len(parts) == 4
+        and parts[0] == "teaching-packs"
+        and parts[1] in {"run", "runs"}
+        and parts[3] == "status"
+    )

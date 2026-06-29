@@ -7,6 +7,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from services.gateway.models import Base, Run
+from services.gateway.notification_db import Notification, NotificationDeliveryRecord
 from services.gateway.teaching_pack_types import TeacherId
 from services.gateway.run_creation import create_teaching_pack_run_record
 
@@ -63,5 +64,35 @@ async def test_create_run_record_persists_minimized_class_info(
     assert class_info["student_evidence"] == {
         "misconceptions": ["equivalent fractions"],
     }
+    await session.execute(delete(Run).where(Run.run_id == result.run_id))
+    await session.commit()
+
+
+async def test_gated_create_emits_teacher_notification(
+    session: AsyncSession,
+) -> None:
+    result = await create_teaching_pack_run_record(
+        session,
+        teacher_id=TeacherId("teacher-gated-notification"),
+        raw_request="Teach ecosystems",
+        class_info={"topic": "Ecosystems"},
+        request_hash="hash-gated",
+        idempotency_key=None,
+    )
+
+    notification = await session.scalar(
+        select(Notification).where(Notification.run_id == result.run_id),
+    )
+
+    assert result.job_id is None
+    assert notification is not None
+    assert notification.teacher_id == "teacher-gated-notification"
+    assert notification.event_type == "clarification_required"
+    await session.execute(
+        delete(NotificationDeliveryRecord).where(
+            NotificationDeliveryRecord.notification_id == notification.id,
+        ),
+    )
+    await session.execute(delete(Notification).where(Notification.run_id == result.run_id))
     await session.execute(delete(Run).where(Run.run_id == result.run_id))
     await session.commit()

@@ -1,0 +1,1198 @@
+{
+  "marker": "6e3cc520-b4c2-413a-86f4-230cf773aa2d",
+  "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+  "create": {
+    "status": 202,
+    "body": {
+      "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+      "job_id": null,
+      "status": "awaiting_approval",
+      "queued": false
+    }
+  },
+  "steps": [
+    {
+      "wait_contract_confirmation": "gate",
+      "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+      "state": {
+        "run": [
+          {
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "status": "AWAITING_APPROVAL",
+            "current_step": 1,
+            "raw_request": "LIVE_V2_SEARCH_PLAN_CONFIRMATION_EDIT_6e3cc520-b4c2-413a-86f4-230cf773aa2d: Grade 5 Vietnamese math lesson on fractions. Ask before searching because curriculum alignment is intentionally undecided.",
+            "class_info": {
+              "topic": "Ph\u00e2n s\u1ed1",
+              "grade": 5,
+              "subject": "math",
+              "student_count": 30,
+              "language": "vi",
+              "locale": "vi-VN",
+              "artifact_types": [
+                "lesson"
+              ],
+              "export_formats": [
+                "html"
+              ]
+            },
+            "lesson_plan": null,
+            "artifact_types": [],
+            "theme": "default",
+            "quality_scores": null,
+            "quality_passed": false,
+            "teacher_approved": false,
+            "revision_count": 0,
+            "revision_feedback": null,
+            "export_formats": [
+              "html"
+            ],
+            "tokens_used": 0,
+            "cost_usd": 0.0,
+            "created_at": "2026-06-28 17:42:51.837081",
+            "updated_at": "2026-06-28 17:42:51.845189",
+            "deleted_at": null,
+            "deleted_by": null,
+            "retention_days": null
+          }
+        ],
+        "contract": [
+          {
+            "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "contract_json": {
+              "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+              "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+              "teacher_id": "u-001",
+              "mode": "generate_pack",
+              "topic": "Ph\u00e2n s\u1ed1",
+              "grade_band": "Grade 5",
+              "subject": "math",
+              "locale": "vi-VN",
+              "instruction_language": "vi",
+              "curriculum": "BGD\u0110T Vi\u1ec7t Nam",
+              "citation_locale": "vi-VN",
+              "artifact_types": [
+                "lesson"
+              ],
+              "export_formats": [
+                "html"
+              ],
+              "research_policy": "standard",
+              "config_version": "teaching-packs-contract-setup@1",
+              "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+              "student_evidence": null,
+              "revision_meta": {
+                "revision": 1,
+                "actor": "system",
+                "source": "request",
+                "reason": "initial_contract_setup",
+                "effective_stage": "setup_contract"
+              }
+            },
+            "current_revision": 1,
+            "created_at": "2026-06-28 17:42:51.839173+00:00",
+            "updated_at": "2026-06-28 17:42:51.839175+00:00"
+          }
+        ],
+        "gates": [
+          {
+            "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+            "gate_name": "contract_confirmation",
+            "status": "active",
+            "payload": {
+              "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+              "inferred_fields": [
+                {
+                  "field": "curriculum",
+                  "value": "BGD\u0110T Vi\u1ec7t Nam",
+                  "reason": "locale_default"
+                }
+              ],
+              "contract": {
+                "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "teacher_id": "u-001",
+                "mode": "generate_pack",
+                "topic": "Ph\u00e2n s\u1ed1",
+                "grade_band": "Grade 5",
+                "subject": "math",
+                "locale": "vi-VN",
+                "instruction_language": "vi",
+                "curriculum": "BGD\u0110T Vi\u1ec7t Nam",
+                "citation_locale": "vi-VN",
+                "artifact_types": [
+                  "lesson"
+                ],
+                "export_formats": [
+                  "html"
+                ],
+                "research_policy": "standard",
+                "config_version": "teaching-packs-contract-setup@1",
+                "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+                "student_evidence": null,
+                "revision_meta": {
+                  "revision": 1,
+                  "actor": "system",
+                  "source": "request",
+                  "reason": "initial_contract_setup",
+                  "effective_stage": "setup_contract"
+                }
+              }
+            },
+            "created_at": "2026-06-28 17:42:51.842282+00:00"
+          }
+        ],
+        "responses": [],
+        "jobs": [
+          {
+            "job_id": "job-67703899-981b-440d-af53-491d432d599f",
+            "kind": "start",
+            "status": "cancelled",
+            "attempts": 0,
+            "payload": {
+              "source": "http_create",
+              "request_hash": "578349b9d8d747cf3c37c33795db406d6278f99e088d9ab374ba65c1f7ed3780",
+              "blocked_by_gate": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.852511+00:00"
+          }
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "event_name": "teaching_pack.status.changed",
+            "visibility": "TEACHER",
+            "payload": {
+              "status": "awaiting_approval",
+              "stage": "setup_contract",
+              "reason": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.846768"
+          },
+          {
+            "sequence": 2,
+            "event_name": "teaching_pack.contract_confirmation.opened",
+            "visibility": "TEACHER",
+            "payload": {
+              "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+              "gate_name": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.848316"
+          }
+        ]
+      }
+    },
+    {
+      "contract_resume_edit_curriculum_null": {
+        "status": 202,
+        "body": {
+          "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+          "response_id": "response-6eadaba1-4e1f-4bcd-8f59-9f178221bb90",
+          "job_id": null
+        }
+      }
+    },
+    {
+      "wait_search_plan_confirmation": "gate",
+      "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+      "payload": {
+        "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+        "gate_name": "search_plan_confirmation",
+        "confirmation_reasons": [
+          "ambiguous_curriculum"
+        ],
+        "queries": [
+          {
+            "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+            "purpose": "misconceptions"
+          },
+          {
+            "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+            "purpose": "intervention"
+          }
+        ],
+        "brief": {
+          "topic": "Ph\u00e2n s\u1ed1",
+          "subject": "math",
+          "risk_level": "medium",
+          "query_count": 2,
+          "confirmation_reasons": [
+            "ambiguous_curriculum"
+          ]
+        }
+      },
+      "state": {
+        "run": [
+          {
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "status": "AWAITING_APPROVAL",
+            "current_step": 1,
+            "raw_request": "LIVE_V2_SEARCH_PLAN_CONFIRMATION_EDIT_6e3cc520-b4c2-413a-86f4-230cf773aa2d: Grade 5 Vietnamese math lesson on fractions. Ask before searching because curriculum alignment is intentionally undecided.",
+            "class_info": {
+              "topic": "Ph\u00e2n s\u1ed1",
+              "grade": 5,
+              "subject": "math",
+              "student_count": 30,
+              "language": "vi",
+              "locale": "vi-VN",
+              "artifact_types": [
+                "lesson"
+              ],
+              "export_formats": [
+                "html"
+              ]
+            },
+            "lesson_plan": null,
+            "artifact_types": [],
+            "theme": "default",
+            "quality_scores": null,
+            "quality_passed": false,
+            "teacher_approved": false,
+            "revision_count": 0,
+            "revision_feedback": null,
+            "export_formats": [
+              "html"
+            ],
+            "tokens_used": 0,
+            "cost_usd": 0.0,
+            "created_at": "2026-06-28 17:42:51.837081",
+            "updated_at": "2026-06-28 17:42:51.845189",
+            "deleted_at": null,
+            "deleted_by": null,
+            "retention_days": null
+          }
+        ],
+        "contract": [
+          {
+            "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "contract_json": {
+              "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+              "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+              "teacher_id": "u-001",
+              "mode": "generate_pack",
+              "topic": "Ph\u00e2n s\u1ed1",
+              "grade_band": "Grade 5",
+              "subject": "math",
+              "locale": "vi-VN",
+              "instruction_language": "vi",
+              "curriculum": null,
+              "citation_locale": "vi-VN",
+              "artifact_types": [
+                "lesson"
+              ],
+              "export_formats": [
+                "html"
+              ],
+              "research_policy": "standard",
+              "config_version": "teaching-packs-contract-setup@1",
+              "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+              "student_evidence": null,
+              "revision_meta": {
+                "revision": 1,
+                "actor": "system",
+                "source": "request",
+                "reason": "initial_contract_setup",
+                "effective_stage": "setup_contract"
+              }
+            },
+            "current_revision": 2,
+            "created_at": "2026-06-28 17:42:51.839173+00:00",
+            "updated_at": "2026-06-28 17:42:51.951122+00:00"
+          }
+        ],
+        "gates": [
+          {
+            "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+            "gate_name": "contract_confirmation",
+            "status": "responded",
+            "payload": {
+              "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+              "inferred_fields": [
+                {
+                  "field": "curriculum",
+                  "value": "BGD\u0110T Vi\u1ec7t Nam",
+                  "reason": "locale_default"
+                }
+              ],
+              "contract": {
+                "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "teacher_id": "u-001",
+                "mode": "generate_pack",
+                "topic": "Ph\u00e2n s\u1ed1",
+                "grade_band": "Grade 5",
+                "subject": "math",
+                "locale": "vi-VN",
+                "instruction_language": "vi",
+                "curriculum": "BGD\u0110T Vi\u1ec7t Nam",
+                "citation_locale": "vi-VN",
+                "artifact_types": [
+                  "lesson"
+                ],
+                "export_formats": [
+                  "html"
+                ],
+                "research_policy": "standard",
+                "config_version": "teaching-packs-contract-setup@1",
+                "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+                "student_evidence": null,
+                "revision_meta": {
+                  "revision": 1,
+                  "actor": "system",
+                  "source": "request",
+                  "reason": "initial_contract_setup",
+                  "effective_stage": "setup_contract"
+                }
+              }
+            },
+            "created_at": "2026-06-28 17:42:51.842282+00:00"
+          },
+          {
+            "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+            "gate_name": "search_plan_confirmation",
+            "status": "active",
+            "payload": {
+              "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+              "gate_name": "search_plan_confirmation",
+              "confirmation_reasons": [
+                "ambiguous_curriculum"
+              ],
+              "queries": [
+                {
+                  "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+                  "purpose": "misconceptions"
+                },
+                {
+                  "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+                  "purpose": "intervention"
+                }
+              ],
+              "brief": {
+                "topic": "Ph\u00e2n s\u1ed1",
+                "subject": "math",
+                "risk_level": "medium",
+                "query_count": 2,
+                "confirmation_reasons": [
+                  "ambiguous_curriculum"
+                ]
+              }
+            },
+            "created_at": "2026-06-28 17:42:51.955552+00:00"
+          }
+        ],
+        "responses": [
+          {
+            "response_id": "response-6eadaba1-4e1f-4bcd-8f59-9f178221bb90",
+            "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+            "response_json": {
+              "action": "edit",
+              "edits": {
+                "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "teacher_id": "u-001",
+                "mode": "generate_pack",
+                "topic": "Ph\u00e2n s\u1ed1",
+                "grade_band": "Grade 5",
+                "subject": "math",
+                "locale": "vi-VN",
+                "instruction_language": "vi",
+                "curriculum": null,
+                "citation_locale": "vi-VN",
+                "artifact_types": [
+                  "lesson"
+                ],
+                "export_formats": [
+                  "html"
+                ],
+                "research_policy": "standard",
+                "config_version": "teaching-packs-contract-setup@1",
+                "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+                "student_evidence": null,
+                "revision_meta": {
+                  "revision": 1,
+                  "actor": "system",
+                  "source": "request",
+                  "reason": "initial_contract_setup",
+                  "effective_stage": "setup_contract"
+                }
+              }
+            },
+            "created_at": "2026-06-28 17:42:51.943956+00:00"
+          }
+        ],
+        "jobs": [
+          {
+            "job_id": "job-67703899-981b-440d-af53-491d432d599f",
+            "kind": "start",
+            "status": "cancelled",
+            "attempts": 0,
+            "payload": {
+              "source": "http_create",
+              "request_hash": "578349b9d8d747cf3c37c33795db406d6278f99e088d9ab374ba65c1f7ed3780",
+              "blocked_by_gate": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.852511+00:00"
+          }
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "event_name": "teaching_pack.status.changed",
+            "visibility": "TEACHER",
+            "payload": {
+              "status": "awaiting_approval",
+              "stage": "setup_contract",
+              "reason": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.846768"
+          },
+          {
+            "sequence": 2,
+            "event_name": "teaching_pack.contract_confirmation.opened",
+            "visibility": "TEACHER",
+            "payload": {
+              "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+              "gate_name": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.848316"
+          },
+          {
+            "sequence": 3,
+            "event_name": "teaching_pack.search_plan_confirmation.opened",
+            "visibility": "TEACHER",
+            "payload": {
+              "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+              "query_count": 2
+            },
+            "created_at": "2026-06-28 17:42:51.959302"
+          }
+        ]
+      }
+    },
+    {
+      "search_resume": {
+        "status": 202,
+        "body": {
+          "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+          "response_id": "response-eb47349b-5913-4730-a290-a791c102b99b",
+          "job_id": "job-7d33a596-31a4-4049-9501-294a4558c826"
+        }
+      }
+    },
+    {
+      "wait_start_job_after_search": "job_created",
+      "job": {
+        "job_id": "job-7d33a596-31a4-4049-9501-294a4558c826",
+        "kind": "start",
+        "status": "pending",
+        "payload": {
+          "response_id": "response-eb47349b-5913-4730-a290-a791c102b99b",
+          "request_hash": "b615ee12e6a32dcdbc355badbb1b668007425c2347c63306f4d49fe7e53cbdc7",
+          "resume_payload": {
+            "action": "approve",
+            "approved_queries": [
+              {
+                "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+                "purpose": "misconceptions"
+              },
+              {
+                "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+                "purpose": "intervention"
+              }
+            ]
+          },
+          "contract": {
+            "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "mode": "generate_pack",
+            "topic": "Ph\u00e2n s\u1ed1",
+            "grade_band": "Grade 5",
+            "subject": "math",
+            "locale": "vi-VN",
+            "instruction_language": "vi",
+            "curriculum": null,
+            "citation_locale": "vi-VN",
+            "artifact_types": [
+              "lesson"
+            ],
+            "export_formats": [
+              "html"
+            ],
+            "research_policy": "standard",
+            "config_version": "teaching-packs-contract-setup@1",
+            "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+            "student_evidence": null,
+            "revision_meta": {
+              "revision": 1,
+              "actor": "system",
+              "source": "request",
+              "reason": "initial_contract_setup",
+              "effective_stage": "setup_contract"
+            }
+          }
+        }
+      },
+      "state": {
+        "run": [
+          {
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "status": "AWAITING_APPROVAL",
+            "current_step": 1,
+            "raw_request": "LIVE_V2_SEARCH_PLAN_CONFIRMATION_EDIT_6e3cc520-b4c2-413a-86f4-230cf773aa2d: Grade 5 Vietnamese math lesson on fractions. Ask before searching because curriculum alignment is intentionally undecided.",
+            "class_info": {
+              "topic": "Ph\u00e2n s\u1ed1",
+              "grade": 5,
+              "subject": "math",
+              "student_count": 30,
+              "language": "vi",
+              "locale": "vi-VN",
+              "artifact_types": [
+                "lesson"
+              ],
+              "export_formats": [
+                "html"
+              ]
+            },
+            "lesson_plan": null,
+            "artifact_types": [],
+            "theme": "default",
+            "quality_scores": null,
+            "quality_passed": false,
+            "teacher_approved": false,
+            "revision_count": 0,
+            "revision_feedback": null,
+            "export_formats": [
+              "html"
+            ],
+            "tokens_used": 0,
+            "cost_usd": 0.0,
+            "created_at": "2026-06-28 17:42:51.837081",
+            "updated_at": "2026-06-28 17:42:51.845189",
+            "deleted_at": null,
+            "deleted_by": null,
+            "retention_days": null
+          }
+        ],
+        "contract": [
+          {
+            "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "contract_json": {
+              "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+              "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+              "teacher_id": "u-001",
+              "mode": "generate_pack",
+              "topic": "Ph\u00e2n s\u1ed1",
+              "grade_band": "Grade 5",
+              "subject": "math",
+              "locale": "vi-VN",
+              "instruction_language": "vi",
+              "curriculum": null,
+              "citation_locale": "vi-VN",
+              "artifact_types": [
+                "lesson"
+              ],
+              "export_formats": [
+                "html"
+              ],
+              "research_policy": "standard",
+              "config_version": "teaching-packs-contract-setup@1",
+              "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+              "student_evidence": null,
+              "revision_meta": {
+                "revision": 1,
+                "actor": "system",
+                "source": "request",
+                "reason": "initial_contract_setup",
+                "effective_stage": "setup_contract"
+              }
+            },
+            "current_revision": 2,
+            "created_at": "2026-06-28 17:42:51.839173+00:00",
+            "updated_at": "2026-06-28 17:42:51.951122+00:00"
+          }
+        ],
+        "gates": [
+          {
+            "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+            "gate_name": "contract_confirmation",
+            "status": "responded",
+            "payload": {
+              "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+              "inferred_fields": [
+                {
+                  "field": "curriculum",
+                  "value": "BGD\u0110T Vi\u1ec7t Nam",
+                  "reason": "locale_default"
+                }
+              ],
+              "contract": {
+                "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "teacher_id": "u-001",
+                "mode": "generate_pack",
+                "topic": "Ph\u00e2n s\u1ed1",
+                "grade_band": "Grade 5",
+                "subject": "math",
+                "locale": "vi-VN",
+                "instruction_language": "vi",
+                "curriculum": "BGD\u0110T Vi\u1ec7t Nam",
+                "citation_locale": "vi-VN",
+                "artifact_types": [
+                  "lesson"
+                ],
+                "export_formats": [
+                  "html"
+                ],
+                "research_policy": "standard",
+                "config_version": "teaching-packs-contract-setup@1",
+                "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+                "student_evidence": null,
+                "revision_meta": {
+                  "revision": 1,
+                  "actor": "system",
+                  "source": "request",
+                  "reason": "initial_contract_setup",
+                  "effective_stage": "setup_contract"
+                }
+              }
+            },
+            "created_at": "2026-06-28 17:42:51.842282+00:00"
+          },
+          {
+            "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+            "gate_name": "search_plan_confirmation",
+            "status": "responded",
+            "payload": {
+              "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+              "gate_name": "search_plan_confirmation",
+              "confirmation_reasons": [
+                "ambiguous_curriculum"
+              ],
+              "queries": [
+                {
+                  "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+                  "purpose": "misconceptions"
+                },
+                {
+                  "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+                  "purpose": "intervention"
+                }
+              ],
+              "brief": {
+                "topic": "Ph\u00e2n s\u1ed1",
+                "subject": "math",
+                "risk_level": "medium",
+                "query_count": 2,
+                "confirmation_reasons": [
+                  "ambiguous_curriculum"
+                ]
+              }
+            },
+            "created_at": "2026-06-28 17:42:51.955552+00:00"
+          }
+        ],
+        "responses": [
+          {
+            "response_id": "response-6eadaba1-4e1f-4bcd-8f59-9f178221bb90",
+            "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+            "response_json": {
+              "action": "edit",
+              "edits": {
+                "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "teacher_id": "u-001",
+                "mode": "generate_pack",
+                "topic": "Ph\u00e2n s\u1ed1",
+                "grade_band": "Grade 5",
+                "subject": "math",
+                "locale": "vi-VN",
+                "instruction_language": "vi",
+                "curriculum": null,
+                "citation_locale": "vi-VN",
+                "artifact_types": [
+                  "lesson"
+                ],
+                "export_formats": [
+                  "html"
+                ],
+                "research_policy": "standard",
+                "config_version": "teaching-packs-contract-setup@1",
+                "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+                "student_evidence": null,
+                "revision_meta": {
+                  "revision": 1,
+                  "actor": "system",
+                  "source": "request",
+                  "reason": "initial_contract_setup",
+                  "effective_stage": "setup_contract"
+                }
+              }
+            },
+            "created_at": "2026-06-28 17:42:51.943956+00:00"
+          },
+          {
+            "response_id": "response-eb47349b-5913-4730-a290-a791c102b99b",
+            "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+            "response_json": {
+              "action": "approve",
+              "approved_queries": [
+                {
+                  "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+                  "purpose": "misconceptions"
+                },
+                {
+                  "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+                  "purpose": "intervention"
+                }
+              ]
+            },
+            "created_at": "2026-06-28 17:42:51.974227+00:00"
+          }
+        ],
+        "jobs": [
+          {
+            "job_id": "job-67703899-981b-440d-af53-491d432d599f",
+            "kind": "start",
+            "status": "cancelled",
+            "attempts": 0,
+            "payload": {
+              "source": "http_create",
+              "request_hash": "578349b9d8d747cf3c37c33795db406d6278f99e088d9ab374ba65c1f7ed3780",
+              "blocked_by_gate": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.852511+00:00"
+          },
+          {
+            "job_id": "job-7d33a596-31a4-4049-9501-294a4558c826",
+            "kind": "start",
+            "status": "pending",
+            "attempts": 0,
+            "payload": {
+              "response_id": "response-eb47349b-5913-4730-a290-a791c102b99b",
+              "request_hash": "b615ee12e6a32dcdbc355badbb1b668007425c2347c63306f4d49fe7e53cbdc7",
+              "resume_payload": {
+                "action": "approve",
+                "approved_queries": [
+                  {
+                    "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+                    "purpose": "misconceptions"
+                  },
+                  {
+                    "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+                    "purpose": "intervention"
+                  }
+                ]
+              },
+              "contract": {
+                "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+                "teacher_id": "u-001",
+                "mode": "generate_pack",
+                "topic": "Ph\u00e2n s\u1ed1",
+                "grade_band": "Grade 5",
+                "subject": "math",
+                "locale": "vi-VN",
+                "instruction_language": "vi",
+                "curriculum": null,
+                "citation_locale": "vi-VN",
+                "artifact_types": [
+                  "lesson"
+                ],
+                "export_formats": [
+                  "html"
+                ],
+                "research_policy": "standard",
+                "config_version": "teaching-packs-contract-setup@1",
+                "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+                "student_evidence": null,
+                "revision_meta": {
+                  "revision": 1,
+                  "actor": "system",
+                  "source": "request",
+                  "reason": "initial_contract_setup",
+                  "effective_stage": "setup_contract"
+                }
+              }
+            },
+            "created_at": "2026-06-28 17:42:51.975914+00:00"
+          }
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "event_name": "teaching_pack.status.changed",
+            "visibility": "TEACHER",
+            "payload": {
+              "status": "awaiting_approval",
+              "stage": "setup_contract",
+              "reason": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.846768"
+          },
+          {
+            "sequence": 2,
+            "event_name": "teaching_pack.contract_confirmation.opened",
+            "visibility": "TEACHER",
+            "payload": {
+              "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+              "gate_name": "contract_confirmation"
+            },
+            "created_at": "2026-06-28 17:42:51.848316"
+          },
+          {
+            "sequence": 3,
+            "event_name": "teaching_pack.search_plan_confirmation.opened",
+            "visibility": "TEACHER",
+            "payload": {
+              "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+              "query_count": 2
+            },
+            "created_at": "2026-06-28 17:42:51.959302"
+          }
+        ]
+      }
+    }
+  ],
+  "final_state": {
+    "run": [
+      {
+        "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+        "teacher_id": "u-001",
+        "status": "AWAITING_APPROVAL",
+        "current_step": 1,
+        "raw_request": "LIVE_V2_SEARCH_PLAN_CONFIRMATION_EDIT_6e3cc520-b4c2-413a-86f4-230cf773aa2d: Grade 5 Vietnamese math lesson on fractions. Ask before searching because curriculum alignment is intentionally undecided.",
+        "class_info": {
+          "topic": "Ph\u00e2n s\u1ed1",
+          "grade": 5,
+          "subject": "math",
+          "student_count": 30,
+          "language": "vi",
+          "locale": "vi-VN",
+          "artifact_types": [
+            "lesson"
+          ],
+          "export_formats": [
+            "html"
+          ]
+        },
+        "lesson_plan": null,
+        "artifact_types": [],
+        "theme": "default",
+        "quality_scores": null,
+        "quality_passed": false,
+        "teacher_approved": false,
+        "revision_count": 0,
+        "revision_feedback": null,
+        "export_formats": [
+          "html"
+        ],
+        "tokens_used": 0,
+        "cost_usd": 0.0,
+        "created_at": "2026-06-28 17:42:51.837081",
+        "updated_at": "2026-06-28 17:42:51.845189",
+        "deleted_at": null,
+        "deleted_by": null,
+        "retention_days": null
+      }
+    ],
+    "contract": [
+      {
+        "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+        "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+        "teacher_id": "u-001",
+        "contract_json": {
+          "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+          "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+          "teacher_id": "u-001",
+          "mode": "generate_pack",
+          "topic": "Ph\u00e2n s\u1ed1",
+          "grade_band": "Grade 5",
+          "subject": "math",
+          "locale": "vi-VN",
+          "instruction_language": "vi",
+          "curriculum": null,
+          "citation_locale": "vi-VN",
+          "artifact_types": [
+            "lesson"
+          ],
+          "export_formats": [
+            "html"
+          ],
+          "research_policy": "standard",
+          "config_version": "teaching-packs-contract-setup@1",
+          "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+          "student_evidence": null,
+          "revision_meta": {
+            "revision": 1,
+            "actor": "system",
+            "source": "request",
+            "reason": "initial_contract_setup",
+            "effective_stage": "setup_contract"
+          }
+        },
+        "current_revision": 2,
+        "created_at": "2026-06-28 17:42:51.839173+00:00",
+        "updated_at": "2026-06-28 17:42:51.951122+00:00"
+      }
+    ],
+    "gates": [
+      {
+        "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+        "gate_name": "contract_confirmation",
+        "status": "responded",
+        "payload": {
+          "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+          "inferred_fields": [
+            {
+              "field": "curriculum",
+              "value": "BGD\u0110T Vi\u1ec7t Nam",
+              "reason": "locale_default"
+            }
+          ],
+          "contract": {
+            "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "mode": "generate_pack",
+            "topic": "Ph\u00e2n s\u1ed1",
+            "grade_band": "Grade 5",
+            "subject": "math",
+            "locale": "vi-VN",
+            "instruction_language": "vi",
+            "curriculum": "BGD\u0110T Vi\u1ec7t Nam",
+            "citation_locale": "vi-VN",
+            "artifact_types": [
+              "lesson"
+            ],
+            "export_formats": [
+              "html"
+            ],
+            "research_policy": "standard",
+            "config_version": "teaching-packs-contract-setup@1",
+            "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+            "student_evidence": null,
+            "revision_meta": {
+              "revision": 1,
+              "actor": "system",
+              "source": "request",
+              "reason": "initial_contract_setup",
+              "effective_stage": "setup_contract"
+            }
+          }
+        },
+        "created_at": "2026-06-28 17:42:51.842282+00:00"
+      },
+      {
+        "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+        "gate_name": "search_plan_confirmation",
+        "status": "responded",
+        "payload": {
+          "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+          "gate_name": "search_plan_confirmation",
+          "confirmation_reasons": [
+            "ambiguous_curriculum"
+          ],
+          "queries": [
+            {
+              "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+              "purpose": "misconceptions"
+            },
+            {
+              "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+              "purpose": "intervention"
+            }
+          ],
+          "brief": {
+            "topic": "Ph\u00e2n s\u1ed1",
+            "subject": "math",
+            "risk_level": "medium",
+            "query_count": 2,
+            "confirmation_reasons": [
+              "ambiguous_curriculum"
+            ]
+          }
+        },
+        "created_at": "2026-06-28 17:42:51.955552+00:00"
+      }
+    ],
+    "responses": [
+      {
+        "response_id": "response-6eadaba1-4e1f-4bcd-8f59-9f178221bb90",
+        "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+        "response_json": {
+          "action": "edit",
+          "edits": {
+            "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "mode": "generate_pack",
+            "topic": "Ph\u00e2n s\u1ed1",
+            "grade_band": "Grade 5",
+            "subject": "math",
+            "locale": "vi-VN",
+            "instruction_language": "vi",
+            "curriculum": null,
+            "citation_locale": "vi-VN",
+            "artifact_types": [
+              "lesson"
+            ],
+            "export_formats": [
+              "html"
+            ],
+            "research_policy": "standard",
+            "config_version": "teaching-packs-contract-setup@1",
+            "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+            "student_evidence": null,
+            "revision_meta": {
+              "revision": 1,
+              "actor": "system",
+              "source": "request",
+              "reason": "initial_contract_setup",
+              "effective_stage": "setup_contract"
+            }
+          }
+        },
+        "created_at": "2026-06-28 17:42:51.943956+00:00"
+      },
+      {
+        "response_id": "response-eb47349b-5913-4730-a290-a791c102b99b",
+        "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+        "response_json": {
+          "action": "approve",
+          "approved_queries": [
+            {
+              "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+              "purpose": "misconceptions"
+            },
+            {
+              "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+              "purpose": "intervention"
+            }
+          ]
+        },
+        "created_at": "2026-06-28 17:42:51.974227+00:00"
+      }
+    ],
+    "jobs": [
+      {
+        "job_id": "job-67703899-981b-440d-af53-491d432d599f",
+        "kind": "start",
+        "status": "cancelled",
+        "attempts": 0,
+        "payload": {
+          "source": "http_create",
+          "request_hash": "578349b9d8d747cf3c37c33795db406d6278f99e088d9ab374ba65c1f7ed3780",
+          "blocked_by_gate": "contract_confirmation"
+        },
+        "created_at": "2026-06-28 17:42:51.852511+00:00"
+      },
+      {
+        "job_id": "job-7d33a596-31a4-4049-9501-294a4558c826",
+        "kind": "start",
+        "status": "pending",
+        "attempts": 0,
+        "payload": {
+          "response_id": "response-eb47349b-5913-4730-a290-a791c102b99b",
+          "request_hash": "b615ee12e6a32dcdbc355badbb1b668007425c2347c63306f4d49fe7e53cbdc7",
+          "resume_payload": {
+            "action": "approve",
+            "approved_queries": [
+              {
+                "query": "Ph\u00e2n s\u1ed1 grade Grade 5 math misconceptions",
+                "purpose": "misconceptions"
+              },
+              {
+                "query": "Ph\u00e2n s\u1ed1  teaching intervention",
+                "purpose": "intervention"
+              }
+            ]
+          },
+          "contract": {
+            "contract_id": "contract-0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "run_id": "0582f23d-61c6-4b3a-8f3c-b18d893242b0",
+            "teacher_id": "u-001",
+            "mode": "generate_pack",
+            "topic": "Ph\u00e2n s\u1ed1",
+            "grade_band": "Grade 5",
+            "subject": "math",
+            "locale": "vi-VN",
+            "instruction_language": "vi",
+            "curriculum": null,
+            "citation_locale": "vi-VN",
+            "artifact_types": [
+              "lesson"
+            ],
+            "export_formats": [
+              "html"
+            ],
+            "research_policy": "standard",
+            "config_version": "teaching-packs-contract-setup@1",
+            "config_hash": "088f899531cadfd7dfd46e734bfa6a3ea10a475b1b416b47d071c73100442155",
+            "student_evidence": null,
+            "revision_meta": {
+              "revision": 1,
+              "actor": "system",
+              "source": "request",
+              "reason": "initial_contract_setup",
+              "effective_stage": "setup_contract"
+            }
+          }
+        },
+        "created_at": "2026-06-28 17:42:51.975914+00:00"
+      }
+    ],
+    "events": [
+      {
+        "sequence": 1,
+        "event_name": "teaching_pack.status.changed",
+        "visibility": "TEACHER",
+        "payload": {
+          "status": "awaiting_approval",
+          "stage": "setup_contract",
+          "reason": "contract_confirmation"
+        },
+        "created_at": "2026-06-28 17:42:51.846768"
+      },
+      {
+        "sequence": 2,
+        "event_name": "teaching_pack.contract_confirmation.opened",
+        "visibility": "TEACHER",
+        "payload": {
+          "gate_id": "gate-23bba8d2-f74b-4f76-b182-358d6d2684a4",
+          "gate_name": "contract_confirmation"
+        },
+        "created_at": "2026-06-28 17:42:51.848316"
+      },
+      {
+        "sequence": 3,
+        "event_name": "teaching_pack.search_plan_confirmation.opened",
+        "visibility": "TEACHER",
+        "payload": {
+          "gate_id": "gate-4c3924c6-ee65-493a-807f-683d4d085497",
+          "query_count": 2
+        },
+        "created_at": "2026-06-28 17:42:51.959302"
+      }
+    ]
+  },
+  "assertions": {
+    "contract_gate_reached": true,
+    "contract_edit_accepted": true,
+    "search_plan_gate_reached": true,
+    "search_plan_gate_payload_has_queries": true,
+    "search_plan_gate_payload_has_reasons": true,
+    "search_plan_event_emitted": true,
+    "search_plan_resume_accepted": true,
+    "start_job_created_after_search_approval": true
+  },
+  "passed": true
+}

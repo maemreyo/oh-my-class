@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { TeachingPackGateShell } from "@/components/teaching-packs-gate-shell";
 import { TeachingPackStageProgress } from "@/components/teaching-packs-stage-progress";
-import { useRun } from "@/hooks/use-run";
-import { useTeachingPackStatus } from "@/hooks/use-teaching-packs";
+import { useTeachingPackRun, useTeachingPackStatus } from "@/hooks/use-teaching-packs";
 import type { TeachingPackEventPayload, TeachingPackStatusEvent } from "@/hooks/use-teaching-packs";
 
 export default function RunDetailPage() {
 	const params = useParams();
 	const runId = params.runId as string;
 
-	const { data: run, error, isLoading } = useRun(runId);
+	const { data: run, error, isLoading } = useQuery(useTeachingPackRun(runId));
 	const { subscribe } = useTeachingPackStatus(runId);
 	const [teachingPackEvents, setTeachingPackEvents] = useState<TeachingPackStatusEvent[]>([]);
 	const [activeGate, setActiveGate] = useState<TeachingPackEventPayload | null>(null);
@@ -81,14 +81,6 @@ export default function RunDetailPage() {
 				</div>
 			</section>
 
-			{run?.state && (
-				<section aria-labelledby="teaching-packs-state-title" className="rounded-lg border border-border bg-card p-4">
-					<h2 id="teaching-packs-state-title" className="text-lg font-semibold">Persisted state</h2>
-					<pre className="mt-3 overflow-auto rounded-md bg-muted p-4 text-sm">
-						{JSON.stringify(run.state, null, 2)}
-					</pre>
-				</section>
-			)}
 		</div>
 	);
 }

@@ -24,10 +24,26 @@ from services.gateway.routers.teaching_pack_schemas import (
     TeachingPackCancelResponse,
     TeachingPackDeleteResponse,
     TeachingPackRestoreResponse,
+    TeachingPackRunStatusResponse,
 )
 from services.gateway.soft_delete import restore_run, soft_delete_run
 
 lifecycle_router = APIRouter()
+
+
+@lifecycle_router.get("/run/{run_id}", response_model=TeachingPackRunStatusResponse)
+@lifecycle_router.get("/runs/{run_id}", response_model=TeachingPackRunStatusResponse)
+async def get_teaching_pack_run(
+    run_id: str,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> TeachingPackRunStatusResponse:
+    run = await _get_run_with_ownership(run_id, current_user, session)
+    return TeachingPackRunStatusResponse(
+        run_id=run.run_id,
+        status=run.status,
+        raw_request=run.raw_request,
+    )
 
 
 @lifecycle_router.post("/run/{run_id}/cancel", response_model=TeachingPackCancelResponse)

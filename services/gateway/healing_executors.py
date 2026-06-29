@@ -61,6 +61,8 @@ def heal_artifact(
         case (
             HealingStrategy.PRESENTATION_REPAIR
             | HealingStrategy.REGENERATE_ARTIFACT
+            | HealingStrategy.RESEARCH_ENRICHMENT
+            | HealingStrategy.REPLAN_BLUEPRINT
             | HealingStrategy.ESCALATE
         ):
             raise UnrepairableArtifactError(failure_class)

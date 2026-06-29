@@ -7,12 +7,17 @@ from uuid import uuid4
 
 import anyio
 import pytest
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from starlette.testclient import TestClient
 
-from services.gateway.auth.dependencies import get_current_user, require_teacher
+from services.gateway.auth.dependencies import (
+    get_current_user,
+    get_current_user_for_status_stream,
+    require_teacher,
+)
+from services.gateway.auth.jwt_handler import create_access_token
 from services.gateway.auth.models import Role, User
 from services.gateway.auth.ownership import check_run_owner
 from services.gateway.models import Base, Run
@@ -76,6 +81,7 @@ def owner_client() -> Iterator[TestClient]:
     app = _build_app()
     app.dependency_overrides[require_teacher] = lambda: OWNER_USER
     app.dependency_overrides[get_current_user] = lambda: OWNER_USER
+    app.dependency_overrides[get_current_user_for_status_stream] = lambda: OWNER_USER
     with TestClient(app) as c:
         yield c
 
@@ -86,6 +92,7 @@ def other_teacher_client() -> Iterator[TestClient]:
     app = _build_app()
     app.dependency_overrides[require_teacher] = lambda: OTHER_TEACHER
     app.dependency_overrides[get_current_user] = lambda: OTHER_TEACHER
+    app.dependency_overrides[get_current_user_for_status_stream] = lambda: OTHER_TEACHER
     with TestClient(app) as c:
         yield c
 
@@ -96,6 +103,7 @@ def system_admin_client() -> Iterator[TestClient]:
     app = _build_app()
     app.dependency_overrides[require_teacher] = lambda: SYSTEM_ADMIN_USER
     app.dependency_overrides[get_current_user] = lambda: SYSTEM_ADMIN_USER
+    app.dependency_overrides[get_current_user_for_status_stream] = lambda: SYSTEM_ADMIN_USER
     with TestClient(app) as c:
         yield c
 
@@ -106,6 +114,7 @@ def school_admin_client() -> Iterator[TestClient]:
     app = _build_app()
     app.dependency_overrides[require_teacher] = lambda: SCHOOL_ADMIN_SAME_ORG
     app.dependency_overrides[get_current_user] = lambda: SCHOOL_ADMIN_SAME_ORG
+    app.dependency_overrides[get_current_user_for_status_stream] = lambda: SCHOOL_ADMIN_SAME_ORG
     with TestClient(app) as c:
         yield c
 
@@ -116,6 +125,7 @@ def legacy_admin_client() -> Iterator[TestClient]:
     app = _build_app()
     app.dependency_overrides[require_teacher] = lambda: LEGACY_ADMIN_USER
     app.dependency_overrides[get_current_user] = lambda: LEGACY_ADMIN_USER
+    app.dependency_overrides[get_current_user_for_status_stream] = lambda: LEGACY_ADMIN_USER
     with TestClient(app) as c:
         yield c
 
@@ -130,6 +140,35 @@ def unauthenticated_client() -> Iterator[TestClient]:
 
 
 class TestUnauthenticatedAccess:
+    def test_default_auth_dependency_rejects_cookie_token(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("JWT_SECRET", "test-secret-minimum-32-characters")
+        token = create_access_token(OWNER_USER).access_token
+        app = FastAPI()
+
+        @app.get("/protected")
+        async def protected_route(_user: User = Depends(get_current_user)) -> dict[str, str]:
+            return {"status": "accepted"}
+
+        with TestClient(app) as test_client:
+            test_client.cookies.set("auth-token", token)
+            response = test_client.get("/protected")
+
+        assert response.status_code == 401
+
+    def test_create_run_rejects_cookie_token(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("JWT_SECRET", "test-secret-minimum-32-characters")
+        token = create_access_token(OWNER_USER).access_token
+        app = _build_app()
+
+        with TestClient(app, raise_server_exceptions=False) as test_client:
+            test_client.cookies.set("auth-token", token)
+            response = test_client.post(
+                "/teaching-packs/run",
+                json={"raw_request": "Fractions", "class_info": {}},
+            )
+
+        assert response.status_code in (401, 403)
+
     def test_create_run_requires_auth(
         self, unauthenticated_client: TestClient,
     ) -> None:

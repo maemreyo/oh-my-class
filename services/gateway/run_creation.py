@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from services.gateway.models import RunStatus
+from services.gateway.notifications import notify_contract_confirmation, notify_gate_required
 from services.gateway.teaching_pack_control_store import (
     GateInterruptCreate,
     TeachingPackControlStore,
@@ -164,6 +165,12 @@ async def _create_gated_run(
         visibility=TeachingPackEventVisibility.TEACHER,
         payload={"gate_id": gate_id, "gate_name": gate_name},
     ))
+    run = await run_store.get_run_by_id(run_id)
+    if run is not None:
+        if gate_name == "contract_confirmation":
+            await notify_contract_confirmation(run_id, run.teacher_id, session)
+        else:
+            await notify_gate_required(run_id, run.teacher_id, gate_name, session)
     if idempotency_key is not None:
         job_store = TeachingPackJobStore(session)
         await job_store.enqueue(RunJobCreate(
