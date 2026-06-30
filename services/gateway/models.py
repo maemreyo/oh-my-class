@@ -16,9 +16,12 @@ from sqlalchemy import (
     DateTime,
     Enum,
     Float,
+    ForeignKey,
+    Index,
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -50,6 +53,12 @@ class RunStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class UnitRole(StrEnum):
+    STANDALONE = "standalone"
+    UNIT_PARENT = "unit_parent"
+    UNIT_SESSION = "unit_session"
+
+
 class User(Base):
     """Teacher or admin user."""
     __tablename__ = "users"
@@ -66,7 +75,11 @@ class User(Base):
 class Run(Base):
     """A teaching pack generation run."""
     __tablename__ = "runs"
-    __table_args__ = {"schema": "public"}
+    __table_args__ = (
+        UniqueConstraint("parent_run_id", "session_id", name="uq_runs_parent_session"),
+        Index("ix_runs_parent_run_id", "parent_run_id"),
+        {"schema": "public"},
+    )
 
     run_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -94,6 +107,19 @@ class Run(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deleted_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
     retention_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    parent_run_id: Mapped[str | None] = mapped_column(
+        String(64), ForeignKey("public.runs.run_id", ondelete="CASCADE"), nullable=True,
+    )
+    session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    session_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    unit_role: Mapped[UnitRole] = mapped_column(
+        Enum(UnitRole, native_enum=False, values_callable=lambda enum: [role.value for role in enum]),
+        nullable=False,
+        default=UnitRole.STANDALONE,
+    )
+    lesson_sequence: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    shared_research: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    persona_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
 
 class Artifact(Base):

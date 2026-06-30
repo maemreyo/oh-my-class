@@ -3,6 +3,7 @@ from __future__ import annotations
 from uuid import uuid4
 
 from services.gateway.models import RunStatus
+from services.gateway.outcome_delivery import OutcomeDeliverySink, OutcomeDeliveryWriteError
 from services.gateway.teaching_pack_export_writer import (
     FileSystemTeachingPackExportWriter,
     RendererAdapterSnapshotRenderer,
@@ -28,6 +29,7 @@ class TeachingPackCompletionRecorder:
         renderer: TeachingPackSnapshotRenderer | None = None,
         export_writer: TeachingPackExportWriter | None = None,
         notifications: TeachingPackNotificationSink | None = None,
+        outcome_delivery: OutcomeDeliverySink | None = None,
     ) -> None:
         self._store = store
         self._renderer = renderer or RendererAdapterSnapshotRenderer()
@@ -35,6 +37,7 @@ class TeachingPackCompletionRecorder:
             renderer=self._renderer,
         )
         self._notifications = notifications
+        self._outcome_delivery = outcome_delivery
 
     async def persist_completion(self, run_id: RunId, state: JsonObject) -> None:
         gate_payload = _content_gate_payload(state)
@@ -70,6 +73,20 @@ class TeachingPackCompletionRecorder:
             ))
             if self._notifications is not None and run is not None:
                 await self._notifications.notify_completed(run_id, run.teacher_id)
+            if self._outcome_delivery is not None and run is not None:
+                try:
+                    await self._outcome_delivery.record_post_export_delivery(
+                        run_id,
+                        run.teacher_id,
+                        state,
+                    )
+                except OutcomeDeliveryWriteError:
+                    await self._store.write_event(TeachingPackEventCreate(
+                        run_id=run_id,
+                        event_name="teaching_pack.outcome_delivery.failed",
+                        visibility=TeachingPackEventVisibility.INTERNAL,
+                        payload={"reason": "outcome_delivery_write_failed"},
+                    ))
             return
         await self._store.transition_status(TeachingPackStatusTransition(
             run_id=run_id,

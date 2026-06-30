@@ -10,6 +10,7 @@ class TeachingPackStage(StrEnum):
     """Stable stage identifiers for Teaching Pack."""
 
     SETUP_CONTRACT = "setup_contract"
+    TRIAGE = "triage"
     PREPLANNING_SEARCH = "preplanning_search"
     PLANNING_BLUEPRINT = "planning_blueprint"
     POST_BLUEPRINT_RESEARCH = "post_blueprint_research"
@@ -31,6 +32,7 @@ class TeachingPackStage(StrEnum):
 
 TEACHING_PACK_STAGES: Final[tuple[TeachingPackStage, ...]] = (
     TeachingPackStage.SETUP_CONTRACT,
+    TeachingPackStage.TRIAGE,
     TeachingPackStage.PREPLANNING_SEARCH,
     TeachingPackStage.PLANNING_BLUEPRINT,
     TeachingPackStage.POST_BLUEPRINT_RESEARCH,
@@ -45,6 +47,8 @@ def _event_name(stage: TeachingPackStage, suffix: str) -> str:
     match stage:
         case TeachingPackStage.SETUP_CONTRACT:
             value = "setup_contract"
+        case TeachingPackStage.TRIAGE:
+            value = "triage"
         case TeachingPackStage.PREPLANNING_SEARCH:
             value = "preplanning_search"
         case TeachingPackStage.PLANNING_BLUEPRINT:

@@ -17,7 +17,8 @@ from services.gateway.teaching_pack_snapshot_store import (
     TeachingPackSnapshotStore,
 )
 from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
-from services.gateway.teaching_pack_types import JsonObject, JsonValue, RunId, TeacherId
+from services.gateway.teaching_pack_types import JsonObject, JsonValue, RunId
+from services.gateway.routers.teaching_pack_deps import get_run_with_ownership
 from services.gateway.routers.teaching_pack_preview_schemas import (
     RenderedSnapshotMetadataResponse,
     SnapshotApprovalRequest,
@@ -126,14 +127,7 @@ async def approve_rendered_snapshots(
 
 
 async def _require_run_access(session: AsyncSession, run_id: RunId, user: User) -> RunStatus:
-    if user.role is Role.ADMIN:
-        run = await TeachingPackRunStore(session).get_run_by_id(run_id)
-        if run is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run_not_found")
-        return run.status
-    run = await TeachingPackRunStore(session).get_run(run_id, TeacherId(user.user_id))
-    if run is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run_not_found")
+    run = await get_run_with_ownership(run_id, user, session)
     return run.status
 
 

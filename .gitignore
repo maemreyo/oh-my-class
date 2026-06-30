@@ -44,3 +44,4 @@ omc_checkpoints.db
 **/tsconfig.tsbuildinfo
 .omo/ralph-loop.local.md
 .playwright-mcp/
+.omo/ulw-research/

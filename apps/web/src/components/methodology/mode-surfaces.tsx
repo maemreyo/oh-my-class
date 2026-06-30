@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { MethodologyDetailPanels, type MethodologyInspectorDetails } from "./detail-panels";
 import { METHODOLOGY_MODES, combinedPreviewMetadata, conflictRationale, modeByTag, type MethodologyTag } from "./mode-registry";
@@ -24,12 +23,12 @@ export function MethodologyModePicker({
 	selectedTag,
 	disabledTags = [],
 	selectedTags,
-	onSelect,
+	onSelectAction,
 }: {
 	selectedTag: MethodologyTag;
 	selectedTags?: readonly string[];
 	disabledTags?: readonly string[];
-	onSelect?: (tag: MethodologyTag) => void;
+	onSelectAction?: (tag: MethodologyTag) => void;
 }) {
 	const activeTags = selectedTags ?? [selectedTag];
 	const previewMetadata = combinedPreviewMetadata(activeTags);
@@ -41,21 +40,21 @@ export function MethodologyModePicker({
 					const conflict = activeTags.map((tag) => conflictRationale(tag, mode.tag)).find((rationale) => rationale !== null);
 					const disabled = disabledTags.includes(mode.tag) || Boolean(conflict);
 					const selected = activeTags.includes(mode.tag);
-					return (
-						<button
-							key={mode.tag}
-							type="button"
-							disabled={disabled}
-							aria-pressed={selected}
-							onClick={() => onSelect?.(mode.tag)}
-							className="rounded-lg border border-border bg-card p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 data-[selected=true]:border-primary data-[selected=true]:bg-primary/10"
-							data-selected={selected}
-						>
-							<span className="block text-sm font-semibold">{mode.label}</span>
-							<span className="mt-1 block text-sm text-muted-foreground">{mode.description}</span>
-							{conflict ? <span className="mt-2 block text-xs text-destructive">{conflict}</span> : null}
-						</button>
-					);
+						return (
+							<button
+								key={mode.tag}
+								type="button"
+								disabled={disabled}
+								aria-pressed={selected}
+								onClick={() => onSelectAction?.(mode.tag)}
+								className="rounded-lg border border-border bg-card p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 data-[selected=true]:border-primary data-[selected=true]:bg-primary/10"
+								data-selected={selected}
+							>
+								<span className="block text-sm font-semibold">{mode.label}</span>
+								<span className="mt-1 block text-sm text-foreground/80">{mode.description}</span>
+								{conflict ? <span className="mt-2 block text-xs text-destructive">{conflict}</span> : null}
+							</button>
+						);
 				})}
 			</div>
 		</section>

@@ -54,7 +54,7 @@ VALID_ARTIFACT: dict[str, object] = {
 
 
 def _config(command: list[str], *, timeout: float = 5.0) -> RendererConfig:
-    return RendererConfig(command=tuple(command), timeout_seconds=timeout)
+    return RendererConfig(command=tuple(command), timeout_seconds=timeout, backend="subprocess")
 
 
 # ── Test: success ────────────────────────────────────────────────────────────

@@ -1,8 +1,8 @@
 """Middleware base class for the oh-my-class agent pipeline.
 
 Every middleware implements the BaseMiddleware interface and operates as a
-single-concern layer in the chain. Middleware order is fixed (1–23);
-Clarification middleware MUST always be last (order=24).
+single-concern layer in the chain. Middleware order is fixed (1–30);
+Clarification middleware MUST always be last (order=31).
 """
 
 from __future__ import annotations
@@ -28,11 +28,11 @@ class MiddlewareContext:
 class BaseMiddleware(ABC):
     """Abstract base class for all pipeline middleware.
 
-    Each middleware must have a unique `order` value (1–23).
-    The Clarification middleware (order=24) MUST always be last.
+    Each middleware must have a unique `order` value (1–30).
+    The Clarification middleware (order=31) MUST always be last.
 
-    INVARIANT-08: Clarification middleware is always the last in the chain (order=24).
-    All other middleware order values must be 1–23.
+    INVARIANT-08: Clarification middleware is always the last in the chain (order=31).
+    All other middleware order values must be 1–30.
     """
 
     name: str

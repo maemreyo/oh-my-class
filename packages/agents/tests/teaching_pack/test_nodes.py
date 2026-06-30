@@ -5,11 +5,36 @@ import pytest
 from packages.agents.teaching_pack.nodes import (
     TeachingPackState,
     _export_finalize,
+    make_stage_node,
     route_after_teacher_approval,
 )
+from packages.agents.teaching_pack.stages import TeachingPackStage
 
 
 class TestTeachingPackPlanningResearch:
+    @pytest.mark.anyio
+    async def test_completed_stage_is_skipped_when_reclaimed(self, monkeypatch) -> None:
+        calls = []
+
+        async def fake_planner_node(state):
+            calls.append(state)
+            return {"lesson_plan": {"topic": "Should not run"}}
+
+        monkeypatch.setattr(
+            "packages.agents.sub_agents.planner.nodes.planner_node",
+            fake_planner_node,
+        )
+        stage_node = make_stage_node(TeachingPackStage.PLANNING_BLUEPRINT)
+
+        result = await stage_node(TeachingPackState(
+            run_id="run-reclaim",
+            completed_stages=["planning_blueprint"],
+            lesson_plan={"topic": "Already done"},
+        ))
+
+        assert calls == []
+        assert result.get("lesson_plan") == {"topic": "Already done"}
+
     @pytest.mark.anyio
     async def test_planning_blueprint_delegates_to_planner_node(self, monkeypatch) -> None:
         from packages.agents.teaching_pack import nodes
@@ -23,7 +48,9 @@ class TestTeachingPackPlanningResearch:
                     "topic": "Fractions",
                     "grade_level": "Grade 5",
                     "subject": "math",
-                    "learning_objectives": [],
+                    "learning_objectives": [
+                        {"description": "Identify equivalent fractions", "bloom_level": "understand"},
+                    ],
                 },
             }
 

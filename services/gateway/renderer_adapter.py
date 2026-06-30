@@ -1,67 +1,15 @@
-"""Gateway adapter that invokes the TypeScript Eta renderer over stdin/stdout.
-
-The adapter spawns the renderer as a subprocess, pipes artifact-content JSON
-to stdin, and reads rendered HTML from stdout.  It enforces a process contract:
-
-- **exit 0 + stdout HTML** → success (``str`` returned)
-- **non-zero exit / timeout / invalid output** → ``RendererAdapterError``
-
-The adapter does **not** duplicate Eta rendering in Python; it delegates
-entirely to the compiled TypeScript renderer.
-"""
+"""Gateway adapter that invokes the TypeScript Eta renderer over stdin/stdout."""
 from __future__ import annotations
 
 import asyncio
 import json
 import re
-from dataclasses import dataclass
 from typing import Any
 
-from services.gateway.exceptions import ErrorCode, OMCError
+from services.gateway.renderer_models import RendererAdapterError, RendererConfig
+from services.gateway.renderer_pool import pool_for
 
 # ── Config ───────────────────────────────────────────────────────────────────
-
-DEFAULT_COMMAND: tuple[str, ...] = (
-    "node",
-    "packages/renderer/dist/agent-renderer.js",
-)
-DEFAULT_TIMEOUT_SECONDS: float = 30.0
-
-
-@dataclass(frozen=True, slots=True)
-class RendererConfig:
-    """Configuration for the renderer subprocess.
-
-    Attributes:
-        command: Executable + args to spawn the TS renderer.
-        timeout_seconds: Max wall-clock seconds before the subprocess is killed.
-    """
-
-    command: tuple[str, ...] = DEFAULT_COMMAND
-    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
-
-
-# ── Errors ───────────────────────────────────────────────────────────────────
-
-class RendererAdapterError(OMCError):
-    """Raised when the renderer subprocess fails or produces invalid output."""
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        exit_code: int | None = None,
-        stderr: str | None = None,
-    ) -> None:
-        super().__init__(
-            error_code=ErrorCode.PIPELINE_ERROR,
-            message=message,
-        )
-        self.exit_code = exit_code
-        self.stderr = stderr
-
-
-# ── Standalone-HTML gate (defense-in-depth) ──────────────────────────────────
 
 _CSS_EXTERNAL_PATTERN = re.compile(
     r"(?:@import\s+url\(|url\()\s*['\"]?(?:https?://|//)",
@@ -93,6 +41,18 @@ def _validate_standalone_html(rendered_html: str) -> str | None:
     return None
 
 
+def validate_rendered_html(stdout_text: str, exit_code: int | None) -> str:
+    if not stdout_text.strip():
+        raise RendererAdapterError("Renderer subprocess produced invalid output (empty)", exit_code=exit_code)
+    validation_failure = _validate_standalone_html(stdout_text)
+    if validation_failure is not None:
+        raise RendererAdapterError(
+            f"Renderer produced invalid output: {validation_failure}",
+            exit_code=exit_code,
+        )
+    return stdout_text
+
+
 # ── Adapter entry point ──────────────────────────────────────────────────────
 
 async def render_artifact_content(
@@ -116,6 +76,9 @@ async def render_artifact_content(
         RendererAdapterError: On subprocess failure, timeout, or invalid output.
     """
     cfg = config or RendererConfig()
+    if cfg.backend == "pool":
+        return await pool_for(cfg).render(artifact_content)
+
     json_bytes = json.dumps(artifact_content, ensure_ascii=False).encode("utf-8")
 
     try:
@@ -153,17 +116,4 @@ async def render_artifact_content(
             stderr=stderr_text or None,
         )
 
-    if not stdout_text.strip():
-        raise RendererAdapterError(
-            "Renderer subprocess produced invalid output (empty)",
-            exit_code=exit_code,
-        )
-
-    validation_failure = _validate_standalone_html(stdout_text)
-    if validation_failure is not None:
-        raise RendererAdapterError(
-            f"Renderer produced invalid output: {validation_failure}",
-            exit_code=exit_code,
-        )
-
-    return stdout_text
+    return validate_rendered_html(stdout_text, exit_code)

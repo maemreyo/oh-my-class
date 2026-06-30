@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
 from services.gateway.auth.dependencies import require_teacher
-from services.gateway.auth.models import Role, User  # noqa: TC001
+from services.gateway.auth.models import User  # noqa: TC001
 from services.gateway.models import RunStatus
 from services.gateway.teaching_pack_control_store import TeachingPackControlStore
 from services.gateway.teaching_pack_job_store import TeachingPackJobStore
@@ -19,8 +19,12 @@ from services.gateway.teaching_pack_store import (
     TeachingPackRunStore,
     TeachingPackStatusTransition,
 )
-from services.gateway.teaching_pack_types import RunId, TeacherId
-from services.gateway.routers.teaching_pack_deps import TEACHING_PACK_SESSION, _get_run_with_ownership
+from services.gateway.teaching_pack_types import RunId
+from services.gateway.routers.teaching_pack_deps import (
+    TEACHING_PACK_SESSION,
+    get_deleted_run_with_ownership,
+    get_run_with_ownership,
+)
 from services.gateway.routers.teaching_pack_schemas import (
     TeachingPackCancelResponse,
     TeachingPackDeleteResponse,
@@ -39,7 +43,7 @@ async def get_teaching_pack_run(
     current_user: Annotated[User, Depends(require_teacher)],
     session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> TeachingPackRunStatusResponse:
-    run = await _get_run_with_ownership(run_id, current_user, session)
+    run = await get_run_with_ownership(run_id, current_user, session)
     return TeachingPackRunStatusResponse(
         run_id=run.run_id,
         status=run.status,
@@ -54,7 +58,7 @@ async def cancel_teaching_pack_run(
     current_user: Annotated[User, Depends(require_teacher)],
     session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> TeachingPackCancelResponse:
-    await _get_run_with_ownership(run_id, current_user, session)
+    await get_run_with_ownership(run_id, current_user, session)
     typed_run_id = RunId(run_id)
     run_store = TeachingPackRunStore(session)
 
@@ -108,7 +112,7 @@ async def delete_teaching_pack_run(
 ) -> TeachingPackDeleteResponse:
     """Soft-delete a run.  The run is hidden from normal queries but
     retained for the configured retention period before hard purge."""
-    await _get_run_with_ownership(run_id, current_user, session)
+    await get_run_with_ownership(run_id, current_user, session)
     await soft_delete_run(run_id, current_user.user_id, session)
     await session.commit()
     return TeachingPackDeleteResponse(run_id=run_id, deleted=True)
@@ -130,14 +134,7 @@ async def restore_teaching_pack_run(
     session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> TeachingPackRestoreResponse:
     """Restore a soft-deleted run, making it visible again."""
-    typed_run_id = RunId(run_id)
-    store = TeachingPackRunStore(session)
-    if current_user.role == Role.SYSTEM_ADMIN:
-        run = await store.get_run_by_id(typed_run_id)
-    else:
-        run = await store.get_run(typed_run_id, TeacherId(current_user.user_id))
-    if run is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run_not_found")
+    await get_deleted_run_with_ownership(run_id, current_user, session)
     await restore_run(run_id, current_user.user_id, session)
     await session.commit()
     return TeachingPackRestoreResponse(run_id=run_id, restored=True)

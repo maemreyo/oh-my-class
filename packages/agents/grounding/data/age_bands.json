@@ -1,0 +1,32 @@
+[
+  {
+    "stage": "primary",
+    "grade_min": 1,
+    "grade_max": 5,
+    "attention_minutes_min": 15,
+    "attention_minutes_max": 20,
+    "session_minutes_min": 35,
+    "session_minutes_max": 45,
+    "session_minutes_default": 40
+  },
+  {
+    "stage": "lower_secondary",
+    "grade_min": 6,
+    "grade_max": 9,
+    "attention_minutes_min": 20,
+    "attention_minutes_max": 25,
+    "session_minutes_min": 45,
+    "session_minutes_max": 45,
+    "session_minutes_default": 45
+  },
+  {
+    "stage": "upper_secondary",
+    "grade_min": 10,
+    "grade_max": 12,
+    "attention_minutes_min": 25,
+    "attention_minutes_max": 35,
+    "session_minutes_min": 45,
+    "session_minutes_max": 45,
+    "session_minutes_default": 45
+  }
+]

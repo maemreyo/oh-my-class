@@ -15,6 +15,7 @@ dependencies = [
     "asyncpg>=0.31.0",
     "sqlalchemy[asyncio]>=2.0.51",
     "litellm>=1.89.4",
+    "deepeval>=2.0.0",
 ]
 
 [tool.uv.workspace]
@@ -42,6 +43,7 @@ pythonpath = ["."]
 addopts = ["--import-mode=importlib"]
 markers = [
     "property: adversarial property-style checks for hard invariants",
+    "real_llm: live 9Router-backed LLM tests excluded from per-commit fast tier",
 ]
 
 [tool.ruff]

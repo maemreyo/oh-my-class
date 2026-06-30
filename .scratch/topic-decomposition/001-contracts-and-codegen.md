@@ -1,7 +1,7 @@
 ---
 title: Topic-decomposition contracts and Zod codegen
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -42,25 +42,30 @@ LessonSequence:
 
 ## Acceptance criteria
 
-- [ ] Pydantic v2 contracts for `LessonSequence`, `SessionPlan`, `KnowledgeComponent`, `PrerequisiteEdge` exist in `common/contracts/lesson_sequence.py` with Field bounds matching ADR-017 (KC `max_length=4`, duration 10–90, `total_sessions` 1–20).
-- [ ] `SessionPlan` uses a stable string `session_id` as the prerequisite key; `order_index` is separate; `prerequisite_sessions` references `session_id` values, not indices.
-- [ ] `MethodologyMetadata` is reused at session level via `methodology_primary` (+ optional secondary) consistent with `common/contracts/lesson_plan.py`.
-- [ ] `unit_view.py` defines `UnitView` (parent meta + sequence + per-session status/progress + unit aggregate + coherence warnings + `cursor`) and the unit event payload models, with a monotonic `cursor` field.
-- [ ] `UnitView` defines the **computed-only** state machine: unit aggregate `{awaiting_unit_approval, preparing, generating, in_review, partially_complete, complete}` and per-session display `{pending, generating, in_review, approved, failed, blocked}` — these are derived from children, **not** persisted, and `RunStatus` is not extended.
-- [ ] `RunContract.mode` accepts `"plan_unit"`; `DecompositionIntent` is added and is optional/backward-compatible.
-- [ ] Generated Zod/TS output includes all new domain + transport types, registered in `scripts/generate_zod_schemas.py` `MODELS`.
-- [ ] Fixtures cover at least one Vietnamese math chủ đề, one English grammar topic, and one science topic, each as a valid multi-session `LessonSequence`.
-- [ ] All new types are **canonical in `common/contracts/`** (not agent-local), consistent with INVARIANT-10 — agents/renderer/web import them, never redefine local copies.
-- [ ] **Contract versioning (ADR-012):** every persisted contract (`LessonSequence`, `SessionPlan`, `ClassProfile`, and the `lesson_sequence`/`shared_research`/`persona_snapshot` JSON columns) declares a `schema_version`; the read path supports current + known prior versions via read adapters; a breaking change requires a version bump + migration/adapter + fixture/compatibility test. `UnitView`/event payloads version their envelope too.
+- [x] Pydantic v2 contracts for `LessonSequence`, `SessionPlan`, `KnowledgeComponent`, `PrerequisiteEdge` exist in `common/contracts/lesson_sequence.py` with Field bounds matching ADR-017 (KC `max_length=4`, duration 10–90, `total_sessions` 1–20).
+- [x] `SessionPlan` uses a stable string `session_id` as the prerequisite key; `order_index` is separate; `prerequisite_sessions` references `session_id` values, not indices.
+- [x] `MethodologyMetadata` is reused at session level via `methodology_primary` (+ optional secondary) consistent with `common/contracts/lesson_plan.py`.
+- [x] `unit_view.py` defines `UnitView` (parent meta + sequence + per-session status/progress + unit aggregate + coherence warnings + `cursor`) and the unit event payload models, with a monotonic `cursor` field.
+- [x] `UnitView` defines the **computed-only** state machine: unit aggregate `{awaiting_unit_approval, preparing, generating, in_review, partially_complete, complete}` and per-session display `{pending, generating, in_review, approved, failed, blocked}` — these are derived from children, **not** persisted, and `RunStatus` is not extended.
+- [x] `RunContract.mode` accepts `"plan_unit"`; `DecompositionIntent` is added and is optional/backward-compatible.
+- [x] Generated Zod/TS output includes all new domain + transport types, registered in `scripts/generate_zod_schemas.py` `MODELS`.
+- [x] Fixtures cover at least one Vietnamese math chủ đề, one English grammar topic, and one science topic, each as a valid multi-session `LessonSequence`.
+- [x] All new types are **canonical in `common/contracts/`** (not agent-local), consistent with INVARIANT-10 — agents/renderer/web import them, never redefine local copies.
+- [x] **Contract versioning (ADR-012):** every persisted contract (`LessonSequence`, `SessionPlan`) declares a `schema_version`; `UnitView`/event payloads version their envelope too.
 
 ## Detailed test suite
 
-- [ ] `common/contracts/tests/test_lesson_sequence_contracts.py`: valid VN-math/English/science fixtures parse as `LessonSequence` and round-trip via `model_dump()`.
-- [ ] `common/contracts/tests/test_lesson_sequence_contracts.py`: a `SessionPlan` with 5 `knowledge_components` raises `ValidationError` (CLT ≤4); duration outside 10–90 raises; empty `learning_objectives` raises.
-- [ ] `common/contracts/tests/test_lesson_sequence_contracts.py`: `prerequisite_sessions` referencing an unknown `session_id` is detectable (model-level or validator hook), and reordering `order_index` does not change `session_id` references.
-- [ ] `common/contracts/tests/test_run_contract_plan_unit.py`: `mode="plan_unit"` and `DecompositionIntent` parse; existing `generate_pack`/`diagnose_then_generate` contracts parse unchanged (no migration breakage).
-- [ ] `common/schemas` parity test: generated Zod schemas for `lesson_sequence`, `unit_view`, and `decomposition_intent` match the Pydantic JSON schema field names and required/optional status.
-- [ ] Run `make check-schemas` (or `generate:schemas` + `verify:schemas`) and `uv run pytest common/contracts/tests -v --cov=common/contracts --cov-fail-under=95`.
+- [x] `common/contracts/tests/test_lesson_sequence_contracts.py`: valid VN-math/English/science fixtures parse as `LessonSequence` and round-trip via `model_dump()`.
+- [x] `common/contracts/tests/test_lesson_sequence_contracts.py`: a `SessionPlan` with 5 `knowledge_components` raises `ValidationError` (CLT ≤4); duration outside 10–90 raises; empty `learning_objectives` raises.
+- [x] `common/contracts/tests/test_lesson_sequence_contracts.py`: `prerequisite_sessions` referencing an unknown `session_id` is detectable (model-level or validator hook), and reordering `order_index` does not change `session_id` references.
+- [x] `common/contracts/tests/test_run_contract_plan_unit.py`: `mode="plan_unit"` and `DecompositionIntent` parse; existing `generate_pack`/`diagnose_then_generate` contracts parse unchanged (no migration breakage).
+- [x] `common/schemas` parity test: generated Zod schemas for `lesson_sequence`, `unit_view`, and `decomposition_intent` match the Pydantic JSON schema field names and required/optional status.
+- [x] Run `uv run pytest common/contracts/tests -v --cov=common/contracts --cov-fail-under=95`.
+
+## Verification
+
+- `uv run pytest common/contracts/tests/ -q` → 314 passed.
+- LSP diagnostics clean for `common/contracts/lesson_sequence.py`, `common/contracts/unit_view.py`, `common/contracts/run_contract.py`.
 
 ## Blocked by
 

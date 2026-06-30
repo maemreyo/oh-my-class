@@ -15,7 +15,7 @@ from services.gateway.teaching_pack_event_bus import current_run_event_version, 
 from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_store import TeachingPackRunStore
 from services.gateway.teaching_pack_types import RunId
-from services.gateway.routers.teaching_pack_deps import TEACHING_PACK_SESSION, _get_run_with_ownership
+from services.gateway.routers.teaching_pack_deps import TEACHING_PACK_SESSION, get_run_with_ownership
 from services.gateway.routers.teaching_pack_helpers import format_event_stream
 
 stream_router = APIRouter()
@@ -62,7 +62,7 @@ async def stream_teaching_pack_status(
     last_event_id_query: Annotated[str | None, Query(alias="last_event_id")] = None,
     replay_only: bool = False,
 ) -> StreamingResponse:
-    await _get_run_with_ownership(run_id, current_user, session)
+    await get_run_with_ownership(run_id, current_user, session)
     typed_run_id = RunId(run_id)
     store = TeachingPackRunStore(session)
 

@@ -15,6 +15,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
+from packages.quality.layer3_html.accessibility_validator import AccessibilityValidator
+
 # Patterns that indicate external assets (CRITICAL violations)
 EXTERNAL_ASSET_PATTERNS: list[str] = [
     r'href="https?://',
@@ -33,6 +35,12 @@ HARD_BLOCKS: list[str] = [
     "native_radio_inputs",
     "unmanaged_js_runtime",
     "missing_brand_string",
+    "contrast_below_aa",
+    "missing_alt_text",
+    "broken_heading_order",
+    "missing_form_label",
+    "missing_lang",
+    "missing_long_description",
 ]
 
 
@@ -98,10 +106,14 @@ class HTMLValidator:
         if answer_issues:
             hard_blocks.append("answer_key_leakage")
 
+        accessibility = AccessibilityValidator().validate(html)
+        hard_blocks.extend(accessibility.violations)
+
         return HTMLValidationResult(
             passed=len(hard_blocks) == 0,
             hard_block_violations=hard_blocks,
             warnings=warnings,
+            details={"accessibility": accessibility.violations},
         )
 
     def check_doctype(self, html: str) -> bool:

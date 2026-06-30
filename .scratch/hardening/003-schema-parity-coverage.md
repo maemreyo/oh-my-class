@@ -1,6 +1,6 @@
 ---
 title: Systemic schema-parity coverage for cross-boundary types
-status: ready-for-agent
+status: done
 labels: [ready-for-agent]
 created: 2026-06-30
 ---
@@ -15,18 +15,18 @@ Eliminate BE↔FE type drift across the whole surface. Domain contracts are code
 
 ## Acceptance criteria
 
-- [ ] An inventory exists; every cross-boundary type is either codegen-registered or has a documented exception.
-- [ ] `verify_schema_parity` + `verify_frontend_api_contracts` fail the build on any registered-model drift and run on contract changes.
-- [ ] A test asserts that boundary-referenced `common/contracts` models are present in the codegen `MODELS` registry.
-- [ ] Hand-written transport/event DTOs are migrated to generated types or explicitly justified.
+- [x] An inventory exists; every cross-boundary type is either codegen-registered or has a documented exception.
+- [x] `verify_schema_parity` + `verify_frontend_api_contracts` fail the build on any registered-model drift and run on contract changes.
+- [x] A test asserts that boundary-referenced `common/contracts` models are present in the codegen `MODELS` registry.
+- [x] Hand-written transport/event DTOs are migrated to generated types or explicitly justified.
 
 ## Detailed test suite
 
-- [ ] `common/schemas` parity: every registered model's generated Zod matches its Pydantic JSON schema (names + required/optional).
-- [ ] `scripts/verify_frontend_api_contracts.py` passes for all API endpoints, including units.
-- [ ] `tests/test_boundary_types_registered.py`: a model used in an API/event surface but missing from the codegen registry fails the test.
-- [ ] Drift sentinel: an intentional field rename in a Pydantic contract without regen fails parity.
-- [ ] Run `make check-schemas` (or `generate:schemas` + `verify:schemas` + `verify:frontend-api`).
+- [x] `common/schemas` parity: every registered model's generated Zod matches its Pydantic JSON schema (names + required/optional).
+- [x] `scripts/verify_frontend_api_contracts.py` passes for all API endpoints, including units.
+- [x] `tests/test_boundary_types_registered.py`: a model used in an API/event surface but missing from the codegen registry fails the test.
+- [x] Drift sentinel: an intentional field rename in a Pydantic contract without regen fails parity.
+- [x] Run `make check-schemas` (or `generate:schemas` + `verify:schemas` + `verify:frontend-api`).
 
 ## Blocked by
 

@@ -1029,8 +1029,8 @@ INVARIANT-06  Teacher Gate CANNOT be bypassed or self-approved by any agent.
 INVARIANT-07  All LLM calls MUST include metadata.tags with agent and run_id.
               Required for cost attribution.
 
-INVARIANT-08  Clarification middleware is always the last in the chain (order=24).
-              All other middleware order values must be 1–23.
+INVARIANT-08  Clarification middleware is always the last in the chain (order=31).
+              All other middleware order values must be 1–30.
 
 INVARIANT-09  theme.json is the single source of truth for all brand tokens.
               theme_*.css files are auto-generated — never edit them manually.

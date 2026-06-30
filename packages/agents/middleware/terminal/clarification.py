@@ -1,6 +1,6 @@
 """Clarification middleware — last-in-chain gate for ambiguous requests.
 
-INVARIANT-08: This middleware MUST always be last (order=30).
+INVARIANT-08: This middleware MUST always be last (order=31).
 """
 
 from __future__ import annotations
@@ -16,11 +16,11 @@ if TYPE_CHECKING:
 class ClarificationMiddleware(BaseMiddleware):
     """Flags when clarification is needed before proceeding.
 
-    INVARIANT-08: Clarification middleware is always the last in the chain (order=30).
+    INVARIANT-08: Clarification middleware is always the last in the chain (order=31).
     """
 
     name: str = "clarification"
-    order: int = 30
+    order: int = 31
 
     async def before_model(
         self,
@@ -34,6 +34,6 @@ class ClarificationMiddleware(BaseMiddleware):
     async def after_model(
         self,
         state: OhMyClassState,
-        context: MiddlewareContext,
+        _context: MiddlewareContext,
     ) -> OhMyClassState:
         return state

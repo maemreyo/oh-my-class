@@ -6,7 +6,7 @@ from packages.quality.layer3_html.html_validator import HTMLValidationResult, HT
 from packages.quality.layer3_html.responsive_check import ResponsiveCheckResult, check_responsive
 
 VALID_HTML = """<!DOCTYPE html>
-<html>
+<html lang="en">
 <head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body>oh-my-class content here</body>
 </html>"""

@@ -140,6 +140,14 @@ setup_contract → preplanning_search → planning_blueprint → post_blueprint_
 ### Sub-agents (6) — `packages/agents/sub_agents/`
 `planner`, `researcher`, `content_creator`, `reviewer`, `diagnostician`, `roadmap_agent`. All invoked as **direct node functions** (`await x_node(state)`) — there are no per-agent StateGraph wrappers in the runtime. `diagnostician`/`roadmap_agent` exist but are **not stages** in the 8-stage graph (no diagnostic/roadmap stage wired).
 
+### Agent-interaction substrate (as-built constraints)
+The agents are **imperative calls inside stage nodes**, not graph nodes themselves — so the planned interaction work is shaped by what the runtime does/doesn't use today:
+- ⚪ `Command(goto=…)`, `Send(…)`, and `BaseStore`/`PostgresStore` (long-term store) are **not used anywhere** in the runtime. Routing is entirely `add_conditional_edges` returning node-name strings (`route_after_render_quality`, `route_after_teacher_approval`).
+- 🟡 The live `TeachingPackState` has **no `Annotated[…, reducer]` channels**; artifact merging is **imperative** (`_merge_regenerated_artifacts` in `nodes.py`, arrival-order). The only reducers (`merge_artifacts`, `merge_exported_files`) live on the **unused legacy** `OhMyClassState`.
+- ⚪ **No cross-run memory** (research-cache, ClassKG, KT-mastery, etc.) exists yet — only function-level `@lru_cache` over embedded JSON in `grounding/retrieval.py`.
+- Inter-agent handoff carries the **full** `lesson_plan`/`research_bundle` in state; `summarizers.py` truncation is **prompt-side inside `content_creator`**, not a lossy graph handoff.
+> These constraints (and the planned subsystem that builds on them) are tracked in `.scratch/agent-interaction/` (stage = agent graph-identity; typed seam contracts; BaseStore substrate; state-flag/conditional-edge revision protocol; `Send` sub-agent fan-out). **Planned, not built.**
+
 ### Lead agent
 `packages/agents/lead_agent/` is a separate `create_react_agent` (tool-using) runtime, **not** the teaching-pack pipeline. The 30-middleware chain (`middleware/registry.py`, `ORDERED_MIDDLEWARE_LIST`) is associated with it and is ⚪ **not wired into the teaching-pack graph**.
 
@@ -273,7 +281,7 @@ INVARIANT-04 no external URLs in HTML (post-render guard) · INVARIANT-05 answer
 
 **By design for solo-operator (not defects):** 9Router on host (not containerized) · single in-process worker · LiteLLM optional/prod-only.
 
-**Planned, not built (in `.scratch/`, not in code):** topic-decomposition / multi-session units (ADR-017), learning-outcome effectiveness loop / knowledge-tracing (ADR-019), and the runtime-parity items that close the cliffs above (ADR-018: wire 6-layer, wire export formats, etc.). See `.scratch/ROADMAP.md`.
+**Planned, not built (in `.scratch/`, not in code):** topic-decomposition / multi-session units (ADR-017), learning-outcome effectiveness loop / knowledge-tracing (ADR-019), the runtime-parity items that close the cliffs above (ADR-018: wire 6-layer, wire export formats, etc.), and the **agent-interaction subsystem** (`.scratch/agent-interaction/`: order-stable reducer, typed seam contracts, BaseStore memory substrate + semantic index, bounded revision protocol, interaction observability, `Send` parallel fan-out — all native LangGraph, deterministic). See `.scratch/ROADMAP.md`.
 
 > **Discrepancy to flag:** `.scratch/ROADMAP.md` marks the `runtime-parity` epic "DONE", but this audit shows legacy decommission ✅ landed while the **6-layer quality injection, multi-format export, and pedagogical de-stub did NOT** — the live quality bar is still the thin path. Treat the cliffs in §6/§8 as open.
 

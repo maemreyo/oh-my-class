@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NotRequired, TypedDict, assert_never
+from typing import TYPE_CHECKING, Annotated, NotRequired, TypedDict, assert_never
 
 from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeState
 from packages.agents.sub_agents.planner.state import PlannerNodeState
@@ -9,6 +9,7 @@ from packages.agents.sub_agents.researcher.state import ResearcherNodeState
 from packages.agents.teaching_pack.artifacts import normalize_generated_artifacts
 from packages.agents.teaching_pack.exporters import ExportRequest, ExporterRegistry, requested_export_formats
 from packages.agents.teaching_pack.quality_runtime import render_quality
+from packages.agents.teaching_pack.reducers import stable_merge_artifacts
 from packages.agents.teaching_pack.scoped_regeneration import (
     merge_regenerated_artifacts,
     rejected_artifact_types,
@@ -31,7 +32,11 @@ class TeachingPackState(TypedDict):
     research_brief: NotRequired[JsonObject]
     lesson_plan: NotRequired[JsonObject]
     artifact_types: NotRequired[list[str]]
+    # Sequential pipeline writes complete list; no reducer (replace semantics).
     artifacts: NotRequired[list[JsonObject]]
+    # Parallel fan-out accumulator (004b): each Send branch writes its chunk here.
+    # stable_merge_artifacts guarantees deterministic merge under any arrival order.
+    artifact_chunks: NotRequired[Annotated[list[JsonObject], stable_merge_artifacts]]
     rendered_snapshots: NotRequired[list[JsonObject]]
     quality_scores: NotRequired[JsonObject]
     quality_issues: NotRequired[list[str]]
@@ -47,9 +52,13 @@ class TeachingPackState(TypedDict):
 
 def make_stage_node(stage: TeachingPackStage, quality_gate: QualityGate | None = None):
     async def stage_node(state: TeachingPackState) -> TeachingPackState:
+        if stage.value in state.get("completed_stages", []):
+            return state
         match stage.value:
             case "setup_contract":
                 update = _setup_contract(state)
+            case "triage":
+                update = await _triage(state)
             case "preplanning_search":
                 update = _preplanning_search(state)
             case "planning_blueprint":
@@ -82,6 +91,11 @@ def _setup_contract(state: TeachingPackState) -> TeachingPackState:
     }
 
 
+async def _triage(state: TeachingPackState) -> dict:
+    from packages.agents.teaching_pack.triage import run_triage
+    return await run_triage(state)
+
+
 def _preplanning_search(state: TeachingPackState) -> TeachingPackState:
     contract = state.get("contract", {})
     return {
@@ -103,6 +117,7 @@ def _preplanning_search(state: TeachingPackState) -> TeachingPackState:
 async def _planning_blueprint(state: TeachingPackState) -> TeachingPackState:
     contract = state.get("contract", {})
     from packages.agents.sub_agents.planner.nodes import planner_node
+    from common.contracts.seam_contracts import PlannerHandoff
 
     planner_state: PlannerNodeState = {
         "raw_request": _string_field(contract, "raw_request", _topic(contract)),
@@ -112,12 +127,15 @@ async def _planning_blueprint(state: TeachingPackState) -> TeachingPackState:
         "lesson_plan": None,
     }
     result = await planner_node(planner_state)
-    return {"run_id": state["run_id"], "lesson_plan": _json_object(result.get("lesson_plan"))}
+    lesson_plan = _json_object(result.get("lesson_plan"))
+    PlannerHandoff(lesson_plan=lesson_plan)  # fail-closed seam contract
+    return {"run_id": state["run_id"], "lesson_plan": lesson_plan}
 
 
 async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackState:
     contract = state.get("contract", {})
     from packages.agents.sub_agents.researcher.nodes import researcher_node
+    from common.contracts.seam_contracts import ResearcherHandoff
 
     researcher_state: ResearcherNodeState = {
         "lesson_plan": state.get("lesson_plan", {}),
@@ -127,12 +145,15 @@ async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackStat
         "research_bundle": state.get("research_brief", {}),
     }
     result = await researcher_node(researcher_state)
-    return {"run_id": state["run_id"], "research_brief": _json_object(result.get("research_bundle"))}
+    research_brief = _json_object(result.get("research_bundle"))
+    ResearcherHandoff(lesson_plan=state.get("lesson_plan", {}), research_brief=research_brief)
+    return {"run_id": state["run_id"], "research_brief": research_brief}
 
 
 async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
     contract = state.get("contract", {})
     from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+    from common.contracts.seam_contracts import ArtifactWorkflowHandoff
 
     artifact_types = _artifact_types_for_generation(state, contract)
     creator_state: ContentCreatorNodeState = {
@@ -148,6 +169,7 @@ async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
     result = await content_creator_node(creator_state)
     generated = normalize_generated_artifacts(result.get("artifacts", []), artifact_types)
     artifacts = _merge_regenerated_artifacts(state, generated)
+    ArtifactWorkflowHandoff(artifacts=artifacts)  # fail-closed seam contract
     return {"run_id": state["run_id"], "artifacts": artifacts}
 
 

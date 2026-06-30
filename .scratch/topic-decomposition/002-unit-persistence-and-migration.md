@@ -1,7 +1,7 @@
 ---
 title: Unit persistence — runs table extension and store methods
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: [done]
 created: 2026-06-30
 ---
 
@@ -25,22 +25,22 @@ This slice provides the schema, Alembic migration, and store/query methods only.
 
 ## Acceptance criteria
 
-- [ ] `services/gateway/models.py` `Run` gains the columns above; `unit_role` defaults to `"standalone"` so existing rows are valid.
-- [ ] An Alembic migration adds the columns as nullable with safe defaults and is reversible; `make migrate` applies cleanly to a real database.
-- [ ] Store methods exist to: create a child run linked to a parent; list children by `parent_run_id` (indexed); read the parent's `lesson_sequence`; compute unit aggregate status from children (no materialized unit-status column).
-- [ ] A DB index exists on `parent_run_id`, and a **unique constraint `(parent_run_id, session_id)`** (one child run per session per unit — the orchestrator idempotency guard, issue 010).
-- [ ] Unit/session lifecycle states (`blocked`, `partially_complete`, `complete`, per-session display) are **computed** from children in the read model — `RunStatus` is **not** extended (no enum migration, no new transitions).
-- [ ] Single-lesson runs continue to persist and read unchanged (`unit_role="standalone"`, all new columns null).
+- [x] `services/gateway/models.py` `Run` gains the columns above; `unit_role` defaults to `"standalone"` so existing rows are valid.
+- [x] An Alembic migration adds the columns as nullable with safe defaults and is reversible; migration applies cleanly to a real database.
+- [x] Store methods exist to: create a child run linked to a parent; list children by `parent_run_id` (indexed); read the parent's `lesson_sequence`; compute unit aggregate status from children (no materialized unit-status column).
+- [x] A DB index exists on `parent_run_id`, and a **unique constraint `(parent_run_id, session_id)`** (one child run per session per unit — the orchestrator idempotency guard, issue 010).
+- [x] Unit/session lifecycle states (`blocked`, `partially_complete`, `complete`, per-session display) are **computed** from children in the read model — `RunStatus` is **not** extended (no enum migration, no new transitions).
+- [x] Single-lesson runs continue to persist and read unchanged (`unit_role="standalone"`, all new columns null).
 
 ## Detailed test suite
 
 (Use a real test database — `make migrate` then exercise the real store; no DB mocks per project testing policy.)
 
-- [ ] `services/gateway/tests/test_unit_persistence.py`: create a `unit_parent` + 3 `unit_session` children; list-children-by-parent returns exactly the 3, ordered by `session_index`.
-- [ ] `services/gateway/tests/test_unit_persistence.py`: computed unit status over children states (e.g. 1 approved / 1 generating / 1 failed) returns the expected aggregate counts and `partially_complete`/`complete` resolution.
-- [ ] `services/gateway/tests/test_unit_persistence.py`: a standalone run round-trips with all new columns null and `unit_role="standalone"`.
-- [ ] Migration test: apply then downgrade the migration on a real DB; schema returns to baseline and existing run rows survive upgrade.
-- [ ] Run `make migrate` and `uv run pytest services/gateway/tests/test_unit_persistence.py -v`.
+- [x] `services/gateway/tests/test_unit_persistence.py`: create a `unit_parent` + 3 `unit_session` children; list-children-by-parent returns exactly the 3, ordered by `session_index`.
+- [x] `services/gateway/tests/test_unit_persistence.py`: computed unit status over children states (e.g. 1 complete / 1 generating / 1 failed) returns the expected aggregate counts and `partially_complete`/`complete` resolution.
+- [x] `services/gateway/tests/test_unit_persistence.py`: a standalone run round-trips with all new columns null and `unit_role="standalone"`.
+- [x] Migration test: apply then downgrade the migration on a real DB; schema returns to baseline and upgrade reapplies cleanly.
+- [x] Ran `uv run alembic upgrade head`, `uv run alembic downgrade 013_gate_active_unique && uv run alembic upgrade head`, and `uv run pytest services/gateway/tests/test_unit_persistence.py -q`.
 
 ## Blocked by
 

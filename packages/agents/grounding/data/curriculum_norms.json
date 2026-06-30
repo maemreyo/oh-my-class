@@ -1,0 +1,68 @@
+[
+  {
+    "curriculum": "GDPT-2018",
+    "locale": "vi-VN",
+    "subject": "toan",
+    "grade": 5,
+    "topics": ["phan so", "phân số"],
+    "lesson_count_min": 4,
+    "lesson_count_max": 6,
+    "session_minutes_min": 35,
+    "session_minutes_max": 45,
+    "session_minutes_default": 40,
+    "bloom_distribution": {
+      "remember": 0.4,
+      "understand": 0.3,
+      "apply": 0.2,
+      "analyze": 0.1
+    },
+    "assessment_distribution": {
+      "formative": 0.7,
+      "summative": 0.3
+    }
+  },
+  {
+    "curriculum": "GDPT-2018",
+    "locale": "vi-VN",
+    "subject": "toan",
+    "grade": 5,
+    "topics": ["so thap phan", "số thập phân"],
+    "lesson_count_min": 3,
+    "lesson_count_max": 5,
+    "session_minutes_min": 35,
+    "session_minutes_max": 45,
+    "session_minutes_default": 40,
+    "bloom_distribution": {
+      "remember": 0.4,
+      "understand": 0.3,
+      "apply": 0.2,
+      "analyze": 0.1
+    },
+    "assessment_distribution": {
+      "formative": 0.7,
+      "summative": 0.3
+    }
+  },
+  {
+    "curriculum": "GDPT-2018",
+    "locale": "vi-VN",
+    "subject": "toan",
+    "grade": 9,
+    "topics": ["ham so bac nhat", "hàm số bậc nhất"],
+    "lesson_count_min": 5,
+    "lesson_count_max": 7,
+    "session_minutes_min": 45,
+    "session_minutes_max": 45,
+    "session_minutes_default": 45,
+    "bloom_distribution": {
+      "remember": 0.35,
+      "understand": 0.3,
+      "apply": 0.25,
+      "analyze": 0.1
+    },
+    "assessment_distribution": {
+      "formative": 0.6,
+      "summative": 0.4
+    }
+  }
+]

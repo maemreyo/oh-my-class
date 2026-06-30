@@ -16,6 +16,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from packages.quality.layer4_judge.config import QUALITY_MODELS
+
 if TYPE_CHECKING:
     from common.contracts.judge_output import JudgeOutput
 
@@ -31,6 +33,7 @@ class GEvalConfig:
         "presentation": 0.30,
     })
     num_judges: int = 3
+    judge_model: str = QUALITY_MODELS.llm_judge
 
 
 class GEvalScorer:
@@ -94,7 +97,7 @@ Score each artifact across the 3 layers and provide overall assessment.
         for i in range(self.config.num_judges):
             try:
                 response = await litellm.acompletion(
-                    model="content-fusion",
+                    model=self.config.judge_model,
                     messages=messages,
                     temperature=0.3 + (i * 0.1),
                     extra_body={

@@ -7,12 +7,13 @@ from pydantic import BaseModel, Field
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
 
-PipelineMode = Literal["generate_pack", "diagnose_then_generate"]
+PipelineMode = Literal["generate_pack", "diagnose_then_generate", "plan_unit"]
 ArtifactType = Literal["lesson", "worksheet", "quiz", "drill", "recap", "infographic"]
 ExportFormat = Literal["html", "gift", "h5p", "qti", "google_forms"]
 ResearchPolicy = Literal["basic", "standard", "rigorous"]
 ContractActor = Literal["system", "teacher", "admin"]
 ContractSource = Literal["code_defaults", "policy", "env", "request", "teacher", "admin"]
+DecompositionIntentSource = Literal["teacher", "system", "admin"]
 
 
 class ContractRevisionMeta(BaseModel):
@@ -21,6 +22,14 @@ class ContractRevisionMeta(BaseModel):
     source: ContractSource
     reason: str = Field(min_length=1, max_length=200)
     effective_stage: str = Field(min_length=1, max_length=64)
+
+
+class DecompositionIntent(BaseModel):
+    schema_version: Literal["decomposition_intent.v1"] = "decomposition_intent.v1"
+    target_sessions: int = Field(ge=1, le=20)
+    session_length_minutes: int = Field(ge=10, le=90)
+    source: DecompositionIntentSource
+    rationale: str = Field(min_length=1, max_length=500)
 
 
 class RunContract(BaseModel):
@@ -41,6 +50,7 @@ class RunContract(BaseModel):
     config_version: str = Field(min_length=1, max_length=64)
     config_hash: str = Field(min_length=64, max_length=64)
     student_evidence: JsonObject | None = None
+    decomposition_intent: DecompositionIntent | None = None
     revision_meta: ContractRevisionMeta
 
 

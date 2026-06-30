@@ -61,6 +61,19 @@ class RecordingNotificationSink:
         self.failed.append((run_id, teacher_id, error_summary))
 
 
+@dataclass(slots=True)
+class RecordingOutcomeDeliverySink:
+    calls: list[tuple[RunId, str, JsonObject]] = field(default_factory=list)
+
+    async def record_post_export_delivery(
+        self,
+        run_id: RunId,
+        teacher_id: str,
+        state: JsonObject,
+    ) -> None:
+        self.calls.append((run_id, teacher_id, state))
+
+
 @dataclass(frozen=True, slots=True)
 class RecordingRenderer:
     rendered_html: str = "<!DOCTYPE html><html><body><main>renderer html</main></body></html>"
@@ -139,11 +152,13 @@ class TestTeachingPackCompletionRecorder:
         store = RecordingFailureStore()
         export_writer = RecordingExportWriter()
         notifications = RecordingNotificationSink()
+        outcome_delivery = RecordingOutcomeDeliverySink()
         recorder = TeachingPackCompletionRecorder(
             store,
             RecordingRenderer(),
             export_writer,
             notifications,
+            outcome_delivery,
         )
         state = {
             "run_id": "run-1",
@@ -160,6 +175,7 @@ class TestTeachingPackCompletionRecorder:
         assert export_writer.calls == [(RunId("run-1"), state)]
         assert store.events[-1].payload == {"exported_files": ["exports/run-1/snapshot-1.html"]}
         assert notifications.completed == [(RunId("run-1"), "teacher-1")]
+        assert outcome_delivery.calls == [(RunId("run-1"), "teacher-1", state)]
 
     @pytest.mark.anyio
     async def test_persists_render_quality_recovery_route(self) -> None:

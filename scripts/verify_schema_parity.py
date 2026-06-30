@@ -15,25 +15,10 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-# (pydantic_module, pydantic_model, zod_file_relative_to_root)
-CHECKS: list[tuple[str, str, str]] = [
-    (
-        "common.contracts.lesson_plan",
-        "LessonPlan",
-        "common/schemas/src/generated/lesson_plan.ts",
-    ),
-    (
-        "common.contracts.artifact",
-        "ArtifactContent",
-        "common/schemas/src/generated/artifact.ts",
-    ),
-    (
-        "common.contracts.judge_output",
-        "JudgeOutput",
-        "common/schemas/src/generated/judge_output.ts",
-    ),
-]
+from scripts.schema_codegen_config import MODELS
 
 FORBIDDEN_ZOD_PATTERNS: dict[str, tuple[str, ...]] = {
     "common/schemas/src/generated/lesson_plan.ts": (
@@ -85,6 +70,21 @@ def extract_zod_fields(zod_file: Path) -> set[str]:
     return fields
 
 
+def extract_zod_schema_fields(zod_file: Path, model_name: str) -> set[str]:
+    content = zod_file.read_text()
+    pattern = re.compile(
+        rf"export const {model_name}Schema\s*=\s*z\.object\(\{{(?P<body>.*?)\}}\)",
+        re.DOTALL,
+    )
+    match = pattern.search(content)
+    if match is None:
+        return set()
+    return {
+        field_match.group(1)
+        for field_match in re.finditer(r'"?(\w+)"?\s*:', match.group("body"))
+    }
+
+
 def schema_has_forbidden_patterns(zod_rel_path: str, zod_file: Path) -> bool:
     content = zod_file.read_text()
     failed = False
@@ -98,7 +98,9 @@ def schema_has_forbidden_patterns(zod_rel_path: str, zod_file: Path) -> bool:
 def main() -> int:
     all_ok = True
 
-    for module_path, model_name, zod_rel_path in CHECKS:
+    for module_path, config in MODELS.items():
+        model_name = config["main_model"]
+        zod_rel_path = config["output"]
         zod_path = PROJECT_ROOT / zod_rel_path
 
         pydantic_fields = extract_pydantic_fields(module_path, model_name)
@@ -108,7 +110,7 @@ def main() -> int:
             all_ok = False
             continue
 
-        zod_fields = extract_zod_fields(zod_path)
+        zod_fields = extract_zod_schema_fields(zod_path, model_name)
         if schema_has_forbidden_patterns(zod_rel_path, zod_path):
             all_ok = False
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderArtifact } from "../src/renderer.js";
 import type { ArtifactDataMap, ArtifactType } from "../src/contracts/index.js";
 
-const themes = ["default", "ocean", "forest"] as const;
+const themes = ["default", "ocean", "forest", "high-contrast-dyslexia"] as const;
 
 const standardArtifacts = {
 	lesson: {

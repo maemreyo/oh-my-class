@@ -1,7 +1,7 @@
 ---
 title: Curriculum grounding knowledge source and retrieval
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -18,20 +18,25 @@ Phase 1 uses structured retrieval only. Semantic retrieval over PPCT prose, if e
 
 ## Acceptance criteria
 
-- [ ] Reference data for VN GDPT-2018 norms (per report §3.2–§3.3) and age-band tables (§5.1) is stored as structured data files, not inline literals.
-- [ ] `retrieve_grounding(...)` returns matched norms and a `grounding_status` that is `ungrounded` when no curriculum match exists.
-- [ ] The function is pure and side-effect free (no LLM); it is reusable by `unit_planner` and the validator.
-- [ ] Adding a new subject/grade is a data change, not a code change.
+- [x] Reference data for VN GDPT-2018 norms (per report §3.2–§3.3) and age-band tables (§5.1) is stored as structured data files, not inline literals.
+- [x] `retrieve_grounding(...)` returns matched norms and a `grounding_status` that is `ungrounded` when no curriculum match exists.
+- [x] The function is pure and side-effect free (no LLM); it is reusable by `unit_planner` and the validator.
+- [x] Adding a new subject/grade is a data change, not a code change.
 
 ## Detailed test suite
 
 (Deterministic — no DB/LLM.)
 
-- [ ] `packages/agents/tests/test_grounding_retrieval.py`: `(Toán, Lớp 5, vi-VN)` returns the documented chủ đề/tiết ranges and `grounded`.
-- [ ] same file: an unknown subject/grade returns `ungrounded` with no fabricated norms.
-- [ ] same file: age-band lookup returns the correct attention/duration band per grade (§5.1).
-- [ ] same file: session-length defaults resolve to 45 min for THCS/THPT and 35–45 for primary per `Thông tư 32/2020`.
-- [ ] Run `uv run pytest packages/agents/tests/test_grounding_retrieval.py -v`.
+- [x] `packages/agents/tests/test_grounding_retrieval.py`: `(Toán, Lớp 5, vi-VN)` returns the documented chủ đề/tiết ranges and `grounded`.
+- [x] same file: an unknown subject/grade returns `ungrounded` with no fabricated norms.
+- [x] same file: age-band lookup returns the correct attention/duration band per grade (§5.1).
+- [x] same file: session-length defaults resolve to 45 min for THCS/THPT and 35–45 for primary per `Thông tư 32/2020`.
+- [x] Run `uv run pytest packages/agents/tests/test_grounding_retrieval.py -v`.
+
+## Verification
+
+- `uv run pytest packages/agents/tests/test_grounding_retrieval.py -q` → 4 passed.
+- LSP diagnostics clean for `packages/agents/grounding/retrieval.py`, `packages/agents/grounding/models.py`.
 
 ## Blocked by
 

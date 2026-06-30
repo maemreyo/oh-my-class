@@ -140,6 +140,51 @@ class TeachingPackJobStore:
         await self._session.flush()
         return True
 
+    async def requeue_with_backoff(
+        self,
+        job_id: str,
+        eligible_at: datetime,
+        reason: str = "provider_exhausted",
+    ) -> bool:
+        """Move a RUNNING job back to QUEUED with an eligible_at delay.
+
+        Returns True if the job was updated, False if not found or not RUNNING.
+        """
+        job = await self._get_job_for_update(job_id)
+        if job.status is not RunJobStatus.RUNNING:
+            return False
+        job.status = RunJobStatus.QUEUED
+        job.eligible_at = eligible_at
+        job.lease_owner = None
+        job.lease_expires_at = None
+        await self._session.flush()
+        return True
+
+    async def refresh_lease(
+        self,
+        job_id: str,
+        lease_owner: str,
+        lease_seconds: int,
+        now: datetime | None = None,
+    ) -> bool:
+        claim_time = now or datetime.now(UTC)
+        statement = (
+            select(RunJob)
+            .where(
+                RunJob.job_id == job_id,
+                RunJob.status == RunJobStatus.RUNNING,
+                RunJob.lease_owner == lease_owner,
+            )
+            .with_for_update()
+        )
+        result = await self._session.execute(statement)
+        job = result.scalar_one_or_none()
+        if job is None:
+            return False
+        job.lease_expires_at = claim_time + timedelta(seconds=lease_seconds)
+        await self._session.flush()
+        return True
+
     async def cancel_run_jobs(self, run_id: RunId) -> int:
         statement = (
             select(RunJob)

@@ -35,12 +35,12 @@ def make_state(**overrides: Any) -> OhMyClassState:
 
 
 class TestMiddlewareList:
-    def test_ordered_list_has_30_items(self):
-        assert len(ORDERED_MIDDLEWARE_LIST) == 30
+    def test_ordered_list_has_31_items(self):
+        assert len(ORDERED_MIDDLEWARE_LIST) == 31
 
     def test_order_is_correct(self):
         orders = [m.order for m in ORDERED_MIDDLEWARE_LIST]
-        assert orders == list(range(1, 31))
+        assert orders == list(range(1, 32))
 
     def test_all_items_are_classes(self):
         for m in ORDERED_MIDDLEWARE_LIST:

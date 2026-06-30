@@ -24,11 +24,20 @@ type LangGraphRunnableConfig = dict[str, dict[str, str]]
 def build_teaching_pack_graph(
     *,
     checkpointer=None,
+    store=None,
     quality_gate: QualityGate | None = None,
     interrupt_before: InterruptSpec = None,
     interrupt_after: InterruptSpec = None,
 ):
-    """Build the Teaching Pack stage graph without initializing external clients."""
+    """Build the Teaching Pack stage graph without initializing external clients.
+
+    Args:
+        checkpointer: LangGraph checkpointer for thread state (per-run).
+        store: LangGraph BaseStore for cross-run memory (agent-interaction/002a).
+            Pass a PostgresStore (production) or InMemoryStore (development).
+            Nodes that need cross-run memory declare `store: BaseStore` in signature.
+        quality_gate: Optional quality gate injected into the render_quality node.
+    """
     from langgraph.graph import END, StateGraph
 
     graph = StateGraph(TeachingPackState)
@@ -67,6 +76,7 @@ def build_teaching_pack_graph(
 
     return graph.compile(
         checkpointer=checkpointer,
+        store=store,
         interrupt_before=_normalize_interrupts(interrupt_before),
         interrupt_after=_normalize_interrupts(interrupt_after),
     )

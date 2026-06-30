@@ -17,8 +17,7 @@ def verify_telegram_signature(body: bytes, signature: str) -> bool:
     """
     secret = get_telegram_secret()
     if not secret:
-        # If no secret configured, skip verification (dev mode)
-        return True
+        return False
 
     expected = hmac.HMAC(
         secret.encode("utf-8"),

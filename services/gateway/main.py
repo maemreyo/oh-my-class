@@ -7,6 +7,8 @@ Port: 8001
 """
 
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
+import os
 from typing import TYPE_CHECKING
 
 import anyio
@@ -23,6 +25,7 @@ from .routers import (
     artifacts,
     auth_router,
     notifications,
+    ops,
     teaching_pack_previews,
     teaching_pack_runs,
     release_evidence,
@@ -30,9 +33,33 @@ from .routers import (
     snapshots,
     webhooks,
 )
+from .secrets_guard import validate_production_secrets
 
 if TYPE_CHECKING:
     from anyio.abc import TaskGroup
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+
+@dataclass(frozen=True, slots=True)
+class WorkerRuntimeConfig:
+    mode: str
+    concurrency: int
+
+
+MAX_WORKER_CONCURRENCY = 10
+
+
+def _worker_runtime_config() -> WorkerRuntimeConfig:
+    mode = os.getenv("WORKER_MODE", "in_process")
+    raw_concurrency = os.getenv("WORKER_CONCURRENCY", "1")
+    try:
+        concurrency = int(raw_concurrency)
+    except ValueError:
+        concurrency = 1
+    return WorkerRuntimeConfig(
+        mode=mode,
+        concurrency=min(max(concurrency, 1), MAX_WORKER_CONCURRENCY),
+    )
 
 
 async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
@@ -51,40 +78,44 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
         TeachingPackExecutor,
         TeachingPackFailureRecorder,
     )
+    from .outcome_delivery import SqlAlchemyOutcomeDeliverySink
     from .teaching_pack_completion import TeachingPackCompletionRecorder
     from .teaching_pack_executor_types import InAppTeachingPackNotificationSink
-    from .teaching_pack_job_store import TeachingPackJobStore
     from .teaching_pack_store import TeachingPackRunStore
-    from .teaching_pack_worker import TeachingPackWorker, TeachingPackWorkerConfig
+    from .teaching_pack_worker import TeachingPackWorkerConfig, run_worker_batch
+
+    def executor_factory(session: AsyncSession) -> TeachingPackExecutor:
+        run_store = TeachingPackRunStore(session)
+        notification_sink = InAppTeachingPackNotificationSink(session)
+        return TeachingPackExecutor(
+            app.state.teaching_pack_graph,
+            _AnyioTeachingPackTaskGroup(task_group),
+            TeachingPackFailureRecorder(run_store, notification_sink),
+            TeachingPackCompletionRecorder(
+                run_store,
+                notifications=notification_sink,
+                outcome_delivery=SqlAlchemyOutcomeDeliverySink(
+                    app.state.teaching_pack_session_factory,
+                ),
+            ),
+        )
+
+    runtime = _worker_runtime_config()
+    config = TeachingPackWorkerConfig(
+        worker_id="gateway-worker",
+        lease_seconds=120,
+        idle_sleep_seconds=1.0,
+        worker_concurrency=runtime.concurrency,
+    )
 
     while True:
-        async with app.state.teaching_pack_session_factory() as session:
-            run_store = TeachingPackRunStore(session)
-            executor = TeachingPackExecutor(
-                app.state.teaching_pack_graph,
-                _AnyioTeachingPackTaskGroup(task_group),
-                TeachingPackFailureRecorder(
-                    run_store,
-                    InAppTeachingPackNotificationSink(session),
-                ),
-                TeachingPackCompletionRecorder(
-                    run_store,
-                    notifications=InAppTeachingPackNotificationSink(session),
-                ),
-            )
-            worker = TeachingPackWorker(
-                TeachingPackJobStore(session),
-                executor,
-                TeachingPackWorkerConfig(
-                    worker_id="gateway-worker",
-                    lease_seconds=120,
-                    idle_sleep_seconds=1.0,
-                ),
-            )
-            did_work = await worker.run_one()
-            await session.commit()
-        if not did_work:
-            await anyio.sleep(1)
+        claimed = await run_worker_batch(
+            app.state.teaching_pack_session_factory,
+            executor_factory,
+            config,
+        )
+        if claimed == 0:
+            await anyio.sleep(config.idle_sleep_seconds)
 
 
 class _AnyioTeachingPackTaskGroup:
@@ -97,13 +128,19 @@ class _AnyioTeachingPackTaskGroup:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup/shutdown lifecycle — initialize checkpointer, graph, LLM clients."""
-    import os
+    """Startup/shutdown lifecycle — initialize checkpointer, store, graph, LLM clients."""
+    import contextlib
 
     configure_logging(log_level="INFO", json_output=True)
+    validate_production_secrets()
 
     from packages.agents.checkpointer import get_checkpointer
     from packages.agents.teaching_pack.graph import build_teaching_pack_graph
+    from packages.agents.teaching_pack.store import (
+        get_development_store,
+        open_teaching_pack_store,
+        sync_connection_string,
+    )
 
     environment = os.getenv("OMC_ENVIRONMENT", "development")
     database_url = os.getenv(
@@ -117,15 +154,30 @@ async def lifespan(app: FastAPI):
     )
     app.state.checkpointer = get_checkpointer(environment)
     app.state.runs = {}
-    app.state.teaching_pack_graph = build_teaching_pack_graph(checkpointer=app.state.checkpointer)
 
-    async with anyio.create_task_group() as task_group:
-        task_group.start_soon(_run_teaching_pack_sweeper, app)
-        task_group.start_soon(_run_teaching_pack_worker, app, task_group)
-        try:
-            yield
-        finally:
-            task_group.cancel_scope.cancel()
+    with contextlib.ExitStack() as stack:
+        if environment in ("staging", "production"):
+            store = stack.enter_context(
+                open_teaching_pack_store(sync_connection_string(database_url))
+            )
+        else:
+            store = get_development_store()
+
+        app.state.store = store
+        app.state.teaching_pack_graph = build_teaching_pack_graph(
+            checkpointer=app.state.checkpointer,
+            store=store,
+        )
+
+        async with anyio.create_task_group() as task_group:
+            task_group.start_soon(_run_teaching_pack_sweeper, app)
+            runtime = _worker_runtime_config()
+            if runtime.mode == "in_process":
+                task_group.start_soon(_run_teaching_pack_worker, app, task_group)
+            try:
+                yield
+            finally:
+                task_group.cancel_scope.cancel()
 
     await app.state.teaching_pack_engine.dispose()
     app.state.runs.clear()
@@ -163,6 +215,7 @@ app.include_router(teaching_pack_runs.router, prefix="/teaching-packs", tags=["t
 app.include_router(teaching_pack_previews.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+app.include_router(ops.router)
 app.include_router(release_evidence.router, prefix="/teaching-packs", tags=["release-evidence"])
 
 

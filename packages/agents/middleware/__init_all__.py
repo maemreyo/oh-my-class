@@ -3,7 +3,7 @@
 This file is kept for backward compatibility. The canonical source is now
 packages.agents.middleware.registry.
 
-INVARIANT-08: ClarificationMiddleware is always the last in the chain (order=30).
+INVARIANT-08: ClarificationMiddleware is always the last in the chain (order=31).
 """
 
 from __future__ import annotations

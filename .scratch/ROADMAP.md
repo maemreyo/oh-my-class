@@ -31,8 +31,8 @@ Index of everything produced this session: 3 ADRs + 12 epics (76 issues), with t
 → The not-done/partial items remain open; their concrete completion + the newly-found gaps are tracked in **`technical-debt/`** below. (The earlier "268 passed" run validated decommission, not the quality/export wiring — tests didn't assert `quality_gate` injection.)
 
 ### `topic-decomposition/` (21) — multi-session unit feature (ADR-017)
-- `001` Contracts + Zod codegen · `005` Curriculum grounding source *(no blockers)*
-- `002` Unit persistence + migration *(←001)* · `003` SequenceConsistencyValidator + networkx *(←001)* · `004` Triage stage + `plan_unit` mode *(←001)*
+- ✅ `001` Contracts + Zod codegen — **DONE 2026-06-30** · ✅ `005` Curriculum grounding source — **DONE 2026-06-30** *(no blockers)*
+- ✅ `002` Unit persistence + migration — **DONE 2026-06-30** *(←001)* · `003` SequenceConsistencyValidator + networkx *(←001)* · `004` Triage stage + `plan_unit` mode *(←001)*
 - `013` ClassProfile + persona *(←001,002)* · `006` `unit_planner` agent *(←001,003,005)*
 - `021` `sequence_critic` *(←006)* · `008` Constrained expand + drift guard *(←001,006)* · `007` Stage wiring + UNIT_APPROVAL *(←002,006)* · `014` Decomposition memory *(←006,007)*
 - `009` UnitContext (theme/research/persona) *(←007,008,013)* · `015` ClassKnowledgeGraph *(←003,006,013)* · `020` Legacy approvals compat *(←007)*
@@ -42,31 +42,31 @@ Index of everything produced this session: 3 ADRs + 12 epics (76 issues), with t
 - `019` Staged rollout + E2E *(←012,016,017,018,parity-001,parity-002)* — **release gate**
 
 ### `scaling-resilience/` (3) — throughput & reliability
-- `001` Worker pool + intra-worker concurrency + **lease-heartbeat** (fixes latent double-execution)
-- `002` Long-lived render worker pool + version pin + concurrency cap
+- ✅ `001` Worker pool + intra-worker concurrency + **lease-heartbeat** — **DONE 2026-06-30** (fixes latent double-execution)
+- ✅ `002` Long-lived render worker pool + version pin + concurrency cap — **DONE 2026-06-30**
 - `003` Provider-exhaustion requeue + budget degradation + circuit breaker *(←001)*
 
 ### `hardening/` (3) — security & contract DX *(all independent, start anytime)*
-- `001` Fail-closed production secrets validation
-- `002` Tenant-isolation audit + ownership-scoping enforcement
-- `003` Systemic schema-parity coverage for cross-boundary types
+- ✅ `001` Fail-closed production secrets validation — **DONE 2026-06-30**
+- ✅ `002` Tenant-isolation audit + ownership-scoping enforcement — **DONE 2026-06-30**
+- ✅ `003` Systemic schema-parity coverage for cross-boundary types — **DONE 2026-06-30**
 
 ### `ops-observability/` (5) — production operability
-- `001` App-level SLOs + alerting (reuse Langfuse + job-store; no new vendor)
-- `002` Disaster recovery — backup/restore + LangGraph checkpoint-recovery drill
+- ✅ `001` App-level SLOs + alerting — **DONE 2026-06-30** (reuse Langfuse + job-store; no new vendor)
+- ✅ `002` Disaster recovery — backup/restore + LangGraph checkpoint-recovery drill — **DONE 2026-06-30**
 - `003` Runbooks per failure mode *(←001)*
 - `004` Per-teacher rolling cost cap + transparency *(←scaling-003)*
-- `005` Webhook inbound security (mandatory signature + idempotent + rate-limit) + dispatch
+- ✅ `005` Webhook inbound security (mandatory signature + idempotent + rate-limit) + dispatch — **DONE 2026-06-30**
 
 ### `trust-lifecycle/` (4) — accessibility, model trust, teacher lifecycle, recall
-- `001` Accessibility WCAG 2.1 AA (axe-core; critical → hard-block; dyslexia/high-contrast theme)
+- ✅ `001` Accessibility WCAG 2.1 AA (axe-core; critical → hard-block; dyslexia/high-contrast theme) — **DONE 2026-06-30**
 - `002` Model pinning + drift detection + canary/rollback (extends ADR-013 to models) *(←testing-005)*
 - `003` Teacher content lifecycle — library + fork/re-edit + data portability *(←td-002)*
 - `004` Post-delivery content recall + incident *(←effectiveness-loop-001)*
 
 ### `effectiveness-loop/` (7) — does it actually teach? (ADR-019) *(after topic-decomp KC contracts + scaling-005)*
 - `001` Outcome data model + question `kc_ids` + privacy/consent foundation *(←td-001)*
-- `002` De-stub pedagogical metrics (real proxies / explicit `unmeasured`) *(no blockers — silent-pass fix, do early)*
+- ✅ `002` De-stub pedagogical metrics (real proxies / explicit `unmeasured`) — **DONE 2026-06-30** *(no blockers — silent-pass fix, do early)*
 - `003` Google Forms delivery + response capture (auto, no manual entry) *(←001, scaling-005)*
 - `004` pyBKT knowledge-tracing engine (cold-start, batch, degrade) *(←003)*
 - `005` Loop closure — mastery→planner + MoET sổ theo dõi export + dashboard *(←004)*
@@ -93,20 +93,25 @@ Index of everything produced this session: 3 ADRs + 12 epics (76 issues), with t
 
 > Cross-cutting principle for ALL agents: **divide-and-conquer — no single long master prompt.** Every agent decomposes into focused sub-steps (planner staged phases · content_creator outline→fill-per-section · researcher per-claim · reviewer per-dimension judges · diagnostician per-gap · roadmap per-milestone · unit_planner Curricular-CoT phases).
 
-### `agent-interaction/` (4) — how agents coordinate (native LangGraph)
-- `001` Shared in-run context (state-channels blackboard) + typed handoff contracts per seam (replace lossy summarizers) *(no blockers)*
-- `002` **BaseStore memory unification** — all cross-run memory (research-cache · seq-templates · ClassKG · KT-mastery · teacher-prefs · component-effectiveness) onto LangGraph `PostgresStore` (namespaces + TTL + semantic index) *(no blockers; supersedes the ad-hoc stores in td-014/015, effectiveness-004, agent-001/003/005)*
-- `003` Command-based upstream **revision protocol** (`Command(goto/update)` + RevisionRequest + bounded counter + escalate) *(←001)*
-- `004` Coordination + parallelism (`Send`) + order-stable reducers + interaction observability *(←003)*
+### `agent-interaction/` (7) — how agents coordinate (native LangGraph) — **reconciled with as-built audit + design grilling 2026-06-30**
+⚠️ As-built reality reshaped the original 4 issues: agents are **imperative calls inside stage nodes** (not graph nodes), and `Command`/`Send`/`BaseStore`/state-reducers are **not used anywhere** today. Decision: **stage = agent's graph identity** (no agent→node promotion); sub-agent parallelism deferred to when `agent-upgrades/003/004` decompose content_creator/reviewer into subgraphs.
+- ✅ `000` **Order-stable index-keyed reducer** — `stable_merge_artifacts` (sort by type+id; dedup by artifact_id); `artifact_chunks: Annotated[..., stable_merge_artifacts]` on `TeachingPackState` (parallel accumulator for 004b); scoped-regen sequential path untouched — **DONE 2026-06-30**
+- ✅ `001` **Typed seam-contract layer** — `PlannerHandoff` / `ResearcherHandoff` / `ArtifactWorkflowHandoff` in `common/contracts/seam_contracts.py`; called fail-closed in `_planning_blueprint` / `_post_blueprint_research` / `_artifact_workflow`; seam name in error messages — **DONE 2026-06-30**
+- ✅ `002a` **BaseStore substrate** — `open_teaching_pack_store` + `get_development_store` + `sync_connection_string` in `packages/agents/teaching_pack/store.py`; 6 namespace factories + TTL conventions in `store_namespaces.py`; `build_teaching_pack_graph(store=)` wired; gateway `lifespan` uses `ExitStack` to manage store lifecycle — **DONE 2026-06-30**
+- `002b` **BaseStore semantic index** — vectors for grounding retrieval only; **embedding must route via `llm_client`/LiteLLM** (no egress — K-12 privacy, single-path, cost-attribution); LiteLLM has no embeddings route yet *(←002a + embedding-provider decision; gated/parked if unavailable)*
+- `003` **Bounded upstream revision protocol** — `RevisionRequest` + **state-flag + conditional-edge router** (NOT `Command(goto)` from nodes); **one shared `upstream_cycle_count`** bounding agent-revision + the existing quality-reroute; exhaustion escalates via the existing `interrupt()` gate *(←001)*
+- `004a` **Interaction observability** — trace every handoff/revision/Store-access → Langfuse/RunEvent; reconstructable interaction graph (feeds testing-trajectory + reviewer-calibration) *(←001,002a)*
+- `004b` **Parallel fan-out (`Send`)** — content_creator per-section + reviewer per-dimension; per-run sub-fanout cap (distinct from worker cap); per-section streaming to FE *(←000,003, agent-upgrades/003/004)*
 
-> Interaction is **native LangGraph**, deterministic (no Lead-Agent/ReAct): state-channels = in-run blackboard · `BaseStore` = cross-run memory · `Command(goto/update)` = bounded upstream-signal · `Send` = parallel fan-out · `interrupt` = gates. Our thin additions: typed contracts, RevisionRequest schema, bound counters, namespace conventions.
+> Interaction is **native LangGraph**, deterministic (no Lead-Agent/ReAct): **stage = agent graph-identity** · `BaseStore` = cross-run memory · **state-flag + conditional-edge** = bounded upstream-signal (not node-emitted `Command`) · `Send` = sub-agent parallel fan-out · `interrupt` = gates. Thin additions: typed seam contracts, RevisionRequest schema, single shared revision budget, namespace conventions, order-stable reducer.
+> **Intra-epic waves:** ✅ A *(done 2026-06-30)* `000`·`001`·`002a` → B `003`·`004a` → C *(gated/deferred)* `002b`·`004b`.
 
 ### `component-system/` (2) — content-component registry + smart selection
 - `001` **ComponentRegistry** single source of truth (metadata; derive prompt-catalog; union+dispatcher drift-guard; mirrors question registry) *(no blockers)*
 - `002` **Filter-then-generate** — query registry by artifact/methodology/subject → focused catalog into content_creator *(←001)*
 
 ### `testing/` (8) — system-wide test harness *(framework verdict, see below)*
-- `001` Harness & tiering foundation — real DB + real LLM (9router `:20228`/`4omc`), `@pytest.mark.real_llm`, DeepEval offline+9router→Langfuse, **no fake-LLM** *(no blockers)*
+- ✅ `001` Harness & tiering foundation — **DONE 2026-06-30** (real DB + real LLM via 9router `:20228`/`4omc`, `@pytest.mark.real_llm`, DeepEval offline config, no fake-LLM)
 - `002` Three-layer pyramid — per-agent (real-LLM) + seam/handoff + E2E *(←001)*
 - `003` Deterministic trajectory + control-flow + health gates (per-commit, no LLM) *(←001)*
 - `004` DeepEval quality metrics → Layers 2/4/6 *(←001, parity-001)*
@@ -127,8 +132,8 @@ Complete topological order of **all 56 issues** across 8 epics. Run everything i
 
 | Wave | Issues (count) | Theme |
 |------|----------------|-------|
-| **0 — blocker-free (13)** | `td-001` `td-005` · `sr-001` `sr-002` · `hd-001` `hd-002` `hd-003` · `te-001` · `el-002` · `ops-001` `ops-002` `ops-005` · `tl-001` | Contracts+grounding · render/worker pool · secrets/authz/schema-parity · test harness · de-stub pedagogical · SLO/DR/webhook · a11y |
-| **1 (10)** | `td-002` `td-003` `td-004` · `sr-003` · `te-002` `te-003` `te-004` `te-006` · `el-001` · `ops-003` | Persistence/validator/triage · provider-resilience · pyramid/trajectory/quality-metrics/security · outcome-model · runbooks |
+| **0 — blocker-free (13)** | ✅ `td-001` ✅ `td-005` · ✅ `sr-001` ✅ `sr-002` · ✅ `hd-001` ✅ `hd-002` ✅ `hd-003` · ✅ `te-001` · ✅ `el-002` · ✅ `ops-001` ✅ `ops-002` ✅ `ops-005` · ✅ `tl-001` | Contracts+grounding · render/worker pool · secrets/authz/schema-parity · test harness · de-stub pedagogical · SLO/DR/webhook · a11y |
+| **1 (10)** | ✅ `td-002` ✅ `td-003` ✅ `td-004` · ✅ `sr-003` · ✅ `te-002` ✅ `te-003` ✅ `te-004` ✅ `te-006` · ✅ `el-001` · ✅ `ops-003` | Persistence/validator/triage · provider-resilience · pyramid/trajectory/quality-metrics/security · outcome-model · runbooks |
 | **2 (9)** | `td-006` `td-013` · `te-005` `te-007` · `el-003` `el-006` · `ops-004` · `tl-003` `tl-004` | unit_planner · persona · golden-dataset/chaos · Forms-capture/concept-verifier · cost-cap · content-lifecycle · recall |
 | **3 (6)** | `td-007` `td-008` `td-015` `td-021` · `el-004` · `tl-002` | stage-wiring/gate · expand+drift · knowledge-graph · sequence-critic · BKT engine · model-drift |
 | **4 (4)** | `td-009` `td-014` `td-020` · `el-005` | UnitContext · decomposition-memory · approvals-compat · loop-closure+MoET |
@@ -139,8 +144,15 @@ Complete topological order of **all 56 issues** across 8 epics. Run everything i
 
 Total: 13+10+9+6+4+2+2+3+1 = **50 remaining** + 6 `rp` done = **56**.
 
-### Wave 0 — start here (no blockers, fully parallel)
-`td-001` contracts+codegen · `td-005` grounding source · `sr-001` worker-pool+lease-heartbeat · `sr-002` render worker-pool · `hd-001` secrets fail-closed · `hd-002` tenant-isolation · `hd-003` schema-parity · `te-001` harness/tiering · `el-002` de-stub pedagogical · `ops-001` SLO+alerting · `ops-002` DR/backup · `ops-005` webhook security · `tl-001` accessibility.
+### Wave 0 — start here (no blockers, fully parallel) — **ALL DONE 2026-06-30**
+✅ `td-001` contracts+codegen · ✅ `td-005` grounding source · ✅ `sr-001` worker-pool+lease-heartbeat · ✅ `sr-002` render worker-pool · ✅ `hd-001` secrets fail-closed · ✅ `hd-002` tenant-isolation · ✅ `hd-003` schema-parity · ✅ `te-001` harness/tiering · ✅ `el-002` de-stub pedagogical · ✅ `ops-001` SLO+alerting · ✅ `ops-002` DR/backup · ✅ `ops-005` webhook security · ✅ `tl-001` accessibility.
+
+**Verified 2026-06-30:** 367 tests passed across all 13 Wave 0 issues. Issue files updated with correct status/checkboxes. Test isolation fixed in `test_lease_heartbeat.py` and `test_slo_metrics.py` (try/finally cleanup guards added). Wave 1 is unblocked.
+
+### Wave 1 — **ALL DONE 2026-07-01**
+✅ `td-002` unit persistence · ✅ `td-003` sequence validator · ✅ `td-004` triage/plan_unit confirmation · ✅ `sr-003` provider/budget resilience · ✅ `te-002` test pyramid · ✅ `te-003` deterministic trajectory/health gates · ✅ `te-004` DeepEval quality metrics harness · ✅ `te-006` Promptfoo security red-team · ✅ `el-001` outcome model/privacy foundation · ✅ `ops-003` runbooks.
+
+**Verified 2026-07-01:** focused Wave 1 completion suite passed (`22 passed`): triage heuristic+LLM fallback, contract-confirmation decomposition persistence seam, intra-stage validator/healing trajectory, completion recorder, and DeepEval config/majority/hallucination harness. `services/gateway/tests/test_delivery_record_hook.py` is included and skips cleanly when local Postgres is unavailable; it exercises the real delivery-record hook against a migrated DB.
 
 ### Cross-epic gates (all parity gates ✅ satisfied — parity done)
 - ✅ `td-019` ← `rp-001`+`rp-002` (quality+healing) · ✅ `td-017` ← `rp-005` (export wiring) · ✅ `td-010/011` ← `rp-003` (event bus).

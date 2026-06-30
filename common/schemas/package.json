@@ -9,6 +9,10 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
+    },
+    "./generated/artifact.js": {
+      "types": "./dist/generated/artifact.d.ts",
+      "import": "./dist/generated/artifact.js"
     }
   },
   "scripts": {

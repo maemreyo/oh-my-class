@@ -30,6 +30,12 @@ from common.contracts.inverse_thinking import (
     InverseThinkingTeacherOnly,
 )
 from common.contracts.lesson_plan import AssessmentCheckpoint, LearningObjective, LessonPlan
+from common.contracts.lesson_sequence import (
+    KnowledgeComponent,
+    LessonSequence,
+    PrerequisiteEdge,
+    SessionPlan,
+)
 from common.contracts.methodology_registry import (
     METHODOLOGY_REGISTRY,
     MethodologyRegistryEntry,
@@ -58,9 +64,27 @@ from common.contracts.roadmap import (
     RoadmapSidebar,
 )
 from common.contracts.rubric import Rubric, RubricCriterion, RubricLevel, RubricRegistry
-from common.contracts.run_contract import ContractRevision, ContractRevisionMeta, RunContract
+from common.contracts.run_contract import (
+    ContractRevision,
+    ContractRevisionMeta,
+    DecompositionIntent,
+    RunContract,
+)
+from common.contracts.seam_contracts import (
+    ArtifactWorkflowHandoff,
+    PlannerHandoff,
+    ResearcherHandoff,
+)
 from common.contracts.student_profile import LearningStyle, PersonalityTrait, StudentProfile
 from common.contracts.student_response import StudentAnswerItem, StudentResponse
+from common.contracts.unit_view import (
+    UnitAggregate,
+    UnitCoherenceWarning,
+    UnitEventEnvelope,
+    UnitParentMeta,
+    UnitSessionProgress,
+    UnitView,
+)
 
 __all__ = [
     "ArtifactContent",
@@ -84,6 +108,7 @@ __all__ = [
     "ContentComponent",
     "ContractRevision",
     "ContractRevisionMeta",
+    "DecompositionIntent",
     "ErrorCode",
     "ErrorResponse",
     "EvidenceCitation",
@@ -96,8 +121,10 @@ __all__ = [
     "InverseThinkingSummaryRow",
     "InverseThinkingTeacherOnly",
     "JudgeOutput",
+    "KnowledgeComponent",
     "LayerScore",
     "LessonPlan",
+    "LessonSequence",
     "LearningObjective",
     "LogContext",
     "METHODOLOGY_REGISTRY",
@@ -120,8 +147,19 @@ __all__ = [
     "RubricLevel",
     "RubricRegistry",
     "RunContract",
+    "PrerequisiteEdge",
+    "SessionPlan",
     "TeachingPack",
     "Token",
     "User",
+    "UnitAggregate",
+    "UnitCoherenceWarning",
+    "UnitEventEnvelope",
+    "UnitParentMeta",
+    "UnitSessionProgress",
+    "UnitView",
     "ValidationErrorDetail",
+    "ArtifactWorkflowHandoff",
+    "PlannerHandoff",
+    "ResearcherHandoff",
 ]

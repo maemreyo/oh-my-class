@@ -5,8 +5,8 @@
 
   let content = '<div class="worksheet-page">';
   content += '<div class="worksheet-header">';
-  content += '<div class="worksheet-name-line"><span>H&#7885; t&#234;n:</span> <span class="blank-line" aria-label="Student name"></span></div>';
-  content += '<div class="worksheet-date-line"><span>Ng&#224;y:</span> <span class="blank-line" aria-label="Date"></span></div>';
+  content += '<div class="worksheet-name-line"><span id="worksheet-student-name-label">H&#7885; t&#234;n:</span> <span class="blank-line" role="textbox" aria-labelledby="worksheet-student-name-label"></span></div>';
+  content += '<div class="worksheet-date-line"><span id="worksheet-date-label">Ng&#224;y:</span> <span class="blank-line" role="textbox" aria-labelledby="worksheet-date-label"></span></div>';
   content += '</div>';
 
   for (let si = 0; si < sections.length; si++) {

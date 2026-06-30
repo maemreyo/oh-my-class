@@ -10,6 +10,8 @@ EDITABLE_CONTRACT_FIELDS: Final[frozenset[str]] = frozenset({
     "grade_band",
     "instruction_language",
     "locale",
+    "mode",
+    "decomposition_intent",
     "research_policy",
     "subject",
     "topic",

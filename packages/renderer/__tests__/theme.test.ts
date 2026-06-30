@@ -148,6 +148,14 @@ describe("loadTheme", () => {
     expect(css).toContain("--color-accent:");
   });
 
+  it("returns high-contrast dyslexia-friendly CSS with offline fonts", () => {
+    const css = loadTheme("high-contrast-dyslexia");
+    expect(css).toContain("--color-bg: #FFFDF2;");
+    expect(css).toContain("--color-text: #111111;");
+    expect(css).toContain("Atkinson Hyperlegible");
+    expect(css).not.toMatch(/https?:\/\//);
+  });
+
   it("default theme includes category colors a–e", () => {
     const css = loadTheme("default");
     for (const letter of ["a", "b", "c", "d", "e"]) {

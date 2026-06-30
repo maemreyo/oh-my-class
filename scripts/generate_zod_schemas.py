@@ -16,82 +16,16 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, TypeAlias
 
-# ── Configuration ──────────────────────────────────────────────
-
-class ModelConfig(TypedDict):
-    main_model: str
-    all_models: list[str]
-    output: str
-    field_refs: dict[str, str]
-    external_field_refs: dict[str, str]
-
-MODELS: dict[str, ModelConfig] = {
-    "common.contracts.lesson_plan": {
-        "main_model": "LessonPlan",
-        "all_models": [
-            "LessonPlan",
-            "LearningObjective",
-            "AssessmentCheckpoint",
-            "MethodologyPayloads",
-            "MethodologyMetadata",
-        ],
-        "output": "common/schemas/src/generated/lesson_plan.ts",
-        "field_refs": {
-            "learning_objectives": "LearningObjective",
-            "assessment_checkpoints": "AssessmentCheckpoint",
-            "methodology": "MethodologyMetadata",
-            "payloads": "MethodologyPayloads",
-        },
-        "external_field_refs": {
-            "inverse_thinking": "InverseThinkingPackSchema:./inverse_thinking.js",
-        },
-    },
-    "common.contracts.artifact": {
-        "main_model": "TeachingPack",
-        "all_models": ["ArtifactContent", "TeachingPack"],
-        "output": "common/schemas/src/generated/artifact.ts",
-        "field_refs": {
-            "artifacts": "ArtifactContent",
-        },
-        "external_field_refs": {},
-    },
-    "common.contracts.judge_output": {
-        "main_model": "JudgeOutput",
-        "all_models": ["JudgeOutput", "LayerScore"],
-        "output": "common/schemas/src/generated/judge_output.ts",
-        "field_refs": {
-            "layer_scores": "LayerScore",
-        },
-        "external_field_refs": {},
-    },
-    "common.contracts.inverse_thinking": {
-        "main_model": "InverseThinkingPack",
-        "all_models": [
-            "InverseThinkingPack",
-            "InverseThinkingTeacherOnly",
-            "InverseThinkingCase",
-            "InverseThinkingSummaryRow",
-            "InverseThinkingStudentChallenge",
-        ],
-        "output": "common/schemas/src/generated/inverse_thinking.ts",
-        "field_refs": {
-            "cases": "InverseThinkingCase",
-            "summary_table": "InverseThinkingSummaryRow",
-            "student_challenges": "InverseThinkingStudentChallenge",
-            "teacher_only": "InverseThinkingTeacherOnly",
-        },
-        "external_field_refs": {},
-    },
-}
+JsonSchemaNode: TypeAlias = dict[str, Any] | list[Any]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from common.contracts.methodology_registry import METHODOLOGY_REGISTRY
-
+from scripts.schema_codegen_config import MODELS
+from scripts.schema_codegen_registry import generate_methodology_registry_file
 
 # ── Step 1: Extract JSON Schema from Pydantic ──────────────────
 
@@ -116,10 +50,20 @@ def extract_json_schema(module_path: str, main_model: str) -> tuple[dict[str, An
 
     return schema, defs
 
-    return schema, defs
+
+def extract_named_json_schema(module_path: str, model_name: str) -> dict[str, Any]:
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+
+    parts = module_path.split(".")
+    module = __import__(module_path, fromlist=[parts[-1]])
+    model_class = getattr(module, model_name)
+    schema = model_class.model_json_schema()
+    schema["$schema"] = "http://json-schema.org/draft-07/schema#"
+    return schema
 
 
-def _resolve_refs(node: dict[str, Any], defs: dict[str, Any]) -> None:
+def _resolve_refs(node: JsonSchemaNode, defs: dict[str, Any]) -> None:
     """Recursively resolve $ref references by inlining from $defs."""
     if isinstance(node, dict):
         if "$ref" in node:
@@ -198,6 +142,9 @@ def post_process_zod(
     field_refs: dict[str, str],
     external_field_refs: dict[str, str],
 ) -> str:
+    def internal_schema_ref(model_name: str) -> str:
+        return f"z.lazy(() => {model_name}Schema)"
+
     lines = zod_code.split("\n")
     seen_import = False
     deduped: list[str] = []
@@ -213,27 +160,27 @@ def post_process_zod(
     for field_name, model_name in field_refs.items():
         result = re.sub(
             rf'"{field_name}": z\.array\(z\.any\(\)\)',
-            f'"{field_name}": z.array({model_name}Schema)',
+            f'"{field_name}": z.array({internal_schema_ref(model_name)})',
             result,
         )
         result = re.sub(
             rf'"{field_name}": z\.any\(\)\.optional\(\)',
-            f'"{field_name}": {model_name}Schema.optional()',
+            f'"{field_name}": {internal_schema_ref(model_name)}.optional()',
             result,
         )
         result = re.sub(
             rf'"{field_name}": z\.any\(\)',
-            f'"{field_name}": {model_name}Schema',
+            f'"{field_name}": {internal_schema_ref(model_name)}',
             result,
         )
         result = re.sub(
             rf'"{field_name}": z\.union\(\[z\.any\(\), z\.null\(\)\]\)\.default\(null\)',
-            f'"{field_name}": z.union([{model_name}Schema, z.null()]).default(null)',
+            f'"{field_name}": z.union([{internal_schema_ref(model_name)}, z.null()]).default(null)',
             result,
         )
         result = re.sub(
             rf'"{field_name}": z\.union\(\[z\.any\(\), z\.null\(\)\]\)',
-            f'"{field_name}": z.union([{model_name}Schema, z.null()])',
+            f'"{field_name}": z.union([{internal_schema_ref(model_name)}, z.null()])',
             result,
         )
 
@@ -287,34 +234,6 @@ def generate_zod_file(zod_code: str) -> str:
     return header + zod_code
 
 
-def generate_methodology_registry_file() -> str:
-    entries = [
-        {
-            "tag": entry.tag,
-            "labelEn": entry.label_en,
-            "labelVi": entry.label_vi,
-            "description": entry.description,
-            "requiredComponents": list(entry.required_components),
-            "requirementMode": entry.requirement_mode,
-            "supportedArtifacts": list(entry.supported_artifacts),
-            "exportFormats": list(entry.export_formats),
-            "conflicts": list(entry.conflicts),
-            "compatibleWith": list(entry.compatible_with),
-        }
-        for entry in METHODOLOGY_REGISTRY
-    ]
-    body = json.dumps(entries, indent=2, ensure_ascii=False)
-    return (
-        "/**\n"
-        " * AUTO-GENERATED from common.contracts.methodology_registry\n"
-        " * DO NOT EDIT MANUALLY — run `uv run python scripts/generate_zod_schemas.py` to regenerate\n"
-        " */\n\n"
-        f"export const METHODOLOGY_REGISTRY = {body} as const;\n\n"
-        "export type MethodologyRegistryEntry = (typeof METHODOLOGY_REGISTRY)[number];\n"
-        "export type MethodologyRegistryTag = MethodologyRegistryEntry[\"tag\"];\n"
-    )
-
-
 # ── Main ───────────────────────────────────────────────────────
 
 
@@ -334,8 +253,8 @@ def main() -> None:
         # Generate main model with $ref references (depth=0 → nested as z.any())
         raw_zod = json_schema_to_zod(schema, f"{main_model}Schema")
 
-        # Generate each nested model separately from $defs
         nested_parts: list[str] = []
+        top_level_parts: list[str] = []
         for model_name in all_models:
             if model_name == main_model:
                 continue
@@ -344,9 +263,16 @@ def main() -> None:
                 nested_schema["$schema"] = "http://json-schema.org/draft-07/schema#"
                 nested_raw = json_schema_to_zod(nested_schema, f"{model_name}Schema")
                 nested_parts.append(nested_raw.strip())
+            else:
+                nested_schema = extract_named_json_schema(module_path, model_name)
+                nested_schema.pop("$defs", None)
+                _resolve_refs(nested_schema, defs)
+                nested_raw = json_schema_to_zod(nested_schema, f"{model_name}Schema")
+                top_level_parts.append(nested_raw.strip())
 
         # Combine: nested models first, then main model
-        combined = "\n\n".join(nested_parts) + "\n\n" + raw_zod
+        combined_parts = [*nested_parts, raw_zod, *top_level_parts]
+        combined = "\n\n".join(combined_parts)
         zod_ts = post_process_zod(
             combined,
             all_models,

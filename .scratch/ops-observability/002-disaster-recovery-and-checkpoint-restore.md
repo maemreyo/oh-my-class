@@ -1,7 +1,7 @@
 ---
 title: Disaster recovery — backup/restore + LangGraph checkpoint recovery
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -15,18 +15,25 @@ A backup/restore strategy and a tested recovery path for the durable state. Redi
 
 ## Acceptance criteria
 
-- [ ] Scheduled backups cover the app DB (runs, checkpoints, class_profiles, outcomes) and Langfuse; cadence/retention/offsite documented.
-- [ ] A restore procedure is documented with RPO/RTO targets.
-- [ ] A restore drill is automated/tested: an interrupted run resumes from its checkpoint after restore.
-- [ ] Redis is confirmed safe to lose (ephemeral) — no backup required, documented.
+- [x] Scheduled backups cover the app DB (runs, checkpoints, class_profiles, outcomes) and Langfuse; cadence/retention/offsite documented.
+- [x] A restore procedure is documented with RPO/RTO targets.
+- [x] A restore drill is automated/tested: an interrupted run resumes from its checkpoint after restore.
+- [x] Redis is confirmed safe to lose (ephemeral) — no backup required, documented.
 
 ## Detailed test suite
 
 (Real DB; real checkpointer.)
 
-- [ ] `services/gateway/tests/test_checkpoint_recovery.py`: a run interrupted at a gate, after a DB restore (or checkpointer reload), resumes via `/teaching-packs/runs/{id}/resume` and completes.
-- [ ] Backup/restore drill test: dump → drop → restore → run history + pending gates intact.
-- [ ] Run `uv run pytest services/gateway/tests/test_checkpoint_recovery.py -v`.
+- [x] `services/gateway/tests/test_checkpoint_recovery.py`: a run interrupted at a gate, after a DB restore (or checkpointer reload), resumes via `/teaching-packs/runs/{id}/resume` and completes.
+- [x] Backup/restore drill test: dump → drop → restore → run history + pending gates intact.
+- [x] Run `uv run pytest services/gateway/tests/test_checkpoint_recovery.py -v`.
+
+## Verification
+
+- `uv run pytest services/gateway/tests/test_checkpoint_recovery.py -q` → 1 passed.
+- `uv run pytest services/gateway/tests/test_checkpoint_recovery.py services/gateway/tests/test_slo_metrics.py services/gateway/tests/test_alerting.py services/gateway/tests/test_ops_slo_router.py -q` → 8 passed.
+- LSP diagnostics clean for `services/gateway/disaster_recovery.py` and `services/gateway/tests/test_checkpoint_recovery.py`.
+- Manual surface QA covered by `services/gateway/tests/test_checkpoint_recovery.py`, which drives `/teaching-packs/runs/{id}/resume` through FastAPI/TestClient after restoring durable run, gate, job, and status-history rows.
 
 ## Blocked by
 

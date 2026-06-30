@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangGraph Capabilities — Comprehensive Research Report</title>
+<style>
+  /* ── Reset & Base ──────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #1c2333;
+    --bg-card: #1a1f2e;
+    --bg-code: #141822;
+    --border-default: #30363d;
+    --border-accent: #3b82f620;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --accent-blue: #58a6ff;
+    --accent-purple: #bc8cff;
+    --accent-green: #3fb950;
+    --accent-orange: #d29922;
+    --accent-red: #f85149;
+    --accent-cyan: #39d2c0;
+    --gradient-hero: linear-gradient(135deg, #1a1040 0%, #0d1117 40%, #0c1929 100%);
+    --gradient-accent: linear-gradient(135deg, #58a6ff, #bc8cff);
+    --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+    --shadow-glow: 0 0 40px rgba(88,166,255,0.08);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+    --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+    --max-width: 960px;
+    --sidebar-width: 260px;
+  }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Layout ────────────────────────────────────────────────── */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ───────────────────────────────────────────────── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-default);
+    overflow-y: auto;
+    padding: 24px 0;
+    z-index: 100;
+  }
+
+  .sidebar-header {
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border-default);
+    margin-bottom: 12px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-blue);
+  }
+
+  .sidebar-nav a {
+    display: block;
+    padding: 6px 20px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+  }
+
+  .sidebar-nav a:hover {
+    color: var(--text-primary);
+    background: rgba(88,166,255,0.06);
+    border-left-color: var(--accent-blue);
+  }
+
+  .sidebar-nav a.sub {
+    padding-left: 36px;
+    font-size: 0.78rem;
+  }
+
+  .sidebar-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .badge-new { background: rgba(63,185,80,0.15); color: var(--accent-green); }
+  .badge-v1 { background: rgba(188,140,255,0.15); color: var(--accent-purple); }
+  .badge-omc { background: rgba(88,166,255,0.15); color: var(--accent-blue); }
+
+  /* ── Main Content ──────────────────────────────────────────── */
+  .main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Hero ──────────────────────────────────────────────────── */
+  .hero {
+    background: var(--gradient-hero);
+    border-bottom: 1px solid var(--border-default);
+    padding: 64px 48px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(88,166,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%; left: -10%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(188,140,255,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: var(--max-width); }
+
+  .hero-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  .hero-badge.version { background: rgba(88,166,255,0.15); color: var(--accent-blue); border: 1px solid rgba(88,166,255,0.25); }
+  .hero-badge.date { background: rgba(188,140,255,0.12); color: var(--accent-purple); border: 1px solid rgba(188,140,255,0.2); }
+  .hero-badge.license { background: rgba(63,185,80,0.12); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.2); }
+
+  .hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 640px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent-blue);
+    line-height: 1.2;
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Content Area ──────────────────────────────────────────── */
+  .content {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 48px 48px 96px;
+  }
+
+  /* ── Sections ──────────────────────────────────────────────── */
+  .section {
+    margin-bottom: 56px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .section-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--gradient-accent);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent-purple);
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin-bottom: 14px;
+    color: var(--text-secondary);
+  }
+
+  strong { color: var(--text-primary); }
+
+  /* ── Code Blocks ───────────────────────────────────────────── */
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: #c9d1d9;
+    position: relative;
+  }
+
+  pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px; right: 12px;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+  }
+
+  p code, li code, td code {
+    background: rgba(88,166,255,0.08);
+    color: var(--accent-blue);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+
+  /* Syntax highlighting (CSS-only) */
+  .kw { color: #ff7b72; }      /* keywords: from, import, class, def, return */
+  .fn { color: #d2a8ff; }      /* function names */
+  .st { color: #a5d6ff; }      /* strings */
+  .cm { color: #8b949e; font-style: italic; }  /* comments */
+  .tp { color: #79c0ff; }      /* types */
+  .dc { color: #7ee787; }      /* decorators */
+  .nu { color: #79c0ff; }      /* numbers */
+  .op { color: #ff7b72; }      /* operators */
+  .bi { color: #ffa657; }      /* builtins */
+
+  /* ── Tables ────────────────────────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-default);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead th {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--border-default);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+  tbody tr:nth-child(odd) { background: transparent; }
+  tbody tr:hover { background: rgba(88,166,255,0.04); }
+
+  td code {
+    font-size: 0.82em;
+  }
+
+  /* ── Lists ─────────────────────────────────────────────────── */
+  ul, ol {
+    padding-left: 24px;
+    margin-bottom: 14px;
+  }
+
+  li {
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+  }
+
+  li strong { color: var(--text-primary); }
+
+  /* ── Callout Boxes ─────────────────────────────────────────── */
+  .callout {
+    border-left: 3px solid var(--accent-blue);
+    background: rgba(88,166,255,0.04);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+
+  .callout.green { border-left-color: var(--accent-green); background: rgba(63,185,80,0.04); }
+  .callout.purple { border-left-color: var(--accent-purple); background: rgba(188,140,255,0.04); }
+  .callout.orange { border-left-color: var(--accent-orange); background: rgba(210,153,34,0.04); }
+  .callout.red { border-left-color: var(--accent-red); background: rgba(248,81,73,0.04); }
+
+  .callout-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── Flow Diagram (ASCII) ──────────────────────────────────── */
+  .flow-diagram {
+    background: var(--bg-code);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 16px 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--accent-cyan);
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* ── Cards ─────────────────────────────────────────────────── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: rgba(88,166,255,0.3); }
+
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .card-body {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Footer ────────────────────────────────────────────────── */
+  .footer {
+    border-top: 1px solid var(--border-default);
+    padding: 32px 48px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Mobile Toggle ─────────────────────────────────────────── */
+  .sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 200;
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Responsive ────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .sidebar.open { display: block; width: 280px; }
+    .sidebar-toggle { display: flex; }
+    .main { margin-left: 0; }
+    .hero { padding: 48px 24px 36px; }
+    .hero h1 { font-size: 1.6rem; }
+    .hero-stats { gap: 20px; }
+    .content { padding: 32px 24px 72px; }
+    h2 { font-size: 1.25rem; }
+    pre { padding: 16px; font-size: 0.78rem; }
+  }
+
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 1.35rem; }
+    .stat-value { font-size: 1.2rem; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Print ─────────────────────────────────────────────────── */
+  @media print {
+    :root {
+      --bg-primary: #fff;
+      --bg-secondary: #fff;
+      --bg-tertiary: #f6f8fa;
+      --bg-card: #f6f8fa;
+      --bg-code: #f6f8fa;
+      --border-default: #d0d7de;
+      --text-primary: #1f2328;
+      --text-secondary: #57606a;
+      --text-muted: #8b949e;
+      --accent-blue: #0969da;
+      --accent-purple: #8250df;
+      --accent-green: #1a7f37;
+      --accent-orange: #9a6700;
+      --accent-red: #cf222e;
+      --accent-cyan: #0598bc;
+      --gradient-hero: none;
+      --gradient-accent: none;
+    }
+
+    .sidebar, .sidebar-toggle { display: none !important; }
+    .main { margin-left: 0; }
+    .hero { background: #f6f8fa; border-bottom: 2px solid #d0d7de; padding: 32px 0; }
+    .hero h1 { color: #1f2328; -webkit-text-fill-color: #1f2328; }
+    .hero-badge { border: 1px solid #d0d7de; }
+
+    body { font-size: 11pt; }
+    .content { max-width: 100%; padding: 0; }
+    pre { background: #f6f8fa; border-color: #d0d7de; page-break-inside: avoid; }
+    .section { page-break-inside: avoid; }
+    .section-header { page-break-after: avoid; }
+    a { color: #0969da; text-decoration: none; }
+
+    .stat-value { color: #0969da; }
+    h2, h3, h4 { color: #1f2328; }
+    h3 { color: #0969da; }
+    h4 { color: #8250df; }
+    table { font-size: 9pt; }
+    thead th { background: #f6f8fa; }
+    .section-num { background: #0969da; }
+  }
+
+  /* ── Scrollbar ─────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar Toggle (mobile) -->
+<button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle navigation">&#9776;</button>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2>LangGraph Report</h2>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#executive-summary">1. Executive Summary</a>
+    <a href="#core-architecture" class="">2. Core Architecture</a>
+    <a href="#stategraph" class="sub">2.1 StateGraph</a>
+    <a href="#state-schema" class="sub">2.2 State Schema</a>
+    <a href="#node-types" class="sub">2.3 Node Types</a>
+    <a href="#edge-types" class="sub">2.4 Edge Types</a>
+    <a href="#execution-model" class="sub">2.5 Execution Model</a>
+    <a href="#compilation" class="sub">2.6 Compilation &amp; Invocation</a>
+    <a href="#multi-agent">3. Multi-Agent Orchestration</a>
+    <a href="#supervisor" class="sub">3.1 Supervisor</a>
+    <a href="#swarm" class="sub">3.2 Swarm Mode</a>
+    <a href="#subgraphs" class="sub">3.3 Sub-Graphs</a>
+    <a href="#map-reduce" class="sub">3.4 Map-Reduce</a>
+    <a href="#handoffs" class="sub">3.5 Agent Handoffs</a>
+    <a href="#topologies" class="sub">3.6 Topologies</a>
+    <a href="#persistence">4. Persistence &amp; Memory</a>
+    <a href="#checkpointing" class="sub">4.1 Checkpointing</a>
+    <a href="#thread-state" class="sub">4.2 Thread State</a>
+    <a href="#time-travel" class="sub">4.3 Time Travel</a>
+    <a href="#hitl" class="sub">4.4 Human-in-the-Loop</a>
+    <a href="#memory-tiers" class="sub">4.5 Memory Tiers</a>
+    <a href="#durable-execution" class="sub">4.6 Durable Execution</a>
+    <a href="#streaming">5. Streaming &amp; Observability</a>
+    <a href="#stream-modes" class="sub">5.1 Stream Modes</a>
+    <a href="#token-streaming" class="sub">5.2 Token-Level</a>
+    <a href="#subgraph-streaming" class="sub">5.3 Sub-Graph Streaming</a>
+    <a href="#sse-transport" class="sub">5.4 SSE Transport</a>
+    <a href="#observability" class="sub">5.5 Observability</a>
+    <a href="#deployment">6. Deployment &amp; Platform</a>
+    <a href="#manifest" class="sub">6.1 Manifest</a>
+    <a href="#cli" class="sub">6.2 CLI</a>
+    <a href="#rest-api" class="sub">6.3 REST API</a>
+    <a href="#platform-tiers" class="sub">6.4 Platform Tiers</a>
+    <a href="#auth" class="sub">6.5 Authentication</a>
+    <a href="#ecosystem">7. Ecosystem &amp; Integrations</a>
+    <a href="#llm-providers" class="sub">7.1 LLM Providers</a>
+    <a href="#tool-integration" class="sub">7.2 Tool Integration</a>
+    <a href="#partner-libs" class="sub">7.3 Partner Libraries</a>
+    <a href="#typescript" class="sub">7.4 TypeScript</a>
+    <a href="#advanced-patterns">8. Advanced Patterns</a>
+    <a href="#retry" class="sub">8.1 Retry</a>
+    <a href="#timeouts" class="sub">8.2 Timeouts</a>
+    <a href="#error-handlers" class="sub">8.3 Error Handlers</a>
+    <a href="#shutdown" class="sub">8.4 Graceful Shutdown</a>
+    <a href="#caching" class="sub">8.5 Caching</a>
+    <a href="#deltachannel" class="sub">8.6 DeltaChannel</a>
+    <a href="#version-history">9. Version History</a>
+    <a href="#timeline" class="sub">9.1 Timeline</a>
+    <a href="#breaking-changes" class="sub">9.2 Breaking Changes</a>
+    <a href="#lts" class="sub">9.3 LTS Policy</a>
+    <a href="#comparison">10. Comparison</a>
+    <a href="#oh-my-class">11. oh-my-class Usage <span class="sidebar-badge badge-omc">OMC</span></a>
+    <a href="#omc-graph" class="sub">11.1 Graph</a>
+    <a href="#omc-state" class="sub">11.2 State</a>
+    <a href="#omc-hitl" class="sub">11.3 HITL</a>
+    <a href="#omc-persistence" class="sub">11.4 Persistence</a>
+    <a href="#omc-quality" class="sub">11.5 Quality Gates</a>
+    <a href="#omc-regen" class="sub">11.6 Scoped Regen</a>
+  </nav>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-content">
+      <div class="hero-meta">
+        <span class="hero-badge version">v1.2.6</span>
+        <span class="hero-badge date">June 30, 2026</span>
+        <span class="hero-badge license">MIT License</span>
+      </div>
+      <h1>LangGraph Capabilities</h1>
+      <p class="hero-subtitle">Comprehensive Research Report &mdash; AI Agent Orchestration Framework Full Feature Reference</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-value">35.8K</div><div class="stat-label">GitHub Stars</div></div>
+        <div class="stat"><div class="stat-value">549</div><div class="stat-label">Releases</div></div>
+        <div class="stat"><div class="stat-value">280+</div><div class="stat-label">Contributors</div></div>
+        <div class="stat"><div class="stat-value">50+</div><div class="stat-label">LLM Providers</div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ─── 1. Executive Summary ─────────────────────────────── -->
+    <section class="section" id="executive-summary">
+      <div class="section-header">
+        <span class="section-num">1</span>
+        <h2>Executive Summary</h2>
+      </div>
+
+      <p><strong>LangGraph</strong> is a low-level orchestration framework and runtime for building stateful, long-running agents as directed graphs. Built by LangChain Inc., it uses a <strong>Bulk Synchronous Parallel (BSP)</strong> execution model inspired by Google Pregel. As of <strong>v1.2.6 (June 2026)</strong>, it is the production-default choice for complex AI agent workflows requiring human-in-the-loop, durable execution, and multi-agent coordination.</p>
+
+      <p>Key stats: <strong>35.8K</strong> GitHub stars, <strong>549</strong> releases, <strong>280+</strong> contributors, MIT license. Used by <strong>Uber, Klarna, LinkedIn, Replit</strong> in production. The framework provides a complete toolkit for agent orchestration: <strong>StateGraph</strong> for graph-based agent orchestration, built-in persistence via checkpointers, human-in-the-loop via <code>interrupt()</code>/<code>resume()</code>, multi-agent patterns (supervisor, swarm, sub-graphs, map-reduce), streaming (token-level to state-level), and deployment via <strong>LangGraph Platform</strong>.</p>
+
+      <p>LangGraph is not a high-level abstraction &mdash; it is a <strong>graph runtime</strong> where developers explicitly define nodes, edges, state schemas, and routing logic. This gives full control over execution flow, error handling, and state management, at the cost of a steeper learning curve (1&ndash;3 weeks for production readiness). The trade-off is worth it for teams building reliable, observable, production-grade agent systems.</p>
+    </section>
+
+    <!-- ─── 2. Core Architecture ─────────────────────────────── -->
+    <section class="section" id="core-architecture">
+      <div class="section-header">
+        <span class="section-num">2</span>
+        <h2>Core Architecture</h2>
+      </div>
+
+      <h3 id="stategraph">2.1 StateGraph</h3>
+      <p>The primary entry point. Instantiate with a state schema, add nodes (Python callables), wire edges (static or conditional), and compile into a runnable graph.</p>
+
+      <pre data-lang="python"><span class="kw">from</span> langgraph.graph <span class="kw">import</span> <span class="tp">StateGraph</span>, <span class="tp">START</span>, <span class="tp">END</span>
+
+<span class="kw">class</span> <span class="tp">State</span>(TypedDict):
+    messages: <span class="tp">Annotated</span>[list[<span class="tp">AnyMessage</span>], add_messages]
+    count: <span class="bi">int</span>
+
+builder = <span class="tp">StateGraph</span>(<span class="tp">State</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"agent"</span>, call_model)
+builder.<span class="fn">add_node</span>(<span class="st">"tools"</span>, <span class="tp">ToolNode</span>(tools))
+builder.<span class="fn">add_edge</span>(<span class="tp">START</span>, <span class="st">"agent"</span>)
+builder.<span class="fn">add_conditional_edges</span>(<span class="st">"agent"</span>, tools_condition)
+builder.<span class="fn">add_edge</span>(<span class="st">"tools"</span>, <span class="st">"agent"</span>)
+graph = builder.<span class="fn">compile</span>(checkpointer=<span class="tp">MemorySaver</span>())</pre>
+
+      <div class="callout">
+        <div class="callout-title">Key <code>compile()</code> Options</div>
+        <p><code>checkpointer</code>, <code>interrupt_before</code>, <code>interrupt_after</code>, <code>recursion_limit</code> (default 25), <code>debug</code>, <code>name</code></p>
+      </div>
+
+      <h3 id="state-schema">2.2 State Schema</h3>
+      <p>Three schema types supported:</p>
+      <ul>
+        <li><strong>TypedDict</strong> &mdash; most common, lightweight</li>
+        <li><strong>Pydantic BaseModel</strong> &mdash; validated, coerced</li>
+        <li><strong>dataclass</strong> &mdash; mutable, but return new objects recommended</li>
+      </ul>
+
+      <p><code>Annotated[T, reducer]</code> attaches merge semantics to state keys:</p>
+      <ul>
+        <li><code>add_messages</code> &mdash; append + dedup by ID for chat history</li>
+        <li><code>operator.add</code> &mdash; list concatenation, numeric sum</li>
+        <li><strong>Custom reducers</strong> &mdash; any <code>(current, update) -&gt; new_value</code> callable</li>
+      </ul>
+
+      <h3 id="node-types">2.3 Node Types</h3>
+      <ul>
+        <li><strong>Function nodes:</strong> <code>(state) -&gt; dict</code> or <code>(state, config) -&gt; dict</code> or <code>(state, runtime) -&gt; dict</code></li>
+        <li><strong>Async nodes:</strong> <code>async def</code> supported natively</li>
+        <li><strong>LangChain Runnable nodes:</strong> ChatModel, chain, RunnableLambda</li>
+        <li><strong>Subgraph nodes:</strong> compiled StateGraph as node</li>
+        <li><strong>Command nodes:</strong> return <code>Command(goto=..., update=...)</code> for dynamic routing + state update</li>
+      </ul>
+
+      <h3 id="edge-types">2.4 Edge Types</h3>
+      <ul>
+        <li><strong>Regular:</strong> <code>add_edge(START, "a")</code>, <code>add_edge("a", "b")</code>, <code>add_edge("b", END)</code></li>
+        <li><strong>Conditional:</strong> <code>add_conditional_edges("decider", router_fn, path_map)</code></li>
+        <li><strong>Command:</strong> node returns <code>Command(goto=...)</code> for inline routing</li>
+        <li><strong>Send:</strong> <code>add_conditional_edges</code> returning <code>[Send("node", arg)]</code> for fan-out</li>
+      </ul>
+
+      <h3 id="execution-model">2.5 Execution Model &mdash; Pregel BSP Engine</h3>
+      <p>State flows through <strong>supersteps</strong>:</p>
+      <ol>
+        <li>Read current state snapshot</li>
+        <li>Execute all scheduled nodes (parallel if multiple)</li>
+        <li>Apply outputs through reducers</li>
+        <li>Resolve next nodes via edges</li>
+      </ol>
+      <p>Within a superstep, all nodes see the <strong>same snapshot</strong> (read-only).</p>
+
+      <h3 id="compilation">2.6 Compilation &amp; Invocation</h3>
+      <p><code>builder.compile()</code> returns <code>CompiledStateGraph</code> wrapping a Pregel executor.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>invoke(input)</code></td><td>Sync</td><td>Returns final state</td></tr>
+            <tr><td><code>ainvoke(input)</code></td><td>Async</td><td>Async invocation</td></tr>
+            <tr><td><code>stream(input, stream_mode="values")</code></td><td>Sync</td><td>Step-level streaming</td></tr>
+            <tr><td><code>astream_events(input, version="v2")</code></td><td>Async</td><td>Fine-grained lifecycle events</td></tr>
+            <tr><td><code>batch([input1, input2])</code></td><td>Sync</td><td>Parallel execution of multiple inputs</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─── 3. Multi-Agent Orchestration ─────────────────────── -->
+    <section class="section" id="multi-agent">
+      <div class="section-header">
+        <span class="section-num">3</span>
+        <h2>Multi-Agent Orchestration</h2>
+      </div>
+
+      <h3 id="supervisor">3.1 Supervisor Pattern</h3>
+      <p>Central coordinator routing to specialist sub-agents. Supervisor uses structured output (routing enum) to decide which worker to invoke. Workers are fully encapsulated &mdash; testable in isolation.</p>
+
+      <pre data-lang="python">supervisor = <span class="fn">create_supervisor</span>(
+    model=model,
+    agents=[math_agent, research_agent],
+    prompt=<span class="st">"Route to the appropriate specialist."</span>,
+).<span class="fn">compile</span>()</pre>
+
+      <h3 id="swarm">3.2 Swarm Mode <span class="sidebar-badge badge-new">langgraph-swarm</span></h3>
+      <p>Dynamic peer-to-peer handoffs. Agents call <code>create_handoff_tool(agent_name)</code> which returns a <code>Command(goto=agent_name, graph=Command.PARENT)</code>. The swarm router reads <code>active_agent</code> after each step. <strong>Checkpointer is REQUIRED</strong> for swarm.</p>
+
+      <pre data-lang="python">alice = <span class="fn">create_react_agent</span>(model, [add, <span class="fn">create_handoff_tool</span>(<span class="st">"Bob"</span>)], name=<span class="st">"Alice"</span>)
+bob = <span class="fn">create_react_agent</span>(model, [<span class="fn">create_handoff_tool</span>(<span class="st">"Alice"</span>)], name=<span class="st">"Bob"</span>)
+app = <span class="fn">create_swarm</span>([alice, bob], default_active_agent=<span class="st">"Alice"</span>).<span class="fn">compile</span>(
+    checkpointer=<span class="tp">InMemorySaver</span>()
+)</pre>
+
+      <h3 id="subgraphs">3.3 Sub-Graph Composition</h3>
+      <p>Compiled graphs as nodes with state isolation:</p>
+      <ul>
+        <li><strong>Shared by key</strong> (default): parent/child agree on overlapping keys</li>
+        <li><strong>Input/output mapping:</strong> explicit schema projection</li>
+        <li>Sub-graphs <strong>inherit</strong> parent's checkpointer</li>
+      </ul>
+
+      <h3 id="map-reduce">3.4 Map-Reduce (Send API)</h3>
+      <p>Dynamic fan-out for parallel execution:</p>
+      <pre data-lang="python"><span class="kw">def</span> <span class="fn">dispatch</span>(state):
+    <span class="kw">return</span> [<span class="tp">Send</span>(<span class="st">"worker"</span>, {<span class="st">"item"</span>: item}) <span class="kw">for</span> item <span class="kw">in</span> state[<span class="st">"items"</span>]]
+
+builder.<span class="fn">add_conditional_edges</span>(<span class="st">"dispatch"</span>, dispatch, [<span class="st">"worker"</span>])</pre>
+      <p>Workers write to keys with reducers; runtime aggregates automatically.</p>
+
+      <h3 id="handoffs">3.5 Agent Handoffs (4 Mechanisms)</h3>
+      <ol>
+        <li><strong>Static</strong> <code>add_conditional_edges</code> &mdash; deterministic routing</li>
+        <li><strong>Tool</strong> returning <code>Command(goto=...)</code> &mdash; swarm handoffs</li>
+        <li><strong>Command(goto=...)</strong> from any node &mdash; stateful handoff</li>
+        <li><strong>Send(node, arg)</strong> &mdash; parallel fan-out</li>
+      </ol>
+
+      <h3 id="topologies">3.6 Multi-Agent Topologies</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Topology</th><th>Pattern</th><th>Use Case</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Star</strong></td><td>Supervisor + N workers</td><td>Centralized orchestration</td></tr>
+            <tr><td><strong>Chain</strong></td><td>Linear pipeline</td><td>Sequential refinement</td></tr>
+            <tr><td><strong>Hierarchical</strong></td><td>Supervisor of supervisors</td><td>Large teams</td></tr>
+            <tr><td><strong>Network</strong></td><td>Any-to-any handoff (swarm)</td><td>Open collaboration</td></tr>
+            <tr><td><strong>Map-reduce</strong></td><td>Send + reducer</td><td>Independent subtasks</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─── 4. Persistence & Memory ──────────────────────────── -->
+    <section class="section" id="persistence">
+      <div class="section-header">
+        <span class="section-num">4</span>
+        <h2>Persistence &amp; Memory</h2>
+      </div>
+
+      <h3 id="checkpointing">4.1 Checkpointing Backends</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Backend</th><th>Package</th><th>Use Case</th></tr></thead>
+          <tbody>
+            <tr><td><code>InMemorySaver</code></td><td><code>langgraph-checkpoint</code></td><td>Dev/test</td></tr>
+            <tr><td><code>SqliteSaver</code></td><td><code>langgraph-checkpoint-sqlite</code></td><td>Local file</td></tr>
+            <tr><td><code>PostgresSaver</code></td><td><code>langgraph-checkpoint-postgres</code></td><td>Production</td></tr>
+            <tr><td><code>AsyncPostgresSaver</code></td><td><code>langgraph-checkpoint-postgres</code></td><td>Async production</td></tr>
+            <tr><td><code>RedisSaver</code></td><td><code>langgraph-redis</code> (community)</td><td>+ vector search</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>All implement <code>BaseCheckpointSaver</code> interface: <code>get</code>, <code>put</code>, <code>put_writes</code>, <code>list</code>, <code>delete_thread</code>.</p>
+
+      <h3 id="thread-state">4.2 Thread-Based State</h3>
+      <ul>
+        <li><code>thread_id</code> in <code>config["configurable"]</code> identifies conversation lineage</li>
+        <li><code>checkpoint_ns</code> for subgraph partitioning within a thread</li>
+        <li><code>checkpoint_id</code> to pin to specific historical checkpoint</li>
+      </ul>
+
+      <h3 id="time-travel">4.3 Time Travel</h3>
+      <ul>
+        <li><code>get_state_history(config)</code> &mdash; iterator of <code>StateSnapshot</code> (newest to oldest)</li>
+        <li><strong>Replay:</strong> <code>invoke(None, config with checkpoint_id)</code></li>
+        <li><strong>Fork:</strong> <code>invoke(Command(resume=...), config with checkpoint_id)</code> &mdash; branches history as tree</li>
+        <li><code>update_state(config, values, as_node=...)</code> &mdash; surgical state mutation</li>
+      </ul>
+
+      <h3 id="hitl">4.4 Human-in-the-Loop</h3>
+      <p>Three mechanisms:</p>
+      <ol>
+        <li><strong><code>interrupt(payload)</code></strong> &mdash; suspends current node, returns resume value <em>(PRIMARY)</em></li>
+        <li><strong><code>interrupt_before</code>/<code>interrupt_after</code></strong> &mdash; static breakpoints</li>
+        <li><strong>HumanInterrupt/Response protocol</strong> &mdash; structured HITL UI contract</li>
+      </ol>
+      <p>Resume: <code>Command(resume=value)</code> or <code>Command(resume={hash: value})</code> for multiple interrupts.</p>
+
+      <h3 id="memory-tiers">4.5 Memory Tiers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tier</th><th>Lifetime</th><th>API</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Short-term (thread)</strong></td><td>Single thread</td><td>State checkpoint</td></tr>
+            <tr><td><strong>Long-term (store)</strong></td><td>Across threads</td><td><code>store.put/get/search</code></td></tr>
+            <tr><td><strong>Semantic (vector)</strong></td><td>Same as long-term</td><td><code>store.search(query=...)</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><code>BaseStore</code> implementations: <code>InMemoryStore</code>, <code>PostgresStore</code>, <code>RedisStore</code>. Namespace hierarchy: <code>("users", user_id, "preferences")</code></p>
+
+      <h3 id="durable-execution">4.6 Durable Execution</h3>
+      <p>Automatic from checkpointer + <code>interrupt()</code>: every node's I/O is persisted.</p>
+      <ul>
+        <li><strong>Crash recovery:</strong> <code>invoke(None, config)</code> resumes from last checkpoint</li>
+        <li><strong><code>durability</code> parameter:</strong> <code>"exit"</code> (default), <code>"async"</code>, <code>"sync"</code> (strongest)</li>
+        <li>Node side-effects <strong>must be idempotent</strong> for crash safety</li>
+      </ul>
+    </section>
+
+    <!-- ─── 5. Streaming & Observability ─────────────────────── -->
+    <section class="section" id="streaming">
+      <div class="section-header">
+        <span class="section-num">5</span>
+        <h2>Streaming &amp; Observability</h2>
+      </div>
+
+      <h3 id="stream-modes">5.1 Stream Modes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mode</th><th>Output</th><th>Use Case</th></tr></thead>
+          <tbody>
+            <tr><td><code>values</code></td><td>Full state after each step</td><td>Replay UI</td></tr>
+            <tr><td><code>updates</code></td><td><code>{node: partial_state}</code> per step</td><td>"What changed"</td></tr>
+            <tr><td><code>messages</code></td><td><code>(message_chunk, metadata)</code> token-by-token</td><td>Chat streaming</td></tr>
+            <tr><td><code>custom</code></td><td>StreamWriter output</td><td>Progress, sources</td></tr>
+            <tr><td><code>checkpoints</code></td><td>Checkpoint write events</td><td>Persistence observability</td></tr>
+            <tr><td><code>tasks</code></td><td>Start/finish/results/errors</td><td>Pipeline monitoring</td></tr>
+            <tr><td><code>debug</code></td><td>checkpoints + tasks combined</td><td>Full trace</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="token-streaming">5.2 Token-Level Streaming</h3>
+      <p><code>stream_mode="messages"</code> on <code>astream()</code> yields <code>(AIMessageChunk, metadata)</code> tuples. Metadata includes <code>langgraph_node</code>, <code>langgraph_triggers</code>, <code>ls_provider</code>, <code>ls_model_name</code>.</p>
+
+      <h3 id="subgraph-streaming">5.3 Sub-Graph Streaming</h3>
+      <p><code>subgraphs=True</code> on <code>astream()</code> streams events from nested graphs with namespace tags.</p>
+
+      <h3 id="sse-transport">5.4 SSE Transport</h3>
+      <p><code>POST /threads/{id}/runs/stream</code> &mdash; Server-Sent Events wire format. Resumable via <code>last_event_id</code>. SDK wraps into <code>client.runs.stream()</code> iterators.</p>
+
+      <h3 id="observability">5.5 Observability Stack</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Layer</th><th>Mechanism</th></tr></thead>
+          <tbody>
+            <tr><td><strong>LangSmith</strong></td><td><code>LANGSMITH_TRACING=true</code>, auto-instruments Pregel</td></tr>
+            <tr><td><strong>LangFuse</strong></td><td>Open-source, OTel export or callback</td></tr>
+            <tr><td><strong>OpenTelemetry</strong></td><td>Native OTel spans from v0.2+</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Per-call metadata: <code>tags=[f"agent:{name}", f"run:{run_id}"]</code> for cost attribution.</p>
+    </section>
+
+    <!-- ─── 6. Deployment & Platform ─────────────────────────── -->
+    <section class="section" id="deployment">
+      <div class="section-header">
+        <span class="section-num">6</span>
+        <h2>Deployment &amp; Platform</h2>
+      </div>
+
+      <h3 id="manifest">6.1 langgraph.json Manifest</h3>
+      <pre data-lang="json">{
+  <span class="st">"dependencies"</span>: [<span class="st">"."</span>],
+  <span class="st">"graphs"</span>: { <span class="st">"agent"</span>: <span class="st">"./src/agent.py:agent"</span> },
+  <span class="st">"env"</span>: <span class="st">".env"</span>,
+  <span class="st">"python_version"</span>: <span class="st">"3.12"</span>,
+  <span class="st">"store"</span>: {
+    <span class="st">"index"</span>: {
+      <span class="st">"embed"</span>: <span class="st">"openai:text-embedding-3-small"</span>,
+      <span class="st">"dims"</span>: <span class="nu">1536</span>
+    }
+  },
+  <span class="st">"auth"</span>: { <span class="st">"path"</span>: <span class="st">"./auth.py:auth"</span> }
+}</pre>
+
+      <h3 id="cli">6.2 CLI Commands</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>langgraph dev</code></td><td>Local dev server + Studio</td></tr>
+            <tr><td><code>langgraph build</code></td><td>Containerize</td></tr>
+            <tr><td><code>langgraph up</code></td><td>Docker Compose stack</td></tr>
+            <tr><td><code>langgraph deploy</code></td><td>Push to LangGraph Platform</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="rest-api">6.3 REST API (Assistants API)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Endpoint</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST /assistants</code></td><td>Graph definitions</td></tr>
+            <tr><td><code>POST /threads</code></td><td>Stateful sessions</td></tr>
+            <tr><td><code>POST /threads/{id}/runs</code></td><td>Invocation</td></tr>
+            <tr><td><code>POST /runs/stream</code></td><td>Streaming</td></tr>
+            <tr><td><code>POST /store/items</code></td><td>Long-term memory</td></tr>
+            <tr><td><code>POST /runs/crons</code></td><td>Scheduled runs</td></tr>
+            <tr><td><code>POST /webhooks/{id}</code></td><td>Outbound webhooks</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="platform-tiers">6.4 LangGraph Platform Tiers</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">Server (Self-Hosted)</div>
+          <div class="card-body">Docker image, own infrastructure. Full control over deployment and scaling.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Cloud (Managed)</div>
+          <div class="card-body">Autoscaling, zero-downtime deploys. Managed infrastructure by LangChain.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Studio (IDE)</div>
+          <div class="card-body">Visual debugger, time-travel, thread inspection. Interactive graph exploration.</div>
+        </div>
+      </div>
+
+      <h3 id="auth">6.5 Authentication</h3>
+      <ul>
+        <li>Built-in <strong>path-based auth</strong> with <code>user_id</code>/<code>org_id</code> filtering</li>
+        <li>Custom auth with <code>@auth.authenticate</code> and <code>@auth.on</code> decorators</li>
+        <li>OAuth2, API keys, JWT, custom headers</li>
+      </ul>
+    </section>
+
+    <!-- ─── 7. Ecosystem & Integrations ──────────────────────── -->
+    <section class="section" id="ecosystem">
+      <div class="section-header">
+        <span class="section-num">7</span>
+        <h2>Ecosystem &amp; Integrations</h2>
+      </div>
+
+      <h3 id="llm-providers">7.1 LLM Provider Support</h3>
+      <p><strong>50+ providers</strong> via LangChain: OpenAI, Anthropic, Google, AWS Bedrock, Cohere, Mistral, Groq, Together, Fireworks, OpenRouter, DeepSeek, Ollama, vLLM, LiteLLM.</p>
+      <p>Unified entrypoint: <code>init_chat_model("provider:model")</code></p>
+
+      <h3 id="tool-integration">7.2 Tool Integration</h3>
+      <ul>
+        <li><strong><code>@tool</code> decorator:</strong> function &rarr; BaseTool with JSON schema</li>
+        <li><strong><code>bind_tools():</code></strong> inject tool schemas into LLM request</li>
+        <li><strong><code>ToolNode</code>:</strong> execute tool calls, return ToolMessages</li>
+        <li><strong><code>tools_condition</code>:</strong> conditional router (tools or END)</li>
+        <li><strong>ToolRuntime:</strong> auto-injected context (state, store, stream_writer)</li>
+      </ul>
+
+      <h3 id="partner-libs">7.3 Partner Libraries</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Package</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>langgraph</code></td><td>Core graph runtime</td></tr>
+            <tr><td><code>langgraph-prebuilt</code></td><td>ToolNode, create_react_agent</td></tr>
+            <tr><td><code>langgraph-checkpoint</code></td><td>Base interfaces, MemorySaver</td></tr>
+            <tr><td><code>langgraph-checkpoint-postgres</code></td><td>PostgresSaver</td></tr>
+            <tr><td><code>langgraph-checkpoint-sqlite</code></td><td>SqliteSaver</td></tr>
+            <tr><td><code>langgraph-sdk</code></td><td>Python/JS client SDK</td></tr>
+            <tr><td><code>langgraph-cli</code></td><td>CLI tools</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="typescript">7.4 TypeScript / JavaScript</h3>
+      <p><code>@langchain/langgraph</code> &mdash; near feature parity with Python.</p>
+      <div class="callout orange">
+        <div class="callout-title">TypeScript Gaps (Python-First Features)</div>
+        <p>Missing in TS: per-node timeouts, DeltaChannel, error handlers (Python-first). <code>useStream</code> React hook available for frontend integration.</p>
+      </div>
+    </section>
+
+    <!-- ─── 8. Advanced Patterns ─────────────────────────────── -->
+    <section class="section" id="advanced-patterns">
+      <div class="section-header">
+        <span class="section-num">8</span>
+        <h2>Advanced Patterns</h2>
+        <span class="sidebar-badge badge-v1">v1.2</span>
+      </div>
+
+      <h3 id="retry">8.1 Retry &amp; Error Handling</h3>
+      <pre data-lang="python">builder.<span class="fn">add_node</span>(<span class="st">"api"</span>, call_api, retry=<span class="tp">RetryPolicy</span>(
+    max_attempts=<span class="nu">3</span>,
+    initial_interval=<span class="nu">1.0</span>,
+    backoff_factor=<span class="nu">2.0</span>
+))</pre>
+
+      <h3 id="timeouts">8.2 Timeouts <span class="sidebar-badge badge-new">v1.2</span></h3>
+      <pre data-lang="python">builder.<span class="fn">add_node</span>(<span class="st">"slow"</span>, call_slow, timeout=<span class="tp">TimeoutPolicy</span>(
+    run_timeout=<span class="nu">60.0</span>,
+    idle_timeout=<span class="nu">10.0</span>
+))</pre>
+
+      <h3 id="error-handlers">8.3 Error Handlers <span class="sidebar-badge badge-new">v1.2</span></h3>
+      <pre data-lang="python"><span class="kw">def</span> <span class="fn">recover</span>(error: <span class="tp">NodeError</span>) -&gt; <span class="tp">Command</span>:
+    <span class="kw">return</span> <span class="tp">Command</span>(update={<span class="st">"failed"</span>: <span class="bi">True</span>}, goto=<span class="st">"fallback"</span>)
+
+builder.<span class="fn">add_node</span>(<span class="st">"primary"</span>, fn, error_handler=recover)</pre>
+
+      <h3 id="shutdown">8.4 Graceful Shutdown <span class="sidebar-badge badge-new">v1.2</span></h3>
+      <p><code>RunControl().request_drain()</code> &mdash; saves checkpoint at next superstep boundary.</p>
+
+      <h3 id="caching">8.5 Node Caching <span class="sidebar-badge badge-new">v1.2</span></h3>
+      <pre data-lang="python">builder.<span class="fn">add_node</span>(<span class="st">"retrieval"</span>, retrieve, cache_policy=<span class="tp">NodeCachePolicy</span>(ttl=<span class="nu">300</span>))</pre>
+
+      <h3 id="deltachannel">8.6 DeltaChannel <span class="sidebar-badge badge-new">v1.2</span></h3>
+      <p>Incremental checkpointing &mdash; stores only deltas, critical for long threads. Reduces storage overhead significantly for conversations with large state updates.</p>
+    </section>
+
+    <!-- ─── 9. Version History ───────────────────────────────── -->
+    <section class="section" id="version-history">
+      <div class="section-header">
+        <span class="section-num">9</span>
+        <h2>Version History &amp; Migration</h2>
+      </div>
+
+      <h3 id="timeline">9.1 Timeline</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Version</th><th>Highlights</th></tr></thead>
+          <tbody>
+            <tr><td>2023-Q4</td><td>0.0.x</td><td>Initial alpha</td></tr>
+            <tr><td>2024-Q1</td><td>0.1.x</td><td>Stable StateGraph, Pregel, MemorySaver</td></tr>
+            <tr><td>2024-Q3</td><td>0.2.x</td><td>create_react_agent, subgraphs, Postgres/SQLite</td></tr>
+            <tr><td>2025-Q2</td><td>0.3.x</td><td>Long-term memory, BaseStore</td></tr>
+            <tr><td>2025-Q4</td><td>0.4&ndash;0.6</td><td>Middleware, runtime injection, JS parity</td></tr>
+            <tr><td>2025-10</td><td><strong>1.0.0</strong></td><td>Stable API, Python 3.10+, create_react_agent deprecated</td></tr>
+            <tr><td>2026-01</td><td>1.1.0</td><td>Typed v2 streaming, GraphOutput</td></tr>
+            <tr><td><strong>2026-06</strong></td><td><strong>1.2.6</strong></td><td>v3 streaming, DeltaChannel, timeouts, error handlers</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="breaking-changes">9.2 Breaking Changes (v0.x &rarr; v1.x)</h3>
+      <ul>
+        <li>Python 3.10+ required</li>
+        <li><code>create_react_agent</code> &rarr; <code>create_agent</code> (deprecation)</li>
+        <li><code>AgentState</code> &rarr; unified <code>langchain.agents.AgentState</code></li>
+        <li><code>MessageGraph</code> &rarr; <code>StateGraph</code> with messages key</li>
+        <li>Explicit <code>Annotated</code> reducers required (implicit merging removed)</li>
+      </ul>
+
+      <h3 id="lts">9.3 LTS Policy</h3>
+      <div class="callout green">
+        <div class="callout-title">Long-Term Support</div>
+        <p><strong>v1.0+</strong> active until v2.0 (guaranteed by LangChain 1.0 commitment). <strong>v0.4</strong> maintenance (security patches) until Dec 2026.</p>
+      </div>
+    </section>
+
+    <!-- ─── 10. Comparison ────────────────────────────────────── -->
+    <section class="section" id="comparison">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <h2>Comparison with Alternatives</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th>LangGraph</th><th>CrewAI</th><th>AutoGen</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Architecture</strong></td><td>Directed graph</td><td>Role-based crews</td><td>Conversation-driven</td></tr>
+            <tr><td><strong>Best for</strong></td><td>Production, complex state</td><td>Fast prototypes</td><td>Research</td></tr>
+            <tr><td><strong>State management</strong></td><td>Native checkpointing</td><td>Basic</td><td>Conversation history</td></tr>
+            <tr><td><strong>HITL</strong></td><td><code>interrupt()</code> first-class</td><td>Custom guards</td><td>UserProxy</td></tr>
+            <tr><td><strong>Observability</strong></td><td>LangSmith native</td><td>OTel export</td><td>Basic logging</td></tr>
+            <tr><td><strong>GitHub stars</strong></td><td>~36K</td><td>~31K</td><td>~50K (AG2)</td></tr>
+            <tr><td><strong>TypeScript</strong></td><td>First-class</td><td>None</td><td>Limited</td></tr>
+            <tr><td><strong>Learning curve</strong></td><td>Steepest (1&ndash;3 weeks)</td><td>Lowest (1 day)</td><td>Medium</td></tr>
+            <tr><td><strong>Token efficiency</strong></td><td>Best</td><td>Higher</td><td>Highest (no cap)</td></tr>
+            <tr><td><strong>Verdict</strong></td><td><strong>Production default</strong></td><td>Prototype accelerator</td><td>Research niches</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─── 11. oh-my-class Usage ────────────────────────────── -->
+    <section class="section" id="oh-my-class">
+      <div class="section-header">
+        <span class="section-num">11</span>
+        <h2>oh-my-class Usage</h2>
+        <span class="sidebar-badge badge-omc">OMC</span>
+      </div>
+
+      <p>This section details how the <strong>oh-my-class</strong> teaching pack generator leverages LangGraph for its multi-agent AI pipeline.</p>
+
+      <h3 id="omc-graph">11.1 Graph Topology</h3>
+      <p><strong>8-stage teaching-pack graph:</strong></p>
+      <div class="flow-diagram">setup_contract &rarr; preplanning_search &rarr; planning_blueprint &rarr; post_blueprint_research
+    &rarr; artifact_workflow &rarr; render_quality &rarr; teacher_approval &rarr; export_finalize &rarr; END</div>
+
+      <div class="callout purple">
+        <div class="callout-title">Two Conditional Seams</div>
+        <p><strong>render_quality</strong> &rarr; 4-way (<code>planning_blueprint</code> / <code>post_blueprint_research</code> / <code>artifact_workflow</code> / <code>teacher_approval</code>)</p>
+        <p><strong>teacher_approval</strong> &rarr; 2-way (<code>export_finalize</code> / <code>artifact_workflow</code>)</p>
+      </div>
+
+      <h3 id="omc-state">11.2 State Schema</h3>
+      <p><code>TeachingPackState</code> TypedDict with:</p>
+      <ul>
+        <li><code>run_id</code>, <code>contract</code>, <code>current_stage</code>, <code>completed_stages</code></li>
+        <li><code>lesson_plan</code>, <code>research_brief</code></li>
+        <li><code>artifacts</code>, <code>rendered_snapshots</code></li>
+        <li><code>quality_scores</code>, <code>quality_issues</code>, <code>quality_recovery_route</code></li>
+        <li><code>approval_gate</code>, <code>teacher_approved</code>, <code>teacher_decision</code></li>
+        <li><code>gate_payload</code>, <code>revision_feedback</code>, <code>approved_snapshot_ids</code></li>
+        <li><code>exported_files</code></li>
+      </ul>
+
+      <h3 id="omc-hitl">11.3 HITL Pattern</h3>
+      <p><code>interrupt(gate_payload)</code> in <code>teacher_approval</code> node. Teacher POSTs <code>Command(resume={action, feedback, rejection_type, artifact_rejections})</code>. Scoped rejection loops back to <code>artifact_workflow</code> with narrowed artifact types.</p>
+
+      <h3 id="omc-persistence">11.4 Persistence</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Environment</th><th>Backend</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Production</td><td><code>PostgresSaver</code></td><td>Multi-instance safe</td></tr>
+            <tr><td>Development</td><td><code>MemorySaver</code></td><td>Lost on restart</td></tr>
+            <tr><td>Staging</td><td><code>SqliteSaver</code></td><td>File: <code>omc_checkpoints.db</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Thread identity = <code>run_id</code>. <code>checkpointing.py</code> provides context manager.</p>
+
+      <h3 id="omc-quality">11.5 Quality Gates</h3>
+      <p>Two-layer check:</p>
+      <ul>
+        <li><strong>Deterministic:</strong> Pydantic validation, placeholder scan, answer-key leakage, pack coherence</li>
+        <li><strong>Optional model-assisted:</strong> QualityGate protocol</li>
+      </ul>
+      <p>Recovery routes map failing layer to earlier stage.</p>
+
+      <h3 id="omc-regen">11.6 Scoped Regeneration</h3>
+      <p>Teacher can reject individual artifacts. <code>merge_regenerated_artifacts</code> drops rejected items and appends fresh generation while preserving other artifacts.</p>
+    </section>
+
+  </div><!-- /content -->
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>LangGraph Capabilities Report &mdash; Generated June 30, 2026 &mdash; oh-my-class Internal Research</p>
+    <p>Source: LangGraph v1.2.6 documentation, GitHub repository, and community research.</p>
+  </footer>
+
+</div><!-- /main -->
+
+</body>
+</html>

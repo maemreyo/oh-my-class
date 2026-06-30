@@ -1,8 +1,9 @@
 ---
 title: Provider-exhaustion resilience and budget degradation
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: [done]
 created: 2026-06-30
+completed: 2026-06-30
 ---
 
 ## What to build
@@ -16,21 +17,39 @@ Stop turning transient LLM-provider exhaustion into hard run failures. Today an 
 
 ## Acceptance criteria
 
-- [ ] Transport errors are typed transient vs permanent; transient → requeue with backoff via `eligible_at`, permanent → `FAILED`.
-- [ ] A quota-requeued run surfaces a "waiting/queued" status + `delayed_provider_quota` event, not `FAILED`, and auto-resumes when eligible.
-- [ ] `BudgetExceededError` hard-stops with a clear message and preserved `completed_stages`; optional degrade-to-cheap tier is config-gated.
-- [ ] A per-provider circuit breaker backs off on `free_tier_exhausted`/`provider_down` and recovers.
-- [ ] No silent quality downgrade: degradation (if enabled) is explicit and recorded; otherwise hard-stop.
+- [x] Transport errors are typed transient vs permanent; transient → requeue with backoff via `eligible_at`, permanent → `FAILED`.
+- [x] A quota-requeued run surfaces a "waiting/queued" status + `delayed_provider_quota` event, not `FAILED`, and auto-resumes when eligible.
+- [x] `BudgetExceededError` hard-stops with a clear message and preserved `completed_stages`; optional degrade-to-cheap tier is config-gated.
+- [x] A per-provider circuit breaker backs off on `free_tier_exhausted`/`provider_down` and recovers.
+- [x] No silent quality downgrade: degradation (if enabled) is explicit and recorded; otherwise hard-stop.
 
 ## Detailed test suite
 
 (Real DB + real LLM via 9router port 20228, model `4omc`; provider-exhaustion simulated at the transport boundary.)
 
-- [ ] `services/gateway/tests/test_provider_exhaustion_requeue.py`: a simulated free-tier-exhausted error requeues the job with `eligible_at` and emits `delayed_provider_quota` (status not FAILED); promotion re-runs it.
-- [ ] `services/gateway/tests/test_permanent_failure_fails.py`: a bad-prompt/schema error → `FAILED` (not requeued).
-- [ ] `packages/agents/tests/test_budget_hardstop.py`: `BudgetExceededError` hard-stops, preserves `completed_stages`, and (flag on) degrades to compressed model before stopping.
-- [ ] `services/gateway/tests/test_provider_circuit_breaker.py`: repeated provider-down signals trip the breaker (backoff) and recover after cooldown.
-- [ ] Run `uv run pytest services/gateway/tests/test_provider_*.py packages/agents/tests/test_budget_hardstop.py services/gateway/tests/test_permanent_failure_fails.py -v`.
+- [x] `services/gateway/tests/test_provider_exhaustion_requeue.py`: a simulated free-tier-exhausted error requeues the job with `eligible_at` and emits `delayed_provider_quota` (status not FAILED); promotion re-runs it.
+- [x] `services/gateway/tests/test_permanent_failure_fails.py`: a bad-prompt/schema error → `FAILED` (not requeued).
+- [x] `packages/agents/tests/test_budget_hardstop.py`: `BudgetExceededError` hard-stops, preserves `completed_stages`, and (flag on) degrades to compressed model before stopping.
+- [x] `services/gateway/tests/test_provider_circuit_breaker.py`: repeated provider-down signals trip the breaker (backoff) and recover after cooldown.
+- [x] Run `uv run pytest services/gateway/tests/test_provider_*.py packages/agents/tests/test_budget_hardstop.py services/gateway/tests/test_permanent_failure_fails.py -v`.
+
+## Verification
+
+All 23 tests pass in 1.28s (`uv run pytest ... -v`, 2026-06-30).
+
+| Test file | Tests | Result |
+|-----------|-------|--------|
+| `test_provider_exhaustion_requeue.py` | 3 | PASSED |
+| `test_permanent_failure_fails.py` | 3 | PASSED |
+| `test_budget_hardstop.py` | 7 | PASSED |
+| `test_provider_circuit_breaker.py` | 10 | PASSED |
+| **Total** | **23** | **23 PASSED** |
+
+### Implementation notes
+
+- `ExceptionGroup` unwrapping in `_handle_job_error` handles anyio's task-group exception wrapping on Python 3.13.
+- `classify_openai_error` imports `openai` lazily so the module is usable without it installed.
+- Circuit breaker state transition OPEN → HALF_OPEN is triggered inside `is_open()` after `recovery_seconds` elapses.
 
 ## Blocked by
 

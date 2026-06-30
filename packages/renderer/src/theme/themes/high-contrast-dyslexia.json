@@ -1,0 +1,94 @@
+{
+  "name": "high-contrast-dyslexia",
+  "primitives": {
+    "colorPalette": {
+      "paper": "#FFFDF2",
+      "paperDeep": "#F5EFD8",
+      "ink": "#111111",
+      "inkSoft": "#333333",
+      "inkFaint": "#555555",
+      "line": "#111111",
+      "lineSoft": "#595959",
+      "blue": "#003A8C",
+      "blueDeep": "#00235C",
+      "blueTint": "rgba(0,58,140,0.14)",
+      "gold": "#7A4B00",
+      "green": "#006B3A",
+      "catA": "#003A8C",
+      "catB": "#7A4B00",
+      "catC": "#006B3A",
+      "catD": "#005A5A",
+      "catE": "#5A235A"
+    },
+    "spacing": {
+      "1": "6px",
+      "2": "10px",
+      "3": "14px",
+      "4": "18px",
+      "5": "22px",
+      "6": "28px",
+      "8": "36px",
+      "10": "44px",
+      "12": "52px"
+    },
+    "fontFamilyHeading": "Atkinson Hyperlegible, Lexend, Verdana, Arial, sans-serif",
+    "fontFamilyBody": "Atkinson Hyperlegible, Lexend, Verdana, Arial, sans-serif",
+    "fontFamilyMono": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+    "fontSizeScale": {
+      "xs": "13px",
+      "sm": "16px",
+      "base": "18px",
+      "lg": "20px",
+      "xl": "24px",
+      "2xl": "30px",
+      "3xl": "38px"
+    },
+    "fontWeightScale": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 700,
+      "bold": 800
+    },
+    "borderRadius": {
+      "sm": "4px",
+      "md": "8px",
+      "lg": "12px",
+      "xl": "16px",
+      "full": "9999px"
+    },
+    "shadow": {
+      "sm": "0 0 0 2px rgba(17,17,17,0.18)",
+      "md": "0 0 0 3px rgba(17,17,17,0.22)",
+      "lg": "0 0 0 4px rgba(17,17,17,0.26)"
+    }
+  },
+  "semantic": {
+    "colorBg": "#FFFDF2",
+    "colorBgCard": "#FFFFFF",
+    "colorBgDeep": "#F5EFD8",
+    "colorText": "#111111",
+    "colorTextSoft": "#333333",
+    "colorTextFaint": "#555555",
+    "colorBorder": "#111111",
+    "colorBorderSoft": "#595959",
+    "colorAccent": "#003A8C",
+    "colorAccentDeep": "#00235C",
+    "colorAccentTint": "rgba(0,58,140,0.14)",
+    "colorSuccess": "#006B3A",
+    "colorWarning": "#7A4B00",
+    "colorError": "#B00020",
+    "categoryColors": {
+      "a": { "base": "#003A8C", "tint": "rgba(0,58,140,0.14)" },
+      "b": { "base": "#7A4B00", "tint": "rgba(122,75,0,0.14)" },
+      "c": { "base": "#006B3A", "tint": "rgba(0,107,58,0.14)" },
+      "d": { "base": "#005A5A", "tint": "rgba(0,90,90,0.14)" },
+      "e": { "base": "#5A235A", "tint": "rgba(90,35,90,0.14)" }
+    }
+  },
+  "component": {
+    "questionCardRadius": "12px",
+    "questionCardShadow": "0 0 0 3px rgba(17,17,17,0.24)",
+    "flashcardHeight": "240px",
+    "flashcardRadius": "12px"
+  }
+}

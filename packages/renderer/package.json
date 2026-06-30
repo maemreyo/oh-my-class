@@ -4,6 +4,13 @@
   "private": true,
   "type": "module",
   "main": "dist/renderer.js",
+  "types": "dist/renderer.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/renderer.d.ts",
+      "import": "./dist/renderer.js"
+    }
+  },
   "bin": {
     "omc-render": "./dist/agent-renderer.js"
   },

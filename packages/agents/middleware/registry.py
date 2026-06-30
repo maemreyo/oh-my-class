@@ -1,8 +1,8 @@
-"""Middleware registry — canonical ordered list of all 30 pipeline middleware layers.
+"""Middleware registry — canonical ordered list of all 31 pipeline middleware layers.
 
 Import from this module to get the complete, ordered middleware chain.
-The list is ordered by `order` attribute (1–30). ClarificationMiddleware
-MUST always be last (order=30).
+The list is ordered by `order` attribute (1–31). ClarificationMiddleware
+MUST always be last (order=31).
 
 Do NOT reorder entries without updating all references.
 """
@@ -47,6 +47,7 @@ from packages.agents.middleware.safety.thread_data import ThreadDataMiddleware
 from packages.agents.middleware.safety.token_budget import TokenBudgetMiddleware
 from packages.agents.middleware.safety.tool_error_handling import ToolErrorHandlingMiddleware
 from packages.agents.middleware.safety.uploads import UploadsMiddleware
+from packages.agents.middleware.sequence_consistency_validator import SequenceConsistencyValidator
 from packages.agents.middleware.terminal.clarification import ClarificationMiddleware
 
 ORDERED_MIDDLEWARE_LIST: list[type[BaseMiddleware]] = [
@@ -79,7 +80,8 @@ ORDERED_MIDDLEWARE_LIST: list[type[BaseMiddleware]] = [
     BiasDetectionMiddleware,              # order=27  quality
     ArtifactCoherenceMiddleware,          # order=28  quality
     LearningObjectiveAlignmentMiddleware, # order=29  quality
-    ClarificationMiddleware,              # order=30  terminal (MUST be last)
+    SequenceConsistencyValidator,         # order=30  quality
+    ClarificationMiddleware,              # order=31  terminal (MUST be last)
 ]
 
-EXPECTED_MIDDLEWARE_COUNT: int = 30
+EXPECTED_MIDDLEWARE_COUNT: int = 31

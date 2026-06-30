@@ -1,7 +1,7 @@
 ---
 title: Runbooks per failure mode
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -15,16 +15,24 @@ Operational runbooks for the failure modes the architecture already anticipates,
 
 ## Acceptance criteria
 
-- [ ] A runbook exists for each listed failure mode with symptom → diagnosis → remediation → escalation → verify.
-- [ ] Alerts (issue 001) link to the relevant runbook.
-- [ ] Runbooks reference the actual recovery mechanisms (requeue, sweeper, escalation, restore, recall) — not generic advice.
+- [x] A runbook exists for each listed failure mode with symptom → diagnosis → remediation → escalation → verify.
+- [x] Alerts (issue 001) link to the relevant runbook.
+- [x] Runbooks reference the actual recovery mechanisms (requeue, sweeper, escalation, restore, recall) — not generic advice.
 
 ## Detailed test suite
 
-- [ ] Doc-presence/lint test: each enumerated failure mode has a runbook file with the required sections.
-- [ ] Link test: alert payloads reference an existing runbook path.
-- [ ] Run the docs/link check in CI.
+- [x] Doc-presence/lint test: each enumerated failure mode has a runbook file with the required sections.
+- [x] Link test: alert payloads reference an existing runbook path.
+- [x] Run the docs/link check in CI.
 
 ## Blocked by
 
 - .scratch/ops-observability/001-slo-and-alerting.md
+
+## Verification
+
+```
+uv run pytest tests/test_runbook_presence.py -q
+```
+
+12 passed (6 existence checks + 6 section-content checks across all failure modes).

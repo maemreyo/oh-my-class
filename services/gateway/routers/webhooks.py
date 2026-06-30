@@ -1,6 +1,12 @@
 """Webhook notifications — Telegram, Zalo, email alerts for teacher gates."""
 
-from typing import Any
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+import hashlib
+import os
+from typing import Any, Protocol
 
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
@@ -12,6 +18,34 @@ from ..webhooks.zalo import verify_zalo_signature
 router = APIRouter()
 
 
+@dataclass(frozen=True, slots=True)
+class WebhookDispatch:
+    source: str
+    event_id: str
+    event_type: str
+    payload: dict[str, Any]
+
+
+class WebhookDispatcher(Protocol):
+    async def dispatch(self, event: WebhookDispatch) -> None: ...
+
+
+@dataclass(slots=True)
+class WebhookProcessingState:
+    processed_event_ids: set[str] = field(default_factory=set)
+    request_times_by_source: dict[str, list[datetime]] = field(default_factory=dict)
+
+
+class LoggingWebhookDispatcher:
+    async def dispatch(self, event: WebhookDispatch) -> None:
+        get_logger("webhook.dispatch").info(
+            "webhook.dispatched source=%s event_type=%s event_id=%s",
+            event.source,
+            event.event_type,
+            event.event_id,
+        )
+
+
 @router.post("/notify")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def send_notification(request: Request):
     """POST /webhook/notify — Send gate approval notification.
@@ -19,13 +53,23 @@ async def send_notification(request: Request):
     Accepts JSON payload describing the notification event.
     Returns ack; actual dispatch (Telegram/Zalo/email) is TODO.
     """
+    secret = request.headers.get("X-Webhook-Secret")
+    if not _verify_notify_secret(secret):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid notify webhook secret")
     payload = await request.json()
+    event = WebhookDispatch(
+        source="notify",
+        event_id=_event_id(payload),
+        event_type=str(payload.get("type", "unknown")),
+        payload=payload,
+    )
+    await _dispatcher(request).dispatch(event)
     get_logger("webhook.notify").info(
         "notify.received type=%s payload_keys=%s",
         payload.get("type", "unknown"),
         list(payload.keys()),
     )
-    return {"status": "received", "type": payload.get("type", "unknown")}
+    return {"status": "dispatched", "type": payload.get("type", "unknown")}
 
 
 @router.post("/telegram")  # pyright: ignore[reportUntypedFunctionDecorator]
@@ -43,8 +87,9 @@ async def telegram_webhook(request: Request):
             detail="Invalid Telegram webhook signature",
         )
 
-    # TODO: Process Telegram update, dispatch to notification handler
-    return {"status": "ok"}
+    payload = await request.json()
+    result = await _process_verified_webhook(request, "telegram", payload, body)
+    return {"status": result}
 
 
 @router.post("/zalo")  # pyright: ignore[reportUntypedFunctionDecorator]
@@ -61,8 +106,93 @@ async def zalo_webhook(request: Request):
             detail="Invalid Zalo webhook secret",
         )
 
-    # TODO: Process Zalo webhook event
-    return {"status": "ok"}
+    payload = await request.json()
+    result = await _process_verified_webhook(request, "zalo", payload, None)
+    if result == "processed" and payload.get("type") == "effectiveness_response":
+        _effectiveness_events(request).append(payload)
+    return {"status": result}
+
+
+async def _process_verified_webhook(
+    request: Request,
+    source: str,
+    payload: dict[str, Any],
+    body: bytes | None,
+) -> str:
+    state = _processing_state(request)
+    if not _allow_request(state, source, datetime.now(UTC)):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="webhook_rate_limited")
+    event_id = f"{source}:{_event_id(payload, body)}"
+    if event_id in state.processed_event_ids:
+        return "duplicate"
+    state.processed_event_ids.add(event_id)
+    await _dispatcher(request).dispatch(WebhookDispatch(
+        source=source,
+        event_id=event_id,
+        event_type=str(payload.get("type", payload.get("event", "unknown"))),
+        payload=payload,
+    ))
+    return "processed"
+
+
+def _processing_state(request: Request) -> WebhookProcessingState:
+    state = getattr(request.app.state, "webhook_processing_state", None)
+    if isinstance(state, WebhookProcessingState):
+        return state
+    state = WebhookProcessingState()
+    request.app.state.webhook_processing_state = state
+    return state
+
+
+def _dispatcher(request: Request) -> WebhookDispatcher:
+    dispatcher = getattr(request.app.state, "webhook_dispatcher", None)
+    if dispatcher is not None:
+        return dispatcher
+    dispatcher = LoggingWebhookDispatcher()
+    request.app.state.webhook_dispatcher = dispatcher
+    return dispatcher
+
+
+def _effectiveness_events(request: Request) -> list[dict[str, Any]]:
+    events = getattr(request.app.state, "effectiveness_ingestion_events", None)
+    if isinstance(events, list):
+        return events
+    events = []
+    request.app.state.effectiveness_ingestion_events = events
+    return events
+
+
+def _allow_request(state: WebhookProcessingState, source: str, now: datetime) -> bool:
+    window = timedelta(seconds=_rate_window_seconds())
+    recent = [seen_at for seen_at in state.request_times_by_source.get(source, []) if now - seen_at <= window]
+    if len(recent) >= _rate_limit_count():
+        state.request_times_by_source[source] = recent
+        return False
+    recent.append(now)
+    state.request_times_by_source[source] = recent
+    return True
+
+
+def _event_id(payload: dict[str, Any], body: bytes | None = None) -> str:
+    for key in ("event_id", "update_id", "message_id", "id"):
+        value = payload.get(key)
+        if value is not None:
+            return str(value)
+    raw = body if body is not None else repr(sorted(payload.items())).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _verify_notify_secret(secret: str | None) -> bool:
+    expected = os.environ.get("WEBHOOK_NOTIFY_SECRET")
+    return bool(expected and secret and secret == expected)
+
+
+def _rate_limit_count() -> int:
+    return int(os.environ.get("WEBHOOK_RATE_LIMIT_COUNT", "60"))
+
+
+def _rate_window_seconds() -> int:
+    return int(os.environ.get("WEBHOOK_RATE_LIMIT_WINDOW_SECONDS", "60"))
 
 
 class FrontendErrorReport(BaseModel):

@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import User  # noqa: TC001
 from services.gateway.backpressure import BackpressureConfig, check_backpressure
+from services.gateway.contract_confirmation_edits import contract_confirmation_edits
 from services.gateway.models import RunStatus
 from services.gateway.teaching_pack_search_resume import (
     SearchPlanResumeContext,
@@ -42,8 +43,8 @@ from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.routers.teaching_pack_deps import (
     BACKPRESSURE_CONFIG,
     TEACHING_PACK_SESSION,
-    _default_backpressure_config,  # noqa: F401  re-exported for tests
-    _get_run_with_ownership,
+    _default_backpressure_config as _default_backpressure_config,
+    get_run_with_ownership,
 )
 from services.gateway.routers.teaching_pack_helpers import hash_json
 from services.gateway.routers.teaching_pack_lifecycle import lifecycle_router
@@ -159,7 +160,7 @@ async def resume_teaching_pack_run(
                 detail=rejected.reason,
             )
 
-    await _get_run_with_ownership(run_id, current_user, session)
+    await get_run_with_ownership(run_id, current_user, session)
     typed_run_id = RunId(run_id)
     teacher_id = TeacherId(current_user.user_id)
 
@@ -207,6 +208,17 @@ async def resume_teaching_pack_run(
             edits = payload.response.get("edits")
             if isinstance(edits, dict):
                 next_revision = await control_store.apply_contract_edits(typed_run_id, edits)
+                resume_payload = {**resume_payload, "contract_revision": next_revision}
+        if (
+            validation.action is TeachingPackGateAction.APPROVE
+            and validation.gate_name is TeachingPackGateName.CONTRACT_CONFIRMATION
+        ):
+            confirmation_edits = contract_confirmation_edits(payload.response)
+            if confirmation_edits:
+                next_revision = await control_store.apply_contract_edits(
+                    typed_run_id,
+                    confirmation_edits,
+                )
                 resume_payload = {**resume_payload, "contract_revision": next_revision}
         if validation.gate_name is TeachingPackGateName.CONTRACT_CONFIRMATION:
             contract_json = await control_store.get_contract_json(typed_run_id)
@@ -262,3 +274,4 @@ async def resume_teaching_pack_run(
         response_id=response_id,
         job_id=job.job_id,
     )
+

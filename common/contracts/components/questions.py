@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class QuestionCard(BaseModel):
@@ -17,6 +17,7 @@ class QuestionCard(BaseModel):
     wrong_reasons: dict[str, str] | None = None
     essence: str | None = None
     tip: str | None = None
+    kc_ids: list[str] = Field(default_factory=list)
 
 
 class QuestionList(BaseModel):
