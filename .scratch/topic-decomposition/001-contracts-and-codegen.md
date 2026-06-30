@@ -51,6 +51,7 @@ LessonSequence:
 - [ ] Generated Zod/TS output includes all new domain + transport types, registered in `scripts/generate_zod_schemas.py` `MODELS`.
 - [ ] Fixtures cover at least one Vietnamese math chủ đề, one English grammar topic, and one science topic, each as a valid multi-session `LessonSequence`.
 - [ ] All new types are **canonical in `common/contracts/`** (not agent-local), consistent with INVARIANT-10 — agents/renderer/web import them, never redefine local copies.
+- [ ] **Contract versioning (ADR-012):** every persisted contract (`LessonSequence`, `SessionPlan`, `ClassProfile`, and the `lesson_sequence`/`shared_research`/`persona_snapshot` JSON columns) declares a `schema_version`; the read path supports current + known prior versions via read adapters; a breaking change requires a version bump + migration/adapter + fixture/compatibility test. `UnitView`/event payloads version their envelope too.
 
 ## Detailed test suite
 

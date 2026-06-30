@@ -17,8 +17,36 @@ This document describes capabilities that exist as **modules** but are **not wir
 | §7.7 | "GIFT/H5P not in current tree" | **Wrong** — exporters exist at `packages/exporters/src/{gift,h5p,qti,google-forms}`; but `export_finalize` emits **only `.html`** (exporters never invoked) | parity-005 |
 | §3.8 | single event bus | Two buses (`events.py` + `teaching_pack_event_bus.py`), fragmented | parity-003 |
 | §3.2 | diagnostic/roadmap in pipeline | Legacy-only; no stage in the 8-stage graph | port at topic-decomposition Phase 3 |
+| §6 | Layer-2 pedagogical metrics measured | **Stub** — `pedagogical.py:61` hardcodes all 7 to `True` (silent-pass); runtime-parity wired the layer but the metrics are fake | effectiveness-loop 002 (de-stub) |
+| §10 | pipeline measures learning effectiveness | **No** — measures content quality only; no outcome capture / knowledge tracing | **ADR-019** + `effectiveness-loop` epic |
+| §3.4 | 30 middleware wired into runtime | **Not wired** — `ORDERED_MIDDLEWARE_LIST` (30 entries) is declared in `registry.py` but legacy `graph.py` has zero references; teaching-pack has no middleware chain | wire-001 |
+| §7 | Layer 3 (HTML/presentation) check | **Missing in teaching-pack** — no DOCTYPE/CDN/brand-string validation in `render_quality`; only in legacy `content_reviewer.py` | parity-006 |
+| §7 | Layer 4 (LLM-as-Judge, 3-judge majority) | **Missing in teaching-pack** — no G-Eval, no judge calls; only legacy `sub_agents/reviewer/nodes.py` uses `GEvalScorer` | parity-007 |
+| §7 | Layer 6 (multi-judge export check) | **Missing in teaching-pack** — `export_finalize` returns path strings without content generation; no export validation | parity-008 |
+| §8.1 | "9Router sidecar :20128" | **STUB** — `services/router/Dockerfile` CMD is `echo "9Router — configure with real image"`; not operational | router-001 |
+| §9.1 | Production compose healthy | **Likely broken** — prod overlay declares `depends_on: 9router: service_healthy` but never defines `9router` service | compose-001 |
+| §6 | Langfuse observability operational | **Unverified** — env vars declared in `.env.example`; integration code in `packages/agents/observability.py` not yet audited | obs-001 |
+
+**Learning-outcome effectiveness loop (ADR-019):** a new longitudinal subsystem (outcome store + Google Forms auto-capture + pyBKT knowledge tracing + RISE feedback) measures whether packs actually teach and feeds mastery back into planning — see `.scratch/effectiveness-loop/`. The pipeline reads mastery at planning time and writes a non-blocking delivery record post-export; effectiveness is retrospective, never a pre-delivery gate.
 
 **Shared, NOT legacy (do not delete):** `Run`/`RunStatus`/`RunEvent` models (used by `teaching_pack_store`/`RunStatusHistory`), sub-agent node functions, `packages/quality`, `healing/orchestrator.py`, contracts. The legacy *graph* + legacy *routes* are removed (parity-004) only after parity; sub-agent simplification (parity-006) is behavior-preserving with zero feature loss.
+
+---
+
+## ⚠️ INFRASTRUCTURE STATUS (2026-06-30, verified)
+
+| Component | Claimed State | Actual State | Confidence |
+|-----------|---------------|--------------|------------|
+| `.env.example` | Listed | Real, current, uses `4omc` model name (NOT gpt-5.4/deepseek-* per AGENTS.md §6.1) | HIGH |
+| `.env`, `.env.local`, `.env.production` | Implied | Files exist, contents **UNREAD** | LOW |
+| **9Router sidecar :20128** | "All traffic routes through 9Router" | **STUB** — Dockerfile runs `echo "9Router — configure with real image"`; not operational | HIGH |
+| LiteLLM proxy :4000 | Configured | Real, **production-only**; all routes → 9Router stub | HIGH |
+| PostgreSQL :5432 | Configured | Real in prod compose (as `db`) | HIGH |
+| Redis :6379 | Configured | Real in prod compose | HIGH |
+| Langfuse observability | Configured | Env vars declared; integration code **UNVERIFIED** | LOW |
+| **Production docker-compose** | Working | **Likely broken** — depends on undefined `9router` service | MEDIUM |
+| dev/staging compose | Working | **UNREAD** | NONE |
+| Startup scripts (`scripts/setup.sh`) | Working | **UNREAD** | NONE |
 
 ---
 
@@ -243,30 +271,57 @@ setup_contract → preplanning_search → planning_blueprint → post_blueprint_
   → artifact_workflow → render_quality → teacher_approval → export_finalize → END
 ```
 
+**Verified stage wiring** (from `graph.py:35-66` + `stages.py:32-41`):
+
+| # | Stage | Node Function | File:Line | What It Actually Calls |
+|---|-------|---------------|-----------|------------------------|
+| 1 | `setup_contract` | `_setup_contract` | `nodes.py:75` | Stores contract (no LLM) |
+| 2 | `preplanning_search` | `_preplanning_search` | `nodes.py:85` | **STUB** — creates stub research_brief with "Teacher-provided lesson context"; no actual search |
+| 3 | `planning_blueprint` | `_planning_blueprint` | `nodes.py:103` | Calls `planner_node` from sub_agents.planner.nodes |
+| 4 | `post_blueprint_research` | `_post_blueprint_research` | `nodes.py:118` | Calls `researcher_node` (key mismatch: `research_brief` passed as `research_bundle`) |
+| 5 | `artifact_workflow` | `_artifact_workflow` | `nodes.py:133` | Calls `content_creator_node` |
+| 6 | `render_quality` | `_render_quality` | `nodes.py:154` | Delegates to `quality_runtime.render_quality` |
+| 7 | `teacher_approval` | `_teacher_approval` | `nodes.py:160` | Uses LangGraph `interrupt()` |
+| 8 | `export_finalize` | `_export_finalize` | `nodes.py:188` | Calls `ExporterRegistry.default().export()` |
+
 **Conditional seams (2):**
-- After `render_quality`: routes to `planning_blueprint` | `post_blueprint_research` | `artifact_workflow` | `teacher_approval`
-- After `teacher_approval`: approve → `export_finalize`; reject with scoped feedback → `artifact_workflow`
+- After `render_quality`: routes to `planning_blueprint` | `post_blueprint_research` | `artifact_workflow` | `teacher_approval` (via `quality_routing.py:27-39`)
+- After `teacher_approval`: approve → `export_finalize`; reject with scoped feedback → `artifact_workflow` (via `nodes.py:210-215`)
+
+**⚠️ Verified gaps in teaching-pack quality flow**:
+- **No Layer 3 (HTML/presentation)** — no DOCTYPE, CDN, or brand-string checks
+- **No Layer 4 (LLM-as-Judge)** — no G-Eval, no 3-judge majority vote
+- **No Layer 6 (multi-judge export)** — export returns path strings without validation
 
 **Supporting modules:**
 - `stages.py` — `TeachingPackStage` StrEnum (8 values)
 - `nodes.py` — `make_stage_node()` dispatch per stage
-- `ports.py` — `QualityGate` Protocol boundary
-- `quality.py` — In-pipeline quality checks
+- `ports.py` — `QualityGate` Protocol boundary (line 125)
+- `quality.py` — In-pipeline quality checks (schema + content + coherence + VN difficulty)
+- `quality_runtime.py` — `render_quality()` orchestrator
 - `quality_routing.py` — Routing after quality checks
 - `scoped_regeneration.py` — Teacher-reject loop with scoped feedback
 - `snapshots.py` — State snapshots for resumability
 - `checkpointing.py` — Stage-graph-specific checkpointer
 - `artifacts.py` — Artifact write logic
 - `config.py` — Stage-graph config
+- `healing_runtime.py` — `heal_quality_failure()` calls legacy `HealingOrchestrator` (line 32)
+- `exporters.py` — Inline `ExporterRegistry` (string-path stubs only)
 
-### 3.4 Middleware Chain — 30 Modules
+### 3.4 Middleware Chain — 30 Modules (REGISTERED, NOT WIRED)
 
-File: `packages/agents/middleware/base.py` (73 lines)
+File: `packages/agents/middleware/registry.py`
+
+**⚠️ Critical finding**: The 30-middleware chain is **declared but not executed**. Evidence:
+- `legacy/packages/agents/graph.py` — grep for `middleware|Middleware` returned **zero matches**
+- `teaching_pack/packages/agents/teaching_pack/graph.py` — **no middleware registration** (builder takes `checkpointer`, `quality_gate`, `interrupt_before`, `interrupt_after` — no middleware list)
+
+The 30-entry list is a **registry, not an active execution chain**.
 
 ```python
 class BaseMiddleware(ABC):
     name: str
-    order: int                # 1–23; Clarification = 24
+    order: int                # 1–30; Clarification = 30 (NOT 24 per stale base.py docstring)
 
     @abstractmethod
     async def before_model(self, state, context) -> state: ...
@@ -275,14 +330,18 @@ class BaseMiddleware(ABC):
     async def after_model(self, state, context) -> state: ...
 ```
 
-**INVARIANT-08:** Clarification middleware is always last (`order=24`). All others `order ∈ 1–23`.
+**INVARIANT-08 (corrected):** Clarification middleware is always last (`order=30`). All others `order ∈ 1–29`.
 
-| Category | Modules | Count |
-|----------|---------|-------|
-| Context | deferred_tool_filter, dynamic_context, memory, skill_activation, system_message_coalescing, summarization, title, todo_list, token_usage, view_image | 10 |
-| Quality | artifact_coherence, bias_detection, curriculum_alignment, learning_objective_alignment, pedagogical_quality, readability_level, subagent_limit | 7 |
-| Safety | content_safety, dangling_tool_call, guardrail, input_sanitization, llm_error_handling, loop_detection, safety_finish_reason, teacher_audit_log, thread_data, token_budget, tool_error_handling | 11 |
-| Terminal | clarification | 1 |
+**⚠️ Docstring discrepancy**: `base.py` docstring says "1–23, Clarification=24" — this is **stale**; `registry.py` is authoritative (1–30, Clarification=30).
+
+| Category | Modules | Count | Order Range |
+|----------|---------|-------|-------------|
+| Safety | input_sanitization, token_budget, thread_data, uploads, content_safety, dangling_tool_call, llm_error_handling, guardrail, teacher_audit_log, tool_error_handling, loop_detection, safety_finish_reason | 12 | 1–12 |
+| Context | dynamic_context, skill_activation, summarization, todo_list, token_usage, title, memory, view_image, deferred_tool_filter, system_message_coalescing | 10 | 13–22 |
+| Quality | subagent_limit, curriculum_alignment, readability_level, pedagogical_quality, bias_detection, artifact_coherence, learning_objective_alignment | 7 | 23–29 |
+| Terminal | clarification | 1 | 30 |
+
+**Unregistered/orphan files** at `middleware/` root: `dangling_tool_call.py`, `guardrail.py`, `loop_detection.py`, `summarization.py`, `token_budget.py` — legacy flat-file duplicates, backward-compat shims.
 
 ### 3.5 Sub-Agents — 6 Agents
 
@@ -310,9 +369,11 @@ sub_agents/<name>/
 
 ### 3.6 Healing & Escalation
 
-File: `packages/agents/healing/orchestrator.py`
+File: `packages/agents/healing/orchestrator.py` (legacy) + `packages/agents/teaching_pack/healing_runtime.py` (teaching-pack)
 
-**5 strategies:** retry → rewrite → reroute → replan → escalate
+**⚠️ Verified reality**: 5-strategy healing is **legacy-only**. Teaching-pack uses a **simplified inline helper** that calls the same legacy `HealingOrchestrator()`:
+
+**Legacy 5 strategies** (`packages/agents/healing/orchestrator.py`):
 
 | Attempt | Strategy | Trigger |
 |---------|----------|---------|
@@ -320,6 +381,21 @@ File: `packages/agents/healing/orchestrator.py`
 | 2nd | Reroute (different model) | Model-specific failure |
 | 3rd | Replan (new content plan) | Structural failure |
 | 4th | Escalate to teacher | Budget exhausted |
+
+**Teaching-pack healing** (`packages/agents/teaching_pack/healing_runtime.py:16-50`):
+- `heal_quality_failure()` constructs `healing_state` with `fail_count`, `fail_type`, `fail_layer="quality"`, `fail_context.errors`
+- Calls `HealingOrchestrator().heal(healing_state)` at line 32 (reuses legacy orchestrator)
+- Routes via `_route_for_healing` (line 40-50):
+  - `escalate=True` → `teacher_approval`
+  - `healing_strategy="replan"` → `planning_blueprint`
+  - Pedagogical/factual failures → `planning_blueprint`
+  - Otherwise → `artifact_workflow`
+
+**⚠️ No `healing_node` or `escalate_node` graph nodes exist in teaching-pack**. Healing is invoked **inside** `render_quality` as a synchronous helper at `quality_runtime.py:53`. Routing decisions are surfaced via the `quality_recovery_route` state field consumed by `route_after_render_quality` in `graph.py:55-62`.
+
+**⚠️ No 24-hour timeout / escalation cron** in teaching-pack. Timeout machinery (`services/gateway/recovery_sweeper.py`) is a gateway concern, not a teaching-pack node concern.
+
+**⚠️ Healing escalation in teaching-pack → `teacher_approval`** (not admin). Differs from legacy `escalate_node → END`.
 
 ### 3.7 Gate System
 
@@ -698,13 +774,69 @@ PRIMITIVES              SEMANTIC TOKENS        COMPONENT TOKENS
 
 ### 7.7 Export Formats
 
-| Format | Location | Status |
-|--------|----------|--------|
-| JSON | `exporters/json/index.ts` | ✅ Implemented |
-| QTI 2.1 | `exporters/qti/` | ✅ Implemented (8 serializers) |
-| Variant Generator | `exporters/variant-generator/` | ✅ Implemented |
-| GIFT | `packages/exporters/src/gift/` | ❌ Not in current tree |
-| H5P | `packages/exporters/src/h5p/` | ❌ Not in current tree |
+**⚠️ Verified reality (2026-06-30)**: Two-layer architecture with **disconnected** Python and TypeScript exporters.
+
+#### Layer 1: Python Pipeline (`packages/agents/teaching_pack/`)
+
+File: `packages/agents/teaching_pack/exporters.py` (89 lines)
+
+**`ExporterRegistry.default().export()` behavior**:
+
+| Format | Python Registry Behavior | Real Bytes? |
+|--------|-------------------------|-------------|
+| `html` | Returns path strings `exports/{run_id}/{snapshot_id}.html` per snapshot | NO — path only |
+| `gift` | Returns path string `exports/{run_id}/{run_id}.gift.txt` | NO — path only |
+| `h5p` | Returns path string `exports/{run_id}/{run_id}.h5p` | NO — path only |
+| `qti` | Returns path string `exports/{run_id}/{run_id}.qti.xml` | NO — path only |
+| `google_forms` | **Raises `UnsupportedExportFormatError`** | DEAD CODE |
+
+**`_SUPPORTED_FORMATS = frozenset({"html", "gift", "h5p", "qti"})`**
+**`_UNSUPPORTED_FORMATS = frozenset({"google_forms"})`**
+
+`requested_export_formats(contract)` defaults to `["html"]`; if contract specifies formats but omits `html`, prepends `html`.
+
+#### Layer 2: TypeScript Exporters (`packages/exporters/src/`)
+
+File: `packages/exporters/src/index.ts` (41 lines)
+
+```typescript
+export type ExportFormat = "gift" | "h5p" | "qti";
+export async function exportByFormat(
+    format: ExportFormat,
+    artifacts: ArtifactContent[],
+): Promise<Buffer> { ... }
+```
+
+**TypeScript implementations exist and are tested**:
+- `packages/exporters/src/gift/gift.ts` ✓ (with tests)
+- `packages/exporters/src/h5p/h5p.ts` ✓ (with tests, includes h5p-impl/packager.ts)
+- `packages/exporters/src/qti/qti.ts` ✓ (with tests)
+- `packages/exporters/src/google-forms/` ✓ (exists but Python pipeline rejects it)
+- `packages/exporters/src/anki-apkg/`, `flashcard-tsv/`, `inverse-thinking.ts` ✓
+
+**⚠️ Critical wiring gap**: Python pipeline does **NOT** import or call the TypeScript exporters. No Node.js subprocess bridge, no IPC. The TypeScript exporters are **standalone library** code consumed only by renderer package tests (`packages/renderer/__tests__/exporters/qti.test.ts`) and their own unit tests.
+
+#### Actual Export Flow
+
+```
+_export_finalize (nodes.py:188-207)
+  ↓
+ExporterRegistry.default().export() (exporters.py:39-52)
+  ↓ returns string paths only
+exported_files: list[str] stored in state
+  ↓
+services/gateway/teaching_pack_completion.py:50
+  ↓
+self._export_writer.write_exports(run_id, state)
+  ↓ (NOT YET AUDITED)
+[actual disk write — may or may not invoke TS exporters]
+```
+
+**Gap**: `services/gateway/teaching_pack_export_writer.py` has not been audited. Whether GIFT/H5P/QTI files on disk contain real exports or empty stubs depends on this unread file.
+
+**Test coverage**: `packages/agents/tests/teaching_pack/test_export_format_wiring.py` exists — confirms this is a known testing concern (ADR-018).
+
+**Correction needed in ARCHITECTURE.md §10**: Replace "All formats generated from the same `ArtifactContent` JSON" with the two-layer truth: TS exporters are real and tested but not wired to Python pipeline; Python pipeline returns path stubs for all formats except HTML (which has renderer-generated content upstream).
 
 ---
 
@@ -712,18 +844,24 @@ PRIMITIVES              SEMANTIC TOKENS        COMPONENT TOKENS
 
 ### 8.1 Two-Layer Proxy Architecture
 
+**⚠️ Verified reality (2026-06-30)**: 9Router is a **STUB** — not operational.
+
 ```
 Agent (packages/agents/*)
   └─► LiteLLM Proxy :4000     (budget control, cost tracking, fallback chains, Redis cache)
         │
-        └─► 9Router Sidecar :20128  (RTK compression, free tiers, fusion routing)
+        └─► 9Router Sidecar :20128  [STUB — Dockerfile runs echo, not operational]
               │
               ├─► Kiro AI       (Claude 4.5 free tier)
               ├─► OpenCode      (free tier)
               └─► Vertex AI     ($300 one-time credit)
 ```
 
-**Dev mode:** Bypass LiteLLM, call 9Router directly via `LLM_BASE_URL`.
+**⚠️ 9Router status (verified)**: `services/router/Dockerfile` CMD is `echo "9Router — configure with real image"`. The sidecar is not running; all upstream routes are effectively dead. This contradicts the "100% 9Router" claim in README.md.
+
+**Dev mode:** Bypass LiteLLM, call 9Router directly via `LLM_BASE_URL` — but 9Router itself is a stub, so dev LLM calls also fail.
+
+**⚠️ Production compose likely broken**: `docker-compose.prod.yml` declares `depends_on: 9router: service_healthy` but never defines a `9router` service in the overlay. If 9Router is also a stub in the base compose, production startup will hang.
 
 ### 8.2 Model Assignments
 
@@ -784,7 +922,9 @@ Every LLM call includes metadata tags:
 
 ## 9. Infrastructure
 
-### 9.1 Service Topology
+**⚠️ Verified reality (2026-06-30)**: Several infrastructure components are not operational or have wiring gaps.
+
+### 9.1 Service Topology (Verified from `infra/compose/docker-compose.yml`, 194 lines)
 
 ```
 Teacher Browser
@@ -795,7 +935,7 @@ Teacher Browser
         ├──► db (PostgreSQL :5432)
         ├──► redis (Redis :6379, AUTH required)
         ├──► proxy (LiteLLM :4000)
-        │     └──► 9Router :20128 (on host)
+        │     └──► 9Router :20128 [STUB - echo command, not operational]
         └──► langfuse-web (Langfuse :3100)
               ├──► clickhouse (:8123/:9000, loopback only)
               ├──► minio (:9090/:9091, loopback only)
@@ -804,17 +944,22 @@ Teacher Browser
 
 ### 9.2 Service Catalog
 
-| Service | Image | Port | Healthcheck |
-|---------|-------|------|-------------|
-| `db` | `postgres:16-alpine` | 5432 | `pg_isready` 3s/3s/×10 |
-| `redis` | `redis:7-alpine` | 6379 | `redis-cli ping` 3s/10s/×10 |
-| `gateway` | `Dockerfile.gateway` | 8001 | — |
-| `proxy` | `Dockerfile.proxy` | 4000 | — |
-| `web` | `Dockerfile.web` | 3000 | — |
-| `langfuse-web` | `langfuse/langfuse:3` | 3100 | — |
-| `langfuse-worker` | `langfuse/langfuse-worker:3` | — | profile-gated |
-| `clickhouse` | `clickhouse/clickhouse-server` | 8123/9000 | `wget /ping` 5s/5s/×10 |
-| `minio` | `cgr.dev/chainguard/minio` | 9090/9091 | `mc ready local` 1s/5s/×5 |
+| Service | Image | Port | Healthcheck | Notes |
+|---------|-------|------|-------------|-------|
+| `db` | `postgres:16-alpine` | 5432 | `pg_isready` 3s/3s/×10 | Volume `pgdata`. Hosts `langfuse` DB |
+| `redis` | `redis:7-alpine` | 6379 | `redis-cli ping` 3s/10s/×10 | Auth via `${REDIS_AUTH}` |
+| `gateway` | `Dockerfile.gateway` | 8001 | **NONE** | Depends on db (healthy), redis (healthy), proxy (started), langfuse-web (started) |
+| `langfuse-web` | `langfuse/langfuse:3` | 3100 | **NONE** | Depends on db, clickhouse, redis, minio (all healthy) |
+| `langfuse-worker` | `langfuse/langfuse-worker:3` | — | **NONE** | **`profiles: ["langfuse-worker"]`** — must opt in with `--profile langfuse-worker` |
+| `clickhouse` | `clickhouse/clickhouse-server` | 8123/9000 | `wget /ping` 5s | **localhost-only ports** (127.0.0.1) |
+| `minio` | `cgr.dev/chainguard/minio` | 9090/9001 | `mc ready local` 1s | Console port localhost-only |
+| `proxy` | `Dockerfile.proxy` | 4000 | **NONE** | LiteLLM. Only depends on redis |
+| `web` | `Dockerfile.web` | 3000 | **NONE** | Next.js. Depends on gateway |
+
+**⚠️ Critical gaps**:
+- **9Router NOT in dev compose** — Only in prod overlay (`docker-compose.prod.yml`), and prod overlay declares `depends_on: 9router: service_healthy` without defining the service → **likely broken startup**
+- **9Router Dockerfile is a stub** — `services/router/Dockerfile` CMD is `echo "9Router — configure with real image"`. Not operational in any environment.
+- **No healthchecks** for gateway, proxy, web, langfuse-web — downstream services depend on `service_started` (not `service_healthy`), so they start before upstream is truly ready.
 
 ### 9.3 Redis Configuration
 
@@ -842,12 +987,12 @@ Teacher Browser
 
 ### 9.6 Environment Variables
 
-| File | Size | Purpose |
-|------|------|---------|
-| `.env` | 5.0K | Active root dev env |
-| `.env.example` | 5.8K | Template / docs-of-truth |
-| `.env.local` | 684B | Local-prod gateway overrides |
-| `.env.production` | 1.1K | Production overrides |
+| File | Size | Purpose | Status |
+|------|------|---------|--------|
+| `.env` | 5.0K | Active root dev env | **UNREAD** |
+| `.env.example` | 5.8K | Template / docs-of-truth | Verified — uses `4omc` model name (NOT gpt-5.4/deepseek-* per AGENTS.md §6.1) |
+| `.env.local` | 684B | Local-prod gateway overrides | **UNREAD** |
+| `.env.production` | 1.1K | Production overrides | **UNREAD** |
 
 ### 9.7 Dev Defaults (MUST Override for Prod)
 
@@ -860,11 +1005,21 @@ Teacher Browser
 | `CLICKHOUSE_PASSWORD` | `clickhouse_secret` | Trace data leak |
 | `MINIO_ROOT_PASSWORD` | `minio_secret` | Blob storage compromise |
 
+### 9.8 Langfuse Observability (Unverified)
+
+**Status**: Env vars declared in `.env.example` (lines 110–115): `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL=https://cloud.langfuse.com`, `LANGFUSE_NEXTAUTH_SECRET`, `LANGFUSE_SALT`. All blank defaults.
+
+**Integration code**: `packages/agents/observability.py` exists per AGENTS.md §11 but was **NOT audited** in this trace. Cannot confirm whether the integration is wired or whether the env vars are actually read.
+
+**Gap**: Read `packages/agents/observability.py` to verify Langfuse integration is operational.
+
 ---
 
 ## 10. Data Flow — End-to-End
 
 ### 10.1 Teaching-Pack Path (AUTHORITATIVE)
+
+**⚠️ Verified reality (2026-06-30)**: Quality gates and export formats are substantially thinner than described below.
 
 ```
 1. Teacher submits request via Next.js dashboard
@@ -885,16 +1040,20 @@ Teacher Browser
      → post_blueprint_research → artifact_workflow
      → render_quality → teacher_approval → export_finalize
    ↓
-5. Agent Calls (via LiteLLM → 9Router)
+5. Agent Calls (via LiteLLM → 9Router) [9Router is STUB]
    - Lead Agent orchestrates via task()
    - Planner: deepseek-v4-flash (f.light)
    - Researcher: deepseek-v4-flash (f.light)
    - Content Creator: deepseek-free (f.light)
-   - Reviewer: content-fusion (f.pro fusion)
+   - Reviewer: content-fusion (f.pro fusion) [NOT WIRED in teaching-pack]
    ↓
-6. Quality Gates
-   - In-pipeline: schema validation, placeholders, answer-key leakage
-   - 6-layer: schema → content → HTML → LLM judge → HITL → export
+6. Quality Gates [THINNER THAN DOCUMENTED]
+   - In-pipeline: schema validation + placeholders + answer-key leakage
+     + accessibility + pack-coherence + VN difficulty distribution
+   - NO Layer 3 (HTML/presentation)
+   - NO Layer 4 (LLM-as-Judge) in teaching-pack
+   - NO Layer 6 (multi-judge export)
+   - Layer 5 (HITL) wired via interrupt() at nodes.py:174
    ↓
 7. Teacher Approval (interrupt)
    - Gateway returns gate payload to frontend
@@ -902,11 +1061,12 @@ Teacher Browser
    - Approves / rejects / edits
    - Resume via POST /teaching-packs/runs/{id}/resume
    ↓
-8. Export
-   - Render via Eta templates → standalone HTML
-   - Theme CSS injected, DOMPurify sanitized
-   - Validate no external URLs (INVARIANT-04)
-   - Store artifacts + metadata in DB
+8. Export [PATH STUBS ONLY]
+   - export_finalize calls ExporterRegistry.default().export()
+   - Returns string paths for html/gift/h5p/qti
+   - google_forms raises UnsupportedExportFormatError
+   - NO actual GIFT/H5P/QTI content generation
+   - Actual disk write via teaching_pack_export_writer.py (NOT YET AUDITED)
    ↓
 9. SSE streaming to frontend
    - Stage transitions, gate interrupts, completion
@@ -932,18 +1092,18 @@ ArtifactContent JSON (from content_creator agent)
 
 ## 11. Hard Invariants
 
-| # | Invariant | Enforcement |
-|---|-----------|-------------|
-| 01 | Lead Agent NEVER calls LLM to generate content | Prompt + tool surface |
-| 02 | packages/agents NEVER imports from services/* or apps/* | CI import boundary check |
-| 03 | Every node is a pure function (state) → partial_state | Node signature convention |
-| 04 | HTML output MUST NOT contain http(s):// asset reference | `validateNoExternalUrls()` post-render |
-| 05 | Answer keys MUST be in teacher_only sections | DOMPurify per-artifact config |
-| 06 | Teacher Gate CANNOT be bypassed | `interrupt()` mandatory |
-| 07 | All LLM calls MUST include metadata.tags | `get_cost_metadata()` |
-| 08 | Clarification middleware always last (order=24) | `BaseMiddleware` ABC |
-| 09 | theme.json is single source of truth | Generated CSS never edited manually |
-| 10 | Pydantic contracts in common/contracts only | Canonical schema location |
+| # | Invariant | Enforcement | Status |
+|---|-----------|-------------|--------|
+| 01 | Lead Agent NEVER calls LLM to generate content | Prompt + tool surface | ✅ Verified |
+| 02 | packages/agents NEVER imports from services/* or apps/* | CI import boundary check | ✅ Verified |
+| 03 | Every node is a pure function (state) → partial_state | Node signature convention | ✅ Verified |
+| 04 | HTML output MUST NOT contain http(s):// asset reference | `validateNoExternalUrls()` post-render | ✅ Verified (renderer only, not teaching-pack pipeline) |
+| 05 | Answer keys MUST be in teacher_only sections | DOMPurify per-artifact config | ✅ Verified |
+| 06 | Teacher Gate CANNOT be bypassed | `interrupt()` mandatory | ✅ Verified (nodes.py:174) |
+| 07 | All LLM calls MUST include metadata.tags | `get_cost_metadata()` | ⚠️ Unverified — 9Router is stub, no real LLM calls |
+| 08 | Clarification middleware always last (order=30) | `BaseMiddleware` ABC | ⚠️ **CORRECTED** — order=30, NOT 24. Registry authoritative. |
+| 09 | theme.json is single source of truth | Generated CSS never edited manually | ✅ Verified |
+| 10 | Pydantic contracts in common/contracts only | Canonical schema location | ✅ Verified |
 
 ---
 
@@ -999,7 +1159,18 @@ ArtifactContent JSON (from content_creator agent)
 ---
 
 > **Generated:** 2026-06-30T11:45:00+07:00
-> **Workers:** 7 parallel explore agents
-> **Waves:** 1 (saturation) + 0 expansion (sufficient depth achieved)
+> **Updated:** 2026-06-30T15:00:00+07:00 (verified-reality corrections)
+> **Workers:** 7 parallel explore agents (initial) + 6 verification agents (corrections)
+> **Waves:** 1 (saturation) + 0 expansion (sufficient depth achieved) + 1 verification wave
 > **Source files read:** 50+ files across all subsystems
-> **Coverage:** All 7 architecture axes fully traced
+> **Coverage:** All 7 architecture axes fully traced + verified against actual code
+
+**Verification gaps remaining** (to be closed before this doc is considered authoritative):
+1. `services/gateway/teaching_pack_export_writer.py` — determines whether GIFT/H5P/QTI files contain real bytes or empty stubs
+2. `packages/agents/observability.py` — verifies Langfuse integration wiring
+3. `services/router/config.yaml` — 9Router combo definitions
+4. `.env`, `.env.local`, `.env.production` — actual env values
+5. `services/proxy/keys/virtual_keys.yaml` — LiteLLM virtual keys config
+6. `scripts/setup.sh` — startup script verification
+
+**Recommended next audit wave**: Read the 6 files above to complete the verification matrix.

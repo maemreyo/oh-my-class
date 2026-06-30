@@ -22,6 +22,8 @@ Make student persona durable and remembered across units, and let it drive teach
 - [ ] Unit creation writes a `persona_snapshot` (deep copy) onto the parent; later edits to the source `ClassProfile` do not change an existing unit's snapshot.
 - [ ] `unit_planner` consumes persona and demonstrably varies output (duration/methodology/assume-vs-reteach) by persona.
 - [ ] Legacy `class_info` dicts map cleanly into `ClassProfile`; existing single-lesson runs are unaffected.
+- [ ] **Privacy/retention (minor data):** `ClassProfile` (and `persona_snapshot`) is a durable PII store — it MUST (a) pass through the existing `packages/quality/layer2_content/pii.py` scrubbing on write, (b) participate in retention/erasure (extend `retention.py`/`purge.py` to cover `class_profiles`, not just runs; teacher-initiated erasure cascades to snapshots), (c) carry `schema_version` (ADR-012). Student-identifying fields are minimized/optional.
+- [ ] **Contract versioning (ADR-012):** `ClassProfile` declares `schema_version`; read path supports prior versions via adapter; breaking changes require a version bump + migration + compatibility test.
 
 ## Detailed test suite
 
@@ -30,6 +32,7 @@ Make student persona durable and remembered across units, and let it drive teach
 - [ ] `common/contracts/tests/test_class_profile.py`: valid profiles (aggregate and with `students`) parse and round-trip; a legacy `class_info` dict maps into a `ClassProfile`.
 - [ ] `services/gateway/tests/test_class_profile_store.py`: create/read/update a class profile per teacher on a real DB; cross-teacher access denied.
 - [ ] `services/gateway/tests/test_persona_snapshot.py`: a unit's `persona_snapshot` is immutable to subsequent edits of the source profile.
+- [ ] `services/gateway/tests/test_class_profile_privacy.py`: writing a profile with PII (names/contact) scrubs/minimizes per `pii.py`; teacher-initiated erasure purges the profile and cascades to `persona_snapshot`s; expired profiles are purged. `ClassProfile` round-trips its `schema_version`.
 - [ ] `packages/agents/tests/test_persona_driven_planning.py`: two personas (e.g. weak-prerequisites vs advanced) over the same topic yield different assume-vs-reteach / duration decisions from `unit_planner`.
 - [ ] Run `make migrate` then `uv run pytest common/contracts/tests/test_class_profile.py services/gateway/tests/test_class_profile_store.py services/gateway/tests/test_persona_snapshot.py packages/agents/tests/test_persona_driven_planning.py -v`.
 
