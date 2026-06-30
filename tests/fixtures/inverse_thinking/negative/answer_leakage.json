@@ -1,0 +1,30 @@
+{
+  "case_id": "negative_answer_leakage",
+  "subject": "English",
+  "grade_band": "Grade 10",
+  "locale": "en-US",
+  "expected_gate_outcome": "fail",
+  "expected_issue": { "code": "answer_key_leakage", "severity": "critical" },
+  "expected_projection_outputs": [],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "detective_case",
+    "cases": [
+      {
+        "id": "case-present-perfect",
+        "title": "The Leaky Time Marker",
+        "target_concept": "present perfect for life experience",
+        "foil": "simple past with finished time",
+        "disaster": "A student writes: I have visited Da Nang yesterday.",
+        "key_clues": ["yesterday marks a finished time"],
+        "safe_zone": "Use simple past with finished time: I visited Da Nang yesterday.",
+        "filing_note": "Finished time markers push the verb phrase into simple past.",
+        "student_task": "Correct answer: I visited Da Nang yesterday.",
+        "teacher_only": { "rationale": "Student task leaks answer.", "answer_key": "I visited Da Nang yesterday." }
+      }
+    ],
+    "summary_table": [{ "case_id": "case-present-perfect", "trap": "finished-time marker", "clue": "yesterday", "safe_rule": "simple past" }],
+    "student_challenges": [{ "id": "challenge-present-perfect", "prompt": "Repair the unsafe sentence.", "case_id": "case-present-perfect" }],
+    "teacher_only": { "rationale": "Fixture for answer leakage.", "answer_key": "Use simple past." }
+  }
+}

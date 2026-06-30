@@ -25,12 +25,24 @@ export {
 	ArtifactContentSchema,
 } from "./generated/artifact.js";
 // Generated Zod schemas from Pydantic
-export {
+	export {
 	type LearningObjective,
 	type LessonPlan,
+	type MethodologyMetadata,
+	type MethodologyPayloads,
 	LessonPlanSchema,
+	MethodologyMetadataSchema,
+	MethodologyPayloadsSchema,
 } from "./generated/lesson_plan.js";
-// Legacy re-exports — will be removed after migration
+export {
+	type InverseThinkingPack,
+	InverseThinkingPackSchema,
+} from "./generated/inverse_thinking.js";
+export {
+	METHODOLOGY_REGISTRY,
+	type MethodologyRegistryEntry,
+	type MethodologyRegistryTag,
+} from "./generated/methodology_registry.js";
 export { LessonPlanSchema as LessonPlanSchemaLegacy } from "./lesson_plan.js";
 // Log context schemas
 export {

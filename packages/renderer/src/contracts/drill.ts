@@ -11,6 +11,7 @@ export interface DrillQuestion {
   answer: string;
   type: "mc" | "fill" | "tf";
   options?: { label: string; text: string }[];
+  timeMinutes?: number;
 }
 
 export interface DrillData {

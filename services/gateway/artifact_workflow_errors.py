@@ -25,7 +25,11 @@ class UnsupportedArtifactTypeError(ValueError):
     artifact_type: ArtifactType
 
     def __str__(self) -> str:
-        return f"unsupported V2 artifact type: {self.artifact_type}"
+        return (
+            f"unsupported V1 artifact workflow type: {self.artifact_type}. "
+            "Supported core artifacts are lesson, worksheet, quiz, drill, and recap; "
+            "infographic is deferred until visual research and quality gates are wired."
+        )
 
 
 def generation_error_summary(exc: GenerationError) -> str:

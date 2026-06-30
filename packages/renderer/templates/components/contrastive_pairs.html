@@ -1,13 +1,35 @@
 <%
-/* contrastive_pairs.html — quick contrast table
-   it = ContrastivePairs: { title?, rows } */
+/* contrastive_pairs.html — balanced comparison surface
+   it = ContrastivePairs: { title?, left_label?, right_label?, rows } */
+const rows = it.rows || [];
 %>
-<% if (it.title) { %><h3 class="h3"><%= it.title %></h3><% } %>
-<table class="quickpairs">
-  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
-  <tbody>
-    <% for (const row of (it.rows || [])) { %>
-      <tr><td><strong><%= row.terms %></strong></td><td><%= row.distinction %></td></tr>
+<section class="contrastive-pairs" role="region" aria-label="Contrastive Pairs comparison">
+  <% if (it.title) { %><h3 class="h3"><%= it.title %></h3><% } %>
+  <div class="contrastive-pairs__sides" aria-label="Pair sides">
+    <article class="contrastive-pairs__side">
+      <h4><%= it.left_label || 'Side A' %></h4>
+    </article>
+    <article class="contrastive-pairs__side">
+      <h4><%= it.right_label || 'Side B' %></h4>
+    </article>
+  </div>
+  <div class="contrastive-pairs__rows">
+    <% for (const row of rows) { %>
+      <article class="contrastive-pairs__row" aria-label="Difference marker: <%= row.terms %>">
+        <div class="contrastive-pairs__marker"><strong><%= row.terms %></strong></div>
+        <p class="contrastive-pairs__distinction"><%= row.distinction %></p>
+        <div class="contrastive-pairs__examples">
+          <% if (row.example) { %>
+            <div><span>Example</span><p><%= row.example %></p></div>
+          <% } %>
+          <% if (row.non_example) { %>
+            <div><span>Non-example</span><p><%= row.non_example %></p></div>
+          <% } %>
+        </div>
+        <% if (row.boundary_note) { %>
+          <p class="contrastive-pairs__boundary"><strong>Boundary note</strong> <%= row.boundary_note %></p>
+        <% } %>
+      </article>
     <% } %>
-  </tbody>
-</table>
+  </div>
+</section>

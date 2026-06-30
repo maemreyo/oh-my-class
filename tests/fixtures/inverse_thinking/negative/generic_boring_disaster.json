@@ -1,0 +1,30 @@
+{
+  "case_id": "negative_generic_boring_disaster",
+  "subject": "Math",
+  "grade_band": "Grade 5",
+  "locale": "en-US",
+  "expected_gate_outcome": "fail",
+  "expected_issue": { "code": "generic_disaster", "severity": "major" },
+  "expected_projection_outputs": [],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "mythbusters_lab",
+    "cases": [
+      {
+        "id": "case-fraction-addition",
+        "title": "The Generic Crash",
+        "target_concept": "adding fractions with unlike denominators",
+        "foil": "adding numerators and denominators directly",
+        "disaster": "Wrong.",
+        "key_clues": ["halves and thirds are different-sized units"],
+        "safe_zone": "Rename into common units before adding: 3/6 + 2/6 = 5/6.",
+        "filing_note": "Fractions can be added only after the unit size matches.",
+        "student_task": "Explain why the answer cannot be the sum.",
+        "teacher_only": { "rationale": "Generic disasters should warn.", "answer_key": "5/6" }
+      }
+    ],
+    "summary_table": [{ "case_id": "case-fraction-addition", "trap": "add denominators", "clue": "unlike units", "safe_rule": "common denominator first" }],
+    "student_challenges": [{ "id": "challenge-fraction-addition", "prompt": "Repair the fraction error.", "case_id": "case-fraction-addition" }],
+    "teacher_only": { "rationale": "Fixture for generic-disaster warning.", "answer_key": "5/6" }
+  }
+}

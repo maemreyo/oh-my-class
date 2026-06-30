@@ -25,15 +25,27 @@ class ModelConfig(TypedDict):
     all_models: list[str]
     output: str
     field_refs: dict[str, str]
+    external_field_refs: dict[str, str]
 
 MODELS: dict[str, ModelConfig] = {
     "common.contracts.lesson_plan": {
         "main_model": "LessonPlan",
-        "all_models": ["LessonPlan", "LearningObjective", "AssessmentCheckpoint"],
+        "all_models": [
+            "LessonPlan",
+            "LearningObjective",
+            "AssessmentCheckpoint",
+            "MethodologyPayloads",
+            "MethodologyMetadata",
+        ],
         "output": "common/schemas/src/generated/lesson_plan.ts",
         "field_refs": {
             "learning_objectives": "LearningObjective",
             "assessment_checkpoints": "AssessmentCheckpoint",
+            "methodology": "MethodologyMetadata",
+            "payloads": "MethodologyPayloads",
+        },
+        "external_field_refs": {
+            "inverse_thinking": "InverseThinkingPackSchema:./inverse_thinking.js",
         },
     },
     "common.contracts.artifact": {
@@ -43,6 +55,7 @@ MODELS: dict[str, ModelConfig] = {
         "field_refs": {
             "artifacts": "ArtifactContent",
         },
+        "external_field_refs": {},
     },
     "common.contracts.judge_output": {
         "main_model": "JudgeOutput",
@@ -51,10 +64,33 @@ MODELS: dict[str, ModelConfig] = {
         "field_refs": {
             "layer_scores": "LayerScore",
         },
+        "external_field_refs": {},
+    },
+    "common.contracts.inverse_thinking": {
+        "main_model": "InverseThinkingPack",
+        "all_models": [
+            "InverseThinkingPack",
+            "InverseThinkingTeacherOnly",
+            "InverseThinkingCase",
+            "InverseThinkingSummaryRow",
+            "InverseThinkingStudentChallenge",
+        ],
+        "output": "common/schemas/src/generated/inverse_thinking.ts",
+        "field_refs": {
+            "cases": "InverseThinkingCase",
+            "summary_table": "InverseThinkingSummaryRow",
+            "student_challenges": "InverseThinkingStudentChallenge",
+            "teacher_only": "InverseThinkingTeacherOnly",
+        },
+        "external_field_refs": {},
     },
 }
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from common.contracts.methodology_registry import METHODOLOGY_REGISTRY
 
 
 # ── Step 1: Extract JSON Schema from Pydantic ──────────────────
@@ -157,9 +193,11 @@ def json_schema_to_zod(schema: dict[str, Any], name: str) -> str:
 
 
 def post_process_zod(
-    zod_code: str, model_names: list[str], field_refs: dict[str, str]
+    zod_code: str,
+    model_names: list[str],
+    field_refs: dict[str, str],
+    external_field_refs: dict[str, str],
 ) -> str:
-    """Post-process: deduplicate imports, replace z.any() refs with named schemas."""
     lines = zod_code.split("\n")
     seen_import = False
     deduped: list[str] = []
@@ -172,12 +210,58 @@ def post_process_zod(
 
     result = "\n".join(deduped)
 
-    # Replace z.array(z.any()) with z.array(ModelNameSchema) for known field refs
     for field_name, model_name in field_refs.items():
         result = re.sub(
             rf'"{field_name}": z\.array\(z\.any\(\)\)',
             f'"{field_name}": z.array({model_name}Schema)',
             result,
+        )
+        result = re.sub(
+            rf'"{field_name}": z\.any\(\)\.optional\(\)',
+            f'"{field_name}": {model_name}Schema.optional()',
+            result,
+        )
+        result = re.sub(
+            rf'"{field_name}": z\.any\(\)',
+            f'"{field_name}": {model_name}Schema',
+            result,
+        )
+        result = re.sub(
+            rf'"{field_name}": z\.union\(\[z\.any\(\), z\.null\(\)\]\)\.default\(null\)',
+            f'"{field_name}": z.union([{model_name}Schema, z.null()]).default(null)',
+            result,
+        )
+        result = re.sub(
+            rf'"{field_name}": z\.union\(\[z\.any\(\), z\.null\(\)\]\)',
+            f'"{field_name}": z.union([{model_name}Schema, z.null()])',
+            result,
+        )
+
+    external_imports: list[str] = []
+    for field_name, ref in external_field_refs.items():
+        schema_name, import_path = ref.split(":", maxsplit=1)
+        external_imports.append(f'import {{ {schema_name} }} from "{import_path}"')
+        result = re.sub(
+            rf'"{field_name}": z\.union\(\[z\.any\(\), z\.null\(\)\]\)',
+            f'"{field_name}": z.union([{schema_name}, z.null()])',
+            result,
+        )
+        result = re.sub(
+            rf'"{field_name}": z\.union\(\[z\.any\(\), z\.null\(\)\]\)\.default\(null\)',
+            f'"{field_name}": z.union([{schema_name}, z.null()]).default(null)',
+            result,
+        )
+        result = re.sub(
+            rf'"{field_name}": z\.any\(\)',
+            f'"{field_name}": {schema_name}',
+            result,
+        )
+
+    if external_imports:
+        result = result.replace(
+            'import { z } from "zod"',
+            'import { z } from "zod"\n' + "\n".join(external_imports),
+            1,
         )
 
     type_exports = "\n".join(
@@ -201,6 +285,34 @@ def generate_zod_file(zod_code: str) -> str:
 
 """
     return header + zod_code
+
+
+def generate_methodology_registry_file() -> str:
+    entries = [
+        {
+            "tag": entry.tag,
+            "labelEn": entry.label_en,
+            "labelVi": entry.label_vi,
+            "description": entry.description,
+            "requiredComponents": list(entry.required_components),
+            "requirementMode": entry.requirement_mode,
+            "supportedArtifacts": list(entry.supported_artifacts),
+            "exportFormats": list(entry.export_formats),
+            "conflicts": list(entry.conflicts),
+            "compatibleWith": list(entry.compatible_with),
+        }
+        for entry in METHODOLOGY_REGISTRY
+    ]
+    body = json.dumps(entries, indent=2, ensure_ascii=False)
+    return (
+        "/**\n"
+        " * AUTO-GENERATED from common.contracts.methodology_registry\n"
+        " * DO NOT EDIT MANUALLY — run `uv run python scripts/generate_zod_schemas.py` to regenerate\n"
+        " */\n\n"
+        f"export const METHODOLOGY_REGISTRY = {body} as const;\n\n"
+        "export type MethodologyRegistryEntry = (typeof METHODOLOGY_REGISTRY)[number];\n"
+        "export type MethodologyRegistryTag = MethodologyRegistryEntry[\"tag\"];\n"
+    )
 
 
 # ── Main ───────────────────────────────────────────────────────
@@ -235,7 +347,12 @@ def main() -> None:
 
         # Combine: nested models first, then main model
         combined = "\n\n".join(nested_parts) + "\n\n" + raw_zod
-        zod_ts = post_process_zod(combined, all_models, config["field_refs"])
+        zod_ts = post_process_zod(
+            combined,
+            all_models,
+            config["field_refs"],
+            config["external_field_refs"],
+        )
         final = generate_zod_file(zod_ts)
 
         output_path.write_text(final)
@@ -250,16 +367,27 @@ def main() -> None:
         "",
     ]
     for _module_path, config in MODELS.items():
-        main_model = config["main_model"]
         all_models = config["all_models"]
         filename = Path(config["output"]).stem
         exports = ", ".join(
-            f"{name}Schema, {name}" for name in all_models
+            f"{name}Schema" for name in all_models
         )
+        type_exports = ", ".join(all_models)
         index_lines.append(f'export {{ {exports} }} from "./{filename}.js";')
+        index_lines.append(f'export type {{ {type_exports} }} from "./{filename}.js";')
+    index_lines.append(
+        'export { METHODOLOGY_REGISTRY } from "./methodology_registry.js";'
+    )
+    index_lines.append(
+        'export type { MethodologyRegistryEntry, MethodologyRegistryTag } from "./methodology_registry.js";'
+    )
 
     (output_dir / "index.ts").write_text("\n".join(index_lines) + "\n")
     print(f"  → {output_dir.relative_to(PROJECT_ROOT)}/index.ts")
+
+    registry_path = output_dir / "methodology_registry.ts"
+    registry_path.write_text(generate_methodology_registry_file())
+    print(f"  → {registry_path.relative_to(PROJECT_ROOT)}")
 
     print("\n✅ Zod schemas generated from Pydantic models.")
     print("   Run `pnpm test` to verify schemas are valid.")

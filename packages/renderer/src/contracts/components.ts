@@ -114,8 +114,8 @@ export interface QuestionCardComponent {
   id: number | string;
   text: string;
   options: Record<string, string>;
-  answer: string;
-  explain: string;
+  answer?: string;
+  explain?: string;
   group?: string;
   wrong_reasons?: Record<string, string>;
   essence?: string;
@@ -153,16 +153,16 @@ export interface AlertComponent {
 
 export interface VocabItem { word: string; definition: string; example?: string }
 export interface VocabClusterComponent { type: "vocab_cluster"; title: string; description?: string; items?: VocabItem[]; discrimination_prompt?: string }
-export interface ContrastivePairRow { terms: string; distinction: string }
-export interface ContrastivePairsComponent { type: "contrastive_pairs"; title?: string; rows?: ContrastivePairRow[] }
+export interface ContrastivePairRow { terms: string; distinction: string; example?: string; non_example?: string; boundary_note?: string; teacher_rationale?: string }
+export interface ContrastivePairsComponent { type: "contrastive_pairs"; title?: string; left_label?: string; right_label?: string; rows?: ContrastivePairRow[] }
 export interface PhrasalVerbItem { verb: string; meaning: string; example?: string }
 export interface PhrasalVerbGroup { label: string; color?: string; items?: PhrasalVerbItem[] }
 export interface PhrasalVerbClusterComponent { type: "phrasal_verb_cluster"; groups?: PhrasalVerbGroup[] }
 export interface FilmClip { title: string; description: string }
-export interface FilmClipActivityComponent { type: "film_clip_activity"; clips?: FilmClip[]; hunt_chips?: string[]; post_viewing_note?: string }
-export interface RoleplayLine { speaker: string; speaker_class?: string; text: string }
-export interface RoleplayScriptComponent { type: "roleplay_script"; lines?: RoleplayLine[]; answer_key?: string[]; instruction?: string }
-export interface ActiveRecallPromptComponent { type: "active_recall_prompt"; instruction: string; time_minutes?: number; scaffold_hint?: string }
+export interface FilmClipActivityComponent { type: "film_clip_activity"; clips?: FilmClip[]; hunt_chips?: string[]; post_viewing_note?: string; clip_context?: string; pre_watch_prompt?: string; while_watch_task?: string; post_watch_reflection?: string; video_reference?: string }
+export interface RoleplayLine { speaker: string; speaker_class?: string; text: string; cue?: string }
+export interface RoleplayScriptComponent { type: "roleplay_script"; lines?: RoleplayLine[]; answer_key?: string[]; instruction?: string; confidence_scaffold?: string; coaching_notes?: string[] }
+export interface ActiveRecallPromptComponent { type: "active_recall_prompt"; instruction: string; time_minutes?: number; scaffold_hint?: string; reveal_answer?: string; teacher_rationale?: string; reflection_note?: string }
 export interface HwItem { tag: string; text: string }
 export interface HwListComponent { type: "hw_list"; items?: HwItem[]; callout?: string }
 
@@ -188,5 +188,4 @@ export type ContentComponent =
   | FilmClipActivityComponent
   | RoleplayScriptComponent
   | ActiveRecallPromptComponent
-  | HwListComponent
-  | { type: string; [key: string]: unknown };
+  | HwListComponent;

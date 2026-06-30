@@ -1,0 +1,50 @@
+{
+  "case_id": "english_grammar_present_perfect",
+  "subject": "English",
+  "grade_band": "Grade 10",
+  "locale": "en-US",
+  "expected_gate_outcome": "pass",
+  "expected_projection_outputs": ["lesson", "worksheet", "quiz", "drill"],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "detective_case",
+    "cases": [
+      {
+        "id": "case-present-perfect",
+        "title": "The Vanishing Time Marker",
+        "alias": "Case A",
+        "target_concept": "present perfect for life experience",
+        "foil": "simple past with finished time",
+        "disaster": "A student writes: I have visited Da Nang yesterday.",
+        "key_clues": ["yesterday marks a finished time", "present perfect avoids finished-time markers"],
+        "safe_zone": "Use simple past with finished time: I visited Da Nang yesterday.",
+        "filing_note": "Finished time markers push the verb phrase into simple past.",
+        "student_task": "Identify the clue that makes the sentence unsafe and rewrite it.",
+        "teacher_only": {
+          "rationale": "The adverb yesterday conflicts with present perfect usage.",
+          "answer_key": "I visited Da Nang yesterday."
+        }
+      }
+    ],
+    "summary_table": [
+      {
+        "case_id": "case-present-perfect",
+        "trap": "finished-time marker with present perfect",
+        "clue": "yesterday",
+        "safe_rule": "simple past names finished events"
+      }
+    ],
+    "student_challenges": [
+      {
+        "id": "challenge-present-perfect",
+        "prompt": "Repair: She has met him last week.",
+        "case_id": "case-present-perfect"
+      }
+    ],
+    "teacher_only": {
+      "rationale": "Students often memorize tense names instead of checking time clues.",
+      "answer_key": "She met him last week."
+    },
+    "projection_hints": { "lesson": ["Lead with the broken sentence as evidence."] }
+  }
+}

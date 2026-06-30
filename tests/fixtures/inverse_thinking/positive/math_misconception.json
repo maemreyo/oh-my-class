@@ -1,0 +1,49 @@
+{
+  "case_id": "math_fraction_denominator_addition",
+  "subject": "Math",
+  "grade_band": "Grade 5",
+  "locale": "en-US",
+  "expected_gate_outcome": "pass",
+  "expected_projection_outputs": ["lesson", "worksheet", "quiz", "drill"],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "mythbusters_lab",
+    "cases": [
+      {
+        "id": "case-fraction-addition",
+        "title": "The Denominator Addition Crash",
+        "alias": "Fraction crash",
+        "target_concept": "adding fractions with unlike denominators",
+        "foil": "adding numerators and denominators directly",
+        "disaster": "A learner claims 1/2 + 1/3 = 2/5.",
+        "key_clues": ["halves and thirds are different-sized units", "2/5 is less than 1/2"],
+        "safe_zone": "Rename into common units before adding: 3/6 + 2/6 = 5/6.",
+        "filing_note": "Fractions can be added only after the unit size matches.",
+        "student_task": "Explain why 2/5 cannot be the sum.",
+        "teacher_only": {
+          "rationale": "The foil ignores unit size.",
+          "answer_key": "5/6"
+        }
+      }
+    ],
+    "summary_table": [
+      {
+        "case_id": "case-fraction-addition",
+        "trap": "add denominators",
+        "clue": "unlike units",
+        "safe_rule": "common denominator first"
+      }
+    ],
+    "student_challenges": [
+      {
+        "id": "challenge-fraction-addition",
+        "prompt": "Find and repair the error: 1/4 + 1/2 = 2/6.",
+        "case_id": "case-fraction-addition"
+      }
+    ],
+    "teacher_only": {
+      "rationale": "Magnitude checks expose the misconception quickly.",
+      "answer_key": "3/4"
+    }
+  }
+}

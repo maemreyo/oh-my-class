@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "fixtures": [
+    {
+      "case_id": "negative_answer_leakage",
+      "kind": "negative",
+      "path": "negative/answer_leakage.json",
+      "sha256": "96a17c450224a5a30efcd6469b0c92710dd535d66d850edf101041b8d5a9fd3a"
+    },
+    {
+      "case_id": "negative_generic_boring_disaster",
+      "kind": "negative",
+      "path": "negative/generic_boring_disaster.json",
+      "sha256": "4e5ee7a54477eedb0a160808266407d0f6db8dc3eb357a417a0396a0e807f1ea"
+    },
+    {
+      "case_id": "negative_missing_clue",
+      "kind": "negative",
+      "path": "negative/missing_clue.json",
+      "sha256": "435ac5f12fef54dcea682fefc8f47e74289b02d3c205744a777bfe563fbe76c0"
+    },
+    {
+      "case_id": "negative_missing_disaster",
+      "kind": "negative",
+      "path": "negative/missing_disaster.json",
+      "sha256": "b2a0646ac22c7df1b6697e20db8d9c6008ff29eac8ccb93574afb7a10259c8af"
+    },
+    {
+      "case_id": "negative_missing_safe_zone_boundary",
+      "kind": "negative",
+      "path": "negative/missing_safe_zone_boundary.json",
+      "sha256": "99375928b5fc1ae65e5d88ad33674b134d187dbbbfdd8d224a352594fd2cc02b"
+    },
+    {
+      "case_id": "negative_residual_pii_marker",
+      "kind": "negative",
+      "path": "negative/residual_pii_marker.json",
+      "sha256": "0ce2bb05d3636b3a159a373d232c02061ae6a75726e0d96a74f15b610517be0b"
+    },
+    {
+      "case_id": "negative_rule_first_ordering",
+      "kind": "negative",
+      "path": "negative/rule_first_ordering.json",
+      "sha256": "49b766bf71282740229a09c8006bc02f5c135124d507239669fc21c558a201a1"
+    },
+    {
+      "case_id": "negative_unknown_component_type",
+      "kind": "negative",
+      "path": "negative/unknown_component_type.json",
+      "sha256": "9f0721668a885c4d6b3acfc07bab60ba2283f8f2f1a701082af51d7fe9242950"
+    },
+    {
+      "case_id": "english_grammar_present_perfect",
+      "kind": "positive",
+      "path": "positive/english_grammar.json",
+      "sha256": "fab1c80c0967b486260c9c8d3cc999c9d0b19b1e6addefd09a0ece8388577207"
+    },
+    {
+      "case_id": "math_fraction_denominator_addition",
+      "kind": "positive",
+      "path": "positive/math_misconception.json",
+      "sha256": "9d60117bb7424006cc26f8fead256dfec454f23f380debe474724b8dd5b78e06"
+    },
+    {
+      "case_id": "science_current_consumption_false_model",
+      "kind": "positive",
+      "path": "positive/science_false_model.json",
+      "sha256": "81e9170ca0499c0d35c2711ec67aa6befd91ca229c0b492ce5e8e892312bd7aa"
+    },
+    {
+      "case_id": "vietnamese_bilingual_ratio_units",
+      "kind": "positive",
+      "path": "positive/vietnamese_bilingual.json",
+      "sha256": "0bbe206399f052de2eb1eb065edf6a8d6b504c4a3f5f6ec549814331ddb48249"
+    }
+  ]
+}

@@ -242,8 +242,8 @@ def generate_print_styles(theme_data: dict[str, Any]) -> str:  # noqa: ARG001
 """
 
 
-def generate_theme(theme_name: str, kit_dir: str) -> str:
-    """Generate CSS from theme.json.
+def render_theme_css(theme_name: str, kit_dir: str) -> str:
+    """Render CSS from theme.json without writing it to disk.
 
     Args:
         theme_name: Theme name (default, ocean, forest).
@@ -276,6 +276,21 @@ def generate_theme(theme_name: str, kit_dir: str) -> str:
     ]
 
     css = "\n".join(parts)
+
+    return css
+
+
+def generate_theme(theme_name: str, kit_dir: str) -> str:
+    """Generate CSS from theme.json and write it beside the source theme.
+
+    Args:
+        theme_name: Theme name (default, ocean, forest).
+        kit_dir: Path to branding kits directory.
+
+    Returns:
+        Generated CSS content.
+    """
+    css = render_theme_css(theme_name, kit_dir)
 
     output_path = Path(kit_dir) / theme_name / f"theme_{theme_name}.css"
     with open(output_path, "w", encoding="utf-8") as f:

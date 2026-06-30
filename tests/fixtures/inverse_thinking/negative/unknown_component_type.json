@@ -1,0 +1,20 @@
+{
+  "case_id": "negative_unknown_component_type",
+  "subject": "Renderer",
+  "grade_band": "Internal",
+  "locale": "en-US",
+  "expected_gate_outcome": "fail",
+  "expected_issue": { "code": "unknown_component_type", "severity": "critical" },
+  "expected_projection_outputs": [],
+  "artifact": {
+    "artifact_type": "lesson",
+    "title": "Unknown Component Fixture",
+    "sections": [
+      {
+        "id": "source-section",
+        "title": "Source",
+        "components": [{ "type": "unknown_component" }]
+      }
+    ]
+  }
+}

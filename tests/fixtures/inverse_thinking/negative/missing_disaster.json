@@ -1,0 +1,29 @@
+{
+  "case_id": "negative_missing_disaster",
+  "subject": "English",
+  "grade_band": "Grade 10",
+  "locale": "en-US",
+  "expected_gate_outcome": "fail",
+  "expected_issue": { "code": "missing_disaster", "severity": "critical" },
+  "expected_projection_outputs": [],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "detective_case",
+    "cases": [
+      {
+        "id": "case-present-perfect",
+        "title": "The Missing Disaster",
+        "target_concept": "present perfect for life experience",
+        "foil": "simple past with finished time",
+        "key_clues": ["yesterday marks a finished time"],
+        "safe_zone": "Use simple past with finished time before deciding the verb form.",
+        "filing_note": "Finished time markers push the verb phrase into simple past.",
+        "student_task": "Find the clue and repair the sentence.",
+        "teacher_only": { "rationale": "Missing disaster should fail.", "answer_key": "I visited Da Nang yesterday." }
+      }
+    ],
+    "summary_table": [{ "case_id": "case-present-perfect", "trap": "finished-time marker", "clue": "yesterday", "safe_rule": "simple past" }],
+    "student_challenges": [{ "id": "challenge-present-perfect", "prompt": "Repair the unsafe sentence.", "case_id": "case-present-perfect" }],
+    "teacher_only": { "rationale": "Fixture for contract failure.", "answer_key": "Use simple past." }
+  }
+}

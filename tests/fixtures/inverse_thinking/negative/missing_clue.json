@@ -1,0 +1,30 @@
+{
+  "case_id": "negative_missing_clue",
+  "subject": "Math",
+  "grade_band": "Grade 5",
+  "locale": "en-US",
+  "expected_gate_outcome": "fail",
+  "expected_issue": { "code": "missing_key_clues", "severity": "critical" },
+  "expected_projection_outputs": [],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "mythbusters_lab",
+    "cases": [
+      {
+        "id": "case-fraction-addition",
+        "title": "The Clueless Fraction Crash",
+        "target_concept": "adding fractions with unlike denominators",
+        "foil": "adding numerators and denominators directly",
+        "disaster": "A learner claims 1/2 + 1/3 = 2/5.",
+        "key_clues": [],
+        "safe_zone": "Rename into common units before adding: 3/6 + 2/6 = 5/6.",
+        "filing_note": "Fractions can be added only after the unit size matches.",
+        "student_task": "Explain why 2/5 cannot be the sum.",
+        "teacher_only": { "rationale": "No clue list should fail.", "answer_key": "5/6" }
+      }
+    ],
+    "summary_table": [{ "case_id": "case-fraction-addition", "trap": "add denominators", "clue": "unlike units", "safe_rule": "common denominator first" }],
+    "student_challenges": [{ "id": "challenge-fraction-addition", "prompt": "Repair the fraction error.", "case_id": "case-fraction-addition" }],
+    "teacher_only": { "rationale": "Fixture for clue failure.", "answer_key": "5/6" }
+  }
+}

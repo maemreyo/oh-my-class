@@ -35,6 +35,13 @@ CHECKS: list[tuple[str, str, str]] = [
     ),
 ]
 
+FORBIDDEN_ZOD_PATTERNS: dict[str, tuple[str, ...]] = {
+    "common/schemas/src/generated/lesson_plan.ts": (
+        '"methodology": z.union([z.any(), z.null()])',
+        '"payloads": z.any()',
+    ),
+}
+
 
 def extract_pydantic_fields(module_path: str, model_name: str) -> set[str]:
     """Extract field names from a Pydantic model's JSON Schema properties."""
@@ -78,6 +85,16 @@ def extract_zod_fields(zod_file: Path) -> set[str]:
     return fields
 
 
+def schema_has_forbidden_patterns(zod_rel_path: str, zod_file: Path) -> bool:
+    content = zod_file.read_text()
+    failed = False
+    for pattern in FORBIDDEN_ZOD_PATTERNS.get(zod_rel_path, ()):
+        if pattern in content:
+            print(f"❌ {zod_rel_path}: forbidden arbitrary schema pattern remains: {pattern}")
+            failed = True
+    return failed
+
+
 def main() -> int:
     all_ok = True
 
@@ -92,6 +109,8 @@ def main() -> int:
             continue
 
         zod_fields = extract_zod_fields(zod_path)
+        if schema_has_forbidden_patterns(zod_rel_path, zod_path):
+            all_ok = False
 
         missing_in_zod = pydantic_fields - zod_fields
         extra_in_zod = zod_fields - pydantic_fields

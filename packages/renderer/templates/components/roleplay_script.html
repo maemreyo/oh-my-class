@@ -1,8 +1,8 @@
 <%
-/* roleplay_script.html — scripted roleplay with blanks
-   it = RoleplayScript: { instruction?, lines, answer_key } */
+/* roleplay_script.html — low-pressure roleplay card
+   it = RoleplayScript: { instruction?, lines, confidence_scaffold?, coaching_notes?, answer_key? }
+   Student-facing output deliberately omits answer_key and coaching_notes. */
 const lines = it.lines || [];
-const answerKey = it.answer_key || [];
 
 function renderText(text) {
   return text.replace(/\[blank_(\d+)\]/g, function(_, n) {
@@ -10,22 +10,14 @@ function renderText(text) {
   });
 }
 %>
-<% if (it.instruction) { %><p class="section-intro"><%= it.instruction %></p><% } %>
-<div class="script">
-  <% for (const line of lines) { const sc = line.speaker_class || 'A'; %>
-    <div class="line">
+<article class="script roleplay-card" aria-label="Low-pressure roleplay practice">
+  <% if (it.instruction) { %><p class="section-intro"><%= it.instruction %></p><% } %>
+  <% if (it.confidence_scaffold) { %><p class="roleplay-scaffold"><%= it.confidence_scaffold %></p><% } %>
+  <% for (const line of lines) { const sc = line.speaker_class || 'speaker'; %>
+    <section class="line roleplay-line" aria-label="<%= line.speaker %> line">
       <span class="who <%= sc %>"><%= line.speaker %></span>
       <span class="what"><%~ renderText(line.text) %></span>
-    </div>
+      <% if (line.cue) { %><span class="roleplay-cue"><strong>Cue</strong> <%= line.cue %></span><% } %>
+    </section>
   <% } %>
-  <% if (answerKey.length > 0) { %>
-    <div class="script-key">
-      <%
-        const keyParts = answerKey.map(function(ans, i) {
-          return '(' + (i+1) + ') <b>' + ans + '</b>';
-        });
-      %>
-      Đáp án: <%~ keyParts.join(' &middot; ') %>
-    </div>
-  <% } %>
-</div>
+</article>

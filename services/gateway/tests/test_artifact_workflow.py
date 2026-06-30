@@ -72,6 +72,23 @@ class TestArtifactOrchestrator:
         assert all(state.status == "passed" for state in result.states)
 
     @pytest.mark.anyio
+    async def test_generates_drill_after_lesson_dependency(self) -> None:
+        generator = RecordingGenerator()
+        orchestrator = ArtifactOrchestrator(
+            generator,
+            ArtifactOrchestratorConfig(max_parallel_artifacts=2, max_attempts=2),
+        )
+
+        result = await orchestrator.generate_core_artifacts(_request(["lesson", "drill"]))
+
+        assert [artifact.artifact_type for artifact in result.passed_artifacts] == [
+            "lesson", "drill",
+        ]
+        assert generator.calls.index("drill") > generator.calls.index("lesson")
+        drill_state = next(state for state in result.states if state.artifact_type == "drill")
+        assert drill_state.status == "passed"
+
+    @pytest.mark.anyio
     async def test_retries_only_failed_artifact_and_keeps_passed_artifacts(self) -> None:
         generator = RecordingGenerator(fail_once=frozenset({"quiz"}))
         orchestrator = ArtifactOrchestrator(
@@ -212,11 +229,30 @@ class TestArtifactOrchestrator:
         assert result.states[0].status == "passed"
         assert result.passed_artifacts[0].sections[0]["teacher_only"] is True
 
-    def test_refuses_unsupported_v2_core_artifact_type(self) -> None:
+    def test_refuses_unsupported_v1_core_artifact_type(self) -> None:
         orchestrator = ArtifactOrchestrator(RecordingGenerator())
 
-        with pytest.raises(ValueError, match="unsupported V2 artifact type"):
-            orchestrator.plan(_request(["lesson", "drill"]))
+        with pytest.raises(ValueError, match="unsupported V1 artifact workflow type") as exc_info:
+            orchestrator.plan(_request(["lesson", "infographic"]))
+
+        assert "lesson, worksheet, quiz, drill, and recap" in str(exc_info.value)
+        assert "infographic is deferred" in str(exc_info.value)
+
+    def test_plans_drill_with_lesson_dependency(self) -> None:
+        orchestrator = ArtifactOrchestrator(RecordingGenerator())
+
+        plan = orchestrator.plan(_request(["lesson", "drill"]))
+
+        assert [(item.artifact_type, item.dependencies) for item in plan] == [
+            ("lesson", ()),
+            ("drill", ("lesson",)),
+        ]
+
+    def test_refuses_drill_without_lesson_dependency(self) -> None:
+        orchestrator = ArtifactOrchestrator(RecordingGenerator())
+
+        with pytest.raises(ValueError, match="drill requires lesson"):
+            orchestrator.plan(_request(["drill"]))
 
     def test_refuses_artifact_plan_with_missing_dependency(self) -> None:
         orchestrator = ArtifactOrchestrator(RecordingGenerator())
@@ -242,6 +278,16 @@ class TestArtifactOrchestrator:
         assert generator.guidance_by_artifact["lesson"].citation_ids == ["source-lesson"]
         assert generator.guidance_by_artifact["quiz"].guidance == ["Use mixed difficulty"]
         assert generator.guidance_by_artifact["quiz"].citation_ids == ["source-quiz"]
+
+    @pytest.mark.anyio
+    async def test_passes_drill_research_guidance_to_generator(self) -> None:
+        generator = RecordingGenerator()
+        orchestrator = ArtifactOrchestrator(generator)
+
+        await orchestrator.generate_core_artifacts(_request(["lesson", "drill"]))
+
+        assert generator.guidance_by_artifact["drill"].guidance == ["Use short fluency repetitions"]
+        assert generator.guidance_by_artifact["drill"].citation_ids == ["source-drill"]
 
 
 def _request(
@@ -290,6 +336,11 @@ def _request(
                     artifact_type="quiz",
                     guidance=["Use mixed difficulty"],
                     citation_ids=["source-quiz"],
+                ),
+                ArtifactResearchGuidance(
+                    artifact_type="drill",
+                    guidance=["Use short fluency repetitions"],
+                    citation_ids=["source-drill"],
                 ),
             ],
         ),

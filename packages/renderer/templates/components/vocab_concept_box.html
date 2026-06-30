@@ -1,22 +1,23 @@
 <%
-/* vocab_concept_box.html — vocabulary cluster concept box
+/* vocab_concept_box.html — Concept Map vocabulary cluster
    it = VocabCluster: { title, description?, items, discrimination_prompt? } */
 const items = it.items || [];
-const boxLayout = items.length <= 3 ? 'tri' : 'fiveset';
 %>
-<div class="concept-box">
-  <div class="cb-title"><%= it.title %></div>
-  <% if (it.description) { %><span class="cb-link"><%= it.description %></span><% } %>
-  <div class="<%= boxLayout %>">
+<section class="concept-box vocab-cluster" aria-label="Concept Map vocabulary cluster">
+  <header class="vocab-cluster__header">
+    <div class="cb-title"><%= it.title %></div>
+    <% if (it.description) { %><p class="cb-link"><%= it.description %></p><% } %>
+  </header>
+  <div class="vocab-cluster__map" role="list" aria-label="Concept groups and relationships">
     <% for (const item of items) { %>
-      <div class="<%= boxLayout === 'tri' ? 'tri-card' : 'fcard' %>">
+      <article class="vocab-cluster__node" role="listitem" aria-label="<%= item.word %>: <%= item.definition %>">
         <b><%= item.word %></b>
         <span><%= item.definition %></span>
         <% if (item.example) { %><em><%= item.example %></em><% } %>
-      </div>
+      </article>
     <% } %>
   </div>
   <% if (it.discrimination_prompt) { %>
-    <p class="section-intro" style="margin-top:10px;"><%= it.discrimination_prompt %></p>
+    <p class="vocab-cluster__prompt"><%= it.discrimination_prompt %></p>
   <% } %>
-</div>
+</section>

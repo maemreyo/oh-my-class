@@ -22,7 +22,19 @@ from common.contracts.errors import (
     ValidationErrorDetail,
 )
 from common.contracts.judge_output import JudgeOutput, LayerScore
+from common.contracts.inverse_thinking import (
+    InverseThinkingCase,
+    InverseThinkingPack,
+    InverseThinkingStudentChallenge,
+    InverseThinkingSummaryRow,
+    InverseThinkingTeacherOnly,
+)
 from common.contracts.lesson_plan import AssessmentCheckpoint, LearningObjective, LessonPlan
+from common.contracts.methodology_registry import (
+    METHODOLOGY_REGISTRY,
+    MethodologyRegistryEntry,
+    MethodologyTag,
+)
 from common.contracts.log_context import LogContext
 from common.contracts.quality import (
     ArtifactQualityReport,
@@ -78,11 +90,19 @@ __all__ = [
     "ExportReadinessReport",
     "HealingDecision",
     "HealingStrategy",
+    "InverseThinkingCase",
+    "InverseThinkingPack",
+    "InverseThinkingStudentChallenge",
+    "InverseThinkingSummaryRow",
+    "InverseThinkingTeacherOnly",
     "JudgeOutput",
     "LayerScore",
     "LessonPlan",
     "LearningObjective",
     "LogContext",
+    "METHODOLOGY_REGISTRY",
+    "MethodologyRegistryEntry",
+    "MethodologyTag",
     "PipelineErrorResponse",
     "PrePlanningSearchBrief",
     "QualityFailureClass",

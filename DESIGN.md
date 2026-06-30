@@ -1,5 +1,17 @@
 # oh-my-class Design System
 
+## 0. Sources of truth
+
+This document is the canonical visual contract for product UI, renderer previews, and future UI polish issues. Theme implementation remains config-driven:
+
+- `common/branding/kits/default/theme.json` is the default classroom theme source.
+- `common/branding/kits/ocean/theme.json` is the calm blue alternate theme source.
+- `common/branding/kits/forest/theme.json` is the green nature alternate theme source.
+- Generated `theme_*.css` files must be produced from those JSON files and must not be edited manually.
+- Product UI tokens live in `apps/web/src/app/globals.css`; renderer teaching-pack theme tokens live under `common/branding/kits/*/theme.json` and `packages/renderer/src/theme/themes/*.json` until those sources are unified.
+
+Accepted debt: the product dashboard and teaching-pack renderer currently use parallel token sets. New UI polish work may cite this document for visual rules, but may not invent local colors, spacing scales, motion timings, or typography rules outside these sources.
+
 ## 1. Atmosphere & Identity
 
 oh-my-class feels like a calm teacher command center: clear enough for busy classroom planning, structured enough to trust an AI pipeline, and quiet enough not to compete with lesson content. The signature is staged assurance: every workflow surface shows where the teaching pack is, what needs the teacher's decision, and what evidence the system used.
@@ -27,6 +39,7 @@ oh-my-class feels like a calm teacher command center: clear enough for busy clas
 - Use the indigo accent only for actions, active progress, and links.
 - Status color is semantic, not decorative: failed/cancelled states use destructive, awaiting/queued states use muted surfaces.
 - No new raw color values in UI code. Add a token here and in `apps/web/src/app/globals.css` first.
+- Raw hex colors are allowed only in theme source files, generated theme CSS, and tests that intentionally assert token values.
 
 ## 3. Typography
 
@@ -79,6 +92,7 @@ All spacing derives from 4px via Tailwind spacing tokens.
 - Use `min-h-[100dvh]` for viewport-height app shells going forward.
 - Use CSS grid for multi-column status/preview layouts; avoid percentage flex math.
 - Mobile gates stack vertically; preview panes must not require horizontal scroll.
+- Responsive QA covers 375, 768, 1280, and 1920px widths before a UI issue is called complete.
 
 ## 5. Components
 
@@ -131,8 +145,39 @@ All spacing derives from 4px via Tailwind spacing tokens.
 - Animate only `transform` and `opacity`; color transitions are acceptable for controls.
 - Every interactive element needs hover, active, focus, disabled/loading states where relevant.
 - Respect reduced motion; keep motion non-essential.
+- Reduced-motion users must still receive all content and state changes without relying on animation.
 
-## 7. Depth & Surface
+## 7. Accessibility baseline
+
+### Focus
+
+- Every interactive control needs a visible focus state using `--color-ring` or an equivalent theme token.
+- Focus order follows the visual reading order; modal and gate flows trap focus only while open.
+
+### Contrast
+
+- Body text and controls target WCAG AA contrast in both light and dark modes.
+- Status text may use color, but must also include text labels or icons with accessible names.
+
+### Reduced motion
+
+- Honor `prefers-reduced-motion`; do not remove information when transitions are disabled.
+- Use transform/opacity only for non-essential movement.
+
+### CJK and Vietnamese text
+
+- Vietnamese diacritics, CJK glyphs, and mixed-language labels must not clip vertically.
+- Use system font stacks and line-height at or above 1.4 for compact text and 1.5 for body copy.
+- Do not rely on all-caps for long Vietnamese labels; use sentence case unless a short badge needs uppercase.
+
+## 8. Theme drift and token enforcement
+
+- Run `pnpm verify:theme-drift` after editing `common/branding/kits/*/theme.json`.
+- Run `pnpm --filter @oh-my-class/web test -- tests/methodology-token-guard.test.ts` after editing production UI components.
+- CI rejects theme JSON edits that are not reflected in committed generated CSS.
+- CI rejects manual generated CSS edits that do not match theme JSON.
+
+## 9. Depth & Surface
 
 ### Strategy
 

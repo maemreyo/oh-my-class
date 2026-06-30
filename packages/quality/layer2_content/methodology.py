@@ -14,17 +14,14 @@ Report 09 requirements enforced:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, assert_never
 
-# Maps a methodology tag to the component type(s) that satisfy it.
-# Any ONE of the listed types satisfies the requirement.
-_TAG_REQUIRED_TYPES: dict[str, list[str]] = {
-    "concept_map":       ["vocab_cluster", "contrastive_pairs"],
-    "contrastive_pairs": ["contrastive_pairs"],
-    "film_based":        ["film_clip_activity"],
-    "shy_student_1on1":  ["roleplay_script"],
-    "active_recall":     ["active_recall_prompt"],
-    # why_wrong_reasoning is checked separately (quality of each question_card)
+from common.contracts.methodology_registry import METHODOLOGY_REGISTRY, CompositeProjectionPlan
+
+_STRUCTURAL_REQUIREMENTS = {
+    entry.tag: entry
+    for entry in METHODOLOGY_REGISTRY
+    if entry.required_components and entry.tag not in {"timed_quiz", "why_wrong_reasoning"}
 }
 
 
@@ -38,6 +35,32 @@ class MethodologyViolation:
 class MethodologyGateResult:
     passed: bool
     violations: list[MethodologyViolation] = field(default_factory=list)
+
+
+def validate_composite_projection_plan(plan: CompositeProjectionPlan, sections: list[dict[str, Any]]) -> MethodologyGateResult:
+    violations: list[MethodologyViolation] = []
+    for component, source_tags in plan.source_methodology_tags.items():
+        if _component_satisfied(component, sections):
+            continue
+        violations.append(MethodologyViolation(
+            tag="+".join(source_tags),
+            message=f"Composite projection missing {component} required by {', '.join(source_tags)}.",
+        ))
+    return MethodologyGateResult(passed=len(violations) == 0, violations=violations)
+
+
+def _component_satisfied(component: str, sections: list[dict[str, Any]]) -> bool:
+    match component:
+        case "wrong_reasons":
+            return _count_question_cards(sections) > 0 and not _question_card_wrong_reason_gaps(sections)
+        case "time_limit":
+            return any(section.get("time_limit") or section.get("duration_minutes") for section in sections)
+        case "case_flow":
+            return _has_component_type(sections, "case_flow")
+        case "summary_table":
+            return _has_component_type(sections, "table") or _has_component_type(sections, "summary_table")
+        case _:
+            return _has_component_type(sections, component)
 
 
 def _has_component_type(sections: list[dict[str, Any]], comp_type: str) -> bool:
@@ -58,13 +81,36 @@ def _count_question_cards(sections: list[dict[str, Any]]) -> int:
     return count
 
 
-def _questions_have_wrong_reasons(sections: list[dict[str, Any]]) -> bool:
-    """Return True if every question_card has a non-empty wrong_reasons dict."""
+def _question_card_wrong_reason_gaps(sections: list[dict[str, Any]]) -> list[str]:
+    gaps: list[str] = []
     for section in sections:
         for comp in section.get("components", []):
-            if isinstance(comp, dict) and comp.get("type") == "question_card" and not comp.get("wrong_reasons"):  # noqa: E501
-                return False
-    return True
+            if not isinstance(comp, dict) or comp.get("type") != "question_card":
+                continue
+
+            question_id = str(comp.get("id", "unknown"))
+            anchor = f"#question-card-{question_id}-wrong-reasons"
+            wrong_reasons = comp.get("wrong_reasons")
+            if not isinstance(wrong_reasons, dict) or len(wrong_reasons) == 0:
+                gaps.append(f"question_card {question_id}: wrong_reasons empty ({anchor})")
+                continue
+
+            options = comp.get("options")
+            if not isinstance(options, dict):
+                continue
+
+            answer = str(comp.get("answer", ""))
+            missing_options = [
+                str(option_key)
+                for option_key in options
+                if str(option_key) != answer and not str(wrong_reasons.get(option_key, "")).strip()
+            ]
+            if missing_options:
+                gaps.append(
+                    f"question_card {question_id}: missing wrong_reasons for "
+                    f"options {', '.join(missing_options)} ({anchor})"
+                )
+    return gaps
 
 
 def check_methodology_compliance(
@@ -87,28 +133,39 @@ def check_methodology_compliance(
     violations: list[MethodologyViolation] = []
 
     for tag in methodology_tags:
-        required_types = _TAG_REQUIRED_TYPES.get(tag)
-        if required_types is None:
-            continue  # tag has no structural requirement (e.g. timed_quiz handled by time badges)
+        entry = _STRUCTURAL_REQUIREMENTS.get(tag)
+        if entry is None:
+            continue
 
-        satisfied = any(_has_component_type(sections, t) for t in required_types)
+        required_types = entry.required_components
+        match entry.requirement_mode:
+            case "any":
+                satisfied = any(_has_component_type(sections, comp_type) for comp_type in required_types)
+            case "all":
+                satisfied = all(_has_component_type(sections, comp_type) for comp_type in required_types)
+            case unreachable:
+                assert_never(unreachable)
         if not satisfied:
+            alternatives = " or ".join(required_types)
             violations.append(MethodologyViolation(
                 tag=tag,
                 message=(
-                    f"Methodology tag '{tag}' requires one of {required_types} "
-                    f"but none found in lesson sections."
+                    f"{entry.label_en} methodology tag '{tag}' requires {alternatives} "
+                    "so students can see relationships and grouping, but none "
+                    "were found in lesson sections."
                 ),
             ))
 
-    # R5: why_wrong_reasoning — every question_card must carry wrong_reasons
-    if "why_wrong_reasoning" in methodology_tags and _count_question_cards(sections) > 0 and not _questions_have_wrong_reasons(sections):  # noqa: E501
-        violations.append(MethodologyViolation(
-                tag="why_wrong_reasoning",
-                message=(
-                    "Methodology tag 'why_wrong_reasoning' requires every question_card "
-                    "to have a non-empty 'wrong_reasons' dict."
-                ),
-            ))
+    if "why_wrong_reasoning" in methodology_tags and _count_question_cards(sections) > 0:
+        wrong_reason_gaps = _question_card_wrong_reason_gaps(sections)
+        if wrong_reason_gaps:
+            violations.append(MethodologyViolation(
+                    tag="why_wrong_reasoning",
+                    message=(
+                        "Methodology tag 'why_wrong_reasoning' requires every question_card "
+                        "to have wrong_reasons for each distractor/choice: "
+                        + "; ".join(wrong_reason_gaps)
+                    ),
+                ))
 
     return MethodologyGateResult(passed=len(violations) == 0, violations=violations)

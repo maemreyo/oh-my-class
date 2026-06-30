@@ -1,0 +1,49 @@
+{
+  "case_id": "vietnamese_bilingual_ratio_units",
+  "subject": "Math",
+  "grade_band": "Grade 6",
+  "locale": "vi-VN",
+  "expected_gate_outcome": "pass",
+  "expected_projection_outputs": ["lesson", "worksheet", "quiz", "drill"],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "detective_case",
+    "cases": [
+      {
+        "id": "case-ti-le-don-vi",
+        "title": "Hồ sơ tỉ lệ mất đơn vị",
+        "alias": "Case VN",
+        "target_concept": "tỉ lệ và đơn vị đo",
+        "foil": "so sánh số mà quên đơn vị",
+        "disaster": "Một bạn kết luận 3 kg luôn lớn hơn 2500 g vì 3 lớn hơn 2500 là sai cách nhìn số.",
+        "key_clues": ["kg và g là hai đơn vị khác nhau", "cần đổi về cùng đơn vị trước khi so sánh"],
+        "safe_zone": "Use one unit before comparing: đổi 3 kg thành 3000 g rồi so sánh với 2500 g.",
+        "filing_note": "Manh mối về đơn vị quyết định phép đổi trước khi kết luận.",
+        "student_task": "Find the unit clue, convert to one unit, then write the safe comparison.",
+        "teacher_only": {
+          "rationale": "Bilingual wording checks that students track units, not just number size.",
+          "answer_key": "3 kg = 3000 g, so 3 kg is greater than 2500 g."
+        }
+      }
+    ],
+    "summary_table": [
+      {
+        "case_id": "case-ti-le-don-vi",
+        "trap": "quên đổi đơn vị",
+        "clue": "kg và g",
+        "safe_rule": "đổi cùng đơn vị trước"
+      }
+    ],
+    "student_challenges": [
+      {
+        "id": "challenge-ti-le-don-vi",
+        "prompt": "Repair: 1.5 m is smaller than 120 cm because 1.5 is smaller than 120.",
+        "case_id": "case-ti-le-don-vi"
+      }
+    ],
+    "teacher_only": {
+      "rationale": "The bilingual case makes locale coverage explicit without real student data.",
+      "answer_key": "1.5 m = 150 cm, so it is greater than 120 cm."
+    }
+  }
+}

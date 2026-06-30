@@ -198,7 +198,7 @@ table.dtable tr:last-child td { border-bottom: none; }
       <% if (section.instruction) { %><p class="section-instr"><%= section.instruction %></p><% } %>
       <% if (section.summary) { %><div class="summary"><%~ section.summary %></div><% } %>
       <% for (const comp of (section.components || [])) { %>
-      <%~ include('../components/dispatcher.html', { component: comp }) %>
+      <%~ include('../components/dispatcher.html', { component: comp, showWrongReasons: true }) %>
       <% } %>
     </div>
     <% } %>

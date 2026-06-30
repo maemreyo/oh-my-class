@@ -6,6 +6,15 @@
 import type { ArtifactContent } from "@oh-my-class/schemas";
 
 export type ExportFormat = "gift" | "h5p" | "qti";
+export {
+  INVERSE_THINKING_FORMAT_SUPPORT,
+  UnsupportedInverseThinkingExportError,
+  buildInverseThinkingGoogleFormsRequests,
+  exportInverseThinkingGift,
+  exportInverseThinkingH5P,
+  exportInverseThinkingQTI,
+  supportForInverseThinking,
+} from "./inverse-thinking.js";
 
 export async function exportByFormat(
 	format: ExportFormat,

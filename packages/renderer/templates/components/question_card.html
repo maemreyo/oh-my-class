@@ -5,8 +5,6 @@ const q = it;
 const g = q.group || 'a';
 const opts = q.options || {};
 const optKeys = Object.keys(opts);
-const wrongs = q.wrong_reasons || {};
-const wrongKeys = Object.keys(wrongs).filter(k => k !== q.answer);
 %>
 <article class="qcard g-<%= g %>" id="q-<%= q.id %>">
   <div class="qhead">
@@ -21,11 +19,14 @@ const wrongKeys = Object.keys(wrongs).filter(k => k !== q.answer);
     </div>
     <% } %>
   </div>
+  <% if (q.explain || q.essence || q.tip) { %>
   <div class="panel">
+    <% if (q.explain) { %>
     <div class="prow explain">
       <span class="plabel">Giải thích</span>
       <span class="ptext"><%~ q.explain %></span>
     </div>
+    <% } %>
     <% if (q.essence) { %>
     <div class="prow essence">
       <span class="plabel">Bản chất</span>
@@ -39,20 +40,6 @@ const wrongKeys = Object.keys(wrongs).filter(k => k !== q.answer);
     </div>
     <% } %>
   </div>
-  <% if (wrongKeys.length > 0) { %>
-  <div class="wrong-section">
-    <span class="wrong-section-label">Phân tích lựa chọn chưa phù hợp</span>
-    <div class="wrong-list">
-      <% for (const wk of wrongKeys) { %>
-      <div class="wrong-item">
-        <span class="wletter"><%= wk %></span>
-        <div class="wbody">
-          <p class="woption"><%= opts[wk] || '' %></p>
-          <p class="wreason"><%~ wrongs[wk] %></p>
-        </div>
-      </div>
-      <% } %>
-    </div>
-  </div>
   <% } %>
+  <% if (q.show_wrong_reasons) { %><%~ include('./wrong_reason_feedback.html', q) %><% } %>
 </article>

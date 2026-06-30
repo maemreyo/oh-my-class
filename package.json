@@ -13,9 +13,11 @@
 		"lint:knip": "knip",
 		"format:reports": "prettier --write \"docs/plans/**/*.{md,html,yml,yaml,json}\" \"artifacts/**/*.{md,html,yml,yaml,json}\"",
 		"check:reports": "prettier --check \"docs/plans/**/*.{md,html,yml,yaml,json}\" \"artifacts/**/*.{md,html,yml,yaml,json}\"",
-		"generate:schemas": "python scripts/generate_zod_schemas.py",
-		"verify:schemas": "python scripts/verify_schema_parity.py",
-		"verify:frontend-api": "python scripts/verify_frontend_api_contracts.py"
+		"generate:schemas": "uv run python scripts/generate_zod_schemas.py",
+		"verify:schemas": "uv run python scripts/verify_schema_parity.py",
+		"verify:frontend-api": "python scripts/verify_frontend_api_contracts.py",
+		"generate:themes": "uv run python common/branding/generate_theme.py",
+		"verify:theme-drift": "uv run python scripts/verify_theme_drift.py"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.1",

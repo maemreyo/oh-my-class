@@ -1,0 +1,22 @@
+<%
+const q = it;
+const opts = q.options || {};
+const wrongs = q.wrong_reasons || {};
+const wrongKeys = Object.keys(wrongs).filter(k => k !== q.answer);
+%>
+<% if (wrongKeys.length > 0) { %>
+<div class="wrong-section" aria-live="polite">
+  <span class="wrong-section-label">Phân tích lựa chọn chưa phù hợp</span>
+  <div class="wrong-list">
+    <% for (const wk of wrongKeys) { %>
+    <div class="wrong-item">
+      <span class="wletter"><%= wk %></span>
+      <div class="wbody">
+        <p class="woption"><%= opts[wk] || '' %></p>
+        <p class="wreason"><%~ wrongs[wk] %></p>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+<% } %>

@@ -80,6 +80,12 @@ class TestMethodologyCompliance:
         assert result.violations[0].tag == "film_based"
         assert "film_clip_activity" in result.violations[0].message
 
+    def test_film_based_gate_required_type_matches_renderer_component(self):
+        sections = [{"components": [{"type": "film_clip_activity", "clips": []}]}]
+        result = check_methodology_compliance(sections, ["film_based"])
+
+        assert result.passed is True
+
     def test_concept_map_tag_satisfied_by_vocab_cluster(self):
         sections = _build_vocab_lesson(include={"vocab"})
         result = check_methodology_compliance(sections, ["concept_map"])
@@ -89,6 +95,16 @@ class TestMethodologyCompliance:
         sections = [{"components": [{"type": "contrastive_pairs", "rows": []}]}]
         result = check_methodology_compliance(sections, ["concept_map"])
         assert result.passed is True
+
+    def test_concept_map_tag_fails_with_clear_component_alternatives(self):
+        sections = [{"components": [{"type": "question_card", "id": 1}]}]
+        result = check_methodology_compliance(sections, ["concept_map"])
+
+        assert result.passed is False
+        assert result.violations[0].tag == "concept_map"
+        assert "Concept Map" in result.violations[0].message
+        assert "vocab_cluster" in result.violations[0].message
+        assert "contrastive_pairs" in result.violations[0].message
 
     def test_shy_student_1on1_satisfied_by_roleplay_script(self):
         sections = _build_vocab_lesson(include={"roleplay"})
@@ -130,6 +146,21 @@ class TestMethodologyCompliance:
         assert result.violations[0].tag == "why_wrong_reasoning"
         assert "wrong_reasons" in result.violations[0].message
 
+    def test_why_wrong_reasoning_reports_question_id_missing_option_and_editor_anchor(self):
+        sections = [{"components": [
+            {"type": "question_card", "id": "q2", "text": "Q?",
+             "options": {"A": "a", "B": "b", "C": "c"}, "answer": "B", "explain": "e",
+             "wrong_reasons": {"A": "A confuses the clue."}}
+        ]}]
+
+        result = check_methodology_compliance(sections, ["why_wrong_reasoning"])
+
+        assert result.passed is False
+        assert result.violations[0].tag == "why_wrong_reasoning"
+        assert "question_card q2" in result.violations[0].message
+        assert "options C" in result.violations[0].message
+        assert "#question-card-q2-wrong-reasons" in result.violations[0].message
+
     def test_why_wrong_reasoning_passes_vacuously_when_no_questions(self):
         sections = _build_vocab_lesson(include={"vocab"})
         result = check_methodology_compliance(sections, ["why_wrong_reasoning"])
@@ -144,10 +175,19 @@ class TestMethodologyCompliance:
         violation_tags = {v.tag for v in result.violations}
         assert violation_tags == {"film_based", "shy_student_1on1", "active_recall"}
 
-    def test_unknown_tag_ignored(self):
+    def test_timed_quiz_is_handled_outside_structural_gate(self):
         sections = []
-        result = check_methodology_compliance(sections, ["timed_quiz", "roleplay_script"])
-        assert result.passed is True  # these tags have no structural requirement
+        result = check_methodology_compliance(sections, ["timed_quiz"])
+
+        assert result.passed is True
+
+    def test_roleplay_script_uses_registry_requirement(self):
+        sections = []
+        result = check_methodology_compliance(sections, ["roleplay_script"])
+
+        assert result.passed is False
+        assert result.violations[0].tag == "roleplay_script"
+        assert "roleplay_script" in result.violations[0].message
 
     def test_returns_methodology_gate_result_type(self):
         result = check_methodology_compliance([], [])

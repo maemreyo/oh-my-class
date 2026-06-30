@@ -7,8 +7,8 @@
   let content = '<div class="quiz-page">';
 
   if (it.timeLimit) {
-    content += '<p class="quiz-meta no-print" aria-label="Time limit">';
-    content += '<span class="meta-icon" aria-hidden="true">&#9201;</span> Th&#7901;i gian: <strong>' + it.timeLimit + ' ph&#250;t</strong></p>';
+    content += '<p class="quiz-meta timed-quiz-summary" aria-label="Suggested total time">';
+    content += '<span class="meta-icon" aria-hidden="true">&#9201;</span> Suggested total time: <strong>' + it.timeLimit + ' minutes</strong>. Print note: use the badge as pacing guidance, not a live timer.</p>';
   }
 
   content += '<ol class="question-list" aria-label="Questions">';
@@ -20,6 +20,9 @@
     content += '<p class="question-prompt" id="prompt-' + q.id + '">';
     content += '<span class="question-number" aria-hidden="true">' + (i + 1) + '.</span> ' + q.prompt;
     content += '</p>';
+    if (q.timeMinutes) {
+      content += '<p class="time-badge" aria-label="Suggested time for item ' + q.id + '">Suggested time: ' + q.timeMinutes + ' minute' + (q.timeMinutes === 1 ? '' : 's') + '</p>';
+    }
     content += '<div class="options-grid" role="radiogroup" aria-labelledby="prompt-' + q.id + '">';
     for (const opt of (q.options || [])) {
       const isCorrect = showAnswers && opt.label === q.answer;

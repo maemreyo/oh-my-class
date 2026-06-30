@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -21,6 +22,7 @@ from common.branding.generate_theme import (
 )
 from common.branding.registry import ThemeModule, ThemeRegistry
 from common.contracts.rubric import Rubric, RubricRegistry
+from common.contracts.methodology_registry import METHODOLOGY_TAG_VALUES
 from packages.agents.prompts.registry import PromptRegistry
 from packages.agents.prompts.repair_prompts import REPAIR_PROMPT_MODULES
 from packages.agents.prompts.seed import SEED_MODULES
@@ -29,12 +31,49 @@ from packages.renderer.templates.registry import TemplateModule, TemplateRegistr
 
 TEMPLATE_ROOT: Final[Path] = PROJECT_ROOT / "packages" / "renderer" / "templates"
 THEME_ROOT: Final[Path] = PROJECT_ROOT / "common" / "branding" / "kits"
+METHODOLOGY_DRIFT_EXTENSIONS: Final[tuple[str, ...]] = (".py", ".ts", ".tsx")
+METHODOLOGY_DRIFT_ALLOWED_PARTS: Final[tuple[str, ...]] = (
+    "apps/web/src/app/(dashboard)/runs/new/page.tsx",
+    "apps/web/src/components/inverse-thinking-editor.tsx",
+    "apps/web/src/components/methodology/detail-panels.tsx",
+    "apps/web/src/components/methodology/template-reference-modes.ts",
+    "common/contracts/methodology_registry.py",
+    "common/contracts/lesson_plan.py",
+    "common/contracts/components/",
+    "common/contracts/inverse_thinking.py",
+    "common/contracts/tests/",
+    "common/schemas/dist/",
+    "common/schemas/src/generated/",
+    "common/schemas/src/inverse_thinking.test.ts",
+    "common/schemas/src/index.ts",
+    "packages/agents/",
+    "packages/methodologies/inverse_thinking/",
+    "packages/quality/layer1_schema/",
+    "packages/quality/layer2_content/",
+    "apps/web/src/components/methodology/mode-registry.ts",
+    "apps/web/tests/",
+    "packages/renderer/",
+    "services/gateway/observability/inverse_thinking.py",
+    "services/gateway/tests/",
+    "tests/test_methodology_registry_drift.py",
+    "tests/integration/",
+    "packages/quality/tests/",
+    "scripts/verify_registry_drift.py",
+    "scripts/generate_zod_schemas.py",
+)
 
 
 class RegistryDriftError(RuntimeError):
     def __init__(self, issues: list[str]) -> None:
         super().__init__("Registry drift detected: " + ", ".join(issues))
         self.issues = issues
+
+
+@dataclass(frozen=True, slots=True)
+class MethodologyLiteralDrift:
+    path: Path
+    line: int
+    tag: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -204,8 +243,46 @@ def assert_all_registry_hashes_clean(snapshot: RegistryDriftSnapshot) -> None:
         raise RegistryDriftError(issues)
 
 
+def _is_methodology_drift_allowed(path: Path) -> bool:
+    try:
+        relative = path.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return False
+    return any(part in relative for part in METHODOLOGY_DRIFT_ALLOWED_PARTS)
+
+
+def find_methodology_literal_drift(root: Path = PROJECT_ROOT) -> tuple[MethodologyLiteralDrift, ...]:
+    pattern = re.compile("|".join(rf"(['\"]){re.escape(tag)}\1" for tag in METHODOLOGY_TAG_VALUES))
+    drifts: list[MethodologyLiteralDrift] = []
+    for path in root.rglob("*"):
+        if not path.is_file() or path.suffix not in METHODOLOGY_DRIFT_EXTENSIONS:
+            continue
+        if ".git" in path.parts or "node_modules" in path.parts or ".next" in path.parts:
+            continue
+        if _is_methodology_drift_allowed(path):
+            continue
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            for tag in METHODOLOGY_TAG_VALUES:
+                if f'"{tag}"' in line or f"'{tag}'" in line:
+                    drifts.append(MethodologyLiteralDrift(path=path, line=line_number, tag=tag))
+    return tuple(drifts)
+
+
+def assert_methodology_literals_registered(root: Path = PROJECT_ROOT) -> None:
+    drifts = find_methodology_literal_drift(root)
+    if drifts:
+        issues = [
+            f"{drift.path.relative_to(PROJECT_ROOT)}:{drift.line}:{drift.tag}"
+            if drift.path.is_relative_to(PROJECT_ROOT)
+            else f"{drift.path}:{drift.line}:{drift.tag}"
+            for drift in drifts
+        ]
+        raise RegistryDriftError(issues)
+
+
 def main() -> None:
     assert_all_registry_hashes_clean(build_registry_drift_snapshot())
+    assert_methodology_literals_registered()
 
 
 if __name__ == "__main__":

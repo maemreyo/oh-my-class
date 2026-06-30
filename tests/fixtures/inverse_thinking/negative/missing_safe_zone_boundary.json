@@ -1,0 +1,30 @@
+{
+  "case_id": "negative_missing_safe_zone_boundary",
+  "subject": "Science",
+  "grade_band": "Grade 8",
+  "locale": "en-US",
+  "expected_gate_outcome": "fail",
+  "expected_issue": { "code": "missing_safe_zone_boundary", "severity": "critical" },
+  "expected_projection_outputs": [],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "disaster_report",
+    "cases": [
+      {
+        "id": "case-current-consumption",
+        "title": "The Boundary-Free Circuit Report",
+        "target_concept": "electric current in a simple series circuit",
+        "foil": "current is used up by each bulb",
+        "disaster": "A lab note says less current returns to the battery after the bulb.",
+        "key_clues": ["series circuit has one path"],
+        "safe_zone": "Check the circuit carefully.",
+        "filing_note": "The bulb transfers energy; it does not consume charge.",
+        "student_task": "Replace the unsafe claim with a circuit rule.",
+        "teacher_only": { "rationale": "Vague boundary should fail.", "answer_key": "Current remains equal." }
+      }
+    ],
+    "summary_table": [{ "case_id": "case-current-consumption", "trap": "current gets used up", "clue": "one closed path", "safe_rule": "equal current in series" }],
+    "student_challenges": [{ "id": "challenge-current-consumption", "prompt": "Repair the current claim.", "case_id": "case-current-consumption" }],
+    "teacher_only": { "rationale": "Fixture for safe-zone failure.", "answer_key": "Current remains equal." }
+  }
+}

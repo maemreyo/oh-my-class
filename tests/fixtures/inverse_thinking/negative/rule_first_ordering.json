@@ -1,0 +1,30 @@
+{
+  "case_id": "negative_rule_first_ordering",
+  "subject": "English",
+  "grade_band": "Grade 10",
+  "locale": "en-US",
+  "expected_gate_outcome": "fail",
+  "expected_issue": { "code": "rule_first_ordering", "severity": "critical" },
+  "expected_projection_outputs": [],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "detective_case",
+    "cases": [
+      {
+        "id": "case-present-perfect",
+        "title": "The Rule-First File",
+        "target_concept": "present perfect for life experience",
+        "foil": "simple past with finished time",
+        "disaster": "Use simple past with yesterday before showing the broken sentence.",
+        "key_clues": ["yesterday marks a finished time"],
+        "safe_zone": "Use simple past with finished time: I visited Da Nang yesterday.",
+        "filing_note": "Finished time markers push the verb phrase into simple past.",
+        "student_task": "Identify the clue that makes the sentence unsafe.",
+        "teacher_only": { "rationale": "Rule-first disaster should fail.", "answer_key": "I visited Da Nang yesterday." }
+      }
+    ],
+    "summary_table": [{ "case_id": "case-present-perfect", "trap": "finished-time marker", "clue": "yesterday", "safe_rule": "simple past" }],
+    "student_challenges": [{ "id": "challenge-present-perfect", "prompt": "Repair the unsafe sentence.", "case_id": "case-present-perfect" }],
+    "teacher_only": { "rationale": "Fixture for sequencing failure.", "answer_key": "Use simple past." }
+  }
+}

@@ -35,12 +35,12 @@ export default function GlobalError({
 						padding: 0;
 						box-sizing: border-box;
 					}
-					html, body {
+						html, body {
 						width: 100%;
 						height: 100%;
 						font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-						background-color: #f9fafb;
-						color: #1f2937;
+						background-color: Canvas;
+						color: CanvasText;
 					}
 					body {
 						display: flex;
@@ -52,8 +52,8 @@ export default function GlobalError({
 						max-width: 28rem;
 						width: 100%;
 						border-radius: 0.5rem;
-						border: 1px solid #e5e7eb;
-						background-color: #ffffff;
+						border: 1px solid GrayText;
+						background-color: Canvas;
 						padding: 1.5rem;
 					}
 					h1 {
@@ -63,20 +63,20 @@ export default function GlobalError({
 					}
 					p {
 						font-size: 0.875rem;
-						color: #6b7280;
+						color: GrayText;
 						margin-top: 0.5rem;
 					}
 					.error-box {
 						margin-top: 1.5rem;
 						margin-bottom: 1.5rem;
 						border-radius: 0.375rem;
-						background-color: #fee2e2;
+						background-color: Mark;
 						padding: 0.75rem;
 					}
 					.error-box p {
 						font-family: 'Courier New', monospace;
 						font-size: 0.75rem;
-						color: #dc2626;
+						color: MarkText;
 						margin: 0;
 					}
 					.button-group {
@@ -94,19 +94,19 @@ export default function GlobalError({
 						transition: background-color 0.2s;
 					}
 					.button-primary {
-						background-color: #3b82f6;
-						color: #ffffff;
+						background-color: Highlight;
+						color: HighlightText;
 					}
 					.button-primary:hover {
-						background-color: #2563eb;
+						filter: brightness(0.92);
 					}
 					.button-secondary {
-						background-color: #e5e7eb;
-						color: #1f2937;
-						border: 1px solid #d1d5db;
+						background-color: ButtonFace;
+						color: ButtonText;
+						border: 1px solid GrayText;
 					}
 					.button-secondary:hover {
-						background-color: #f3f4f6;
+						filter: brightness(0.96);
 					}
 				`}</style>
 			</head>

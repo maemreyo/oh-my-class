@@ -1,27 +1,41 @@
 <%
-/* film_card.html — film warm-up activity
-   it = FilmClipActivity: { clips, hunt_chips, post_viewing_note? } */
+/* film_card.html — offline-safe film clip activity
+   it = FilmClipActivity: { clips, hunt_chips, clip_context?, pre_watch_prompt?, while_watch_task?, post_watch_reflection?, video_reference?, post_viewing_note? } */
 const clips = it.clips || [];
 const chips = it.hunt_chips || [];
 %>
-<div class="film-opt">
-  <% for (const clip of clips) { %>
-    <div class="film-card">
-      <div class="ft">&#127916; <%= clip.title %></div>
-      <p><%= clip.description %></p>
-    </div>
-  <% } %>
-</div>
-<% if (chips.length > 0) { %>
-  <div class="huntsheet">
-    <strong>Phiếu săn từ (giao trước khi xem):</strong> tích vào ô khi nghe/thấy từ xuất hiện.
-    <div class="chiplist">
-      <% for (const chip of chips) { %>
-        <span class="chip"><%= chip %></span>
-      <% } %>
-    </div>
+<section class="film-clip-activity" aria-label="Film clip activity">
+  <div class="film-opt">
+    <% for (const clip of clips) { %>
+      <article class="film-card">
+        <div class="ft"><%= clip.title %></div>
+        <p><%= clip.description %></p>
+      </article>
+    <% } %>
   </div>
-<% } %>
-<% if (it.post_viewing_note) { %>
-  <p class="section-intro" style="margin-top:8px;"><%= it.post_viewing_note %></p>
-<% } %>
+  <div class="film-clip-activity__sequence">
+    <% if (it.clip_context) { %>
+      <section class="film-clip-activity__step" aria-label="Clip context"><h4>Clip context</h4><p><%= it.clip_context %></p></section>
+    <% } %>
+    <% if (it.pre_watch_prompt) { %>
+      <section class="film-clip-activity__step" aria-label="Before watching"><h4>Before watching</h4><p><%= it.pre_watch_prompt %></p></section>
+    <% } %>
+    <% if (it.while_watch_task || chips.length > 0) { %>
+      <section class="film-clip-activity__step" aria-label="While watching">
+        <h4>While watching</h4>
+        <% if (it.while_watch_task) { %><p><%= it.while_watch_task %></p><% } %>
+        <% if (chips.length > 0) { %>
+          <div class="chiplist" aria-label="Hunt chips">
+            <% for (const chip of chips) { %><span class="chip"><%= chip %></span><% } %>
+          </div>
+        <% } %>
+      </section>
+    <% } %>
+    <% if (it.post_watch_reflection || it.post_viewing_note) { %>
+      <section class="film-clip-activity__step" aria-label="After watching"><h4>After watching</h4><p><%= it.post_watch_reflection || it.post_viewing_note %></p></section>
+    <% } %>
+  </div>
+  <% if (it.video_reference) { %>
+    <p class="film-clip-activity__reference"><strong>Offline reference</strong> <%= it.video_reference %></p>
+  <% } %>
+</section>

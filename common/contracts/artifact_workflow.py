@@ -13,7 +13,7 @@ from common.contracts.run_contract import (  # noqa: TC001 - Pydantic resolves a
     RunContract,
 )
 
-CoreArtifactType = Literal["lesson", "worksheet", "quiz", "recap"]
+CoreArtifactType = Literal["lesson", "worksheet", "quiz", "drill", "recap"]
 ArtifactWorkflowStatus = Literal[
     "queued",
     "running",

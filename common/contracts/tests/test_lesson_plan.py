@@ -64,18 +64,21 @@ class TestLessonPlan:
         )
         plan = self._valid_plan(methodology=meta)
         assert plan.methodology is not None
-        assert "concept_map" in plan.methodology.tags
-        assert "film_based" in plan.methodology.tags
+        assert plan.methodology.tags == ["concept_map", "film_based", "shy_student_1on1"]
 
     def test_methodology_invalid_tag(self):
         with pytest.raises(ValidationError):
             MethodologyMetadata(tags=["invalid_tag"])  # pyright: ignore[reportArgumentType]
 
+    def test_lesson_plan_rejects_unknown_methodology_tag(self):
+        with pytest.raises(ValidationError):
+            self._valid_plan(methodology={"tags": ["unknown_methodology"]})
+
     def test_methodology_all_valid_tags(self):
         all_tags = [
             "concept_map", "contrastive_pairs", "film_based",
             "shy_student_1on1", "active_recall", "why_wrong_reasoning",
-            "timed_quiz", "roleplay_script",
+            "timed_quiz", "roleplay_script", "inverse_thinking",
         ]
         meta = MethodologyMetadata(tags=all_tags)  # pyright: ignore[reportArgumentType]
         assert len(meta.tags) == len(all_tags)

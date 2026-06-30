@@ -6,26 +6,23 @@ Bloom's taxonomy levels, and assessment checkpoints.
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-MethodologyTag = Literal[
-    "concept_map",
-    "contrastive_pairs",
-    "film_based",
-    "shy_student_1on1",
-    "active_recall",
-    "why_wrong_reasoning",
-    "timed_quiz",
-    "roleplay_script",
-]
+from common.contracts.inverse_thinking import InverseThinkingPack
+from common.contracts.methodology_registry import MethodologyTag
+
+
+class MethodologyPayloads(BaseModel):
+    inverse_thinking: InverseThinkingPack | None = None
 
 
 class MethodologyMetadata(BaseModel):
     tags: list[MethodologyTag] = Field(default_factory=list)
     target_skill_area: str | None = None
     student_profile_notes: str | None = None
+    payloads: MethodologyPayloads = Field(default_factory=MethodologyPayloads)
 
 
 class LearningObjective(BaseModel):

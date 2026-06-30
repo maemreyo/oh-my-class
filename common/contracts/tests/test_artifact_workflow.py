@@ -32,21 +32,59 @@ def test_workflow_state_tracks_artifact_execution_fields() -> None:
     assert state.contract_revision_id == 1
 
 
-def test_workflow_state_refuses_unsupported_v2_core_artifact() -> None:
+def test_workflow_state_accepts_drill_as_v1_core_artifact() -> None:
+    state = ArtifactWorkflowState(
+        workflow_id="workflow-1",
+        run_id="run-1",
+        artifact_id="drill-1",
+        artifact_type="drill",
+        status="queued",
+        attempts=0,
+        contract_revision_id=1,
+        research_guidance_id="guidance-drill",
+        validation_status="pending",
+        judge_status="pending",
+        snapshot_refs=[],
+        last_error=None,
+    )
+
+    assert state.artifact_type == "drill"
+
+
+def test_workflow_state_refuses_infographic_as_v1_core_artifact() -> None:
     with pytest.raises(ValidationError):
         ArtifactWorkflowState.model_validate({
             "workflow_id": "workflow-1",
             "run_id": "run-1",
-            "artifact_id": "drill-1",
-            "artifact_type": "drill",
+            "artifact_id": "infographic-1",
+            "artifact_type": "infographic",
             "status": "queued",
             "attempts": 0,
             "contract_revision_id": 1,
-            "research_guidance_id": "guidance-drill",
+            "research_guidance_id": "guidance-infographic",
             "validation_status": "pending",
             "judge_status": "pending",
             "snapshot_refs": [],
         })
+
+
+def test_generation_input_carries_drill_contract_scope_explicitly() -> None:
+    payload = ArtifactGenerationInput(
+        artifact_type="drill",
+        lesson_blueprint={"objectives": ["Compare fractions"]},
+        contract=_contract(artifact_types=["lesson", "drill"]),
+        research_brief=ResearchBrief(topic="Fractions", subject="math"),
+        research_guidance=ArtifactResearchGuidance(
+            artifact_type="drill",
+            guidance=["Use short fluency repetitions after the lesson model."],
+            citation_ids=[],
+        ),
+        visual_spec={"theme": "default"},
+        dependencies=["lesson"],
+    )
+
+    assert payload.artifact_type == "drill"
+    assert payload.dependencies == ["lesson"]
 
 
 def test_generation_input_carries_contract_research_and_dependencies() -> None:

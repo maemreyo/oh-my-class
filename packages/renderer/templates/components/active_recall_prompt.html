@@ -1,11 +1,31 @@
 <%
-/* active_recall_prompt.html — draw-from-memory active recall prompt
-   it = { instruction, time_minutes, scaffold_hint? } */
+/* active_recall_prompt.html — retrieval practice prompt
+   it = { instruction, time_minutes, scaffold_hint?, reveal_answer?, teacher_rationale?, reflection_note? }
+   teacher_rationale is intentionally omitted from student-facing HTML. */
+const recallId = 'active-recall-' + Math.random().toString(36).slice(2);
 %>
-<div class="note-callout" style="border-left:4px solid var(--green);background:var(--green-tint,rgba(46,111,78,0.08));">
-  <strong style="color:var(--green);">&#9998; Recall (<%= it.time_minutes || 3 %> phút)</strong>
-  <p style="margin:6px 0 0;"><%= it.instruction %></p>
+<section class="active-recall-prompt student-print-first" aria-label="Active Recall prompt">
+  <header class="active-recall-prompt__header">
+    <strong>Recall first (<%= it.time_minutes || 3 %> min)</strong>
+    <span>Answer from memory before opening support.</span>
+  </header>
+  <p class="active-recall-prompt__instruction"><%= it.instruction %></p>
   <% if (it.scaffold_hint) { %>
-    <p style="margin:6px 0 0;font-size:12.5px;color:var(--ink-soft);"><em><%= it.scaffold_hint %></em></p>
+    <p class="active-recall-prompt__hint"><%= it.scaffold_hint %></p>
   <% } %>
-</div>
+  <% if (it.reveal_answer) { %>
+    <button type="button" class="active-recall-prompt__button" aria-expanded="false" aria-controls="<%= recallId %>">Show recall answer</button>
+    <div class="active-recall-prompt__reveal" id="<%= recallId %>">
+      <p><%= it.reveal_answer %></p>
+    </div>
+  <% } %>
+  <fieldset class="active-recall-prompt__confidence">
+    <legend>Confidence check</legend>
+    <label><input type="checkbox" /> Still learning</label>
+    <label><input type="checkbox" /> Almost there</label>
+    <label><input type="checkbox" /> Confident</label>
+  </fieldset>
+  <% if (it.reflection_note) { %>
+    <p class="active-recall-prompt__reflection"><%= it.reflection_note %></p>
+  <% } %>
+</section>

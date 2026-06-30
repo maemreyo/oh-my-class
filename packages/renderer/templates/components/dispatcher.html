@@ -14,7 +14,7 @@ const ctype = comp && comp.type;
 <% } else if (ctype === "taxonomy_grid") { %><%~ include('./taxonomy_grid.html', comp) %>
 <% } else if (ctype === "phase_timeline") { %><%~ include('./phase_timeline.html', comp) %>
 <% } else if (ctype === "flow_step") { %><%~ include('./flow_step.html', comp) %>
-<% } else if (ctype === "question_card") { %><%~ include('./question_card.html', comp) %>
+<% } else if (ctype === "question_card") { %><%~ include('./question_card.html', { ...comp, show_wrong_reasons: it.showWrongReasons }) %>
 <% } else if (ctype === "question_list") { %><%~ include('./question_list.html', comp) %>
 <% } else if (ctype === "alert") { %><%~ include('./alert.html', comp) %>
 <% } else if (ctype === "vocab_cluster") { %><%~ include('./vocab_concept_box.html', comp) %>

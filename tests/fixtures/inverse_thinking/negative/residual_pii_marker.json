@@ -1,0 +1,30 @@
+{
+  "case_id": "negative_residual_pii_marker",
+  "subject": "English",
+  "grade_band": "Grade 10",
+  "locale": "en-US",
+  "expected_gate_outcome": "fail",
+  "expected_issue": { "code": "answer_key_leakage", "severity": "critical" },
+  "expected_projection_outputs": [],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "detective_case",
+    "cases": [
+      {
+        "id": "case-scrubbed-placeholder",
+        "title": "The Scrubbed Placeholder Leak",
+        "target_concept": "safe student request handling",
+        "foil": "publishing private details into a task",
+        "disaster": "A generated case includes a scrubbed placeholder in a student-facing task.",
+        "key_clues": ["the placeholder belongs to teacher-only processing notes"],
+        "safe_zone": "Use anonymous case details before publishing any student-facing prompt.",
+        "filing_note": "Privacy markers belong outside student-facing artifacts.",
+        "student_task": "Teacher rationale: preserve privacy by keeping placeholder details out of student copy.",
+        "teacher_only": { "rationale": "Synthetic privacy fixture with no real PII.", "answer_key": "Move the privacy note to teacher-only metadata." }
+      }
+    ],
+    "summary_table": [{ "case_id": "case-scrubbed-placeholder", "trap": "privacy note in student task", "clue": "teacher-only marker", "safe_rule": "anonymous student copy" }],
+    "student_challenges": [{ "id": "challenge-scrubbed-placeholder", "prompt": "Repair the privacy leak in the student copy.", "case_id": "case-scrubbed-placeholder" }],
+    "teacher_only": { "rationale": "Fixture for residual privacy-marker regression.", "answer_key": "Move private detail handling to teacher-only notes." }
+  }
+}

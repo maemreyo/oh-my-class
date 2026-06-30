@@ -1,0 +1,49 @@
+{
+  "case_id": "science_current_consumption_false_model",
+  "subject": "Science",
+  "grade_band": "Grade 8",
+  "locale": "en-US",
+  "expected_gate_outcome": "pass",
+  "expected_projection_outputs": ["lesson", "worksheet", "quiz", "drill"],
+  "pack": {
+    "methodology": "inverse_thinking",
+    "creative_frame": "disaster_report",
+    "cases": [
+      {
+        "id": "case-current-consumption",
+        "title": "The Disappearing Current Report",
+        "alias": "Circuit report",
+        "target_concept": "electric current in a simple series circuit",
+        "foil": "current is used up by each bulb",
+        "disaster": "A lab note says less current returns to the battery after the bulb.",
+        "key_clues": ["series circuit has one path", "charge does not disappear in the bulb"],
+        "safe_zone": "Current is the same at every point in a simple series circuit.",
+        "filing_note": "The bulb transfers energy; it does not consume charge.",
+        "student_task": "Mark the unsafe claim and replace it with the safe circuit rule.",
+        "teacher_only": {
+          "rationale": "Students conflate energy transfer with charge consumption.",
+          "answer_key": "Current remains equal around the loop."
+        }
+      }
+    ],
+    "summary_table": [
+      {
+        "case_id": "case-current-consumption",
+        "trap": "current gets used up",
+        "clue": "one closed path",
+        "safe_rule": "equal current in series"
+      }
+    ],
+    "student_challenges": [
+      {
+        "id": "challenge-current-consumption",
+        "prompt": "A diagram labels smaller current after a bulb. What is unsafe?",
+        "case_id": "case-current-consumption"
+      }
+    ],
+    "teacher_only": {
+      "rationale": "This case separates charge flow from energy transfer.",
+      "answer_key": "The current label should be equal before and after the bulb."
+    }
+  }
+}

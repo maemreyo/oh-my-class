@@ -11,6 +11,7 @@ export interface MCQuestion {
   options: { label: string; text: string }[];
   answer: string;
   explain?: string;
+  timeMinutes?: number;
 }
 
 export interface QuizData {

@@ -1,15 +1,3 @@
-"""Export validator — final quality check before packaging.
-
-Uses 3 independent judges (different models) with 2/3 majority required.
-Checks format-specific required artifacts and skip thresholds.
-
-Format requirements:
-- html: requires 'lesson' artifact
-- gift: requires 'quiz' artifact
-- h5p: requires 'quiz' or 'drill' artifact
-- qti: requires 'quiz' artifact
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -21,6 +9,14 @@ FORMAT_REQUIREMENTS: dict[str, list[str]] = {
     "gift": ["quiz"],
     "h5p": ["quiz", "drill"],
     "qti": ["quiz"],
+}
+
+INVERSE_THINKING_FORMAT_SUPPORT: dict[str, str] = {
+    "html": "supported",
+    "gift": "supported",
+    "h5p": "unsupported",
+    "qti": "supported",
+    "google_forms": "lossy",
 }
 
 
@@ -84,9 +80,26 @@ class ExportValidator:
                     f"Missing required artifact type '{r}' for format '{fmt}'"
                     for r in missing
                 ]
+            if _contains_inverse_thinking(artifacts):
+                support = INVERSE_THINKING_FORMAT_SUPPORT.get(fmt, "unsupported")
+                if support != "supported":
+                    format_issues.setdefault(fmt, []).append(
+                        f"Inverse-thinking export format '{fmt}' is {support}; required disaster, clue, safe-zone, and teacher-rationale semantics cannot be preserved."
+                    )
 
         return ExportValidationResult(
             passed=len(issues) == 0 and len(format_issues) == 0,
             issues=issues,
             format_issues=format_issues,
         )
+
+
+def _contains_inverse_thinking(artifacts: list[dict[str, Any]]) -> bool:
+    for artifact in artifacts:
+        metadata = artifact.get("metadata")
+        methodology = artifact.get("methodology")
+        if methodology == "inverse_thinking":
+            return True
+        if isinstance(metadata, dict) and metadata.get("methodology") == "inverse_thinking":
+            return True
+    return False
