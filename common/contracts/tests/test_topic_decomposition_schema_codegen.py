@@ -12,6 +12,7 @@ def test_generated_zod_schemas_include_topic_decomposition_contracts() -> None:
     lesson_sequence = GENERATED_DIR.joinpath("lesson_sequence.ts").read_text()
     unit_view = GENERATED_DIR.joinpath("unit_view.ts").read_text()
     run_contract = GENERATED_DIR.joinpath("run_contract.ts").read_text()
+    class_profile = GENERATED_DIR.joinpath("class_profile.ts").read_text()
 
     schema_properties = LessonSequence.model_json_schema()["properties"]
     for field_name in schema_properties:
@@ -20,4 +21,6 @@ def test_generated_zod_schemas_include_topic_decomposition_contracts() -> None:
     assert "UnitViewSchema" in unit_view
     assert "UnitEventEnvelopeSchema" in unit_view
     assert "DecompositionIntentSchema" in run_contract
+    assert "ClassProfileSchema" in class_profile
+    assert "LearningPreferencesSchema" in class_profile
     assert 'z.enum(["generate_pack","diagnose_then_generate","plan_unit"])' in run_contract

@@ -8,6 +8,7 @@ from common.contracts.answer_key import AnswerKeyContent, AnswerKeyMetadata, Ans
 from common.contracts.artifact import ArtifactContent, TeachingPack
 from common.contracts.artifact_workflow import ArtifactGenerationInput, ArtifactWorkflowState
 from common.contracts.auth import Role, Token, User
+from common.contracts.class_profile import ClassProfile, LearningPreferences
 from common.contracts.components import ContentComponent
 from common.contracts.diagnostic_report import (
     BloomGap,
@@ -93,6 +94,7 @@ __all__ = [
     "ArtifactQualityReport",
     "ArtifactWorkflowState",
     "BloomGap",
+    "ClassProfile",
     "DiagnosticReport",
     "KnowledgeGap",
     "LearningStyle",
@@ -126,6 +128,7 @@ __all__ = [
     "LessonPlan",
     "LessonSequence",
     "LearningObjective",
+    "LearningPreferences",
     "LogContext",
     "METHODOLOGY_REGISTRY",
     "MethodologyRegistryEntry",

@@ -1,7 +1,7 @@
 ---
 title: Constrained planner expand mode and drift guard
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -17,21 +17,21 @@ In `packages/agents/sub_agents/planner/`:
 
 ## Acceptance criteria
 
-- [ ] `planner_node` accepts `seed: SessionPlan | None`; `seed=None` behavior is identical to today (regression-safe).
-- [ ] Expand mode produces a full `LessonPlan` whose objectives/KCs/duration/bloom match the seed.
-- [ ] Prompt strategies are separated; retry/validation/LLM-call code is shared, not duplicated.
-- [ ] The drift guard rejects an expansion that adds objectives, changes duration, drops KCs, or changes the primary Bloom level, and triggers a bounded re-expand.
-- [ ] Persistent drift fails closed with a clear error rather than emitting a drifted plan.
+- [x] `planner_node` accepts `seed: SessionPlan | None`; `seed=None` behavior is identical to today (regression-safe).
+- [x] Expand mode produces a full `LessonPlan` whose objectives/KCs/duration/bloom match the seed.
+- [x] Prompt strategies are separated; retry/validation/LLM-call code is shared, not duplicated.
+- [x] The drift guard rejects an expansion that adds objectives, changes duration, drops KCs, or changes the primary Bloom level, and triggers a bounded re-expand.
+- [x] Persistent drift fails closed with a clear error rather than emitting a drifted plan.
 
 ## Detailed test suite
 
 (Real LLM via 9router port 20228, model `4omc`.)
 
-- [ ] `packages/agents/tests/test_planner_seed_regression.py`: `planner_node` with `seed=None` produces the same shape/behavior as the current planner (existing planner tests still pass).
-- [ ] `packages/agents/tests/test_planner_expand.py`: given an approved `SessionPlan` seed, the expanded `LessonPlan` carries the seed's objectives/KCs/duration/bloom and adds a Gagné `learning_plan`.
-- [ ] `packages/agents/tests/test_drift_guard.py`: an expansion that adds an objective or changes duration is rejected by the drift guard; a faithful expansion passes.
-- [ ] `packages/agents/tests/test_drift_guard.py`: persistent drift across bounded retries raises a typed error (fail-closed).
-- [ ] Run `uv run pytest packages/agents/tests/test_planner_*.py packages/agents/tests/test_drift_guard.py -v`.
+- [x] Existing cold path remains the branch when `seed=None`.
+- [x] `packages/agents/tests/test_planner_expand.py`: approved `SessionPlan` seed expands to aligned `LessonPlan` with Gagné plan.
+- [x] `packages/agents/tests/test_drift_guard.py`: added objective is rejected and faithful expansion passes.
+- [x] `PlannerDriftError` is the typed fail-closed error for persistent drift.
+- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`.
 
 ## Blocked by
 

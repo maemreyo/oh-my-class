@@ -62,6 +62,7 @@ class LessonSequence(BaseModel):
     grounding_status: GroundingStatus
     confidence: float = Field(ge=0.0, le=1.0)
     open_questions: list[str] = Field(default_factory=list)
+    low_confidence_decisions: list[str] = Field(default_factory=list)
     rationale: str = Field(min_length=1, max_length=2000)
 
     @model_validator(mode="after")

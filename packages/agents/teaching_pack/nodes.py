@@ -31,6 +31,10 @@ class TeachingPackState(TypedDict):
     completed_stages: NotRequired[list[str]]
     research_brief: NotRequired[JsonObject]
     lesson_plan: NotRequired[JsonObject]
+    lesson_sequence: NotRequired[JsonObject]
+    sequence_critiques: NotRequired[list[JsonObject]]
+    seq_revision: NotRequired[int]
+    unit_context: NotRequired[JsonObject]
     artifact_types: NotRequired[list[str]]
     # Sequential pipeline writes complete list; no reducer (replace semantics).
     artifacts: NotRequired[list[JsonObject]]
@@ -59,6 +63,12 @@ def make_stage_node(stage: TeachingPackStage, quality_gate: QualityGate | None =
                 update = _setup_contract(state)
             case "triage":
                 update = await _triage(state)
+            case "unit_planning":
+                update = await _unit_planning(state)
+            case "unit_approval":
+                update = _unit_approval(state)
+            case "unit_prep":
+                update = _unit_prep(state)
             case "preplanning_search":
                 update = _preplanning_search(state)
             case "planning_blueprint":
@@ -91,9 +101,76 @@ def _setup_contract(state: TeachingPackState) -> TeachingPackState:
     }
 
 
-async def _triage(state: TeachingPackState) -> dict:
+async def _triage(state: TeachingPackState) -> TeachingPackState:
     from packages.agents.teaching_pack.triage import run_triage
-    return await run_triage(state)
+    return TeachingPackState(**await run_triage(state))
+
+
+async def _unit_planning(state: TeachingPackState) -> TeachingPackState:
+    from common.contracts.lesson_sequence import LessonSequence
+    from packages.agents.sub_agents.unit_planner.nodes import unit_planner_node
+    from packages.agents.sub_agents.unit_planner.sequence_critic import (
+        CritiqueSeverity,
+        critique_sequence,
+        repair_hard_critiques,
+    )
+
+    contract = state.get("contract", {})
+    result = await unit_planner_node({
+        "raw_request": _string_field(contract, "raw_request", _topic(contract)),
+        "class_info": _class_info(contract),
+        "grounding": _json_object(contract.get("grounding")),
+        "persona_snapshot": _json_object(contract.get("persona_snapshot")),
+        "run_id": state["run_id"],
+        "current_step": 1,
+    })
+    sequence = LessonSequence.model_validate(result["lesson_sequence"])
+    critiques = critique_sequence(sequence)
+    if any(critique.severity is CritiqueSeverity.HARD for critique in critiques):
+        sequence = repair_hard_critiques(sequence)
+        critiques = critique_sequence(sequence)
+    return {
+        "run_id": state["run_id"],
+        "lesson_sequence": sequence.model_dump(mode="json"),
+        "sequence_critiques": [critique.as_dict() for critique in critiques],
+        "seq_revision": int(state.get("seq_revision", 0)) + 1,
+    }
+
+
+def _unit_approval(state: TeachingPackState) -> TeachingPackState:
+    from langgraph.types import interrupt
+
+    gate_payload: JsonObject = {
+        "gate": "unit_approval",
+        "gate_name": "unit_approval",
+        "run_id": state["run_id"],
+        "lesson_sequence": state.get("lesson_sequence", {}),
+        "grounding_status": _string_field(state.get("lesson_sequence", {}), "grounding_status", "ungrounded"),
+        "sequence_critiques": [*state.get("sequence_critiques", [])],
+        "seq_revision": state.get("seq_revision", 1),
+    }
+    response = interrupt(gate_payload)
+    action = _string_field(response, "action", "reject")
+    feedback = _string_field(response, "feedback", "")
+    return {
+        "run_id": state["run_id"],
+        "approval_gate": gate_payload,
+        "gate_payload": response,
+        "teacher_approved": action == "approve",
+        "teacher_decision": action,
+        "revision_feedback": feedback,
+        "seq_revision": int(state.get("seq_revision", 1)) + (1 if action == "edit" else 0),
+    }
+
+
+def _unit_prep(state: TeachingPackState) -> TeachingPackState:
+    contract = state.get("contract", {})
+    unit_context: JsonObject = {
+        "locked_theme": _string_field(contract, "theme", "default"),
+        "shared_research": state.get("research_brief", {"sources": []}),
+        "persona_snapshot": _json_object(contract.get("persona_snapshot")),
+    }
+    return {"run_id": state["run_id"], "unit_context": unit_context}
 
 
 def _preplanning_search(state: TeachingPackState) -> TeachingPackState:
@@ -235,6 +312,21 @@ def route_after_teacher_approval(state: TeachingPackState) -> str:
     if _scoped_rejections(state):
         return "artifact_workflow"
     return "export_finalize"
+
+
+def route_after_triage(state: TeachingPackState) -> str:
+    contract = state.get("contract", {})
+    if contract.get("mode") == "plan_unit":
+        return "unit_planning"
+    return "preplanning_search"
+
+
+def route_after_unit_approval(state: TeachingPackState) -> str:
+    if state.get("teacher_approved", False):
+        return "unit_prep"
+    if state.get("teacher_decision") in {"edit", "reject"}:
+        return "unit_planning"
+    return "unit_planning"
 
 
 def _complete_stage(state: TeachingPackState, stage: str) -> TeachingPackState:

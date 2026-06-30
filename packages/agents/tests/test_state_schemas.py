@@ -104,6 +104,33 @@ class TestResearcherState:
         assert "import OhMyClassState" not in source
 
 
+class TestUnitPlannerState:
+    def test_instantiates_with_required_fields(self):
+        from packages.agents.sub_agents.unit_planner.state import UnitPlannerState
+
+        state = UnitPlannerState(
+            messages=[],
+            raw_request="Plan a unit about fractions",
+            class_info={"grade": 5, "subject": "math"},
+            grounding={"grounding_status": "grounded"},
+            persona_snapshot=None,
+            run_id="run-001",
+            current_step=1,
+            lesson_sequence=None,
+        )
+        assert state["grounding"]["grounding_status"] == "grounded"
+        assert state["lesson_sequence"] is None
+
+    def test_independent_of_ohmy_class_state(self):
+        import inspect
+
+        import packages.agents.sub_agents.unit_planner.state as mod
+
+        source = inspect.getsource(mod)
+        assert "from packages.agents.state import" not in source
+        assert "import OhMyClassState" not in source
+
+
 class TestContentCreatorState:
     def test_instantiates_with_required_fields(self):
         from packages.agents.sub_agents.content_creator.state import ContentCreatorState

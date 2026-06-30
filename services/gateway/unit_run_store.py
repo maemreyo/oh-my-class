@@ -93,6 +93,7 @@ class UnitRunStore:
         await self._session.flush()
 
     async def create_child_run(self, payload: UnitSessionRunCreate) -> None:
+        parent = await self._parent_run(payload.parent_run_id)
         run = Run(
             run_id=payload.run_id,
             teacher_id=payload.teacher_id,
@@ -101,7 +102,7 @@ class UnitRunStore:
             raw_request=payload.raw_request,
             class_info=payload.class_info,
             artifact_types=[],
-            theme="default",
+            theme=parent.theme if parent is not None else "default",
             quality_passed=False,
             teacher_approved=False,
             revision_count=0,
@@ -113,6 +114,8 @@ class UnitRunStore:
             session_id=payload.session_id,
             session_index=payload.session_index,
             unit_role=UnitRole.UNIT_SESSION,
+            shared_research=parent.shared_research if parent is not None else None,
+            persona_snapshot=parent.persona_snapshot if parent is not None else None,
         )
         self._session.add_all([run, self._status_history(payload.run_id, RunStatus.PENDING)])
         await self._session.flush()
@@ -162,6 +165,10 @@ class UnitRunStore:
 
     def _status_history(self, run_id: RunId, status: RunStatus) -> RunStatusHistory:
         return RunStatusHistory(run_id=run_id, status=status, stage=None, reason="created")
+
+    async def _parent_run(self, parent_run_id: RunId) -> Run | None:
+        result = await self._session.execute(select(Run).where(Run.run_id == parent_run_id))
+        return result.scalar_one_or_none()
 
 
 def _is_active_status(status: RunStatus) -> bool:

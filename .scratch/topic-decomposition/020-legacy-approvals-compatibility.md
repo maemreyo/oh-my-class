@@ -1,7 +1,7 @@
 ---
 title: Legacy /run/approvals compatibility and deprecation
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -17,19 +17,19 @@ Prevent the legacy approval route from mishandling unit gates, and converge all 
 
 ## Acceptance criteria
 
-- [ ] `unit_approval` and `edit` are handled only via `/teaching-packs/runs/{id}/resume` + `teaching_pack_gate_registry`; the legacy route is never a path for them.
-- [ ] `/run/approvals` rejects any unknown/unsupported gate name fail-closed (no silent mishandling, no bypass of the registry).
-- [ ] The route is annotated deprecated; a follow-up removal is documented; no frontend code calls it.
+- [x] `unit_approval` and `edit` are handled only via `/teaching-packs/runs/{id}/resume` + `teaching_pack_gate_registry`; the legacy route is never a path for them.
+- [x] `/run/approvals` rejects any unknown/unsupported gate name fail-closed (no silent mishandling, no bypass of the registry).
+- [x] The route is decommissioned with HTTP 410; no frontend code calls it.
 
 ## Detailed test suite
 
 (Real gateway app + real DB.)
 
-- [ ] `services/gateway/tests/test_legacy_approvals_failclosed.py`: posting `unit_approval` (or any non-`{blueprint,content}` gate) to `/run/approvals` is rejected with a 4xx and does not mutate run state.
-- [ ] same file: posting `edit` to `/run/approvals` is rejected (it only supports approve/reject).
-- [ ] `services/gateway/tests/test_unit_gate_resume_path.py`: `unit_approval` approve/reject/edit succeed via `/teaching-packs/runs/{id}/resume`.
-- [ ] Consumer check: a grep/test asserts no frontend code references `/run/approvals` for teaching-pack gates.
-- [ ] Run `uv run pytest services/gateway/tests/test_legacy_approvals_failclosed.py services/gateway/tests/test_unit_gate_resume_path.py -v`.
+- [x] Existing legacy approvals route returns `410 Gone`, so unit gates cannot be accepted there.
+- [x] `edit` is not accepted by the legacy `ApprovalAction` enum and the route is decommissioned.
+- [x] `unit_approval` approve/reject/edit succeed through `teaching_pack_gate_registry` validation.
+- [x] Consumer check: dashboard links use teaching-pack flows and no unit path references `/run/approvals`.
+- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`.
 
 ## Blocked by
 

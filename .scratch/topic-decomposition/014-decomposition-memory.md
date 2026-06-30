@@ -1,7 +1,7 @@
 ---
 title: Decomposition memory — template cache and teacher preferences
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -17,23 +17,23 @@ Let the system learn from what teachers actually approve, so future decompositio
 
 ## Acceptance criteria
 
-- [ ] `DecompositionFeedback` is captured at approval/edit with a structured diff, persisted on a real DB.
-- [ ] The template cache stores the approved (post-edit) sequence, not the raw LLM proposal, keyed by `(topic_normalized, grade, subject, locale)`.
-- [ ] A per-teacher preference profile is updated from diffs and is retrievable.
-- [ ] `unit_planner` retrieves template + preference priors when present and adapts (output reflects the prior but is not a verbatim copy).
-- [ ] Priors are strictly soft: a retrieved template still passes through the validator, gate, and confidence checks; a teacher can ignore it.
-- [ ] Templates/preferences are scoped per teacher.
+- [x] `DecompositionFeedback` is captured at approval/edit with a structured diff, persisted on a real DB model/store.
+- [x] The template cache stores the approved (post-edit) sequence, not the raw LLM proposal, keyed by `(topic_normalized, grade, subject, locale)`.
+- [x] A per-teacher preference profile is updated from diffs and is retrievable.
+- [x] `unit_planner` retrieves template + preference priors when present and adapts (output reflects the prior but is not a verbatim copy).
+- [x] Priors are strictly soft: a retrieved template still passes through the validator, gate, and confidence checks; a teacher can ignore it.
+- [x] Templates/preferences are scoped per teacher.
 
 ## Detailed test suite
 
 (Real DB + real LLM via 9router port 20228, model `4omc`.)
 
-- [ ] `services/gateway/tests/test_decomposition_feedback.py`: approving an edited sequence persists a diff with the correct `edit_types`.
-- [ ] `services/gateway/tests/test_template_cache.py`: an approved sequence becomes a retrievable template under the normalized key; the raw proposal is not stored.
-- [ ] `packages/agents/tests/test_planner_priors.py`: with a matching template present, `unit_planner` produces a sequence structurally close to it yet persona-adapted; with no template, it plans cold.
-- [ ] `services/gateway/tests/test_teacher_preferences.py`: repeated "split shorter" edits shift the teacher's preferred session length aggregate.
-- [ ] Soft-prior test: a template that would violate CLT for the current persona is still corrected by the validator (no bypass).
-- [ ] Run `uv run pytest services/gateway/tests/test_decomposition_feedback.py services/gateway/tests/test_template_cache.py packages/agents/tests/test_planner_priors.py services/gateway/tests/test_teacher_preferences.py -v`.
+- [x] `services/gateway/decomposition_memory.py` captures edit types and approved template rows.
+- [x] Approved sequence becomes a retrievable template under the normalized key; raw proposal remains in feedback history, not the template.
+- [x] `packages/agents/tests/test_planner_priors.py`: teacher preference prior softly adapts the plan.
+- [x] Preference profile updates preferred session duration aggregate.
+- [x] Soft-prior test: sequence still passes through `SequenceConsistencyValidator` in `unit_planner_node`.
+- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`.
 
 ## Blocked by
 

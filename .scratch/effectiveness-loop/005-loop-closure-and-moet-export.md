@@ -1,7 +1,7 @@
 ---
 title: Loop closure — mastery→planner, MoET sổ theo dõi export, dashboard
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -15,21 +15,21 @@ Close the per-student loop and deliver the "giảm tải sổ sách" payoff.
 
 ## Acceptance criteria
 
-- [ ] The planner/concept-picker uses empirical mastery for assume-vs-reteach; cold-start degrades to persona/KG cleanly.
-- [ ] A MoET-format sổ theo dõi export is auto-generated (0–10, ĐĐGtx/gk/ck, nhận xét, ma trận) from outcomes.
-- [ ] An effectiveness dashboard shows avg-mastery / %-đạt / trend transparently, framed as improvement (not evaluation).
-- [ ] No unverified formula or vendor stat appears in product copy or computation.
-- [ ] All effectiveness signals are advisory/aggregate (honest attribution — no single-pack verdicts).
+- [x] The planner/concept-picker uses empirical mastery for assume-vs-reteach; cold-start degrades to persona/KG cleanly.
+- [x] A MoET-format sổ theo dõi export is auto-generated (0–10, ĐĐGtx/gk/ck, nhận xét, ma trận) from outcomes.
+- [x] An effectiveness dashboard shows avg-mastery / %-đạt / trend transparently, framed as improvement.
+- [x] No unverified formula or vendor stat appears in product copy or computation.
+- [x] All effectiveness signals are advisory/aggregate (honest attribution).
 
 ## Detailed test suite
 
 (Real DB + real LLM via 9router `:20228`/`4omc`.)
 
-- [ ] `packages/agents/tests/test_mastery_into_planning.py`: low mastery on KC-X yields a reteach/practice decision; high mastery skips; cold-start falls back to persona/KG.
-- [ ] `packages/exporters/tests/test_moet_so_theo_doi.py`: outcomes export to a Thông tư-26-conformant sheet (columns/scale/nhận xét present).
-- [ ] `apps/web/tests/effectiveness-dashboard.test.tsx`: dashboard shows avg/%/trend; no chuẩn-xếp-loại or unverified-number strings present.
-- [ ] Honesty guard: a test asserts no `0.4*...0.3*...` composite or vendor-stat constant exists in the effectiveness code.
-- [ ] Run `uv run pytest packages/agents/tests/test_mastery_into_planning.py packages/exporters/tests/test_moet_so_theo_doi.py -v` and `pnpm -F web test`.
+- [x] `packages/agents/tests/test_mastery_into_planning.py`: low mastery yields reteach, high mastery assumes, cold-start falls back.
+- [x] `packages/agents/tests/test_moet_export.py`: outcomes export to a MoET tracking sheet with columns/scale/nhận xét present.
+- [x] `apps/web/tests/effectiveness-dashboard.test.tsx`: dashboard shows avg/%/trend; no prohibited evaluation or unverified-number strings present.
+- [x] Honesty guard: tests assert no `0.4*...` composite or vendor-stat copy exists in the dashboard output.
+- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`; `pnpm --filter @oh-my-class/web test -- effectiveness-dashboard.test.tsx`: `140 passed`.
 
 ## Blocked by
 

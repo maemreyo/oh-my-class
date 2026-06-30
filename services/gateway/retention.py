@@ -20,6 +20,7 @@ _DEFAULT_RETENTION: dict[str, int] = {
     "artifacts": 180,
     "events": 90,
     "snapshots": 180,
+    "class_profiles": 365,
 }
 
 
@@ -40,6 +41,7 @@ class RetentionConfig:
     artifacts: int = _DEFAULT_RETENTION["artifacts"]
     events: int = _DEFAULT_RETENTION["events"]
     snapshots: int = _DEFAULT_RETENTION["snapshots"]
+    class_profiles: int = _DEFAULT_RETENTION["class_profiles"]
 
     def as_dict(self) -> dict[str, int]:
         return {
@@ -48,6 +50,7 @@ class RetentionConfig:
             "artifacts": self.artifacts,
             "events": self.events,
             "snapshots": self.snapshots,
+            "class_profiles": self.class_profiles,
         }
 
 

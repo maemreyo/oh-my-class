@@ -122,6 +122,77 @@ class Run(Base):
     persona_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
 
+class ClassProfileModel(Base):
+    __tablename__ = "class_profiles"
+    __table_args__ = (
+        Index("ix_class_profiles_teacher_id", "teacher_id"),
+        {"schema": "public"},
+    )
+
+    class_profile_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    profile_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    schema_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now,
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    retention_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class DecompositionFeedbackModel(Base):
+    __tablename__ = "decomposition_feedback"
+    __table_args__ = (
+        Index("ix_decomposition_feedback_teacher_id", "teacher_id"),
+        {"schema": "public"},
+    )
+
+    feedback_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    proposed_sequence: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    approved_sequence: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    edit_types: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class DecompositionTemplateModel(Base):
+    __tablename__ = "decomposition_templates"
+    __table_args__ = (
+        UniqueConstraint(
+            "teacher_id",
+            "topic_normalized",
+            "grade",
+            "subject",
+            "locale",
+            name="uq_decomposition_template_key",
+        ),
+        {"schema": "public"},
+    )
+
+    template_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    topic_normalized: Mapped[str] = mapped_column(String(200), nullable=False)
+    grade: Mapped[str] = mapped_column(String(64), nullable=False)
+    subject: Mapped[str] = mapped_column(String(80), nullable=False)
+    locale: Mapped[str] = mapped_column(String(16), nullable=False)
+    approved_sequence: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class TeacherPreferenceModel(Base):
+    __tablename__ = "teacher_decomposition_preferences"
+    __table_args__ = (
+        UniqueConstraint("teacher_id", name="uq_teacher_decomposition_preferences_teacher"),
+        {"schema": "public"},
+    )
+
+    teacher_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    preferences: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
 class Artifact(Base):
     """A generated artifact (lesson, worksheet, quiz, etc.)."""
     __tablename__ = "artifacts"

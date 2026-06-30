@@ -11,6 +11,9 @@ class TeachingPackStage(StrEnum):
 
     SETUP_CONTRACT = "setup_contract"
     TRIAGE = "triage"
+    UNIT_PLANNING = "unit_planning"
+    UNIT_APPROVAL = "unit_approval"
+    UNIT_PREP = "unit_prep"
     PREPLANNING_SEARCH = "preplanning_search"
     PLANNING_BLUEPRINT = "planning_blueprint"
     POST_BLUEPRINT_RESEARCH = "post_blueprint_research"
@@ -49,6 +52,12 @@ def _event_name(stage: TeachingPackStage, suffix: str) -> str:
             value = "setup_contract"
         case TeachingPackStage.TRIAGE:
             value = "triage"
+        case TeachingPackStage.UNIT_PLANNING:
+            value = "unit_planning"
+        case TeachingPackStage.UNIT_APPROVAL:
+            value = "unit_approval"
+        case TeachingPackStage.UNIT_PREP:
+            value = "unit_prep"
         case TeachingPackStage.PREPLANNING_SEARCH:
             value = "preplanning_search"
         case TeachingPackStage.PLANNING_BLUEPRINT:

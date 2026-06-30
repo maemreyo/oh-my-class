@@ -135,8 +135,8 @@ Complete topological order of **all 56 issues** across 8 epics. Run everything i
 | **0 — blocker-free (13)** | ✅ `td-001` ✅ `td-005` · ✅ `sr-001` ✅ `sr-002` · ✅ `hd-001` ✅ `hd-002` ✅ `hd-003` · ✅ `te-001` · ✅ `el-002` · ✅ `ops-001` ✅ `ops-002` ✅ `ops-005` · ✅ `tl-001` | Contracts+grounding · render/worker pool · secrets/authz/schema-parity · test harness · de-stub pedagogical · SLO/DR/webhook · a11y |
 | **1 (10)** | ✅ `td-002` ✅ `td-003` ✅ `td-004` · ✅ `sr-003` · ✅ `te-002` ✅ `te-003` ✅ `te-004` ✅ `te-006` · ✅ `el-001` · ✅ `ops-003` | Persistence/validator/triage · provider-resilience · pyramid/trajectory/quality-metrics/security · outcome-model · runbooks |
 | **2 (9)** | `td-006` `td-013` · `te-005` `te-007` · `el-003` `el-006` · `ops-004` · `tl-003` `tl-004` | unit_planner · persona · golden-dataset/chaos · Forms-capture/concept-verifier · cost-cap · content-lifecycle · recall |
-| **3 (6)** | `td-007` `td-008` `td-015` `td-021` · `el-004` · `tl-002` | stage-wiring/gate · expand+drift · knowledge-graph · sequence-critic · BKT engine · model-drift |
-| **4 (4)** | `td-009` `td-014` `td-020` · `el-005` | UnitContext · decomposition-memory · approvals-compat · loop-closure+MoET |
+| **3 (6)** | ✅ `td-007` ✅ `td-008` ✅ `td-015` ✅ `td-021` · ✅ `el-004` · ✅ `tl-002` | stage-wiring/gate · expand+drift · knowledge-graph · sequence-critic · BKT engine · model-drift |
+| **4 (4)** | ✅ `td-009` ✅ `td-014` ✅ `td-020` · ✅ `el-005` | UnitContext · decomposition-memory · approvals-compat · loop-closure+MoET |
 | **5 (2)** | `td-010` · `el-007` | UnitOrchestrator (fan-out) · RISE template-effectiveness |
 | **6 (2)** | `td-011` `td-018` | Unit read API/SSE · observability+eval |
 | **7 (3)** | `td-012` `td-016` `td-017` | Frontend workspace · coherence lint · UnitPackager |
@@ -153,6 +153,16 @@ Total: 13+10+9+6+4+2+2+3+1 = **50 remaining** + 6 `rp` done = **56**.
 ✅ `td-002` unit persistence · ✅ `td-003` sequence validator · ✅ `td-004` triage/plan_unit confirmation · ✅ `sr-003` provider/budget resilience · ✅ `te-002` test pyramid · ✅ `te-003` deterministic trajectory/health gates · ✅ `te-004` DeepEval quality metrics harness · ✅ `te-006` Promptfoo security red-team · ✅ `el-001` outcome model/privacy foundation · ✅ `ops-003` runbooks.
 
 **Verified 2026-07-01:** focused Wave 1 completion suite passed (`22 passed`): triage heuristic+LLM fallback, contract-confirmation decomposition persistence seam, intra-stage validator/healing trajectory, completion recorder, and DeepEval config/majority/hallucination harness. `services/gateway/tests/test_delivery_record_hook.py` is included and skips cleanly when local Postgres is unavailable; it exercises the real delivery-record hook against a migrated DB.
+
+### Wave 3 — **ALL DONE 2026-07-01**
+✅ `td-007` stage wiring/unit gate · ✅ `td-008` planner seed expand + drift guard · ✅ `td-015` ClassKnowledgeGraph · ✅ `td-021` sequence critic · ✅ `el-004` KT engine with pyBKT dependency and cold-start confidence · ✅ `tl-002` model snapshot drift/canary rollback seam.
+
+**Verified 2026-07-01:** focused Wave 3 suite passed in the combined Wave 3/4 run (`26 passed`): unit branch routing/gate registry, planner expand/drift guard, class knowledge graph edge/query behavior, sequence critic/repair, KT cold-start and bounded params, model rollback. LSP diagnostics clean on changed Wave 3 Python files.
+
+### Wave 4 — **ALL DONE 2026-07-01**
+✅ `td-009` UnitContext theme/research/persona propagation · ✅ `td-014` decomposition-memory feedback/template/preference store + soft priors · ✅ `td-020` legacy approval compatibility by keeping `/run` approvals decommissioned and unit gates on teaching-pack resume registry · ✅ `el-005` mastery-to-planning decisions, MoET tracking export, and effectiveness dashboard.
+
+**Verified 2026-07-01:** focused Wave 4 backend suite included in `26 passed`; web effectiveness dashboard suite passed (`140 passed`) with aggregate/advisory framing and no forbidden formula/vendor-stat copy. LSP diagnostics clean on changed Wave 4 Python/TS files.
 
 ### Cross-epic gates (all parity gates ✅ satisfied — parity done)
 - ✅ `td-019` ← `rp-001`+`rp-002` (quality+healing) · ✅ `td-017` ← `rp-005` (export wiring) · ✅ `td-010/011` ← `rp-003` (event bus).

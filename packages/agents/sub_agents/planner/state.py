@@ -5,12 +5,13 @@ from typing import Any, TypedDict
 from langgraph.graph import MessagesState
 
 
-class PlannerNodeState(TypedDict):
+class PlannerNodeState(TypedDict, total=False):
     raw_request: str
     class_info: dict[str, Any]
     run_id: str
     current_step: int
     lesson_plan: dict[str, Any] | None
+    seed: dict[str, Any] | None
 
 
 class PlannerState(MessagesState):
@@ -24,3 +25,4 @@ class PlannerState(MessagesState):
     run_id: str
     current_step: int
     lesson_plan: dict[str, Any] | None
+    seed: dict[str, Any] | None

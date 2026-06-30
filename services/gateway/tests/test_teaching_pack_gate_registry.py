@@ -55,4 +55,19 @@ def test_all_issue_003_gate_names_are_registered() -> None:
         "search_plan_confirmation",
         "blueprint_approval",
         "content_approval",
+        "unit_approval",
     }
+
+
+def test_unit_approval_accepts_resume_actions() -> None:
+    actions = allowed_actions_for_gate(TeachingPackGateName.UNIT_APPROVAL)
+
+    assert actions == frozenset({
+        TeachingPackGateAction.APPROVE,
+        TeachingPackGateAction.REJECT,
+        TeachingPackGateAction.EDIT,
+    })
+    assert validate_gate_response("unit_approval", "edit") == GateValidationAccepted(
+        gate_name=TeachingPackGateName.UNIT_APPROVAL,
+        action=TeachingPackGateAction.EDIT,
+    )

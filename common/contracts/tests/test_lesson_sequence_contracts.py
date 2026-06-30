@@ -46,8 +46,23 @@ def _sequence(topic: str, subject: str, sessions: list[SessionPlan]) -> LessonSe
         grounding_status="grounded",
         confidence=0.84,
         open_questions=[],
+        low_confidence_decisions=[],
         rationale="Sequence follows prerequisite order.",
     )
+
+
+def test_sequence_records_low_confidence_decisions() -> None:
+    sequence = _sequence(
+        "Phân số",
+        "math",
+        [_session("S01", 1, "Khái niệm phân số"), _session("S02", 2, "So sánh phân số")],
+    )
+    revised = LessonSequence.model_validate({
+        **sequence.model_dump(),
+        "low_confidence_decisions": ["duration split inferred from age band"],
+    })
+
+    assert revised.low_confidence_decisions == ["duration split inferred from age band"]
 
 
 def test_valid_fixtures_parse_and_round_trip_when_multi_session_topics() -> None:

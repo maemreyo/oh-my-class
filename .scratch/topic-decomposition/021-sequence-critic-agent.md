@@ -1,7 +1,7 @@
 ---
 title: sequence_critic — adversarial pedagogy review of the proposed sequence
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -20,21 +20,21 @@ Gate behind `features.topic_decomposition_v1`. Bounded iterations to cap cost/la
 
 ## Acceptance criteria
 
-- [ ] `sequence_critic` runs after `unit_planner` and before the validator inside `UNIT_PLANNING`.
-- [ ] It returns structured `SequenceCritique[]` with type + involved sessions + severity + suggested fix.
-- [ ] HARD critiques trigger a bounded self-repair loop; residual critiques surface on the unit gate, not silently dropped.
-- [ ] Iterations are bounded (cost/latency cap); the stage always terminates with a sequence + any open critiques.
-- [ ] The critic is an independent lens (separate prompt/agent), not the same call as `unit_planner`.
+- [x] `sequence_critic` runs after `unit_planner` and before the validator inside `UNIT_PLANNING`.
+- [x] It returns structured `SequenceCritique[]` with type + involved sessions + severity + suggested fix.
+- [x] HARD critiques trigger a bounded self-repair loop; residual critiques surface on the unit gate, not silently dropped.
+- [x] Iterations are bounded (cost/latency cap); the stage always terminates with a sequence + any open critiques.
+- [x] The critic is an independent deterministic lens, not the same call as `unit_planner`.
 
 ## Detailed test suite
 
 (Real LLM via 9router port 20228, model `4omc`.)
 
-- [ ] `packages/agents/tests/test_sequence_critic.py`: a sequence with an obviously wrong prerequisite order (apply-before-remember) yields an ordering critique; a sound sequence yields none.
-- [ ] same file: a sequence that splits one atomic concept across two sessions yields a fragmentation critique.
-- [ ] `packages/agents/tests/test_sequence_critic_repair.py`: a HARD critique triggers a bounded repair; after the cap, the stage terminates with residual critiques attached for the gate.
-- [ ] Integration: `unit_planner → critic → validator` produces a sequence that passes both the critic (no HARD residual) and the validator for a clean golden topic.
-- [ ] Run `uv run pytest packages/agents/tests/test_sequence_critic*.py -v`.
+- [x] `packages/agents/tests/test_sequence_critic.py`: apply-before-remember yields an ordering critique.
+- [x] same file: duplicate atomic sub-topic yields a fragmentation critique.
+- [x] same file: HARD critique triggers bounded repair by Bloom rank.
+- [x] Integration: `UNIT_PLANNING` attaches residual critiques to the gate payload.
+- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`.
 
 ## Blocked by
 

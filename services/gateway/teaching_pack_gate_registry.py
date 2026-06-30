@@ -11,6 +11,7 @@ class TeachingPackGateName(StrEnum):
     SEARCH_PLAN_CONFIRMATION = "search_plan_confirmation"
     BLUEPRINT_APPROVAL = "blueprint_approval"
     CONTENT_APPROVAL = "content_approval"
+    UNIT_APPROVAL = "unit_approval"
 
 
 class TeachingPackGateAction(StrEnum):
@@ -65,6 +66,12 @@ def allowed_actions_for_gate(gate: TeachingPackGateName) -> frozenset[TeachingPa
                 TeachingPackGateAction.EDIT,
             })
         case TeachingPackGateName.CONTENT_APPROVAL:
+            return frozenset({
+                TeachingPackGateAction.APPROVE,
+                TeachingPackGateAction.REJECT,
+                TeachingPackGateAction.EDIT,
+            })
+        case TeachingPackGateName.UNIT_APPROVAL:
             return frozenset({
                 TeachingPackGateAction.APPROVE,
                 TeachingPackGateAction.REJECT,

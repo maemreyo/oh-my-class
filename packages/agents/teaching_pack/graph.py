@@ -7,6 +7,8 @@ from typing import Literal
 from packages.agents.teaching_pack.nodes import (
     TeachingPackState,
     make_stage_node,
+    route_after_triage,
+    route_after_unit_approval,
     route_after_teacher_approval,
 )
 from packages.agents.teaching_pack.quality_routing import route_after_render_quality
@@ -49,7 +51,38 @@ def build_teaching_pack_graph(
 
     previous = first_stage
     for stage in TEACHING_PACK_STAGES[1:]:
-        if previous is TeachingPackStage.TEACHER_APPROVAL:
+        if previous is TeachingPackStage.TRIAGE:
+            graph.add_conditional_edges(
+                previous.value,
+                route_after_triage,
+                {
+                    TeachingPackStage.UNIT_PLANNING.value: TeachingPackStage.UNIT_PLANNING.value,
+                    TeachingPackStage.PREPLANNING_SEARCH.value: TeachingPackStage.PREPLANNING_SEARCH.value,
+                },
+            )
+            graph.add_node(
+                TeachingPackStage.UNIT_PLANNING.value,
+                make_stage_node(TeachingPackStage.UNIT_PLANNING, quality_gate=quality_gate),
+            )
+            graph.add_node(
+                TeachingPackStage.UNIT_APPROVAL.value,
+                make_stage_node(TeachingPackStage.UNIT_APPROVAL, quality_gate=quality_gate),
+            )
+            graph.add_node(
+                TeachingPackStage.UNIT_PREP.value,
+                make_stage_node(TeachingPackStage.UNIT_PREP, quality_gate=quality_gate),
+            )
+            graph.add_edge(TeachingPackStage.UNIT_PLANNING.value, TeachingPackStage.UNIT_APPROVAL.value)
+            graph.add_conditional_edges(
+                TeachingPackStage.UNIT_APPROVAL.value,
+                route_after_unit_approval,
+                {
+                    TeachingPackStage.UNIT_PREP.value: TeachingPackStage.UNIT_PREP.value,
+                    TeachingPackStage.UNIT_PLANNING.value: TeachingPackStage.UNIT_PLANNING.value,
+                },
+            )
+            graph.add_edge(TeachingPackStage.UNIT_PREP.value, END)
+        elif previous is TeachingPackStage.TEACHER_APPROVAL:
             graph.add_conditional_edges(
                 previous.value,
                 route_after_teacher_approval,

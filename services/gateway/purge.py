@@ -11,10 +11,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import delete, select
 
-from services.gateway.models import Run
-from services.gateway.teaching_pack_models import TeachingPackEventVisibility, RunEvent
+from services.gateway.models import ClassProfileModel, Run
+from services.gateway.teaching_pack_models import RunEvent
 from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot
-from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
 from services.gateway.teaching_pack_types import RunId
 from services.gateway.retention import RetentionConfig
 
@@ -114,3 +113,23 @@ async def purge_student_evidence(db: AsyncSession) -> int:
     if redacted:
         await db.flush()
     return redacted
+
+
+async def purge_expired_class_profiles(db: AsyncSession) -> list[str]:
+    now = datetime.now(UTC)
+    statement = select(ClassProfileModel).where(ClassProfileModel.deleted_at.isnot(None))
+    result = await db.execute(statement)
+    profiles = result.scalars().all()
+
+    purged_ids: list[str] = []
+    for profile in profiles:
+        retention = profile.retention_days or _RETENTION.class_profiles
+        expires_at = profile.deleted_at + timedelta(days=retention)
+        expires_at_utc = expires_at.replace(tzinfo=UTC) if expires_at.tzinfo is None else expires_at
+        if now <= expires_at_utc:
+            continue
+        await db.delete(profile)
+        purged_ids.append(profile.class_profile_id)
+
+    await db.flush()
+    return purged_ids

@@ -13,6 +13,8 @@ export { RunContractSchema, ContractRevisionMetaSchema, DecompositionIntentSchem
 export type { RunContract, ContractRevisionMeta, DecompositionIntent, ContractRevision } from "./run_contract.js";
 export { LessonSequenceSchema, SessionPlanSchema, KnowledgeComponentSchema, PrerequisiteEdgeSchema } from "./lesson_sequence.js";
 export type { LessonSequence, SessionPlan, KnowledgeComponent, PrerequisiteEdge } from "./lesson_sequence.js";
+export { ClassProfileSchema, LearningPreferencesSchema, StudentProfileSchema, LearningStyleSchema, PersonalityTraitSchema } from "./class_profile.js";
+export type { ClassProfile, LearningPreferences, StudentProfile, LearningStyle, PersonalityTrait } from "./class_profile.js";
 export { UnitViewSchema, UnitParentMetaSchema, UnitSessionProgressSchema, UnitAggregateSchema, UnitCoherenceWarningSchema, UnitSessionStatusEventSchema, UnitAggregateEventSchema, UnitCoherenceWarningEventSchema, UnitEventEnvelopeSchema } from "./unit_view.js";
 export type { UnitView, UnitParentMeta, UnitSessionProgress, UnitAggregate, UnitCoherenceWarning, UnitSessionStatusEvent, UnitAggregateEvent, UnitCoherenceWarningEvent, UnitEventEnvelope } from "./unit_view.js";
 export { InverseThinkingPackSchema, InverseThinkingTeacherOnlySchema, InverseThinkingCaseSchema, InverseThinkingSummaryRowSchema, InverseThinkingStudentChallengeSchema } from "./inverse_thinking.js";

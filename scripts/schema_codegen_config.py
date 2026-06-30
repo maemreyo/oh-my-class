@@ -73,6 +73,24 @@ MODELS: dict[str, ModelConfig] = {
         },
         "external_field_refs": {},
     },
+    "common.contracts.class_profile": {
+        "main_model": "ClassProfile",
+        "all_models": [
+            "ClassProfile",
+            "LearningPreferences",
+            "StudentProfile",
+            "LearningStyle",
+            "PersonalityTrait",
+        ],
+        "output": "common/schemas/src/generated/class_profile.ts",
+        "field_refs": {
+            "learning_preferences": "LearningPreferences",
+            "students": "StudentProfile",
+            "learning_style": "LearningStyle",
+            "personality_traits": "PersonalityTrait",
+        },
+        "external_field_refs": {},
+    },
     "common.contracts.unit_view": {
         "main_model": "UnitView",
         "all_models": [

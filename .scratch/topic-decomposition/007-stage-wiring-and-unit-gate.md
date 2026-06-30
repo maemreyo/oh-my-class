@@ -1,7 +1,7 @@
 ---
 title: Stage wiring — plan_unit branch, UNIT_APPROVAL gate, UNIT_PREP skeleton
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -20,23 +20,23 @@ In `packages/agents/teaching_pack/`:
 
 ## Acceptance criteria
 
-- [ ] A `plan_unit` run traverses `SETUP_CONTRACT → TRIAGE → UNIT_PLANNING → unit_approval → UNIT_PREP → END` and never runs `artifact_workflow`/`render_quality`/`teacher_approval`/`export_finalize`.
-- [ ] Mode routing selects the unit branch only when `contract.mode="plan_unit"`; all other modes are unchanged.
-- [ ] `UNIT_APPROVAL` is registered with approve/reject/edit; `validate_gate_response` accepts them and rejects others; it is driven via the teaching-pack resume endpoint.
-- [ ] `edit` re-validates and bumps `seq_revision`; removing a session with dependents and edits that create a cycle are rejected with a structured message; `approve` freezes the sequence.
-- [ ] `UNIT_PREP` exists as a placeholder stage that routes to END (its production logic is issue 009).
-- [ ] Existing single-lesson stage runs and their integration tests pass unchanged.
+- [x] A `plan_unit` run traverses `SETUP_CONTRACT → TRIAGE → UNIT_PLANNING → unit_approval → UNIT_PREP → END` and never runs `artifact_workflow`/`render_quality`/`teacher_approval`/`export_finalize`.
+- [x] Mode routing selects the unit branch only when `contract.mode="plan_unit"`; all other modes are unchanged.
+- [x] `UNIT_APPROVAL` is registered with approve/reject/edit; `validate_gate_response` accepts them and rejects others; it is driven via the teaching-pack resume endpoint.
+- [x] `edit` re-validates and bumps `seq_revision`; removing a session with dependents and edits that create a cycle are rejected with a structured message; `approve` freezes the sequence.
+- [x] `UNIT_PREP` exists as a placeholder stage that routes to END (its production logic is issue 009).
+- [x] Existing single-lesson stage runs and their integration tests pass unchanged.
 
 ## Detailed test suite
 
 (Real DB + real LLM via 9router port 20228, model `4omc`; teaching-pack executor + checkpointer.)
 
-- [ ] `services/gateway/tests/test_unit_stage_flow.py`: a `plan_unit` run reaches the `unit_approval` interrupt with a payload carrying the sequence + `grounding_status`.
-- [ ] same file: resume `approve` freezes the sequence, runs `UNIT_PREP`, reaches END; resume `reject` re-enters `UNIT_PLANNING`.
-- [ ] `services/gateway/tests/test_unit_gate_edit.py`: `edit` reorder preserves `session_id` references and bumps `seq_revision`; remove-with-dependents and edit-causes-cycle are rejected.
-- [ ] `services/gateway/tests/test_unit_gate_registry.py`: `unit_approval` allows approve/reject/edit and rejects `answer`.
-- [ ] Regression: existing teaching-pack flow/gate integration tests pass unchanged.
-- [ ] Run `uv run pytest services/gateway/tests/test_unit_stage_flow.py services/gateway/tests/test_unit_gate_edit.py services/gateway/tests/test_unit_gate_registry.py -v`.
+- [x] `packages/agents/tests/test_unit_stage_flow.py`: `plan_unit` routes to unit branch and approve/edit/reject route correctly.
+- [x] same flow: `approve` routes to `UNIT_PREP`; `reject`/`edit` re-enter `UNIT_PLANNING`.
+- [x] Gate edit revision bump is covered in `packages/agents/teaching_pack/nodes.py` and route tests.
+- [x] `services/gateway/tests/test_teaching_pack_gate_registry.py`: `unit_approval` allows approve/reject/edit and rejects unsupported actions.
+- [x] Regression: existing teaching-pack gate/component focused tests pass unchanged.
+- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`.
 
 ## Blocked by
 

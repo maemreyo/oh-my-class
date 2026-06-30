@@ -16,6 +16,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.51",
     "litellm>=1.89.4",
     "deepeval>=2.0.0",
+    "pyBKT==1.4.1",
 ]
 
 [tool.uv.workspace]
