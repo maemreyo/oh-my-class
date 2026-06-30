@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning-Outcome Effectiveness Loop — Research Report</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2d3142;
+    --text: #e4e6f0;
+    --text-muted: #8b8fa3;
+    --accent: #6c5ce7;
+    --accent2: #00cec9;
+    --green: #00b894;
+    --orange: #fdcb6e;
+    --red: #e17055;
+    --blue: #74b9ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+  h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  h2 { font-size: 1.4rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent2); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.5rem; color: var(--blue); }
+  p { margin-bottom: 1rem; color: var(--text); }
+  .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+  .meta { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .meta span { background: var(--surface); padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.85rem; color: var(--text-muted); border: 1px solid var(--border); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .card-accent { border-left: 4px solid var(--accent); }
+  .card-green { border-left: 4px solid var(--green); }
+  .card-orange { border-left: 4px solid var(--orange); }
+  .card-red { border-left: 4px solid var(--red); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th, td { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--surface2); color: var(--accent2); font-weight: 600; }
+  td { color: var(--text); }
+  code { background: var(--surface2); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85rem; color: var(--orange); }
+  .tag { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500; margin-right: 0.3rem; }
+  .tag-confirmed { background: rgba(0,184,148,0.15); color: var(--green); }
+  .tag-unverified { background: rgba(225,112,85,0.15); color: var(--red); }
+  .tag-gap { background: rgba(253,203,110,0.15); color: var(--orange); }
+  .tag-architecture { background: rgba(108,92,231,0.15); color: var(--accent); }
+  blockquote { border-left: 3px solid var(--accent); padding: 0.8rem 1rem; margin: 1rem 0; background: var(--surface); border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-muted); }
+  .flow { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; color: var(--accent2); line-height: 1.5; white-space: pre; }
+  ul { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Learning-Outcome Effectiveness Loop</h1>
+<p class="subtitle">Research synthesis: How to measure whether teaching packs actually help students learn — connecting classroom signals → feedback to improve future packs.</p>
+
+<div class="meta">
+  <span>20 workers</span>
+  <span>2 waves</span>
+  <span>80+ sources</span>
+  <span>2026-06-30</span>
+  <span>oh-my-class</span>
+</div>
+
+<!-- ============================================================ -->
+<h2>1. Executive Summary</h2>
+
+<div class="card card-accent">
+<p><strong>The Gap:</strong> oh-my-class has a mature 6-layer content quality gate system but <strong>zero infrastructure for measuring learning effectiveness</strong>. The system validates that teaching packs are well-structured HTML with correct answers — but cannot tell you whether they actually teach.</p>
+</div>
+
+<p>The research reveals three converging streams of evidence for closing this loop:</p>
+
+<div class="two-col">
+<div class="card card-green">
+<h3>Learning Science</h3>
+<p>Kirkpatrick L2, Bloom's Mastery, and the RISE Framework converge: effectiveness requires pre/post student outcome data. RISE found that <strong>continuous improvement cycles matter more than raw usage</strong> (65% of growth across 4 semesters).</p>
+</div>
+<div class="card card-green">
+<h3>Knowledge Tracing</h3>
+<p>BKT provides cold-start-friendly foundation; KT4EQG demonstrates the full closed loop: <strong>concept selector → LLM generator → contrastive verifier → student attempt → KT update</strong>. Maps directly to oh-my-class's Content Creator + Reviewer.</p>
+</div>
+</div>
+
+<div class="card card-green">
+<h3>Closed-Loop Systems</h3>
+<p>Plot-Ark, Khan Academy, and EduRL-GPT all demonstrate the full cycle. Khan Academy's <strong>+6.1% improvement</strong> came from cumulative measured iterations, not single transformative changes. The architecture is ready — what's missing is engineering.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>2. The Quality-vs-Effectiveness Gap</h2>
+
+<div class="card card-red">
+<p><strong>Critical finding:</strong> All 7 pedagogical metrics in <code>layer2_content/pedagogical.py</code> are TODO stubs returning hardcoded <code>True</code>. The FACT protocol for hallucination detection returns empty lists. The LLM-as-Judge measures format (15%), content quality (55%), and presentation (30%) — but none measure "will this teach?"</p>
+</div>
+
+<table>
+<tr><th>Quality Layer</th><th>What it measures</th><th>Effectiveness?</th></tr>
+<tr><td>Layer 1: Schema</td><td>Pydantic conformance, Bloom coverage</td><td class="tag tag-gap">Structure only</td></tr>
+<tr><td>Layer 2: Content</td><td>Pedagogical metrics (STUBS), FACT (STUBS), readability</td><td class="tag tag-gap">Stubs</td></tr>
+<tr><td>Layer 3: HTML</td><td>DOCTYPE, no CDN, brand strings, hard blocks</td><td class="tag tag-gap">Technical only</td></tr>
+<tr><td>Layer 4: LLM Judge</td><td>G-Eval 3-layer weighted score</td><td class="tag tag-gap">Quality opinion, not learning</td></tr>
+<tr><td>Layer 5: HITL</td><td>Teacher approval (approve/edit/reject)</td><td class="tag tag-gap">Teacher satisfaction</td></tr>
+<tr><td>Layer 6: Export</td><td>Format requirements, multi-judge</td><td class="tag tag-gap">Package completeness</td></tr>
+<tr><td><strong>Layer 7: Effectiveness</strong></td><td><strong>Pre/post learning gain, transfer, retention</strong></td><td class="tag tag-confirmed"><strong>MISSING</strong></td></tr>
+</table>
+
+<blockquote>"All these frameworks evaluate the content itself — grammar, accuracy, formatting — but none directly measure whether the content produces learning. They answer 'Is this content good?' but not 'Does this content teach?'"</blockquote>
+
+<!-- ============================================================ -->
+<h2>3. What Effectiveness Measurement Requires</h2>
+
+<h3>3.1 The Measurement Hierarchy</h3>
+<table>
+<tr><th>Level</th><th>Measure</th><th>What it catches</th><th>Status</th></tr>
+<tr><td>L0</td><td>Content quality gates</td><td>Structural correctness</td><td class="tag tag-confirmed">Implemented</td></tr>
+<tr><td>L1</td><td>Immediate post-test</td><td>Task completion, surface understanding</td><td class="tag tag-gap">Missing</td></tr>
+<tr><td>L2</td><td>Delayed retention (1-4 weeks)</td><td>Durable learning</td><td class="tag tag-gap">Missing</td></tr>
+<tr><td>L3</td><td>Transfer (novel problems)</td><td>Deep understanding</td><td class="tag tag-gap">Missing</td></tr>
+<tr><td>L4</td><td>Far transfer (next course)</td><td>Transferable knowledge</td><td class="tag tag-gap">Missing</td></tr>
+<tr><td>L5</td><td>Longitudinal (months)</td><td>Long-term retention curve</td><td class="tag tag-gap">Missing</td></tr>
+</table>
+
+<h3>3.2 Kirkpatrick's Framework → oh-my-class Mapping</h3>
+<div class="card">
+<table>
+<tr><th>Kirkpatrick Level</th><th>Question</th><th>oh-my-class Equivalent</th></tr>
+<tr><td>L1: Reaction</td><td>Did they find it favorable?</td><td>Layer 5: Teacher approval gate</td></tr>
+<tr><td>L2: Learning</td><td>Did they acquire intended knowledge?</td><td><strong>Need pre/post assessment</strong></td></tr>
+<tr><td>L3: Behavior</td><td>Are they applying it?</td><td><strong>Need classroom observation data</strong></td></tr>
+<tr><td>L4: Results</td><td>Did targeted outcomes occur?</td><td><strong>Need longitudinal tracking</strong></td></tr>
+</table>
+</div>
+
+<h3>3.3 The RISE Framework — Key Insight</h3>
+<div class="card card-accent">
+<p><strong>"More visits to an OER do not improve achievement, but continuous improvement cycles of targeted OER do."</strong></p>
+<p>The RISE classification accounted for <strong>65% of growth</strong> in student performance across 4 semesters (190 learning objectives, HLM/GCM methodology). Mere exposure is statistically inert. What matters is whether practitioners acted on the analytic signal.</p>
+<p><em>— Castellanos-Reyes, Camargo Salamanca, & Wiley (2024), IRRODL 25(4)</em></p>
+</div>
+
+<!-- ============================================================ -->
+<h2>4. Knowledge Tracing as the Mathematical Bridge</h2>
+
+<h3>4.1 BKT — The Cold-Start Foundation</h3>
+<div class="card">
+<p><strong>Bayesian Knowledge Tracing</strong> models student knowledge as a Hidden Markov Model with 4 parameters per knowledge component:</p>
+<ul>
+<li><strong>P(L₀)</strong> — prior probability of mastery</li>
+<li><strong>P(L)</strong> — learn rate (transition from not-learned to learned)</li>
+<li><strong>P(G)</strong> — guess rate (correct when not-learned)</li>
+<li><strong>P(S)</strong> — slip rate (incorrect when learned)</li>
+</ul>
+<p>pyBKT library (Carnegie Mellon, 249 stars, MIT): trainable in &lt;1 hour on a laptop, fits a dozen students. <strong>This is the pragmatic starting point for oh-my-class.</strong></p>
+</div>
+
+<h3>4.2 KT4EQG — The Full Closed Loop</h3>
+<div class="card card-accent">
+<p>KT4EQG (UCSB, arXiv 2605.23933) demonstrates the exact pattern oh-my-class needs:</p>
+<div class="flow">Student History → KT2 (EM on KC tree) → Concept Selector (argmax mastery gain)
+  → LLM Generator (Qwen3-8B SFT+GRPO) → Contrastive Verifier (hard negatives)
+  → Student Attempt → KT Update → Next Cycle</div>
+<p><strong>Key design choices:</strong></p>
+<ul>
+<li>2D selection: picks both concept AND difficulty (not just one)</li>
+<li>Contrastive verifier trained on sibling-KC hard negatives — catches concept drift</li>
+<li>Cold start: BKT/DKT as surrogate, initial_r_diff seeding from config</li>
+</ul>
+</div>
+
+<h3>4.3 Mapping to oh-my-class</h3>
+<table>
+<tr><th>KT4EQG Component</th><th>oh-my-class Equivalent</th><th>Gap</th></tr>
+<tr><td>KT2 (EM on KC tree)</td><td>Diagnostician agent (heuristics)</td><td class="tag tag-gap">Need BKT engine</td></tr>
+<tr><td>Concept selector</td><td>(missing)</td><td class="tag tag-gap">Need new stage</td></tr>
+<tr><td>Generator (SFT+GRPO)</td><td>Content Creator agent</td><td class="tag tag-architecture">Same role</td></tr>
+<tr><td>Contrastive verifier</td><td>Reviewer agent (G-Eval)</td><td class="tag tag-gap">Need concept-alignment check</td></tr>
+<tr><td>Student state update</td><td>(missing)</td><td class="tag tag-gap">Need DB table</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>5. Closed-Loop Architecture</h2>
+
+<h3>5.1 Plot-Ark's Pattern (Directly Applicable)</h3>
+<div class="card">
+<p>Plot-Ark is the only open-source system that closes the full generate → track → optimize loop with 3-tier HITL:</p>
+<table>
+<tr><th>Layer</th><th>Change Type</th><th>oh-my-class Mapping</th></tr>
+<tr><td>L1</td><td>objective_update (auto-apply)</td><td>Scoped regeneration</td></tr>
+<tr><td>L2</td><td>reference_suggestion (professor picks)</td><td>Teacher approval gate</td></tr>
+<tr><td>L3</td><td>assignment_alert (read-only)</td><td>Advisory feedback</td></tr>
+</table>
+<p><strong>Cold start:</strong> Auto-analyze on curriculum generation (no student data needed), mock data engine, IMPROVED_VERB_DIST counterfactual simulation.</p>
+</div>
+
+<h3>5.2 Where It Plugs Into oh-my-class</h3>
+<div class="card card-accent">
+<p>The pipeline currently ends at <code>export_finalize → END</code>. Adding a 9th stage requires 3 coordinated edits:</p>
+<ol style="margin-left: 1.5rem;">
+<li><strong>stages.py</strong> — add <code>EFFECTIVENESS_MEASUREMENT</code> to StrEnum + TEACHING_PACK_STAGES tuple</li>
+<li><strong>nodes.py</strong> — add match arm + worker in <code>make_stage_node</code></li>
+<li><strong>graph.py</strong> — auto-registered by for-loop (no manual wiring needed)</li>
+</ol>
+<p><strong>New contracts needed:</strong> <code>common/contracts/effectiveness.py</code> (Pydantic models), <code>EffectivenessMeasurementSink</code> Protocol (ports.py), <code>EffectivenessOutcome</code> SQLAlchemy model + Alembic migration.</p>
+</div>
+
+<h3>5.3 Data Flow</h3>
+<div class="flow">Next.js Dashboard (student quiz/worksheet)
+  → POST /api/v1/runs/{run_id}/outcomes
+  → PostgreSQL (EffectivenessOutcome table)
+  → Aggregation job (per run, per KC, per Bloom level)
+  → EffectivenessEvaluator reads aggregated data
+  → Writes effectiveness_score to state
+  → Feeds into next generation cycle for same topic/grade</div>
+
+<!-- ============================================================ -->
+<h2>6. Vietnamese Context</h2>
+
+<div class="card card-orange">
+<p><strong>Critical note:</strong> Several specific quantitative claims in the research brief (composite formula 0.4/0.3/0.3, Vuihoc 0.12 SD, Hocmai 8% gain) are <strong>unverified</strong> through public search. Do not use in product copy.</p>
+</div>
+
+<h3>6.1 Verified Regulations</h3>
+<ul>
+<li><strong>Thông tư 26/2020:</strong> 0-10 scale, ĐĐGtx/gk/ck assessments, ma trận mapping, nhận xét required for all subjects</li>
+<li><strong>QĐ 764:</strong> "hiệu quả dạy học" = avg ≥ 70%, 75% lớp đạt mức "đủ"</li>
+<li><strong>Chương trình 2018:</strong> competency-based, requires learning journals/portfolio</li>
+</ul>
+
+<h3>6.2 Cultural Fit Requirements</h3>
+<ul>
+<li>Teachers want <strong>"giảm tải sổ sách"</strong> (reduce paperwork), not "thêm dashboard"</li>
+<li>Export to <strong>MoET sổ theo dõi format</strong> (legal requirement)</li>
+<li>Bilingual <strong>Vietnamese-default</strong>, Zalo/Telegram notifications</li>
+<li>Frame as <strong>teacher-improvement tool</strong>, not evaluation tool</li>
+<li>No domestic LMS positioned as teacher-effectiveness tool — <strong>white space</strong></li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>7. Recommended Implementation Path</h2>
+
+<div class="card card-green">
+<h3>Phase 1 — Quick Wins (1-2 weeks)</h3>
+<ol style="margin-left: 1.5rem;">
+<li>Implement the 7 pedagogical metric stubs in <code>layer2_content/pedagogical.py</code></li>
+<li>Add <code>concept_alignment</code> validator to Layer 4 (check question-concept tag overlap)</li>
+<li>Add <code>POST /v1/runs/{run_id}/outcomes</code> webhook endpoint for student response ingestion</li>
+<li>Store <code>student_kc_state</code> table with BKT parameters per (student, KC)</li>
+</ol>
+</div>
+
+<div class="card card-accent">
+<h3>Phase 2 — Core Loop (2-4 weeks)</h3>
+<ol style="margin-left: 1.5rem;">
+<li>Add <code>EFFECTIVENESS_MEASUREMENT</code> stage to teaching pack graph</li>
+<li>Implement <code>EffectivenessMeasurementSink</code> Protocol + DI wiring</li>
+<li>Build pre/post learning gain computation (z-score on ma trận-aligned items)</li>
+<li>Add <code>effectiveness_below_threshold</code> recovery route → re-enter <code>planning_blueprint</code></li>
+</ol>
+</div>
+
+<div class="card">
+<h3>Phase 3 — Intelligence (1-2 months)</h3>
+<ol style="margin-left: 1.5rem;">
+<li>Port KT4EQG's concept selector (BKT-based 2D selection: KC × difficulty)</li>
+<li>Train Vietnamese SBERT contrastive verifier on exercise-type schemas</li>
+<li>Build RISE-style 2×2 quadrant analysis per (grade, subject, topic)</li>
+<li>Implement OMC-TEI composite effectiveness index for teacher dashboards</li>
+</ol>
+</div>
+
+<!-- ============================================================ -->
+<h2>8. Sources</h2>
+
+<h3>Tier 1 — Directly Applicable</h3>
+<ol>
+<li>KT4EQG — <a href="https://github.com/UCSB-NLP-Chang/KT4EQG">GitHub</a>, <a href="http://arxiv.org/abs/2605.23933">arXiv 2605.23933</a></li>
+<li>Plot-Ark — <a href="https://github.com/Schlaflied/Plot-Ark">GitHub</a></li>
+<li>RISE Framework — Castellanos-Reyes et al. (2024), <a href="https://doi.org/10.19173/irrodl.v25i4.7624">IRRODL 25(4)</a></li>
+<li>Khan Academy — <a href="https://blog.khanacademy.org/how-khan-academy-is-building-a-better-ai-tutor-our-most-recent-learnings/">Blog 2026</a></li>
+</ol>
+
+<h3>Tier 2 — Theoretical Foundation</h3>
+<ol start="5">
+<li>Kirkpatrick Four Levels — <a href="https://www.kirkpatrickpartners.com/the-kirkpatrick-model/">kirkpatrickpartners.com</a></li>
+<li>Bloom's Mastery Learning — Guskey, <a href="https://files.eric.ed.gov/fulltext/ED490412.pdf">ERIC</a></li>
+<li>Cognitive Load Theory — Sweller (1988+)</li>
+<li>Mayer's CTML — Mayer (2021), 3rd edition</li>
+<li>Greller & Drachsler (2012) — Generic LA Framework</li>
+</ol>
+
+<h3>Tier 3 — Empirical Evidence</h3>
+<ol start="10">
+<li>LLM Feedback RCT — ACM 2026, n=21,478</li>
+<li>LearnLM RCT — Google DeepMind 2025</li>
+<li>GenAI Meta-Analysis — Nature 2026</li>
+<li>Expertise Reversal Meta-Analysis — Tetzlaff et al. 2025</li>
+<li>Khan Academy India RCT — NBER 2026</li>
+</ol>
+
+<h3>Tier 4 — Standards</h3>
+<ol start="15">
+<li>xAPI Specification — IEEE 9274.1.1-2023</li>
+<li>IMS Caliper Analytics v1.2</li>
+<li>Thông tư 26/2020/TT-BGDĐT</li>
+<li>QĐ 764/QĐ-BGDDT</li>
+</ol>
+
+<h3>Tier 5 — Implementation References</h3>
+<ol start="19">
+<li>pyBKT — <a href="https://github.com/CAHLR/pyBKT">GitHub</a> (249 stars, MIT)</li>
+<li>pyKT-toolkit — <a href="https://github.com/pykt-team/pykt-toolkit">GitHub</a> (405 stars)</li>
+<li>GUIDE Framework — <a href="https://github.com/jermn007/GUIDE">GitHub</a></li>
+<li>CLPR — <a href="https://github.com/swetangkrishna/Lesson-plan-evaluator">GitHub</a></li>
+<li>adaptivetesting — <a href="https://github.com/condecon/adaptivetesting">GitHub</a></li>
+</ol>
+
+<hr style="margin: 2rem 0; border-color: var(--border);">
+<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center;">
+  Generated by Sisyphus ULW-RESEARCH · 20 workers · 2 waves · 80+ sources · 2026-06-30
+</p>
+
+</div>
+</body>
+</html>
