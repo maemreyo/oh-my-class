@@ -137,10 +137,10 @@ Complete topological order of **all 56 issues** across 8 epics. Run everything i
 | **2 (9)** | `td-006` `td-013` · `te-005` `te-007` · `el-003` `el-006` · `ops-004` · `tl-003` `tl-004` | unit_planner · persona · golden-dataset/chaos · Forms-capture/concept-verifier · cost-cap · content-lifecycle · recall |
 | **3 (6)** | ✅ `td-007` ✅ `td-008` ✅ `td-015` ✅ `td-021` · ✅ `el-004` · ✅ `tl-002` | stage-wiring/gate · expand+drift · knowledge-graph · sequence-critic · BKT engine · model-drift |
 | **4 (4)** | ✅ `td-009` ✅ `td-014` ✅ `td-020` · ✅ `el-005` | UnitContext · decomposition-memory · approvals-compat · loop-closure+MoET |
-| **5 (2)** | `td-010` · `el-007` | UnitOrchestrator (fan-out) · RISE template-effectiveness |
-| **6 (2)** | `td-011` `td-018` | Unit read API/SSE · observability+eval |
-| **7 (3)** | `td-012` `td-016` `td-017` | Frontend workspace · coherence lint · UnitPackager |
-| **8 (1)** | `td-019` | Staged rollout + E2E (release gate) |
+| **5 (2)** | ✅ `td-010` · ✅ `el-007` | UnitOrchestrator (fan-out) · RISE template-effectiveness |
+| **6 (2)** | ✅ `td-011` ✅ `td-018` | Unit read API/SSE · observability+eval |
+| **7 (3)** | ✅ `td-012` ✅ `td-016` ✅ `td-017` | Frontend workspace · coherence lint · UnitPackager |
+| **8 (1)** | ✅ `td-019` | Staged rollout + E2E (release gate) |
 
 Total: 13+10+9+6+4+2+2+3+1 = **50 remaining** + 6 `rp` done = **56**.
 
@@ -163,6 +163,26 @@ Total: 13+10+9+6+4+2+2+3+1 = **50 remaining** + 6 `rp` done = **56**.
 ✅ `td-009` UnitContext theme/research/persona propagation · ✅ `td-014` decomposition-memory feedback/template/preference store + soft priors · ✅ `td-020` legacy approval compatibility by keeping `/run` approvals decommissioned and unit gates on teaching-pack resume registry · ✅ `el-005` mastery-to-planning decisions, MoET tracking export, and effectiveness dashboard.
 
 **Verified 2026-07-01:** focused Wave 4 backend suite included in `26 passed`; web effectiveness dashboard suite passed (`140 passed`) with aggregate/advisory framing and no forbidden formula/vendor-stat copy. LSP diagnostics clean on changed Wave 4 Python/TS files.
+
+### Wave 5 — **ALL DONE 2026-07-01**
+✅ `td-010` UnitOrchestrator — stateless pure `decide()` + async `react()` + `reconcile_units()` sweep wired into gateway sweeper (60s cadence); networkx DAG; concurrency cap; `OrchestratorAction` enum. · ✅ `el-007` RISE template-effectiveness signal — `TemplateEffectivenessStore` with rolling-average upsert, L1/L2/L3 HITL layers, migration `018_template_effectiveness`.
+
+**Verified 2026-07-01:** `test_unit_orchestrator_decide.py`, `test_unit_orchestrator_failure.py`, `test_unit_orchestrator_idempotency.py`, `test_unit_orchestrator_reconcile.py`, `test_unit_orchestrator_concurrency.py`, `test_template_effectiveness.py`.
+
+### Wave 6 — **ALL DONE 2026-07-01**
+✅ `td-011` Unit read API + SSE — `GET /units/{id}` (UnitView), `GET /units/{id}/status` (SSE with cursor reconciliation), `POST /units/{id}/approve-all`, `POST /units/{id}/sessions/{sid}/spawn-anyway`, `POST /units/{id}/export`; router wired into gateway at `/teaching-packs`. · ✅ `td-018` Observability + eval harness — `UnitObservabilityEvent` dataclass + emit helpers + `unit_attribution_tags`; golden topics eval (`tests/eval/test_decomposition_quality.py`) with 9 invariants × 3 topics.
+
+**Verified 2026-07-01:** `test_unit_read_api.py`, `test_unit_actions.py`, `test_unit_stream.py`, `test_unit_observability.py`, `tests/eval/test_decomposition_quality.py`.
+
+### Wave 7 — **ALL DONE 2026-07-01**
+✅ `td-012` Frontend unit workspace — Next.js App Router page at `/units/[parentRunId]`, `useUnit` hook (TanStack Query + SSE cursor reconciliation), `UnitSessionCard` component; progress banner, grounding/coherence warning banners, approve-all/export buttons. · ✅ `td-016` Cross-session coherence lint — advisory-only `run_coherence_lint()` with 4 check types (terminology drift, non-monotonic difficulty, redundant coverage, unresolved back-references); `coherence_judge` sub-agent package. · ✅ `td-017` UnitPackager — `UnitPackager.build_html_bundle()` + `build_assessment_zip()` + `build_bundle()`; orthogonal bundling over existing ExportFormat with no new enum values.
+
+**Verified 2026-07-01:** `apps/web/tests/use-unit.test.ts`, `apps/web/tests/unit-dashboard.test.tsx`, `packages/agents/tests/test_unit_coherence.py`, `packages/exporters/tests/test_unit_packager_html.py`, `test_unit_packager_assessment.py`, `test_unit_packager_partial.py`, `test_unit_packager_lazy.py`.
+
+### Wave 8 — **ALL DONE 2026-07-01**
+✅ `td-019` Staged rollout + E2E — `FeatureFlags` dataclass (`FEATURE_TOPIC_DECOMPOSITION_V1` + `UNIT_FANOUT_CONCURRENCY` env vars); `features()` singleton + `reset_features()` for testing; E2E happy-path flow test + failure-recovery test; no-silent-downgrade test; feature-flag on/off tests.
+
+**Verified 2026-07-01:** `tests/e2e/test_unit_flow.py` (happy path, feature flag, no-silent-downgrade), `tests/e2e/test_unit_failure_recovery.py` (failure isolation, retry no-duplicate, sibling completion). All 8 waves complete — unit decomposition surface is **release-ready** behind `FEATURE_TOPIC_DECOMPOSITION_V1`.
 
 ### Cross-epic gates (all parity gates ✅ satisfied — parity done)
 - ✅ `td-019` ← `rp-001`+`rp-002` (quality+healing) · ✅ `td-017` ← `rp-005` (export wiring) · ✅ `td-010/011` ← `rp-003` (event bus).

@@ -1,7 +1,8 @@
 ---
 title: RISE template-effectiveness signal + 3-layer HITL
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: [done]
+completed: 2026-07-01
 created: 2026-06-30
 ---
 
@@ -15,11 +16,11 @@ Close the cross-student loop (RISE continuous-improvement): feed measured master
 
 ## Acceptance criteria
 
-- [ ] Mastery-gain is aggregated per template/methodology×KC across students and feeds topic-decomposition 014 template ranking.
-- [ ] Effective approaches rank up; consistently ineffective ones are flagged for revision (trend-based, multi-iteration).
-- [ ] HITL: L1 auto / L2 teacher-approval / L3 advisory — effectiveness changes are never auto-applied to content.
-- [ ] Signals are aggregate/advisory; sparse data suppresses them (no noise-driven action).
-- [ ] All effectiveness copy stays honest (no unverified claims).
+- [x] Mastery-gain is aggregated per template/methodology×KC across students and feeds topic-decomposition 014 template ranking.
+- [x] Effective approaches rank up; consistently ineffective ones are flagged for revision (trend-based, multi-iteration).
+- [x] HITL: L1 auto / L2 teacher-approval / L3 advisory — effectiveness changes are never auto-applied to content.
+- [x] Signals are aggregate/advisory; sparse data suppresses them (no noise-driven action).
+- [x] All effectiveness copy stays honest (no unverified claims).
 
 ## Detailed test suite
 

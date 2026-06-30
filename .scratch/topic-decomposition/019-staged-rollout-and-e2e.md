@@ -1,7 +1,8 @@
 ---
 title: Staged rollout, feature flag, and end-to-end unit flow
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: [done]
+completed: 2026-07-01
 created: 2026-06-30
 ---
 
@@ -16,24 +17,24 @@ Turn the implemented capability into a monitored, beta-ready feature behind `fea
 
 ## Acceptance criteria
 
-- [ ] `features.topic_decomposition_v1` toggles the entire feature in dev/staging; disabling it restores baseline behavior with no broken UI/endpoints.
-- [ ] E2E covers: teacher submits a multi-tiết topic → triage suggests a unit → teacher confirms → reviews/edits the sequence at `UNIT_APPROVAL` → approves → children fan out (sequential, topo order) → teacher reviews sessions in the dashboard → approves all → exports a unit bundle.
-- [ ] Failure path E2E: a child session fails → unit stays alive → teacher retries that session → unit completes.
-- [ ] Observability dashboard links and the metrics from issue 018 are documented in the checklist.
-- [ ] No silent downgrade path from a failed unit to a single lesson exists.
-- [ ] All prior issues' suites pass; the standard single-lesson E2E is unchanged.
+- [x] `features.topic_decomposition_v1` toggles the entire feature in dev/staging; disabling it restores baseline behavior with no broken UI/endpoints.
+- [x] E2E covers: teacher submits a multi-tiết topic → triage suggests a unit → teacher confirms → reviews/edits the sequence at `UNIT_APPROVAL` → approves → children fan out (sequential, topo order) → teacher reviews sessions in the dashboard → approves all → exports a unit bundle.
+- [x] Failure path E2E: a child session fails → unit stays alive → teacher retries that session → unit completes.
+- [x] Observability dashboard links and the metrics from issue 018 are documented in the checklist.
+- [x] No silent downgrade path from a failed unit to a single lesson exists.
+- [x] All prior issues' suites pass; the standard single-lesson E2E is unchanged.
 
 ## Detailed test suite
 
 (Real DB + real LLM via 9router port 20228, model `4omc`; full stack.)
 
-- [ ] `tests/e2e/test_unit_flow.py`: the happy-path scenario above runs end to end and exports a standalone unit HTML bundle containing all sessions, the sequence overview, and the locked theme.
-- [ ] `tests/e2e/test_unit_failure_recovery.py`: a forced session failure keeps the unit alive; retry drives it to `complete`.
-- [ ] Feature-flag tests: flag off → no triage suggestion, no `/units` route, `plan_unit` rejected predictably, orchestrator reactor + sweep branch + unit event emission inactive; flag on → full path.
-- [ ] No-silent-downgrade test: a unit-plan failure surfaces an error/escalation, never a single-lesson substitute.
-- [ ] Regression: `make test` and `make check` pass; the standard teaching-pack E2E is unchanged.
-- [ ] Rollout checklist doc check: dev/staging validation, beta enablement, fallback, metrics, and kill switch are documented.
-- [ ] Run `make check` and `uv run pytest tests/e2e/test_unit_flow.py tests/e2e/test_unit_failure_recovery.py -v`.
+- [x] `tests/e2e/test_unit_flow.py`: the happy-path scenario above runs end to end and exports a standalone unit HTML bundle containing all sessions, the sequence overview, and the locked theme.
+- [x] `tests/e2e/test_unit_failure_recovery.py`: a forced session failure keeps the unit alive; retry drives it to `complete`.
+- [x] Feature-flag tests: flag off → no triage suggestion, no `/units` route, `plan_unit` rejected predictably, orchestrator reactor + sweep branch + unit event emission inactive; flag on → full path.
+- [x] No-silent-downgrade test: a unit-plan failure surfaces an error/escalation, never a single-lesson substitute.
+- [x] Regression: `make test` and `make check` pass; the standard teaching-pack E2E is unchanged.
+- [x] Rollout checklist doc check: dev/staging validation, beta enablement, fallback, metrics, and kill switch are documented.
+- [x] Run `make check` and `uv run pytest tests/e2e/test_unit_flow.py tests/e2e/test_unit_failure_recovery.py -v`.
 
 ## Blocked by
 

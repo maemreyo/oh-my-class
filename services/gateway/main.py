@@ -31,6 +31,7 @@ from .routers import (
     release_evidence,
     runs,
     snapshots,
+    unit_runs,
     webhooks,
 )
 from .secrets_guard import validate_production_secrets
@@ -67,9 +68,11 @@ async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
         await anyio.sleep(60)
         async with app.state.teaching_pack_session_factory() as session:
             from .recovery_sweeper import sweep_escalated_gates, sweep_stuck_jobs
+            from .unit_orchestrator import reconcile_units
 
             await sweep_stuck_jobs(session)
             await sweep_escalated_gates(session)
+            await reconcile_units(session)
             await session.commit()
 
 
@@ -217,6 +220,7 @@ app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 app.include_router(ops.router)
 app.include_router(release_evidence.router, prefix="/teaching-packs", tags=["release-evidence"])
+app.include_router(unit_runs.router, prefix="/teaching-packs", tags=["units"])
 
 
 @app.get("/health")  # pyright: ignore[reportUntypedFunctionDecorator]
