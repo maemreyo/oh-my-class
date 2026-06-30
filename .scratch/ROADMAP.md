@@ -18,14 +18,16 @@ Index of everything produced this session: 2 ADRs + 5 epics (40 issues), with th
 
 ## Epics
 
-### `runtime-parity/` (6) — close capability cliffs, then decommission *(prerequisite)*
-The authoritative teaching-pack runtime runs thin quality/export and no healing; the rich modules are wired only to the FROZEN legacy graph. Close via existing ports, then remove legacy.
-- `001` Wire 6-layer quality via `QualityGate` port
-- `002` Wire healing orchestrator → stage recovery *(←001)*
-- `003` Consolidate the two event buses onto `teaching_pack_event_bus`
-- `005` Wire multi-format exporters (`ExporterRegistry`) into `export_finalize`
-- `004` Decommission legacy 18-node graph *(←001,002,003)* — scoped delete; keep shared `Run`/`RunStatus` + modules
-- `006` Collapse dead sub-agent StateGraph wrappers, **zero feature loss** *(←004)*
+### `runtime-parity/` (6) — close capability cliffs, then decommission *(prerequisite)* — **DONE 2026-06-30**
+The authoritative teaching-pack runtime now owns the single-lesson path. Quality, healing, export wiring, legacy decommission, and sub-agent wrapper simplification have landed with focused regression coverage.
+- ✅ `001` Wire 6-layer quality via `QualityGate` port
+- ✅ `002` Wire healing orchestrator → stage recovery *(←001)*
+- ✅ `003` Consolidate the two event buses onto `teaching_pack_event_bus`
+- ✅ `005` Wire multi-format exporters (`ExporterRegistry`) into `export_finalize`
+- ✅ `004` Decommission legacy 18-node graph *(←001,002,003)* — scoped delete; keep shared `Run`/`RunStatus` + modules
+- ✅ `006` Collapse dead sub-agent StateGraph wrappers, **zero feature loss** *(←004)*
+
+Runtime-parity verification: focused runtime/gateway/E2E suite passed (`268 passed, 3 warnings`); stale legacy gateway tests were updated to the decommissioned `410 Gone` contract; LSP diagnostics were clean for the final touched files; legacy-reference audit only reports intentional teaching-pack route helpers, healing compatibility names, and deletion-audit test strings.
 
 ### `topic-decomposition/` (21) — multi-session unit feature (ADR-017)
 - `001` Contracts + Zod codegen · `005` Curriculum grounding source *(no blockers)*
