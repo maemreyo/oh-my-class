@@ -1,6 +1,6 @@
 # Architecture & Feature Roadmap — Session 2026-06-30
 
-Index of everything produced this session: 3 ADRs + 9 epics (62 issues), with the dependency-ordered execution plan. See `docs/system/ARCHITECTURE.md` for the verified as-built state.
+Index of everything produced this session: 3 ADRs + 12 epics (76 issues), with the dependency-ordered execution plan. See `docs/system/ARCHITECTURE.md` (as-built) and `docs/system/TESTING.md` (how to test).
 
 > Issue format: each `.scratch/<epic>/NNN-*.md` has **What to build / Acceptance criteria / Detailed test suite / Blocked by**.
 > Testing policy (all epics): **real DB + real LLM** via 9router `:20228`, model `4omc` — no mocks/fakes. Deterministic logic tested without LLM; LLM-touching tests tiered per `hardening/003`.
@@ -82,7 +82,30 @@ Index of everything produced this session: 3 ADRs + 9 epics (62 issues), with th
 - `006` **Architecture drift-guard** — manifest generator + CI sync test so `ARCHITECTURE.md` can't silently drift *(no blockers)*
 - **Also reopen:** `runtime-parity/001` (6-layer inject) + `/003` (event-bus) + finish `/002` `/005` — the not-done/partial items above.
 
-### `testing/` (7) — system-wide test harness *(framework verdict, see below)*
+### `agent-upgrades/` (7) — per-agent bespoke intelligence (from the agent evaluation)
+- `001` **researcher** — real FACT triangulation, heuristic credibility, targeted+criticality claims, fail-closed grounding, research-memory cache *(←td-002)*
+- `002` **planner** — staged backward-design + grounding + validator + lesson_critic + 3-source-adaptive + differentiation + smart-retry + feedback-memory + cold/seed duality *(←td-002, td-003, td-005)*
+- `003` **content_creator** — hierarchical outline→fill-per-section + resilient degrade + parallel/isolated + enforce-guards + grounding-enforcement + harden seam + adaptive *(←component-002, agent-001, td-002)*
+- `004` **reviewer** — revive as live Layer-4 judge + per-dimension/diverse-lens + ≥2-judge robustness + calibrate-vs-teacher/effectiveness + criteria-referenced/evidence-cited + adversarial *(←parity-001, agent-001)*
+- `005` **diagnostician** — wire into `diagnose_then_generate` + shared knowledge-state with KT + per-dimension D&C + misconception-grounding *(Phase 3; ←effectiveness-004, agent-002)*
+- `006` **roadmap** — macro layer (milestone→unit compose) + implement personalization + gaps→focus link + KT-adaptive *(Phase 3; ←agent-005, effectiveness-004)*
+- `007` **repair+edit loop** (cross-agent) — scoped issue-precise repair + immutable-versioned content update + transparency/diff + teacher section-editor + 3-layer authority *(←agent-003, agent-004)*
+
+> Cross-cutting principle for ALL agents: **divide-and-conquer — no single long master prompt.** Every agent decomposes into focused sub-steps (planner staged phases · content_creator outline→fill-per-section · researcher per-claim · reviewer per-dimension judges · diagnostician per-gap · roadmap per-milestone · unit_planner Curricular-CoT phases).
+
+### `agent-interaction/` (4) — how agents coordinate (native LangGraph)
+- `001` Shared in-run context (state-channels blackboard) + typed handoff contracts per seam (replace lossy summarizers) *(no blockers)*
+- `002` **BaseStore memory unification** — all cross-run memory (research-cache · seq-templates · ClassKG · KT-mastery · teacher-prefs · component-effectiveness) onto LangGraph `PostgresStore` (namespaces + TTL + semantic index) *(no blockers; supersedes the ad-hoc stores in td-014/015, effectiveness-004, agent-001/003/005)*
+- `003` Command-based upstream **revision protocol** (`Command(goto/update)` + RevisionRequest + bounded counter + escalate) *(←001)*
+- `004` Coordination + parallelism (`Send`) + order-stable reducers + interaction observability *(←003)*
+
+> Interaction is **native LangGraph**, deterministic (no Lead-Agent/ReAct): state-channels = in-run blackboard · `BaseStore` = cross-run memory · `Command(goto/update)` = bounded upstream-signal · `Send` = parallel fan-out · `interrupt` = gates. Our thin additions: typed contracts, RevisionRequest schema, bound counters, namespace conventions.
+
+### `component-system/` (2) — content-component registry + smart selection
+- `001` **ComponentRegistry** single source of truth (metadata; derive prompt-catalog; union+dispatcher drift-guard; mirrors question registry) *(no blockers)*
+- `002` **Filter-then-generate** — query registry by artifact/methodology/subject → focused catalog into content_creator *(←001)*
+
+### `testing/` (8) — system-wide test harness *(framework verdict, see below)*
 - `001` Harness & tiering foundation — real DB + real LLM (9router `:20228`/`4omc`), `@pytest.mark.real_llm`, DeepEval offline+9router→Langfuse, **no fake-LLM** *(no blockers)*
 - `002` Three-layer pyramid — per-agent (real-LLM) + seam/handoff + E2E *(←001)*
 - `003` Deterministic trajectory + control-flow + health gates (per-commit, no LLM) *(←001)*
@@ -90,6 +113,7 @@ Index of everything produced this session: 3 ADRs + 9 epics (62 issues), with th
 - `005` Golden dataset + nightly regression *(←004)*
 - `006` Promptfoo security/red-team — K-12 safety + INVARIANT-05/06 *(←001)*
 - `007` Chaos/fault-injection (healing) + production-trace feedback *(←001, parity-002, scaling-003)*
+- `008` **Canonical flow harness** — shared scenarios + per-agent/per-stage/full-flow layers + real-graph conformance + one `make e2e` *(←001)*
 
 ---
 
@@ -139,6 +163,7 @@ Total: 13+10+9+6+4+2+2+3+1 = **50 remaining** + 6 `rp` done = **56**.
 Patterns kept: three-layer pyramid, golden dataset, semantic/trajectory-over-exact-match, health gates, chaos/fault-injection, production-trace feedback. The `testing/` epic is the **harness layer**; per-feature epics' suites run on it (topic-decomposition `018` is a specific eval instance generalized by `testing/005`).
 
 ## Principles baked into every issue
+- **Divide-and-conquer everywhere; no single long master prompt** — every agent decomposes into focused sub-steps (staged/hierarchical/per-item), enabling scoped retry/repair + per-step grounding.
 - **New stage runtime only** (`teaching_pack/graph.py`); legacy `build_oh_my_class_graph` frozen, not extended.
 - **Reuse existing ports/adapters** (`QualityGate`, `render()`, `ExporterRegistry`, gate registry, JobStore, `eligible_at` requeue, idempotency keys).
 - **Fail-closed**, never silent downgrade. **Computed-not-materialized** unit state; `RunStatus` unchanged.
