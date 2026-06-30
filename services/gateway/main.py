@@ -103,7 +103,6 @@ async def lifespan(app: FastAPI):
     configure_logging(log_level="INFO", json_output=True)
 
     from packages.agents.checkpointer import get_checkpointer
-    from packages.agents.graph import build_oh_my_class_graph
     from packages.agents.teaching_pack.graph import build_teaching_pack_graph
 
     environment = os.getenv("OMC_ENVIRONMENT", "development")
@@ -118,10 +117,6 @@ async def lifespan(app: FastAPI):
     )
     app.state.checkpointer = get_checkpointer(environment)
     app.state.runs = {}
-    app.state.graph = build_oh_my_class_graph(
-        environment=environment,
-        checkpointer=app.state.checkpointer,
-    )
     app.state.teaching_pack_graph = build_teaching_pack_graph(checkpointer=app.state.checkpointer)
 
     async with anyio.create_task_group() as task_group:

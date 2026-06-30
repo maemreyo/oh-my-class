@@ -49,10 +49,11 @@ def _assert_rich_html(html: str, artifact_type: str) -> None:
     assert _visible_content_blocks(html) >= 4
 
 
-def test_minimal_shell_fixture_is_not_assessable() -> None:
+@pytest.mark.anyio
+async def test_minimal_shell_fixture_is_not_assessable() -> None:
     artifact = minimal_shell_artifact()
 
-    result = _render_quality(TeachingPackState(run_id="minimal-shell", artifacts=[artifact]))
+    result = await _render_quality(TeachingPackState(run_id="minimal-shell", artifacts=[artifact]))
     student_html = str(_rendered_snapshots(result)[0]["student_rendered_html"])
 
     _assert_student_html(student_html)
@@ -64,7 +65,7 @@ async def test_rich_active_artifacts_render_and_export_through_existing_renderer
     run_id = "component-driven-rich-pack"
     artifacts = rich_artifacts()
 
-    result = _render_quality(TeachingPackState(run_id=run_id, artifacts=artifacts))
+    result = await _render_quality(TeachingPackState(run_id=run_id, artifacts=artifacts))
     snapshots = _rendered_snapshots(result)
     writer = FileSystemTeachingPackExportWriter(base_dir=tmp_path)
 
@@ -85,7 +86,7 @@ async def test_scoped_regenerated_rich_artifact_preserves_accepted_export(tmp_pa
     accepted, rejected = rich_artifacts()[0], rich_artifacts()[2]
     regenerated = {**rejected, "artifact_id": "quiz-regenerated-rich", "title": "Regenerated Equivalent Fractions Quiz"}
 
-    result = _render_quality(TeachingPackState(run_id=run_id, artifacts=[accepted, regenerated]))
+    result = await _render_quality(TeachingPackState(run_id=run_id, artifacts=[accepted, regenerated]))
     snapshots = _rendered_snapshots(result)
     writer = FileSystemTeachingPackExportWriter(base_dir=tmp_path)
     exported_files = await writer.write_exports(

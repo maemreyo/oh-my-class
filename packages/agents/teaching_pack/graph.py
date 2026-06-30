@@ -12,6 +12,11 @@ from packages.agents.teaching_pack.nodes import (
 from packages.agents.teaching_pack.quality_routing import route_after_render_quality
 from packages.agents.teaching_pack.stages import TEACHING_PACK_STAGES, TeachingPackStage
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from packages.agents.teaching_pack.ports import QualityGate
+
 InterruptSpec = list[str] | Literal["*"] | None
 type LangGraphRunnableConfig = dict[str, dict[str, str]]
 
@@ -19,6 +24,7 @@ type LangGraphRunnableConfig = dict[str, dict[str, str]]
 def build_teaching_pack_graph(
     *,
     checkpointer=None,
+    quality_gate: QualityGate | None = None,
     interrupt_before: InterruptSpec = None,
     interrupt_after: InterruptSpec = None,
 ):
@@ -27,7 +33,7 @@ def build_teaching_pack_graph(
 
     graph = StateGraph(TeachingPackState)
     for stage in TEACHING_PACK_STAGES:
-        graph.add_node(stage.value, make_stage_node(stage))
+        graph.add_node(stage.value, make_stage_node(stage, quality_gate=quality_gate))
 
     first_stage = TEACHING_PACK_STAGES[0]
     graph.set_entry_point(first_stage.value)

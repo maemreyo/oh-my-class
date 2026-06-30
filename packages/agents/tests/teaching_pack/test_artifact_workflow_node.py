@@ -93,7 +93,7 @@ class TestTeachingPackArtifactWorkflow:
             artifact_types=["lesson"],
         ))
 
-        render_result = _render_quality(TeachingPackState(
+        render_result = await _render_quality(TeachingPackState(
             run_id="run-normalize",
             artifacts=_artifacts(result),
         ))
@@ -135,7 +135,7 @@ class TestTeachingPackArtifactWorkflow:
             research_brief={"sources": []},
             artifact_types=["quiz"],
         ))
-        render_result = _render_quality(TeachingPackState(
+        render_result = await _render_quality(TeachingPackState(
             run_id="run-answer-key",
             artifacts=_artifacts(result),
         ))
@@ -177,7 +177,7 @@ class TestTeachingPackArtifactWorkflow:
             research_brief={"sources": []},
             artifact_types=["quiz"],
         ))
-        render_result = _render_quality(TeachingPackState(
+        render_result = await _render_quality(TeachingPackState(
             run_id="run-correct-answer",
             artifacts=_artifacts(result),
         ))

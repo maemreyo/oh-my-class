@@ -71,9 +71,11 @@ def _artifact(artifact_type: str) -> JsonObject:
                         "components": [{
                             "type": "question_card",
                             "id": "lq1",
-                            "text": "Which fraction is equivalent to 1/2 on the same area model and number line?",
-                            "options": {"A": "1/3", "B": "2/4", "C": "3/5", "D": "4/5"},
-                        }],
+	                            "text": "Which fraction is equivalent to 1/2 on the same area model and number line?",
+	                            "options": {"A": "1/3", "B": "2/4", "C": "3/5", "D": "4/5"},
+	                            "answer": "B",
+	                            "explain": "2/4 covers the same amount as 1/2.",
+	                        }],
                     },
                     {
                         "title": "Teacher Notes",
@@ -131,8 +133,10 @@ def _question_sections(prefix: str, *, count: int) -> list[JsonObject]:
         {
             "id": f"{prefix}{index}",
             "content": f"Which equivalent fraction matches 1/2 when the numerator and denominator are scaled on an area model and number line in item {index}?",
-            "options": {"A": "1/3", "B": "2/4", "C": "3/5", "D": "4/5"},
-            "type": "question_card",
+	            "options": {"A": "1/3", "B": "2/4", "C": "3/5", "D": "4/5"},
+	            "answer": "B",
+	            "explain": "2/4 is equivalent to 1/2 because numerator and denominator are both doubled.",
+	            "type": "question_card",
         }
         for index in range(1, count + 1)
     ] + [{

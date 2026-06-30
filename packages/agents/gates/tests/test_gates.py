@@ -171,38 +171,6 @@ class TestGate02ContentApproval:
         assert "review_results" in call_payload
 
 
-# ── route functions ────────────────────────────────────────────────────────────
-
-class TestRouteFunctions:
-    def test_blueprint_route_approve(self):
-        from packages.agents.graph import route_after_blueprint_gate
-        assert route_after_blueprint_gate(cast("OhMyClassState", {"teacher_decision": "approve"})) == "approve"  # noqa: E501
-
-    def test_blueprint_route_edit_proceeds(self):
-        from packages.agents.graph import route_after_blueprint_gate
-        assert route_after_blueprint_gate(cast("OhMyClassState", {"teacher_decision": "edit"})) == "approve"  # noqa: E501
-
-    def test_blueprint_route_reject_reruns_planner(self):
-        from packages.agents.graph import route_after_blueprint_gate
-        assert route_after_blueprint_gate(cast("OhMyClassState", {"teacher_decision": "reject"})) == "reject"  # noqa: E501
-
-    def test_blueprint_route_defaults_to_approve(self):
-        from packages.agents.graph import route_after_blueprint_gate
-        assert route_after_blueprint_gate(cast("OhMyClassState", {})) == "approve"
-
-    def test_content_route_approve(self):
-        from packages.agents.graph import route_after_content_gate
-        assert route_after_content_gate(cast("OhMyClassState", {"teacher_decision": "approve"})) == "approve"  # noqa: E501
-
-    def test_content_route_reject_regenerates(self):
-        from packages.agents.graph import route_after_content_gate
-        assert route_after_content_gate(cast("OhMyClassState", {"teacher_decision": "reject"})) == "reject"  # noqa: E501
-
-    def test_content_route_defaults_to_approve(self):
-        from packages.agents.graph import route_after_content_gate
-        assert route_after_content_gate(cast("OhMyClassState", {})) == "approve"
-
-
 # ── Lead Agent isolation ────────────────────────────────────────────────────────
 
 def test_lead_agent_node_does_not_call_interrupt():

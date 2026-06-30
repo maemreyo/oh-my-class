@@ -3,26 +3,18 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
-from datetime import UTC, datetime
 from typing import Annotated, Any
 
 import orjson
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
-from packages.agents.events import (
-    emit_run_event,
-    get_run_events,
-    has_terminal_event,
-    subscribe,
-    unsubscribe,
-)
+from packages.agents.events import get_run_events, has_terminal_event, subscribe, unsubscribe
 
 from ..auth.dependencies import require_teacher
 from ..auth.models import Role, User
-from ..exceptions import AuthorizationError, NotFoundError, PipelineError
+from ..exceptions import AuthorizationError, NotFoundError
 
 router = APIRouter()
 
@@ -149,7 +141,7 @@ def _require_owner(run_data: dict[str, Any], user: User) -> None:
         )
 
 
-def _derive_status(state: dict[str, Any]) -> str:
+def derive_status(state: dict[str, Any]) -> str:
     """Derive a human-readable pipeline status from the current state.
 
     Status progression:
@@ -205,20 +197,6 @@ def _extract_interrupt_gate(state: dict[str, Any]) -> str | None:
     return gate if isinstance(gate, str) else None
 
 
-def _extract_interrupt_payload(state: dict[str, Any]) -> dict[str, Any] | None:
-    interrupt_list = state.get("__interrupt__")
-    if not interrupt_list or not isinstance(interrupt_list, list):
-        return None
-    interrupt_data = interrupt_list[0]
-    if hasattr(interrupt_data, "value"):
-        value = interrupt_data.value
-    elif isinstance(interrupt_data, dict):
-        value = interrupt_data.get("value", interrupt_data)
-    else:
-        return None
-    return value if isinstance(value, dict) else None
-
-
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
 
@@ -243,9 +221,9 @@ async def list_runs(
 
 @router.post("", response_model=RunResponse)  # pyright: ignore[reportUntypedFunctionDecorator]
 async def create_run(
-    http_request: Request,
-    run_request: RunRequest,
-    current_user: Annotated[User, Depends(require_teacher)],
+    _http_request: Request,
+    _run_request: RunRequest,
+    _current_user: Annotated[User, Depends(require_teacher)],
 ) -> RunResponse:
     """POST /run — Start a new teaching pack generation run.
 
@@ -254,56 +232,10 @@ async def create_run(
     Teacher ID is always derived from the authenticated user —
     request.body teacher_id is ignored.
     """
-    run_id = str(uuid.uuid4())
-    request_id = getattr(http_request.state, "request_id", None)
-
-    graph = http_request.app.state.graph
-    initial_state = build_initial_state(run_request, run_id)
-    initial_state["teacher_id"] = current_user.user_id
-
-    emit_run_event(run_id, "run_created", {
-        "status": "running",
-        "current_step": 1,
-        "raw_request": run_request.raw_request[:100],
-    })
-
-    try:
-        state = await graph.ainvoke(
-            initial_state,
-            config={"configurable": {"thread_id": run_id}},
-        )
-    except Exception as exc:
-        emit_run_event(run_id, "run_failed", {"error": str(exc)[:200]})
-        raise PipelineError(
-            message=f"Graph invocation failed: {exc}",
-            run_id=run_id,
-            request_id=request_id,
-        ) from exc
-
-    status = _derive_status(state)
-
-    emit_run_event(run_id, "step_completed", {
-        "status": status,
-        "current_step": state.get("current_step", 1),
-    })
-
-    interrupt_payload = _extract_interrupt_payload(state) or state.get("gate_payload")
-    if interrupt_payload:
-        emit_run_event(run_id, "interrupt", {
-            "gate": interrupt_payload.get("gate", "unknown"),
-            "current_step": state.get("current_step"),
-            **{k: v for k, v in interrupt_payload.items() if k != "gate"},
-        })
-
-    http_request.app.state.runs[run_id] = {
-        "run_id": run_id,
-        "status": status,
-        "state": state,
-        "teacher_id": current_user.user_id,
-        "created_at": datetime.now(UTC).isoformat(),
-    }
-
-    return _to_run_response(http_request.app.state.runs[run_id])
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Legacy /run creation is decommissioned; use /teaching-packs/runs.",
+    )
 
 
 @router.get("/{run_id}", response_model=RunResponse)  # pyright: ignore[reportUntypedFunctionDecorator]

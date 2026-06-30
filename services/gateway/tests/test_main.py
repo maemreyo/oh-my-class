@@ -41,6 +41,9 @@ class TestMainLifespan:
         assert response.status_code == 200
         assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
 
+    def test_gateway_does_not_register_legacy_graph_state(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        anyio.run(_assert_lifespan_skips_legacy_graph, monkeypatch)
+
 
 async def _assert_lifespan_starts_background_tasks(
     monkeypatch: pytest.MonkeyPatch,
@@ -48,15 +51,16 @@ async def _assert_lifespan_starts_background_tasks(
     sweeper_started = anyio.Event()
     worker_started = anyio.Event()
 
-    async def record_sweeper(app: FastAPI) -> None:
+    async def record_sweeper(_app: FastAPI) -> None:
         sweeper_started.set()
         await anyio.sleep_forever()
 
-    async def record_worker(app: FastAPI, task_group: TaskGroup) -> None:
+    async def record_worker(_app: FastAPI, _task_group: TaskGroup) -> None:
         worker_started.set()
         await anyio.sleep_forever()
 
     def fake_sessionmaker(engine: _FakeEngine, expire_on_commit: bool) -> Callable[[], object]:
+        _ = (engine, expire_on_commit)
         return object
 
     monkeypatch.setattr(gateway_main, "configure_logging", lambda **kwargs: None)
@@ -68,11 +72,9 @@ async def _assert_lifespan_starts_background_tasks(
     monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 
     import packages.agents.checkpointer as checkpointer_module
-    import packages.agents.graph as graph_module
     import packages.agents.teaching_pack.graph as teaching_pack_graph_module
 
     monkeypatch.setattr(checkpointer_module, "get_checkpointer", lambda environment: object())
-    monkeypatch.setattr(graph_module, "build_oh_my_class_graph", lambda **kwargs: object())
     monkeypatch.setattr(teaching_pack_graph_module, "build_teaching_pack_graph", lambda **kwargs: object())
 
     app = FastAPI()
@@ -80,3 +82,33 @@ async def _assert_lifespan_starts_background_tasks(
         with anyio.fail_after(1):
             await sweeper_started.wait()
             await worker_started.wait()
+
+
+async def _assert_lifespan_skips_legacy_graph(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def record_sweeper(_app: FastAPI) -> None:
+        await anyio.sleep_forever()
+
+    async def record_worker(_app: FastAPI, _task_group: TaskGroup) -> None:
+        await anyio.sleep_forever()
+
+    def fake_sessionmaker(engine: _FakeEngine, expire_on_commit: bool) -> Callable[[], object]:
+        _ = (engine, expire_on_commit)
+        return object
+
+    monkeypatch.setattr(gateway_main, "configure_logging", lambda **kwargs: None)
+    monkeypatch.setattr(gateway_main, "create_async_engine", lambda url, pool_pre_ping: _FakeEngine())
+    monkeypatch.setattr(gateway_main, "async_sessionmaker", fake_sessionmaker)
+    monkeypatch.setattr(gateway_main, "_run_teaching_pack_sweeper", record_sweeper)
+    monkeypatch.setattr(gateway_main, "_run_teaching_pack_worker", record_worker)
+    monkeypatch.setenv("OMC_ENVIRONMENT", "development")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
+
+    import packages.agents.checkpointer as checkpointer_module
+    import packages.agents.teaching_pack.graph as teaching_pack_graph_module
+
+    monkeypatch.setattr(checkpointer_module, "get_checkpointer", lambda environment: object())
+    monkeypatch.setattr(teaching_pack_graph_module, "build_teaching_pack_graph", lambda **kwargs: object())
+
+    app = FastAPI()
+    async with gateway_main.lifespan(app):
+        assert not hasattr(app.state, "graph")

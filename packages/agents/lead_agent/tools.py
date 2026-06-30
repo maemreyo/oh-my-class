@@ -6,57 +6,44 @@ The Lead Agent uses these tools to delegate work without managing sub-agent inte
 
 from __future__ import annotations
 
-import asyncio
+import anyio
 from typing import Any
 
 from langchain_core.tools import tool
 
-# Lazy-init compiled graphs — built once, reused across calls
-_planner = None
-_researcher = None
-_creator = None
-_reviewer = None
-
-
-@tool
+@tool  # pyright: ignore[reportUntypedFunctionDecorator]
 def run_planner(raw_request: str, class_info: dict[str, Any]) -> dict[str, Any]:
     """Design a lesson blueprint from the teacher's request and class info."""
-    global _planner
-    if _planner is None:
-        from packages.agents.sub_agents.planner.agent import make_planner_agent
-        _planner = make_planner_agent()
+    from packages.agents.sub_agents.planner.nodes import planner_node
 
-    result = asyncio.run(_planner.ainvoke({
+    result = anyio.run(planner_node, {
         "messages": [],
         "raw_request": raw_request,
         "class_info": class_info,
         "run_id": "",
         "current_step": 3,
         "lesson_plan": None,
-    }))
+    })
     return result.get("lesson_plan") or {}
 
 
-@tool
+@tool  # pyright: ignore[reportUntypedFunctionDecorator]
 def run_researcher(lesson_plan: dict[str, Any], research_policy: str = "standard") -> dict[str, Any]:  # noqa: E501
     """Research and synthesize sources for the lesson plan."""
-    global _researcher
-    if _researcher is None:
-        from packages.agents.sub_agents.researcher.agent import make_researcher_agent
-        _researcher = make_researcher_agent()
+    from packages.agents.sub_agents.researcher.nodes import researcher_node
 
-    result = asyncio.run(_researcher.ainvoke({
+    result = anyio.run(researcher_node, {
         "messages": [],
         "lesson_plan": lesson_plan,
         "research_policy": research_policy,
         "run_id": "",
         "current_step": 7,
         "research_bundle": None,
-    }))
+    })
     return result.get("research_bundle") or {}
 
 
-@tool
+@tool  # pyright: ignore[reportUntypedFunctionDecorator]
 def run_content_creator(
     lesson_plan: dict[str, Any],
     research_bundle: dict[str, Any],
@@ -64,12 +51,9 @@ def run_content_creator(
     theme: str = "default",
 ) -> list[dict[str, Any]]:
     """Generate lesson artifacts (lesson, worksheet, quiz, etc.)."""
-    global _creator
-    if _creator is None:
-        from packages.agents.sub_agents.content_creator.agent import make_content_creator_agent
-        _creator = make_content_creator_agent()
+    from packages.agents.sub_agents.content_creator.nodes import content_creator_node
 
-    result = asyncio.run(_creator.ainvoke({
+    result = anyio.run(content_creator_node, {
         "messages": [],
         "lesson_plan": lesson_plan,
         "research_bundle": research_bundle,
@@ -78,25 +62,22 @@ def run_content_creator(
         "run_id": "",
         "current_step": 8,
         "artifacts": None,
-    }))
+    })
     return result.get("artifacts") or []
 
 
-@tool
+@tool  # pyright: ignore[reportUntypedFunctionDecorator]
 def run_reviewer(artifacts: list[dict[str, Any]], lesson_plan: dict[str, Any]) -> dict[str, Any]:
     """Review artifacts using G-Eval criteria. Returns quality scores and pass/fail."""
-    global _reviewer
-    if _reviewer is None:
-        from packages.agents.sub_agents.reviewer.agent import make_reviewer_agent
-        _reviewer = make_reviewer_agent()
+    from packages.agents.sub_agents.reviewer.nodes import reviewer_node
 
-    result = asyncio.run(_reviewer.ainvoke({
+    result = anyio.run(reviewer_node, {
         "messages": [],
         "artifacts": artifacts,
         "lesson_plan": lesson_plan,
         "quality_scores": None,
         "quality_passed": None,
-    }))
+    })
     return result.get("quality_scores") or {}
 
 

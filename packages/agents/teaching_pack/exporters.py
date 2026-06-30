@@ -1,0 +1,89 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Literal, assert_never
+
+type ExportFormat = Literal["html", "gift", "h5p", "qti", "google_forms"]
+type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
+type JsonObject = dict[str, JsonValue]
+
+_SUPPORTED_FORMATS = frozenset({"html", "gift", "h5p", "qti"})
+_UNSUPPORTED_FORMATS = frozenset({"google_forms"})
+
+
+class UnsupportedExportFormatError(RuntimeError):
+    def __init__(self, export_format: str) -> None:
+        self.export_format = export_format
+        super().__init__(f"Unsupported export format: {export_format}")
+
+
+@dataclass(frozen=True, slots=True)
+class ExportRequest:
+    run_id: str
+    format: ExportFormat
+    snapshots: list[JsonObject]
+    contract: JsonObject
+
+
+class ExporterRegistry:
+    @classmethod
+    def default(cls) -> ExporterRegistry:
+        return cls()
+
+    def supports(self, export_format: str) -> bool:
+        return export_format in _SUPPORTED_FORMATS
+
+    def is_explicitly_unsupported(self, export_format: str) -> bool:
+        return export_format in _UNSUPPORTED_FORMATS
+
+    def export(self, request: ExportRequest) -> list[str]:
+        match request.format:
+            case "html":
+                return _html_exports(request.run_id, request.snapshots)
+            case "gift":
+                return [f"exports/{request.run_id}/{request.run_id}.gift.txt"]
+            case "h5p":
+                return [f"exports/{request.run_id}/{request.run_id}.h5p"]
+            case "qti":
+                return [f"exports/{request.run_id}/{request.run_id}.qti.xml"]
+            case "google_forms":
+                raise UnsupportedExportFormatError(request.format)
+            case unreachable:
+                assert_never(unreachable)
+
+
+def requested_export_formats(contract: JsonObject) -> list[ExportFormat]:
+    values = contract.get("export_formats")
+    if not isinstance(values, list) or not values:
+        return ["html"]
+    formats: list[ExportFormat] = []
+    for value in values:
+        export_format = _export_format(str(value))
+        formats.append(export_format)
+    if "html" not in formats:
+        return ["html", *formats]
+    return formats
+
+
+def _export_format(value: str) -> ExportFormat:
+    match value:
+        case "html":
+            return "html"
+        case "gift":
+            return "gift"
+        case "h5p":
+            return "h5p"
+        case "qti":
+            return "qti"
+        case "google_forms":
+            return "google_forms"
+        case _:
+            raise UnsupportedExportFormatError(value)
+
+
+def _html_exports(run_id: str, snapshots: list[JsonObject]) -> list[str]:
+    return [f"exports/{run_id}/{snapshot_id}.html" for snapshot_id in _snapshot_ids(snapshots)]
+
+
+def _snapshot_ids(snapshots: list[JsonObject]) -> list[str]:
+    return [str(snapshot["snapshot_id"]) for snapshot in snapshots]

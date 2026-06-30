@@ -9,7 +9,6 @@ import pytest
 from common.contracts.student_profile import LearningStyle, PersonalityTrait, StudentProfile
 
 if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
     from packages.agents.sub_agents.roadmap_agent.state import RoadmapAgentState
 
 # ── StudentProfile ────────────────────────────────────────────────────────────
@@ -403,80 +402,6 @@ class TestRoadmapNode:
 
         artifact_id = result["artifacts"][0]["id"]
         assert "s1" in artifact_id
-
-
-# ── make_roadmap_agent ─────────────────────────────────────────────────────────
-
-class TestMakeRoadmapAgent:
-    def test_returns_compiled_graph(self):
-        from packages.agents.sub_agents.roadmap_agent.agent import make_roadmap_agent
-
-        agent = make_roadmap_agent()
-        assert agent is not None
-        assert hasattr(agent, "ainvoke")
-
-    def test_agent_module_exports(self):
-        from packages.agents.sub_agents.roadmap_agent import (
-            make_roadmap_agent,
-            roadmap_graph_node,
-            roadmap_node,
-        )
-
-        assert callable(make_roadmap_agent)
-        assert callable(roadmap_node)
-        assert callable(roadmap_graph_node)
-
-
-# ── roadmap_graph_node (pipeline adapter) ─────────────────────────────────────
-
-class TestRoadmapGraphNode:
-    def _make_full_state(self) -> dict[str, Any]:
-        return {
-            "diagnostic_report": {
-                "student_id": "s1",
-                "knowledge_gaps": [],
-                "bloom_gaps": [],
-                "misconception_patterns": [],
-                "critical_sections": [],
-                "overall_error_rate": 0.5,
-                "recommended_level": "B2",
-                "summary": "Cần ôn tập.",
-            },
-            "student_profile": {
-                "student_id": "s1",
-                "learning_style": {"primary": "visual"},
-                "target_score": 40,
-                "study_duration_months": 6,
-            },
-            "run_id": "r1",
-            "current_step": 4,
-        }
-
-    @pytest.mark.asyncio
-    async def test_skips_when_no_diagnostic_report(self):
-        from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
-
-        result = await roadmap_graph_node(cast("OhMyClassState", {"diagnostic_report": None}))
-        assert result == {}
-
-    @pytest.mark.asyncio
-    async def test_skips_when_diagnostic_report_absent(self):
-        from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
-
-        result = await roadmap_graph_node(cast("OhMyClassState", {}))
-        assert result == {}
-
-    @pytest.mark.asyncio
-    async def test_fails_closed_on_llm_error(self):
-        """Present diagnostic_report + LLM failure → ValueError propagates (fail closed)."""
-        from packages.agents.sub_agents.roadmap_agent.agent import roadmap_graph_node
-
-        mock_llm = _make_llm_mock(side_effect=RuntimeError("API down"))
-        with (
-            patch("packages.agents.llm.complete_json_chat", mock_llm),
-            pytest.raises(ValueError, match="Roadmap agent failed"),
-        ):
-            await roadmap_graph_node(cast("OhMyClassState", self._make_full_state()))
 
 
 # ── roadmap node validates RoadmapContent schema ──────────────────────────────

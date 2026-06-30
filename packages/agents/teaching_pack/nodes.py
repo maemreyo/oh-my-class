@@ -7,19 +7,16 @@ from packages.agents.sub_agents.planner.state import PlannerNodeState
 from packages.agents.sub_agents.researcher.state import ResearcherNodeState
 
 from packages.agents.teaching_pack.artifacts import normalize_generated_artifacts
-from packages.agents.teaching_pack.quality import TeachingPackQualityGateError, quality_issues
-from packages.agents.teaching_pack.quality_routing import (
-    pack_coherence_issues,
-    render_quality_failure,
-)
+from packages.agents.teaching_pack.exporters import ExportRequest, ExporterRegistry, requested_export_formats
+from packages.agents.teaching_pack.quality_runtime import render_quality
 from packages.agents.teaching_pack.scoped_regeneration import (
     merge_regenerated_artifacts,
     rejected_artifact_types,
     scoped_rejections,
 )
-from packages.agents.teaching_pack.snapshots import build_snapshot
 
 if TYPE_CHECKING:
+    from packages.agents.teaching_pack.ports import QualityGate
     from packages.agents.teaching_pack.stages import TeachingPackStage
 
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
@@ -48,7 +45,7 @@ class TeachingPackState(TypedDict):
     exported_files: NotRequired[list[str]]
 
 
-def make_stage_node(stage: TeachingPackStage):
+def make_stage_node(stage: TeachingPackStage, quality_gate: QualityGate | None = None):
     async def stage_node(state: TeachingPackState) -> TeachingPackState:
         match stage.value:
             case "setup_contract":
@@ -62,7 +59,7 @@ def make_stage_node(stage: TeachingPackStage):
             case "artifact_workflow":
                 update = await _artifact_workflow(state)
             case "render_quality":
-                update = _render_quality(state)
+                update = await _render_quality(state, quality_gate=quality_gate)
             case "teacher_approval":
                 update = _teacher_approval(state)
             case "export_finalize":
@@ -154,29 +151,11 @@ async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
     return {"run_id": state["run_id"], "artifacts": artifacts}
 
 
-def _render_quality(state: TeachingPackState) -> TeachingPackState:
-    artifacts = state.get("artifacts", [])
-    issues = quality_issues(artifacts)
-    if issues:
-        if pack_coherence_issues(issues):
-            failure = render_quality_failure(state["run_id"], issues)
-            return {
-                "run_id": state["run_id"],
-                "quality_issues": issues,
-                "quality_recovery_route": _string_field(failure, "quality_recovery_route", "repair"),
-                "quality_scores": _json_object(failure.get("quality_scores")),
-            }
-        raise TeachingPackQualityGateError(issues)
-    snapshots = [build_snapshot(state["run_id"], artifact) for artifact in artifacts]
-    return {
-        "run_id": state["run_id"],
-        "rendered_snapshots": snapshots,
-        "quality_scores": {
-            "overall": 8.0,
-            "passed": True,
-            "snapshot_count": len(snapshots),
-        },
-    }
+async def _render_quality(
+    state: TeachingPackState,
+    quality_gate: QualityGate | None = None,
+) -> TeachingPackState:
+    return TeachingPackState(**await render_quality(state, quality_gate))
 
 def _teacher_approval(state: TeachingPackState) -> TeachingPackState:
     from langgraph.types import interrupt
@@ -210,7 +189,21 @@ def _export_finalize(state: TeachingPackState) -> TeachingPackState:
     if not state.get("teacher_approved", False):
         return {"run_id": state["run_id"], "exported_files": []}
     snapshot_ids = state.get("approved_snapshot_ids", [])
-    exported_files = [f"exports/{state['run_id']}/{snapshot_id}.html" for snapshot_id in snapshot_ids]
+    approved_snapshots = [
+        snapshot for snapshot in state.get("rendered_snapshots", [])
+        if str(snapshot.get("snapshot_id")) in snapshot_ids
+    ]
+    registry = ExporterRegistry.default()
+    exported_files = [
+        file_path
+        for export_format in requested_export_formats(state.get("contract", {}))
+        for file_path in registry.export(ExportRequest(
+            run_id=state["run_id"],
+            format=export_format,
+            snapshots=approved_snapshots,
+            contract=state.get("contract", {}),
+        ))
+    ]
     return {"run_id": state["run_id"], "exported_files": exported_files}
 
 
