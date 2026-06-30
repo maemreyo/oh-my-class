@@ -23,7 +23,7 @@ Let a teacher export a whole unit as one coherent deliverable, while each sessio
 - [ ] `UnitPackager` composes approved sessions into a unit bundle on demand; nothing is generated until requested.
 - [ ] HTML bundles use the locked unit theme and include cover + TOC + sequence overview + linked sessions.
 - [ ] Assessment-format bundles produce a zip of per-session files plus a manifest; no malformed cross-session merge.
-- [ ] A `partially_complete` unit packages only its approved sessions.
+- [ ] A `partially_complete` unit packages only its approved sessions; the manifest **encodes the omitted sessions** (id + status) and the bundle/UI surfaces a teacher-visible "N/M approved sessions included" warning.
 - [ ] No new `ExportFormat` enum values are introduced.
 
 ## Detailed test suite

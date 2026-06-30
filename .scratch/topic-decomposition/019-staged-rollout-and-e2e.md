@@ -9,7 +9,8 @@ created: 2026-06-30
 
 Turn the implemented capability into a monitored, beta-ready feature behind `features.topic_decomposition_v1`, with a full end-to-end scenario and a rollout checklist (ADR-017 §Phasing). This is the release gate for Phase 1 (sequential happy-path); Phase 2/3 features (parallel intra-layer, soft-block override polish, decomposition memory, knowledge graph, coherence lint, personalization) ship behind the same flag incrementally.
 
-- A single feature flag `features.topic_decomposition_v1` gates triage suggestion, the `plan_unit` path, the unit gate, fan-out, and the unit workspace. With it off, the system behaves exactly as today.
+- A single feature flag `features.topic_decomposition_v1` gates the **entire surface**: triage stage, `plan_unit` path, unit gate, fan-out, unit workspace, **orchestrator reactor, reconciliation sweep branch, unit event emission, unit endpoints, and the eval harness**. With it off, none of these activate and the system behaves exactly as today.
+- Phase 1 runs with `unit_fanout_concurrency = 1` (sequential topological); Phase 2 raises the cap (same code, config only).
 - Rollout checklist at `docs/reports/topic-decomposition-rollout-checklist.md`: dev/staging validation, beta-teacher enablement, fallback/escalation behavior, metrics to monitor, and a kill switch.
 - No silent downgrade: a failed unit plan/fan-out must fail closed or escalate to the teacher — never silently fall back to a single lesson.
 
@@ -28,7 +29,7 @@ Turn the implemented capability into a monitored, beta-ready feature behind `fea
 
 - [ ] `tests/e2e/test_unit_flow.py`: the happy-path scenario above runs end to end and exports a standalone unit HTML bundle containing all sessions, the sequence overview, and the locked theme.
 - [ ] `tests/e2e/test_unit_failure_recovery.py`: a forced session failure keeps the unit alive; retry drives it to `complete`.
-- [ ] Feature-flag tests: flag off → no triage suggestion, no `/units` route, `plan_unit` rejected predictably; flag on → full path.
+- [ ] Feature-flag tests: flag off → no triage suggestion, no `/units` route, `plan_unit` rejected predictably, orchestrator reactor + sweep branch + unit event emission inactive; flag on → full path.
 - [ ] No-silent-downgrade test: a unit-plan failure surfaces an error/escalation, never a single-lesson substitute.
 - [ ] Regression: `make test` and `make check` pass; the standard teaching-pack E2E is unchanged.
 - [ ] Rollout checklist doc check: dev/staging validation, beta enablement, fallback, metrics, and kill switch are documented.

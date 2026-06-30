@@ -1,5 +1,5 @@
 ---
-title: UnitOrchestrator — stateless fan-out, topo ordering, fail isolation
+title: UnitOrchestrator — stateless, durable-substrate fan-out
 status: ready-for-agent
 labels: [ready-for-agent]
 created: 2026-06-30
@@ -7,40 +7,44 @@ created: 2026-06-30
 
 ## What to build
 
-Add the application-layer orchestrator that turns an approved sequence into child runs and drives them to completion (ADR-017 §UnitOrchestrator). It is **stateless and fully-derived**: it never holds authoritative state; on each trigger it recomputes from the DB and decides the next idempotent action.
+Add the application-layer orchestrator that turns an approved sequence into child runs and drives them to completion (ADR-017 §UnitOrchestrator). It is **stateless and fully-derived from the durable substrate** (`TeachingPackJobStore` + run rows) — never from the in-memory event bus.
 
 `services/gateway/unit_orchestrator.py`:
 
-- **Pure core**: `decide(sequence, children_states) -> list[Action]` (spawn session X, mark blocked, mark partially_complete/complete). Uses `networkx` for topological ordering over `prerequisite_sessions`.
-- **Reactor**: listens on the existing event bus for child `run.completed` / `gate.pending` / `run.failed` events carrying `parent_run_id`, recomputes, and enqueues actions via `TeachingPackExecutor`.
-- **Fan-out**: on unit approval, spawn the first topo layer; spawn dependents as prerequisites are satisfied. Spawn in parallel within a layer.
-- **Blocking**: a session whose prerequisite failed/unapproved is `blocked` (soft) but can be force-spawned via override.
-- **Fail isolation**: a failed child never fails the unit; unaffected sessions proceed.
-- **Idempotent**: fan-out keyed `fanout:{unit_id}:{seq_revision}`; re-running `decide`/spawn never creates duplicate children.
-- **Reconciliation sweep**: a periodic job recomputes `generating`/`in_review` units to catch missed events (at-least-once).
+- **Pure core**: `decide(sequence, children_states) -> list[Action]` returning the **full set** of ready sessions (spawn / block / mark partially_complete / complete). Uses `networkx` for topological ordering over `prerequisite_sessions`.
+- **Concurrency cap**: `unit_fanout_concurrency` limits simultaneous child spawns. Phase 1 = 1 (sequential topological); Phase 2 raises it. No code fork between phases.
+- **Reactor**: a hook invoked by `TeachingPackCompletionRecorder`/worker when a child settles (`completed`/`failed`/gate-pending) — it recomputes from the DB and enqueues actions via `TeachingPackExecutor`/`TeachingPackJobStore`. The in-memory `events.py` is **not** used for correctness (SSE/observability only).
+- **Fan-out**: on unit approval, spawn the ready set (bounded by the cap); spawn dependents as prerequisites are satisfied.
+- **Blocking**: a session whose prerequisite failed/unapproved is `blocked` (computed, soft) but can be force-spawned via override.
+- **Fail isolation**: a failed child never fails the unit; independent sessions proceed; a failed session is retried by resuming its existing child run, not by creating a new one.
+- **Idempotency**: a DB unique constraint `(parent_run_id, session_id)` plus the app-level key `fanout:{unit_id}:{seq_revision}` guarantee one child per session; re-running `decide`/spawn or restarting never creates duplicates.
+- **Reconciliation sweep**: extend the existing run sweeper (`_run_teaching_pack_sweeper`) to recompute `generating`/`in_review` units from the DB (at-least-once backstop).
+
+Gate the reactor, sweep branch, and fan-out behind `features.topic_decomposition_v1`.
 
 ## Acceptance criteria
 
-- [ ] `decide(...)` is a pure function with no I/O; orchestration I/O lives in the reactor.
-- [ ] On approval, only the first topo layer spawns; dependents spawn when prerequisites are satisfied; intra-layer sessions spawn concurrently.
-- [ ] A failed child leaves the unit alive; independent sessions still complete; dependents of the failure become `blocked`.
+- [ ] `decide(...)` is pure (no I/O) and returns the full ready set; orchestration I/O lives in the reactor.
+- [ ] `unit_fanout_concurrency` caps concurrent spawns; with cap=1 sessions run one-at-a-time in topo order.
+- [ ] The reactor is triggered by the durable completion-recorder hook, not the in-memory event bus; correctness holds if every in-memory event is lost.
+- [ ] A failed child leaves the unit alive; dependents become `blocked`; independent siblings still complete; retry resumes the existing child run.
 - [ ] Override force-spawns a blocked session.
-- [ ] Re-invoking the orchestrator (or restarting the process) never produces duplicate child runs (idempotency key + existence check).
-- [ ] The reconciliation sweep advances a unit whose triggering event was dropped.
+- [ ] The DB unique constraint `(parent_run_id, session_id)` is enforced; re-invoking fan-out or restarting mid-fan-out never creates duplicate children.
+- [ ] The reconciliation sweep advances a unit whose triggering hook was missed.
 
 ## Detailed test suite
 
-(Real DB + real `TeachingPackExecutor`; orchestrator core tested as a pure function. Children may use a fast deterministic graph stub at the executor seam, but DB is real.)
+(Real DB + real `TeachingPackExecutor`/`JobStore`; `decide` tested as a pure function.)
 
-- [ ] `services/gateway/tests/test_unit_orchestrator_decide.py`: pure `decide` over a diamond DAG returns the correct spawn order and blocks dependents of a failed node.
-- [ ] `services/gateway/tests/test_unit_orchestrator_idempotency.py`: calling fan-out twice (same `seq_revision`) creates children once; a restart mid-fan-out resumes without duplicates.
-- [ ] `services/gateway/tests/test_unit_orchestrator_failure.py`: a failed session yields `partially_complete`-eligible state; independent siblings still reach approved.
-- [ ] `services/gateway/tests/test_unit_orchestrator_override.py`: force-spawn moves a `blocked` session to `generating`.
-- [ ] `services/gateway/tests/test_unit_orchestrator_reconcile.py`: with a suppressed event, the sweep recomputes from DB and advances the unit.
+- [ ] `services/gateway/tests/test_unit_orchestrator_decide.py`: pure `decide` over a diamond DAG returns the correct ready set and blocks dependents of a failed node.
+- [ ] `services/gateway/tests/test_unit_orchestrator_concurrency.py`: cap=1 spawns sequentially; cap=N spawns the whole ready layer.
+- [ ] `services/gateway/tests/test_unit_orchestrator_idempotency.py`: the `(parent_run_id, session_id)` unique constraint rejects a duplicate child; a restart mid-fan-out resumes without duplicates.
+- [ ] `services/gateway/tests/test_unit_orchestrator_failure.py`: a failed session keeps the unit alive; siblings reach approved; retry resumes the existing child (no new row).
+- [ ] `services/gateway/tests/test_unit_orchestrator_reconcile.py`: with the hook suppressed, the sweep recomputes from the DB and advances the unit (proves no reliance on in-memory events).
 - [ ] Run `uv run pytest services/gateway/tests/test_unit_orchestrator_*.py -v`.
 
 ## Blocked by
 
 - .scratch/topic-decomposition/002-unit-persistence-and-migration.md
-- .scratch/topic-decomposition/007-graph-wiring-and-unit-gate.md
+- .scratch/topic-decomposition/007-stage-wiring-and-unit-gate.md
 - .scratch/topic-decomposition/009-unit-context-propagation.md

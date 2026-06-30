@@ -12,11 +12,12 @@ Add the deterministic, pedagogy-grounded validator (ADR-017 quality tier 1) that
 `packages/agents/middleware/sequence_consistency_validator.py`:
 
 - Acyclic prerequisite DAG (over `prerequisite_sessions` and, when present, `prerequisite_edges`).
-- Bloom coverage ≥ 2 distinct levels across the sequence.
-- Cognitive load: ≤ 4 new `knowledge_components` per session (CLT).
-- Duration drift: total session minutes within ±10–15% of `total_duration_minutes`.
+- Bloom rule: ≥ 2 distinct levels across the sequence **and** at least one apply-or-higher (vận dụng) level, **unless** the topic is pure-recall (a `pure_recall` exemption).
+- Cognitive load: ≤ 4 **new** `knowledge_components` per session (CLT). `recalled_kc_ids` are references and are **never** counted toward the limit.
+- Duration drift: total session minutes within ±10–15% of `total_duration_minutes` (HARD).
+- Session count: **advisory** check against the grounded norm (warn if far outside; not a HARD gate).
 - Prerequisite depth ≤ 3 unmastered levels.
-- Returns structured, per-rule issues (not just a boolean) so they can surface on the gate.
+- Returns structured, per-rule issues (not just a boolean), each tagged HARD vs advisory, so they can surface on the gate. Wording frames norms as "operational constraint grounded in PPCT/sample plans," not universal law.
 
 Add `networkx` to `packages/agents` dependencies and use it for topo sort, cycle detection, and ancestor/descendant queries here and (later) in the orchestrator and ClassKnowledgeGraph.
 
@@ -26,7 +27,7 @@ This is a pure-function middleware; it must not call the LLM or touch the DB.
 
 - [ ] `networkx` is declared as a dependency in `packages/agents/pyproject.toml`.
 - [ ] `SequenceConsistencyValidator` exposes a pure `validate(sequence) -> list[ConsistencyIssue]` (empty list = pass), each issue typed with `rule`, `session_id?`, `severity`, `message`.
-- [ ] All six rules above are implemented using `networkx` for graph checks.
+- [ ] All rules above are implemented using `networkx` for graph checks; CLT counts only `knowledge_components` (new), never `recalled_kc_ids`; session-count is advisory severity.
 - [ ] The validator is registered in the middleware registry consistent with existing middleware (`packages/agents/middleware/registry.py`).
 - [ ] Severity distinguishes HARD (block) from advisory so the planner self-repair loop and gate can treat them differently.
 
@@ -35,8 +36,9 @@ This is a pure-function middleware; it must not call the LLM or touch the DB.
 (Pure deterministic tests — no DB/LLM needed.)
 
 - [ ] `packages/agents/tests/middleware/test_sequence_consistency_validator.py`: a cyclic prerequisite set yields a `cycle` issue; an acyclic one passes.
-- [ ] same file: a session with 5 KCs yields a `clt_overload` issue scoped to that `session_id`; 4 passes.
-- [ ] same file: a single-Bloom-level sequence yields a `bloom_coverage` issue; ≥2 levels passes.
+- [ ] same file: a session with 5 **new** KCs yields a `clt_overload` issue scoped to that `session_id`; 4 new + 8 recalled passes (recalled never counted).
+- [ ] same file: a sequence of only remember+understand on a non-recall topic yields a `bloom_rule` issue; adding an apply level passes; a `pure_recall` topic with one level is exempt.
+- [ ] same file: a session count far outside the grounded norm yields an **advisory** (non-blocking) issue, not a HARD failure.
 - [ ] same file: total duration 30% off target yields a `duration_drift` issue; within tolerance passes.
 - [ ] same file: prerequisite depth 4 yields a `prereq_depth` issue; depth ≤3 passes.
 - [ ] Property test: `uv run pytest packages/agents/tests/middleware -m property -v` — random acyclic sequences with ≤4 KC/session and ≥2 Bloom levels always pass; injected violations always produce the matching rule.

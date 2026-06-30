@@ -38,4 +38,4 @@ Let the system learn from what teachers actually approve, so future decompositio
 ## Blocked by
 
 - .scratch/topic-decomposition/006-unit-planner-agent.md
-- .scratch/topic-decomposition/007-graph-wiring-and-unit-gate.md
+- .scratch/topic-decomposition/007-stage-wiring-and-unit-gate.md

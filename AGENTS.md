@@ -3,7 +3,7 @@
 > **Purpose**: Single source of truth for every AI agent, developer, and tool working in this codebase.
 > Read this file before touching any code. All architectural decisions flow from here.
 >
-> **Version**: 1.0 | **Date**: 2026-06-23
+> **Version**: 1.1 | **Date**: 2026-06-30
 
 ---
 
@@ -11,7 +11,7 @@
 
 1. [Project Identity](#1-project-identity)
 2. [Architecture Overview](#2-architecture-overview)
-3. [12-Step Pipeline](#3-12-step-pipeline)
+3. [Pipeline Graphs](#3-pipeline-graphs)
 4. [Agent Definitions](#4-agent-definitions)
 5. [State Schema](#5-state-schema)
 6. [LLM Routing](#6-llm-routing)
@@ -98,49 +98,74 @@ Lead Agent **never** calls an LLM directly to create content. It only calls `tas
 
 ---
 
-## 3. 12-Step Pipeline
+## 3. Pipeline Graphs
 
-Every run follows exactly these steps in order. No step may be skipped.
+The project has **two** LangGraph runtimes. The legacy step-based graph (`packages/agents/graph.py`) is frozen; the teaching-pack stage graph (`packages/agents/teaching_pack/graph.py`) is the authoritative runtime for current and new features.
+
+### 3.1 Legacy Graph — 18 Nodes (`build_oh_my_class_graph`)
+
+**Status**: Frozen. Not extended by new features (ADR-017).
 
 ```
-Step 01 · Preflight        Validate raw teacher input (schema + safety)
-Step 02 · Quickstart       Initialize run: create thread, dirs, metadata
-Step 03 · Blueprint        Planner Agent → LessonPlan JSON
-Step 04 · Teacher Gate 1   interrupt() — teacher approves/edits/rejects blueprint
-Step 05 · Pack Scope       Determine artifact types for this run
-Step 06 · Visual Engine    Choose theme, layout, visual treatments per artifact
-Step 07 · Research         Researcher Agent → ResearchBundle JSON
-Step 08 · Generate         ContentCreator Agent → ArtifactContent[] JSON
-Step 09 · Import           Assemble raw artifacts; run Layer 1–3 gates
-Step 10 · Review           LLM-as-Judge (Layer 4); Self-heal loop if needed
-Step 11 · Teacher Gate 2   interrupt() — teacher approves/edits/rejects content
-Step 12 · Validate         Layer 6 multi-judge; schema + contract check
-Step 13 · Export           Package to requested format(s) and persist
+step_00_diagnostic → step_01_preflight → step_02_quickstart → step_03_blueprint
+  → gate_01_blueprint_approval → step_04b_roadmap
+  → step_05_pack_scope → step_06_visual_engine → step_07_research
+  → step_08_generate → step_09_schema_validate → step_10_content_review
+  → step_10b_llm_judge → gate_02_content_approval
+  → step_11_export_readiness → step_12_finalize → END
+
+healing_node (self-heal orchestrator, routes back or escalates)
+escalate_node (terminal failure → END)
 ```
+
+**Node count**: 18 total — 12 named steps + `step_00_diagnostic` + `step_04b_roadmap` + `step_10b_llm_judge` + 2 gates + healing + escalate.
+
+### 3.2 Teaching-Pack Stage Graph — 8 Stages (`build_teaching_pack_graph`)
+
+**Status**: Authoritative runtime. Single-lesson runs use this path.
+
+```
+setup_contract → preplanning_search → planning_blueprint → post_blueprint_research
+  → artifact_workflow → render_quality → teacher_approval → export_finalize → END
+```
+
+**Conditional seams** (2):
+- After `render_quality`: routes to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `teacher_approval`
+- After `teacher_approval`: routes to `export_finalize` (approve) or `artifact_workflow` (reject with scoped feedback)
+
+**ADR-017 extension** (proposed, not yet implemented):
+- `mode="plan_unit"` → `TRIAGE → UNIT_PLANNING → UNIT_APPROVAL → UNIT_PREP → END`
+- `mode="generate_pack"` → existing stage sequence above (children take this path)
 
 ### Gate Nodes (LangGraph `interrupt()`)
 
-| Gate | Step | Teacher Action | On Reject |
-|------|------|---------------|-----------|
-| `blueprint_approval` | Step 04 | approve / edit / reject | Loop back to Step 03 |
-| `content_approval` | Step 11 | approve / edit / reject | Loop back to Step 08 |
+| Gate | Graph | Teacher Action | On Reject |
+|------|-------|---------------|-----------|
+| `blueprint_approval` | Legacy only | approve / edit / reject | Loop back to step_03 |
+| `content_approval` | Both (teaching-pack: `teacher_approval` stage) | approve / edit / reject | Loop back to step_08 / artifact_workflow |
 
 Gates time out after **24 hours** and auto-escalate to admin.
 
-### Conditional Routing
+### Conditional Routing (Legacy Graph)
 
 ```python
-# After quality review (Step 10)
-def route_after_review(state) -> str:
-    if state["quality_scores"]["overall"] >= 7.0:
-        return "human_review"
-    if state.get("revision_count", 0) >= 3:
-        return "escalate"
-    return "repair"
+# After quality review (step_10b_llm_judge)
+def route_after_judge(state) -> str:
+    score = state.get("judge_score", 0)
+    if score >= GateConfig().judge_min_score:
+        return "gate_02_content_approval"
+    return "healing_node"
 
-# After teacher gate 2 (Step 11)
-def route_after_human_review(state) -> str:
-    return "validate" if state["teacher_approved"] else "generate"
+# After teacher gate (gate_02_content_approval)
+def route_after_content_gate(state) -> str:
+    decision = state.get("teacher_decision", "approve")
+    return "step_11_export_readiness" if decision in ("approve", "edit") else "step_08_generate"
+
+# After healing
+def route_after_healing(state) -> str:
+    if state.get("escalate"):
+        return "escalate_node"
+    return state.get("healing_strategy", "step_08_generate")
 ```
 
 ---
@@ -300,9 +325,44 @@ class OhMyClassState(TypedDict):
     teacher_approved: bool
     revision_count: int
 
+    # ── Gate tracking (written by gate nodes) ───────────────────────────────────
+    fail_layer: NotRequired[str | None]       # "schema" | "content" | "judge" | "human"
+    fail_count: NotRequired[int]              # incremented by healing_node
+    fail_type: NotRequired[str | None]        # "validation" | "content" | "score" | "timeout"
+    fail_context: NotRequired[dict[str, Any] | None]    # error details for healing strategy
+
+    # ── Gate scores ──────────────────────────────────────────────────────────────
+    schema_valid: NotRequired[bool | None]
+    content_review_passed: NotRequired[bool | None]
+    judge_score: NotRequired[float | None]    # overall G-Eval score
+    export_ready: NotRequired[bool | None]
+
+    # ── Healing / model override ─────────────────────────────────────────────────
+    escalate: NotRequired[bool]              # set True to trigger escalation
+    escalate_reason: NotRequired[str | None]
+    healing_strategy: NotRequired[str | None]  # "retry" | "rewrite" | "reroute" | "replan" | "escalate"
+    healing_note: NotRequired[str | None]
+    healing_context: NotRequired[dict[str, Any] | None]
+    generation_model: NotRequired[str | None]  # overrides default model for generation
+
+    # ── HITL Gate ────────────────────────────────────────────────────────────────
+    teacher_decision: NotRequired[str]   # "approve" | "reject" | "edit"
+    gate_payload: NotRequired[dict[str, Any]]   # data shown to teacher at gate
+
+    # ── Error ────────────────────────────────────────────────────────────────────
+    error: NotRequired[str]   # set by any node on unrecoverable failure
+
+    # ── Review ───────────────────────────────────────────────────────────────────
+    review_results: NotRequired[dict[str, Any] | None]   # output from reviewer agent
+
+    # ── Diagnostic ───────────────────────────────────────────────────────────────
+    student_responses: NotRequired[dict[str, Any] | None]   # StudentResponse JSON
+    diagnostic_report: NotRequired[dict[str, Any] | None]   # DiagnosticReport JSON
+    student_profile: NotRequired[dict[str, Any] | None]     # StudentProfile JSON
+
     # ── Export ─────────────────────────────
     export_formats: list[str]  # ["html", "gift", "h5p"]
-    exported_files: Annotated[list[str], merge_artifacts]
+    exported_files: Annotated[list[dict[str, Any]], merge_exported_files]
 
     # ── Metadata ───────────────────────────
     current_step: int          # 1–13
@@ -671,11 +731,34 @@ oh-my-class/
 ├── packages/
 │   ├── agents/                  # LangGraph multi-agent pipeline (Python)
 │   │   ├── lead_agent/
-│   │   ├── sub_agents/          # planner, researcher, content_creator, reviewer
+│   │   ├── sub_agents/          # planner, researcher, content_creator, reviewer, diagnostician, roadmap_agent
+│   │   ├── teaching_pack/       # Authoritative stage graph (ADR-017 runtime)
+│   │   │   ├── graph.py         # build_teaching_pack_graph — 8-stage StateGraph
+│   │   │   ├── stages.py        # TeachingPackStage StrEnum (8 values)
+│   │   │   ├── nodes.py         # Stage node implementations + routing
+│   │   │   ├── ports.py         # Port/interface contracts
+│   │   │   ├── quality.py       # Quality gate wiring
+│   │   │   ├── quality_routing.py
+│   │   │   ├── scoped_regeneration.py
+│   │   │   ├── snapshots.py
+│   │   │   ├── checkpointing.py
+│   │   │   ├── artifacts.py
+│   │   │   └── config.py
 │   │   ├── middleware/          # 24 single-concern layers
+│   │   │   ├── base.py          # BaseMiddleware ABC (order 1–24)
+│   │   │   ├── registry.py      # Middleware chain registration
+│   │   │   ├── context/         # Context middleware (deferred_tool_filter, dynamic_context, memory)
+│   │   │   ├── quality/         # Quality middleware
+│   │   │   ├── safety/          # Safety middleware
+│   │   │   └── terminal/        # Terminal middleware
 │   │   ├── tools/
-│   │   ├── state.py
-│   │   └── graph.py
+│   │   ├── state.py             # OhMyClassState TypedDict
+│   │   ├── graph.py             # Legacy build_oh_my_class_graph (frozen)
+│   │   ├── gates.py             # interrupt() gate node implementations
+│   │   ├── healing.py           # Self-heal orchestrator
+│   │   ├── events.py            # In-memory event bus (SSE/observability only)
+│   │   ├── checkpointer.py      # get_checkpointer factory
+│   │   └── observability.py     # Langfuse tracing
 │   ├── quality/                 # 6-layer quality gate system (Python)
 │   │   ├── layer1_schema/
 │   │   ├── layer2_content/
@@ -693,6 +776,7 @@ oh-my-class/
 │       └── src/qti/
 ├── common/
 │   ├── contracts/               # Pydantic models (Python) — source of truth for schemas
+│   │   ├── run_contract.py      # RunContract, PipelineMode, ArtifactType, etc.
 │   │   ├── lesson_plan.py
 │   │   ├── artifact.py
 │   │   ├── judge_output.py
@@ -711,18 +795,23 @@ oh-my-class/
 │   ├── gateway/                 # FastAPI + embedded agent runtime :8001
 │   │   ├── main.py
 │   │   ├── routers/
+│   │   │   ├── teaching_packs.py   # Teaching-pack endpoints
+│   │   │   └── health.py
+│   │   ├── teaching_pack_models.py # TeachingPack SQLAlchemy models
+│   │   ├── teaching_pack_store.py  # TeachingPackJobStore
+│   │   ├── recovery_sweeper.py     # Stuck job + gate escalation sweeper
 │   │   ├── middleware/
 │   │   ├── auth/
 │   │   ├── webhooks/
 │   │   ├── observability/
-│   │   ├── models.py
+│   │   ├── models.py            # Run, RunStatus, RunEvent SQLAlchemy models
 │   │   └── alembic/
 │   ├── proxy/                   # LiteLLM proxy :4000
 │   │   └── config.yaml
 │   └── router/                  # 9Router sidecar :20128
 │       └── config.yaml
 ├── apps/
-│   └── web/                     # Next.js 16 teacher dashboard :3000
+│   └── web/                     # Next.js 15 teacher dashboard :3000
 │       └── src/app/
 ├── skills/                      # Markdown skills injected into agent prompts
 │   ├── blueprint-designer/SKILL.md
@@ -806,7 +895,8 @@ Middleware execution order is fixed. **Clarification (24) must always be last.**
 ### LangGraph Nodes
 
 - One Python file per node in `packages/agents/` or `services/gateway/`
-- File naming: `step_01_preflight.py` through `step_13_export.py`
+- Legacy graph naming: `step_01_preflight.py` through `step_13_export.py`
+- Teaching-pack graph: `nodes.py` with `make_stage_node()` dispatch per `TeachingPackStage`
 - Every node is a pure function: `(state) → partial_state`
 - No I/O except via state — nodes never write to disk directly
 

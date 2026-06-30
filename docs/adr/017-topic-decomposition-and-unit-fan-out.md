@@ -14,11 +14,14 @@ Teachers in the GDPT-2018 context routinely teach a **chủ đề** across multi
 
 ### Topology — two-tier (parent unit run + independent child session runs)
 
-A unit is **not** a single long-lived execution. It is an application-level aggregate over LangGraph threads:
+A unit is **not** a single long-lived execution. It is an application-level aggregate over LangGraph threads.
 
-- **Parent run** (`mode="plan_unit"`, reuses the existing graph): `… → 02b_triage → unit_planner → gate_unit_approval → step_unit_prep → END`. It produces and freezes a `LessonSequence` + `UnitContext`, then ends.
-- **Child runs** (`mode="generate_pack"`, the existing pipeline unchanged): one per session, linked by `parent_run_id` + `session_id`. Each is a real run — own `thread_id`, checkpointer, gates, healing, quality, export.
+**Authoritative runtime = the teaching-pack stage runtime** (`packages/agents/teaching_pack/graph.py` `build_teaching_pack_graph`, driven by `TeachingPackExecutor` + `TeachingPackWorker` + `TeachingPackJobStore` + the run sweeper). The older step-based `packages/agents/graph.py` (`build_oh_my_class_graph`) is **legacy** and is not extended by this feature.
+
+- **Parent run** (`mode="plan_unit"`): a mode-aware stage branch after `SETUP_CONTRACT` — `TRIAGE → UNIT_PLANNING → unit_approval gate → UNIT_PREP → END`. It produces and freezes a `LessonSequence` + `UnitContext`, then ends. It does **not** run `artifact_workflow`/`render_quality`/`teacher_approval`/`export_finalize`.
+- **Child runs** (`mode="generate_pack"`, the existing stage sequence unchanged): one per session, linked by `parent_run_id` + `session_id`. Each is a real run — own `thread_id`, checkpointer, gates, healing, quality, export. Children are enqueued through the existing `TeachingPackExecutor`/`TeachingPackJobStore`/`TeachingPackWorker`.
 - **`unit_id == parent_run_id`** (no separate identity).
+- Gates are stage-boundary interrupts registered in `teaching_pack_gate_registry` and driven via `POST /teaching-packs/runs/{id}/resume` (the same path as `contract_confirmation`/`blueprint_approval`/`content_approval`); the legacy `/run/approvals` route is frozen and fail-closed against unknown gates.
 
 Rejected: in-graph fan-out via LangGraph `Send`/subgraphs — it rejoins children into one state/thread/checkpointer (Model A), defeating independent per-session resume/gate/observe.
 
@@ -29,12 +32,14 @@ Rejected: in-graph fan-out via LangGraph `Send`/subgraphs — it rejoins childre
 
 ### UnitOrchestrator — stateless, fully-derived
 
-The orchestrator holds **no** authoritative in-memory state. On each trigger (child event) it recomputes unit state from the DB (`lesson_sequence` + all children rows), then decides the next idempotent action. Core is a pure function `(sequence, children_states) → next_actions[]`. This makes it crash-safe (recompute on restart), horizontally scalable (no sticky state), and testable. The DB (children + sequence) is the single source of truth; unit status is **computed, never materialized**. An event-bus reactor drives it; a periodic reconciliation sweep provides at-least-once safety.
+The orchestrator holds **no** authoritative in-memory state. On each trigger it recomputes unit state from durable storage (`TeachingPackJobStore` + run rows: parent `lesson_sequence` + children `RunStatus`), then decides the next idempotent action. Core is a pure function `decide(sequence, children_states) → next_actions[]` that returns the full set of ready sessions; a `unit_fanout_concurrency` cap controls how many spawn at once (Phase 1 = 1 / sequential; Phase 2 raises it — no code fork). This makes it crash-safe (recompute on restart), horizontally scalable (no sticky state), and testable.
+
+**Correctness depends only on the durable substrate, never on the in-memory event bus.** The reactor is a hook invoked by `TeachingPackCompletionRecorder`/worker when a child settles (completed/failed/gate-pending); `packages/agents/events.py` (in-memory) is used **only** for SSE/observability deltas. The reconciliation sweep extends the existing run sweeper to recompute `generating`/`in_review` units from the DB (at-least-once backstop). Child spawning is guarded by a DB unique constraint `(parent_run_id, session_id)` plus the app-level key `fanout:{unit_id}:{seq_revision}`; a failed session is retried by resuming its existing child run, not by creating a new row. Unit/session lifecycle states (`blocked`, `partially_complete`, `complete`, per-session display states) are **computed in `UnitView`, never persisted** — `RunStatus` is unchanged.
 
 ### Gating
 
-- **One unit blueprint gate** (`UNIT_APPROVAL`): teacher reviews the whole sequence (session outlines, prereq DAG, durations, Bloom, per-session methodology, theme, `grounding_status`); `edit` = reorder/add/remove/edit before freeze. Children **skip `gate_01`** (their blueprint was approved as part of the sequence).
-- **Content gate stays per-child** (`gate_02` `interrupt()` reused) but the UI **aggregates** all pending child gates of a unit into one dashboard with batch "Approve all".
+- **One unit blueprint gate** (`UNIT_APPROVAL`): teacher reviews the whole sequence (session outlines, prereq DAG, durations, Bloom, per-session methodology, theme, `grounding_status`); `edit` = reorder/add/remove/edit before freeze. Children **skip `blueprint_approval` (gate_01)** (their blueprint was approved as part of the sequence).
+- **Content gate stays per-child** (`content_approval` (gate_02) `interrupt()` reused) but the UI **aggregates** all pending child gates of a unit into one dashboard with batch "Approve all".
 - Sequence is **frozen** at approval; structural change = reject + replan.
 
 ### Lifecycle
@@ -47,9 +52,17 @@ Fail-isolated (a failed session never kills the unit); prerequisite **soft-block
 
 Persistence extends the `runs` table (`parent_run_id`, `session_index`, `unit_role`, `lesson_sequence`, `shared_research`, persona snapshot) — nullable, backward-compatible. New contracts split domain (`lesson_sequence.py`, `class_profile.py`) from transport/view (`unit_view.py`); **all** go through the existing Pydantic → Zod codegen so BE/FE share types.
 
+### Sub-agents (new + enhanced)
+
+- **New `unit_planner`** — coarse multi-session decomposition (distinct task from single-lesson `planner`).
+- **New `sequence_critic`** — an independent adversarial reviewer invoked inside `UNIT_PLANNING` (`unit_planner → sequence_critic → bounded self-repair → validator`). The deterministic validator catches *structural* errors (DAG/CLT/Bloom); the critic catches *semantic pedagogy* errors a single pass misses (wrong prerequisite order, a split that fragments one concept, a missing core sub-concept, redundant re-teaching). Remaining critiques surface on the unit gate.
+- **New `coherence_judge`** — unit-scoped, post-generation, advisory (issue 016).
+- **Enhanced `planner`** — `seed`/expand mode + drift guard. **Enhanced `researcher`** — unit-shared vs session-augment scope. **Enhanced `content_creator`** — consumes per-session `methodology_primary`.
+- All are LangGraph nodes in the stage runtime; LLM via the existing transport; prompts via `PromptCompiler` + registry; repair reuses the existing recovery pattern. No new agent framework. Curricular-CoT stays *inside* `unit_planner` (staged prompting), not split into separate agents.
+
 ### Smart layers
 
-- **Grounded planning:** `unit_planner` = retrieve grounding (GDPT-2018 / PPCT / age-band tables) → Curricular-CoT adapt → validate. Not pure-LLM.
+- **Grounded planning:** `unit_planner` = retrieve grounding (GDPT-2018 / PPCT / age-band tables) → Curricular-CoT adapt → critic → validate. Not pure-LLM. Curriculum norms (session counts, Bloom distribution) are **grounded operational defaults from PPCT/sample plans, not universal law**.
 - **Confidence + fail-closed:** emits `confidence` / `grounding_status` / `open_questions`; clarifies before planning when ungrounded + ambiguous; flags low-confidence choices on the gate.
 - **Persona memory:** durable per-teacher `ClassProfile`, snapshotted into each `UnitContext`; drives duration, methodology, assume-vs-reteach, difficulty.
 - **Decomposition memory:** teacher-approved (post-edit) sequences become template priors; per-teacher preference profile learned from edit diffs. Soft priors only.
@@ -58,11 +71,11 @@ Persistence extends the `runs` table (`parent_run_id`, `session_index`, `unit_ro
 
 ### Quality (three tiers)
 
-1. `SequenceConsistencyValidator` — deterministic HARD (acyclic DAG, Bloom ≥2, ≤4 KC/session, duration drift, prereq depth) in `unit_planner`.
+1. `SequenceConsistencyValidator` — deterministic HARD: acyclic DAG; ≤4 **new** KCs/session (`recalled_kc_ids` are references, never counted); Bloom rule (≥2 levels **and** an apply-or-higher level unless the topic is pure-recall); duration drift; prereq depth. Session count is an **advisory** check against the grounded norm, not a hard gate.
 2. Drift guard — deterministic HARD at child expand.
-3. Cross-session coherence — advisory lint, lazy.
+3. Cross-session coherence (`coherence_judge`) — advisory lint, lazy.
 
-Per-session quality (existing Layers 1–4) is unchanged and remains the hard gate per pack.
+Per-session quality (existing Layers 1–4) is unchanged and remains the hard gate per pack. `sequence_critic` adds an adversarial pedagogy pass before the gate.
 
 ## Consequences
 
@@ -70,7 +83,8 @@ Per-session quality (existing Layers 1–4) is unchanged and remains the hard ga
 - Children reuse 100% of existing run infrastructure (gates, healing, quality, export, persistence, resume).
 - Parallelism, retry, partial completion, and crash recovery come "for free" from independent runs + a stateless orchestrator.
 - New surfaces are limited to genuinely new concerns (sequence editor, unit dashboard, orchestrator); transport/view types are codegen'd to prevent drift.
-- A unit's liveness depends on the orchestrator + event bus, not a single graph execution — observability and the reconciliation sweep must cover it.
+- A unit's liveness depends on the orchestrator + durable job/run store (not a single graph execution, not the in-memory event bus) — the reconciliation sweep is the correctness backstop.
+- Targets the teaching-pack stage runtime; the legacy `build_oh_my_class_graph` and `/run/approvals` are frozen, not extended.
 
 ## Alternatives Considered
 

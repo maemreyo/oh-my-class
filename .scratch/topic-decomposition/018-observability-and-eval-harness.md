@@ -17,7 +17,7 @@ The eval runs nightly / pre-release, not per-commit.
 ## Acceptance criteria
 
 - [ ] Unit-scoped events/metrics listed above are emitted and tagged consistently with existing observability.
-- [ ] Per-unit token/cost is aggregated from children.
+- [ ] Per-unit token/cost is aggregated from children. **Run/thread metadata carries unit attribution tags** (`parent_run_id`, `session_id`, `unit_role`) so cost rollup and Langfuse filtering work — `teaching_pack_thread_config` today returns only `{"thread_id": run_id}` and must be extended (or run-level tags emitted) to attribute child cost to the unit.
 - [ ] The eval harness exists with ≥3 golden topics spanning subjects and locales.
 - [ ] Eval invariants: acyclic DAG, ≥2 Bloom levels, ≤4 KC/session, duration drift ≤10%, session count within the grounded norm, every session has a methodology, all prerequisite references resolve, `grounding_status` is `grounded`/`partial` for known topics.
 - [ ] The eval is wired to a nightly/pre-release target, separate from per-commit CI.

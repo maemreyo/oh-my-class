@@ -46,9 +46,11 @@ LessonSequence:
 - [ ] `SessionPlan` uses a stable string `session_id` as the prerequisite key; `order_index` is separate; `prerequisite_sessions` references `session_id` values, not indices.
 - [ ] `MethodologyMetadata` is reused at session level via `methodology_primary` (+ optional secondary) consistent with `common/contracts/lesson_plan.py`.
 - [ ] `unit_view.py` defines `UnitView` (parent meta + sequence + per-session status/progress + unit aggregate + coherence warnings + `cursor`) and the unit event payload models, with a monotonic `cursor` field.
+- [ ] `UnitView` defines the **computed-only** state machine: unit aggregate `{awaiting_unit_approval, preparing, generating, in_review, partially_complete, complete}` and per-session display `{pending, generating, in_review, approved, failed, blocked}` — these are derived from children, **not** persisted, and `RunStatus` is not extended.
 - [ ] `RunContract.mode` accepts `"plan_unit"`; `DecompositionIntent` is added and is optional/backward-compatible.
 - [ ] Generated Zod/TS output includes all new domain + transport types, registered in `scripts/generate_zod_schemas.py` `MODELS`.
 - [ ] Fixtures cover at least one Vietnamese math chủ đề, one English grammar topic, and one science topic, each as a valid multi-session `LessonSequence`.
+- [ ] All new types are **canonical in `common/contracts/`** (not agent-local), consistent with INVARIANT-10 — agents/renderer/web import them, never redefine local copies.
 
 ## Detailed test suite
 

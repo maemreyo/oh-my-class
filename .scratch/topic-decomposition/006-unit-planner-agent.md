@@ -11,9 +11,10 @@ Add the sub-agent that turns a topic into a coarse `LessonSequence` using a thre
 
 `packages/agents/sub_agents/unit_planner/` (mirrors the existing planner sub-agent layout):
 
-- Consumes grounding (issue 005), persona snapshot (issue 013), template + teacher-preference priors (issue 014) as **soft** inputs.
+- Consumes grounding (issue 005) and, **when present**, persona snapshot (issue 013) + template/teacher-preference priors (issue 014) as **soft, optional** inputs — absent priors must not block (cold-start behaves like grounded-only). This issue does **not** block on 013/014.
+- Curricular-CoT (extraction → synthesis → scoring) stays **inside** `unit_planner` as staged prompting — not split into separate agents.
 - Produces a thin sequence (per-session outline only — no Gagné `learning_plan`; children expand later in issue 008).
-- Runs `SequenceConsistencyValidator` (issue 003) and self-repairs up to N attempts on HARD issues; remaining issues are attached for the gate.
+- Pipeline: `unit_planner → sequence_critic (issue 021) → bounded self-repair → SequenceConsistencyValidator (issue 003)`. HARD issues from critic/validator drive self-repair; residual issues are attached for the gate.
 - Emits `confidence`, `grounding_status`, `open_questions`, `low_confidence_decisions`.
 - Fail-closed: when grounding is `ungrounded` AND the topic is ambiguous, raise `CLARIFICATION_REQUIRED` (reuse the existing gate) instead of guessing.
 
@@ -27,6 +28,7 @@ Gate behind `features.topic_decomposition_v1`.
 - [ ] Output includes `confidence`, `grounding_status`, `open_questions`, `low_confidence_decisions`.
 - [ ] When `ungrounded` + ambiguous, the agent raises `CLARIFICATION_REQUIRED` rather than emitting a confident sequence.
 - [ ] Total duration of the produced sequence respects the grounding norms and ±10% of the requested total.
+- [ ] Cold-start (no persona/template priors) produces a valid grounded sequence — priors are optional, never required.
 
 ## Detailed test suite
 

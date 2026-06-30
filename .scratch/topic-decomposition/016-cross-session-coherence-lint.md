@@ -9,7 +9,7 @@ created: 2026-06-30
 
 Add the unit-level coherence check (ADR-017 quality tier 3) that catches problems no per-session gate can see. It is **advisory** — it surfaces warnings on the dashboard and never blocks a unit that already passed per-session quality.
 
-`packages/agents/quality/unit_coherence.py`:
+Implement as a `coherence_judge` sub-agent (unit-scoped, distinct from the per-artifact `reviewer`) — `packages/agents/sub_agents/coherence_judge/` with logic in `packages/agents/quality/unit_coherence.py`:
 
 - Runs lazily when a unit reaches `complete` (or on demand), over the approved session packs + sequence.
 - Checks: terminology consistency across sessions, monotonic difficulty progression, no redundant re-teaching, and that "as learned in session N" references resolve.
