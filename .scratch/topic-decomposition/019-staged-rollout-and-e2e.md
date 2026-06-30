@@ -41,3 +41,5 @@ Turn the implemented capability into a monitored, beta-ready feature behind `fea
 - .scratch/topic-decomposition/016-cross-session-coherence-lint.md
 - .scratch/topic-decomposition/017-unit-packager-export.md
 - .scratch/topic-decomposition/018-observability-and-eval-harness.md
+- .scratch/runtime-parity/001-six-layer-quality-gate-adapter.md  # children must run real 6-layer quality before units ship
+- .scratch/runtime-parity/002-healing-orchestrator-stage-recovery.md

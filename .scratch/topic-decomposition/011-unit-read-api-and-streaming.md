@@ -23,7 +23,7 @@ Expose the backend↔frontend contract for the unit dashboard (ADR-017 §BE↔FE
 - [ ] Reconnect/gap handling: clients re-`GET` the snapshot and resume deltas with `cursor > snapshot.cursor`; deltas are self-sufficient and idempotent (last-writer-by-cursor per `session_id`).
 - [ ] `approve-all` is **best-effort** and returns **per-child results** (which resumed, which failed) — not all-or-nothing; one failing child does not block the others. `spawn-anyway` force-spawns a blocked session; `export` triggers the unit packager (issue 017).
 - [ ] Per-session actions reuse the existing resume endpoint unchanged. A session **rejected without feedback must not silently route to an empty export** (the pre-existing `route_after_teacher_approval` reject→`export_finalize` path): a rejected session regenerates or stays `in_review`, and the unit never counts an empty pack as `approved`/`complete`.
-- [ ] `unit.progress` counters originate from the backend; the SSE stream uses the in-memory event bus for delta delivery **only** — it is never a source of truth (read model + durable store are authoritative).
+- [ ] `unit.progress` counters originate from the backend; the SSE stream uses `teaching_pack_event_bus` (runtime-parity issue 003) for delta delivery **only** — never a source of truth (read model + durable store are authoritative).
 
 ## Detailed test suite
 

@@ -13,7 +13,7 @@ Add the application-layer orchestrator that turns an approved sequence into chil
 
 - **Pure core**: `decide(sequence, children_states) -> list[Action]` returning the **full set** of ready sessions (spawn / block / mark partially_complete / complete). Uses `networkx` for topological ordering over `prerequisite_sessions`.
 - **Concurrency cap**: `unit_fanout_concurrency` limits simultaneous child spawns. Phase 1 = 1 (sequential topological); Phase 2 raises it. No code fork between phases.
-- **Reactor**: a hook invoked by `TeachingPackCompletionRecorder`/worker when a child settles (`completed`/`failed`/gate-pending) — it recomputes from the DB and enqueues actions via `TeachingPackExecutor`/`TeachingPackJobStore`. The in-memory `events.py` is **not** used for correctness (SSE/observability only).
+- **Reactor**: a hook invoked by `TeachingPackCompletionRecorder`/worker when a child settles (`completed`/`failed`/gate-pending) — it recomputes from the DB and enqueues actions via `TeachingPackExecutor`/`TeachingPackJobStore`. SSE/observability deltas flow on `teaching_pack_event_bus` (per runtime-parity issue 003); neither bus is used for correctness — the durable JobStore + run rows are.
 - **Fan-out**: on unit approval, spawn the ready set (bounded by the cap); spawn dependents as prerequisites are satisfied.
 - **Blocking**: a session whose prerequisite failed/unapproved is `blocked` (computed, soft) but can be force-spawned via override.
 - **Fail isolation**: a failed child never fails the unit; independent sessions proceed; a failed session is retried by resuming its existing child run, not by creating a new one.

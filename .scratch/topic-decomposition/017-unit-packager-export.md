@@ -41,3 +41,4 @@ Let a teacher export a whole unit as one coherent deliverable, while each sessio
 
 - .scratch/topic-decomposition/010-unit-orchestrator.md
 - .scratch/topic-decomposition/011-unit-read-api-and-streaming.md
+- .scratch/runtime-parity/005-export-format-wiring.md  # per-session multi-format export must work at single-run level first
