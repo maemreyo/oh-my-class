@@ -9,10 +9,12 @@ created: 2026-06-30
 
 A **deterministic, order-stable reducer** for any `TeachingPackState` channel that will receive concurrent `Send` writes — the hard prerequisite for parallel fan-out (`004b`).
 
-As-built today:
-- The live path merges artifacts **imperatively** via `_merge_regenerated_artifacts(...)` in `packages/agents/teaching_pack/nodes.py` — preserves **insertion/arrival order**.
-- The legacy `merge_artifacts` reducer (`packages/agents/state.py`, on the **unused** `OhMyClassState`) also dedups by **arrival order**.
-- The live `TeachingPackState` has **no** `Annotated[..., reducer]` channels at all.
+As-built at issue start:
+- The live path merged artifacts **imperatively** via `_merge_regenerated_artifacts(...)` in `packages/agents/teaching_pack/nodes.py` — preserving **insertion/arrival order**.
+- The legacy `merge_artifacts` reducer (`packages/agents/state.py`, on the **unused** `OhMyClassState`) also deduped by **arrival order**.
+- The live `TeachingPackState` had **no** `Annotated[..., reducer]` channels at all.
+
+Current state after ADR-020: artifact-level generation uses Send by default with reducer-backed `artifact_chunks` and `artifact_workflow_states`; the old node-local `_merge_regenerated_artifacts` wrapper is removed.
 
 Under `Send` fan-out, sections/dimensions complete in nondeterministic order, so any arrival-order merge is **non-reproducible and untestable**. Build the fix now so `004b` can land cleanly.
 

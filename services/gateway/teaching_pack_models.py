@@ -25,6 +25,13 @@ from services.gateway.teaching_pack_artifact_models import (  # noqa: F401
     ArtifactWorkflowStatus,
 )
 from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot  # noqa: F401
+from services.gateway.vocabulary_cluster_models import (  # noqa: F401
+    VocabularyClusterEvidenceModel,
+    VocabularyClusterEvidenceType,
+    VocabularyClusterReviewStatus,
+    VocabularyClusterWorkflowModel,
+    VocabularyClusterWorkflowStatus,
+)
 
 type OrmJsonValue = str | int | float | bool | None | list[OrmJsonValue] | dict[str, OrmJsonValue]
 type OrmJsonObject = dict[str, OrmJsonValue]
@@ -51,6 +58,11 @@ __all__ = [
     "RunJobKind",
     "RunJobStatus",
     "RunStatusHistory",
+    "VocabularyClusterEvidenceModel",
+    "VocabularyClusterEvidenceType",
+    "VocabularyClusterReviewStatus",
+    "VocabularyClusterWorkflowModel",
+    "VocabularyClusterWorkflowStatus",
 ]
 
 

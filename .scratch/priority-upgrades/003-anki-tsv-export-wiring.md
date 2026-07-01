@@ -25,22 +25,27 @@ The TS exporter pattern already exists: `packages/renderer/` is called via Node 
 
 ## Acceptance criteria
 
-- [ ] `ExportFormat` contract includes `"anki_apkg"` and `"flashcard_tsv"`.
-- [ ] `ExporterRegistry.supports("anki_apkg")` and `ExporterRegistry.supports("flashcard_tsv")` both return `True`.
-- [ ] A run requesting `export_format="anki_apkg"` produces a `.apkg` file in `exports/{run_id}/`.
-- [ ] A run requesting `export_format="flashcard_tsv"` produces a `.tsv` file in `exports/{run_id}/`.
-- [ ] Node subprocess bridge is fail-closed: error/timeout → `ExportError`, never silently falls back to HTML.
-- [ ] `architecture.manifest.json::export_formats.supported` includes `anki_apkg` and `flashcard_tsv` (CI drift test passes).
+- [x] `ExportFormat` contract includes `"anki_apkg"` and `"flashcard_tsv"`.
+- [x] `ExporterRegistry.supports("anki_apkg")` and `ExporterRegistry.supports("flashcard_tsv")` both return `True`.
+- [x] A run requesting `export_format="anki_apkg"` produces a `.apkg` file in `exports/{run_id}/`.
+- [x] A run requesting `export_format="flashcard_tsv"` produces a `.tsv` file in `exports/{run_id}/`.
+- [x] Node subprocess bridge is fail-closed: error/timeout → `ExportError`, never silently falls back to HTML.
+- [x] `architecture.manifest.json::export_formats.supported` includes `anki_apkg` and `flashcard_tsv` (CI drift test passes).
 
 ## Detailed test suite
 
 (Real DB + real LLM via 9router port 20228, model `4omc`.)
 
-- [ ] `packages/agents/tests/teaching_pack/test_anki_export.py`: mock a completed `TeachingPackState` with a quiz artifact → request `anki_apkg` export → verify `.apkg` file exists and is non-empty. (Subprocess can be mocked if TS build is unavailable in CI.)
-- [ ] Same for `flashcard_tsv` → `.tsv` with correct column headers.
-- [ ] Fail-closed: exporter raises `ExportError` when Node subprocess exits non-zero.
-- [ ] Manifest sync: `python scripts/generate_architecture_manifest.py` and the resulting `architecture.manifest.json` includes `anki_apkg` and `flashcard_tsv` in `export_formats.supported`.
-- [ ] `tests/test_architecture_sync.py` passes with the new formats.
+- [x] `packages/agents/tests/teaching_pack/test_anki_export.py`: mock a completed `TeachingPackState` with a quiz artifact → request `anki_apkg` export → verify `.apkg` file exists and is non-empty. (Subprocess can be mocked if TS build is unavailable in CI.)
+- [x] Same for `flashcard_tsv` → `.tsv` with correct column headers.
+- [x] Fail-closed: exporter raises `ExportError` when Node subprocess exits non-zero.
+- [x] Manifest sync: `python scripts/generate_architecture_manifest.py` and the resulting `architecture.manifest.json` includes `anki_apkg` and `flashcard_tsv` in `export_formats.supported`.
+- [x] `tests/test_architecture_sync.py` passes with the new formats.
+
+## Verification
+
+- 2026-07-01: `uv run pytest packages/agents/tests/teaching_pack/test_anki_export.py tests/test_architecture_sync.py -q` → `17 passed`.
+- 2026-07-01: LSP diagnostics clean for `packages/agents/teaching_pack/exporters.py`.
 
 ## Blocked by
 

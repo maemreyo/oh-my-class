@@ -15,6 +15,18 @@ export {
   exportInverseThinkingQTI,
   supportForInverseThinking,
 } from "./inverse-thinking.js";
+export {
+  buildVocabularyBatchPackage,
+} from "./vocabulary-batch/index.js";
+export type {
+  VocabularyBatchClusterInput,
+  VocabularyBatchExportFormat,
+  VocabularyBatchManifest,
+  VocabularyBatchManifestCluster,
+  VocabularyBatchManifestFile,
+  VocabularyBatchPackage,
+  VocabularyBatchPackageOptions,
+} from "./vocabulary-batch/index.js";
 
 export async function exportByFormat(
 	format: ExportFormat,

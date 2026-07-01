@@ -9,7 +9,7 @@ created: 2026-06-30
 
 Fan out **independent** work with LangGraph `Send`, where the parallelism actually lives — **inside** sub-agents. Data-dependent stages stay sequential (planner → researcher → content_creator).
 
-- `Send` fan-out: content_creator **per-section / per-artifact** fill; reviewer **per-dimension** judges. (Unit-orchestrator child runs are separate runs, handled in `topic-decomposition`.)
+- `Send` fan-out: content_creator **per-section** fill and reviewer **per-dimension** judges. Artifact-level generation moved to ADR-020 and is complete in `.scratch/artifact-send-fanout/`; unit-orchestrator child runs are separate runs, handled in `topic-decomposition`.
 - This requires the sub-agent to be expressed as a **subgraph** (the "C" granularity option) — **deferred** until `agent-upgrades/003` (hierarchical outline→fill-per-section) and `agent-upgrades/004` (per-dimension judges) give the decomposition its shape. Do not build the subgraph before the decomposition exists.
 - **Hard prerequisite: order-stable index-keyed reducer (`000`)** — parallel results must merge deterministically (reproducible/testable).
 - **Per-run sub-fanout concurrency cap**, distinct from the worker-pool cap (composes with `scaling-resilience/001/002/003`) — bound fan-out so parallel sections don't exhaust the provider.

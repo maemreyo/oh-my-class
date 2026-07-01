@@ -27,5 +27,9 @@ export { ResearchBriefSchema, EvidenceCitationSchema, ArtifactResearchGuidanceSc
 export type { ResearchBrief, EvidenceCitation, ArtifactResearchGuidance, PrePlanningSearchBrief } from "./research_brief.js";
 export { ArtifactWorkflowStateSchema, ArtifactGenerationInputSchema } from "./artifact_workflow.js";
 export type { ArtifactWorkflowState, ArtifactGenerationInput } from "./artifact_workflow.js";
+export { SemanticAnchorClusterSchema, AnchorCardSchema, PracticeItemSchema, PracticeSetSchema, ClusterProjectionRefsSchema, ClusterExportPolicySchema, VocabularyBatchConfigSchema, NormalizedVocabularyClusterSchema, AmbiguousVocabularyClusterSchema, InputNormalizationReportSchema, LexicalGroundingSourceEvidenceSchema, LexicalGroundingRequestSchema, LexicalTermDefinitionSchema, LexicalUsageConstraintSchema, LexicalExamplePairSchema, LexicalGroundingCacheKeysSchema, LexicalGroundingBundleSchema } from "./vocabulary_batch.js";
+export type { SemanticAnchorCluster, AnchorCard, PracticeItem, PracticeSet, ClusterProjectionRefs, ClusterExportPolicy, VocabularyBatchConfig, NormalizedVocabularyCluster, AmbiguousVocabularyCluster, InputNormalizationReport, LexicalGroundingSourceEvidence, LexicalGroundingRequest, LexicalTermDefinition, LexicalUsageConstraint, LexicalExamplePair, LexicalGroundingCacheKeys, LexicalGroundingBundle } from "./vocabulary_batch.js";
+export { VocabularyClusterWorkflowSchema, VocabularyClusterEvidenceEntrySchema } from "./vocabulary_cluster_workflow.js";
+export type { VocabularyClusterWorkflow, VocabularyClusterEvidenceEntry } from "./vocabulary_cluster_workflow.js";
 export { METHODOLOGY_REGISTRY } from "./methodology_registry.js";
 export type { MethodologyRegistryEntry, MethodologyRegistryTag } from "./methodology_registry.js";

@@ -2,21 +2,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated, NotRequired, TypedDict, assert_never
 
-from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeState
 from packages.agents.sub_agents.planner.state import PlannerNodeState
 from packages.agents.sub_agents.researcher.state import ResearcherNodeState
 
-from packages.agents.teaching_pack.artifacts import normalize_generated_artifacts
+from packages.agents.teaching_pack.artifact_fanout import coordinate_artifact_fanout
+from packages.agents.teaching_pack.artifact_status import (
+    artifact_statuses_for_teacher,
+    export_block_reason,
+    unavailable_required_artifact_statuses,
+)
 from packages.agents.teaching_pack.exporters import ExportRequest, ExporterRegistry, requested_export_formats
+from packages.agents.teaching_pack.features import artifact_send_fanout_v1_enabled
 from packages.agents.teaching_pack.middleware_runtime import (
     run_entry_middleware as _run_entry_middleware,
     run_gate_middleware as _run_gate_middleware,
     run_generation_context_middleware as _run_generation_context_middleware,
 )
 from packages.agents.teaching_pack.quality_runtime import render_quality
-from packages.agents.teaching_pack.reducers import stable_merge_artifacts
+from packages.agents.teaching_pack.reducers import stable_merge_artifacts, stable_merge_workflow_states
 from packages.agents.teaching_pack.scoped_regeneration import (
-    merge_regenerated_artifacts,
     rejected_artifact_types,
     scoped_rejections,
 )
@@ -43,11 +47,20 @@ class TeachingPackState(TypedDict):
     seq_revision: NotRequired[int]
     unit_context: NotRequired[JsonObject]
     artifact_types: NotRequired[list[str]]
+    artifact_generation_id: NotRequired[str]
+    artifact_generation_revision: NotRequired[int]
+    artifact_wave_index: NotRequired[int]
+    artifact_fanout_complete: NotRequired[bool]
+    artifact_fanout_blocked: NotRequired[bool]
+    artifact_regeneration_scope: NotRequired[JsonObject]
     # Sequential pipeline writes complete list; no reducer (replace semantics).
     artifacts: NotRequired[list[JsonObject]]
-    # Parallel fan-out accumulator (004b): each Send branch writes its chunk here.
-    # stable_merge_artifacts guarantees deterministic merge under any arrival order.
+    # Branch staging only: Send workers write generated content chunks here.
+    # Fan-in materializes current-generation chunks into canonical artifacts.
     artifact_chunks: NotRequired[Annotated[list[JsonObject], stable_merge_artifacts]]
+    # Branch status only: Send workers write per-artifact workflow states here.
+    # Fan-in reads current-generation statuses; downstream stages read artifacts.
+    artifact_workflow_states: NotRequired[Annotated[list[JsonObject], stable_merge_workflow_states]]
     rendered_snapshots: NotRequired[list[JsonObject]]
     quality_scores: NotRequired[JsonObject]
     quality_issues: NotRequired[list[str]]
@@ -59,6 +72,13 @@ class TeachingPackState(TypedDict):
     revision_feedback: NotRequired[str]
     approved_snapshot_ids: NotRequired[list[str]]
     exported_files: NotRequired[list[str]]
+    export_blocked: NotRequired[bool]
+    export_block_reason: NotRequired[str]
+    artifact_statuses: NotRequired[list[JsonObject]]
+    vocabulary_cluster_workflows: NotRequired[list[JsonObject]]
+    vocabulary_batch_progress: NotRequired[JsonObject]
+    vocabulary_batch_events: NotRequired[list[JsonObject]]
+    input_normalization_report: NotRequired[JsonObject]
 
 
 def make_stage_node(
@@ -67,7 +87,7 @@ def make_stage_node(
     store: BaseStore | None = None,
 ):
     async def stage_node(state: TeachingPackState) -> TeachingPackState:
-        if stage.value in state.get("completed_stages", []):
+        if stage.value in state.get("completed_stages", []) and not _can_reenter_stage(state, stage.value):
             return state
         match stage.value:
             case "setup_contract":
@@ -99,6 +119,9 @@ def make_stage_node(
                 assert_never(unreachable)
         merged_state = state.copy()
         merged_state.update(update)
+        if stage.value == "artifact_workflow" and artifact_send_fanout_v1_enabled():
+            if not merged_state.get("artifact_fanout_complete", False):
+                return merged_state
         return _complete_stage(merged_state, stage.value)
 
     stage_node.__name__ = stage.value
@@ -264,27 +287,51 @@ async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackStat
 
 
 async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
-    state = await _run_generation_context_middleware("content_creator", state, 8)
-    contract = state.get("contract", {})
-    from packages.agents.sub_agents.content_creator.nodes import content_creator_node
-    from common.contracts.seam_contracts import ArtifactWorkflowHandoff
+    from packages.agents.teaching_pack.vocabulary_batch_orchestrator import (
+        is_vocabulary_batch_mode,
+        run_vocabulary_batch_orchestrator,
+    )
 
-    artifact_types = _artifact_types_for_generation(state, contract)
+    if is_vocabulary_batch_mode(state):
+        from packages.agents.config.features import features
+        if not features().vocabulary_batch_v1:
+            msg = "vocabulary_batch mode requires FEATURE_VOCABULARY_BATCH_V1=true"
+            raise RuntimeError(msg)
+        return TeachingPackState(**run_vocabulary_batch_orchestrator(state))
+    if artifact_send_fanout_v1_enabled():
+        return TeachingPackState(**coordinate_artifact_fanout(state))
+    return await _rollback_artifact_workflow(state)
+
+
+async def _rollback_artifact_workflow(state: TeachingPackState) -> TeachingPackState:
+    from common.contracts.seam_contracts import ArtifactWorkflowHandoff
+    from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+    from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeState
+    from packages.agents.teaching_pack.artifacts import normalize_generated_artifacts
+    from packages.agents.teaching_pack.scoped_regeneration import merge_regenerated_artifacts
+
+    mediated_state = await _run_generation_context_middleware("content_creator", state, 8)
+    contract = mediated_state.get("contract", {})
+    artifact_types = _artifact_types_for_generation(mediated_state, contract)
     creator_state: ContentCreatorNodeState = {
-        "lesson_plan": state.get("lesson_plan", {}),
-        "research_bundle": state.get("research_brief", {}),
+        "lesson_plan": mediated_state.get("lesson_plan", {}),
+        "research_bundle": mediated_state.get("research_brief", {}),
         "artifact_types": artifact_types,
         "theme": _string_field(contract, "theme", "default"),
-        "run_id": state["run_id"],
+        "run_id": mediated_state["run_id"],
         "current_step": 8,
         "artifacts": None,
-        "revision_feedback": state.get("revision_feedback", ""),
+        "revision_feedback": mediated_state.get("revision_feedback", ""),
     }
     result = await content_creator_node(creator_state)
     generated = normalize_generated_artifacts(result.get("artifacts", []), artifact_types)
-    artifacts = _merge_regenerated_artifacts(state, generated)
-    ArtifactWorkflowHandoff(artifacts=artifacts)  # fail-closed seam contract
-    return {"run_id": state["run_id"], "artifacts": artifacts}
+    artifacts = merge_regenerated_artifacts(
+        mediated_state.get("artifacts", []),
+        mediated_state.get("gate_payload", {}),
+        generated,
+    )
+    ArtifactWorkflowHandoff(artifacts=artifacts)
+    return {"run_id": mediated_state["run_id"], "artifacts": artifacts}
 
 
 async def _render_quality(
@@ -301,7 +348,8 @@ def _teacher_approval(
     from langgraph.types import interrupt
 
     snapshot_ids = [str(snapshot["snapshot_id"]) for snapshot in state.get("rendered_snapshots", [])]
-    artifacts = state.get("artifacts", [])
+    artifact_statuses = artifact_statuses_for_teacher(state)
+    artifacts = artifact_statuses or state.get("artifacts", [])
     artifact_types = [
         str(a.get("artifact_type", ""))
         for a in artifacts
@@ -313,6 +361,7 @@ def _teacher_approval(
         "snapshot_ids": [*snapshot_ids],
         "rendered_snapshots": [*state.get("rendered_snapshots", [])],
         "artifacts": [*artifacts],
+        "artifact_statuses": [*artifact_statuses],
         "quality_scores": state.get("quality_scores", {}),
         "run_id": state["run_id"],
     }
@@ -369,6 +418,15 @@ def _export_finalize(
 ) -> TeachingPackState:
     if not state.get("teacher_approved", False):
         return {"run_id": state["run_id"], "exported_files": []}
+    unavailable = unavailable_required_artifact_statuses(state)
+    if unavailable:
+        return {
+            "run_id": state["run_id"],
+            "exported_files": [],
+            "export_blocked": True,
+            "export_block_reason": export_block_reason(unavailable),
+            "artifact_statuses": unavailable,
+        }
     if store is not None:
         contract = state.get("contract", {})
         teacher_id = _string_field(contract, "teacher_id", "")
@@ -424,6 +482,18 @@ def route_after_unit_approval(state: TeachingPackState) -> str:
     return "unit_planning"
 
 
+def _can_reenter_stage(state: TeachingPackState, stage: str) -> bool:
+    if stage == "artifact_workflow" and artifact_send_fanout_v1_enabled():
+        if not state.get("artifact_fanout_complete", False):
+            return True
+        return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
+    if stage == "render_quality" and artifact_send_fanout_v1_enabled():
+        return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
+    if stage == "teacher_approval" and artifact_send_fanout_v1_enabled():
+        return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
+    return False
+
+
 def _complete_stage(state: TeachingPackState, stage: str) -> TeachingPackState:
     return {
         **state,
@@ -447,17 +517,6 @@ def _artifact_types_for_generation(state: TeachingPackState, contract: JsonObjec
     if rejected_types:
         return rejected_types
     return state.get("artifact_types", _artifact_types(contract))
-
-
-def _merge_regenerated_artifacts(
-    state: TeachingPackState,
-    generated: list[JsonObject],
-) -> list[JsonObject]:
-    return merge_regenerated_artifacts(
-        state.get("artifacts", []),
-        state.get("gate_payload", {}),
-        generated,
-    )
 
 
 def _scoped_rejections(state: TeachingPackState) -> list[JsonObject]:

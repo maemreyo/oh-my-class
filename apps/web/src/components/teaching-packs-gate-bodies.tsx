@@ -20,7 +20,7 @@ export function TeachingPackGateBody({ runId, gateName, event }: {
 		case "blueprint_approval":
 			return <BlueprintSummary event={event} />;
 		case "content_approval":
-			return <ContentApprovalBody runId={runId} snapshotIds={event.snapshot_ids ?? []} artifacts={event.artifacts ?? []} qualityScores={event.quality_scores} />;
+			return <ContentApprovalBody runId={runId} snapshotIds={event.snapshot_ids ?? []} artifacts={event.artifact_statuses ?? event.artifacts ?? []} qualityScores={event.quality_scores} />;
 		default:
 			return assertNever(gateName);
 	}

@@ -23,17 +23,22 @@ This is **operator-configurable infrastructure**, not a code change that affects
 
 ## Acceptance criteria
 
-- [ ] `ModelAssignments` fields are annotated with their tier (`# fast | medium | strong`) in `models.py`.
-- [ ] `.env.example` adds `MODEL_FAST_DEFAULT` and `MODEL_STRONG_DEFAULT` with comment explaining the tier fallback.
-- [ ] `ModelAssignments` reads `MODEL_FAST_DEFAULT` / `MODEL_STRONG_DEFAULT` as fallbacks for the appropriate slots; single-model (no env vars set) behavior is unchanged (still `"4omc"` for all).
-- [ ] `packages/agents/config/tests/test_gate_config.py` covers the tier-fallback logic: set `MODEL_STRONG_DEFAULT=gpt-4o` → `ModelAssignments().llm_judge == "gpt-4o"`.
-- [ ] Manifest sync: `architecture.manifest.json::models.assignments` reflects the tiered defaults.
+- [x] `ModelAssignments` fields are annotated with their tier (`# fast | medium | strong`) in `models.py`.
+- [x] `.env.example` adds `MODEL_FAST_DEFAULT` and `MODEL_STRONG_DEFAULT` with comment explaining the tier fallback.
+- [x] `ModelAssignments` reads `MODEL_FAST_DEFAULT` / `MODEL_STRONG_DEFAULT` as fallbacks for the appropriate slots; single-model (no env vars set) behavior is unchanged (still `"4omc"` for all).
+- [x] `packages/agents/config/tests/test_gate_config.py` covers the tier-fallback logic: set `MODEL_STRONG_DEFAULT=gpt-4o` → `ModelAssignments().llm_judge == "gpt-4o"`.
+- [x] Manifest sync: `architecture.manifest.json::models.assignments` reflects the tiered defaults.
 
 ## Detailed test suite
 
 (Deterministic — no LLM needed.)
 
-- [ ] `packages/agents/config/tests/test_model_tiering.py`: test tier fallback precedence: per-task env > tier-default env > `"4omc"`. Test that setting no env vars yields `"4omc"` for all fields (regression).
+- [x] `packages/agents/config/tests/test_model_tiering.py`: test tier fallback precedence: per-task env > tier-default env > `"4omc"`. Test that setting no env vars yields `"4omc"` for all fields (regression).
+
+## Verification
+
+- 2026-07-01: `uv run pytest packages/agents/config/tests/test_model_tiering.py packages/agents/config/tests/test_gate_config.py -q` → `61 passed`.
+- 2026-07-01: LSP diagnostics clean for `packages/agents/config/models.py` and `packages/agents/config/tests/test_model_tiering.py`.
 
 ## Blocked by
 

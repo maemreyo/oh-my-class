@@ -58,3 +58,10 @@ def test_existing_modes_parse_unchanged_when_decomposition_intent_is_absent() ->
 
     assert generate_pack.decomposition_intent is None
     assert diagnose.decomposition_intent is None
+
+
+def test_vocabulary_batch_mode_parses_without_new_artifact_type() -> None:
+    contract = _contract("vocabulary_batch")
+
+    assert contract.mode == "vocabulary_batch"
+    assert contract.artifact_types == ["lesson"]

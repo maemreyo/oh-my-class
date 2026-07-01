@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
 
-PipelineMode = Literal["generate_pack", "diagnose_then_generate", "plan_unit"]
+PipelineMode = Literal["generate_pack", "diagnose_then_generate", "plan_unit", "vocabulary_batch"]
 ArtifactType = Literal["lesson", "worksheet", "quiz", "drill", "recap", "infographic"]
 ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "google_forms"]
 ResearchPolicy = Literal["basic", "standard", "rigorous"]

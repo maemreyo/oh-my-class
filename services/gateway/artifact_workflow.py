@@ -1,3 +1,11 @@
+"""Legacy gateway artifact workflow primitives.
+
+The production teaching-pack graph now uses ADR-020 LangGraph ``Send`` fan-out
+through ``packages.agents.teaching_pack``. This module remains for gateway-level
+fallback/test coverage and historical Pipeline V2 helpers; it is not the
+production teaching-pack artifact orchestrator.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -73,6 +81,8 @@ class ArtifactPlanItem:
 
 @dataclass(slots=True)
 class ArtifactOrchestrator:
+    """Gateway fallback orchestrator, not the teaching-pack graph runtime."""
+
     _generator: ArtifactGenerator
     _config: ArtifactOrchestratorConfig = ArtifactOrchestratorConfig()
 

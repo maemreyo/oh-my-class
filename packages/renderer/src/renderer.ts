@@ -14,6 +14,16 @@ import { sanitizeHtml } from "./sanitizer.js";
 import { sanitize } from "./sanitizer/index.js";
 
 export type { ArtifactDataMap, ArtifactType } from "./contracts/index.js";
+export {
+  renderSemanticAnchorProjection,
+  renderSemanticAnchorProjectionSet,
+} from "./semantic-anchor-projections.js";
+export type {
+  SemanticAnchorProjectionAudience,
+  SemanticAnchorProjectionKind,
+  SemanticAnchorProjectionRequest,
+  SemanticAnchorProjectionSet,
+} from "./semantic-anchor-projections.js";
 
 /**
  * Render typed artifact data to a sanitized, standalone HTML string.

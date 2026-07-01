@@ -80,7 +80,7 @@ describe("TeachingPackGateBody structured summaries", () => {
 			/>,
 		);
 
-		expect(html).toContain("Artifact Progress");
+		expect(html).toContain("Artifact status");
 		expect(html).toContain("lesson-1");
 		expect(html).toContain("Ready");
 		expect(html).toContain("Student view");

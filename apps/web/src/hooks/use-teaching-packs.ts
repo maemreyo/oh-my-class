@@ -4,6 +4,7 @@ import { useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient, gatewayUrl } from "@/lib/api-client";
 import type {
+	ArtifactStatusItem,
 	TeachingPackCreateRunRequest,
 	TeachingPackGateName,
 	TeachingPackResumeAcceptedResponse,
@@ -26,7 +27,9 @@ export type {
 export interface ArtifactProgressItem {
 	readonly artifact_id: string;
 	readonly artifact_type: string;
-	readonly status: "queued" | "generating" | "rendering" | "validating" | "ready" | "failed";
+	readonly status: "queued" | "generating" | "rendering" | "validating" | "ready" | "failed" | "passed" | "regenerating" | "skipped_due_dependency" | "escalated";
+	readonly summary?: string;
+	readonly teacher_action?: string;
 	readonly error?: string;
 }
 
@@ -39,6 +42,7 @@ export interface TeachingPackEventPayload {
 	readonly contract?: Readonly<Record<string, unknown>>;
 	readonly questions?: readonly Readonly<Record<string, unknown>>[];
 	readonly artifacts?: readonly ArtifactProgressItem[];
+	readonly artifact_statuses?: readonly ArtifactStatusItem[];
 	readonly [key: string]: unknown;
 }
 
@@ -173,6 +177,7 @@ const TEACHING_PACK_EVENT_NAMES = [
 	"teaching_pack.search_plan_confirmation.opened",
 	"teaching_pack.blueprint_approval.opened",
 	"teaching_pack.content_approval.opened",
+	"teaching_pack.artifact_workflow.status_changed",
 	"teaching_pack.content.approved_snapshots",
 	"teaching_pack.run.cancelled",
 ] as const;

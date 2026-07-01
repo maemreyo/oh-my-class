@@ -220,6 +220,32 @@ export const METHODOLOGY_REGISTRY = [
     "compatibleWith": [
       "active_recall"
     ]
+  },
+  {
+    "tag": "semantic_anchoring",
+    "labelEn": "Semantic Anchoring",
+    "labelVi": "Neo Tư Duy / Neo Mindset",
+    "description": "Teach confusing vocabulary through memorable bilingual semantic anchors and separate practice.",
+    "requiredComponents": [
+      "semantic_anchor_cluster",
+      "practice_set"
+    ],
+    "requirementMode": "all",
+    "supportedArtifacts": [
+      "lesson",
+      "worksheet",
+      "recap"
+    ],
+    "exportFormats": [
+      "html",
+      "gift",
+      "h5p"
+    ],
+    "conflicts": [],
+    "compatibleWith": [
+      "contrastive_pairs",
+      "active_recall"
+    ]
   }
 ] as const;
 

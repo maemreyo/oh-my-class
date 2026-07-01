@@ -43,6 +43,28 @@ export {
 	type MethodologyRegistryEntry,
 	type MethodologyRegistryTag,
 } from "./generated/methodology_registry.js";
+export {
+	AmbiguousVocabularyClusterSchema,
+	AnchorCardSchema,
+	PracticeItemSchema,
+	PracticeSetSchema,
+	InputNormalizationReportSchema,
+	SemanticAnchorClusterSchema,
+	NormalizedVocabularyClusterSchema,
+	type AmbiguousVocabularyCluster,
+	type AnchorCard,
+	type InputNormalizationReport,
+	type NormalizedVocabularyCluster,
+	type PracticeItem,
+	type PracticeSet,
+	type SemanticAnchorCluster,
+} from "./generated/vocabulary_batch.js";
+export {
+	VocabularyClusterEvidenceEntrySchema,
+	VocabularyClusterWorkflowSchema,
+	type VocabularyClusterEvidenceEntry,
+	type VocabularyClusterWorkflow,
+} from "./generated/vocabulary_cluster_workflow.js";
 export { LessonPlanSchema as LessonPlanSchemaLegacy } from "./lesson_plan.js";
 // Log context schemas
 export {

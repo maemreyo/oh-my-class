@@ -3,7 +3,9 @@
 export interface ArtifactProgressItem {
 	readonly artifact_id: string;
 	readonly artifact_type: string;
-	readonly status: "queued" | "generating" | "rendering" | "validating" | "ready" | "failed";
+	readonly status: "queued" | "generating" | "rendering" | "validating" | "ready" | "failed" | "passed" | "regenerating" | "skipped_due_dependency" | "escalated";
+	readonly summary?: string;
+	readonly teacher_action?: string;
 	readonly error?: string;
 }
 
@@ -14,10 +16,14 @@ export interface TeachingPackArtifactProgressProps {
 const STATUS_CONFIG = {
 	queued: { label: "Queued", color: "text-muted-foreground" },
 	generating: { label: "Generating", color: "text-blue-600" },
+	regenerating: { label: "Regenerating", color: "text-blue-600" },
 	rendering: { label: "Rendering", color: "text-amber-600" },
 	validating: { label: "Validating", color: "text-amber-600" },
 	ready: { label: "Ready", color: "text-green-600" },
+	passed: { label: "Passed", color: "text-green-600" },
 	failed: { label: "Failed", color: "text-destructive" },
+	skipped_due_dependency: { label: "Skipped due dependency", color: "text-amber-600" },
+	escalated: { label: "Escalated", color: "text-destructive" },
 } as const;
 
 export function TeachingPackArtifactProgress({ artifacts }: TeachingPackArtifactProgressProps) {
@@ -26,7 +32,7 @@ export function TeachingPackArtifactProgress({ artifacts }: TeachingPackArtifact
 	return (
 		<section aria-labelledby="artifact-progress-title" className="rounded-lg border border-border bg-card p-4">
 			<h2 id="artifact-progress-title" className="text-lg font-semibold">
-				Artifact Progress
+				Artifact status
 			</h2>
 			<div className="mt-3 space-y-2">
 				{artifacts.map((artifact) => {
@@ -34,20 +40,18 @@ export function TeachingPackArtifactProgress({ artifacts }: TeachingPackArtifact
 					return (
 						<div
 							key={artifact.artifact_id}
-							className="flex items-center justify-between rounded-md border border-border p-3"
+							className="rounded-md border border-border bg-background p-3"
 						>
-							<div className="flex items-center gap-3">
-								<span className="text-sm font-medium">{artifact.artifact_type}</span>
-								<span className="font-mono text-xs text-muted-foreground">{artifact.artifact_id}</span>
-							</div>
-							<div className="flex items-center gap-2">
+							<div className="flex items-start justify-between gap-3">
+								<div>
+									<p className="text-sm font-medium">{artifact.artifact_type}</p>
+									<p className="font-mono text-xs text-muted-foreground">{artifact.artifact_id}</p>
+								</div>
 								<span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
-								{artifact.error && (
-									<span className="text-xs text-destructive" title={artifact.error}>
-										⚠
-									</span>
-								)}
 							</div>
+							{artifact.summary ? <p className="mt-2 text-sm text-muted-foreground">{artifact.summary}</p> : null}
+							{artifact.teacher_action ? <p className="mt-1 text-sm font-medium">{artifact.teacher_action}</p> : null}
+							{artifact.error ? <p className="mt-1 text-xs text-destructive">{artifact.error}</p> : null}
 						</div>
 					);
 				})}

@@ -61,7 +61,7 @@ export default function RunDetailPage() {
 			{activeGate ? (
 				<TeachingPackGateShell
 					runId={runId}
-					event={activeGate}
+					event={gateEventWithRunArtifactStatuses(activeGate, run?.artifact_statuses ?? [])}
 					onResolved={() => setActiveGate(null)}
 				/>
 			) : null}
@@ -89,4 +89,12 @@ function isGateEvent(event: TeachingPackStatusEvent): boolean {
 	return typeof event.payload.gate_id === "string" && (
 		typeof event.payload.gate_name === "string" || typeof event.payload.gate === "string"
 	);
+}
+
+export function gateEventWithRunArtifactStatuses(
+	event: TeachingPackEventPayload,
+	artifactStatuses: TeachingPackEventPayload["artifact_statuses"],
+): TeachingPackEventPayload {
+	if (event.artifact_statuses?.length || artifactStatuses.length === 0) return event;
+	return { ...event, artifact_statuses: artifactStatuses };
 }

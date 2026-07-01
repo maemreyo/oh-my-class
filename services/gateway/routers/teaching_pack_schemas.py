@@ -37,6 +37,7 @@ class TeachingPackRunStatusResponse(BaseModel):
     run_id: str
     status: RunStatus
     raw_request: str
+    artifact_statuses: list[JsonObject] = Field(default_factory=list)
 
 
 class TeachingPackCancelResponse(BaseModel):

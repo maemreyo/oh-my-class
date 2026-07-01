@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime  # noqa: TC003 - SQLAlchemy evaluates mapped annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import JSON, DateTime, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -34,14 +34,14 @@ class ReleaseEvidenceRecord(Base):
     run_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     teacher_id_hash: Mapped[str] = mapped_column(String(16), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
-    event_sequence: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
+    event_sequence: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True)
     artifact_ids: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     snapshot_ids: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     export_files: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     trace_ids: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     total_duration_ms: Mapped[int] = mapped_column(Integer, default=0)
     per_stage_duration_ms: Mapped[dict[str, int] | None] = mapped_column(JSON, nullable=True)
-    provider_evidence: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
+    provider_evidence: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True)
     tokens_used: Mapped[int] = mapped_column(Integer, default=0)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
@@ -58,14 +58,14 @@ class ReleaseEvidence:
     run_id: str
     teacher_id_hash: str
     status: str
-    event_sequence: list[dict] = field(default_factory=list)
+    event_sequence: list[dict[str, Any]] = field(default_factory=list)
     artifact_ids: list[str] = field(default_factory=list)
     snapshot_ids: list[str] = field(default_factory=list)
     export_files: list[str] = field(default_factory=list)
     trace_ids: list[str] = field(default_factory=list)
     total_duration_ms: int = 0
     per_stage_duration_ms: dict[str, int] = field(default_factory=dict)
-    provider_evidence: list[dict] = field(default_factory=list)
+    provider_evidence: list[dict[str, Any]] = field(default_factory=list)
     tokens_used: int = 0
     cost_usd: float = 0.0
     created_at: datetime | None = None
@@ -149,6 +149,7 @@ async def generate_evidence(run_id: RunId, db: AsyncSession) -> ReleaseEvidence:
             "event_name": e.event_name,
             "stage": e.stage,
             "created_at": e.created_at.isoformat() if e.created_at else None,
+            "payload": e.payload if isinstance(e.payload, dict) else None,
         }
         for e in events
     ]
@@ -237,6 +238,11 @@ def render_evidence_markdown(evidence: ReleaseEvidence) -> str:
                 line += f" — {error}"
             provider_lines.append(line)
 
+    rollout_lines = [
+        *_artifact_send_rollout_lines(evidence.event_sequence),
+        *_vocabulary_batch_rollout_lines(evidence.event_sequence),
+    ]
+
     return "\n".join(
         (
             f"# Teaching Pack Release Evidence — {evidence.run_id}",
@@ -252,10 +258,67 @@ def render_evidence_markdown(evidence: ReleaseEvidence) -> str:
             "",
             "## Event sequence",
             *(event_lines or ["- none"]),
+            *rollout_lines,
             *provider_lines,
             "",
         )
     )
+
+
+def _artifact_send_rollout_lines(events: list[dict[str, Any]]) -> list[str]:
+    lines: list[str] = []
+    receipts = [
+        event.get("payload")
+        for event in events
+        if event.get("event_name") == "teaching_pack.artifact_send.rollout_evidence"
+        and isinstance(event.get("payload"), dict)
+    ]
+    if not receipts:
+        return lines
+    lines.append("")
+    lines.append("## Artifact Send rollout evidence")
+    for receipt in receipts:
+        if not isinstance(receipt, dict):
+            continue
+        scenario = str(receipt.get("scenario", "unknown"))
+        status = str(receipt.get("status", "unknown")).upper()
+        command = str(receipt.get("command", "not recorded"))
+        artifacts = receipt.get("artifacts")
+        artifact_list = ", ".join(str(value) for value in artifacts) if isinstance(artifacts, list) else "none"
+        lines.append(f"- [{status}] {scenario} — `{command}` — artifacts: {artifact_list}")
+    return lines
+
+
+def _vocabulary_batch_rollout_lines(events: list[dict[str, Any]]) -> list[str]:
+    lines: list[str] = []
+    receipts = [
+        event.get("payload")
+        for event in events
+        if event.get("event_name") == "teaching_pack.vocabulary_batch.rollout_evidence"
+        and isinstance(event.get("payload"), dict)
+    ]
+    if not receipts:
+        return lines
+    lines.append("")
+    lines.append("## Vocabulary batch rollout evidence")
+    for receipt in receipts:
+        if not isinstance(receipt, dict):
+            continue
+        scenario = str(receipt.get("scenario", "unknown"))
+        status = str(receipt.get("status", "unknown")).upper()
+        command = str(receipt.get("command", "not recorded"))
+        cluster_counts = receipt.get("cluster_counts")
+        counts = _format_counts(cluster_counts)
+        exports = receipt.get("exports")
+        export_list = ", ".join(str(value) for value in exports) if isinstance(exports, list) else "none"
+        lines.append(f"- [{status}] {scenario} — `{command}` — clusters: {counts} — exports: {export_list}")
+    return lines
+
+
+def _format_counts(value: object) -> str:
+    if not isinstance(value, dict):
+        return "none"
+    return ", ".join(f"{key}={count}" for key, count in sorted(value.items()))
 
 
 def write_evidence_report(evidence: ReleaseEvidence, directory: Path) -> Path:

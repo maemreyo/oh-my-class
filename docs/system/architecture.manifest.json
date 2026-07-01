@@ -185,6 +185,10 @@
     ]
   },
   "wiring": {
+    "artifact_send_default_enabled": true,
+    "artifact_send_reducer_channels_present": true,
+    "artifact_send_rollback_flag": "OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1",
+    "artifact_send_worker_node_present": true,
     "lead_agent_present": false,
     "legacy_graph_present": false,
     "middleware_runner_active": true,

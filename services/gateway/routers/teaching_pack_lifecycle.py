@@ -16,6 +16,7 @@ from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_store import (
     InvalidRunStatusTransitionError,
     TeachingPackEventCreate,
+    TeachingPackEventRead,
     TeachingPackRunStore,
     TeachingPackStatusTransition,
 )
@@ -44,11 +45,22 @@ async def get_teaching_pack_run(
     session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> TeachingPackRunStatusResponse:
     run = await get_run_with_ownership(run_id, current_user, session)
+    events = await TeachingPackRunStore(session).replay_events(RunId(run_id))
     return TeachingPackRunStatusResponse(
         run_id=run.run_id,
         status=run.status,
         raw_request=run.raw_request,
+        artifact_statuses=_latest_artifact_statuses(events),
     )
+
+
+def _latest_artifact_statuses(events: list[TeachingPackEventRead]) -> list[dict[str, object]]:
+    for event in reversed(events):
+        payload = event.payload or {}
+        values = payload.get("artifact_statuses")
+        if isinstance(values, list):
+            return [dict(value) for value in values if isinstance(value, dict)]
+    return []
 
 
 @lifecycle_router.post("/run/{run_id}/cancel", response_model=TeachingPackCancelResponse)

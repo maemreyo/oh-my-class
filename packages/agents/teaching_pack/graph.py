@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, NotRequired, TypedDict
 
 from packages.agents.teaching_pack.nodes import (
     TeachingPackState,
@@ -11,6 +11,7 @@ from packages.agents.teaching_pack.nodes import (
     route_after_unit_approval,
     route_after_teacher_approval,
 )
+from packages.agents.teaching_pack.artifact_fanout import route_after_artifact_workflow
 from packages.agents.teaching_pack.quality_routing import route_after_render_quality
 from packages.agents.teaching_pack.stages import TEACHING_PACK_STAGES, TeachingPackStage
 
@@ -20,7 +21,11 @@ if TYPE_CHECKING:
     from packages.agents.teaching_pack.ports import QualityGate
 
 InterruptSpec = list[str] | Literal["*"] | None
-type LangGraphRunnableConfig = dict[str, dict[str, str]]
+
+
+class LangGraphRunnableConfig(TypedDict):
+    configurable: dict[str, str]
+    max_concurrency: NotRequired[int]
 
 
 def build_teaching_pack_graph(
@@ -41,10 +46,13 @@ def build_teaching_pack_graph(
         quality_gate: Optional quality gate injected into the render_quality node.
     """
     from langgraph.graph import END, StateGraph
+    from packages.agents.teaching_pack.artifact_fanout import GENERATE_ONE_ARTIFACT_NODE
+    from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
 
     graph = StateGraph(TeachingPackState)
     for stage in TEACHING_PACK_STAGES:
         graph.add_node(stage.value, make_stage_node(stage, quality_gate=quality_gate, store=store))
+    graph.add_node(GENERATE_ONE_ARTIFACT_NODE, generate_one_artifact)
 
     first_stage = TEACHING_PACK_STAGES[0]
     graph.set_entry_point(first_stage.value)
@@ -91,6 +99,9 @@ def build_teaching_pack_graph(
                     TeachingPackStage.EXPORT_FINALIZE.value: TeachingPackStage.EXPORT_FINALIZE.value,
                 },
             )
+        elif previous is TeachingPackStage.ARTIFACT_WORKFLOW:
+            graph.add_conditional_edges(previous.value, route_after_artifact_workflow)
+            graph.add_edge(GENERATE_ONE_ARTIFACT_NODE, TeachingPackStage.ARTIFACT_WORKFLOW.value)
         elif previous is TeachingPackStage.RENDER_QUALITY:
             graph.add_conditional_edges(
                 previous.value,
@@ -126,4 +137,8 @@ def _normalize_interrupts(interrupts: InterruptSpec) -> InterruptSpec:
 
 
 def teaching_pack_thread_config(run_id: str) -> LangGraphRunnableConfig:
-    return {"configurable": {"thread_id": run_id}}
+    from packages.agents.teaching_pack.config import TeachingPackConfig
+
+    config: LangGraphRunnableConfig = {"configurable": {"thread_id": run_id}}
+    config["max_concurrency"] = TeachingPackConfig().default_artifact_parallelism
+    return config

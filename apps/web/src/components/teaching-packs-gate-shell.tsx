@@ -46,8 +46,9 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 		onResolved?.();
 	};
 
-	const showScopedRejection = gateName === "content_approval" && (event.artifacts?.length ?? 0) > 0;
-	const artifacts = (event.artifacts ?? []).map((a) => ({ id: a.artifact_id, type: a.artifact_type }));
+	const rejectionSourceArtifacts = event.artifact_statuses ?? event.artifacts ?? [];
+	const showScopedRejection = gateName === "content_approval" && rejectionSourceArtifacts.length > 0;
+	const artifacts = rejectionSourceArtifacts.map((a) => ({ id: a.artifact_id, type: a.artifact_type }));
 
 	return (
 		<section aria-labelledby="teaching-packs-gate-title" className="rounded-lg border border-border bg-card p-6">

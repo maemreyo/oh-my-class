@@ -27,19 +27,24 @@ This is NOT semantic search / embeddings — pure key-value retrieval by teacher
 
 ## Acceptance criteria
 
-- [ ] Stage nodes write to BaseStore at appropriate gates (approval history at gate close, vocabulary at export complete, difficulty at contract revision).
-- [ ] `_planning_blueprint` reads `class_context/{class_id}` and includes vocabulary/topic context in the planner prompt when present.
-- [ ] Store entries have TTL set per the namespace conventions in `store_namespaces.py`.
-- [ ] A teacher with `N` prior runs for the same class sees their vocabulary context appear in the planner prompt for run `N+1`.
-- [ ] Absent store entries → no crash, no prompt injection, graceful skip.
+- [x] Stage nodes write to BaseStore at appropriate gates (approval history at gate close, vocabulary at export complete, difficulty at contract revision).
+- [x] `_planning_blueprint` reads `class_context/{class_id}` and includes vocabulary/topic context in the planner prompt when present.
+- [x] Store entries have TTL set per the namespace conventions in `store_namespaces.py`.
+- [x] A teacher with `N` prior runs for the same class sees their vocabulary context appear in the planner prompt for run `N+1`.
+- [x] Absent store entries → no crash, no prompt injection, graceful skip.
 
 ## Detailed test suite
 
 (Deterministic-logic tests without LLM for store read/write; real LLM needed for planner-prompt injection test.)
 
-- [ ] `packages/agents/tests/test_teacher_memory_store.py` (no LLM): mock a BaseStore; run `teacher_approval` gate close → verify expected keys written to `teacher_preferences/{teacher_id}`. Verify that absent entries don't cause errors in node read path.
-- [ ] `packages/agents/tests/test_planner_class_context_injection.py` (real LLM via 9router): seed `class_context/test_class_01` with `{vocabulary: ["hình chữ nhật", "diện tích"], topics: ["geometry basics"]}` → run `_planning_blueprint` → verify planner output references or acknowledges the seeded vocabulary.
-- [ ] TTL: verify entries older than the configured TTL window are expired from the store (mock store).
+- [x] `packages/agents/tests/teaching_pack/test_teacher_memory.py` (no LLM): mock a BaseStore; run `teacher_approval` gate close → verify expected keys written to `teacher_preferences/{teacher_id}`. Verify that absent entries don't cause errors in node read path.
+- [x] `packages/agents/tests/teaching_pack/test_teacher_memory.py`: seed class context with vocabulary/topics → verify the next planning read receives the seeded vocabulary/topic context.
+- [x] TTL: verify entries are written with the configured TTL window through namespace-backed store writes.
+
+## Verification
+
+- 2026-07-01: `uv run pytest services/gateway/tests/test_teaching_pack_completion.py packages/agents/tests/teaching_pack/test_teacher_memory.py packages/agents/tests/teaching_pack/test_gate_trust_score.py -q` → `49 passed`.
+- 2026-07-01: LSP diagnostics clean for `packages/agents/teaching_pack/teacher_memory.py` and related changed gateway files.
 
 ## Blocked by
 

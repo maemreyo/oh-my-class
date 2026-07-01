@@ -7,16 +7,28 @@ from __future__ import annotations
 
 import itertools
 
-import pytest
-
 from packages.agents.teaching_pack.reducers import (
     stable_merge_artifacts,
     stable_merge_files,
+    stable_merge_workflow_states,
 )
 
 
-def _artifact(artifact_id: str, artifact_type: str = "lesson") -> dict:
+def _artifact(artifact_id: str, artifact_type: str = "lesson") -> dict[str, object]:
     return {"artifact_id": artifact_id, "artifact_type": artifact_type, "content": f"body-{artifact_id}"}
+
+
+def _workflow_state(
+    artifact_id: str,
+    artifact_type: str = "lesson",
+    status: str = "passed",
+) -> dict[str, object]:
+    return {
+        "workflow_id": f"wf-{artifact_id}",
+        "artifact_id": artifact_id,
+        "artifact_type": artifact_type,
+        "status": status,
+    }
 
 
 class TestStableMergeArtifacts:
@@ -68,9 +80,9 @@ class TestStableMergeArtifacts:
             _artifact("s4", "recap"),
         ]
         # Simulate 4 parallel Send branches completing in every possible order.
-        canonical: list[dict] | None = None
+        canonical: list[dict[str, object]] | None = None
         for perm in itertools.permutations(section_artifacts):
-            state: list[dict] = []
+            state: list[dict[str, object]] = []
             for artifact in perm:
                 state = stable_merge_artifacts(state, [artifact])
             if canonical is None:
@@ -134,3 +146,47 @@ class TestStableMergeFiles:
     def test_none_treated_as_empty(self):
         result = stable_merge_files(None, ["a.html"])  # type: ignore[arg-type]
         assert result == ["a.html"]
+
+
+class TestStableMergeWorkflowStates:
+    def test_new_overwrites_prev_by_workflow_id(self):
+        old = _workflow_state("quiz", "quiz", "running")
+        new = {**old, "status": "passed"}
+
+        result = stable_merge_workflow_states([old], [new])
+
+        assert result == [new]
+
+    def test_falls_back_to_artifact_id_when_workflow_id_missing(self):
+        old = {"artifact_id": "quiz", "artifact_type": "quiz", "status": "running"}
+        new = {"artifact_id": "quiz", "artifact_type": "quiz", "status": "failed"}
+
+        result = stable_merge_workflow_states([old], [new])
+
+        assert result == [new]
+
+    def test_permutation_property_all_arrivals_identical(self):
+        states = [
+            _workflow_state("lesson", "lesson"),
+            _workflow_state("worksheet", "worksheet"),
+            _workflow_state("quiz", "quiz"),
+            _workflow_state("recap", "recap"),
+        ]
+        canonical: list[dict[str, object]] | None = None
+
+        for perm in itertools.permutations(states):
+            merged: list[dict[str, object]] = []
+            for state in perm:
+                merged = stable_merge_workflow_states(merged, [state])
+            if canonical is None:
+                canonical = merged
+            else:
+                assert merged == canonical
+
+    def test_idempotent_reapplication(self):
+        states = [_workflow_state("lesson"), _workflow_state("quiz", "quiz")]
+
+        once = stable_merge_workflow_states([], states)
+        twice = stable_merge_workflow_states(once, states)
+
+        assert once == twice

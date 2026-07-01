@@ -178,6 +178,32 @@ class TestTeachingPackCompletionRecorder:
         assert outcome_delivery.calls == [(RunId("run-1"), "teacher-1", state)]
 
     @pytest.mark.anyio
+    async def test_auto_approval_is_teacher_visible_before_completion(self) -> None:
+        store = RecordingFailureStore()
+        export_writer = RecordingExportWriter()
+        recorder = TeachingPackCompletionRecorder(store, RecordingRenderer(), export_writer)
+        state = {
+            "run_id": "run-1",
+            "exported_files": ["exports/run-1/snapshot-1.html"],
+            "approved_snapshot_ids": ["snapshot-1"],
+            "approval_gate": {
+                "gate_name": "content_approval",
+                "auto_approved": True,
+                "snapshot_ids": ["snapshot-1"],
+            },
+        }
+
+        await recorder.persist_completion(RunId("run-1"), state)
+
+        assert store.events[-2] == TeachingPackEventCreate(
+            run_id=RunId("run-1"),
+            event_name="teaching_pack.content_approval.auto_approved",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            payload={"gate_name": "content_approval", "snapshot_ids": ["snapshot-1"]},
+        )
+        assert store.events[-1].event_name == "teaching_pack.run.completed"
+
+    @pytest.mark.anyio
     async def test_persists_render_quality_recovery_route(self) -> None:
         store = RecordingFailureStore()
         recorder = TeachingPackCompletionRecorder(store)

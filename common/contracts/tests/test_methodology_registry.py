@@ -40,6 +40,16 @@ def test_known_conflict_and_compatible_pairs_are_classified() -> None:
     assert compatibility_for("inverse_thinking", "active_recall") == "compatible"
 
 
+def test_semantic_anchoring_methodology_metadata_is_registered() -> None:
+    entries = {entry.tag: entry for entry in METHODOLOGY_REGISTRY}
+    entry = entries["semantic_anchoring"]
+
+    assert entry.label_vi == "Neo Tư Duy / Neo Mindset"
+    assert entry.required_components == ("semantic_anchor_cluster", "practice_set")
+    assert entry.supported_artifacts == ("lesson", "worksheet", "recap")
+    assert entry.export_formats == ("html", "gift", "h5p")
+
+
 def test_composite_projection_plan_preserves_registry_order_and_sources() -> None:
     plan = build_composite_projection_plan(["active_recall", "inverse_thinking"])
 

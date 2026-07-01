@@ -53,6 +53,7 @@ class TeachingPackCompletionRecorder:
             exported_files = await self._export_writer.write_exports(run_id, state)
             exported_file_values: list[JsonValue] = [str(file_path) for file_path in exported_files]
             completed_payload: JsonObject = {"exported_files": exported_file_values}
+            auto_approval_payload = _auto_approval_payload(state)
             await self._store.transition_status(TeachingPackStatusTransition(
                 run_id=run_id,
                 status=RunStatus.EXPORTING,
@@ -65,6 +66,13 @@ class TeachingPackCompletionRecorder:
                 stage=None,
                 reason="completed",
             ))
+            if auto_approval_payload is not None:
+                await self._store.write_event(TeachingPackEventCreate(
+                    run_id=run_id,
+                    event_name="teaching_pack.content_approval.auto_approved",
+                    visibility=TeachingPackEventVisibility.TEACHER,
+                    payload=auto_approval_payload,
+                ))
             await self._store.write_event(TeachingPackEventCreate(
                 run_id=run_id,
                 event_name="teaching_pack.run.completed",
@@ -134,7 +142,11 @@ class TeachingPackCompletionRecorder:
             run_id=run_id,
             event_name="teaching_pack.content_approval.opened",
             visibility=TeachingPackEventVisibility.TEACHER,
-            payload={"gate_id": gate_id, "snapshot_ids": gate_payload.get("snapshot_ids", [])},
+            payload={
+                "gate_id": gate_id,
+                "snapshot_ids": gate_payload.get("snapshot_ids", []),
+                "artifact_statuses": gate_payload.get("artifact_statuses", []),
+            },
         ))
 
     async def _persist_quality_recovery(
@@ -164,6 +176,19 @@ class TeachingPackCompletionRecorder:
 def _has_export_evidence(state: JsonObject) -> bool:
     exported_files = state.get("exported_files")
     return isinstance(exported_files, list) and len(exported_files) > 0
+
+
+def _auto_approval_payload(state: JsonObject) -> JsonObject | None:
+    gate = state.get("approval_gate")
+    if not isinstance(gate, dict) or gate.get("auto_approved") is not True:
+        return None
+    snapshot_ids = gate.get("snapshot_ids")
+    if not isinstance(snapshot_ids, list):
+        snapshot_ids = []
+    return {
+        "gate_name": str(gate.get("gate_name", "content_approval")),
+        "snapshot_ids": [str(snapshot_id) for snapshot_id in snapshot_ids],
+    }
 
 
 def _quality_recovery_route(state: JsonObject) -> str | None:

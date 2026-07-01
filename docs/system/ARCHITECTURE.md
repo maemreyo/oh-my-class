@@ -59,7 +59,7 @@ flowchart TB
   subgraph GRAPH["teaching-pack StateGraph (LangGraph + Postgres checkpointer)"]
     direction TB
     S1["setup_contract"] --> S2["preplanning_search"] --> S3["planning_blueprint<br/>→ planner_node"]
-    S3 --> S4["post_blueprint_research<br/>→ researcher_node"] --> S5["artifact_workflow<br/>→ content_creator_node"]
+    S3 --> S4["post_blueprint_research<br/>→ researcher_node"] --> S5["artifact_workflow<br/>→ content_creator_node<br/>or flag-gated Send fan-out"]
     S5 --> S6{"render_quality<br/>✅ 6-layer gate (rollout-flagged)<br/>+ healing routing"}
     S6 -->|recover| S3
     S6 -->|ok| S7["teacher_approval<br/>interrupt() 🔴 HITL"]
@@ -130,23 +130,47 @@ setup_contract → preplanning_search → planning_blueprint → post_blueprint_
 | preplanning_search | build research brief (thin) | — |
 | planning_blueprint | lesson plan | ✅ `planner_node` |
 | post_blueprint_research | enrich research | ✅ `researcher_node` |
-| artifact_workflow | generate artifacts | ✅ `content_creator_node` |
+| artifact_workflow | generate artifacts | ✅ `content_creator_node` imperative batch by default; ✅ flag-gated ADR-020 wave-based `Send` fan-out via `generate_one_artifact` |
 | render_quality | quality check + healing routing | ✅ 6-layer gate (see §6) |
 | teacher_approval | **HITL `interrupt()`** | — |
 | export_finalize | write exports | ✅ HTML/GIFT/H5P/QTI (see §8) |
 
 **Conditional routing:** after `render_quality` → recovery routes (`planning_blueprint` / `post_blueprint_research` / `artifact_workflow` / `teacher_approval`); after `teacher_approval` → `export_finalize` (approve) or `artifact_workflow` (scoped reject).
 
+### Partially implemented mode: `vocabulary_batch` (ADR-021 / ADR-022)
+
+`vocabulary_batch` is **contracted, not yet runtime-wired**. It is a specialized mode inside the same Teaching Pack runtime, not a separate vocabulary sidecar app. The user-facing surface may be a Vocabulary Batch Generator, but backend control-plane reuse remains mandatory: runs, jobs, gates, SSE, snapshots, quality, renderer/exporter, and BaseStore memory.
+
+The source-of-truth contracts are now present: `PipelineMode` includes `vocabulary_batch`, `methodology_registry` includes `semantic_anchoring` (`Neo Tư Duy / Neo Mindset`), and `common/contracts/vocabulary_batch.py` defines `VocabularyBatchConfig`, structured `InputNormalizationReport` ready/ambiguous cluster shapes, lexical grounding request/evidence/cache-key contracts, `LexicalGroundingBundle`, `SemanticAnchorCluster`, separate `PracticeSet`, projection refs, cluster statuses, and export policy. `common/contracts/vocabulary_cluster_workflow.py` adds per-cluster workflow lifecycle state, ordered evidence ledger entries, review status, export refs, and structured evidence redaction rules. Generated Zod schemas expose the same shapes under `common/schemas/src/generated/vocabulary_batch.ts`, `common/schemas/src/generated/vocabulary_cluster_workflow.ts`, and the generated methodology registry.
+
+The mode treats a vocabulary cluster as a child workflow unit, not as an `ArtifactType`. A cluster such as `travel / journey / trip / voyage / excursion` becomes a `VocabularyClusterWorkflow` with normalized input, lexical grounding, `SemanticAnchorCluster` RCM data, a separate `PracticeSet`, quality verdict, teacher edits, evidence ledger, and export refs. Gateway persistence now has vocabulary-cluster workflow/evidence SQLAlchemy models, store methods, and migration `019_vocabulary_cluster_workflows`; `FEATURE_VOCABULARY_BATCH_V1` guards runtime availability; `packages/agents/teaching_pack/vocabulary_input_normalizer.py` provides the deterministic free-form InputNormalizer capability; `packages/agents/sub_agents/researcher/lexical_grounding.py` provides the reusable Researcher `lexical_grounding` profile with teacher-only source notes, insufficient-evidence `needs_review`, and deterministic cache keys; `packages/agents/sub_agents/content_creator/semantic_anchor_synthesis.py` provides the reusable ContentCreator `semantic_anchor_synthesis` profile that validates `SemanticAnchorCluster`, retries invalid schema with feedback, fails closed, and exposes a compact student-safe projection; `packages/agents/sub_agents/practice_generator/semantic_anchor.py` provides a reusable PracticeGenerator semantic-anchor profile with four-intent `PracticeSet` validation, difficulty-target prompts, independent retry/fail-closed behavior, and a student projection that excludes answers/rationales; `packages/agents/teaching_pack/vocabulary_batch_orchestrator.py` branches flag-enabled `vocabulary_batch` mode from `_artifact_workflow` into per-cluster workflow/progress/event initialization with configurable async concurrency and typed failure actions; `packages/agents/teaching_pack/vocabulary_memory.py` provides vocabulary-specific BaseStore memory for teacher preferences, class/run context, reusable teacher/shared term distinctions, reviewed-only shared lexical promotion, and exact generated/reviewed cluster snapshots; `packages/quality/semantic_anchoring/gate.py` provides a per-cluster SemanticAnchoringQualityGate with passed/needs_review/failed verdicts, hard-block projection/HTML leakage, teacher-review lexical uncertainty, and quality-result evidence payloads; `packages/renderer/src/semantic-anchor-projections.ts` renders separate teacher/student teaching/practice HTML from the same `SemanticAnchorCluster` + `PracticeSet` contracts while keeping teacher scripts, source notes, edge cases, review flags, answers, rationales, and confidence details out of student projections; `packages/exporters/src/vocabulary-batch/index.ts` packages status-aware offline ZIP exports with root `index.html`, `manifest.json`, per-cluster files, diagnostics-only failed clusters, unapproved `needs_review` student-export withholding, and optional student-safe GIFT/H5P practice exports; `services/gateway/release_evidence.py` renders vocabulary-batch rollout receipts; `apps/web/src/components/vocabulary-batch-normalization-preview.tsx` renders ready and ambiguous clusters separately; `apps/web/src/components/vocabulary-batch-review-editor.tsx` provides cluster status review, warning banners, preview panes, validated field-level edits, approve/regenerate/skip actions, teacher preference events, and `needs_review` student-export withholding; and `apps/web/src/components/vocabulary-batch-dashboard.tsx` provides medium-batch progress/status navigation.
+
+Planned stage shape:
+
+```
+setup_contract
+  → normalize_vocab_batch_input
+  → lexical_grounding
+  → semantic_anchor_synthesis
+  → practice_generation
+  → vocabulary_batch_quality
+  → teacher_review
+  → export_finalize
+```
+
+Agent reuse is capability-based: InputNormalizer returns a structured ambiguity report; Researcher is reused through a `lexical_grounding` profile; content synthesis produces `SemanticAnchorCluster`; `PracticeGenerator` is a reusable assessment capability separated from ContentCreator; Reviewer/quality gates enforce lexical, pedagogical, projection, and standalone-HTML checks. See `.scratch/vocabulary-batch/` for the implementation slices.
+
 ### Sub-agents (6) — `packages/agents/sub_agents/`
 `planner`, `researcher`, `content_creator`, `reviewer`, `diagnostician`, `roadmap_agent`. All invoked as **direct node functions** (`await x_node(state)`) — there are no per-agent StateGraph wrappers in the runtime. `diagnostician`/`roadmap_agent` exist but are **not stages** in the 8-stage graph (no diagnostic/roadmap stage wired).
 
 ### Agent-interaction substrate (as-built constraints)
 The agents are **imperative calls inside stage nodes**, not graph nodes themselves — so the planned interaction work is shaped by what the runtime does/doesn't use today:
-- ⚪ `Command(goto=…)`, `Send(…)`, and `BaseStore`/`PostgresStore` (long-term store) are **not used anywhere** in the runtime. Routing is entirely `add_conditional_edges` returning node-name strings (`route_after_render_quality`, `route_after_teacher_approval`).
-- 🟡 The live `TeachingPackState` has **no `Annotated[…, reducer]` channels**; artifact merging is **imperative** (`_merge_regenerated_artifacts` in `nodes.py`, arrival-order). The only reducers (`merge_artifacts`, `merge_exported_files`) live on the **unused legacy** `OhMyClassState`.
-- ⚪ **No cross-run memory** (research-cache, ClassKG, KT-mastery, etc.) exists yet — only function-level `@lru_cache` over embedded JSON in `grounding/retrieval.py`.
+- 🟡 `Command(goto=…)` is **not used by the live runtime**. Routing is still `add_conditional_edges` returning node-name strings (`route_after_render_quality`, `route_after_teacher_approval`). `Send(…)` is the default artifact-generation path and dispatches artifact waves through `generate_one_artifact`; the old batch path is rollback-only behind `OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1`.
+- 🟡 `BaseStore`/`PostgresStore` substrate is wired into `build_teaching_pack_graph(store=...)`; it is used for narrow teacher-memory reads/writes, not as a broad semantic memory layer yet.
+- 🟡 The live `TeachingPackState` has reducer-backed artifact fan-out channels (`artifact_chunks`, `artifact_workflow_states`) with order-stable fan-in, duplicate prevention, and current-generation filtering. The default `Send` path reads/writes these channels; rollout evidence covers happy path, expected branch failure, checkpoint/resume, scoped regeneration, and release receipts. The old imperative batch merge is narrowed to `_rollback_artifact_workflow()` and is reachable only through the explicit rollback flag.
+- ⚪ `stable_merge_files` exists and is tested, but `exported_files` is not reducer-backed because export fan-out is not wired.
 - Inter-agent handoff carries the **full** `lesson_plan`/`research_bundle` in state; `summarizers.py` truncation is **prompt-side inside `content_creator`**, not a lossy graph handoff.
-> These constraints (and the planned subsystem that builds on them) are tracked in `.scratch/agent-interaction/` (stage = agent graph-identity; typed seam contracts; BaseStore substrate; state-flag/conditional-edge revision protocol; `Send` sub-agent fan-out). **Planned, not built.**
+> These constraints are tracked in `.scratch/agent-interaction/` and `.scratch/artifact-send-fanout/`: stage = agent graph-identity; typed seam contracts; BaseStore substrate; state-flag/conditional-edge revision protocol; and ADR-020's wave-based `Send` artifact fan-out. Artifact `Send` fan-out is the default path; the old imperative path is rollback-only.
 
 ### Lead agent
 The `create_react_agent` runtime (`agent.py`/`node.py`) and `lead_agent_node` bridge have been **removed** (confirmed by `architecture.manifest.json::lead_agent_present=false`). Parked helpers (`config.py`, `recovery.py`, `tools.py`) remain in `packages/agents/lead_agent/` — middleware and sub-agent call sites that still use them retain those references; the ReAct orchestrator itself is gone.
@@ -193,7 +217,7 @@ Mechanics: `teacher_approval` stage calls LangGraph `interrupt()`; a `GateInterr
 
 Gate is **rollout-flagged** (`OMC_ENABLE_SIX_LAYER_QUALITY`, default `true`): injected as `GatewayTeachingPackQualityGate()` in `lifespan`. Pass threshold: `overall ≥ 7.0` AND no critical/hard-block. On failure → healing routing (§7). LLM-judge layers use 9Router `4omc`.
 
-**Gateway artifact-workflow quality** (✅ separate, also wired): `services/gateway/artifact_workflow.py` runs `validate_artifact_content()` (placeholder / answer-key / PII / accessibility) during artifact generation, with `try_heal_artifact()`.
+**Gateway artifact-workflow quality** (⚪ separate module, not the production graph path): `services/gateway/artifact_workflow.py` contains a legacy `ArtifactOrchestrator` with dependency waves, `CapacityLimiter`, per-artifact retry, `validate_artifact_content()`, and `try_heal_artifact()`. The teaching-pack graph does not instantiate it; production artifact generation uses ADR-020 `Send` fan-out in `packages/agents/teaching_pack`, with `_rollback_artifact_workflow()` kept only for explicit rollback.
 
 > Net: the live path runs all 6 layers for each artifact: fast schema/coherence pre-check → real Layer-2 pedagogical/age/fact metrics → HTML hard-blocks → G-Eval 3-judge → export readiness. Manifest boolean `quality_gate_injected` is machine-verified each CI run.
 
@@ -217,6 +241,10 @@ Gate is **rollout-flagged** (`OMC_ENABLE_SIX_LAYER_QUALITY`, default `true`): in
 - ⚪ **google_forms** — exporter is fully built (OAuth `auth.ts`, `client.ts` createForm/batchUpdate, `question-mapper.ts`) but the registry raises `UnsupportedExportFormatError` (in `_UNSUPPORTED_FORMATS`).
 - ✅ **anki-apkg / flashcard-tsv** — implemented in `packages/exporters/src/` (functional, not invoked by the teaching-pack flow).
 
+Export also fails closed when required generated artifacts are unavailable. The graph projects teacher-safe per-artifact statuses (`passed`, `regenerating`, `failed`, `skipped_due_dependency`, `escalated`) before content approval and export; failed/skipped/escalated required artifacts produce an `export_blocked` response with a clear teacher-facing `export_block_reason` instead of a partial silent export.
+
+**Planned vocabulary batch export (ADR-021):** `vocabulary_batch` will package per-cluster teacher/student teaching HTML, teacher/student practice HTML, optional GIFT/H5P practice exports, a standalone offline `index.html`, and `manifest.json`. Export is status-aware: `passed` clusters export all student-safe files; `needs_review` clusters export teacher review files only until approval; `failed` clusters export diagnostics only.
+
 ---
 
 ## 9. LLM routing
@@ -236,7 +264,8 @@ Next.js 16.2 / React 19.2. Routes under `(dashboard)/`: `runs` (list), `runs/new
 
 - API client `lib/api-client.ts` → gateway (default `:8101`), Bearer from cookie, X-Request-ID.
 - `hooks/use-teaching-packs.ts`: create/resume mutations + **SSE consumer** (`/teaching-packs/runs/{id}/status`, named events, backoff, lastEventId). Legacy `use-run.ts`/`use-approval.ts` still present (some stubbed: `usePendingApprovals` returns []).
-- Gate UI: `teaching-packs-gate-shell.tsx` + `teaching-packs-gate-bodies.tsx` (clarification / contract / search-plan / blueprint / content-approval bodies; content-approval shows snapshot preview iframes student/teacher).
+- Gate UI: `teaching-packs-gate-shell.tsx` + `teaching-packs-gate-bodies.tsx` (clarification / contract / search-plan / blueprint / content-approval bodies; content-approval shows snapshot preview iframes student/teacher and teacher-safe per-artifact statuses for partial generation).
+- Artifact progress UI: `teaching-packs-artifact-progress.tsx` renders teacher-readable artifact statuses, summaries, and next actions; `use-teaching-packs.ts` consumes REST + SSE status payloads including `artifact_statuses` and `teaching_pack.artifact_workflow.status_changed`.
 - **Methodology system** (`components/methodology/`): 9 tags from the codegen'd `methodology_registry`, compatibility/conflict rules, inverse-thinking editor.
 - 🔴 Stubs: login page / JWT verify in `middleware.ts` (presence-only), `usePendingApprovals`.
 
@@ -270,7 +299,7 @@ INVARIANT-04 no external URLs in HTML (post-render guard) · INVARIANT-05 answer
 
 ## 14. Reality check — wired vs. not, and what's planned
 
-**Wired & functional (✅):** single 8-stage graph · sub-agents (planner/researcher/content_creator) · gate registry + HITL interrupt/resume · job queue/worker/sweeper · checkpointer · SSE · healing (5-strategy) · HTML/GIFT/H5P/QTI render + export · **6-layer quality gate** (rollout-flagged, default on; real Layer-2 metrics, G-Eval 3-judge) · gateway artifact-workflow quality (placeholder/answer-key/PII/accessibility) · **call-level middleware runner** (G1/G2/G3/G5) · retention/purge/PII · Langfuse · methodology system + Zod codegen · frontend create/monitor/approve.
+**Wired & functional (✅):** single 8-stage graph · sub-agents (planner/researcher/content_creator) · gate registry + HITL interrupt/resume · adaptive gate fast-lane (opt-in threshold; teacher-visible auto-approval event) · job queue/worker/sweeper · checkpointer · SSE · healing (5-strategy) · HTML/GIFT/H5P/QTI/Anki APKG/flashcard TSV render + export · **6-layer quality gate** (rollout-flagged, default on; real Layer-2 metrics, G-Eval 3-judge) · teacher-facing quality flags in content approval · BaseStore teacher/class memory · `generate_one_artifact` graph worker plus default artifact `Send` wave router/fan-in (rollback only via `OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1`) · teacher-safe partial artifact status · **call-level middleware runner** (G1/G2/G3/G5) · retention/purge/PII · Langfuse · methodology system + Zod codegen · frontend create/monitor/approve.
 
 **Wired but thin/partial (🟡):** worker pool configurable via `WORKER_CONCURRENCY` (default 1) · no schema_version on contracts.
 
@@ -280,9 +309,11 @@ INVARIANT-04 no external URLs in HTML (post-render guard) · INVARIANT-05 answer
 
 **By design for solo-operator (not defects):** 9Router on host (not containerized) · single in-process worker · LiteLLM optional/prod-only.
 
-**Planned, not built (in `.scratch/`, not in code):** topic-decomposition / multi-session units (ADR-017), learning-outcome effectiveness loop / knowledge-tracing (ADR-019), Wave 2+ features (unit_planner, persona, golden-dataset, Forms-capture, cost-cap, etc.), and the **agent-interaction subsystem** (`.scratch/agent-interaction/`: BaseStore semantic index, bounded revision protocol with state-flag/conditional-edge, interaction observability, `Send` parallel fan-out — native LangGraph, deterministic). Runtime-parity work (ADR-018: 6-layer gate, middleware runner, export formats, event-bus, sub-agent collapse) is **done** as of 2026-07-01. See `.scratch/ROADMAP.md`.
+**Planned, not built (in `.scratch/`, not in code):** learning-outcome effectiveness loop / knowledge-tracing (ADR-019), Wave 2+ features (unit_planner, persona, golden-dataset, Forms-capture, cost-cap, etc.), and the remaining **agent-interaction subsystem** (`.scratch/agent-interaction/`: BaseStore semantic index, bounded revision protocol with state-flag/conditional-edge, interaction observability, reviewer `Send` fan-out). Runtime-parity work (ADR-018: 6-layer gate, middleware runner, export formats, event-bus, sub-agent collapse) is **done** as of 2026-07-01. Artifact `Send` issues `001`–`008` are complete; artifact generation now uses Send by default with rollback-only legacy behavior. Unit decomposition is release-ready behind `FEATURE_TOPIC_DECOMPOSITION_V1`; see `.scratch/ROADMAP.md`.
 
-> **Status (2026-07-01):** All `runtime-parity` and `technical-debt` epics are confirmed done. Quality gate injected, middleware runner active, export formats wired (HTML/GIFT/H5P/QTI), legacy decommissioned — see `architecture.manifest.json` for machine-verified booleans. Open priorities tracked in `.scratch/priority-upgrades/`.
+**New planned vocabulary mode:** `vocabulary_batch` (ADR-021 / ADR-022, `.scratch/vocabulary-batch/`) adds Semantic Anchoring / Neo Tư Duy batch generation. It is documented as planned only: no `PipelineMode` value, cluster workflow table, SemanticAnchor contracts, PracticeGenerator, vocabulary quality gate, or batch export package is wired in the as-built runtime yet.
+
+> **Status (2026-07-01):** All `runtime-parity`, `technical-debt`, `priority-upgrades`, and `artifact-send-fanout` epics are confirmed done. Quality gate injected, middleware runner active, export formats wired (HTML/GIFT/H5P/QTI/Anki APKG/flashcard TSV), legacy decommissioned, model tiering available, teacher memory active, adaptive gate fast-lane emits teacher-visible audit events, and artifact `Send` fan-out is the default teacher-facing partial-status generation path — see `architecture.manifest.json` for machine-verified booleans.
 
 ---
 
@@ -292,7 +323,7 @@ INVARIANT-04 no external URLs in HTML (post-render guard) · INVARIANT-05 answer
 
 Docs drift because they are hand-written and unverified (that's why the previous architecture doc was wrong). The fix (tracked in `.scratch/technical-debt/006`):
 
-1. **Generate the volatile facts** — `scripts/generate_architecture_manifest.py` emits `docs/system/architecture.manifest.json` from code: stage list, routers, `RunStatus` values, gate names, migration count, exporter-registry formats, model assignments, and **wiring booleans** (`quality_gate_injected`, `middleware_runner_active`, `lead_agent_present`, `legacy_graph_present`). This doc cites the manifest for volatile lists instead of hand-maintaining them.
+1. **Generate the volatile facts** — `scripts/generate_architecture_manifest.py` emits `docs/system/architecture.manifest.json` from code: stage list, routers, `RunStatus` values, gate names, migration count, exporter-registry formats, model assignments, and **wiring booleans** (`quality_gate_injected`, `middleware_runner_active`, `lead_agent_present`, `legacy_graph_present`, artifact Send worker/reducer/default/rollback status). This doc cites the manifest for volatile lists instead of hand-maintaining them.
 2. **CI drift test** — `tests/test_architecture_sync.py` fails the build when the manifest diverges from code (e.g. someone injects/removes the quality gate, adds a stage, or changes export formats). Structural/wiring claims are machine-checked; prose stays human-authored.
 
 ---

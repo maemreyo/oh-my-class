@@ -49,6 +49,10 @@ class WiringManifest(TypedDict):
     lead_agent_present: bool
     legacy_graph_present: bool
     teaching_pack_graph_builder_present: bool
+    artifact_send_default_enabled: bool
+    artifact_send_worker_node_present: bool
+    artifact_send_reducer_channels_present: bool
+    artifact_send_rollback_flag: str
 
 
 class ArchitectureManifest(TypedDict):
@@ -175,16 +179,25 @@ def _string_list_keyword(call: ast.Call, key: str) -> list[str]:
 
 
 def _wiring_booleans() -> WiringManifest:
+    from packages.agents.teaching_pack.artifact_fanout import GENERATE_ONE_ARTIFACT_NODE
+    from packages.agents.teaching_pack.features import artifact_send_fanout_v1_enabled
     from packages.agents.teaching_pack.graph import build_teaching_pack_graph
+    from packages.agents.teaching_pack.nodes import TeachingPackState
     from services.gateway import main
 
     main_source = inspect.getsource(main.lifespan)
+    graph_source = inspect.getsource(build_teaching_pack_graph)
+    state_annotations = TeachingPackState.__annotations__
     return {
         "quality_gate_injected": "quality_gate=GatewayTeachingPackQualityGate() if _quality_gate_enabled() else None" in main_source,
         "middleware_runner_active": (PROJECT_ROOT / "packages" / "llm_client" / "middleware.py").exists(),
         "lead_agent_present": (PROJECT_ROOT / "packages" / "agents" / "lead_agent" / "agent.py").exists(),
         "legacy_graph_present": (PROJECT_ROOT / "packages" / "agents" / "graph.py").exists(),
         "teaching_pack_graph_builder_present": callable(build_teaching_pack_graph),
+        "artifact_send_default_enabled": artifact_send_fanout_v1_enabled(),
+        "artifact_send_worker_node_present": GENERATE_ONE_ARTIFACT_NODE in graph_source,
+        "artifact_send_reducer_channels_present": "artifact_chunks" in state_annotations and "artifact_workflow_states" in state_annotations,
+        "artifact_send_rollback_flag": "OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1",
     }
 
 

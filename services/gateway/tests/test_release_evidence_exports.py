@@ -8,7 +8,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from services.gateway.models import Base, Run, RunStatus
-from services.gateway.release_evidence import generate_evidence, render_evidence_markdown
+from services.gateway.release_evidence import ReleaseEvidence, generate_evidence, render_evidence_markdown
 from services.gateway.teaching_pack_models import RunEvent, TeachingPackEventVisibility
 from services.gateway.teaching_pack_types import RunId, TeacherId
 
@@ -64,3 +64,62 @@ class TestReleaseEvidenceExports:
         assert export_path in render_evidence_markdown(evidence)
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()
+
+    def test_render_markdown_includes_artifact_send_rollout_receipts(self) -> None:
+        evidence = ReleaseEvidence(
+            run_id="run-send-rollout",
+            teacher_id_hash="teacherhash1234",
+            status="completed",
+            event_sequence=[
+                {
+                    "sequence": 1,
+                    "event_name": "teaching_pack.artifact_send.rollout_evidence",
+                    "stage": "artifact_workflow",
+                    "created_at": "2026-07-01T00:00:00+00:00",
+                    "payload": {
+                        "scenario": "flag-on happy path",
+                        "status": "pass",
+                        "command": "uv run pytest tests/e2e/test_artifact_send_fanout_flow.py -q",
+                        "artifacts": ["lesson-1", "quiz-1", "recap-1"],
+                    },
+                },
+            ],
+        )
+
+        markdown = render_evidence_markdown(evidence)
+
+        assert "## Artifact Send rollout evidence" in markdown
+        assert "[PASS] flag-on happy path" in markdown
+        assert "test_artifact_send_fanout_flow.py" in markdown
+        assert "lesson-1, quiz-1, recap-1" in markdown
+
+    def test_render_markdown_includes_vocabulary_batch_rollout_receipts(self) -> None:
+        evidence = ReleaseEvidence(
+            run_id="run-vocabulary-rollout",
+            teacher_id_hash="teacherhash5678",
+            status="completed",
+            event_sequence=[
+                {
+                    "sequence": 1,
+                    "event_name": "teaching_pack.vocabulary_batch.rollout_evidence",
+                    "stage": "artifact_workflow",
+                    "created_at": "2026-07-01T00:00:00+00:00",
+                    "payload": {
+                        "scenario": "20-cluster happy path with partial review",
+                        "status": "pass",
+                        "command": "uv run pytest tests/e2e/test_vocabulary_batch_flow.py -q",
+                        "cluster_counts": {"passed": 18, "needs_review": 1, "failed": 1},
+                        "exports": ["exports/run-vocabulary/vocabulary-batch.zip"],
+                    },
+                },
+            ],
+            export_files=["exports/run-vocabulary/vocabulary-batch.zip"],
+        )
+
+        markdown = render_evidence_markdown(evidence)
+
+        assert "## Vocabulary batch rollout evidence" in markdown
+        assert "[PASS] 20-cluster happy path with partial review" in markdown
+        assert "test_vocabulary_batch_flow.py" in markdown
+        assert "failed=1, needs_review=1, passed=18" in markdown
+        assert "exports/run-vocabulary/vocabulary-batch.zip" in markdown

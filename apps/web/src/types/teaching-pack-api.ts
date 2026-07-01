@@ -31,10 +31,26 @@ export interface TeachingPackRunAcceptedResponse {
 	readonly queued: boolean;
 }
 
+export type ArtifactStatusValue =
+	| "passed"
+	| "regenerating"
+	| "failed"
+	| "skipped_due_dependency"
+	| "escalated";
+
+export interface ArtifactStatusItem {
+	readonly artifact_id: string;
+	readonly artifact_type: string;
+	readonly status: ArtifactStatusValue;
+	readonly summary: string;
+	readonly teacher_action: string;
+}
+
 export interface TeachingPackRunStatusResponse {
 	readonly run_id: string;
 	readonly status: TeachingPackRunStatus;
 	readonly raw_request: string;
+	readonly artifact_statuses?: readonly ArtifactStatusItem[];
 }
 
 export interface TeachingPackResumeRequest {

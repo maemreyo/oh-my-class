@@ -6,7 +6,7 @@ from typing import Final, Literal, assert_never
 CompatibilityStatus = Literal["compatible", "conflict", "neutral"]
 RequirementMode = Literal["any", "all"]
 
-METHODOLOGY_TAG_VALUES: Final = (
+MethodologyTag = Literal[
     "concept_map",
     "contrastive_pairs",
     "film_based",
@@ -16,9 +16,21 @@ METHODOLOGY_TAG_VALUES: Final = (
     "timed_quiz",
     "roleplay_script",
     "inverse_thinking",
-)
+    "semantic_anchoring",
+]
 
-MethodologyTag = Literal[*METHODOLOGY_TAG_VALUES]
+METHODOLOGY_TAG_VALUES: Final[tuple[MethodologyTag, ...]] = (
+    "concept_map",
+    "contrastive_pairs",
+    "film_based",
+    "shy_student_1on1",
+    "active_recall",
+    "why_wrong_reasoning",
+    "timed_quiz",
+    "roleplay_script",
+    "inverse_thinking",
+    "semantic_anchoring",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -151,14 +163,44 @@ METHODOLOGY_REGISTRY: Final[tuple[MethodologyRegistryEntry, ...]] = (
         export_formats=("html", "gift", "h5p"),
         compatible_with=("active_recall",),
     ),
+    MethodologyRegistryEntry(
+        tag="semantic_anchoring",
+        label_en="Semantic Anchoring",
+        label_vi="Neo Tư Duy / Neo Mindset",
+        description="Teach confusing vocabulary through memorable bilingual semantic anchors and separate practice.",
+        required_components=("semantic_anchor_cluster", "practice_set"),
+        requirement_mode="all",
+        supported_artifacts=("lesson", "worksheet", "recap"),
+        export_formats=("html", "gift", "h5p"),
+        compatible_with=("contrastive_pairs", "active_recall"),
+    ),
 )
 
 
 def methodology_entry_by_tag(tag: MethodologyTag) -> MethodologyRegistryEntry:
-    for entry in METHODOLOGY_REGISTRY:
-        if entry.tag == tag:
-            return entry
-    assert_never(tag)
+    match tag:
+        case "concept_map":
+            return METHODOLOGY_REGISTRY[0]
+        case "contrastive_pairs":
+            return METHODOLOGY_REGISTRY[1]
+        case "film_based":
+            return METHODOLOGY_REGISTRY[2]
+        case "shy_student_1on1":
+            return METHODOLOGY_REGISTRY[3]
+        case "active_recall":
+            return METHODOLOGY_REGISTRY[4]
+        case "why_wrong_reasoning":
+            return METHODOLOGY_REGISTRY[5]
+        case "timed_quiz":
+            return METHODOLOGY_REGISTRY[6]
+        case "roleplay_script":
+            return METHODOLOGY_REGISTRY[7]
+        case "inverse_thinking":
+            return METHODOLOGY_REGISTRY[8]
+        case "semantic_anchoring":
+            return METHODOLOGY_REGISTRY[9]
+        case unreachable:
+            assert_never(unreachable)
 
 
 def compatibility_for(left: MethodologyTag, right: MethodologyTag) -> CompatibilityStatus:
@@ -186,17 +228,20 @@ def all_pair_rules() -> tuple[MethodologyPairRule, ...]:
 
 
 def build_composite_projection_plan(tags: list[MethodologyTag]) -> CompositeProjectionPlan:
-    ordered_tags = tuple(tag for tag in METHODOLOGY_TAG_VALUES if tag in tags)
+    ordered_tag_list: list[MethodologyTag] = []
+    for tag in METHODOLOGY_TAG_VALUES:
+        if tag in tags:
+            ordered_tag_list.append(tag)
     required_components: list[str] = []
     sources: dict[str, list[MethodologyTag]] = {}
-    for tag in ordered_tags:
+    for tag in ordered_tag_list:
         entry = methodology_entry_by_tag(tag)
         for component in entry.required_components:
             if component not in required_components:
                 required_components.append(component)
             sources.setdefault(component, []).append(tag)
     return CompositeProjectionPlan(
-        ordered_tags=ordered_tags,
+        ordered_tags=tuple(ordered_tag_list),
         required_components=tuple(required_components),
         source_methodology_tags={component: tuple(source_tags) for component, source_tags in sources.items()},
     )

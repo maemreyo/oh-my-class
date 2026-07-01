@@ -40,6 +40,26 @@ def teacher_preferences_ns(teacher_id: str) -> Namespace:
     return (teacher_id, "preferences")
 
 
+def vocabulary_preferences_ns(teacher_id: str) -> Namespace:
+    return (teacher_id, "vocabulary_preferences")
+
+
+def vocabulary_run_context_ns(teacher_id: str, context_id: str) -> Namespace:
+    return (teacher_id, context_id, "vocabulary_context")
+
+
+def teacher_lexical_memory_ns(teacher_id: str) -> Namespace:
+    return (teacher_id, "lexical_memory")
+
+
+def shared_lexical_memory_ns() -> Namespace:
+    return ("shared", "lexical_memory")
+
+
+def vocabulary_cluster_snapshot_ns(teacher_id: str, run_id: str) -> Namespace:
+    return (teacher_id, run_id, "vocabulary_cluster_snapshots")
+
+
 def component_effectiveness_ns(teacher_id: str) -> Namespace:
     """(agent-upgrades/003) Component effectiveness feedback — teacher-scoped."""
     return (teacher_id, "component_effectiveness")
