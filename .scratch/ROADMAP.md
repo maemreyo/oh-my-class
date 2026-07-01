@@ -7,6 +7,37 @@ Index of roadmap ADRs and epics, with the dependency-ordered execution plan and 
 
 ---
 
+## ⚠️ AUDIT 2026-07-01 — false-green correction (AUTHORITATIVE)
+
+A full code-verified audit (6 parallel auditors, checked against source, not checkmarks) found a **systemic false-green pattern**: real, unit-tested leaf modules that are **never wired into any runtime path**. Tests pass because fixtures hand-construct the intermediate contracts instead of running the prior stage. Per-unit "real DB + real LLM" is **not sufficient** — without a real-graph end-to-end run, unwired code goes green.
+
+**The ✅ marks in the epic sections below are SUPERSEDED by this table where they conflict.** Root cause of prevention: `testing/008` canonical-flow harness (real graph, LLM boundary only stubbed) + a "no zero-caller runtime module" lint. Direction pivot: **"make the green real"** before new intelligence — see the memory note `project_next_phase_direction`.
+
+**Corrected verdicts:**
+
+| Area | Prior | Audited reality |
+|------|-------|-----------------|
+| `artifact-send-fanout/` (all 8), `agent-interaction/000,002a` | ✅ | ✅ **REAL** — the one epic wired end-to-end & tested against the real graph. `ai-001` is PARTIAL (`ArtifactWorkflowHandoff` only fires on the legacy rollback path, not the default Send path). |
+| `priority-upgrades/` (all 5) | ✅ | ✅ **REAL** — model tiering, teacher memory, adaptive fast-lane, quality-flags, Anki/TSV all runtime-wired. |
+| security/infra: `hardening/*`, `scaling-resilience/001,002`, `trust-lifecycle/001`, `td-001/002/003`, `testing/001,003`, `runtime-parity/002,004,006` | ✅ | ✅ **REAL**. |
+| `runtime-parity/001` + `technical-debt/003` (Layer-2 quality) | ✅ | ⚠️ **PARTIAL** — gate injected but FED EMPTY DATA: `fact_check` sources always `[]` (nothing writes `metadata.research_sources`; `ResearchSource` has no body field); 3/5 pedagogical metrics unconditionally pass (no `lesson_plan` passed); **no Layer-4 G-Eval / Layer-6 in the gate**. |
+| `runtime-parity/003` | ✅ | ⚠️ **PARTIAL** — legacy `/run/{id}/status` SSE still reads the old in-memory bus. |
+| `runtime-parity/005` | ✅ | ⚠️ **PARTIAL** — `ExporterRegistry.export` returns hardcoded path strings (real writer lives downstream). |
+| `technical-debt/002` | ✅ | ⚠️ **PARTIAL** — `stream()` skips `after_call`; MockLLMClient bypasses the runner. |
+| `technical-debt/004` | ✅ | ⚠️ **PARTIAL** — Lead Agent gone, but root `docker-compose.prod.yml` still has a dangling `9router` dep. |
+| **`topic-decomposition/` (units)** | ✅✅✅ | ❌ **POTEMKIN** — no runtime ever creates a `UNIT_PARENT` row. REAL: `td-001/002/003`. `td-021` sequence_critic & `td-006` unit_planner are deterministic Python, **not** the specced LLM agents. `td-005/008/009/014/015/016/017/018` = zero non-test callers (dark). `td-019` "release-gate E2E" calls `decide()`, never runs end-to-end. `td-004/007/010/011/013` = partially-wired shells whose runtime paths never fire. |
+| **`vocabulary-batch/` (12)** | ✅ all | ❌ **POTEMKIN** — REAL: `vb-001/002`. Orchestrator stops at `status="queued"`; grounding→synthesis→practice→gate→export is **never chained**. `vb-004/005/006/008/010/012` = zero non-test callers. "E2E happy path" asserts the pipeline stops at `queued`. |
+| **`effectiveness-loop/004,005`** | ✅ | ❌ **POTEMKIN** — `el-004` "pyBKT" is a hardcoded EMA (pyBKT pinned, never imported); `el-005` dashboard shows literal `"74%"`; mastery never reaches the planner; `record_attempt`/`mastery_for`/`decide_mastery_action` = zero non-test callers. `el-003` (capture) honestly not-done — so 004/005 run on synthetic air. |
+| `scaling-resilience/003` | ✅ | ❌ **POTEMKIN** — circuit breaker & error classifier zero callers; `LLMClient.chat` never raises `TransientProviderError`; requeue unreachable. |
+| `ops-observability/002` | ✅ | ❌ **POTEMKIN** — DR is row-COUNT only; no `pg_dump`/`pg_restore`. |
+| `trust-lifecycle/002` | ✅ | ❌ **POTEMKIN** — `evaluate_model_drift`/`snapshot_models` zero callers; drift never triggers. |
+| `testing/004` (DeepEval) | ✅ | ❌ **POTEMKIN** — metrics imported for `__name__` assertions, never `.measure()`'d; not wired into layers 2/4/6. |
+| `testing/006` (promptfoo) | ✅ | ❌ **POTEMKIN** — `promptfoo.yaml` never invoked (comment only, no CI step); "security" tests are regex over constant strings. |
+| `ops-observability/001,003,005` | ✅ | ⚠️ **PARTIAL** — SLO metrics real but `dispatch_slo_alerts` dead; runbooks exist but not linked from alerts; webhook inbound real but **outbound dispatch is TODO**. |
+| `testing/002` | ✅ | ⚠️ **PARTIAL** — seam tests real; per-agent tests are `pytest.skip` scaffolds. |
+
+---
+
 ## ADRs (decisions of record)
 
 | ADR | Title | Scope |
@@ -32,6 +63,7 @@ Index of roadmap ADRs and epics, with the dependency-ordered execution plan and 
 - ✅ `006` Collapse sub-agent StateGraph wrappers — **DONE** (no `make_*_agent`/`*_graph_node` wrappers remain; sub-agents are direct node functions).
 
 ### `topic-decomposition/` (21) — multi-session unit feature (ADR-017)
+> ❌ **AUDIT 2026-07-01: POTEMKIN as a feature** — leaf modules built, but no runtime creates a `UNIT_PARENT` row so the whole fan-out is dark. Only `td-001/002/003` are REAL. The ✅ marks below are superseded by the audit banner. Parked pending resurrection (after vocabulary-batch).
 - ✅ `001` Contracts + Zod codegen — **DONE 2026-06-30** · ✅ `005` Curriculum grounding source — **DONE 2026-06-30** *(no blockers)*
 - ✅ `002` Unit persistence + migration — **DONE 2026-06-30** *(←001)* · `003` SequenceConsistencyValidator + networkx *(←001)* · `004` Triage stage + `plan_unit` mode *(←001)*
 - `013` ClassProfile + persona *(←001,002)* · `006` `unit_planner` agent *(←001,003,005)*
@@ -66,6 +98,7 @@ Index of roadmap ADRs and epics, with the dependency-ordered execution plan and 
 - `004` Post-delivery content recall + incident *(←effectiveness-loop-001)*
 
 ### `effectiveness-loop/` (7) — does it actually teach? (ADR-019) *(after topic-decomp KC contracts + scaling-005)*
+> ❌ **AUDIT 2026-07-01: el-004/005 POTEMKIN** — "pyBKT" is a hardcoded EMA (pyBKT pinned, never imported); dashboard shows literal `"74%"`; mastery never reaches the planner. `el-003` (capture) honestly not-done, so the loop runs on synthetic air. To be made real in a later phase (real `el-003` capture → genuine pyBKT). The ✅ marks below are superseded by the audit banner.
 - `001` Outcome data model + question `kc_ids` + privacy/consent foundation *(←td-001)*
 - ✅ `002` De-stub pedagogical metrics (real proxies / explicit `unmeasured`) — **DONE 2026-06-30** *(no blockers — silent-pass fix, do early)*
 - `003` Google Forms delivery + response capture (auto, no manual entry) *(←001, scaling-005)*
@@ -124,6 +157,7 @@ New epic from the 2026-07-01 `Send` research + grilling. Issue files: `.scratch/
 > Dependency order: `001 → 002 → 003 → 004 → 005 → 006 → 007 → 008`. Start after `agent-interaction/000` ✅; it does **not** wait for unit fan-out because this is intra-run artifact fan-out.
 
 ### `vocabulary-batch/` (12) — Semantic Anchoring / Neo Tư Duy batch generator (ADR-021, ADR-022)
+> ❌ **AUDIT 2026-07-01: POTEMKIN as a feature** — orchestrator stops at `status="queued"`; grounding→synthesis→practice→gate→export is never chained. Only `vb-001/002` REAL; the capabilities (`vb-004/005/006/008/010`) are real but zero-caller. **This is Phase 2 — the first flagship to be made real** (smallest gap, bricks exist). The ✅ marks below are superseded by the audit banner.
 
 New epic from the 2026-07-01 Semantic Anchoring research + grilling. Issue files: `.scratch/vocabulary-batch/`. This adds a production-ready `vocabulary_batch` mode inside the existing Teaching Pack runtime: teacher free-form cluster input → normalized clusters → lexical grounding → SemanticAnchorCluster RCM synthesis → PracticeSet generation → quality/review → standalone teacher/student exports.
 
