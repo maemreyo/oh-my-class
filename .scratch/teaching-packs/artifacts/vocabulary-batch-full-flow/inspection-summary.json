@@ -1,0 +1,112 @@
+{
+  "files": [
+    "clusters/cluster-failed/diagnostics.html",
+    "clusters/cluster-passed/practice-student.html",
+    "clusters/cluster-passed/practice-teacher.html",
+    "clusters/cluster-passed/practice.gift.txt",
+    "clusters/cluster-passed/practice.h5p",
+    "clusters/cluster-passed/teaching-student.html",
+    "clusters/cluster-passed/teaching-teacher.html",
+    "clusters/cluster-review/practice-teacher.html",
+    "clusters/cluster-review/teaching-teacher.html",
+    "index.html",
+    "manifest.json"
+  ],
+  "manifest": {
+    "packageType": "vocabulary_batch",
+    "batchId": "batch-full-flow",
+    "title": "Vocabulary Batch Full Flow",
+    "generatedBy": "oh-my-class",
+    "clusters": [
+      {
+        "clusterId": "cluster-passed",
+        "title": "Travel words",
+        "terms": [
+          "travel",
+          "journey",
+          "trip"
+        ],
+        "status": "passed",
+        "exportStatus": "passed",
+        "teacherApproved": true,
+        "warnings": [],
+        "files": [
+          {
+            "kind": "teaching_teacher_html",
+            "path": "clusters/cluster-passed/teaching-teacher.html"
+          },
+          {
+            "kind": "practice_teacher_html",
+            "path": "clusters/cluster-passed/practice-teacher.html"
+          },
+          {
+            "kind": "teaching_student_html",
+            "path": "clusters/cluster-passed/teaching-student.html"
+          },
+          {
+            "kind": "practice_student_html",
+            "path": "clusters/cluster-passed/practice-student.html"
+          },
+          {
+            "kind": "gift",
+            "path": "clusters/cluster-passed/practice.gift.txt"
+          },
+          {
+            "kind": "h5p",
+            "path": "clusters/cluster-passed/practice.h5p"
+          }
+        ]
+      },
+      {
+        "clusterId": "cluster-review",
+        "title": "Thin evidence words",
+        "terms": [
+          "travel",
+          "journey",
+          "trip"
+        ],
+        "status": "needs_review",
+        "exportStatus": "needs_review",
+        "teacherApproved": false,
+        "warnings": [
+          "Thin source evidence."
+        ],
+        "files": [
+          {
+            "kind": "teaching_teacher_html",
+            "path": "clusters/cluster-review/teaching-teacher.html"
+          },
+          {
+            "kind": "practice_teacher_html",
+            "path": "clusters/cluster-review/practice-teacher.html"
+          }
+        ]
+      },
+      {
+        "clusterId": "cluster-failed",
+        "title": "Failed words",
+        "terms": [
+          "travel",
+          "journey",
+          "trip"
+        ],
+        "status": "failed",
+        "exportStatus": "failed",
+        "teacherApproved": false,
+        "warnings": [
+          "Projection leakage detected."
+        ],
+        "files": [
+          {
+            "kind": "diagnostics",
+            "path": "clusters/cluster-failed/diagnostics.html"
+          }
+        ]
+      }
+    ]
+  },
+  "studentLeakage": [],
+  "lmsLeakage": [],
+  "httpAssetFiles": [],
+  "indexHasScriptTag": false
+}
