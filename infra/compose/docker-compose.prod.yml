@@ -27,9 +27,6 @@ services:
   proxy:
     restart: always
 
-  router:
-    restart: always
-
   web:
     restart: always
     deploy:

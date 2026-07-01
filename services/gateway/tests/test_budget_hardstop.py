@@ -1,10 +1,6 @@
-"""Tests for BudgetExceededError hard-stop behaviour.
-
-No real LLM required — we test the error class semantics and the
-TokenBudgetMiddleware hard-stop path directly.
-"""
 from __future__ import annotations
 
+import anyio
 import pytest
 
 from services.gateway.budget import BudgetConfig, BudgetExceededError, BudgetLedger, check_budget
@@ -29,10 +25,9 @@ def test_budget_exceeded_error_is_exception() -> None:
     assert isinstance(exc, Exception)
 
 
-def test_check_budget_tokens_raises_when_exceeded() -> None:
+def test_check_budget_tokens_returns_false_when_exceeded() -> None:
     ledger = BudgetLedger(tokens_used=600_000)
     config = BudgetConfig(max_tokens_per_run=500_000)
-    # check_budget returns False when exceeded (does NOT raise — caller decides)
     result = check_budget(ledger, config, "tokens")
     assert result is False
 
@@ -44,37 +39,27 @@ def test_check_budget_returns_true_within_limit() -> None:
 
 
 def test_budget_exceeded_error_preserves_completed_stages() -> None:
-    """Simulate a mid-pipeline hard-stop: completed_stages info is preserved
-    in the BudgetExceededError attributes, not discarded.
-    """
     completed_stages = ["stage_01_plan", "stage_02_research"]
-
     exc = BudgetExceededError("tokens", 600_000, 500_000)
-    # Attach completed_stages to the error (caller pattern)
-    exc.completed_stages = completed_stages  # type: ignore[attr-defined]
+    exc.__dict__["completed_stages"] = completed_stages
 
-    assert exc.completed_stages == completed_stages
+    assert exc.__dict__["completed_stages"] == completed_stages
     assert exc.budget_type == "tokens"
     assert "tokens" in str(exc)
 
 
 def test_token_budget_middleware_hard_stop() -> None:
-    """TokenBudgetExceededError is raised — same hard-stop contract."""
+    from packages.agents.middleware.base import MiddlewareContext
     from packages.agents.middleware.safety.token_budget import (
         TokenBudgetExceededError,
         TokenBudgetMiddleware,
     )
 
-    middleware = TokenBudgetMiddleware(budget=1000)
-    # Simulate state that has already exceeded the budget
-    state = {"tokens_used": 1001}
-
-    import asyncio
-
-    async def _run():
-        from packages.agents.middleware.base import MiddlewareContext
+    async def run_middleware() -> None:
+        middleware = TokenBudgetMiddleware(budget=1000)
+        state = {"tokens_used": 1001}
         ctx = MiddlewareContext(agent_name="test", step=1, run_id="run-x")
         with pytest.raises(TokenBudgetExceededError):
             await middleware.before_model(state, ctx)
 
-    asyncio.run(_run())
+    anyio.run(run_middleware)

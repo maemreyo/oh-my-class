@@ -44,7 +44,7 @@ def build_teaching_pack_graph(
 
     graph = StateGraph(TeachingPackState)
     for stage in TEACHING_PACK_STAGES:
-        graph.add_node(stage.value, make_stage_node(stage, quality_gate=quality_gate))
+        graph.add_node(stage.value, make_stage_node(stage, quality_gate=quality_gate, store=store))
 
     first_stage = TEACHING_PACK_STAGES[0]
     graph.set_entry_point(first_stage.value)
@@ -62,15 +62,15 @@ def build_teaching_pack_graph(
             )
             graph.add_node(
                 TeachingPackStage.UNIT_PLANNING.value,
-                make_stage_node(TeachingPackStage.UNIT_PLANNING, quality_gate=quality_gate),
+                make_stage_node(TeachingPackStage.UNIT_PLANNING, quality_gate=quality_gate, store=store),
             )
             graph.add_node(
                 TeachingPackStage.UNIT_APPROVAL.value,
-                make_stage_node(TeachingPackStage.UNIT_APPROVAL, quality_gate=quality_gate),
+                make_stage_node(TeachingPackStage.UNIT_APPROVAL, quality_gate=quality_gate, store=store),
             )
             graph.add_node(
                 TeachingPackStage.UNIT_PREP.value,
-                make_stage_node(TeachingPackStage.UNIT_PREP, quality_gate=quality_gate),
+                make_stage_node(TeachingPackStage.UNIT_PREP, quality_gate=quality_gate, store=store),
             )
             graph.add_edge(TeachingPackStage.UNIT_PLANNING.value, TeachingPackStage.UNIT_APPROVAL.value)
             graph.add_conditional_edges(

@@ -8,7 +8,6 @@ from __future__ import annotations
 import os
 
 import pytest
-import pytest_asyncio
 
 # ---------------------------------------------------------------------------
 # Shared skip guard
@@ -29,17 +28,16 @@ def _require_feature() -> None:
 
 def _build_linear_sequence(n_sessions: int = 3):
     """Build a simple linear LessonSequence with *n_sessions* chained sessions."""
-    from common.contracts.lesson_sequence import LessonSequence, SessionPlan
-    from common.contracts.methodology_registry import MethodologyTag
+    from common.contracts.lesson_sequence import BloomLevel, LessonSequence, SessionPlan
 
-    bloom_cycle = ["remember", "understand", "apply", "analyze", "evaluate", "create"]
+    bloom_cycle: list[BloomLevel] = ["remember", "understand", "apply", "analyze", "evaluate", "create"]
     methodology_cycle = [
-        MethodologyTag.CONCEPT_MAP,
-        MethodologyTag.PROBLEM_SOLVING,
-        MethodologyTag.DEBATE,
-        MethodologyTag.ROLE_PLAY,
-        MethodologyTag.INQUIRY_BASED,
-        MethodologyTag.PROJECT_BASED,
+        "concept_map",
+        "contrastive_pairs",
+        "active_recall",
+        "why_wrong_reasoning",
+        "timed_quiz",
+        "inverse_thinking",
     ]
     sessions = []
     for i in range(1, n_sessions + 1):
@@ -146,7 +144,6 @@ async def test_unit_failure_recovery_e2e() -> None:
 
     # Use a 3-session parallel sequence so failure isolation is clear.
     from common.contracts.lesson_sequence import LessonSequence, SessionPlan
-    from common.contracts.methodology_registry import MethodologyTag
 
     sessions = [
         SessionPlan(
@@ -157,7 +154,7 @@ async def test_unit_failure_recovery_e2e() -> None:
             duration_minutes=30,
             learning_objectives=["Obj"],
             bloom_level_primary="understand",
-            methodology_primary=MethodologyTag.CONCEPT_MAP,
+            methodology_primary="concept_map",
             prerequisite_sessions=[],  # independent
         )
         for i in range(1, 4)
@@ -251,8 +248,6 @@ async def test_no_silent_downgrade() -> None:
     The unit_planner_node raises ClarificationRequiredError (or ValueError) for
     ambiguous/empty requests rather than silently returning a 1-session sequence.
     """
-    import asyncio
-
     from packages.agents.sub_agents.unit_planner import (
         ClarificationRequiredError,
         unit_planner_node,
@@ -271,8 +266,8 @@ async def test_no_silent_downgrade() -> None:
         teacher_preferences=None,
     )
 
-    with pytest.raises((ClarificationRequiredError, ValueError, Exception)):
-        asyncio.run(unit_planner_node(state))
+    with pytest.raises(ClarificationRequiredError):
+        await unit_planner_node(state)
 
 
 # ---------------------------------------------------------------------------

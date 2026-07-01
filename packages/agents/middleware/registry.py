@@ -1,12 +1,3 @@
-"""Middleware registry — canonical ordered list of all 31 pipeline middleware layers.
-
-Import from this module to get the complete, ordered middleware chain.
-The list is ordered by `order` attribute (1–31). ClarificationMiddleware
-MUST always be last (order=31).
-
-Do NOT reorder entries without updating all references.
-"""
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -51,37 +42,82 @@ from packages.agents.middleware.sequence_consistency_validator import SequenceCo
 from packages.agents.middleware.terminal.clarification import ClarificationMiddleware
 
 ORDERED_MIDDLEWARE_LIST: list[type[BaseMiddleware]] = [
-    InputSanitizationMiddleware,          # order=1   safety
-    TokenBudgetMiddleware,                # order=2   safety
-    ThreadDataMiddleware,                 # order=3   safety
-    UploadsMiddleware,                    # order=4   safety
-    ContentSafetyMiddleware,              # order=5   safety
-    DanglingToolCallMiddleware,           # order=6   safety
-    LLMErrorHandlingMiddleware,           # order=7   safety
-    GuardrailMiddleware,                  # order=8   safety
-    TeacherAuditLogMiddleware,            # order=9   safety
-    ToolErrorHandlingMiddleware,          # order=10  safety
-    LoopDetectionMiddleware,              # order=11  safety
-    SafetyFinishReasonMiddleware,         # order=12  safety
-    DynamicContextMiddleware,             # order=13  context
-    SkillActivationMiddleware,            # order=14  context
-    SummarizationMiddleware,              # order=15  context
-    TodoListMiddleware,                   # order=16  context
-    TokenUsageMiddleware,                 # order=17  context
-    TitleMiddleware,                      # order=18  context
-    MemoryMiddleware,                     # order=19  context
-    ViewImageMiddleware,                  # order=20  context
-    DeferredToolFilterMiddleware,         # order=21  context
-    SystemMessageCoalescingMiddleware,    # order=22  context
-    SubagentLimitMiddleware,              # order=23  quality
-    CurriculumAlignmentMiddleware,        # order=24  quality
-    ReadabilityLevelMiddleware,           # order=25  quality
-    PedagogicalQualityMiddleware,         # order=26  quality
-    BiasDetectionMiddleware,              # order=27  quality
-    ArtifactCoherenceMiddleware,          # order=28  quality
-    LearningObjectiveAlignmentMiddleware, # order=29  quality
-    SequenceConsistencyValidator,         # order=30  quality
-    ClarificationMiddleware,              # order=31  terminal (MUST be last)
+    InputSanitizationMiddleware,
+    TokenBudgetMiddleware,
+    ThreadDataMiddleware,
+    UploadsMiddleware,
+    ContentSafetyMiddleware,
+    DanglingToolCallMiddleware,
+    LLMErrorHandlingMiddleware,
+    GuardrailMiddleware,
+    TeacherAuditLogMiddleware,
+    ToolErrorHandlingMiddleware,
+    LoopDetectionMiddleware,
+    SafetyFinishReasonMiddleware,
+    DynamicContextMiddleware,
+    SkillActivationMiddleware,
+    SummarizationMiddleware,
+    TodoListMiddleware,
+    TokenUsageMiddleware,
+    TitleMiddleware,
+    MemoryMiddleware,
+    ViewImageMiddleware,
+    DeferredToolFilterMiddleware,
+    SystemMessageCoalescingMiddleware,
+    SubagentLimitMiddleware,
+    CurriculumAlignmentMiddleware,
+    ReadabilityLevelMiddleware,
+    PedagogicalQualityMiddleware,
+    BiasDetectionMiddleware,
+    ArtifactCoherenceMiddleware,
+    LearningObjectiveAlignmentMiddleware,
+    SequenceConsistencyValidator,
+    ClarificationMiddleware,
 ]
 
 EXPECTED_MIDDLEWARE_COUNT: int = 31
+
+RUN_ENTRY_MIDDLEWARE: tuple[type[BaseMiddleware], ...] = (
+    InputSanitizationMiddleware,
+    UploadsMiddleware,
+    ThreadDataMiddleware,
+    TitleMiddleware,
+    MemoryMiddleware,
+    TokenBudgetMiddleware,
+)
+
+GENERATION_CONTEXT_MIDDLEWARE: dict[str, tuple[type[BaseMiddleware], ...]] = {
+    "planner": (DynamicContextMiddleware, SkillActivationMiddleware),
+    "content_creator": (DynamicContextMiddleware, SkillActivationMiddleware),
+}
+
+GATE_LAYER_MIDDLEWARE: tuple[type[BaseMiddleware], ...] = (
+    TeacherAuditLogMiddleware,
+    ClarificationMiddleware,
+)
+
+QUALITY_GATE_CONSOLIDATED_MIDDLEWARE: tuple[type[BaseMiddleware], ...] = (
+    CurriculumAlignmentMiddleware,
+    ReadabilityLevelMiddleware,
+    PedagogicalQualityMiddleware,
+    BiasDetectionMiddleware,
+    ArtifactCoherenceMiddleware,
+    LearningObjectiveAlignmentMiddleware,
+)
+
+PARKED_REACT_MIDDLEWARE: dict[type[BaseMiddleware], str] = {
+    DanglingToolCallMiddleware: "ReAct tool-call recovery only; teaching-pack stages do not use tools directly.",
+    ToolErrorHandlingMiddleware: "ReAct tool-call error handling only; deterministic stages fail through typed paths.",
+    LoopDetectionMiddleware: "Conversational loop detection only; teaching-pack graph has bounded conditional edges.",
+    SubagentLimitMiddleware: "ReAct subagent fan-out only; teaching-pack fan-out uses explicit graph limits.",
+    DeferredToolFilterMiddleware: "ReAct tool filtering only; deterministic stages have no deferred tool list.",
+    SummarizationMiddleware: "Conversational context compression only; stage seams use typed state.",
+    TodoListMiddleware: "Conversational planning aid only; teaching-pack progress is graph state.",
+    ViewImageMiddleware: "Image-view tool accounting only; uploads are handled at run entry.",
+}
+
+ACTIVE_MIDDLEWARE: tuple[type[BaseMiddleware], ...] = (
+    *RUN_ENTRY_MIDDLEWARE,
+    *GENERATION_CONTEXT_MIDDLEWARE["planner"],
+    *GATE_LAYER_MIDDLEWARE,
+)

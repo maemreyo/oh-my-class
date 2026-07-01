@@ -54,7 +54,7 @@ def _topic(state: UnitPlannerNodeState) -> str:
     if isinstance(topic, str) and topic.strip():
         return topic.strip()
     request = state.get("raw_request", "")
-    return request.strip() or "Untitled unit"
+    return request.strip()
 
 
 def _grounding_status(grounding: dict[str, Any] | None) -> GroundingStatus:

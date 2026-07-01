@@ -8,6 +8,11 @@ from packages.agents.sub_agents.researcher.state import ResearcherNodeState
 
 from packages.agents.teaching_pack.artifacts import normalize_generated_artifacts
 from packages.agents.teaching_pack.exporters import ExportRequest, ExporterRegistry, requested_export_formats
+from packages.agents.teaching_pack.middleware_runtime import (
+    run_entry_middleware as _run_entry_middleware,
+    run_gate_middleware as _run_gate_middleware,
+    run_generation_context_middleware as _run_generation_context_middleware,
+)
 from packages.agents.teaching_pack.quality_runtime import render_quality
 from packages.agents.teaching_pack.reducers import stable_merge_artifacts
 from packages.agents.teaching_pack.scoped_regeneration import (
@@ -17,6 +22,8 @@ from packages.agents.teaching_pack.scoped_regeneration import (
 )
 
 if TYPE_CHECKING:
+    from langgraph.store.base import BaseStore
+
     from packages.agents.teaching_pack.ports import QualityGate
     from packages.agents.teaching_pack.stages import TeachingPackStage
 
@@ -54,12 +61,17 @@ class TeachingPackState(TypedDict):
     exported_files: NotRequired[list[str]]
 
 
-def make_stage_node(stage: TeachingPackStage, quality_gate: QualityGate | None = None):
+def make_stage_node(
+    stage: TeachingPackStage,
+    quality_gate: QualityGate | None = None,
+    store: BaseStore | None = None,
+):
     async def stage_node(state: TeachingPackState) -> TeachingPackState:
         if stage.value in state.get("completed_stages", []):
             return state
         match stage.value:
             case "setup_contract":
+                state = await _run_entry_middleware(state)
                 update = _setup_contract(state)
             case "triage":
                 update = await _triage(state)
@@ -72,7 +84,7 @@ def make_stage_node(stage: TeachingPackStage, quality_gate: QualityGate | None =
             case "preplanning_search":
                 update = _preplanning_search(state)
             case "planning_blueprint":
-                update = await _planning_blueprint(state)
+                update = await _planning_blueprint(state, store=store)
             case "post_blueprint_research":
                 update = await _post_blueprint_research(state)
             case "artifact_workflow":
@@ -80,12 +92,14 @@ def make_stage_node(stage: TeachingPackStage, quality_gate: QualityGate | None =
             case "render_quality":
                 update = await _render_quality(state, quality_gate=quality_gate)
             case "teacher_approval":
-                update = _teacher_approval(state)
+                update = await _teacher_approval_with_middleware(state, store=store)
             case "export_finalize":
-                update = _export_finalize(state)
+                update = _export_finalize(state, store=store)
             case unreachable:
                 assert_never(unreachable)
-        return _complete_stage({**state, **update}, stage.value)
+        merged_state = state.copy()
+        merged_state.update(update)
+        return _complete_stage(merged_state, stage.value)
 
     stage_node.__name__ = stage.value
     return stage_node
@@ -191,14 +205,36 @@ def _preplanning_search(state: TeachingPackState) -> TeachingPackState:
     }
 
 
-async def _planning_blueprint(state: TeachingPackState) -> TeachingPackState:
+async def _planning_blueprint(
+    state: TeachingPackState,
+    *,
+    store: BaseStore | None = None,
+) -> TeachingPackState:
+    state = await _run_generation_context_middleware("planner", state, 3)
     contract = state.get("contract", {})
     from packages.agents.sub_agents.planner.nodes import planner_node
     from common.contracts.seam_contracts import PlannerHandoff
 
+    class_info = _class_info(contract)
+    if store is not None:
+        teacher_id = _string_field(contract, "teacher_id", "")
+        if teacher_id:
+            from packages.agents.teaching_pack.teacher_memory import read_class_vocabulary
+            vocab_ctx = read_class_vocabulary(
+                store, teacher_id,
+                _string_field(contract, "subject", "general"),
+                _string_field(contract, "grade_band", "Grade 5"),
+            )
+            if vocab_ctx["vocabulary"] or vocab_ctx["topics"]:
+                class_info = {
+                    **class_info,
+                    "prior_vocabulary": vocab_ctx["vocabulary"],
+                    "prior_topics": vocab_ctx["topics"],
+                }
+
     planner_state: PlannerNodeState = {
         "raw_request": _string_field(contract, "raw_request", _topic(contract)),
-        "class_info": _class_info(contract),
+        "class_info": class_info,
         "run_id": state["run_id"],
         "current_step": 3,
         "lesson_plan": None,
@@ -228,6 +264,7 @@ async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackStat
 
 
 async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
+    state = await _run_generation_context_middleware("content_creator", state, 8)
     contract = state.get("contract", {})
     from packages.agents.sub_agents.content_creator.nodes import content_creator_node
     from common.contracts.seam_contracts import ArtifactWorkflowHandoff
@@ -256,11 +293,20 @@ async def _render_quality(
 ) -> TeachingPackState:
     return TeachingPackState(**await render_quality(state, quality_gate))
 
-def _teacher_approval(state: TeachingPackState) -> TeachingPackState:
+def _teacher_approval(
+    state: TeachingPackState,
+    *,
+    store: BaseStore | None = None,
+) -> TeachingPackState:
     from langgraph.types import interrupt
 
     snapshot_ids = [str(snapshot["snapshot_id"]) for snapshot in state.get("rendered_snapshots", [])]
     artifacts = state.get("artifacts", [])
+    artifact_types = [
+        str(a.get("artifact_type", ""))
+        for a in artifacts
+        if isinstance(a, dict)
+    ]
     gate_payload: JsonObject = {
         "gate": "content_approval",
         "gate_name": "content_approval",
@@ -270,13 +316,37 @@ def _teacher_approval(state: TeachingPackState) -> TeachingPackState:
         "quality_scores": state.get("quality_scores", {}),
         "run_id": state["run_id"],
     }
-    response = interrupt(gate_payload)
-    action = _string_field(response, "action", "reject")
-    feedback = _string_field(response, "feedback", "")
+
+    contract = state.get("contract", {})
+    teacher_id = _string_field(contract, "teacher_id", "")
+    auto_approved = False
+
+    if store is not None and teacher_id:
+        from packages.agents.config.gate_config import GateConfig
+        from packages.agents.teaching_pack.gate_trust import should_fast_lane
+        threshold = GateConfig().fast_lane_threshold
+        if threshold is not None and should_fast_lane(store, teacher_id, "content_approval", threshold):
+            auto_approved = True
+            gate_payload["auto_approved"] = True
+
+    if auto_approved:
+        action, feedback = "approve", ""
+        gate_response: JsonObject = {}
+    else:
+        gate_response = interrupt(gate_payload)
+        action = _string_field(gate_response, "action", "reject")
+        feedback = _string_field(gate_response, "feedback", "")
+
+    if store is not None and teacher_id:
+        from packages.agents.teaching_pack.gate_trust import record_gate_event
+        from packages.agents.teaching_pack.teacher_memory import write_gate_approval
+        record_gate_event(store, teacher_id, "content_approval", action, artifact_types)
+        write_gate_approval(store, teacher_id, "content_approval", action, artifact_types)
+
     return {
         "run_id": state["run_id"],
         "approval_gate": gate_payload,
-        "gate_payload": response,
+        "gate_payload": gate_response,
         "teacher_approved": action == "approve",
         "teacher_decision": action,
         "revision_feedback": feedback,
@@ -284,9 +354,34 @@ def _teacher_approval(state: TeachingPackState) -> TeachingPackState:
     }
 
 
-def _export_finalize(state: TeachingPackState) -> TeachingPackState:
+async def _teacher_approval_with_middleware(
+    state: TeachingPackState,
+    *,
+    store: BaseStore | None = None,
+) -> TeachingPackState:
+    return await _run_gate_middleware(_teacher_approval(state, store=store), 10)
+
+
+def _export_finalize(
+    state: TeachingPackState,
+    *,
+    store: BaseStore | None = None,
+) -> TeachingPackState:
     if not state.get("teacher_approved", False):
         return {"run_id": state["run_id"], "exported_files": []}
+    if store is not None:
+        contract = state.get("contract", {})
+        teacher_id = _string_field(contract, "teacher_id", "")
+        topic = _topic(contract)
+        if teacher_id and topic:
+            from packages.agents.teaching_pack.teacher_memory import write_vocabulary
+            write_vocabulary(
+                store, teacher_id,
+                _string_field(contract, "subject", "general"),
+                _string_field(contract, "grade_band", "Grade 5"),
+                topic,
+                [],
+            )
     snapshot_ids = state.get("approved_snapshot_ids", [])
     approved_snapshots = [
         snapshot for snapshot in state.get("rendered_snapshots", [])

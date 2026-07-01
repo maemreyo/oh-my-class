@@ -5,7 +5,7 @@ from packages.llm_client.config import LLMClientConfig
 
 def test_config_reads_from_centralized_llm_config() -> None:
     config = LLMClientConfig()
-    assert config.base_url == "http://localhost:20128/v1"
+    assert config.base_url == "http://localhost:20228/v1"
     assert config.timeout_s == 600.0
     assert config.max_retries == 3
     assert config.temperature == 0.1

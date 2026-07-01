@@ -1,7 +1,7 @@
 ---
 title: Collapse dead sub-agent StateGraph wrappers (behavior-preserving)
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -17,21 +17,21 @@ After legacy decommission (parity issue 004), the per-sub-agent `agent.py` (`mak
 
 ## Acceptance criteria
 
-- [ ] A per-agent audit confirms wrapper/`*_graph_node`/adapter callers; only legacy-only ones are removed, live ones (e.g. reviewer used by layer4) are kept.
-- [ ] No feature is lost: a capability inventory maps every wrapper-provided behavior to its retained node-path equivalent; nothing becomes unreachable.
-- [ ] Deleted files leave no dangling imports; `import-linter` and `dependency-cruiser` pass.
-- [ ] The teaching-pack runtime produces identical artifacts/behavior before vs after (golden comparison).
-- [ ] Remaining `OhMyClassState` coupling is reduced to what parity issue 002 (healing adapter) still requires.
+- [x] A per-agent audit confirms wrapper/`*_graph_node`/adapter callers; only legacy-only ones are removed, live ones (e.g. reviewer used by layer4) are kept.
+- [x] No feature is lost: a capability inventory maps every wrapper-provided behavior to its retained node-path equivalent; nothing becomes unreachable.
+- [x] Deleted files leave no dangling imports; `import-linter` and `dependency-cruiser` pass.
+- [x] The teaching-pack runtime produces identical artifacts/behavior before vs after (golden comparison).
+- [x] Remaining `OhMyClassState` coupling is reduced to what parity issue 002 (healing adapter) still requires.
 
 ## Detailed test suite
 
 (Real DB + real LLM via 9router port 20228, model `4omc`.)
 
-- [ ] `packages/agents/tests/test_subagent_capability_parity.py`: for each retained node (`planner_node`/`researcher_node`/`content_creator_node`), the same input produces the same output shape/behavior as before the collapse (golden snapshot).
-- [ ] `packages/agents/tests/test_no_dead_subagent_wrappers.py`: removed `make_*_agent`/`*_graph_node`/adapters have no remaining importers; kept ones (reviewer) still resolve their live caller.
-- [ ] Feature-inventory check: a documented list of each sub-agent's capabilities, each marked reachable via the node path post-collapse.
-- [ ] Regression: `make test` + `make check` pass; teaching-pack e2e output unchanged.
-- [ ] Run `uv run pytest packages/agents/tests/test_subagent_capability_parity.py packages/agents/tests/test_no_dead_subagent_wrappers.py -v`.
+- [x] `packages/agents/tests/test_subagent_capability_parity.py`: for each retained node (`planner_node`/`researcher_node`/`content_creator_node`), the same input produces the same output shape/behavior as before the collapse (golden snapshot).
+- [x] `packages/agents/tests/test_no_dead_subagent_wrappers.py`: removed `make_*_agent`/`*_graph_node`/adapters have no remaining importers; kept ones (reviewer) still resolve their live caller.
+- [x] Feature-inventory check: a documented list of each sub-agent's capabilities, each marked reachable via the node path post-collapse.
+- [x] Regression: `make test` + `make check` pass; teaching-pack e2e output unchanged.
+- [x] Run `uv run pytest packages/agents/tests/test_subagent_capability_parity.py packages/agents/tests/test_no_dead_subagent_wrappers.py -v`.
 
 ## Blocked by
 

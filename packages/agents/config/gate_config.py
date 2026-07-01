@@ -18,6 +18,7 @@ class GateConfig(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
+        env_ignore_empty=True,
     )
 
     # Layer 1: Schema validation
@@ -61,6 +62,13 @@ class GateConfig(BaseSettings):
     # Pipeline
     preflight_min_length: int = 10
     title_max_length: int = 50
+
+    # Adaptive fast-lane
+    # When set, gates with a teacher trust score >= this threshold are auto-approved.
+    # None (default) = fast-lane disabled; set to e.g. 0.85 to activate.
+    # Only applies to content_approval and blueprint_approval; hard-excluded gates
+    # (clarification_required, contract_confirmation) always interrupt.
+    fast_lane_threshold: float | None = None  # GATE_FAST_LANE_THRESHOLD
 
     # Judge word count thresholds per artifact type
     judge_min_words_lesson: int = 180

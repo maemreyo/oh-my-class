@@ -6,7 +6,11 @@ Uses Flesch-Kincaid readability score and forbidden content rules per age band.
 
 from __future__ import annotations
 
-from typing import Any
+import re
+from typing import TypedDict
+
+from packages.quality.layer2_content.age_band import get_age_band
+from packages.quality.layer2_content.readability_checker import _count_syllables, check_readability
 
 # Forbidden content patterns by age band
 FORBIDDEN_CONTENT: dict[str, list[str]] = {
@@ -15,6 +19,13 @@ FORBIDDEN_CONTENT: dict[str, list[str]] = {
     "middle_school": [],  # 6-8: standard restrictions
     "high_school": [],  # 9-12: minimal restrictions
 }
+
+
+class AgeAppropriatenessResult(TypedDict):
+    passed: bool
+    fk_score: float
+    issues: list[str]
+    measured: dict[str, bool]
 
 
 def compute_flesch_kincaid(text: str) -> float:
@@ -26,11 +37,14 @@ def compute_flesch_kincaid(text: str) -> float:
     Returns:
         Grade level score (e.g. 5.0 = 5th grade reading level).
 
-    TODO: Implement Flesch-Kincaid formula:
-        FK = 0.39 * (words/sentences) + 11.8 * (syllables/words) - 15.59
     """
-    # TODO: Implement syllable counting and sentence parsing
-    return 0.0
+    sentences = [sentence.strip() for sentence in re.split(r"[.!?]+", text) if sentence.strip()]
+    words = [word for word in text.split() if word]
+    if not sentences or not words:
+        return 0.0
+    average_sentence_length = len(words) / len(sentences)
+    average_syllables = sum(_count_syllables(word) for word in words) / len(words)
+    return round(0.39 * average_sentence_length + 11.8 * average_syllables - 15.59, 2)
 
 
 def check_age_appropriateness(
@@ -38,7 +52,7 @@ def check_age_appropriateness(
     grade_level: str,
     *,
     allowed_deviation: float = 1.5,
-) -> dict[str, Any]:
+) -> AgeAppropriatenessResult:
     """Check if content is appropriate for the target grade level.
 
     Args:
@@ -47,15 +61,46 @@ def check_age_appropriateness(
         allowed_deviation: Max allowed deviation from target grade level.
 
     Returns:
-        Dict with 'passed', 'fk_score', 'issues' keys.
+        Result with pass status, FK score, issues, and measurement flags.
     """
-    # TODO: Implement full check:
-    # 1. Compute Flesch-Kincaid score
-    # 2. Compare against target grade level ± allowed_deviation
-    # 3. Check forbidden content patterns for age band
-    # 4. Return results dict
+    grade = _parse_grade(grade_level)
+    if grade is None:
+        return {
+            "passed": True,
+            "fk_score": compute_flesch_kincaid(text),
+            "issues": [],
+            "measured": {"readability": False, "age_band": False},
+        }
+
+    readability = check_readability(text, grade)
+    issues: list[str] = []
+    if abs(readability.deviation) > allowed_deviation:
+        issues.append(
+            readability.warning
+            or f"Readability outside Grade {grade} band: FK {readability.fk_grade_level:.1f}",
+        )
+
+    band = get_age_band(grade)
+    forbidden_terms = FORBIDDEN_CONTENT.get(_age_band_key(band.label), [])
+    lowered = text.lower()
+    blocked_terms = [term for term in forbidden_terms if term.lower() in lowered]
+    if blocked_terms:
+        issues.append(f"Forbidden for {band.label}: {', '.join(blocked_terms)}")
+
     return {
-        "passed": True,
-        "fk_score": 0.0,
-        "issues": [],
+        "passed": len(issues) == 0,
+        "fk_score": readability.fk_grade_level,
+        "issues": issues,
+        "measured": {"readability": True, "age_band": True},
     }
+
+
+def _parse_grade(grade_level: str) -> int | None:
+    match = re.search(r"\d+", grade_level)
+    if match is None:
+        return None
+    return int(match.group())
+
+
+def _age_band_key(label: str) -> str:
+    return label.lower().replace(" ", "_").replace("-", "_")

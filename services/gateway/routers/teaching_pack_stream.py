@@ -44,8 +44,10 @@ async def stream_visible_run_events(
         observed_version = current_run_event_version(request.run_id)
         live_events = await store.replay_events(request.run_id, after_sequence=last_sequence)
         if not live_events:
-            await wait_for_run_event(request.run_id, observed_version, timeout_seconds=15.0)
+            woke = await wait_for_run_event(request.run_id, observed_version, timeout_seconds=15.0)
             live_events = await store.replay_events(request.run_id, after_sequence=last_sequence)
+            if not woke and not live_events:
+                yield ": heartbeat\n\n"
         for event in live_events:
             last_sequence = max(last_sequence, event.sequence)
             if event.visibility is TeachingPackEventVisibility.TEACHER:

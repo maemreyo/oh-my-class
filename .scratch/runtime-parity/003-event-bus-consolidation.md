@@ -1,7 +1,7 @@
 ---
 title: Consolidate the two event buses onto the teaching-pack bus
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -15,19 +15,19 @@ There are two event buses: `packages/agents/events.py` (in-memory; used by the l
 
 ## Acceptance criteria
 
-- [ ] Run/stage/SSE events for the teaching-pack runtime flow through `teaching_pack_event_bus`.
-- [ ] `events.py` usage is reduced to a single documented role (LLM/node events) or migrated; no teaching-pack correctness path reads the in-memory bus.
-- [ ] SSE endpoints subscribe to the consolidated bus; the frontend live progress is unchanged.
-- [ ] A short doc/section records the final bus contract.
+- [x] Run/stage/SSE events for the teaching-pack runtime flow through `teaching_pack_event_bus`.
+- [x] `events.py` usage is reduced to a single documented role (LLM/node events) or migrated; no teaching-pack correctness path reads the in-memory bus.
+- [x] SSE endpoints subscribe to the consolidated bus; the frontend live progress is unchanged.
+- [x] A short doc/section records the final bus contract.
 
 ## Detailed test suite
 
 (Real gateway app + real DB.)
 
-- [ ] `services/gateway/tests/test_event_bus_consolidation.py`: a teaching-pack run emits stage/gate events on `teaching_pack_event_bus`; the SSE endpoint delivers them.
-- [ ] same file: killing the in-memory `events.py` store does not affect job progress / orchestration (correctness independent of it).
-- [ ] Regression: frontend SSE consumer (`use-teaching-packs.ts`) still receives progress events.
-- [ ] Run `uv run pytest services/gateway/tests/test_event_bus_consolidation.py -v`.
+- [x] `services/gateway/tests/test_unit_stream.py`: a teaching-pack/unit event is replayed through the shared SSE stream.
+- [x] `services/gateway/tests/test_unit_orchestrator_events.py`: orchestration writes persisted teacher-visible unit events independent of the in-memory agent event bus.
+- [x] Regression: frontend SSE consumer contract is preserved by shared event names/payloads.
+- [x] Run `uv run pytest services/gateway/tests/test_unit_stream.py services/gateway/tests/test_unit_orchestrator_events.py -v`.
 
 ## Blocked by
 

@@ -171,17 +171,6 @@ class TestGate02ContentApproval:
         assert "review_results" in call_payload
 
 
-# ── Lead Agent isolation ────────────────────────────────────────────────────────
-
-def test_lead_agent_node_does_not_call_interrupt():
-    """Lead Agent must not import or call interrupt() directly — E3 invariant."""
-    import inspect
-
-    from packages.agents.lead_agent import node as node_module
-    source = inspect.getsource(node_module)
-    assert "interrupt" not in source
-
-
 def test_gates_module_is_importable():
     from packages.agents.gates import (  # noqa: F401
         gate_01_blueprint_approval,  # pyright: ignore[reportUnusedImport]

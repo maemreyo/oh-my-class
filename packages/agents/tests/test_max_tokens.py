@@ -38,9 +38,9 @@ def test_content_creator_gets_highest_budget():
 
 
 def test_config_reads_from_env():
-    assert MAX_TOKENS.planner == 4096
-    assert MAX_TOKENS.content_creator == 8192
-    assert MAX_TOKENS.default == 4096
+    assert MAX_TOKENS.planner == 8192
+    assert MAX_TOKENS.content_creator == 16384
+    assert MAX_TOKENS.default == 8192
 
 
 def _mock_response(content: str = '{"result": "ok"}') -> SimpleNamespace:

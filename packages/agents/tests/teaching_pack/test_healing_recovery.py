@@ -10,7 +10,7 @@ class FailingQualityGate:
     def __init__(self, failure_class: QualityFailureClass) -> None:
         self._failure_class = failure_class
 
-    async def evaluate(self, state):
+    async def evaluate(self, state, _artifact):
         return ArtifactQualityReport(
             artifact_id=state.artifact_id,
             artifact_type=state.artifact_type,
@@ -23,10 +23,11 @@ class FailingQualityGate:
         )
 
 
-def _valid_state(fail_count: int = 0) -> TeachingPackState:
+def _valid_state(fail_count: int = 0, max_healing_attempts: int | None = None) -> TeachingPackState:
     return TeachingPackState(
         run_id="run-healing",
         fail_count=fail_count,
+        **({"max_healing_attempts": max_healing_attempts} if max_healing_attempts is not None else {}),
         artifacts=[{
             "artifact_id": "lesson-1",
             "artifact_type": "lesson",
@@ -84,3 +85,14 @@ class TestTeachingPackHealingRecovery:
         assert result.get("healing_strategy") == "escalate"
         assert result.get("quality_recovery_route") == "teacher_approval"
         assert result.get("escalate") is True
+
+    @pytest.mark.anyio
+    async def test_zero_max_healing_attempts_disables_healing(self) -> None:
+        result = await _render_quality(
+            _valid_state(max_healing_attempts=0),
+            quality_gate=FailingQualityGate(QualityFailureClass.ANSWER_KEY_LEAKAGE),
+        )
+
+        assert "healing_strategy" not in result
+        assert result.get("quality_recovery_route") == "artifact_workflow"
+        assert result.get("fail_count") is None

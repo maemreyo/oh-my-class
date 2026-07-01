@@ -50,6 +50,10 @@ class WorkerRuntimeConfig:
 MAX_WORKER_CONCURRENCY = 10
 
 
+def _quality_gate_enabled() -> bool:
+    return os.getenv("OMC_ENABLE_SIX_LAYER_QUALITY", "true").casefold() in {"1", "true", "yes", "on"}
+
+
 def _worker_runtime_config() -> WorkerRuntimeConfig:
     mode = os.getenv("WORKER_MODE", "in_process")
     raw_concurrency = os.getenv("WORKER_CONCURRENCY", "1")
@@ -144,6 +148,7 @@ async def lifespan(app: FastAPI):
         open_teaching_pack_store,
         sync_connection_string,
     )
+    from services.gateway.teaching_pack_quality_gate import GatewayTeachingPackQualityGate
 
     environment = os.getenv("OMC_ENVIRONMENT", "development")
     database_url = os.getenv(
@@ -170,6 +175,7 @@ async def lifespan(app: FastAPI):
         app.state.teaching_pack_graph = build_teaching_pack_graph(
             checkpointer=app.state.checkpointer,
             store=store,
+            quality_gate=GatewayTeachingPackQualityGate() if _quality_gate_enabled() else None,
         )
 
         async with anyio.create_task_group() as task_group:

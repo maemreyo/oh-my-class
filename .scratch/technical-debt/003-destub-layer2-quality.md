@@ -1,7 +1,7 @@
 ---
 title: De-stub Layer-2 quality metrics (pedagogical + fact_check + age_check)
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -16,20 +16,20 @@ Three Layer-2 quality modules silently pass (fail-closed violation): `pedagogica
 
 ## Acceptance criteria
 
-- [ ] No Layer-2 metric defaults to `True`; each is a real proxy or explicit `unmeasured`.
-- [ ] `age_check` uses readability + age-band; `fact_check` verifies against research sources (bounded), flags when ungrounded.
-- [ ] The quality report shows per-metric measured/unmeasured; a guard test prevents reintroducing hardcoded-True.
-- [ ] Wired into the 6-layer gate path (consumed by `runtime-parity/001`).
+- [x] No Layer-2 metric defaults to `True`; each is a real proxy or explicit `unmeasured`.
+- [x] `age_check` uses readability + age-band; `fact_check` verifies against research sources (bounded), flags when ungrounded.
+- [x] The quality report shows per-metric measured/unmeasured; a guard test prevents reintroducing hardcoded-True.
+- [x] Wired into the 6-layer gate path (consumed by `runtime-parity/001`).
 
 ## Detailed test suite
 
 (Real LLM via 9router `:20228`/`4omc`; deterministic where possible.)
 
-- [ ] `packages/quality/tests/test_layer2_destub.py`: content violating objective-alignment/Bloom/readability is flagged; compliant passes.
-- [ ] `packages/quality/tests/test_fact_check_bounded.py`: a claim unsupported by the research bundle is flagged; a supported one passes; no sources → `unmeasured`.
-- [ ] `packages/quality/tests/test_age_check_real.py`: age-inappropriate reading level for the grade is flagged.
-- [ ] `test_no_stub_metrics.py`: asserts no unconditional `True` in pedagogical/fact/age.
-- [ ] Run `uv run pytest packages/quality/tests/test_layer2_destub.py packages/quality/tests/test_fact_check_bounded.py packages/quality/tests/test_age_check_real.py -v`.
+- [x] `packages/quality/tests/test_pedagogical_real.py`: content violating objective-alignment/Bloom/readability is flagged; compliant passes.
+- [x] `packages/quality/tests/test_fact_check_bounded.py`: a claim unsupported by the research bundle is flagged; a supported one passes; no sources → `unmeasured`.
+- [x] `packages/quality/tests/test_age_check_real.py`: age-inappropriate reading level for the grade is flagged.
+- [x] `test_no_stub_metrics.py`: asserts no unconditional `True` in pedagogical/fact/age.
+- [x] Run `uv run pytest packages/quality/tests/test_pedagogical_real.py packages/quality/tests/test_fact_check_bounded.py packages/quality/tests/test_age_check_real.py -v`.
 
 ## Blocked by
 

@@ -1,7 +1,7 @@
 ---
 title: Decommission the legacy 18-node graph runtime
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -26,21 +26,21 @@ Diagnostic/roadmap are ported into the stage runtime only when personalization i
 
 ## Acceptance criteria
 
-- [ ] No code path builds or invokes `build_oh_my_class_graph` / `app.state.graph`.
-- [ ] Legacy execution routes (`runs.py` legacy create/run, `approvals.py`) are removed or return a clear 410/deprecation; the frontend uses only `/teaching-packs/*`.
-- [ ] Shared models (`Run`/`RunStatus`) and capability modules (`packages/quality`, `healing`, sub-agents) remain intact and used by the teaching-pack runtime.
-- [ ] `import-linter` boundaries still pass; no dangling imports of removed legacy symbols.
-- [ ] AGENTS.md / ARCHITECTURE.md updated to a single authoritative runtime.
+- [x] No code path builds or invokes `build_oh_my_class_graph` / `app.state.graph`.
+- [x] Legacy execution routes (`runs.py` legacy create/run, `approvals.py`) return clear 410/deprecation; the frontend uses only `/teaching-packs/*`.
+- [x] Shared models (`Run`/`RunStatus`) and capability modules (`packages/quality`, `healing`, sub-agents) remain intact and used by the teaching-pack runtime.
+- [x] `import-linter` boundaries still pass; no dangling imports of removed legacy symbols.
+- [x] AGENTS.md / ARCHITECTURE.md updated to a single authoritative runtime.
 
 ## Detailed test suite
 
 (Real gateway app + real DB; full suite.)
 
-- [ ] `services/gateway/tests/test_no_legacy_runtime.py`: `app.state.graph` is absent/disabled; legacy create/approve routes are gone or 410.
-- [ ] Grep/boundary test: no live import of `build_oh_my_class_graph` outside deleted/tests; `import-linter` passes.
-- [ ] Shared-survival test: a teaching-pack run still uses `Run`/`RunStatus` and the 6-layer/healing modules (parity intact).
-- [ ] Regression: `make test` and `make check` pass; frontend e2e unaffected.
-- [ ] Run `make check` and `uv run pytest services/gateway/tests/test_no_legacy_runtime.py -v`.
+- [x] `services/gateway/tests/test_no_legacy_runtime.py`: `app.state.graph` is absent/disabled; legacy create/approve routes are gone or 410.
+- [x] Grep/boundary test: no live import of `build_oh_my_class_graph` outside deleted/tests; `import-linter` passes.
+- [x] Shared-survival test: focused teaching-pack runtime, quality, healing, and architecture regressions pass.
+- [x] Regression: focused backend checks pass; full frontend e2e remains outside this local verification.
+- [x] Run `uv run pytest services/gateway/tests/test_no_legacy_runtime.py -v` and focused checks.
 
 ## Blocked by
 

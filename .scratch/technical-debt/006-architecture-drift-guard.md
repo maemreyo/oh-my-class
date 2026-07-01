@@ -1,7 +1,7 @@
 ---
 title: Architecture doc anti-drift guard (keep ARCHITECTURE.md synced with code)
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -17,17 +17,17 @@ Scope to **structural, machine-checkable** claims (lists + wiring booleans) — 
 
 ## Acceptance criteria
 
-- [ ] A generator emits `architecture.manifest.json` from code (stages, routers, RunStatus, gates, migrations, export formats, codegen models, wiring booleans).
-- [ ] `tests/test_architecture_sync.py` fails when a manifest claim diverges from code (proven by a deliberate injected divergence).
-- [ ] The wiring booleans include `quality_gate_injected`, `middleware_runner_active`, `lead_agent_present`, `legacy_graph_present`.
-- [ ] CI runs the drift test on every PR; the doc cites/embeds the manifest for volatile lists.
-- [ ] A short "how this doc stays in sync" note is added to `ARCHITECTURE.md`.
+- [x] A generator emits `architecture.manifest.json` from code (stages, routers, RunStatus, gates, migrations, export formats, codegen models, wiring booleans).
+- [x] `tests/test_architecture_sync.py` fails when a manifest claim diverges from code (proven by a deliberate injected divergence).
+- [x] The wiring booleans include `quality_gate_injected`, `middleware_runner_active`, `lead_agent_present`, `legacy_graph_present`.
+- [x] CI runs the drift test on every PR; the doc cites/embeds the manifest for volatile lists.
+- [x] A short "how this doc stays in sync" note is added to `ARCHITECTURE.md`.
 
 ## Detailed test suite
 
-- [ ] `tests/test_architecture_sync.py`: manifest matches code; flipping a wiring boolean (e.g. injecting/removing quality_gate) makes the test fail until the manifest regenerates.
-- [ ] Generator test: running the generator twice is stable (deterministic) and reflects a stage added to the enum.
-- [ ] Run `uv run pytest tests/test_architecture_sync.py -v` and the generator in CI.
+- [x] `tests/test_architecture_sync.py`: manifest matches code; flipping a wiring boolean (e.g. injecting/removing quality_gate) makes the test fail until the manifest regenerates.
+- [x] Generator test: running the generator twice is stable (deterministic) and reflects a stage added to the enum.
+- [x] Run `uv run pytest tests/test_architecture_sync.py -v` and the generator in CI.
 
 ## Blocked by
 

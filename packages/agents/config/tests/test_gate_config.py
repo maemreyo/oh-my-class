@@ -128,6 +128,10 @@ class TestGateConfigPipelineDefaults:
 # ── ModelConfig / MODELS singleton ────────────────────────────────────────────
 
 class TestModelConfig:
+    def test_llm_base_url_uses_local_9router_port(self):
+        from packages.agents.config.models import LLMConfig
+        assert LLMConfig().base_url == "http://localhost:20228/v1"
+
     def test_llm_judge_is_f_pro(self):
         from packages.agents.config.models import MODELS
         assert MODELS.llm_judge == "4omc"

@@ -9,7 +9,7 @@ type JsonObject = dict[str, JsonValue]
 
 PipelineMode = Literal["generate_pack", "diagnose_then_generate", "plan_unit"]
 ArtifactType = Literal["lesson", "worksheet", "quiz", "drill", "recap", "infographic"]
-ExportFormat = Literal["html", "gift", "h5p", "qti", "google_forms"]
+ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "google_forms"]
 ResearchPolicy = Literal["basic", "standard", "rigorous"]
 ContractActor = Literal["system", "teacher", "admin"]
 ContractSource = Literal["code_defaults", "policy", "env", "request", "teacher", "admin"]

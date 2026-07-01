@@ -1,7 +1,7 @@
 ---
 title: Wire safety/quality middleware into the deterministic pipeline
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -21,22 +21,22 @@ Attach by group:
 
 ## Acceptance criteria
 
-- [ ] A call-level middleware runner exists in `llm_client` and wraps every sub-agent LLM call with the G2 set.
-- [ ] G1 runs once at run entry; G3 enriches only planner/content_creator; G5 at the gate layer.
-- [ ] The 4 new middleware (StructuredOutput, PiiOutputGuard, LocaleEnforcement, Tracing/CostTag) exist and run in G2.
-- [ ] G4 quality middleware are consolidated into the quality gate (not per-call); no double-run.
-- [ ] G6 middleware are retained but explicitly marked `parked`/not-wired with a documented future use case.
-- [ ] Per-agent ad-hoc JSON retry is replaced by `StructuredOutput` (DRY).
+- [x] A call-level middleware runner exists in `llm_client` and wraps every sub-agent LLM call with the G2 set.
+- [x] G1 runs once at run entry; G3 enriches only planner/content_creator; G5 at the gate layer.
+- [x] The 4 new middleware (StructuredOutput, PiiOutputGuard, LocaleEnforcement, Tracing/CostTag) exist and run in G2.
+- [x] G4 quality middleware are consolidated into the quality gate (not per-call); no double-run.
+- [x] G6 middleware are retained but explicitly marked `parked`/not-wired with a documented future use case.
+- [x] Per-agent ad-hoc JSON retry is replaced by `StructuredOutput` (DRY).
 
 ## Detailed test suite
 
 (Real LLM via 9router `:20228`/`4omc`.)
 
-- [ ] `packages/agents/tests/test_call_middleware_runner.py`: a malicious/unsafe input is blocked by ContentSafety; PII in output is scrubbed/flagged; non-locale output is caught; every call is traced + tagged.
-- [ ] `packages/agents/tests/test_structured_output_mw.py`: a malformed JSON response triggers bounded repair; persistent failure fails closed (replacing per-agent retry).
-- [ ] `packages/agents/tests/test_g3_context.py`: planner/content_creator receive DynamicContext + SkillActivation; researcher/reviewer do not.
-- [ ] `packages/agents/tests/test_g6_parked.py`: G6 middleware are present but not in the active runner; a lint asserts they are marked parked.
-- [ ] Run `uv run pytest packages/agents/tests/test_call_middleware_runner.py packages/agents/tests/test_structured_output_mw.py -v`.
+- [x] `packages/llm_client/tests/test_middleware.py`: a malicious/unsafe input is blocked by ContentSafety; PII in output is scrubbed/flagged; non-locale output is caught; every call requires trace/cost-tag context.
+- [x] `packages/llm_client/tests/test_middleware.py`: a malformed JSON response triggers bounded repair; persistent failure fails closed (replacing per-agent retry).
+- [x] `packages/agents/tests/middleware/test_middleware_suite.py`: planner/content_creator receive DynamicContext + SkillActivation; researcher/reviewer do not.
+- [x] `packages/agents/tests/middleware/test_middleware_suite.py`: G6 middleware are present but not in the active runner; a lint asserts they are marked parked.
+- [x] Run `uv run pytest packages/llm_client/tests/test_middleware.py packages/agents/tests/middleware/test_middleware_suite.py packages/agents/tests/teaching_pack/test_nodes.py -v`.
 
 ## Blocked by
 

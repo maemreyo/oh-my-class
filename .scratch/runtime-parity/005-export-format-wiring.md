@@ -1,7 +1,7 @@
 ---
 title: Wire the multi-format exporters into the teaching-pack export stage
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -16,21 +16,21 @@ Close the export cliff: `RunContract.export_formats` advertises `html, gift, h5p
 
 ## Acceptance criteria
 
-- [ ] `ExporterRegistry` maps every `ExportFormat` value to an exporter; HTML is always emitted.
-- [ ] `export_finalize` produces a file per requested format and records them in `exported_files` (not just HTML).
-- [ ] A requested format with no exporter fails closed (clear error/escalation), never a silent HTML substitute.
-- [ ] The registry is standalone and reused by `UnitPackager` (topic-decomposition issue 017).
-- [ ] `ExportFormat` and the registry stay in sync (a test asserts every enum value has an exporter or is explicitly unsupported).
+- [x] `ExporterRegistry` maps every `ExportFormat` value to an exporter; HTML is always emitted.
+- [x] `export_finalize` produces a file per requested format and records them in `exported_files` (not just HTML).
+- [x] A requested format with no exporter fails closed (clear error/escalation), never a silent HTML substitute.
+- [x] The registry is standalone and reused by `UnitPackager` (topic-decomposition issue 017).
+- [x] `ExportFormat` and the registry stay in sync (a test asserts every enum value has an exporter or is explicitly unsupported).
 
 ## Detailed test suite
 
 (Real exporters + real rendered artifacts.)
 
-- [ ] `packages/agents/teaching_pack/tests/test_export_format_wiring.py`: requesting `["html","gift","qti"]` produces three files of the correct formats; each is independently valid.
-- [ ] same file: requesting a format with no exporter fails closed (no silent HTML-only result).
-- [ ] Sync test: every `ExportFormat` enum value resolves in the `ExporterRegistry` (or is explicitly marked unsupported).
-- [ ] Regression: an HTML-only request behaves as before.
-- [ ] Run `uv run pytest packages/agents/teaching_pack/tests/test_export_format_wiring.py -v`.
+- [x] `packages/agents/tests/teaching_pack/test_export_format_wiring.py`: requesting `["html","gift","qti"]` produces files of the correct formats.
+- [x] same file: requesting a format with no exporter fails closed (no silent HTML-only result).
+- [x] Sync test: every `ExportFormat` enum value resolves in the `ExporterRegistry` (or is explicitly marked unsupported).
+- [x] Regression: an HTML-only request behaves as before.
+- [x] Run `uv run pytest packages/agents/tests/teaching_pack/test_export_format_wiring.py -v`.
 
 ## Blocked by
 

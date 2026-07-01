@@ -7,8 +7,8 @@ import pytest
 from packages.agents.events import clear_run, get_run_events
 from packages.agents.llm import chat
 from packages.agents.llm.prompt_gate import MAX_PROMPT_CHARS, PromptGateError
-from packages.agents.llm.transport import ChatResult
 from packages.agents.llm.transport_policy import TransportPolicyInput, decide_transport, prompt_hash
+from packages.llm_client.client import ChatResponse
 
 
 class RecordingTrace:
@@ -23,6 +23,33 @@ class RecordingTrace:
 
     def update(self, **kwargs: Any) -> None:
         self.updates.append(kwargs)
+
+
+class FakeLLMClient:
+    response = ChatResponse(
+        content='{"ok": true, "secret": "hidden"}',
+        model="deepseek-test",
+        input_tokens=4,
+        output_tokens=6,
+    )
+    error: ValueError | None = None
+    calls: list[dict[str, Any]] = []
+
+    def __init__(self) -> None:
+        if self.error is not None:
+            return
+
+    async def chat(self, *args: Any, **kwargs: Any) -> ChatResponse:
+        if self.error is not None:
+            raise self.error
+        self.calls.append({"args": args, "kwargs": kwargs})
+        return self.response
+
+    async def stream(self, *args: Any, **kwargs: Any):
+        if self.error is not None:
+            raise self.error
+        self.calls.append({"args": args, "kwargs": kwargs})
+        yield self.response.content
 
 
 class TestTransportPolicy:
@@ -85,16 +112,15 @@ async def test_complete_json_chat_records_policy_metadata_without_full_io(
     secret_output = '{"ok": true, "secret": "hidden"}'
     trace = RecordingTrace()
 
-    async def fake_complete_non_streaming_chat(*_args: Any, **_kwargs: Any) -> ChatResult:
-        return ChatResult(
-            content=secret_output,
-            usage={"total_tokens": 12},
-            choice_count=1,
-            response_id="response-1",
-            response_model="deepseek-test",
-        )
-
-    monkeypatch.setattr(chat, "complete_non_streaming_chat", fake_complete_non_streaming_chat)
+    FakeLLMClient.response = ChatResponse(
+        content=secret_output,
+        model="deepseek-test",
+        input_tokens=4,
+        output_tokens=6,
+    )
+    FakeLLMClient.error = None
+    FakeLLMClient.calls = []
+    monkeypatch.setattr(chat, "LLMClient", FakeLLMClient)
     monkeypatch.setattr(chat, "trace_llm_call", lambda *_args: trace)
     clear_run(run_id)
 
@@ -125,6 +151,8 @@ async def test_complete_json_chat_records_policy_metadata_without_full_io(
     assert completed[0]["transport_reason"] == "short_control_task"
     assert completed[0]["output_hash"] == prompt_hash(secret_output)
     assert secret_output not in str(completed[0])
+    assert FakeLLMClient.calls[0]["kwargs"]["agent"] == "reviewer"
+    assert FakeLLMClient.calls[0]["kwargs"]["task"] == "llm_judge"
 
 
 @pytest.mark.anyio
@@ -134,10 +162,9 @@ async def test_complete_json_chat_redacts_failure_event(
     run_id = "run-transport-failure"
     secret = "sk-live-" + "x" * 40
 
-    async def fake_complete_non_streaming_chat(*_args: Any, **_kwargs: Any) -> ChatResult:
-        raise ValueError(f"provider rejected api_key={secret}")
-
-    monkeypatch.setattr(chat, "complete_non_streaming_chat", fake_complete_non_streaming_chat)
+    FakeLLMClient.error = ValueError(f"provider rejected api_key={secret}")
+    FakeLLMClient.calls = []
+    monkeypatch.setattr(chat, "LLMClient", FakeLLMClient)
     clear_run(run_id)
 
     with pytest.raises(ValueError, match="provider rejected"):
@@ -162,10 +189,14 @@ async def test_complete_json_chat_blocks_oversized_prompt_before_provider(
 ) -> None:
     run_id = "run-prompt-too-large"
 
-    def fail_provider_creation(*_args: Any, **_kwargs: Any) -> None:
+    class FailProviderCreation:
+        def __init__(self) -> None:
+            raise AssertionError("provider client should not be created")
+
+    def fail_provider_creation() -> FailProviderCreation:
         raise AssertionError("provider client should not be created")
 
-    monkeypatch.setattr(chat, "AsyncOpenAI", fail_provider_creation)
+    monkeypatch.setattr(chat, "LLMClient", fail_provider_creation)
     clear_run(run_id)
 
     with pytest.raises(PromptGateError, match="prompt_too_large"):
@@ -194,10 +225,14 @@ async def test_complete_json_chat_blocks_secret_prompt_before_provider(
     run_id = "run-secret-prompt"
     secret = "sk-live-" + "x" * 40
 
-    def fail_provider_creation(*_args: Any, **_kwargs: Any) -> None:
+    class FailProviderCreation:
+        def __init__(self) -> None:
+            raise AssertionError("provider client should not be created")
+
+    def fail_provider_creation() -> FailProviderCreation:
         raise AssertionError("provider client should not be created")
 
-    monkeypatch.setattr(chat, "AsyncOpenAI", fail_provider_creation)
+    monkeypatch.setattr(chat, "LLMClient", fail_provider_creation)
     clear_run(run_id)
 
     with pytest.raises(PromptGateError, match="secret_like_prompt_content"):

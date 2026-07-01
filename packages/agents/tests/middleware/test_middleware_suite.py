@@ -6,8 +6,26 @@ import pytest
 
 from packages.agents.middleware import ORDERED_MIDDLEWARE_LIST
 from packages.agents.middleware.base import MiddlewareContext
+from packages.agents.middleware.context.deferred_tool_filter import DeferredToolFilterMiddleware
+from packages.agents.middleware.context.dynamic_context import DynamicContextMiddleware
+from packages.agents.middleware.context.summarization import SummarizationMiddleware
+from packages.agents.middleware.context.skill_activation import SkillActivationMiddleware
+from packages.agents.middleware.context.todo_list import TodoListMiddleware
+from packages.agents.middleware.context.view_image import ViewImageMiddleware
 from packages.agents.middleware.dangling_tool_call import DanglingToolCallMiddleware
-from packages.agents.middleware.summarization import SummarizationMiddleware
+from packages.agents.middleware.quality.subagent_limit import SubagentLimitMiddleware
+from packages.agents.middleware.registry import (
+    GATE_LAYER_MIDDLEWARE,
+    GENERATION_CONTEXT_MIDDLEWARE,
+    PARKED_REACT_MIDDLEWARE,
+    QUALITY_GATE_CONSOLIDATED_MIDDLEWARE,
+    RUN_ENTRY_MIDDLEWARE,
+)
+from packages.agents.middleware.safety.dangling_tool_call import DanglingToolCallMiddleware
+from packages.agents.middleware.safety.loop_detection import LoopDetectionMiddleware
+from packages.agents.middleware.safety.teacher_audit_log import TeacherAuditLogMiddleware
+from packages.agents.middleware.safety.tool_error_handling import ToolErrorHandlingMiddleware
+from packages.agents.middleware.terminal.clarification import ClarificationMiddleware
 from packages.agents.state import OhMyClassState
 
 
@@ -49,6 +67,59 @@ class TestMiddlewareList:
     def test_names_are_unique(self):
         names = [m.name for m in ORDERED_MIDDLEWARE_LIST]
         assert len(names) == len(set(names))
+
+    def test_run_entry_group_has_expected_layers(self):
+        names = [middleware.name for middleware in RUN_ENTRY_MIDDLEWARE]
+
+        assert names == [
+            "input_sanitization",
+            "uploads",
+            "thread_data",
+            "title",
+            "memory",
+            "token_budget",
+        ]
+
+    def test_generation_context_only_targets_planner_and_content_creator(self):
+        assert set(GENERATION_CONTEXT_MIDDLEWARE) == {"planner", "content_creator"}
+        assert GENERATION_CONTEXT_MIDDLEWARE["planner"] == (
+            DynamicContextMiddleware,
+            SkillActivationMiddleware,
+        )
+        assert GENERATION_CONTEXT_MIDDLEWARE["content_creator"] == (
+            DynamicContextMiddleware,
+            SkillActivationMiddleware,
+        )
+
+    def test_gate_layer_group_has_audit_and_clarification(self):
+        assert GATE_LAYER_MIDDLEWARE == (TeacherAuditLogMiddleware, ClarificationMiddleware)
+
+    def test_quality_layers_are_consolidated_into_quality_gate(self):
+        names = {middleware.name for middleware in QUALITY_GATE_CONSOLIDATED_MIDDLEWARE}
+
+        assert names == {
+            "curriculum_alignment",
+            "readability_level",
+            "pedagogical_quality",
+            "bias_detection",
+            "artifact_coherence",
+            "learning_objective_alignment",
+        }
+
+    def test_react_only_middleware_are_parked_not_active(self):
+        parked = set(PARKED_REACT_MIDDLEWARE)
+
+        assert parked == {
+            DanglingToolCallMiddleware,
+            ToolErrorHandlingMiddleware,
+            LoopDetectionMiddleware,
+            SubagentLimitMiddleware,
+            DeferredToolFilterMiddleware,
+            SummarizationMiddleware,
+            TodoListMiddleware,
+            ViewImageMiddleware,
+        }
+        assert all(PARKED_REACT_MIDDLEWARE[middleware] for middleware in parked)
 
 
 class TestDanglingToolCall:

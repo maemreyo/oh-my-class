@@ -13,6 +13,12 @@ from openai import Omit
 
 from packages.llm_client.budget.manager import TokenBudgetManager
 from packages.llm_client.config import LLMClientConfig
+from packages.llm_client.middleware import (
+    CallMiddlewareRunner,
+    MiddlewareCallContext,
+    MiddlewareMessage,
+    expects_json_from_response_format,
+)
 from packages.llm_client.tags import build_tags
 
 if TYPE_CHECKING:
@@ -43,7 +49,7 @@ class ChatResponse:
 class LLMClient:
     """Wrapper over openai.AsyncOpenAI pointed at configured endpoint.
 
-    Local:      base_url = http://localhost:20128 (9Router)
+    Local:      base_url = http://localhost:20228/v1 (host 9Router)
     Production: base_url = http://litellm:4000   (LiteLLM)
 
     Both expose OpenAI-compatible API — client code is identical.
@@ -53,6 +59,7 @@ class LLMClient:
 
     def __init__(self, config: LLMClientConfig | None = None) -> None:
         self._config = config or LLMClientConfig()
+        self._middleware = CallMiddlewareRunner()
         self._client = openai.AsyncOpenAI(
             api_key=self._config.api_key,
             base_url=self._config.base_url,
@@ -70,9 +77,25 @@ class LLMClient:
         step: int | None = None,
         max_tokens: int | None = None,
         temperature: float | None = None,
+        locale: str | None = None,
         response_format: completion_create_params.ResponseFormat | Omit = _OMIT,
     ) -> ChatResponse:
         """Send chat request. Returns ChatResponse with usage stats."""
+        context = MiddlewareCallContext(
+            agent=agent,
+            task=task,
+            run_id=run_id,
+            step=step,
+            locale=locale,
+            expects_json=expects_json_from_response_format(response_format),
+        )
+        messages = [
+            ChatMessage(role=message.role, content=message.content)
+            for message in self._middleware.before_call(
+                [MiddlewareMessage(role=message.role, content=message.content) for message in messages],
+                context,
+            )
+        ]
         extra = build_tags(agent, task, run_id, step)
 
         # Budget: use configured hard limit for bounded tasks; None lets model generate freely
@@ -101,8 +124,9 @@ class LLMClient:
         # Record usage for EMA adaptation and soft-limit warnings
         _budget.record_usage(task, output_tokens)
 
+        result = self._middleware.after_call(choice.message.content or "", context)
         return ChatResponse(
-            content=choice.message.content or "",
+            content=result.content,
             model=resp.model,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
@@ -117,8 +141,17 @@ class LLMClient:
         task: str = "unknown",
         run_id: str | None = None,
         step: int | None = None,
+        locale: str | None = None,
     ) -> AsyncIterator[str]:
         """Stream chat response token by token."""
+        context = MiddlewareCallContext(agent=agent, task=task, run_id=run_id, step=step, locale=locale)
+        messages = [
+            ChatMessage(role=message.role, content=message.content)
+            for message in self._middleware.before_call(
+                [MiddlewareMessage(role=message.role, content=message.content) for message in messages],
+                context,
+            )
+        ]
         extra = build_tags(agent, task, run_id, step)
         typed_messages = cast(
             "list[ChatCompletionMessageParam]",

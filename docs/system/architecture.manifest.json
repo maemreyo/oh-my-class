@@ -1,0 +1,194 @@
+{
+  "export_formats": {
+    "all": [
+      "html",
+      "gift",
+      "h5p",
+      "qti",
+      "anki_apkg",
+      "flashcard_tsv",
+      "google_forms"
+    ],
+    "supported": [
+      "html",
+      "gift",
+      "h5p",
+      "qti",
+      "anki_apkg",
+      "flashcard_tsv"
+    ],
+    "unsupported": [
+      "google_forms"
+    ]
+  },
+  "gate_names": [
+    "clarification_required",
+    "contract_confirmation",
+    "search_plan_confirmation",
+    "blueprint_approval",
+    "content_approval",
+    "unit_approval"
+  ],
+  "gates": {
+    "fast_lane_eligible": [
+      "blueprint_approval",
+      "content_approval"
+    ],
+    "fast_lane_excluded": [
+      "clarification_required",
+      "contract_confirmation"
+    ],
+    "fast_lane_threshold_default": null
+  },
+  "migration_count": 18,
+  "models": {
+    "assignments": {
+      "blueprint_design": "4omc",
+      "content_creator": "4omc",
+      "content_generation": "4omc",
+      "content_review_light": "4omc",
+      "diagnostician": "4omc",
+      "fact_verification": "4omc",
+      "fast_default": "4omc",
+      "lead_agent": "4omc",
+      "llm_judge": "4omc",
+      "planner": "4omc",
+      "quality_gate": "4omc",
+      "researcher": "4omc",
+      "reviewer": "4omc",
+      "schema_rewrite": "4omc",
+      "strong_default": "4omc",
+      "summarization": "4omc",
+      "title_generation": "4omc"
+    },
+    "llm_base_url": "http://localhost:20228/v1"
+  },
+  "routers": [
+    {
+      "name": "auth_router",
+      "prefix": "",
+      "tags": []
+    },
+    {
+      "name": "ops",
+      "prefix": "",
+      "tags": []
+    },
+    {
+      "name": "notifications",
+      "prefix": "/notifications",
+      "tags": [
+        "notifications"
+      ]
+    },
+    {
+      "name": "approvals",
+      "prefix": "/run",
+      "tags": [
+        "approvals"
+      ]
+    },
+    {
+      "name": "artifacts",
+      "prefix": "/run",
+      "tags": [
+        "artifacts"
+      ]
+    },
+    {
+      "name": "runs",
+      "prefix": "/run",
+      "tags": [
+        "runs"
+      ]
+    },
+    {
+      "name": "snapshots",
+      "prefix": "/run",
+      "tags": [
+        "snapshots"
+      ]
+    },
+    {
+      "name": "release_evidence",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "release-evidence"
+      ]
+    },
+    {
+      "name": "teaching_pack_previews",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "teaching-pack"
+      ]
+    },
+    {
+      "name": "teaching_pack_runs",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "teaching-pack"
+      ]
+    },
+    {
+      "name": "unit_runs",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "units"
+      ]
+    },
+    {
+      "name": "webhooks",
+      "prefix": "/webhook",
+      "tags": [
+        "webhooks"
+      ]
+    }
+  ],
+  "run_statuses": [
+    "pending",
+    "planning",
+    "researching",
+    "generating",
+    "reviewing",
+    "awaiting_approval",
+    "exporting",
+    "completed",
+    "failed",
+    "cancelled"
+  ],
+  "stages": {
+    "canonical": [
+      "setup_contract",
+      "triage",
+      "preplanning_search",
+      "planning_blueprint",
+      "post_blueprint_research",
+      "artifact_workflow",
+      "render_quality",
+      "teacher_approval",
+      "export_finalize"
+    ],
+    "enum": [
+      "setup_contract",
+      "triage",
+      "unit_planning",
+      "unit_approval",
+      "unit_prep",
+      "preplanning_search",
+      "planning_blueprint",
+      "post_blueprint_research",
+      "artifact_workflow",
+      "render_quality",
+      "teacher_approval",
+      "export_finalize"
+    ]
+  },
+  "wiring": {
+    "lead_agent_present": false,
+    "legacy_graph_present": false,
+    "middleware_runner_active": true,
+    "quality_gate_injected": true,
+    "teaching_pack_graph_builder_present": true
+  }
+}

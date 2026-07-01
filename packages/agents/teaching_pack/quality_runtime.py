@@ -41,9 +41,10 @@ async def render_quality(
                 "quality_scores": _json_object(failure.get("quality_scores")),
             })
         raise TeachingPackQualityGateError(issues)
+    passing_reports: list[ArtifactQualityReport] = []
     if quality_gate is not None:
         reports = [
-            await quality_gate.evaluate(_workflow_state(str(state["run_id"]), artifact, index))
+            await quality_gate.evaluate(_workflow_state(str(state["run_id"]), artifact, index), artifact)
             for index, artifact in enumerate(artifacts)
             if _supports_workflow_state(artifact)
         ]
@@ -58,15 +59,19 @@ async def render_quality(
                 "quality_scores": _json_object(failure.get("quality_scores")),
                 **healing,
             })
+        passing_reports = reports
     snapshots = [build_snapshot(str(state["run_id"]), artifact) for artifact in artifacts]
+    quality_scores: JsonObject = {
+        "overall": 8.0,
+        "passed": True,
+        "snapshot_count": len(snapshots),
+    }
+    if passing_reports:
+        quality_scores["reports"] = [r.model_dump(mode="json") for r in passing_reports]
     return _state_update({
         "run_id": state["run_id"],
         "rendered_snapshots": snapshots,
-        "quality_scores": {
-            "overall": 8.0,
-            "passed": True,
-            "snapshot_count": len(snapshots),
-        },
+        "quality_scores": quality_scores,
     })
 
 

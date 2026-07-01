@@ -125,6 +125,6 @@ class NotificationChannel(Protocol):
 class QualityGate(Protocol):
     """Boundary for deterministic and model-assisted artifact quality checks."""
 
-    async def evaluate(self, state: ArtifactWorkflowState) -> ArtifactQualityReport:
+    async def evaluate(self, state: ArtifactWorkflowState, artifact: JsonObject) -> ArtifactQualityReport:
         """Evaluate one artifact workflow state."""
         ...

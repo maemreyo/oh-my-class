@@ -1,17 +1,3 @@
-"""UnitOrchestrator — pure decide() logic and I/O reactor for td-010.
-
-The orchestrator drives session fan-out for a UNIT_PARENT run.  It is
-deliberately split into two layers:
-
-* ``decide()`` — pure function; builds the prerequisite DAG with networkx
-  and returns a list of ``SessionAction`` objects describing what must happen.
-* ``UnitOrchestrator.react()`` — I/O layer; loads state from the DB, calls
-  ``decide()``, and executes SPAWN actions (creates child row + enqueues START
-  job + fires event-bus notification).
-* ``reconcile_units()`` — sweep helper called by the background sweeper; runs
-  ``react()`` for every live UNIT_PARENT run.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -107,11 +93,8 @@ def decide(
         SPAWN / BLOCK for individual sessions, and optionally a single
         MARK_COMPLETE or MARK_PARTIALLY_COMPLETE at the end.
     """
-    # Build a mapping keyed by session_id for quick look-up.
-    session_map: dict[str, object] = {s.session_id: s for s in sequence.sessions}
-
     # Build the prerequisite DAG using networkx.
-    dag: nx.DiGraph = nx.DiGraph()
+    dag: nx.DiGraph[str] = nx.DiGraph()
     for session in sequence.sessions:
         dag.add_node(session.session_id)
         for prereq_id in session.prerequisite_sessions:
@@ -173,8 +156,6 @@ def decide(
 
     # Include sessions that are about to be spawned as "accounted for".
     spawned_now = {a.session_id for a in actions if a.action is OrchestratorAction.SPAWN}
-    blocked_ids = {a.session_id for a in actions if a.action is OrchestratorAction.BLOCK}
-
     # All sessions are completed → MARK_COMPLETE.
     if all_session_ids == completed_ids:
         actions.append(SessionAction(
@@ -208,21 +189,6 @@ def decide(
 
 
 class UnitOrchestrator:
-    """Drives fan-out for a single UNIT_PARENT run.
-
-    Parameters
-    ----------
-    session:
-        The active ``AsyncSession`` for this request / sweep tick.
-    unit_run_store:
-        A ``UnitRunStore`` instance bound to ``session``.
-    job_store:
-        A ``TeachingPackJobStore`` instance bound to ``session``.
-    session_factory:
-        Optional callable that produces a fresh ``AsyncSession``.  Reserved
-        for future use (e.g. long sweeps that need independent transactions).
-    """
-
     def __init__(
         self,
         session: AsyncSession,
@@ -236,18 +202,9 @@ class UnitOrchestrator:
         self._session_factory = session_factory
 
     async def react(self, parent_run_id: RunId) -> list[SessionAction]:
-        """Run one reconciliation tick for *parent_run_id*.
-
-        Steps:
-        1. Load the ``LessonSequence`` JSON from the parent run.
-        2. Load all existing child rows.
-        3. Call ``decide()``.
-        4. Execute SPAWN actions (create child run + enqueue START job + notify).
-        5. Return the full action list.
-        """
-        from services.gateway.teaching_pack_event_bus import notify_run_event
         from services.gateway.teaching_pack_job_store import RunJobCreate
-        from services.gateway.teaching_pack_models import RunJobKind
+        from services.gateway.teaching_pack_models import RunJobKind, TeachingPackEventVisibility
+        from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
         from services.gateway.models import Run
         from sqlalchemy import select
 
@@ -315,9 +272,17 @@ class UnitOrchestrator:
                 payload={"run_id": child_run_id},
             ))
 
-            # Notify the event bus so SSE subscribers wake up.
-            notify_run_event(parent_run_id)
-            notify_run_event(child_run_id)
+            await TeachingPackRunStore(self._session).write_event(TeachingPackEventCreate(
+                run_id=parent_run_id,
+                event_name="unit.session.spawned",
+                visibility=TeachingPackEventVisibility.TEACHER,
+                payload={
+                    "event_type": "unit.progress",
+                    "parent_run_id": str(parent_run_id),
+                    "child_run_id": str(child_run_id),
+                    "session_id": action.session_id,
+                },
+            ))
 
         return actions
 

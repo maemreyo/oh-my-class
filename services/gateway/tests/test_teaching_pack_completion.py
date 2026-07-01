@@ -229,3 +229,46 @@ class TestTeachingPackCompletionRecorder:
             encoding="utf-8",
         ) == renderer.rendered_html
         assert not (tmp_path / "run-exports" / "snapshot-2.html").exists()
+
+    @pytest.mark.anyio
+    async def test_filesystem_export_writer_materializes_assessment_formats(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        renderer = RecordingRenderer(
+            rendered_html="<!DOCTYPE html><html><body>oh-my-class export</body></html>",
+        )
+        writer = FileSystemTeachingPackExportWriter(base_dir=tmp_path, renderer=renderer)
+        state = {
+            "approved_snapshot_ids": ["snapshot-1"],
+            "contract": {"export_formats": ["html", "gift", "h5p", "qti"]},
+            "rendered_snapshots": [
+                {
+                    "snapshot_id": "snapshot-1",
+                    "content_json": {
+                        "artifact_id": "lesson-1",
+                        "artifact_type": "lesson",
+                        "title": "Equivalent Fractions",
+                        "sections": [{"title": "Intro", "content": "Compare equal fractions."}],
+                    },
+                }
+            ],
+        }
+
+        exported_files = await writer.write_exports(RunId("run-assessment"), state)
+
+        assert exported_files == [
+            str(tmp_path / "run-assessment" / "snapshot-1.html"),
+            str(tmp_path / "run-assessment" / "run-assessment.gift.txt"),
+            str(tmp_path / "run-assessment" / "run-assessment.h5p"),
+            str(tmp_path / "run-assessment" / "run-assessment.qti.xml"),
+        ]
+        assert (tmp_path / "run-assessment" / "run-assessment.gift.txt").read_text(
+            encoding="utf-8",
+        ).startswith("$CATEGORY: oh-my-class/run-assessment")
+        assert (tmp_path / "run-assessment" / "run-assessment.h5p").read_bytes().startswith(
+            b'{"schema":"oh-my-class.h5p.manifest.v1"',
+        )
+        assert "imsqti_v2p1" in (tmp_path / "run-assessment" / "run-assessment.qti.xml").read_text(
+            encoding="utf-8",
+        )

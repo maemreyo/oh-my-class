@@ -17,8 +17,8 @@ class TestTeachingPackRenderQuality:
         calls = []
 
         class RecordingQualityGate:
-            async def evaluate(self, state):
-                calls.append(state)
+            async def evaluate(self, state, artifact):
+                calls.append((state, artifact))
                 return ArtifactQualityReport(
                     artifact_id=state.artifact_id,
                     artifact_type=state.artifact_type,
@@ -41,8 +41,9 @@ class TestTeachingPackRenderQuality:
         result = await _render_quality(state, quality_gate=RecordingQualityGate())
 
         assert len(calls) == 1
-        assert calls[0].run_id == "run-quality-gate"
-        assert calls[0].artifact_id == "lesson-1"
+        assert calls[0][0].run_id == "run-quality-gate"
+        assert calls[0][0].artifact_id == "lesson-1"
+        assert calls[0][1]["artifact_id"] == "lesson-1"
         assert result.get("quality_scores", {}).get("passed") is True
         assert result.get("rendered_snapshots")
 
@@ -51,7 +52,7 @@ class TestTeachingPackRenderQuality:
         calls = []
 
         class RecordingQualityGate:
-            async def evaluate(self, state):
+            async def evaluate(self, state, _artifact):
                 calls.append(state)
                 return ArtifactQualityReport(
                     artifact_id=state.artifact_id,

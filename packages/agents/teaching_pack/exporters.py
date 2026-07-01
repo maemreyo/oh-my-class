@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, assert_never
 
-type ExportFormat = Literal["html", "gift", "h5p", "qti", "google_forms"]
+type ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "google_forms"]
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
 
-_SUPPORTED_FORMATS = frozenset({"html", "gift", "h5p", "qti"})
+_SUPPORTED_FORMATS = frozenset({"html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv"})
 _UNSUPPORTED_FORMATS = frozenset({"google_forms"})
 
 
@@ -46,6 +46,10 @@ class ExporterRegistry:
                 return [f"exports/{request.run_id}/{request.run_id}.h5p"]
             case "qti":
                 return [f"exports/{request.run_id}/{request.run_id}.qti.xml"]
+            case "anki_apkg":
+                return [f"exports/{request.run_id}/{request.run_id}.apkg"]
+            case "flashcard_tsv":
+                return [f"exports/{request.run_id}/{request.run_id}.tsv"]
             case "google_forms":
                 raise UnsupportedExportFormatError(request.format)
             case unreachable:
@@ -75,6 +79,10 @@ def _export_format(value: str) -> ExportFormat:
             return "h5p"
         case "qti":
             return "qti"
+        case "anki_apkg":
+            return "anki_apkg"
+        case "flashcard_tsv":
+            return "flashcard_tsv"
         case "google_forms":
             return "google_forms"
         case _:

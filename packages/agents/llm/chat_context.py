@@ -71,6 +71,7 @@ class CallContext:
     request_model: str
     run_id: str
     agent_name: str
+    task_name: str
     step: int
     attempt: int
     max_tokens: int
@@ -150,10 +151,10 @@ def build_call_context(
     max_tokens: int | None,
 ) -> CallContext:
     parsed = ParsedTags.from_tags(tags)
-    resolved_max_tokens = max_tokens or _AGENT_MAX_TOKENS.get(
+    resolved_max_tokens: int = max_tokens or _AGENT_MAX_TOKENS.get(
         parsed.agent_name,
         _DEFAULT_MAX_TOKENS,
-    )
+    ) or _DEFAULT_MAX_TOKENS
     message_chars = message_chars_for(messages)
     decision = decide_transport(TransportPolicyInput(
         agent=parsed.agent_name,
@@ -172,6 +173,7 @@ def build_call_context(
         request_model=model.removeprefix("openai/"),
         run_id=parsed.run_id,
         agent_name=parsed.agent_name,
+        task_name=parsed.task_name,
         step=parsed.step,
         attempt=parsed.attempt,
         max_tokens=resolved_max_tokens,

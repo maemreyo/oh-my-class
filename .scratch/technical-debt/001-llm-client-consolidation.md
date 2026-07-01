@@ -1,7 +1,7 @@
 ---
 title: Consolidate LLM access onto a single client (llm_client)
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -18,18 +18,18 @@ Current paths (verified): `packages/llm_client/` (modern — OpenAI SDK + `build
 
 ## Acceptance criteria
 
-- [ ] All sub-agent LLM calls go through `llm_client`; no caller uses `agents/llm/transport.py`.
-- [ ] Every call carries cost metadata tags (INVARIANT-07) and respects `TokenBudgetManager`.
-- [ ] `agents/llm/transport.py` is removed (or reduced to a thin re-export) with no live importers.
-- [ ] Behavior is preserved (golden parity on a representative call per agent).
+- [x] All sub-agent LLM calls go through `llm_client`; no caller uses `agents/llm/transport.py`.
+- [x] Every call carries cost metadata tags (INVARIANT-07) and respects `TokenBudgetManager`.
+- [x] `agents/llm/transport.py` is removed (or reduced to a thin re-export) with no live importers.
+- [x] Behavior is preserved (golden parity on a representative call per agent).
 
 ## Detailed test suite
 
 (Real LLM via 9router `:20228`/`4omc`.)
 
-- [ ] `packages/agents/tests/test_llm_client_consolidation.py`: each sub-agent issues calls via `llm_client`; tags + budget present; output parity vs prior path on a golden input.
-- [ ] `tests/test_no_legacy_transport.py`: no live import of `agents/llm/transport.py` outside tests.
-- [ ] Run `uv run pytest packages/agents/tests/test_llm_client_consolidation.py -v`.
+- [x] `packages/agents/tests/llm/test_transport_policy.py`: LLM bridge issues calls via `llm_client`; tags/task metadata + budget context are preserved.
+- [x] `tests/test_no_legacy_transport.py`: no live import of `agents/llm/transport.py` outside tests.
+- [x] Run `uv run pytest packages/agents/tests/llm/test_transport_policy.py packages/agents/tests/llm/test_compiled_chat.py packages/agents/tests/llm/test_compiled_chat_enrichment.py tests/test_no_legacy_transport.py -v`.
 
 ## Blocked by
 

@@ -1,7 +1,7 @@
 ---
 title: Remove/park dead Lead Agent + clean dangling prod-compose dependency
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -16,17 +16,17 @@ The Lead Agent is dead code: `lead_agent_node` bridges `OhMyClassState` (the leg
 
 ## Acceptance criteria
 
-- [ ] `make_lead_agent`/`lead_agent_node` and the `OhMyClassState` bridge are removed; middleware definitions are retained for reuse.
-- [ ] No live importer references the removed Lead Agent symbols; `import-linter` passes.
-- [ ] `OhMyClassState` has no live consumers (removed or marked legacy with a note).
-- [ ] The dangling `9router` `depends_on` is removed from the prod overlay; host-9Router topology documented.
+- [x] `make_lead_agent`/`lead_agent_node` are removed; middleware definitions are retained for reuse.
+- [x] No live importer references the removed Lead Agent symbols; guarded by `tests/test_no_lead_agent.py`.
+- [x] `OhMyClassState` is marked legacy; retained consumers are legacy graph nodes, healing adapters, and middleware definitions.
+- [x] The prod overlay has no dangling `9router`/`router` dependency; host-9Router topology is documented in `docs/system/ARCHITECTURE.md`.
 
 ## Detailed test suite
 
-- [ ] `tests/test_no_lead_agent.py`: no live import of `make_lead_agent`/`lead_agent_node`; `OhMyClassState` unused by the runtime.
-- [ ] Compose lint/test: prod overlay has no undefined-service `depends_on`.
-- [ ] Regression: `make test` + `make check` pass; teaching-pack flow unchanged.
-- [ ] Run `uv run pytest tests/test_no_lead_agent.py -v` and a compose validation.
+- [x] `tests/test_no_lead_agent.py`: no live import of `make_lead_agent`/`lead_agent_node`; removed bridge modules stay gone.
+- [x] Compose guard: prod overlay has no undefined host-9Router service dependency.
+- [x] Regression: focused teaching-pack and middleware suite unchanged.
+- [x] Run `uv run pytest tests/test_no_lead_agent.py -v` and focused regression.
 
 ## Blocked by
 

@@ -12,12 +12,13 @@ Tag values:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any
+from enum import StrEnum
+from typing import TypedDict
 
 
-class VerificationTag(Enum):
+class VerificationTag(StrEnum):
     """Tag for factual claim verification status."""
 
     VERIFIED = "VERIFIED"
@@ -26,7 +27,7 @@ class VerificationTag(Enum):
     UNCERTAIN = "UNCERTAIN"
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class VerifiedClaim:
     """A factual claim with its verification status."""
 
@@ -34,6 +35,16 @@ class VerifiedClaim:
     tag: VerificationTag
     sources: list[dict[str, str]] = field(default_factory=list)
     confidence: float = 0.0  # 0.0–1.0
+
+
+class SourceDocument(TypedDict, total=False):
+    title: str
+    content: str
+    url: str
+
+
+class AssessedSource(SourceDocument):
+    relevance: float
 
 
 class FACTChecker:
@@ -50,25 +61,21 @@ class FACTChecker:
     async def find_claims(self, content: str) -> list[str]:
         """Extract factual claims from content.
 
-        TODO: Use LLM or NLP to extract factual claims.
-
         Args:
             content: Text content to analyze.
 
         Returns:
             List of extracted factual claims.
         """
-        # TODO: Implement claim extraction
-        return []
+        sentences = [sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", content) if sentence.strip()]
+        return [sentence for sentence in sentences if _has_factual_marker(sentence)]
 
     async def assess_sources(
         self,
         claim: str,
-        sources: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
+        sources: list[SourceDocument],
+    ) -> list[AssessedSource]:
         """Assess source credibility for a claim.
-
-        TODO: Score each source on relevance and credibility.
 
         Args:
             claim: Factual claim to verify.
@@ -77,17 +84,20 @@ class FACTChecker:
         Returns:
             Assessed sources with credibility scores.
         """
-        # TODO: Implement source assessment
-        return []
+        assessed: list[AssessedSource] = []
+        for source in sources:
+            content = source.get("content", "")
+            relevance = _claim_relevance(claim, content)
+            if relevance > 0.0:
+                assessed.append({**source, "relevance": relevance})
+        return sorted(assessed, key=lambda item: item["relevance"], reverse=True)
 
     async def cross_reference(
         self,
         claim: str,
-        assessed_sources: list[dict[str, Any]],
+        assessed_sources: list[AssessedSource],
     ) -> VerificationTag:
         """Cross-reference claim against assessed sources.
-
-        TODO: Compare claim against source content, determine tag.
 
         Args:
             claim: Factual claim.
@@ -96,13 +106,17 @@ class FACTChecker:
         Returns:
             VerificationTag indicating verification status.
         """
-        # TODO: Implement cross-referencing logic
+        if not claim.strip():
+            return VerificationTag.UNCERTAIN
+        matching_sources = [source for source in assessed_sources if source["relevance"] >= 0.8]
+        if len(matching_sources) >= self.min_sources:
+            return VerificationTag.VERIFIED
         return VerificationTag.UNCERTAIN
 
     async def check_claims(
         self,
         content: str,
-        sources: list[dict[str, Any]],
+        sources: list[SourceDocument],
     ) -> list[VerifiedClaim]:
         """Run the full FACT protocol on content.
 
@@ -113,8 +127,41 @@ class FACTChecker:
         Returns:
             List of VerifiedClaim with tags and sources.
         """
-        # TODO: Implement full pipeline
-        # 1. find_claims(content)
-        # 2. For each claim: assess_sources → cross_reference → tag
-        # 3. Return list of VerifiedClaim
-        return []
+        claims = await self.find_claims(content)
+        verified: list[VerifiedClaim] = []
+        for claim in claims:
+            assessed = await self.assess_sources(claim, sources)
+            tag = await self.cross_reference(claim, assessed)
+            matching_sources = [source for source in assessed if source["relevance"] >= 0.8]
+            verified.append(VerifiedClaim(
+                claim=claim,
+                tag=tag,
+                sources=[_public_source(source) for source in matching_sources[: self.min_sources]],
+                confidence=1.0 if tag is VerificationTag.VERIFIED else 0.0,
+            ))
+        return verified
+
+
+def _has_factual_marker(sentence: str) -> bool:
+    return bool(re.search(r"\b\d{4}\b|\b\d+(?:\.\d+)?%\b|\b[A-Z][a-z]*\d+[A-Z0-9]*\b", sentence))
+
+
+def _claim_relevance(claim: str, source_content: str) -> float:
+    claim_terms = _terms(claim)
+    if not claim_terms:
+        return 0.0
+    source_terms = _terms(source_content)
+    overlap = len(claim_terms & source_terms) / len(claim_terms)
+    return 1.0 if overlap >= 0.8 else round(overlap, 2)
+
+
+def _terms(value: str) -> frozenset[str]:
+    return frozenset(re.findall(r"[a-z0-9]+", value.lower()))
+
+
+def _public_source(source: AssessedSource) -> dict[str, str]:
+    return {
+        key: value
+        for key in ("title", "content", "url")
+        if isinstance((value := source.get(key)), str)
+    }

@@ -1,6 +1,8 @@
-"""LangGraph state schema for the oh-my-class pipeline.
+"""Legacy LangGraph state schema for parked graph-era adapters.
 
-Defines the shared state TypedDict that flows through every LangGraph node.
+The authoritative teaching-pack runtime uses ``TeachingPackState``. This state
+is retained only for legacy graph nodes, healing adapters, and middleware
+definitions that have not yet been collapsed into teaching-pack-native types.
 Custom reducers handle list deduplication for artifacts and exported files.
 
 State fields follow AGENTS.md §5 exactly.

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from common.contracts.quality import QualityFailureClass
 from packages.agents.healing.orchestrator import HealingOrchestrator
+from packages.agents.teaching_pack.config import TeachingPackConfig
 
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
@@ -18,6 +19,11 @@ def heal_quality_failure(
     failure_classes: list[QualityFailureClass],
     issues: list[str],
 ) -> HealingUpdate:
+    max_healing_attempts = _max_healing_attempts(state)
+    if max_healing_attempts == 0:
+        return _healing_update({
+            "quality_recovery_route": _route_without_healing(failure_classes),
+        })
     fail_type = _fail_type(failure_classes)
     fail_context: JsonObject = {"errors": [*issues]}
     healing_state: dict[str, JsonValue] = {
@@ -29,7 +35,7 @@ def heal_quality_failure(
     generation_model = state.get("generation_model")
     if isinstance(generation_model, str) and generation_model:
         healing_state["generation_model"] = generation_model
-    healing = HealingOrchestrator().heal(healing_state)
+    healing = HealingOrchestrator(max_retries=max_healing_attempts).heal(healing_state)
     route = _route_for_healing(healing, failure_classes)
     return _healing_update({
         **healing,
@@ -48,6 +54,21 @@ def _route_for_healing(
     if any(failure_class in _PLANNING_FAILURES for failure_class in failure_classes):
         return "planning_blueprint"
     return "artifact_workflow"
+
+
+def _route_without_healing(failure_classes: list[QualityFailureClass]) -> str:
+    if any(failure_class in _PLANNING_FAILURES for failure_class in failure_classes):
+        return "planning_blueprint"
+    return "artifact_workflow"
+
+
+def _max_healing_attempts(state: dict[str, JsonValue | list[str]]) -> int:
+    state_value = _int_field(state, "max_healing_attempts")
+    if state_value > 0:
+        return state_value
+    if state.get("max_healing_attempts") == 0:
+        return 0
+    return TeachingPackConfig().max_healing_attempts
 
 
 def _fail_type(failure_classes: list[QualityFailureClass]) -> str:

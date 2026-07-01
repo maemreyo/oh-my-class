@@ -20,7 +20,7 @@ export function TeachingPackGateBody({ runId, gateName, event }: {
 		case "blueprint_approval":
 			return <BlueprintSummary event={event} />;
 		case "content_approval":
-			return <ContentApprovalBody runId={runId} snapshotIds={event.snapshot_ids ?? []} artifacts={event.artifacts ?? []} />;
+			return <ContentApprovalBody runId={runId} snapshotIds={event.snapshot_ids ?? []} artifacts={event.artifacts ?? []} qualityScores={event.quality_scores} />;
 		default:
 			return assertNever(gateName);
 	}
@@ -125,15 +125,118 @@ function SummaryField({ label, value }: { readonly label: string; readonly value
 	);
 }
 
-function ContentApprovalBody({ runId, snapshotIds, artifacts }: {
+function ContentApprovalBody({ runId, snapshotIds, artifacts, qualityScores }: {
 	readonly runId: string;
 	readonly snapshotIds: readonly string[];
 	readonly artifacts: readonly ArtifactProgressItem[];
+	readonly qualityScores?: unknown;
 }) {
 	return (
 		<div className="space-y-4">
 			{artifacts.length > 0 && <TeachingPackArtifactProgress artifacts={artifacts} />}
+			<QualityFlagsPanel qualityScores={qualityScores} />
 			<ContentSnapshots runId={runId} snapshotIds={snapshotIds} />
+		</div>
+	);
+}
+
+const FAILURE_CLASS_LABELS: Readonly<Record<string, string>> = {
+	factual_uncertainty: "Facts",
+	pedagogical_mismatch: "Pedagogy / Age",
+	pii_leakage: "PII",
+	external_asset: "HTML assets",
+	missing_doctype: "HTML structure",
+	answer_key_leakage: "Answer-key safety",
+	schema_invalid: "Schema",
+	placeholder_content: "Placeholder content",
+	unsupported_component: "Component type",
+	export_not_ready: "Export readiness",
+};
+
+interface QualityIssueShape {
+	readonly failure_class: string;
+	readonly location: string;
+	readonly message: string;
+	readonly hard_block?: boolean;
+}
+
+interface QualityReportShape {
+	readonly artifact_id: string;
+	readonly artifact_type: string;
+	readonly passed: boolean;
+	readonly issues?: readonly QualityIssueShape[];
+}
+
+function parseReports(qualityScores: unknown): readonly QualityReportShape[] {
+	if (!qualityScores || typeof qualityScores !== "object") return [];
+	const scores = qualityScores as Readonly<Record<string, unknown>>;
+	if (!Array.isArray(scores.reports)) return [];
+	return scores.reports.filter(
+		(r): r is QualityReportShape =>
+			r !== null && typeof r === "object" && typeof r.artifact_id === "string",
+	);
+}
+
+function QualityFlagsPanel({ qualityScores }: { readonly qualityScores?: unknown }) {
+	const [expanded, setExpanded] = useState(false);
+	const reports = parseReports(qualityScores);
+	if (reports.length === 0) return null;
+
+	const allPassed = reports.every((r) => r.passed);
+
+	return (
+		<div className="rounded-md border border-border bg-background">
+			<button
+				type="button"
+				className="flex w-full items-center justify-between px-4 py-3 text-left text-sm"
+				onClick={() => setExpanded((v) => !v)}
+				aria-expanded={expanded}
+			>
+				<span className="font-medium">
+					Quality check results
+					{allPassed ? (
+						<span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+							All passed
+						</span>
+					) : (
+						<span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+							Issues found
+						</span>
+					)}
+				</span>
+				<span className="text-muted-foreground">{expanded ? "▲" : "▼"}</span>
+			</button>
+
+			{expanded && (
+				<div className="border-t border-border px-4 pb-4 pt-3 space-y-3">
+					{reports.map((report) => (
+						<div key={report.artifact_id} className="rounded-md bg-muted p-3">
+							<div className="flex items-center gap-2 mb-2">
+								<span className={`inline-block h-2 w-2 rounded-full ${report.passed ? "bg-green-500" : "bg-amber-500"}`} />
+								<span className="text-xs font-medium text-muted-foreground uppercase">
+									{report.artifact_type}
+								</span>
+								<span className="text-xs text-muted-foreground font-mono">{report.artifact_id.slice(0, 12)}…</span>
+							</div>
+							{report.passed ? (
+								<p className="text-xs text-green-700">All quality layers passed.</p>
+							) : (
+								<ul className="space-y-1">
+									{(report.issues ?? []).map((issue, index) => (
+										<li key={`${issue.failure_class}-${index}`} className="text-xs">
+											<span className="font-medium text-amber-700">
+												{FAILURE_CLASS_LABELS[issue.failure_class] ?? issue.failure_class}
+											</span>
+											{" — "}
+											<span className="text-muted-foreground">{issue.message}</span>
+										</li>
+									))}
+								</ul>
+							)}
+						</div>
+					))}
+				</div>
+			)}
 		</div>
 	);
 }

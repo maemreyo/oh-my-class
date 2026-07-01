@@ -12,7 +12,7 @@ class LLMClientConfig(BaseSettings):
         extra="ignore",
     )
 
-    base_url: str = "http://localhost:20128/v1"
+    base_url: str = "http://localhost:20228/v1"
     api_key: str = ""
     timeout_s: float = 600.0
     max_retries: int = 3

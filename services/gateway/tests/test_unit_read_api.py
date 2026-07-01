@@ -6,7 +6,6 @@ pytest.mark.skip so the suite stays green without infrastructure.
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
@@ -21,7 +20,7 @@ from services.gateway.routers.unit_runs import router
 from services.gateway.teaching_pack_db import get_teaching_pack_session
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Iterator
+    from collections.abc import AsyncIterator
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,7 +35,7 @@ _OTHER_TEACHER_ID = "teacher-unit-read-999"
 # ---------------------------------------------------------------------------
 
 
-def _make_lesson_sequence_json(session_ids: list[str] | None = None) -> dict:
+def _make_lesson_sequence_json(session_ids: list[str] | None = None) -> dict[str, object]:
     if session_ids is None:
         session_ids = ["S01", "S02", "S03"]
     return {
@@ -82,16 +81,12 @@ def app() -> FastAPI:
 @pytest.mark.skip("requires real DB + running app")
 def test_get_unit_view_returns_counts() -> None:
     """GET /units/{id} returns correct session counts against a real DB."""
-    from typing import Iterator
-
     import anyio
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-    from services.gateway.models import Base, RunStatus
     from services.gateway.unit_run_store import (
         UnitParentRunCreate,
         UnitRunStore,
-        UnitSessionRunCreate,
     )
     from services.gateway.teaching_pack_types import RunId, TeacherId
 
@@ -150,9 +145,7 @@ def test_get_unit_view_returns_counts() -> None:
 
 def test_cross_teacher_access_denied(app: FastAPI) -> None:
     """A different teacher_id gets 403 on GET /units/{id}."""
-    from unittest.mock import AsyncMock, patch
-
-    from services.gateway.models import Run, RunStatus, UnitRole
+    from services.gateway.models import Run, UnitRole
 
     parent_id = f"unit-xowner-{uuid4()}"
 
@@ -236,7 +229,7 @@ def test_unit_sse_endpoint_returns_event_stream(app: FastAPI) -> None:
 
     # Patch the generator so it yields one heartbeat and stops immediately,
     # allowing TestClient to complete the request without hanging.
-    async def _finite_generator(*args, **kwargs):
+    async def _finite_generator(*_args, **_kwargs):
         yield ": heartbeat\n\n"
 
     with patch(
@@ -249,7 +242,7 @@ def test_unit_sse_endpoint_returns_event_stream(app: FastAPI) -> None:
             assert "text/event-stream" in resp.headers["content-type"]
 
 
-def test_unit_sse_cross_teacher_denied(app: FastAPI) -> None:
+def test_unit_sse_cross_teacher_denied() -> None:
     """SSE GET /units/{id}/status returns 403 for wrong teacher."""
     from services.gateway.models import Run, UnitRole
 
@@ -294,7 +287,7 @@ def test_approve_all_partial_success() -> None:
     import anyio
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-    from services.gateway.models import Base, Run, RunStatus
+    from services.gateway.models import Run, RunStatus
     from services.gateway.unit_run_store import (
         UnitParentRunCreate,
         UnitRunStore,
@@ -363,8 +356,6 @@ def test_approve_all_partial_success() -> None:
             )
             await sess.commit()
 
-        from typing import Iterator
-
         app_local = FastAPI()
         app_local.include_router(router)
 
@@ -386,7 +377,6 @@ def test_approve_all_partial_success() -> None:
 
         # Cleanup
         from sqlalchemy import delete
-        from services.gateway.models import Run
         async with factory() as sess:
             await sess.execute(delete(Run).where(Run.parent_run_id == str(parent_id)))
             await sess.execute(delete(Run).where(Run.run_id == str(parent_id)))

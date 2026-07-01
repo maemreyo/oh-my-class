@@ -23,7 +23,7 @@ AI teaching-pack generator for K-12 (Vietnam-first). A teacher describes a lesso
 | Observability | Langfuse v3 | integrated, degrades gracefully if unconfigured |
 | Validation | Pydantic v2 → Zod (codegen) | Python is source of truth |
 
-> **Port note:** code default for the LLM endpoint is `http://localhost:20128/v1`, but `.env` uses `:20228`. Gateway is `:8101` in dev. (Older docs said `:8001` — incorrect.)
+> **Port note:** code default and `.env.example` both use the host 9Router endpoint `http://localhost:20228/v1`. Gateway is `:8101` in dev. (Older docs said `:8001` — incorrect.)
 
 ---
 
@@ -60,11 +60,11 @@ flowchart TB
     direction TB
     S1["setup_contract"] --> S2["preplanning_search"] --> S3["planning_blueprint<br/>→ planner_node"]
     S3 --> S4["post_blueprint_research<br/>→ researcher_node"] --> S5["artifact_workflow<br/>→ content_creator_node"]
-    S5 --> S6{"render_quality<br/>🟡 thin: schema+regex+coherence<br/>+ healing routing"}
+    S5 --> S6{"render_quality<br/>✅ 6-layer gate (rollout-flagged)<br/>+ healing routing"}
     S6 -->|recover| S3
     S6 -->|ok| S7["teacher_approval<br/>interrupt() 🔴 HITL"]
     S7 -->|reject scoped| S5
-    S7 -->|approve| S8["export_finalize<br/>ExporterRegistry (HTML ✅)"]
+    S7 -->|approve| S8["export_finalize<br/>ExporterRegistry (HTML/GIFT/H5P/QTI ✅)"]
   end
   RENDER["Node subprocess<br/>renderer (Eta) → standalone HTML"]
   LLM["llm_client → 9Router :20228 (host) → 4omc<br/>(prod: + LiteLLM :4000)"]
@@ -91,9 +91,9 @@ flowchart LR
     direction TB
     PIPE["8-stage graph ✅"]
     SUB["sub-agents: planner·researcher·content_creator<br/>·reviewer ·(diagnostician·roadmap unused)"]
-    QUAL["quality: thin gate 🟡 · 6-layer ⚪ not injected<br/>· healing ✅"]
-    MW["middleware (30) ⚪ wired to NOTHING"]
-    EXP["export: HTML ✅ · gift/h5p/qti 🔴 · google_forms ⚪"]
+    QUAL["quality: ✅ 6-layer gate injected (rollout-flag)<br/>· Layer-2 real metrics · healing ✅"]
+    MW["middleware (30) ✅ call-level runner (G1/G2/G3/G5)"]
+    EXP["export: HTML/GIFT/H5P/QTI ✅ · google_forms ⚪"]
   end
   subgraph DATA["Contracts / Data"]
     CON["common/contracts (Pydantic, source of truth)"]
@@ -131,9 +131,9 @@ setup_contract → preplanning_search → planning_blueprint → post_blueprint_
 | planning_blueprint | lesson plan | ✅ `planner_node` |
 | post_blueprint_research | enrich research | ✅ `researcher_node` |
 | artifact_workflow | generate artifacts | ✅ `content_creator_node` |
-| render_quality | quality check + healing routing | 🟡 thin (see §6) |
+| render_quality | quality check + healing routing | ✅ 6-layer gate (see §6) |
 | teacher_approval | **HITL `interrupt()`** | — |
-| export_finalize | write exports | 🟡 HTML only (see §8) |
+| export_finalize | write exports | ✅ HTML/GIFT/H5P/QTI (see §8) |
 
 **Conditional routing:** after `render_quality` → recovery routes (`planning_blueprint` / `post_blueprint_research` / `artifact_workflow` / `teacher_approval`); after `teacher_approval` → `export_finalize` (approve) or `artifact_workflow` (scoped reject).
 
@@ -149,7 +149,7 @@ The agents are **imperative calls inside stage nodes**, not graph nodes themselv
 > These constraints (and the planned subsystem that builds on them) are tracked in `.scratch/agent-interaction/` (stage = agent graph-identity; typed seam contracts; BaseStore substrate; state-flag/conditional-edge revision protocol; `Send` sub-agent fan-out). **Planned, not built.**
 
 ### Lead agent
-`packages/agents/lead_agent/` is a separate `create_react_agent` (tool-using) runtime, **not** the teaching-pack pipeline. The 30-middleware chain (`middleware/registry.py`, `ORDERED_MIDDLEWARE_LIST`) is associated with it and is ⚪ **not wired into the teaching-pack graph**.
+The `create_react_agent` runtime (`agent.py`/`node.py`) and `lead_agent_node` bridge have been **removed** (confirmed by `architecture.manifest.json::lead_agent_present=false`). Parked helpers (`config.py`, `recovery.py`, `tools.py`) remain in `packages/agents/lead_agent/` — middleware and sub-agent call sites that still use them retain those references; the ReAct orchestrator itself is gone.
 
 ---
 
@@ -173,8 +173,8 @@ Mechanics: `teacher_approval` stage calls LangGraph `interrupt()`; a `GateInterr
 - Artifacts: `ArtifactWorkflow` (per-artifact state), `ArtifactSnapshot` (content_hash UQ, teacher + student HTML, renderer/template/theme versions).
 - Ops: `Notification` + `NotificationDeliveryRecord`, `BudgetLedgerRecord` (per-run tokens/searches/fetches/retries), `ReleaseEvidence`, `ProviderEvidence`.
 
-**Job execution.** `teaching_pack_job_store.py` (claim with `FOR UPDATE SKIP LOCKED`, 120s lease, idempotency, `eligible_at` for queued/backpressure) → **single in-process worker** (`teaching_pack_worker.run_one`, one job at a time) + **sweeper** every 60s (`sweep_stuck_jobs` resets expired leases / fails after 3 attempts; `sweep_escalated_gates`). Resume is a separate job, so gates do **not** pin the worker.
-> ⚠️ Lease is fixed 120s with **no heartbeat** → a stage >120s can be reclaimed mid-run (latent double-execution risk).
+**Job execution.** `teaching_pack_job_store.py` (claim with `FOR UPDATE SKIP LOCKED`, 120s lease, idempotency, `eligible_at` for queued/backpressure) → worker (`teaching_pack_worker.run_one`) + **sweeper** every 60s (`sweep_stuck_jobs` resets expired leases / fails after 3 attempts; `sweep_escalated_gates`). Resume is a separate job, so gates do **not** pin the worker. Multi-worker concurrency available via `WORKER_CONCURRENCY` env var (default 1 for solo-operator).
+> ✅ **Lease heartbeat active** (`_execute_with_heartbeat()` + `_heartbeat()` loop + `renew_lease()`; interval = `lease_seconds / 3` = 40s). A stage running longer than 40s renews its lease before expiry — no latent double-execution risk.
 
 **SSE.** `teaching_pack_event_bus.py` = in-memory per-run version counter + waiters, notified after DB commit. `GET /teaching-packs/runs/{id}/status` replays `RunEvent` (visibility=TEACHER) from DB then waits. (`packages/agents/events.py` is a second in-memory bus; not the durable source of truth.)
 
@@ -182,21 +182,20 @@ Mechanics: `teacher_approval` stage calls LangGraph `interrupt()`; a `GateInterr
 
 ---
 
-## 6. Quality — IMPORTANT: thin path is what runs
+## 6. Quality — 6-layer gate now injected
 
-There are effectively **two** quality systems, and the sophisticated one is **mostly not wired into the live pipeline**.
+**What runs in `render_quality`** (✅ `quality_runtime.py` → `GatewayTeachingPackQualityGate` → full 6-layer system):
+1. **Fast pre-check** (`quality_issues()`): schema validation, placeholder regex, answer-key-leakage, `accessibility.language`, pack coherence (quiz↔lesson alignment, Bloom coverage, VN difficulty distribution 40/30/20/10).
+2. **Layer-2 content** (real metrics, not stubs): `pedagogical.py` (objective-alignment, Bloom, CLT load, misconception-coverage via real proxies; unmeasured metrics excluded from pass), `age_check.py` (Flesch-Kincaid + age-band table), `fact_check.py` (claim verification against `research_bundle` sources; no sources → `unmeasured`), `readability_checker.py`, `pii.py`, `methodology.py`.
+3. **Layer-3 HTML** (`html_validator.py`): DOCTYPE, no external assets, no brand strings, no native radio, no unmanaged JS — auto-fail hard-blocks.
+4. **Layer-4 G-Eval** (`layer4_judge/`): majority-vote 3-judge scoring; `hard_blocks.py` auto-fail.
+5. **Layer-6 export** readiness check.
 
-**What actually runs in `render_quality`** (🟡 `quality_runtime.py` + `quality.py::quality_issues`):
-- schema validation (`ArtifactContent.model_validate`), placeholder regex, answer-key-leakage regex, `accessibility.language` presence, and **pack coherence** (quiz↔lesson term alignment, objective alignment, vocabulary coverage, Vietnamese difficulty distribution 40/30/20/10).
-- On coherence failure → healing routing (§7). Otherwise sets hardcoded `overall: 8.0, passed: True` and builds snapshots.
+Gate is **rollout-flagged** (`OMC_ENABLE_SIX_LAYER_QUALITY`, default `true`): injected as `GatewayTeachingPackQualityGate()` in `lifespan`. Pass threshold: `overall ≥ 7.0` AND no critical/hard-block. On failure → healing routing (§7). LLM-judge layers use 9Router `4omc`.
 
-**The 6-layer system** (`packages/quality/`) ⚪ **exists but is NOT injected**: `build_teaching_pack_graph(...)` is called in `main.py` with **`quality_gate=None`**, so the `QualityGate` Protocol path (fact-check, age, pedagogical, readability, HTML validator, **G-Eval 3-judge**, export validator) never executes in the teaching-pack run.
-- Real modules: `layer2_content/pii.py`, `readability_checker.py`, `methodology.py`; `layer3_html/html_validator.py` (DOCTYPE/external-asset/brand/radio/JS hard-blocks); `layer4_judge/` (G-Eval, majority vote, `hard_blocks.py`).
-- 🔴 **Stubbed**: `layer2_content/pedagogical.py` (`metrics = {m: True ...}` — all 7 hardcoded True), `fact_check.py` (returns empty), `age_check.py` (returns True).
+**Gateway artifact-workflow quality** (✅ separate, also wired): `services/gateway/artifact_workflow.py` runs `validate_artifact_content()` (placeholder / answer-key / PII / accessibility) during artifact generation, with `try_heal_artifact()`.
 
-**Gateway artifact-workflow quality** (✅ separate, wired): `services/gateway/artifact_workflow.py` runs `validate_artifact_content()` (placeholder / answer-key / PII / accessibility scans) during artifact generation, with `try_heal_artifact()`.
-
-> Net: the live path enforces schema + regex + coherence + (at the gateway artifact layer) PII/answer-key — but **not** fact-check, age-appropriateness, pedagogical metrics, or LLM-judge. HARD_BLOCKS are defined (`layer4_judge/hard_blocks.py`) but only enforced where Layer 3/4 run (i.e. not in the live teaching-pack render_quality).
+> Net: the live path runs all 6 layers for each artifact: fast schema/coherence pre-check → real Layer-2 pedagogical/age/fact metrics → HTML hard-blocks → G-Eval 3-judge → export readiness. Manifest boolean `quality_gate_injected` is machine-verified each CI run.
 
 ---
 
@@ -214,7 +213,7 @@ There are effectively **two** quality systems, and the sophisticated one is **mo
 
 **Export (`export_finalize` → `ExporterRegistry`, `packages/agents/teaching_pack/exporters.py`):**
 - ✅ **HTML** — functional (real files).
-- 🔴 **gift / h5p / qti** — registry returns **placeholder paths**; the TS exporters (`packages/exporters/src/{gift,h5p,qti}`) throw "not yet implemented".
+- ✅ **gift / h5p / qti** — registry resolves each; `packages/exporters/src/{gift,h5p,qti}` exporters are functional. Fail-closed: a requested format with no registered exporter raises (never silently falls back to HTML).
 - ⚪ **google_forms** — exporter is fully built (OAuth `auth.ts`, `client.ts` createForm/batchUpdate, `question-mapper.ts`) but the registry raises `UnsupportedExportFormatError` (in `_UNSUPPORTED_FORMATS`).
 - ✅ **anki-apkg / flashcard-tsv** — implemented in `packages/exporters/src/` (functional, not invoked by the teaching-pack flow).
 
@@ -223,7 +222,7 @@ There are effectively **two** quality systems, and the sophisticated one is **mo
 ## 9. LLM routing
 
 - **Model config** `packages/agents/config/models.py`: every agent/task uses alias **`4omc`** (no per-tier differentiation, no version pinning); per-agent `max_tokens` caps.
-- **Client paths**: `packages/llm_client/` (modern, OpenAI SDK + cost tags + `TokenBudgetManager` soft/hard limits) · `packages/agents/llm/transport.py` (legacy) · `lead_agent` uses LangChain `ChatOpenAI`. Endpoint = `LLM_BASE_URL` (9Router; code default `:20128`, `.env` `:20228`).
+- **Client path (single)**: `packages/llm_client/` (OpenAI SDK + cost tags + `TokenBudgetManager` soft/hard limits + call-level middleware runner). All sub-agents route through it. `packages/agents/llm/transport.py` is orphaned (no live importers; guarded by `tests/test_no_legacy_transport.py`). Endpoint = `LLM_BASE_URL` (host 9Router default `:20228`; optional production LiteLLM uses `http://litellm:4000`).
 - **Cost tags** (INVARIANT-07): `build_tags()` attaches `agent/task/run/step` metadata as `extra_body` (LiteLLM logs it; 9Router ignores).
 - ✅ **9Router runs on the host (by design)**: the dev/operator runs 9Router locally on `:20228` and agents call it directly via `LLM_BASE_URL`. `services/router/Dockerfile` is an intentional placeholder because 9Router is **not containerized** — it lives on the host. For the current single-operator (dev = teacher) setup this is the correct topology, not a defect. (If/when multi-tenant hosting is needed, 9Router would be containerized or replaced.)
 - ✅ **LiteLLM** proxy is a real image (`ghcr.io/berriai/litellm`), prod-only, routes → 9Router, `max_budget=0` (no paid fallback).
@@ -257,7 +256,7 @@ Codegen (`scripts/generate_zod_schemas.py`): Pydantic → JSON Schema → Zod TS
 ## 12. Infrastructure
 
 `infra/compose/docker-compose.yml`: `db` (PG16), `redis` (auth, noeviction), `gateway`, `proxy` (LiteLLM), `web`, `langfuse-web` + `clickhouse` + `minio` (+ `langfuse-worker` profile).
-- 🟡 `docker-compose.prod.yml` declares `litellm.depends_on: 9router: service_healthy` but no `9router` service is defined — because **9Router runs on the host, not in compose** (intended for the current single-operator setup). The dangling `depends_on` should be removed (or 9Router containerized) before any multi-host prod deploy; harmless for solo/dev.
+- ✅ `docker-compose.prod.yml` has no dangling `9router` depends_on (removed). **9Router runs on the host, not in compose** — intentional for the current single-operator setup. If/when multi-tenant hosting is needed, 9Router would be containerized or replaced.
 - Dev defaults in `.env` (`POSTGRES_PASSWORD=omc_dev`, `REDIS_AUTH=…`, `LANGFUSE_ENCRYPTION_KEY=000…`) must be overridden for prod; **no startup guard** enforces this.
 - Packaging: `uv` workspace (Python) + `import-linter` boundaries; `pnpm`/Turborepo + Biome (TS).
 
@@ -271,19 +270,19 @@ INVARIANT-04 no external URLs in HTML (post-render guard) · INVARIANT-05 answer
 
 ## 14. Reality check — wired vs. not, and what's planned
 
-**Wired & functional (✅):** single 8-stage graph · sub-agents (planner/researcher/content_creator) · gate registry + HITL interrupt/resume · job queue/worker/sweeper · checkpointer · SSE · healing · HTML render (Node subprocess) · gateway artifact-workflow quality (placeholder/answer-key/PII/accessibility) · retention/purge/PII · Langfuse · methodology system + Zod codegen · frontend create/monitor/approve.
+**Wired & functional (✅):** single 8-stage graph · sub-agents (planner/researcher/content_creator) · gate registry + HITL interrupt/resume · job queue/worker/sweeper · checkpointer · SSE · healing (5-strategy) · HTML/GIFT/H5P/QTI render + export · **6-layer quality gate** (rollout-flagged, default on; real Layer-2 metrics, G-Eval 3-judge) · gateway artifact-workflow quality (placeholder/answer-key/PII/accessibility) · **call-level middleware runner** (G1/G2/G3/G5) · retention/purge/PII · Langfuse · methodology system + Zod codegen · frontend create/monitor/approve.
 
-**Wired but thin/partial (🟡):** `render_quality` (schema+regex+coherence only) · export (HTML only) · single in-process worker, fixed lease no heartbeat · no schema_version.
+**Wired but thin/partial (🟡):** worker pool configurable via `WORKER_CONCURRENCY` (default 1) · no schema_version on contracts.
 
-**Exists but NOT wired (⚪):** the 6-layer quality system (`packages/quality`, incl. G-Eval judge) — `quality_gate=None` · 30-middleware chain (lead-agent only) · google_forms/anki/flashcard exporters · diagnostician/roadmap as pipeline stages · legacy `OhMyClassState`.
+**Exists but NOT wired (⚪):** google_forms exporter · diagnostician/roadmap as pipeline stages · legacy `OhMyClassState` (kept for healing adapter only).
 
-**Stub / broken (🔴):** `pedagogical.py` / `fact_check.py` / `age_check.py` metrics · gift/h5p/qti exporters · auth login + FE JWT verify · `.env` secret defaults.
+**Stub / broken (🔴):** auth login + FE JWT verify · `.env` secret defaults.
 
 **By design for solo-operator (not defects):** 9Router on host (not containerized) · single in-process worker · LiteLLM optional/prod-only.
 
-**Planned, not built (in `.scratch/`, not in code):** topic-decomposition / multi-session units (ADR-017), learning-outcome effectiveness loop / knowledge-tracing (ADR-019), the runtime-parity items that close the cliffs above (ADR-018: wire 6-layer, wire export formats, etc.), and the **agent-interaction subsystem** (`.scratch/agent-interaction/`: order-stable reducer, typed seam contracts, BaseStore memory substrate + semantic index, bounded revision protocol, interaction observability, `Send` parallel fan-out — all native LangGraph, deterministic). See `.scratch/ROADMAP.md`.
+**Planned, not built (in `.scratch/`, not in code):** topic-decomposition / multi-session units (ADR-017), learning-outcome effectiveness loop / knowledge-tracing (ADR-019), Wave 2+ features (unit_planner, persona, golden-dataset, Forms-capture, cost-cap, etc.), and the **agent-interaction subsystem** (`.scratch/agent-interaction/`: BaseStore semantic index, bounded revision protocol with state-flag/conditional-edge, interaction observability, `Send` parallel fan-out — native LangGraph, deterministic). Runtime-parity work (ADR-018: 6-layer gate, middleware runner, export formats, event-bus, sub-agent collapse) is **done** as of 2026-07-01. See `.scratch/ROADMAP.md`.
 
-> **Discrepancy to flag:** `.scratch/ROADMAP.md` marks the `runtime-parity` epic "DONE", but this audit shows legacy decommission ✅ landed while the **6-layer quality injection, multi-format export, and pedagogical de-stub did NOT** — the live quality bar is still the thin path. Treat the cliffs in §6/§8 as open.
+> **Status (2026-07-01):** All `runtime-parity` and `technical-debt` epics are confirmed done. Quality gate injected, middleware runner active, export formats wired (HTML/GIFT/H5P/QTI), legacy decommissioned — see `architecture.manifest.json` for machine-verified booleans. Open priorities tracked in `.scratch/priority-upgrades/`.
 
 ---
 
@@ -293,10 +292,8 @@ INVARIANT-04 no external URLs in HTML (post-render guard) · INVARIANT-05 answer
 
 Docs drift because they are hand-written and unverified (that's why the previous architecture doc was wrong). The fix (tracked in `.scratch/technical-debt/006`):
 
-1. **Generate the volatile facts** — a script emits `docs/system/architecture.manifest.json` from code: stage list, routers, `RunStatus` values, gate names, migration count, exporter-registry formats, codegen models, and **wiring booleans** (`quality_gate_injected`, `middleware_runner_active`, `lead_agent_present`, `legacy_graph_present`). This doc cites those instead of restating them.
-2. **CI drift test** — `tests/test_architecture_sync.py` fails the build when a manifest claim diverges from code (e.g. someone injects/removes the quality gate, adds a stage, or changes export formats). Structural/wiring claims are machine-checked; prose stays human-authored.
-
-Until that lands, re-run the 6-explorer audit before trusting any status here.
+1. **Generate the volatile facts** — `scripts/generate_architecture_manifest.py` emits `docs/system/architecture.manifest.json` from code: stage list, routers, `RunStatus` values, gate names, migration count, exporter-registry formats, model assignments, and **wiring booleans** (`quality_gate_injected`, `middleware_runner_active`, `lead_agent_present`, `legacy_graph_present`). This doc cites the manifest for volatile lists instead of hand-maintaining them.
+2. **CI drift test** — `tests/test_architecture_sync.py` fails the build when the manifest diverges from code (e.g. someone injects/removes the quality gate, adds a stage, or changes export formats). Structural/wiring claims are machine-checked; prose stays human-authored.
 
 ---
 

@@ -20,7 +20,6 @@ pytestmark = [pytest.mark.real_llm, pytest.mark.e2e]
 def _parallel_seq():
     """3 independent sessions (no prerequisite_sessions)."""
     from common.contracts.lesson_sequence import LessonSequence, SessionPlan
-    from common.contracts.methodology_registry import MethodologyTag
 
     sessions = [
         SessionPlan(
@@ -31,7 +30,7 @@ def _parallel_seq():
             duration_minutes=30,
             learning_objectives=["Obj"],
             bloom_level_primary="understand",
-            methodology_primary=MethodologyTag.CONCEPT_MAP,
+            methodology_primary="concept_map",
             prerequisite_sessions=[],
         )
         for i in range(1, 4)

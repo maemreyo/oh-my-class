@@ -19,16 +19,14 @@ Index of everything produced this session: 3 ADRs + 12 epics (76 issues), with t
 
 ## Epics
 
-### `runtime-parity/` (6) — close capability cliffs, then decommission *(prerequisite)* — **PARTIAL (reconciled with code audit 2026-06-30)**
-⚠️ A fresh codebase audit (see `docs/system/ARCHITECTURE.md`) found the earlier "all DONE" claim **overstated**. Verified status:
+### `runtime-parity/` (6) — close capability cliffs, then decommission *(prerequisite)* — **ALL DONE 2026-07-01**
+✅ All 6 runtime-parity issues confirmed done (code verified + trackers closed 2026-07-01):
+- ✅ `001` Wire 6-layer quality — **DONE** (`GatewayTeachingPackQualityGate` injected in `lifespan`; rollout-flagged `OMC_ENABLE_SIX_LAYER_QUALITY` default on; real Layer-2 metrics; manifest `quality_gate_injected=true`).
+- ✅ `002` Healing → stage recovery — **DONE** (`healing_runtime`/`quality_routing` wired; full 5-strategy escalation bounded by `max_healing_attempts`; G-Eval gate triggers healing).
+- ✅ `003` Event-bus consolidation — **DONE** (`teaching_pack_event_bus` is the single run/stage/SSE substrate; `events.py` retained as LLM/node event substrate only).
 - ✅ `004` Decommission legacy 18-node graph — **DONE** (graph removed; legacy `/run` + `/run/approve` return 410).
-- ✅ `006` Collapse sub-agent StateGraph wrappers — **DONE** (sub-agents are direct node functions).
-- 🟡 `002` Healing → stage recovery — **PARTIAL** (`healing_runtime`/`quality_routing` wired, but only triggers on coherence failures since the 6-layer gate isn't injected).
-- 🟡 `005` Multi-format export — **PARTIAL** (`ExporterRegistry` exists; **HTML only** functional; gift/h5p/qti return placeholder paths; google_forms unsupported).
-- ❌ `001` Wire 6-layer quality — **NOT DONE** (`build_teaching_pack_graph` called with `quality_gate=None`; `render_quality` runs only the thin `quality_issues()`).
-- ❌ `003` Event-bus consolidation — **NOT DONE** (`events.py` + `teaching_pack_event_bus.py` both still exist).
-
-→ The not-done/partial items remain open; their concrete completion + the newly-found gaps are tracked in **`technical-debt/`** below. (The earlier "268 passed" run validated decommission, not the quality/export wiring — tests didn't assert `quality_gate` injection.)
+- ✅ `005` Multi-format export — **DONE** (`ExporterRegistry` supports html/gift/h5p/qti; fail-closed; manifest `export_formats.supported` machine-verified; google_forms explicitly unsupported).
+- ✅ `006` Collapse sub-agent StateGraph wrappers — **DONE** (no `make_*_agent`/`*_graph_node` wrappers remain; sub-agents are direct node functions).
 
 ### `topic-decomposition/` (21) — multi-session unit feature (ADR-017)
 - ✅ `001` Contracts + Zod codegen — **DONE 2026-06-30** · ✅ `005` Curriculum grounding source — **DONE 2026-06-30** *(no blockers)*
@@ -73,14 +71,15 @@ Index of everything produced this session: 3 ADRs + 12 epics (76 issues), with t
 - `006` Contrastive concept-alignment verifier (KT4EQG) *(←001)*
 - `007` RISE template-effectiveness signal + 3-layer HITL *(←004,005, td-014)*
 
-### `technical-debt/` (6) — close the verified as-built gaps (audit 2026-06-30)
+### `technical-debt/` (6) — close the verified as-built gaps (audit 2026-06-30) — **ALL DONE 2026-07-01**
 - `001` Consolidate LLM access onto `llm_client` (single path; remove legacy transport) *(no blockers)*
 - `002` Wire safety/quality **middleware** into the deterministic pipeline (call-level runner in `llm_client`; G1 run-entry, G2 per-call + 4 new guards, G3 generation-context, G4→quality-gate, G5 gate, G6 parked) *(←001)*
 - `003` De-stub Layer-2 quality (pedagogical + fact_check + age_check) — supersedes `effectiveness-loop/002` *(no blockers)*
 - `004` Remove/park dead **Lead Agent** + clean dangling prod-compose `9router` dep *(←002)*
 - `005` Config hygiene — LLM endpoint port (`:20228`) + model alias *(no blockers)*
 - `006` **Architecture drift-guard** — manifest generator + CI sync test so `ARCHITECTURE.md` can't silently drift *(no blockers)*
-- **Also reopen:** `runtime-parity/001` (6-layer inject) + `/003` (event-bus) + finish `/002` `/005` — the not-done/partial items above.
+
+**All 6 technical-debt issues are DONE 2026-07-01.** The previously-noted "Also reopen" items (`runtime-parity/001, 003, 002, 005`) have been completed (see runtime-parity section above).
 
 ### `agent-upgrades/` (7) — per-agent bespoke intelligence (from the agent evaluation)
 - `001` **researcher** — real FACT triangulation, heuristic credibility, targeted+criticality claims, fail-closed grounding, research-memory cache *(←td-002)*
@@ -106,6 +105,18 @@ Index of everything produced this session: 3 ADRs + 12 epics (76 issues), with t
 > Interaction is **native LangGraph**, deterministic (no Lead-Agent/ReAct): **stage = agent graph-identity** · `BaseStore` = cross-run memory · **state-flag + conditional-edge** = bounded upstream-signal (not node-emitted `Command`) · `Send` = sub-agent parallel fan-out · `interrupt` = gates. Thin additions: typed seam contracts, RevisionRequest schema, single shared revision budget, namespace conventions, order-stable reducer.
 > **Intra-epic waves:** ✅ A *(done 2026-06-30)* `000`·`001`·`002a` → B `003`·`004a` → C *(gated/deferred)* `002b`·`004b`.
 
+### `priority-upgrades/` (5) — smart, modern, powerful (architectural assessment 2026-07-01)
+
+New priorities identified from a gap analysis on 2026-07-01. These are independent of the main wave plan and can run in parallel with Wave 2+. Issue files: `.scratch/priority-upgrades/`.
+
+- `001` **Quality flags in approval UI** — surface `ArtifactQualityReport` (per-layer: fact/age/PII/pedagogy/HTML/G-Eval) in `content_approval` gate body; teacher sees quality flags before approving *(←parity-001 ✅)*
+- `002` **Per-teacher/class memory** — write approval history, difficulty skew, vocabulary, artifact preferences to BaseStore; `_planning_blueprint` reads class vocabulary for run N+1 *(←ai-002a ✅)*
+- `003` **Anki-apkg / flashcard-tsv wiring** — extend `ExportFormat` contract + `ExporterRegistry` + Node subprocess bridge; `anki_apkg` and `flashcard_tsv` TS exporters are functional and need a Python caller *(←parity-005 ✅)*
+- `004` **Model tiering per task** — document tier table (strong/medium/fast); add `MODEL_FAST_DEFAULT` / `MODEL_STRONG_DEFAULT` env fallbacks; `ModelAssignments` reads tier defaults; single-model deployment unchanged *(no blockers)*
+- `005` **Adaptive gate fast-lane** — trust score per `(teacher_id, gate_name, artifact_type)`; opt-in fast-lane skips interrupt for high-trust teachers; `AUTO_APPROVED` event recorded *(←pu-002)*
+
+> **Dependency order within this epic:** `004` (no blockers) → `001` (←parity-001) → `002` (←ai-002a) → `003` (←parity-005) → `005` (←pu-002)
+
 ### `component-system/` (2) — content-component registry + smart selection
 - `001` **ComponentRegistry** single source of truth (metadata; derive prompt-catalog; union+dispatcher drift-guard; mirrors question registry) *(no blockers)*
 - `002` **Filter-then-generate** — query registry by artifact/methodology/subject → focused catalog into content_creator *(←001)*
@@ -126,9 +137,9 @@ Index of everything produced this session: 3 ADRs + 12 epics (76 issues), with t
 
 Complete topological order of **all 56 issues** across 8 epics. Run everything in a wave in parallel; a wave starts when all its blockers (earlier waves) are done. Earliest-wave = `1 + max(blocker waves)`; blocker-free = Wave 0.
 
-> ✅ **`runtime-parity/` (all 6) — DONE 2026-06-30** (rp-001…006). Authoritative stage runtime owns the single-lesson path; all parity cross-gates satisfied. Not listed in the waves below (complete).
+> ✅ **`runtime-parity/` (all 6) — DONE 2026-07-01** (rp-001…006). Authoritative stage runtime owns the single-lesson path; all parity cross-gates satisfied (6-layer gate injected, middleware runner active, export formats wired, event-bus consolidated, legacy decommissioned, sub-agent wrappers collapsed). Not listed in the waves below (complete).
 
-**Epic prefixes:** `td`=topic-decomposition · `sr`=scaling-resilience · `hd`=hardening · `te`=testing · `el`=effectiveness-loop · `ops`=ops-observability · `tl`=trust-lifecycle · `rp`=runtime-parity (done).
+**Epic prefixes:** `td`=topic-decomposition · `sr`=scaling-resilience · `hd`=hardening · `te`=testing · `el`=effectiveness-loop · `ops`=ops-observability · `tl`=trust-lifecycle · `rp`=runtime-parity (done) · `pu`=priority-upgrades.
 
 | Wave | Issues (count) | Theme |
 |------|----------------|-------|
@@ -142,7 +153,14 @@ Complete topological order of **all 56 issues** across 8 epics. Run everything i
 | **7 (3)** | ✅ `td-012` ✅ `td-016` ✅ `td-017` | Frontend workspace · coherence lint · UnitPackager |
 | **8 (1)** | ✅ `td-019` | Staged rollout + E2E (release gate) |
 
-Total: 13+10+9+6+4+2+2+3+1 = **50 remaining** + 6 `rp` done = **56**.
+Total: 13+10+9+6+4+2+2+3+1 = **50 remaining** + 6 `rp` done = **56**. Plus 5 new `priority-upgrades/` issues (blocker-free Wave 2-level) = **61 total**.
+
+**`priority-upgrades/` placement in waves:**
+- `pu-004` model-tiering: Wave 0 (no blockers)
+- `pu-001` quality-flags-UI: Wave 1 (←parity-001 ✅)
+- `pu-002` teacher-memory: Wave 1 (←ai-002a ✅)
+- `pu-003` anki-tsv-wiring: Wave 1 (←parity-005 ✅)
+- `pu-005` adaptive-gates: Wave 2 (←pu-002)
 
 ### Wave 0 — start here (no blockers, fully parallel) — **ALL DONE 2026-06-30**
 ✅ `td-001` contracts+codegen · ✅ `td-005` grounding source · ✅ `sr-001` worker-pool+lease-heartbeat · ✅ `sr-002` render worker-pool · ✅ `hd-001` secrets fail-closed · ✅ `hd-002` tenant-isolation · ✅ `hd-003` schema-parity · ✅ `te-001` harness/tiering · ✅ `el-002` de-stub pedagogical · ✅ `ops-001` SLO+alerting · ✅ `ops-002` DR/backup · ✅ `ops-005` webhook security · ✅ `tl-001` accessibility.

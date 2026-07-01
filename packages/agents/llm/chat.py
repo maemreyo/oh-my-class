@@ -1,23 +1,25 @@
 from __future__ import annotations
 
-import logging
 import time
 from typing import TYPE_CHECKING, Final
 
-from openai import AsyncOpenAI, OpenAIError
+from openai import OpenAIError
 
-from packages.agents.config.models import LLM
 from packages.agents.llm.chat_context import CallContext, TransportResult, build_call_context
 from packages.agents.llm.error_summary import safe_error_summary
-from packages.agents.llm.transport import complete_non_streaming_chat, complete_streaming_chat
 from packages.agents.observability import trace_llm_call
+from packages.llm_client.client import ChatMessage, LLMClient
 
 if TYPE_CHECKING:
+    import logging
+
     from openai.types.chat import (
         ChatCompletionMessageParam,
         ChatCompletionSystemMessageParam,
         ChatCompletionUserMessageParam,
     )
+
+import logging
 
 _LOGGER: Final = logging.getLogger("packages.agents.llm")
 
@@ -90,20 +92,13 @@ async def complete_json_chat(
         context.enforce_prompt_gate(messages)
         emit_run_event(context.run_id, "llm_call_started", context.started_event)
         _LOGGER.info(
-            "llm.transport.request model=%s base_url=%s message_count=%s message_chars=%s tags=%s",
+            "llm.client.request model=%s message_count=%s message_chars=%s tags=%s",
             context.request_model,
-            LLM.base_url,
             len(messages),
             context.message_chars,
             tags,
         )
-        client = AsyncOpenAI(
-            api_key=LLM.api_key or "no-key",
-            base_url=LLM.base_url,
-            timeout=LLM.timeout,
-            max_retries=LLM.max_retries,
-        )
-        return await _complete_with_trace(client, messages, temperature, tags, context)
+        return await _complete_with_trace(messages, temperature, context)
     except (OpenAIError, ValueError) as exc:
         emit_run_event(context.run_id, "llm_call_failed", context.failed_event(exc))
         raise
@@ -116,10 +111,8 @@ def chat_messages(system: str, user: str) -> list[ChatCompletionMessageParam]:
 
 
 async def _complete_with_trace(
-    client: AsyncOpenAI,
     messages: list[ChatCompletionMessageParam],
     temperature: float,
-    tags: list[str],
     context: CallContext,
 ) -> str:
     from packages.agents.events import emit_run_event
@@ -130,7 +123,7 @@ async def _complete_with_trace(
         context.request_model,
         context.step,
     ) as trace:
-        result = await _complete_transport(client, messages, temperature, tags, context)
+        result = await _complete_transport(messages, temperature, context)
         _LOGGER.info(
             "llm.transport.response model=%s response_id=%s response_model=%s "
             "choices=%s usage=%s duration_s=%.1f",
@@ -152,34 +145,48 @@ async def _complete_with_trace(
 
 
 async def _complete_transport(
-    client: AsyncOpenAI,
     messages: list[ChatCompletionMessageParam],
     temperature: float,
-    tags: list[str],
     context: CallContext,
 ) -> TransportResult:
+    client = LLMClient()
+    llm_messages = [_chat_message(message) for message in messages]
     if context.decision.transport == "streaming":
-        content = await complete_streaming_chat(
-            client,
+        chunks: list[str] = []
+        async for chunk in client.stream(
             context.request_model,
-            messages,
-            temperature,
-            context.max_tokens,
-            tags,
-        )
+            llm_messages,
+            agent=context.agent_name,
+            task=context.task_name,
+            run_id=context.run_id,
+            step=context.step,
+        ):
+            chunks.append(chunk)
+        content = "".join(chunks)
         return TransportResult(content, None, 1, "stream", context.request_model)
-    result = await complete_non_streaming_chat(
-        client,
+    result = await client.chat(
         context.request_model,
-        messages,
-        temperature,
-        context.max_tokens,
-        tags,
+        llm_messages,
+        agent=context.agent_name,
+        task=context.task_name,
+        run_id=context.run_id,
+        step=context.step,
+        max_tokens=context.max_tokens,
+        temperature=temperature,
+        response_format={"type": "json_object"},
     )
     return TransportResult(
         result.content,
-        result.usage,
-        result.choice_count,
-        result.response_id,
-        result.response_model,
+        {"prompt_tokens": result.input_tokens, "completion_tokens": result.output_tokens},
+        1,
+        "llm_client",
+        result.model,
+    )
+
+
+def _chat_message(message: ChatCompletionMessageParam) -> ChatMessage:
+    content = message.get("content")
+    return ChatMessage(
+        role=str(message.get("role", "user")),
+        content=content if isinstance(content, str) else str(content),
     )

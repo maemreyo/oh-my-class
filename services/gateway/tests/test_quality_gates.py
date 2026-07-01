@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+
 from common.contracts.quality import HealingStrategy, QualityFailureClass
+from common.contracts.artifact_workflow import ArtifactWorkflowState
 from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotRead
 from services.gateway.teaching_pack_types import RunId
 from services.gateway.quality_gates import (
@@ -12,6 +15,7 @@ from services.gateway.quality_gates import (
     validate_artifact_quality,
     validate_snapshot_publish_quality,
 )
+from services.gateway.teaching_pack_quality_gate import GatewayTeachingPackQualityGate
 
 
 def test_artifact_quality_blocks_placeholder_answer_key_and_missing_accessibility() -> None:
@@ -105,6 +109,72 @@ def test_export_readiness_requires_approved_standalone_required_artifacts() -> N
     assert report.issues[0].failure_class is QualityFailureClass.EXPORT_NOT_READY
 
 
+def test_six_layer_quality_gate_rollout_flag_defaults_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services.gateway.main import _quality_gate_enabled
+
+    monkeypatch.delenv("OMC_ENABLE_SIX_LAYER_QUALITY", raising=False)
+
+    assert _quality_gate_enabled() is True
+
+
+def test_six_layer_quality_gate_rollout_flag_can_disable(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services.gateway.main import _quality_gate_enabled
+
+    monkeypatch.setenv("OMC_ENABLE_SIX_LAYER_QUALITY", "false")
+
+    assert _quality_gate_enabled() is False
+
+
+async def test_gateway_quality_gate_flags_pii_age_and_fact_uncertainty() -> None:
+    report = await GatewayTeachingPackQualityGate().evaluate(
+        _workflow_state("lesson-1"),
+        {
+            "artifact_id": "lesson-1",
+            "artifact_type": "lesson",
+            "theme": "default",
+            "title": "Advanced Photosynthesis Lesson",
+            "sections": [{
+                "title": "Theory",
+                "content": (
+                    "Student email mai@example.com. The French Revolution began in 1789. "
+                    "Photosynthesis requires conceptualization of chlorophyll-mediated "
+                    "biochemical conversion and energetic transfer."
+                ),
+            }],
+            "metadata": {"grade_level": "Grade 1", "research_sources": []},
+            "accessibility": {"language": "en"},
+        },
+    )
+
+    failure_classes = {issue.failure_class for issue in report.issues}
+    assert report.passed is False
+    assert QualityFailureClass.PII_LEAKAGE in failure_classes
+    assert QualityFailureClass.PEDAGOGICAL_MISMATCH in failure_classes
+    assert QualityFailureClass.FACTUAL_UNCERTAINTY in failure_classes
+
+
+async def test_gateway_quality_gate_flags_html_hard_blocks() -> None:
+    report = await GatewayTeachingPackQualityGate().evaluate(
+        _workflow_state("lesson-html"),
+        {
+            "artifact_id": "lesson-html",
+            "artifact_type": "lesson",
+            "theme": "default",
+            "title": "HTML Lesson",
+            "sections": [{
+                "title": "Preview",
+                "content": '<html><body><img src="https://cdn.example.com/a.png"></body></html>',
+            }],
+            "metadata": {},
+            "accessibility": {"language": "en"},
+        },
+    )
+
+    assert report.passed is False
+    assert any(issue.failure_class is QualityFailureClass.MISSING_DOCTYPE for issue in report.issues)
+    assert any(issue.failure_class is QualityFailureClass.EXTERNAL_ASSET for issue in report.issues)
+
+
 def _snapshot(
     *,
     artifact_type: str = "lesson",
@@ -127,4 +197,17 @@ def _snapshot(
         theme_version="theme@test",
         standalone_valid=standalone_valid,
         approved_at=datetime.now(UTC) if approved else None,
+    )
+
+
+def _workflow_state(artifact_id: str) -> ArtifactWorkflowState:
+    return ArtifactWorkflowState(
+        workflow_id=f"workflow-{artifact_id}",
+        run_id="run-quality",
+        artifact_id=artifact_id,
+        artifact_type="lesson",
+        status="validating",
+        attempts=0,
+        contract_revision_id=1,
+        research_guidance_id="quality-test",
     )

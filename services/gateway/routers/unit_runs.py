@@ -1,21 +1,9 @@
-"""Unit runs router — aggregate read API, multiplexed SSE, and unit actions (td-011).
-
-Endpoints:
-  GET  /units/{parent_run_id}          → UnitView snapshot
-  GET  /units/{parent_run_id}/status   → SSE stream of unit-level events
-  POST /units/{parent_run_id}/approve-all
-  POST /units/{parent_run_id}/sessions/{session_id}/spawn-anyway
-  POST /units/{parent_run_id}/export
-"""
-
 from __future__ import annotations
 
-import asyncio
-import json
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
@@ -35,13 +23,10 @@ from services.gateway.teaching_pack_control_store import (
     TeachingPackControlStore,
 )
 from services.gateway.teaching_pack_db import get_teaching_pack_session
-from services.gateway.teaching_pack_event_bus import (
-    current_run_event_version,
-    wait_for_run_event,
-)
-from services.gateway.teaching_pack_gate_registry import TeachingPackGateName
 from services.gateway.teaching_pack_job_store import RunJobCreate, TeachingPackJobStore
 from services.gateway.teaching_pack_models import RunJobKind
+from services.gateway.routers.teaching_pack_stream import TeachingPackStreamRequest, stream_visible_run_events
+from services.gateway.teaching_pack_store import TeachingPackRunStore
 from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.unit_run_store import UnitRunStore, UnitSessionRunCreate
 
@@ -159,7 +144,7 @@ async def get_unit_view(
             progress_percent=100 if disp == "approved" else (50 if disp == "in_review" else 0),
         ))
 
-    cursor = current_run_event_version(RunId(parent_run_id))
+    cursor = 0
 
     return UnitView(
         parent=UnitParentMeta(
@@ -187,29 +172,9 @@ async def get_unit_view(
 # ---------------------------------------------------------------------------
 
 
-async def _unit_sse_generator(parent_run_id: RunId, cursor: int):
-    """Yield SSE events for a unit, filtered to that unit's runs."""
-    observed = cursor
-    while True:
-        new_version = current_run_event_version(parent_run_id)
-        if new_version > observed:
-            observed = new_version
-            event_data = json.dumps({
-                "event_type": "unit.progress",
-                "parent_run_id": str(parent_run_id),
-                "cursor": observed,
-            })
-            yield f"event: unit.progress\ndata: {event_data}\n\n"
-        woke = await wait_for_run_event(parent_run_id, observed, timeout_seconds=30.0)
-        if not woke:
-            # Heartbeat
-            yield f": heartbeat\n\n"
-
-
 @router.get("/units/{parent_run_id}/status")
 async def stream_unit_status(
     parent_run_id: str,
-    request: Request,
     user: Annotated[User, Depends(require_teacher)],
     session: Annotated[AsyncSession, TEACHING_PACK_SESSION],
     cursor: int = 0,
@@ -218,7 +183,10 @@ async def stream_unit_status(
     run_id = RunId(parent_run_id)
 
     return StreamingResponse(
-        _unit_sse_generator(run_id, cursor),
+        stream_visible_run_events(
+            TeachingPackRunStore(session),
+            TeachingPackStreamRequest(run_id=run_id, after_sequence=cursor, replay_only=False),
+        ),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -237,7 +205,7 @@ async def approve_all_sessions(
     parent_run_id: str,
     user: Annotated[User, Depends(require_teacher)],
     session: Annotated[AsyncSession, TEACHING_PACK_SESSION],
-) -> dict:
+) -> dict[str, dict[str, str]]:
     await _get_parent_run_owned(parent_run_id, user, session)
 
     run_store = UnitRunStore(session)
@@ -293,7 +261,7 @@ async def spawn_anyway(
     session_id: str,
     user: Annotated[User, Depends(require_teacher)],
     session: Annotated[AsyncSession, TEACHING_PACK_SESSION],
-) -> dict:
+) -> dict[str, str]:
     parent = await _get_parent_run_owned(parent_run_id, user, session)
 
     run_store = UnitRunStore(session)
@@ -347,7 +315,7 @@ async def export_unit(
     parent_run_id: str,
     user: Annotated[User, Depends(require_teacher)],
     session: Annotated[AsyncSession, TEACHING_PACK_SESSION],
-) -> dict:
+) -> dict[str, str]:
     await _get_parent_run_owned(parent_run_id, user, session)
     # Unit packager is triggered lazily; record intent and return.
     # The actual packaging is done by UnitPackager when a worker picks it up.
