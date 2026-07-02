@@ -37,6 +37,9 @@ class RendererAdapterError(OMCError):
         *,
         exit_code: int | None = None,
         stderr: str | None = None,
+        retryable: bool = True,
+        renderer_code: str | None = None,
+        renderer_category: str | None = None,
     ) -> None:
         super().__init__(
             error_code=ErrorCode.PIPELINE_ERROR,
@@ -44,3 +47,6 @@ class RendererAdapterError(OMCError):
         )
         self.exit_code = exit_code
         self.stderr = stderr
+        self.retryable = retryable
+        self.renderer_code = renderer_code
+        self.renderer_category = renderer_category

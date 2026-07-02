@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 import pytest
 
 from services.gateway.renderer_adapter import RendererAdapterError, RendererConfig, render_artifact_content
-from services.gateway.renderer_pool import close_renderer_pools
+from services.gateway.renderer_pool import close_renderer_pools, pool_for
 
 
 VALID_ARTIFACT: dict[str, object] = {
@@ -51,6 +51,46 @@ for line in sys.stdin:
 
         assert all("Fraction Basics" in html for html in rendered)
         assert starts_path.read_text() == "x"
+
+    async def test_sends_worker_protocol_v2_request(self) -> None:
+        script = """
+import json, sys
+for line in sys.stdin:
+    request = json.loads(line)
+    assert request['requestId'] == 'pool-v2-001'
+    assert request['kind'] == 'fixture.echo'
+    assert request['context']['versions']['rendererVersion'] == '0.1.0'
+    title = request['input']['title']
+    print(json.dumps({
+        'ok': True,
+        'html': f'<!DOCTYPE html><html><body>oh-my-class {title}</body></html>',
+        'manifest': {'kind': request['kind']},
+        'diagnostics': [],
+        'metrics': {'renderTimeMs': 1},
+    }), flush=True)
+"""
+        config = RendererConfig(
+            command=worker_command(script),
+            pool_size=1,
+            max_concurrent_renders=1,
+        )
+
+        html = await pool_for(config).render_v2({
+            "requestId": "pool-v2-001",
+            "kind": "fixture.echo",
+            "input": {"title": "Pool V2", "body": "Boundary"},
+            "context": {
+                "audience": "teacher",
+                "locale": "en",
+                "theme": "default",
+                "renderMode": "preview",
+                "requestId": "pool-v2-001",
+                "versions": {"rendererVersion": config.renderer_version},
+                "assetPolicy": "inline-only",
+            },
+        })
+
+        assert "Pool V2" in html
 
 
 class TestRenderVersionPin:

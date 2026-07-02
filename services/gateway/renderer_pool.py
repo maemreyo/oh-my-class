@@ -5,7 +5,7 @@ import asyncio
 import contextlib
 import json
 from dataclasses import dataclass
-from typing import Any, TypedDict
+from typing import Any, NotRequired, TypedDict
 
 from services.gateway.renderer_models import RendererAdapterError, RendererConfig
 
@@ -16,11 +16,43 @@ class WorkerRequest(TypedDict):
     artifact: dict[str, Any]
 
 
+class RenderVersionContext(TypedDict):
+    rendererVersion: str
+
+
+class RenderContext(TypedDict):
+    audience: str
+    locale: str
+    theme: str
+    renderMode: str
+    requestId: str
+    versions: RenderVersionContext
+    assetPolicy: str
+
+
+class WorkerRenderRequest(TypedDict):
+    requestId: str
+    kind: str
+    input: Any
+    context: RenderContext
+
+
 class WorkerResponse(TypedDict, total=False):
     ok: bool
     html: str
-    error: str
+    manifest: NotRequired[dict[str, Any]]
+    diagnostics: NotRequired[list[dict[str, Any]]]
+    metrics: NotRequired[dict[str, Any]]
+    error: str | WorkerError
     stderr: str
+
+
+class WorkerError(TypedDict, total=False):
+    code: str
+    category: str
+    retryable: bool
+    message: str
+    details: dict[str, Any]
 
 
 @dataclass(slots=True)
@@ -38,14 +70,27 @@ class RendererPool:
         self._capacity = asyncio.Semaphore(config.max_concurrent_renders)
 
     async def render(self, artifact_content: dict[str, Any]) -> str:
+        request: WorkerRequest = {
+            "renderer_version": self._config.renderer_version,
+            "template_version": self._config.template_version,
+            "artifact": artifact_content,
+        }
+        return await self._render_request(request)
+
+    async def render_v2(self, request: WorkerRenderRequest) -> str:
+        return await self._render_request(request)
+
+    async def _render_request(self, request: WorkerRequest | WorkerRenderRequest) -> str:
         async with self._capacity:
             last_error: RendererAdapterError | None = None
             for _ in range(self._config.max_retries + 1):
                 worker = await self._borrow_worker()
                 try:
-                    return await self._render_with_worker(worker, artifact_content)
+                    return await self._render_with_worker(worker, request)
                 except RendererAdapterError as exc:
                     last_error = exc
+                    if not exc.retryable:
+                        raise
                     await self._replace_worker(worker)
             if last_error is not None:
                 raise last_error
@@ -68,13 +113,8 @@ class RendererPool:
     async def _render_with_worker(
         self,
         worker: RendererWorker,
-        artifact_content: dict[str, Any],
+        request: WorkerRequest | WorkerRenderRequest,
     ) -> str:
-        request: WorkerRequest = {
-            "renderer_version": self._config.renderer_version,
-            "template_version": self._config.template_version,
-            "artifact": artifact_content,
-        }
         async with worker.lock:
             if worker.process.stdin is None or worker.process.stdout is None:
                 raise RendererAdapterError("Renderer worker missing stdio pipes")
@@ -136,11 +176,27 @@ def parse_worker_response(response_line: bytes, exit_code: int | None) -> str:
     except json.JSONDecodeError as exc:
         raise RendererAdapterError("Renderer worker produced invalid JSON") from exc
     if not response.get("ok", False):
-        raise RendererAdapterError(
-            response.get("error", "Renderer worker failed"),
-            exit_code=exit_code,
-            stderr=response.get("stderr"),
-        )
+        error = response.get("error", "Renderer worker failed")
+        match error:
+            case {"message": message}:
+                raise RendererAdapterError(
+                    str(message),
+                    exit_code=exit_code,
+                    retryable=bool(error.get("retryable", False)),
+                    renderer_code=str(error.get("code")) if error.get("code") is not None else None,
+                    renderer_category=str(error.get("category")) if error.get("category") is not None else None,
+                )
+            case str(message):
+                raise RendererAdapterError(
+                    message,
+                    exit_code=exit_code,
+                    stderr=response.get("stderr"),
+                )
+            case unreachable:
+                raise RendererAdapterError(
+                    f"Renderer worker failed with malformed error payload: {unreachable}",
+                    exit_code=exit_code,
+                )
     return validate_rendered_html(response.get("html", ""), exit_code)
 
 

@@ -51,8 +51,46 @@ if not path.exists():
 for line in sys.stdin:
     print(json.dumps({{'ok': True, 'html': '<!DOCTYPE html><html><body>oh-my-class retry ok</body></html>'}}), flush=True)
 """
-        config = RendererConfig(command=(sys.executable, "-c", script), max_retries=1)
+        config = RendererConfig(command=(sys.executable, "-c", script), max_retries=1, pool_size=1)
 
         html = await render_artifact_content(VALID_ARTIFACT, config)
 
         assert "retry ok" in html
+
+    async def test_typed_non_retryable_worker_error_does_not_retry(self, tmp_path: Path) -> None:
+        attempts_path = tmp_path / "attempts.txt"
+        script = f"""
+import json, pathlib, sys
+path = pathlib.Path({str(attempts_path)!r})
+path.write_text(path.read_text() + 'x' if path.exists() else 'x')
+for line in sys.stdin:
+    print(json.dumps({{'ok': False, 'error': {{'code': 'validation_failed', 'category': 'validation', 'retryable': False, 'message': 'invalid fixture'}}}}), flush=True)
+"""
+        config = RendererConfig(command=(sys.executable, "-c", script), max_retries=2, pool_size=1)
+
+        with pytest.raises(RendererAdapterError, match="invalid fixture") as exc_info:
+            await render_artifact_content(VALID_ARTIFACT, config)
+
+        assert exc_info.value.retryable is False
+        assert exc_info.value.renderer_code == "validation_failed"
+        assert attempts_path.read_text() == "x"
+
+    async def test_typed_retryable_worker_error_retries_once(self, tmp_path: Path) -> None:
+        attempts_path = tmp_path / "retryable-attempts.txt"
+        script = f"""
+import json, pathlib, sys
+path = pathlib.Path({str(attempts_path)!r})
+attempts = len(path.read_text()) if path.exists() else 0
+path.write_text('x' * (attempts + 1))
+for line in sys.stdin:
+    if attempts == 0:
+        print(json.dumps({{'ok': False, 'error': {{'code': 'internal_error', 'category': 'internal', 'retryable': True, 'message': 'temporary internal'}}}}), flush=True)
+    else:
+        print(json.dumps({{'ok': True, 'html': '<!DOCTYPE html><html><body>oh-my-class typed retry ok</body></html>'}}), flush=True)
+"""
+        config = RendererConfig(command=(sys.executable, "-c", script), max_retries=1, pool_size=1)
+
+        html = await render_artifact_content(VALID_ARTIFACT, config)
+
+        assert "typed retry ok" in html
+        assert attempts_path.read_text() == "xx"
