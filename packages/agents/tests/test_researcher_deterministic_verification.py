@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from packages.agents.sub_agents.researcher.nodes import (
+from packages.agents.sub_agents.researcher.runtime_grounding import (
     _apply_deterministic_verification,
-    _target_terms,
+    target_terms,
 )
 
 
@@ -47,7 +47,7 @@ def test_single_domain_not_verified_even_if_llm_said_so() -> None:
 
 
 def test_target_terms_include_topic_and_objectives() -> None:
-    terms = _target_terms(
+    terms = target_terms(
         {"learning_objectives": ["Explain photosynthesis", {"description": "compare cells"}]},
         "Biology",
     )

@@ -7,7 +7,7 @@ the prompt only (the pre-2026-07-01 behaviour that starved fact_check).
 
 from __future__ import annotations
 
-from packages.agents.sub_agents.researcher.nodes import _attach_excerpts, _excerpts_by_url
+from packages.agents.sub_agents.researcher.runtime_grounding import attach_excerpts, excerpts_by_url
 
 
 def test_excerpts_by_url_keeps_only_fetched_bodies() -> None:
@@ -18,7 +18,7 @@ def test_excerpts_by_url_keeps_only_fetched_bodies() -> None:
         {"source": {"url": ""}, "fetch_status": "FETCHED", "excerpt": "no url"},
     ]
 
-    assert _excerpts_by_url(evidence) == {"https://a.edu": "body A"}
+    assert excerpts_by_url(evidence) == {"https://a.edu": "body A"}
 
 
 def test_attach_excerpts_fills_matching_sources_only() -> None:
@@ -30,7 +30,7 @@ def test_attach_excerpts_fills_matching_sources_only() -> None:
         ]
     }
 
-    result = _attach_excerpts(bundle, {"https://a.edu": "body A", "https://z.edu": "unused"})
+    result = attach_excerpts(bundle, {"https://a.edu": "body A", "https://z.edu": "unused"})
 
     sources = {s["title"]: s.get("excerpt") for s in result["sources"]}
     assert sources["A"] == "body A"  # filled from fetched corpus

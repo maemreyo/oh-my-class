@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import httpx2
 
@@ -107,6 +108,7 @@ class TestSloAlerting:
             observed=7,
             threshold=5,
             teacher_id="teacher-1",
+            runbook_path="docs/runbooks/job-queue-stuck.md",
         )
 
         await sink.send(breach)
@@ -114,6 +116,7 @@ class TestSloAlerting:
         assert [request.url for request in client.requests] == ["https://slack.test/hook", "https://zalo.test/hook"]
         assert all(request.payload["metric"] == "queue_depth" for request in client.requests)
         assert all(request.payload["teacher_id"] == "teacher-1" for request in client.requests)
+        assert all(Path(str(request.payload["runbook_path"])).exists() for request in client.requests)
 
 
 class RecordingAlertSink:

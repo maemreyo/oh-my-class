@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal, cast
 from common.contracts.run_contract import (
     ArtifactType,
     ContractRevisionMeta,
+    DecompositionIntent,
     ExportFormat,
     PipelineMode,
     ResearchPolicy,
@@ -150,6 +151,7 @@ def _build_contract(
         config_version=CONFIG_VERSION,
         config_hash=config_hash(DEFAULT_POLICY),
         student_evidence=_minimize_student_evidence(student_evidence),
+        decomposition_intent=_decomposition_intent(class_info),
         revision_meta=ContractRevisionMeta(
             revision=1,
             actor="system",
@@ -235,6 +237,11 @@ def _mode(class_info: JsonObject) -> PipelineMode:
 def _student_evidence(class_info: JsonObject) -> JsonObject | None:
     value = class_info.get("student_evidence")
     return value if isinstance(value, dict) else None
+
+
+def _decomposition_intent(class_info: JsonObject) -> DecompositionIntent | None:
+    value = class_info.get("decomposition_intent")
+    return DecompositionIntent.model_validate(value) if isinstance(value, dict) else None
 
 
 def _minimize_student_evidence(evidence: JsonObject | None) -> JsonObject | None:

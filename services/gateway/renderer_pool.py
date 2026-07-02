@@ -144,14 +144,22 @@ def parse_worker_response(response_line: bytes, exit_code: int | None) -> str:
     return validate_rendered_html(response.get("html", ""), exit_code)
 
 
-_POOLS: dict[RendererConfig, RendererPool] = {}
+PoolKey = tuple[RendererConfig, int]
+
+
+_POOLS: dict[PoolKey, RendererPool] = {}
+
+
+def _pool_key(config: RendererConfig) -> PoolKey:
+    return (config, id(asyncio.get_running_loop()))
 
 
 def pool_for(config: RendererConfig) -> RendererPool:
-    pool = _POOLS.get(config)
+    key = _pool_key(config)
+    pool = _POOLS.get(key)
     if pool is None:
         pool = RendererPool(config)
-        _POOLS[config] = pool
+        _POOLS[key] = pool
     return pool
 
 

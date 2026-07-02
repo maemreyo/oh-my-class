@@ -13,6 +13,13 @@ from typing import TYPE_CHECKING, Any
 _LOGGER = logging.getLogger(__name__)
 
 from common.contracts.research_bundle import ResearchBundle
+from packages.agents.sub_agents.researcher.runtime_grounding import (
+    attach_excerpts,
+    excerpts_by_url,
+    finalize_bundle,
+    remember_verified_sources,
+    target_terms,
+)
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.researcher.state import ResearcherNodeState
@@ -31,20 +38,39 @@ async def researcher_node(state: ResearcherNodeState) -> dict[str, Any]:
     research_policy = state.get("research_policy", "standard")
     topic = lesson_plan.get("topic", "General topic")
     from packages.agents.sub_agents.researcher.evidence import build_research_evidence
+    from packages.agents.sub_agents.researcher.grounding import (
+        RESEARCH_MEMORY_CACHE,
+        cache_key,
+        policy_rigor,
+        utc_now,
+    )
     from packages.agents.sub_agents.researcher.tools import web_fetch
     from packages.agents.tools.web_search import web_search
+
+    rigor = policy_rigor(str(research_policy), str(lesson_plan.get("subject", "")))
+    memory_key = cache_key(topic, state.get("class_info", {}))
+    cached_sources = RESEARCH_MEMORY_CACHE.get(memory_key, now=utc_now(), recency_days=rigor.recency_days)
+    if cached_sources is not None:
+        bundle = ResearchBundle.model_validate({
+            "topic": str(topic),
+            "sources": list(cached_sources),
+            "key_findings": ["Reused verified grounding corpus from research memory cache."],
+            "cross_references": [],
+            "research_policy": research_policy,
+        })
+        return {"research_bundle": bundle.model_dump()}
 
     source_candidates = await web_search(str(topic), num_results=NINEROUTER.search_results, min_sources=NINEROUTER.min_sources)
     research_evidence = await build_research_evidence(
         source_candidates,
-        fetch_limit=_fetch_limit(str(research_policy)),
+        fetch_limit=rigor.sources_per_claim_cap,
         web_fetcher=web_fetch,
     )
     # Deterministic (not LLM-decided): the fetched bodies ARE the grounding corpus the
     # Layer-2 fact_check consumes. Persist them into the bundle sources by URL so the
     # verified corpus carries its evidence instead of dropping it into the prompt only.
-    fetched_excerpts = _excerpts_by_url(research_evidence)
-    target_terms = _target_terms(lesson_plan, topic)
+    fetched_excerpts = excerpts_by_url(research_evidence)
+    terms = target_terms(lesson_plan, topic)
 
     user_prompt = f"""
 Research topic: {topic}
@@ -111,7 +137,9 @@ or credibility scores.
                 json_str = extract_json_text(content)
                 bundle_data = json.loads(json_str)
                 bundle = ResearchBundle.model_validate(bundle_data)
-                return {"research_bundle": _finalize_bundle(bundle.model_dump(), fetched_excerpts, target_terms)}
+                finalized = finalize_bundle(bundle.model_dump(), fetched_excerpts, terms)
+                remember_verified_sources(memory_key, finalized)
+                return {"research_bundle": finalized}
             except (ValueError, json.JSONDecodeError, Exception):
                 log_llm_failure(
                     "researcher",
@@ -139,7 +167,7 @@ or credibility scores.
                 ]
                 # Ensure minimum 2 sources for validation
                 if len(sources) < 2:
-                    sources = _synthetic_sources(topic, research_policy)
+                    sources = _synthetic_sources(topic)
                 bundle = ResearchBundle.model_validate({
                     "topic": str(topic),
                     "sources": sources,
@@ -150,7 +178,9 @@ or credibility scores.
                     "cross_references": [],
                     "research_policy": research_policy,
                 })
-                return {"research_bundle": _finalize_bundle(bundle.model_dump(), fetched_excerpts, target_terms)}
+                finalized = finalize_bundle(bundle.model_dump(), fetched_excerpts, terms)
+                remember_verified_sources(memory_key, finalized)
+                return {"research_bundle": finalized}
         except Exception as e:
             log_llm_failure("researcher", run_id, step, model, attempt_number, started, e)
             if attempt < 2:
@@ -171,7 +201,7 @@ or credibility scores.
                 for source in source_candidates
             ]
             if len(sources) < 2:
-                sources = _synthetic_sources(topic, research_policy)
+                sources = _synthetic_sources(topic)
             bundle = ResearchBundle.model_validate({
                 "topic": str(topic),
                 "sources": sources,
@@ -182,120 +212,14 @@ or credibility scores.
                 "cross_references": [],
                 "research_policy": research_policy,
             })
-            return {"research_bundle": _attach_excerpts(bundle.model_dump(), fetched_excerpts)}
+            finalized = attach_excerpts(bundle.model_dump(), fetched_excerpts)
+            remember_verified_sources(memory_key, finalized)
+            return {"research_bundle": finalized}
 
     raise ValueError("Researcher agent failed: exhausted retries")
 
 
-def _target_terms(lesson_plan: dict[str, Any], topic: object) -> list[str]:
-    """Terms the fetched evidence must corroborate: topic + learning-objective words."""
-    terms = [str(topic)]
-    objectives = lesson_plan.get("learning_objectives", [])
-    if isinstance(objectives, list):
-        for item in objectives:
-            if isinstance(item, str):
-                terms.append(item)
-            elif isinstance(item, dict):
-                for key in ("description", "objective", "text"):
-                    value = item.get(key)
-                    if isinstance(value, str):
-                        terms.append(value)
-    return terms
-
-
-def _apply_deterministic_verification(bundle: dict[str, Any], target_terms: list[str]) -> dict[str, Any]:
-    """Replace LLM-rated / fabricated credibility with code-computed triangulation.
-
-    A source is VERIFIED only when ≥2 independent domains corroborate the target terms;
-    credibility is heuristic (TLD/fetch/coverage/agreement). Sources without a fetched
-    body cannot be VERIFIED — no fabrication.
-    """
-    from packages.agents.sub_agents.researcher.triangulation import (
-        FetchedSource,
-        heuristic_credibility,
-        registrable_domain,
-        triangulate,
-    )
-
-    sources = bundle.get("sources")
-    if not isinstance(sources, list) or not sources:
-        return bundle
-    fetched = [
-        FetchedSource(
-            title=str(source.get("title", "")),
-            url=source.get("url") if isinstance(source.get("url"), str) else None,
-            excerpt=str(source.get("excerpt") or ""),
-        )
-        for source in sources
-    ]
-    triangulated = triangulate(fetched, target_terms)
-    corroborating_count = len(
-        {registrable_domain(t.source.url) for t in triangulated if t.covers and registrable_domain(t.source.url)}
-    )
-    for source, result in zip(sources, triangulated, strict=False):
-        if not isinstance(source, dict):
-            continue
-        source["verification_status"] = result.verification_status
-        source["credibility_score"] = heuristic_credibility(
-            source.get("url"),
-            covers=result.covers,
-            corroborating_count=corroborating_count if result.covers else 0,
-            fetched=bool(source.get("excerpt")),
-        )
-    return bundle
-
-
-def _finalize_bundle(
-    bundle: dict[str, Any],
-    fetched_excerpts: dict[str, str],
-    target_terms: list[str],
-) -> dict[str, Any]:
-    return _apply_deterministic_verification(_attach_excerpts(bundle, fetched_excerpts), target_terms)
-
-
-def _excerpts_by_url(research_evidence: list[dict[str, Any]]) -> dict[str, str]:
-    """Map source URL -> fetched excerpt for successfully FETCHED evidence only."""
-    mapping: dict[str, str] = {}
-    for entry in research_evidence:
-        if entry.get("fetch_status") != "FETCHED":
-            continue
-        source = entry.get("source")
-        excerpt = entry.get("excerpt")
-        if isinstance(source, dict) and isinstance(excerpt, str) and excerpt:
-            url = source.get("url")
-            if isinstance(url, str) and url:
-                mapping[url] = excerpt
-    return mapping
-
-
-def _attach_excerpts(bundle: dict[str, Any], excerpts: dict[str, str]) -> dict[str, Any]:
-    """Attach fetched excerpts to bundle sources by URL (deterministic, no fabrication).
-
-    Only fills excerpts we actually fetched; sources without a fetched body keep
-    ``excerpt=None`` so downstream can distinguish grounded from ungrounded sources.
-    """
-    for source in bundle.get("sources", []):
-        if not isinstance(source, dict):
-            continue
-        if source.get("excerpt"):
-            continue
-        url = source.get("url")
-        if isinstance(url, str) and url in excerpts:
-            source["excerpt"] = excerpts[url]
-    return bundle
-
-
-def _fetch_limit(research_policy: str) -> int:
-    from packages.agents.config.models import NINEROUTER
-    limits = {
-        "basic": NINEROUTER.fetch_limit_basic,
-        "standard": NINEROUTER.fetch_limit_standard,
-        "rigorous": NINEROUTER.fetch_limit_rigorous,
-    }
-    return limits.get(research_policy, NINEROUTER.fetch_limit_standard)
-
-
-def _synthetic_sources(topic: str, research_policy: str) -> list[dict[str, Any]]:
+def _synthetic_sources(topic: str) -> list[dict[str, Any]]:
     return [
         {
             "title": f"General knowledge about {topic}",

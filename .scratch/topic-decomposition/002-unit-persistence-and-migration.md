@@ -39,8 +39,10 @@ This slice provides the schema, Alembic migration, and store/query methods only.
 - [x] `services/gateway/tests/test_unit_persistence.py`: create a `unit_parent` + 3 `unit_session` children; list-children-by-parent returns exactly the 3, ordered by `session_index`.
 - [x] `services/gateway/tests/test_unit_persistence.py`: computed unit status over children states (e.g. 1 complete / 1 generating / 1 failed) returns the expected aggregate counts and `partially_complete`/`complete` resolution.
 - [x] `services/gateway/tests/test_unit_persistence.py`: a standalone run round-trips with all new columns null and `unit_role="standalone"`.
+- [x] `services/gateway/tests/test_run_creation_security.py`: a runtime `mode="plan_unit"` create persists the parent row with `unit_role="unit_parent"` and a placeholder lesson sequence.
 - [x] Migration test: apply then downgrade the migration on a real DB; schema returns to baseline and upgrade reapplies cleanly.
 - [x] Ran `uv run alembic upgrade head`, `uv run alembic downgrade 013_gate_active_unique && uv run alembic upgrade head`, and `uv run pytest services/gateway/tests/test_unit_persistence.py -q`.
+- [x] Ran `uv run pytest services/gateway/tests/test_run_creation_security.py -q` → 3 passed.
 
 ## Blocked by
 

@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from starlette.testclient import TestClient
 
 from services.gateway.routers.webhooks import WebhookDispatch, router
+from services.gateway.routers.webhooks import _dispatch_payload
 
 
 class RecordingDispatcher:
@@ -60,6 +61,21 @@ class TestNotificationDispatch:
         assert response.status_code == 200
         assert dispatcher.events[0].event_type == "effectiveness_response"
         assert app.state.effectiveness_ingestion_events == [payload]
+
+    def test_dispatch_payload_contains_outbound_event_context(self) -> None:
+        event = WebhookDispatch(
+            source="notify",
+            event_id="recall-1",
+            event_type="recall",
+            payload={"run_id": "run-1"},
+        )
+
+        assert _dispatch_payload(event) == {
+            "source": "notify",
+            "event_id": "recall-1",
+            "event_type": "recall",
+            "payload": {"run_id": "run-1"},
+        }
 
 
 def _client(dispatcher: RecordingDispatcher) -> TestClient:

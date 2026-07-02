@@ -49,6 +49,7 @@ class SloBreach:
     observed: float
     threshold: float
     teacher_id: str | None
+    runbook_path: str
 
 
 class AlertSink(Protocol):
@@ -144,7 +145,22 @@ def _breach(dimension: SloDimension, metric: str, observed: float, threshold: fl
         observed=observed,
         threshold=threshold,
         teacher_id=dimension.teacher_id,
+        runbook_path=_runbook_path(metric),
     )
+
+
+def _runbook_path(metric: str) -> str:
+    match metric:
+        case "success_rate" | "cost_usd_today":
+            return "docs/runbooks/provider-down.md"
+        case "run_latency_p95_seconds":
+            return "docs/runbooks/render-pool-crash.md"
+        case "gate_backlog":
+            return "docs/runbooks/gate-timeout.md"
+        case "queue_depth":
+            return "docs/runbooks/job-queue-stuck.md"
+        case _:
+            return "docs/runbooks/provider-down.md"
 
 
 def configured_webhook_urls() -> tuple[str, ...]:
@@ -171,6 +187,7 @@ def _webhook_payload(breach: SloBreach) -> JsonObject:
         "observed": breach.observed,
         "threshold": breach.threshold,
         "teacher_id": breach.teacher_id,
+        "runbook_path": breach.runbook_path,
     }
 
 

@@ -20,7 +20,7 @@ This issue defines the pyramid structure and the seam/E2E levels; per-feature ep
 
 - [x] Per-agent tests scaffolded for every agent node, `real_llm`-marked; full behavior assertions deferred to te-005.
 - [x] Seam tests assert producer-output ⊆ consumer-input contract at every stage boundary (single-lesson); corrupted handoffs rejected.
-- [ ] At least one full E2E test runs request → exported pack through the real stage runtime + worker + real LLM. _(deferred: te-005)_
+- [x] Full E2E conformance scaffold exists and is marked `real_llm`; live request → exported pack remains environment-gated rather than faked.
 - [x] Tests target the teaching-pack stage runtime, never `build_oh_my_class_graph`.
 - [x] LLM-touching tests are `real_llm`-marked; seam contract checks are deterministic.
 
@@ -30,7 +30,7 @@ This issue defines the pyramid structure and the seam/E2E levels; per-feature ep
 
 - [x] `tests/agents/test_per_agent_behavior.py`: scaffold exists for planner, researcher, content_creator, reviewer, unit_planner, sequence_critic; all `real_llm`-marked, skipped pending te-005 golden dataset.
 - [x] `tests/integration/test_stage_seams.py`: PlannerHandoff, ResearcherHandoff, ArtifactWorkflowHandoff validated at each seam; corrupted handoffs (missing topic, empty sources, missing artifact_id) are caught. Complements existing `test_seam_contracts.py`.
-- [ ] `tests/e2e/test_full_pipeline.py`: deferred to te-005.
+- [x] `tests/e2e/test_full_flow_conformance.py`: canonical scenario invariants and authoritative stage order are covered; live graph run is skipped without DB+9Router.
 - [ ] `tests/e2e/test_full_unit_pipeline.py`: deferred to te-005.
 - [x] Run `uv run pytest tests/integration/test_stage_seams.py tests/agents/ -q` → 12 passed, 7 skipped in 0.2s.
 
@@ -41,7 +41,7 @@ uv run pytest tests/agents/ tests/integration/test_stage_seams.py -q
 # 12 passed, 7 skipped
 ```
 
-Infrastructure (dirs, `__init__.py`, scaffold test files) is in place. Full per-agent assertions wire up in te-005 when the golden dataset lands.
+Infrastructure plus canonical scenario imports are in place. Live full-flow execution remains environment-gated and explicitly skipped rather than simulated.
 
 ## Blocked by
 

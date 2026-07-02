@@ -31,13 +31,16 @@ Export is status-aware: `passed` clusters export teacher and student files; `nee
 ## Completion notes
 
 - Added `packages/exporters/src/vocabulary-batch/index.ts` with `buildVocabularyBatchPackage()`.
+- Added `packages/exporters/src/vocabulary-batch/cli.ts` and `services/gateway/vocabulary_batch_export.py` so the Python gateway can invoke the TypeScript packager instead of duplicating ZIP logic.
 - The ZIP package includes root `index.html`, `manifest.json`, and `clusters/<cluster-id>/...` files.
 - Status policy:
   - `passed` and teacher-approved `needs_review` clusters export teacher/student teaching + practice HTML and optional LMS files.
   - unapproved `needs_review` clusters export teacher HTML only.
   - `failed` clusters export diagnostics only.
 - GIFT/H5P are generated only from `PracticeSet` prompts/answers and do not include teacher scripts, source notes, or rationales.
-- Verified with focused Vitest, TypeScript build, LSP diagnostics, and a manual Node ZIP smoke check.
+- Verified with focused Vitest, TypeScript build, gateway bridge tests, LSP diagnostics, and a manual Node ZIP smoke check.
+- `uv run pytest services/gateway/tests/test_vocabulary_batch_export.py -q` → 2 passed.
+- `pnpm --filter @oh-my-class/exporters test -- vocabulary-batch-cli.test.ts vocabulary-batch.test.ts` → 52 passed.
 
 ## Blocked by
 

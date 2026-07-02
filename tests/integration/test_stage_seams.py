@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import pytest
 from pydantic import ValidationError
+from tests.scenarios import scenario_by_key
 
 from common.contracts.seam_contracts import (
     ArtifactWorkflowHandoff,
@@ -16,20 +17,20 @@ from common.contracts.seam_contracts import (
 )
 
 
-def _valid_lesson_plan() -> dict:
-    """Minimal lesson_plan that satisfies PlannerHandoff validation."""
+def _valid_lesson_plan() -> dict[str, object]:
+    scenario = scenario_by_key("math_vn")
     return {
-        "topic": "Fractions",
+        "topic": scenario.class_info["topic"],
         "learning_objectives": [
             {"description": "Understand what a fraction represents", "bloom_level": "understand"}
         ],
-        "grade_level": "Grade 5",
-        "subject": "math",
+        "grade_level": f"Grade {scenario.class_info['grade']}",
+        "subject": scenario.class_info["subject"],
         "duration_minutes": 45,
     }
 
 
-def _valid_research_brief() -> dict:
+def _valid_research_brief() -> dict[str, object]:
     return {
         "topic": "Fractions",
         "sources": [
@@ -39,7 +40,7 @@ def _valid_research_brief() -> dict:
     }
 
 
-def _valid_artifact(artifact_id: str = "art-1") -> dict:
+def _valid_artifact(artifact_id: str = "art-1") -> dict[str, object]:
     return {"artifact_id": artifact_id, "artifact_type": "lesson", "content": "body text"}
 
 
@@ -48,7 +49,7 @@ class TestPlannerHandoff:
 
     def test_planner_handoff_parses_required_fields(self):
         handoff = PlannerHandoff.model_validate({"lesson_plan": _valid_lesson_plan()})
-        assert handoff.lesson_plan["topic"] == "Fractions"
+        assert handoff.lesson_plan["topic"] == scenario_by_key("math_vn").class_info["topic"]
 
     def test_missing_topic_is_rejected(self):
         plan = {k: v for k, v in _valid_lesson_plan().items() if k != "topic"}

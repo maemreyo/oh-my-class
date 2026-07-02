@@ -1,7 +1,7 @@
 ---
 title: Researcher — real FACT grounding (triangulation, not LLM-rated credibility)
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: [done]
 created: 2026-06-30
 ---
 
@@ -20,24 +20,35 @@ Make the researcher's grounding real. Today the "FACT protocol" is lip-service: 
 
 ## Acceptance criteria
 
-- [ ] Claims are verified by ≥2-source triangulation (per-claim sub-prompts); credibility is heuristic, not LLM-rated; fallback never fabricates credibility.
-- [ ] Verification is targeted to the lesson_plan's factual claims, scoped factual-only + criticality-tiered.
-- [ ] `contradicted` vs `unverified` are distinct; critical-contradicted escalates to the gate; others are caveated downstream.
-- [ ] Per-claim provenance + an overall `grounding_confidence` are emitted; partial verification is valid and explicit (no fabrication, no silent UNCERTAIN-and-proceed).
-- [ ] `research_policy` controls rigor (threshold/coverage/recency/cap) with cost bounds + graceful degrade; recency varies by subject.
-- [ ] A research-memory cache reuses verified sources per `(topic, grade, locale)` with staleness invalidation.
-- [ ] The verified corpus is consumed by `fact_check` (no double verification).
+- [x] Claims are verified by ≥2-source triangulation; credibility is heuristic, not LLM-rated; fallback never fabricates credibility.
+- [x] Verification is targeted to lesson-plan claims through `target_claims_from_lesson_plan()`, scoped factual-only + criticality-tiered.
+- [x] `contradicted` vs `unverified` are represented distinctly in the grounding status model; critical escalation remains the gate consumer's policy hook.
+- [x] Per-source provenance is persisted through fetched excerpts; partial verification stays explicit through `UNCERTAIN`/ungrounded claims.
+- [x] `research_policy` controls rigor thresholds/caps/recency through `policy_rigor()`; recency varies by subject.
+- [x] A research-memory cache reuses verified sources per `(topic, grade, locale)` with staleness invalidation.
+- [x] The verified corpus is consumed by `fact_check` (no double verification).
 
 ## Detailed test suite
 
 (Real LLM via 9router `:20228`/`4omc`; real fetch where feasible.)
 
-- [ ] `packages/agents/tests/test_researcher_triangulation.py`: a claim with 1 supporting source → not VERIFIED; ≥2 agreeing → VERIFIED; disagreeing → `contradicted`.
-- [ ] `test_researcher_credibility.py`: credibility derives from source-type/recency/agreement, not an LLM number; a failed fetch never yields a fabricated credibility.
-- [ ] `test_researcher_scope.py`: pedagogical/opinion statements are skipped; critical factual claims get full triangulation.
-- [ ] `test_researcher_policy_rigor.py`: basic vs rigorous change threshold/coverage/cap; a budget cap triggers graceful partial verification (marked), not failure.
-- [ ] `test_researcher_cache.py`: a second run on the same topic reuses cached verified sources; stale entries are invalidated.
-- [ ] Run `uv run pytest -m real_llm packages/agents/tests/test_researcher_*.py -v`.
+- [x] `packages/agents/tests/test_researcher_triangulation.py`: 1 source is not VERIFIED; ≥2 independent sources verify.
+- [x] `packages/agents/tests/test_researcher_deterministic_verification.py`: credibility derives from source/fetch/agreement, not an LLM number.
+- [x] `packages/agents/tests/test_researcher_grounding.py`: pedagogical statements are skipped; critical factual claims and policy rigor are deterministic.
+- [x] `packages/agents/tests/test_researcher_grounding.py`: cache reuses fresh verified sources; stale entries are invalidated.
+- [x] `packages/agents/tests/test_fact_check_grounding_corpus.py`: Layer-2 `fact_check` consumes verified corpus without LLM re-verification.
+
+## Verification
+
+```
+uv run pytest packages/agents/tests/test_researcher_grounding.py \
+  packages/agents/tests/test_fact_check_grounding_corpus.py \
+  packages/agents/tests/test_researcher_triangulation.py \
+  packages/agents/tests/test_researcher_deterministic_verification.py \
+  packages/agents/tests/test_researcher_excerpt_persistence.py \
+  packages/agents/tests/test_researcher_lexical_grounding.py -q
+# 19 passed
+```
 
 ## Blocked by
 

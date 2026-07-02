@@ -32,8 +32,9 @@ Ship `vocabulary_batch` behind a feature flag with end-to-end evidence. The rele
 - Added `FEATURE_VOCABULARY_BATCH_V1` to `packages/agents/config/features.py` and guarded vocabulary mode in `_artifact_workflow()`.
 - Added DB-free rollout receipt rendering for `teaching_pack.vocabulary_batch.rollout_evidence` in `services/gateway/release_evidence.py`.
 - Added `apps/web/src/components/vocabulary-batch-dashboard.tsx` for medium-batch progress/status navigation.
+- Added gateway-to-exporter bridge coverage for producing the standalone offline ZIP package from the runtime side.
 - Added `docs/reports/vocabulary-batch-rollout-evidence.md` with commands, outputs, coverage, and residual risks.
-- Verified focused flag/routing/evidence/dashboard suites; full live DB+LLM E2E remains environment-gated.
+- Verified focused flag/routing/evidence/dashboard/export-bridge suites; full live DB+LLM E2E remains environment-gated.
 
 ## Blocked by
 

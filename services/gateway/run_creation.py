@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from services.gateway.models import RunStatus
+from services.gateway.models import Run, UnitRole
 from services.gateway.notifications import notify_contract_confirmation, notify_gate_required
 from services.gateway.teaching_pack_control_store import (
     GateInterruptCreate,
@@ -71,10 +72,13 @@ async def create_teaching_pack_run_record(
     ))
     match setup:
         case ContractSetupReady(contract=contract):
+            await _mark_unit_parent_if_needed(session, contract)
             return await _create_ready_run(
                 session, run_store, contract, request_hash, idempotency_key, eligible_at,
             )
         case ContractSetupGate(gate_name=gate_name, payload=gate_payload, contract=contract):
+            if contract is not None:
+                await _mark_unit_parent_if_needed(session, contract)
             return await _create_gated_run(
                 run_store,
                 session,
@@ -85,6 +89,10 @@ async def create_teaching_pack_run_record(
                 request_hash,
                 idempotency_key,
             )
+        case unreachable:
+            from typing import assert_never
+
+            assert_never(unreachable)
 
 
 async def _create_ready_run(
@@ -188,3 +196,27 @@ async def _create_gated_run(
         ))
         await job_store.cancel_run_jobs(run_id)
     return TeachingPackCreateRunResult(run_id=run_id, job_id=None, status=RunStatus.AWAITING_APPROVAL)
+
+
+async def _mark_unit_parent_if_needed(session, contract: RunContract) -> None:
+    if contract.mode != "plan_unit":
+        return
+    from sqlalchemy import select
+
+    result = await session.execute(select(Run).where(Run.run_id == contract.run_id))
+    run = result.scalar_one()
+    run.unit_role = UnitRole.UNIT_PARENT
+    run.lesson_sequence = _unit_placeholder_sequence(contract)
+    await session.flush()
+
+
+def _unit_placeholder_sequence(contract: RunContract) -> JsonObject:
+    target_sessions = 1
+    if contract.decomposition_intent is not None:
+        target_sessions = contract.decomposition_intent.target_sessions
+    return {
+        "schema_version": "lesson_sequence.placeholder.v1",
+        "topic": contract.topic,
+        "target_sessions": target_sessions,
+        "status": "awaiting_unit_planning",
+    }

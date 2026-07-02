@@ -33,6 +33,8 @@ Production needs app-level service-level objectives and alerts, beyond container
 ## Verification
 
 - `uv run pytest services/gateway/tests/test_slo_metrics.py services/gateway/tests/test_alerting.py services/gateway/tests/test_ops_slo_router.py -q` → 7 passed.
+- SLO alert payloads now include `runbook_path` values backed by files in `docs/runbooks/`.
+- `uv run pytest services/gateway/tests/test_alerting.py tests/test_runbook_presence.py -q` → runbook-linked alert payloads verified.
 - LSP diagnostics clean for `services/gateway/slo_metrics.py`, `services/gateway/slo_alerting.py`, `services/gateway/routers/ops.py`, `services/gateway/tests/test_slo_metrics.py`, `services/gateway/tests/test_alerting.py`, and `services/gateway/tests/test_ops_slo_router.py`.
 - Manual surface QA covered by `services/gateway/tests/test_ops_slo_router.py`, which drives the admin `/ops/slo` endpoint through FastAPI/TestClient and verifies the SLO dashboard payload.
 

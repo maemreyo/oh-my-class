@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from services.gateway.models import Base, Run
+from services.gateway.models import Base, Run, UnitRole
 from services.gateway.notification_db import Notification, NotificationDeliveryRecord
 from services.gateway.teaching_pack_types import TeacherId
 from services.gateway.run_creation import create_teaching_pack_run_record
@@ -65,6 +65,43 @@ async def test_create_run_record_persists_minimized_class_info(
         "misconceptions": ["equivalent fractions"],
     }
     assert stored.retention_days == 30
+    await session.execute(delete(Run).where(Run.run_id == result.run_id))
+    await session.commit()
+
+
+async def test_plan_unit_create_persists_unit_parent_row(
+    session: AsyncSession,
+) -> None:
+    result = await create_teaching_pack_run_record(
+        session,
+        teacher_id=TeacherId("teacher-unit-runtime"),
+        raw_request="Plan a six lesson unit about fractions",
+        class_info={
+            "mode": "plan_unit",
+            "topic": "Fractions",
+            "grade": 5,
+            "subject": "math",
+            "decomposition_intent": {
+                "target_sessions": 6,
+                "session_length_minutes": 45,
+                "source": "teacher",
+                "rationale": "Teacher requested a six lesson unit.",
+            },
+        },
+        request_hash="hash-unit-runtime",
+        idempotency_key=None,
+    )
+
+    stored = await session.scalar(select(Run).where(Run.run_id == result.run_id))
+
+    assert stored is not None
+    assert stored.unit_role is UnitRole.UNIT_PARENT
+    assert stored.lesson_sequence == {
+        "schema_version": "lesson_sequence.placeholder.v1",
+        "topic": "Fractions",
+        "target_sessions": 6,
+        "status": "awaiting_unit_planning",
+    }
     await session.execute(delete(Run).where(Run.run_id == result.run_id))
     await session.commit()
 

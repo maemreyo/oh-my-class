@@ -36,3 +36,5 @@ uv run pytest tests/test_runbook_presence.py -q
 ```
 
 12 passed (6 existence checks + 6 section-content checks across all failure modes).
+
+Alert payload linkage is also covered by `services/gateway/tests/test_alerting.py`, which asserts emitted `runbook_path` values exist on disk.

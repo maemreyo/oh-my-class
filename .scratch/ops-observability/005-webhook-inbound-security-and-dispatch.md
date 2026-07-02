@@ -34,6 +34,8 @@ Complete the webhook surface: signature verification exists (`verify_telegram_si
 
 - `uv run pytest services/gateway/tests/test_webhook_signature_gate.py services/gateway/tests/test_webhook_idempotency.py services/gateway/tests/test_notification_dispatch.py -q` → 9 passed.
 - `uv run pytest services/gateway/tests/test_webhook_signature_gate.py services/gateway/tests/test_webhook_idempotency.py services/gateway/tests/test_notification_dispatch.py services/gateway/tests/test_webhooks_error.py -q` → 13 passed.
+- `services/gateway/routers/webhooks.py` now includes `OutboundWebhookDispatcher` with configured URL fan-out and retry; `_dispatch_payload()` carries source/event_id/event_type/payload for gate/completion/failure/recall events.
+- `uv run pytest services/gateway/tests/test_notification_dispatch.py -q` → outbound payload and ingestion surfaces verified.
 - LSP diagnostics clean for `services/gateway/routers/webhooks.py`, `services/gateway/webhooks/telegram.py`, `services/gateway/webhooks/zalo.py`, `services/gateway/tests/test_webhook_signature_gate.py`, `services/gateway/tests/test_webhook_idempotency.py`, and `services/gateway/tests/test_notification_dispatch.py`.
 - Manual surface QA covered by the FastAPI/TestClient webhook tests, which drive `/webhook/telegram`, `/webhook/zalo`, and `/webhook/notify` through their public HTTP surfaces.
 

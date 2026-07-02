@@ -8,6 +8,8 @@ import hashlib
 import os
 from typing import Any, Protocol
 
+import httpx2
+
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
@@ -44,6 +46,20 @@ class LoggingWebhookDispatcher:
             event.event_type,
             event.event_id,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class OutboundWebhookDispatcher:
+    urls: tuple[str, ...]
+    retries: int = 2
+
+    async def dispatch(self, event: WebhookDispatch) -> None:
+        if not self.urls:
+            await LoggingWebhookDispatcher().dispatch(event)
+            return
+        async with httpx2.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            for url in self.urls:
+                await _post_with_retry(client, url, event, self.retries)
 
 
 @router.post("/notify")  # pyright: ignore[reportUntypedFunctionDecorator]
@@ -148,9 +164,42 @@ def _dispatcher(request: Request) -> WebhookDispatcher:
     dispatcher = getattr(request.app.state, "webhook_dispatcher", None)
     if dispatcher is not None:
         return dispatcher
-    dispatcher = LoggingWebhookDispatcher()
+    urls = _outbound_webhook_urls()
+    dispatcher = OutboundWebhookDispatcher(urls=urls) if urls else LoggingWebhookDispatcher()
     request.app.state.webhook_dispatcher = dispatcher
     return dispatcher
+
+
+async def _post_with_retry(
+    client: httpx2.AsyncClient,
+    url: str,
+    event: WebhookDispatch,
+    retries: int,
+) -> None:
+    last_error: httpx2.HTTPError | None = None
+    for _ in range(retries + 1):
+        try:
+            response = await client.post(url, json=_dispatch_payload(event))
+            response.raise_for_status()
+            return
+        except httpx2.HTTPError as exc:
+            last_error = exc
+    if last_error is not None:
+        raise last_error
+
+
+def _dispatch_payload(event: WebhookDispatch) -> dict[str, Any]:
+    return {
+        "source": event.source,
+        "event_id": event.event_id,
+        "event_type": event.event_type,
+        "payload": event.payload,
+    }
+
+
+def _outbound_webhook_urls() -> tuple[str, ...]:
+    raw = os.environ.get("WEBHOOK_OUTBOUND_URLS", "")
+    return tuple(url.strip() for url in raw.split(",") if url.strip())
 
 
 def _effectiveness_events(request: Request) -> list[dict[str, Any]]:
