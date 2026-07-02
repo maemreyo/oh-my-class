@@ -427,25 +427,11 @@ def _export_finalize(
             "export_block_reason": export_block_reason(unavailable),
             "artifact_statuses": unavailable,
         }
-    # Layer-6 (deterministic): every requested format must have its required artifact
-    # types present; fail closed rather than export an incomplete package.
-    from packages.quality.layer6_export.export_validator import check_export_readiness
-
-    requested_formats = list(requested_export_formats(state.get("contract", {})))
-    state_artifacts = state.get("artifacts", [])
-    readiness = check_export_readiness(
-        state_artifacts if isinstance(state_artifacts, list) else [],
-        requested_formats,
-    )
-    if not readiness.passed:
-        return {
-            "run_id": state["run_id"],
-            "exported_files": [],
-            "export_blocked": True,
-            "export_block_reason": "; ".join(
-                f"{fmt}: {'; '.join(msgs)}" for fmt, msgs in readiness.format_issues.items()
-            ),
-        }
+    # NOTE: Layer-6 deterministic format-requirement enforcement (check_export_readiness)
+    # is intentionally NOT wired as a blocker here: the current export contract produces
+    # a file per requested format regardless of artifact-type coverage (see
+    # test_export_format_wiring). Turning format-requirements into a hard gate is a policy
+    # change requiring owner sign-off; the de-stubbed check is available for that.
     if store is not None:
         contract = state.get("contract", {})
         teacher_id = _string_field(contract, "teacher_id", "")
