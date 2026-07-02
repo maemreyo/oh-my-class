@@ -49,6 +49,7 @@ export type RenderManifest = {
   readonly sanitizerPolicyVersion: string;
   readonly renderedAt: string;
   readonly contentHash: string;
+  readonly childManifests?: readonly RenderManifest[];
 };
 
 export type RenderResponse = {
@@ -86,6 +87,7 @@ export type ManagedScript = {
 export type RenderServices = {
   readonly themeCss: string;
   readonly managedScripts: readonly ManagedScript[];
+  readonly renderChild: (request: RenderRequest) => Promise<RenderResponse>;
 };
 
 export type ArtifactKindPlugin<TTemplateData extends Record<string, unknown>> = {

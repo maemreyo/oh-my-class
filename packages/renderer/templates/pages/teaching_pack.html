@@ -1,0 +1,18 @@
+<%
+  const children = it.children || [];
+  let content = '<section class="teaching-pack-bundle" aria-label="Teaching pack bundle">';
+  content += '<p class="bundle-summary">' + children.length + ' artifacts rendered through the oh-my-class plugin registry.</p>';
+  content += '<section class="bundle-manifests" aria-label="Child manifests"><h2>Child manifests</h2><pre class="manifest-json">' + it.childManifestJson + '</pre></section>';
+  for (const child of children) {
+    content += '<article class="bundle-child" data-child-kind="' + child.kind + '" data-child-id="' + child.id + '">';
+    content += '<h2 class="bundle-child-title">' + child.kind + '</h2>';
+    content += '<div class="bundle-child-html">' + child.html + '</div>';
+    content += '</article>';
+  }
+  content += '</section>';
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'teaching_pack', content: content
+}) %>

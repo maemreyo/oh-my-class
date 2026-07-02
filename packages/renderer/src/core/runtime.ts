@@ -10,6 +10,7 @@ import { flashcardDeckPlugin } from "../plugins/flashcard-deck.js";
 import { readingPassagePlugin } from "../plugins/reading-passage.js";
 import { exitTicketPlugin } from "../plugins/exit-ticket.js";
 import { roadmapPlugin } from "../plugins/roadmap.js";
+import { teachingPackPlugin } from "../plugins/teaching-pack.js";
 import { createPluginRegistry } from "./registry.js";
 
 export const defaultRegistry = createPluginRegistry([
@@ -25,6 +26,7 @@ export const defaultRegistry = createPluginRegistry([
   readingPassagePlugin,
   exitTicketPlugin,
   roadmapPlugin,
+  teachingPackPlugin,
 ]);
 
 export function rendererPluginMetadata() {

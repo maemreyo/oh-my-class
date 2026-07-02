@@ -8,7 +8,7 @@ import { defaultRegistry } from "./runtime.js";
 import { sanitizeRenderedHtml } from "./sanitizer.js";
 import { defaultThemeResolver, type ThemeResolver } from "./theme-resolver.js";
 import type { PluginRegistry } from "./registry.js";
-import type { RenderBatchRequest, RenderRequest, RenderResponse } from "./types.js";
+import type { RenderBatchRequest, RenderManifest, RenderRequest, RenderResponse } from "./types.js";
 
 const isoTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
@@ -49,7 +49,11 @@ export async function render(request: RenderRequest, options: RenderOptions = {}
     locale: request.context.locale,
   });
   const managedScripts = loadManagedScripts(plugin.managedScripts);
-  const templateData = await plugin.adapt(parsed.data, request.context, { themeCss: theme.css, managedScripts });
+  const templateData = await plugin.adapt(parsed.data, request.context, {
+    themeCss: theme.css,
+    managedScripts,
+    renderChild: (childRequest) => render(childRequest, { registry, themeResolver }),
+  });
   const rawHtml = await eta.renderAsync(plugin.templatePath(request.context), templateData);
   if (rawHtml === undefined) {
     throw new RendererError({
@@ -73,6 +77,8 @@ export async function render(request: RenderRequest, options: RenderOptions = {}
     });
   }
 
+  const childManifests = childManifestsFrom(templateData);
+
   return {
     html,
     manifest: {
@@ -84,10 +90,30 @@ export async function render(request: RenderRequest, options: RenderOptions = {}
       sanitizerPolicyVersion: plugin.sanitizerPolicy.version,
       renderedAt,
       contentHash: createHash("sha256").update(html).digest("hex"),
+      ...(childManifests ? { childManifests } : {}),
     },
     diagnostics: [],
     metrics: { renderTimeMs: Math.max(0, performance.now() - startedAt) },
   };
+}
+
+function childManifestsFrom(templateData: Record<string, unknown>): readonly RenderManifest[] | undefined {
+  const value = templateData.childManifests;
+  if (!Array.isArray(value)) return undefined;
+  return value.every(isRenderManifest) ? value : undefined;
+}
+
+function isRenderManifest(value: unknown): value is RenderManifest {
+  if (value === null || typeof value !== "object") return false;
+  const candidate = value as Partial<RenderManifest>;
+  return typeof candidate.kind === "string"
+    && typeof candidate.rendererVersion === "string"
+    && typeof candidate.pluginVersion === "string"
+    && typeof candidate.templateVersion === "string"
+    && typeof candidate.themeVersion === "string"
+    && typeof candidate.sanitizerPolicyVersion === "string"
+    && typeof candidate.renderedAt === "string"
+    && typeof candidate.contentHash === "string";
 }
 
 export async function renderBatch(request: RenderBatchRequest, options: RenderOptions = {}): Promise<readonly RenderResponse[]> {
