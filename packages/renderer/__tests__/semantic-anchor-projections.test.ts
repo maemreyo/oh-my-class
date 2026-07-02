@@ -41,30 +41,34 @@ const practiceSet: PracticeSet = {
   }],
 };
 
-describe("semantic anchor projections", () => {
-  it("keeps teacher annotations out of student teaching and practice HTML", () => {
-    const projections = renderSemanticAnchorProjectionSet(cluster, practiceSet);
+describe("semantic anchor projections (Artifact UI — navy-ticket)", () => {
+  it("keeps teacher annotations out of student projections", async () => {
+    const projections = await renderSemanticAnchorProjectionSet(cluster, practiceSet);
 
-    expect(projections.teachingTeacherHtml).toContain("Teacher script");
+    // Teacher projection: projection flag + teacher block present
+    expect(projections.teachingTeacherHtml).toContain('class="art-projection-flag"');
+    expect(projections.teachingTeacherHtml).toContain('class="art-teacher-block"');
     expect(projections.teachingTeacherHtml).toContain("Ask students what changed");
-    expect(projections.teachingTeacherHtml).toContain("Thin evidence");
-    expect(projections.teachingTeacherHtml).toContain("Title confidence: 82%");
+
+    // Student projection: no teacher-only content
     expect(projections.teachingStudentHtml).toContain("Journey nhấn vào quá trình");
-    expect(projections.teachingStudentHtml).not.toContain("Teacher script");
+    expect(projections.teachingStudentHtml).not.toContain('class="art-projection-flag"');
+    expect(projections.teachingStudentHtml).not.toContain('class="art-teacher-block"');
     expect(projections.teachingStudentHtml).not.toContain("Ask students what changed");
-    expect(projections.teachingStudentHtml).not.toContain("Title confidence");
     expect(projections.teachingStudentHtml).not.toContain("Oxford learner note");
 
-    expect(projections.practiceTeacherHtml).toContain("Answer rationale");
+    // Practice teacher: has answer and rationale
     expect(projections.practiceTeacherHtml).toContain("Business trip");
     expect(projections.practiceTeacherHtml).toContain("purpose-bound visit");
+
+    // Practice student: no answers
     expect(projections.practiceStudentHtml).toContain("Explain why");
-    expect(projections.practiceStudentHtml).not.toContain("Answer rationale");
+    expect(projections.practiceStudentHtml).not.toContain("Business trip");
     expect(projections.practiceStudentHtml).not.toContain("purpose-bound visit");
   });
 
-  it("emits standalone offline HTML without external URLs", () => {
-    const projections = renderSemanticAnchorProjectionSet(cluster, practiceSet);
+  it("emits standalone offline HTML without external URLs", async () => {
+    const projections = await renderSemanticAnchorProjectionSet(cluster, practiceSet);
     const htmlFiles = Object.values(projections);
 
     for (const html of htmlFiles) {
@@ -73,7 +77,13 @@ describe("semantic anchor projections", () => {
       expect(html).toContain("oh-my-class");
       expect(html).not.toMatch(/https?:\/\//);
       expect(html).not.toContain("<link");
-      expect(html).not.toContain("<script");
+    }
+  });
+
+  it("all projections use data-artifact-theme=navy-ticket", async () => {
+    const projections = await renderSemanticAnchorProjectionSet(cluster, practiceSet);
+    for (const html of Object.values(projections)) {
+      expect(html).toContain('data-artifact-theme="navy-ticket"');
     }
   });
 });

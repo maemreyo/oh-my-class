@@ -13,6 +13,7 @@ import { FLASHCARD_DECK_CONFIG } from "./configs/flashcard_deck.js";
 import { READING_PASSAGE_CONFIG } from "./configs/reading_passage.js";
 import { EXIT_TICKET_CONFIG } from "./configs/exit_ticket.js";
 import { ROADMAP_CONFIG } from "./configs/roadmap.js";
+import { ARTIFACT_UI_CONFIG } from "./configs/artifact-ui.js";
 
 const CONFIG_MAP: Record<ArtifactType, IOptions> = {
   lesson:          LESSON_CONFIG,
@@ -53,4 +54,23 @@ export function sanitize(html: string, type: ArtifactType): string {
   const body = doctypeMatch ? html.slice(doctypeMatch[0].length) : html;
   const sanitized = sanitizeHtmlLib(body, config);
   return doctype ? `${doctype}\n${sanitized}` : sanitized;
+}
+
+/**
+ * Sanitize Artifact UI HTML output.
+ *
+ * Unlike sanitize(), this function is NOT typed against ArtifactType because
+ * Artifact UI types (navy-ticket, paper-dossier, etc.) are render-layer concepts,
+ * not schema-layer types. They must not pollute ArtifactDataMap.
+ *
+ * Sanitizes <body> content only. <head> content (inlined CSS + interactivity.js)
+ * is trusted renderer output and is never passed to sanitize-html.
+ */
+export function sanitizeArtifactUi(html: string): string {
+  const bodyMatch = html.match(/(<body[^>]*>)([\s\S]*)(<\/body>)/i);
+  if (bodyMatch) {
+    const sanitizedBody = sanitizeHtmlLib(bodyMatch[2], ARTIFACT_UI_CONFIG);
+    return html.replace(bodyMatch[0], `${bodyMatch[1]}${sanitizedBody}${bodyMatch[3]}`);
+  }
+  return sanitizeHtmlLib(html, ARTIFACT_UI_CONFIG);
 }

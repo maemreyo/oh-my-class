@@ -1,0 +1,126 @@
+<%
+/* transit-route/video-route.html
+   it = TransitRouteVideoTemplateData
+   Fields: artifactCss, lang, title, routeTitle, unit,
+           videoDuration, estimatedMinutes,
+           stations[]{code, cat, title, sub, body?}
+*/
+const lang = it.lang || 'vi';
+const stations = it.stations || [];
+%>
+<!DOCTYPE html>
+<html lang="<%= lang %>" data-artifact-theme="transit-route">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.title %> — Video Route</title>
+  <style><%~ it.artifactCss %></style>
+</head>
+<body>
+<div class="art-root">
+
+  <header class="art-ticket-header">
+    <div>
+      <p class="art-boarding">Video Learning Route · <%= it.unit || '' %></p>
+      <div class="art-line-name"><%= it.routeTitle || it.title %></div>
+      <div class="art-counter-row">
+        <% if (it.videoDuration) { %>
+        <div class="art-counter">
+          <span class="art-lbl">Thời lượng video</span>
+          <span class="art-val"><%= it.videoDuration %></span>
+        </div>
+        <% } %>
+        <div class="art-counter">
+          <span class="art-lbl">Số trạm</span>
+          <span class="art-val"><%= stations.length %></span>
+        </div>
+        <% if (it.estimatedMinutes) { %>
+        <div class="art-counter">
+          <span class="art-lbl">Thời gian ước tính</span>
+          <span class="art-val"><%= it.estimatedMinutes %> phút</span>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </header>
+
+  <main class="art-shell">
+
+    <% if (stations.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Overview</span>
+        <h2>Bản đồ tuyến học</h2>
+      </div>
+      <div class="art-miniroute">
+        <% for (let i = 0; i < stations.length; i++) {
+           const s = stations[i];
+        %>
+        <div class="art-station-marker">
+          <span class="art-station-dot" style="--st-color:var(--art-<%= s.cat %>)"></span>
+          <span class="art-station-code"><%= s.code %></span>
+        </div>
+        <% if (i < stations.length - 1) { %>
+        <span class="art-track"></span>
+        <% } %>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Video</span>
+        <h2>Nguồn video</h2>
+      </div>
+      <div class="art-video-embed">
+        <div class="art-play-badge"></div>
+        <div class="art-video-note">
+          Video placeholder — liên kết thật nằm trong metadata dành riêng cho giáo viên,
+          không nhúng trực tiếp vào artifact tĩnh này.
+        </div>
+      </div>
+    </section>
+
+    <% if (stations.length > 0) { %>
+    <section class="art-section" style="margin-bottom:0;">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Lộ trình</span>
+        <h2><%= stations.length %> trạm học theo tuyến</h2>
+      </div>
+      <% for (const s of stations) { %>
+      <div class="art-station">
+        <div class="art-station-rail">
+          <span class="art-dot" style="--st-color:var(--art-<%= s.cat %>)"></span>
+          <span class="art-thread"></span>
+        </div>
+        <div class="art-station-body art-<%= s.cat %>" style="--st-color:var(--art-<%= s.cat %>)">
+          <div class="art-station-head">
+            <span class="art-station-code"><%= s.code %></span>
+            <span class="art-station-title"><%= s.title %></span>
+          </div>
+          <p class="art-station-sub"><%= s.sub %></p>
+          <% if (s.cueText) { %>
+          <div class="art-cue-card"><%= s.cueText %></div>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+
+      <% if (it.completionBadge) { %>
+      <div class="art-counter-badge art-count-ok" style="margin-top:8px;"><%= it.completionBadge %></div>
+      <% } %>
+    </section>
+    <% } %>
+
+  </main>
+
+  <footer class="art-footer">
+    <span class="art-mono">Video Learning Route</span>
+    <span><%= it.title %></span>
+    <span class="art-mono" style="margin-left:auto;">oh-my-class</span>
+  </footer>
+
+</div>
+</body>
+</html>

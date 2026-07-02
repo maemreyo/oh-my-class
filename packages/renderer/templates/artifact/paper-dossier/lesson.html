@@ -1,0 +1,195 @@
+<%
+/* paper-dossier/lesson.html
+   it = PaperDossierLessonTemplateData
+   Fields: artifactCss, lang, title, lede?,
+           sidebar?{ title, subtitle, stat?, nav[]{href,num,label}, callout? },
+           objectives[], phases[]{when, heading, goal, output, colorVar},
+           conceptBoxes[]{title, link?, triad[]{heading,value}},
+           scripts[]{lines[]{who, whoClass, text}},
+           homeworkItems[]{tag, text},
+           sections[]{heading, body, componentsHtml}
+*/
+const lang = it.lang || 'vi';
+const sidebar = it.sidebar || null;
+const objectives = it.objectives || [];
+const phases = it.phases || [];
+const conceptBoxes = it.conceptBoxes || [];
+const scripts = it.scripts || [];
+const homeworkItems = it.homeworkItems || [];
+const sections = it.sections || [];
+%>
+<!DOCTYPE html>
+<html lang="<%= lang %>" data-artifact-theme="paper-dossier">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.title %> — Lesson Dossier</title>
+  <style><%~ it.artifactCss %></style>
+</head>
+<body class="artifact artifact--lesson">
+<div class="art-root">
+
+<% if (sidebar) { %>
+<div class="art-shell--split">
+  <aside class="art-shell-aside">
+    <div class="art-nav-brand"><span class="art-nav-dot">O</span> oh-my-class</div>
+    <div class="art-nav-title"><%= sidebar.title %></div>
+    <% if (sidebar.subtitle) { %>
+    <div class="art-nav-sub"><%= sidebar.subtitle %></div>
+    <% } %>
+    <% if (sidebar.stat) { %>
+    <div class="art-stat-card" style="margin-bottom:16px;">
+      <div class="art-k"><%= sidebar.stat.key %></div>
+      <div class="art-v"><%~ sidebar.stat.value %></div>
+    </div>
+    <% } %>
+    <% if (sidebar.nav && sidebar.nav.length > 0) { %>
+    <nav class="art-nav-list">
+      <% for (const item of sidebar.nav) { %>
+      <a href="<%= item.href %>"<% if (item.active) { %> class="is-active"<% } %>>
+        <% if (item.num) { %><span class="art-nn"><%= item.num %></span><% } %>
+        <%= item.label %>
+      </a>
+      <% } %>
+    </nav>
+    <% } %>
+    <% if (sidebar.callout) { %>
+    <div class="art-callout art-callout--dashed" style="margin-top:20px;">
+      <span class="art-glyph art-mono">i</span>
+      <span><%= sidebar.callout %></span>
+    </div>
+    <% } %>
+  </aside>
+
+  <div class="art-shell-main">
+<% } %>
+
+    <header class="art-page-head">
+      <p class="art-cover-eyebrow art-mono">Lesson / Path Dossier</p>
+      <h1><%~ it.title %></h1>
+      <% if (it.lede) { %><p class="art-lede"><%= it.lede %></p><% } %>
+    </header>
+
+    <% if (objectives.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Mục tiêu</span>
+        <h2>Mục tiêu học kỳ</h2>
+      </div>
+      <div class="art-objective-card">
+        <div class="art-ot">Học sinh sẽ có thể</div>
+        <ol>
+          <% for (const obj of objectives) { %>
+          <li><%= obj %></li>
+          <% } %>
+        </ol>
+      </div>
+    </section>
+    <% } %>
+
+    <% if (phases.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Roadmap</span>
+        <h2>Lộ trình học</h2>
+      </div>
+      <div class="art-phase-rail">
+        <% for (const phase of phases) { %>
+        <div class="art-phase-block" style="--phase-color:<%= phase.colorVar || 'var(--art-cat-1)' %>">
+          <span class="art-phase-dot" style="--phase-color:<%= phase.colorVar || 'var(--art-cat-1)' %>"></span>
+          <div class="art-phase-card">
+            <div class="art-phase-top">
+              <span class="art-phase-when" style="--phase-color:<%= phase.colorVar || 'var(--art-cat-1)' %>">
+                <%= phase.when %>
+              </span>
+              <h3 style="font-size:15.5px;margin:0;"><%= phase.heading %></h3>
+            </div>
+            <div class="art-phase-goal"><%= phase.goal %></div>
+            <div class="art-phase-output"><%= phase.output %></div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <% for (const box of conceptBoxes) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Khái niệm</span>
+        <h2><%= box.title %></h2>
+      </div>
+      <div class="art-concept-box">
+        <div class="art-cb-title"><%= box.title %></div>
+        <% if (box.link) { %><span class="art-cb-link"><%= box.link %></span><% } %>
+        <% if (box.triad && box.triad.length > 0) { %>
+        <div class="art-triad">
+          <% for (const card of box.triad) { %>
+          <div class="art-triad-card"><b><%= card.heading %></b><span><%= card.value %></span></div>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <% for (const script of scripts) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Thực hành</span>
+        <h2><%= script.heading || 'Script roleplay' %></h2>
+      </div>
+      <div class="art-script">
+        <% for (const line of script.lines) { %>
+        <div class="art-line">
+          <span class="art-who <%= line.whoClass || '' %>"><%= line.who %></span>
+          <span class="art-what"><%~ line.text %></span>
+        </div>
+        <% } %>
+        <% if (script.key) { %>
+        <div class="art-script-key"><b>Đáp án chỗ trống:</b> <%= script.key %></div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <% if (homeworkItems.length > 0) { %>
+    <section class="art-section" style="margin-bottom:0;">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Bài tập về nhà</span>
+        <h2>Homework</h2>
+      </div>
+      <ul class="art-hw-list">
+        <% for (const hw of homeworkItems) { %>
+        <li><span class="art-hwtag"><%= hw.tag %></span> <%= hw.text %></li>
+        <% } %>
+      </ul>
+    </section>
+    <% } %>
+
+    <% for (const sec of sections) { %>
+    <section class="art-section">
+      <% if (sec.heading) { %>
+      <div class="art-section-head">
+        <h2><%= sec.heading %></h2>
+      </div>
+      <% } %>
+      <% if (sec.body) { %><p class="art-lede"><%= sec.body %></p><% } %>
+      <% if (sec.componentsHtml) { %><%~ sec.componentsHtml %><% } %>
+    </section>
+    <% } %>
+
+<% if (sidebar) { %>
+  </div>
+</div>
+<% } %>
+
+  <footer class="art-footer">
+    <span class="art-mono">Lesson Dossier</span>
+    <span><%= it.title %></span>
+    <span class="art-mono" style="margin-left:auto;">oh-my-class</span>
+  </footer>
+
+</div>
+</body>
+</html>

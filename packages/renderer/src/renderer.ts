@@ -25,6 +25,14 @@ export type {
   SemanticAnchorProjectionSet,
 } from "./semantic-anchor-projections.js";
 
+export { renderArtifactUi, renderArtifactUiSet } from "./artifact-ui/renderer.js";
+export type {
+  ArtifactUiAudience,
+  ArtifactUiRenderRequest,
+  ArtifactUiSetRequest,
+  ArtifactUiSet,
+} from "./artifact-ui/renderer.js";
+
 /**
  * Render typed artifact data to a sanitized, standalone HTML string.
  *

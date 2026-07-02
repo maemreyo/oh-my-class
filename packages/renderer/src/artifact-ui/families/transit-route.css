@@ -1,0 +1,75 @@
+/*
+  ARTIFACT UI — FAMILY COMPONENTS: transit-route
+  Source: docs/templates/learning-via-video-template.html · Issue 003
+  Only loaded on pages with data-artifact-theme="transit-route".
+*/
+
+/* ---------- Ticket header (boarding-pass style cover) ---------- */
+.art-ticket-header {
+  background: var(--art-cover-bg); color: var(--art-cover-ink);
+  border-radius: var(--art-radius-lg); padding: var(--art-space-6) var(--art-space-6);
+  display: flex; justify-content: space-between; gap: var(--art-space-6); flex-wrap: wrap;
+  position: relative; overflow: hidden;
+}
+.art-ticket-header::after {
+  content: ""; position: absolute; right: -1px; top: 0; bottom: 0; width: 22px;
+  background-image: radial-gradient(circle, var(--art-bg) 5px, transparent 5.5px);
+  background-size: 22px 22px; background-position: center;
+}
+.art-ticket-header .art-line-name { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+.art-ticket-header .art-boarding { font-family: var(--art-font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--art-cover-ink-soft); margin-bottom: 6px; }
+.art-ticket-header .art-counter-row { display: flex; gap: var(--art-space-4); margin-top: var(--art-space-3); }
+.art-ticket-header .art-counter { font-family: var(--art-font-mono); }
+.art-ticket-header .art-counter .art-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--art-cover-ink-soft); display: block; }
+.art-ticket-header .art-counter .art-val { font-size: 18px; font-weight: 700; }
+
+/* ---------- Mini route map (overview strip) ---------- */
+.art-miniroute { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: var(--art-space-4) 0; }
+.art-miniroute .art-station-marker { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; gap: 6px; width: 84px; }
+.art-miniroute .art-station-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--st-color, var(--art-accent)); border: 3px solid var(--art-surface); box-shadow: 0 0 0 2px var(--st-color, var(--art-accent)); }
+.art-miniroute .art-station-code { font-family: var(--art-font-mono); font-size: 10px; font-weight: 700; color: var(--st-color, var(--art-accent)); }
+.art-miniroute .art-track { flex: 1; height: 3px; background: var(--art-border); min-width: 20px; }
+
+/* ---------- Station card (lesson step) ---------- */
+.art-station { display: flex; gap: var(--art-space-4); margin-bottom: var(--art-space-6); }
+.art-station .art-station-rail { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 14px; }
+.art-station .art-station-rail .art-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--st-color, var(--art-accent)); flex-shrink: 0; }
+.art-station .art-station-rail .art-thread { flex: 1; width: 2px; background: var(--art-border); margin-top: 6px; }
+.art-station-body { flex: 1; background: var(--art-surface); border: 1px solid var(--art-border); border-top: 3px solid var(--st-color, var(--art-accent)); border-radius: var(--art-radius-md); padding: var(--art-space-4) var(--art-space-5); box-shadow: var(--art-shadow-card); }
+.art-station-head { display: flex; align-items: baseline; gap: var(--art-space-2); margin-bottom: 8px; flex-wrap: wrap; }
+.art-station-code { font-family: var(--art-font-mono); font-size: 11px; font-weight: 700; color: var(--st-color, var(--art-accent)); text-transform: uppercase; letter-spacing: .04em; }
+.art-station-title { font-family: var(--art-font-display); font-size: 16px; font-weight: 700; color: var(--art-ink); }
+.art-station-sub { font-size: 12.5px; color: var(--art-ink-soft); margin-bottom: 8px; }
+
+.art-cat1 { --st-color: var(--art-cat-1); } .art-cat2 { --st-color: var(--art-cat-2); }
+.art-cat3 { --st-color: var(--art-cat-3); } .art-cat4 { --st-color: var(--art-cat-4); }
+.art-cat5 { --st-color: var(--art-cat-5); } .art-cat6 { --st-color: var(--art-cat-6); }
+
+/* ---------- Offline-safe video placeholder ---------- */
+.art-video-embed {
+  background: var(--art-on-bg-ink); border-radius: var(--art-radius-md); aspect-ratio: 16/9;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+  color: var(--art-bg); position: relative; overflow: hidden;
+}
+.art-video-embed .art-play-badge {
+  width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.14);
+  display: flex; align-items: center; justify-content: center;
+}
+.art-video-embed .art-play-badge::after { content: ""; border-style: solid; border-width: 9px 0 9px 15px; border-color: transparent transparent transparent #fff; margin-left: 3px; }
+.art-video-embed .art-video-note { font-family: var(--art-font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.7); text-align: center; padding: 0 var(--art-space-4); }
+/*
+  This is a deliberate PLACEHOLDER, not a video player. Per AGENTS.md
+  INVARIANT-04: exported HTML must not embed remote iframe or video elements.
+  Real video links are teacher-only metadata (URL text + note), rendered
+  outside this element — see docs/component-reference.md.
+*/
+
+/* ---------- Cue card (short listening/speaking prompt) ---------- */
+.art-cue-card { background: var(--art-surface-muted); border-radius: var(--art-radius-md); padding: var(--art-space-3) var(--art-space-4); font-size: 13.4px; color: var(--art-ink-soft); }
+.art-cue-card b { color: var(--art-ink); }
+
+/* ---------- Self-check counters ---------- */
+.art-counter-badge { font-family: var(--art-font-mono); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: var(--art-radius-pill); }
+.art-count-ok { background: var(--art-positive-tint); color: var(--art-positive); }
+.art-count-low { background: var(--art-caution-tint); color: var(--art-caution); }
+.art-count-high { background: var(--art-critical-tint); color: var(--art-critical); }

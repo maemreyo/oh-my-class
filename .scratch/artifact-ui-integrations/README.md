@@ -11,19 +11,23 @@ Integrate the Artifact UI CSS design system from `.scratch/artifact-ui-integrati
 
 ## Resources inventory
 
-The `resources/artifact-ui/` directory contains production-ready CSS + interactivity JS:
+The `resources/artifact-ui/` directory contains production-ready CSS + interactivity JS. Counts verified against disk.
 
 | Category | Files | Lines | Status |
 |----------|-------|-------|--------|
-| Token CSS (contract + 4 families) | 5 | ~483 | Production-ready |
-| Core primitives CSS | 1 | ~550 | Production-ready (includes 7 new primitives from Issue 004) |
-| Family component CSS | 4 | ~371 | Production-ready |
-| Interactivity JS | 1 | 310 | Production-ready (vanilla, no eval, no remote src) |
-| Render harness (JS) | 1 | 187 | Simulation only |
-| Page generators (JS) | 10 | ~1,500 | Simulation only |
-| Built HTML demos | 13 | — | Generated |
-| Documentation | 4 | — | Complete |
-| Screenshots | 18 | — | Playwright-verified |
+| Token CSS (contract + 4 families) | 5 | 893 | Production-ready (port in Issue 001) |
+| Core primitives CSS | 1 | 1,467 | Production-ready (port in Issue 001) — includes 7 new primitives from Issue 004 |
+| Family component CSS | 4 | 371 | Production-ready (port in Issue 001) |
+| Interactivity JS (`interactivity.js`) | 1 | 310 | Production-ready — vanilla, no `eval`, no remote src. Port in Issue 014 |
+| Render harness (`partials.js`) | 1 | 328 | Reference only — ported patterns, not the file itself |
+| Build entry (`build.js` + `render.js`) | 2 | 203 | Reference only |
+| Page generators (`pages/*.js`) | 10 | 1,729 | Reference only — shows the expected HTML shape per family |
+| Generated demos (`dist/`) | 2 HTML + 2 dirs | — | Generated artifacts + per-family subdirs |
+| Documentation | 2 (`DESIGN.md`, `component-reference.md`) | — | Complete |
+| Screenshots | 18 PNGs + 1 Playwright script | — | Playwright-verified (`qa/shot_issue006.py`) |
+| Hand-offs | 2 (`HANDOFF.md`, `HANDOFF-004-006.md`) | — | Working notes |
+
+**Total source surface** (CSS + production JS + page refs): ~5,500 lines across ~30 files.
 
 ## Design Principles
 

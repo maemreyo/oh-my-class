@@ -1,0 +1,225 @@
+<%
+/* paper-dossier/root-cause-session.html
+   it = PaperDossierRootCauseTemplateData
+   Fields: artifactCss, interactivityJS, lang, title, subtitle?, lede?,
+           sessionCode, difficulty, estimatedMinutes, targetConcept,
+           scenarioAnchors[]{scenario, connection},
+           anchorTimelines[]{heading, entries[]{label, event, significance, isKeyAnchor}},
+           comparisons[]{constant, variants[]{label, value, isControl}, insight},
+           generalizationCheckpoints[]{learnerClaim, verdict, evidence, refinedClaim?},
+           stressTests[]{brokenExample, whyItBreaks, fix?},
+           metaphorLogs[]{landedAttempt, collapsedAttempts[]},
+           masteryMarkers[]{label, level},
+           teacherNotes?,
+           closingPrompt?
+*/
+const lang = it.lang || 'vi';
+const scenarioAnchors = it.scenarioAnchors || [];
+const anchorTimelines = it.anchorTimelines || [];
+const comparisons = it.comparisons || [];
+const generalizationCheckpoints = it.generalizationCheckpoints || [];
+const stressTests = it.stressTests || [];
+const metaphorLogs = it.metaphorLogs || [];
+const masteryMarkers = it.masteryMarkers || [];
+
+const verdictLabel = { confirmed: 'Đã xác nhận', refined: 'Được tinh chỉnh', rejected: 'Cần xem lại' };
+const verdictClass = { confirmed: 'art-verdict--confirmed', refined: 'art-verdict--refined', rejected: 'art-verdict--rejected' };
+const masteryClass = { aware: 'art-mastery--aware', applying: 'art-mastery--applying', mastered: 'art-mastery--mastered' };
+%>
+<!DOCTYPE html>
+<html lang="<%= lang %>" data-artifact-theme="paper-dossier">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.title %> — Root-Cause Session</title>
+  <style><%~ it.artifactCss %></style>
+  <% if (it.interactivityJS) { %>
+  <script><%~ it.interactivityJS %></script>
+  <% } %>
+</head>
+<body>
+<div class="art-root">
+
+  <header class="art-page-head">
+    <p class="art-cover-eyebrow art-mono">Root-Cause / Socratic Session · <%= it.sessionCode %></p>
+    <h1 style="margin:0 0 8px;"><%~ it.title %></h1>
+    <% if (it.lede) { %><p class="art-lede"><%= it.lede %></p><% } %>
+    <div class="art-cover-pills" style="margin-top:12px;">
+      <span class="art-pill"><%= it.difficulty %></span>
+      <span class="art-pill"><%= it.estimatedMinutes %> phút</span>
+      <span class="art-pill">Khái niệm: <%= it.targetConcept %></span>
+    </div>
+  </header>
+
+  <main class="art-shell">
+
+    <% if (scenarioAnchors.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">01</span>
+        <h2>Tình huống mở đầu</h2>
+      </div>
+      <% for (const anchor of scenarioAnchors) { %>
+      <div class="art-scenario-anchor">
+        <div class="art-sa-scenario"><%= anchor.scenario %></div>
+        <div class="art-sa-connection"><%= anchor.connection %></div>
+      </div>
+      <% } %>
+    </section>
+    <% } %>
+
+    <% for (let ti = 0; ti < anchorTimelines.length; ti++) {
+       const tl = anchorTimelines[ti];
+    %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">0<%= ti + 2 %></span>
+        <h2><%= tl.heading %></h2>
+        <% if (tl.sub) { %><p class="art-section-sub"><%= tl.sub %></p><% } %>
+      </div>
+      <div class="art-anchor-timeline">
+        <% for (const entry of tl.entries) { %>
+        <div class="art-at-entry<%= entry.isKeyAnchor ? ' art-at-entry--key' : '' %>">
+          <div class="art-at-label art-mono"><%= entry.label %></div>
+          <div class="art-at-event"><%= entry.event %></div>
+          <div class="art-at-sig"><%= entry.significance %></div>
+        </div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <% if (generalizationCheckpoints.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Kiểm tra tổng quát hoá</span>
+        <h2>Học sinh tự đề xuất cách hiểu</h2>
+      </div>
+      <% for (const ckpt of generalizationCheckpoints) { %>
+      <div class="art-generalization-checkpoint">
+        <div class="art-gc-claim"><%= ckpt.learnerClaim %></div>
+        <div class="art-gc-verdict <%= verdictClass[ckpt.verdict] || '' %>">
+          <%= verdictLabel[ckpt.verdict] || ckpt.verdict %>
+        </div>
+        <div class="art-gc-evidence"><%= ckpt.evidence %></div>
+        <% if (ckpt.refinedClaim) { %>
+        <div class="art-gc-refined"><%= ckpt.refinedClaim %></div>
+        <% } %>
+      </div>
+      <% } %>
+    </section>
+    <% } %>
+
+    <% if (stressTests.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Stress test</span>
+        <h2>Học sinh tự bẻ luật để kiểm chứng</h2>
+      </div>
+      <% for (const st of stressTests) { %>
+      <div class="art-stress-test">
+        <div class="art-st-broken"><%= st.brokenExample %></div>
+        <div class="art-st-why"><%= st.whyItBreaks %></div>
+        <% if (st.fix) { %><div class="art-st-fix"><%= st.fix %></div><% } %>
+      </div>
+      <% } %>
+    </section>
+    <% } %>
+
+    <% if (metaphorLogs.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Ẩn dụ</span>
+        <h2>Ẩn dụ đã thử — cái nào trúng</h2>
+      </div>
+      <% for (const ml of metaphorLogs) { %>
+      <div class="art-metaphor-log">
+        <div class="art-ml-landed"><%= ml.landedAttempt %></div>
+        <% if (ml.collapsedAttempts && ml.collapsedAttempts.length > 0) { %>
+        <details class="art-ml-collapsed">
+          <summary>Lần thử trước (<%= ml.collapsedAttempts.length %>)</summary>
+          <ul>
+            <% for (const attempt of ml.collapsedAttempts) { %>
+            <li><%= attempt %></li>
+            <% } %>
+          </ul>
+        </details>
+        <% } %>
+      </div>
+      <% } %>
+    </section>
+    <% } %>
+
+    <% if (comparisons.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">So sánh có kiểm soát</span>
+        <h2>Tóm lại — mặt cắt tư duy</h2>
+      </div>
+      <% for (const comp of comparisons) { %>
+      <div class="art-controlled-comparison">
+        <div class="art-cc-constant"><b>Hằng số:</b> <%= comp.constant %></div>
+        <div class="art-cc-variants">
+          <% for (const v of comp.variants) { %>
+          <div class="art-cc-variant<%= v.isControl ? ' art-cc-variant--control' : '' %>">
+            <div class="art-cc-label"><%= v.label %></div>
+            <div class="art-cc-value"><%= v.value %></div>
+          </div>
+          <% } %>
+        </div>
+        <div class="art-cc-insight"><%= comp.insight %></div>
+      </div>
+      <% } %>
+    </section>
+    <% } %>
+
+    <% if (masteryMarkers.length > 0) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Trạng thái</span>
+        <h2>Trạng thái nắm vững</h2>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <% for (const m of masteryMarkers) { %>
+        <div class="art-mastery-marker <%= masteryClass[m.level] || '' %>">
+          <div class="art-mm-label"><%= m.label %></div>
+          <div class="art-mm-level"><%= m.level %></div>
+        </div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <% if (it.closingPrompt) { %>
+    <section class="art-section" style="margin-bottom:0;">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Lời mời</span>
+        <h2>Lời mời áp dụng tiếp</h2>
+      </div>
+      <div class="art-callout">
+        <span class="art-glyph art-mono">→</span>
+        <span><%= it.closingPrompt %></span>
+      </div>
+    </section>
+    <% } %>
+
+    <% if (it.teacherNotes) { %>
+    <section class="art-section" style="margin-bottom:0;">
+      <div class="art-teacher-block">
+        <div class="art-tb-label art-mono">Ghi chú giáo viên</div>
+        <p><%= it.teacherNotes %></p>
+      </div>
+    </section>
+    <% } %>
+
+  </main>
+
+  <footer class="art-footer">
+    <span class="art-mono">Root-Cause Session · <%= it.sessionCode %></span>
+    <span><%= it.title %></span>
+    <span class="art-mono" style="margin-left:auto;">oh-my-class</span>
+  </footer>
+
+</div>
+</body>
+</html>

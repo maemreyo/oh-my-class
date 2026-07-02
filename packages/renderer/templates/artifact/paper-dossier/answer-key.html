@@ -1,0 +1,134 @@
+<%
+/* paper-dossier/answer-key.html
+   it = PaperDossierAnswerKeyTemplateData
+   Fields: artifactCss, interactivityJS, lang, title, examTitle, lede,
+           groupLegend[]{cat, label, range},
+           questions[]{n, cat, text, options[], correctIndex, essence,
+                       trap, wrong[]{letter, opt, why}}
+   interactivity.js in <head> so the body sanitizer never touches it.
+*/
+const lang = it.lang || 'vi';
+const questions = it.questions || [];
+const groupLegend = it.groupLegend || [];
+%>
+<!DOCTYPE html>
+<html lang="<%= lang %>" data-artifact-theme="paper-dossier">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.title %> — Answer Key</title>
+  <style><%~ it.artifactCss %></style>
+  <% if (it.interactivityJS) { %>
+  <script><%~ it.interactivityJS %></script>
+  <% } %>
+</head>
+<body>
+<div class="art-root">
+
+<div class="art-shell--split">
+  <aside class="art-shell-aside">
+    <div class="art-nav-brand"><span class="art-nav-dot">O</span> oh-my-class</div>
+    <div class="art-nav-title"><%= it.examTitle || it.title %></div>
+    <div class="art-nav-sub">Answer Key · Teacher Edition</div>
+
+    <div class="art-jumpbox art-no-print" style="margin-bottom:6px;">
+      <input type="text" inputmode="numeric" placeholder="Câu #" id="jumpToQuestion"
+        data-jump-input-el data-jump-status="jumpStatus" aria-label="Nhảy tới số câu" />
+      <button type="button" class="art-reveal-btn art-no-print" data-jump-go data-jump-input="jumpToQuestion"
+        style="padding:6px 12px;">→</button>
+    </div>
+    <p id="jumpStatus" aria-live="polite" class="art-no-print"
+       style="font-size:11px;color:var(--art-ink-faint);font-family:var(--art-font-mono);min-height:14px;margin:0 0 16px;"></p>
+
+    <button type="button" class="art-mode-toggle art-no-print" role="switch" aria-checked="false"
+      data-mode-toggle data-toggles-group="exam-answers" style="margin-bottom:18px;">
+      <span class="art-switch"></span> Hiện đáp án
+    </button>
+
+    <% if (groupLegend.length > 0) { %>
+    <div class="art-side-legend" style="display:flex;flex-direction:column;gap:6px;">
+      <% for (const g of groupLegend) { %>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--art-ink-soft);">
+        <span style="width:9px;height:9px;border-radius:50%;background:var(--art-<%= g.cat %>);flex-shrink:0;"></span>
+        <span><%= g.label %> <span style="color:var(--art-ink-faint)">(<%= g.range %>)</span></span>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+  </aside>
+
+  <div class="art-shell-main">
+    <header class="art-page-head">
+      <p class="art-cover-eyebrow art-mono">Exam Answer Key</p>
+      <h1><%~ it.title %></h1>
+    </header>
+
+    <% if (questions.length > 0) { %>
+    <div class="art-qgrid art-no-print" style="margin-bottom:32px;max-width:260px;">
+      <% for (const q of questions) { %>
+      <button type="button" class="art-g-<%= q.cat %>" data-jump-to="<%= q.n %>"
+        aria-label="Nhảy tới câu <%= q.n %>"><%= q.n %></button>
+      <% } %>
+    </div>
+    <% } %>
+
+    <% for (const q of questions) {
+       const panelId = 'panel-q' + q.n;
+    %>
+    <div class="art-qcard art-jump-target art-g-<%= q.cat %> art-avoid-break"
+         id="q<%= q.n %>" tabindex="-1">
+      <div class="art-qhead">
+        <span class="art-qnum">Câu <%= q.n %></span>
+        <span class="art-qtext"><%= q.text %></span>
+      </div>
+      <div class="art-options">
+        <% for (let i = 0; i < q.options.length; i++) { %>
+        <div class="art-option<%= i === q.correctIndex ? ' art-option--correct' : '' %>">
+          <span class="art-letter"><%= q.options[i][0] %></span>
+          <span><%= q.options[i].slice(3) %></span>
+        </div>
+        <% } %>
+      </div>
+      <button type="button" class="art-reveal-btn art-no-print"
+        data-toggle-reveal data-toggle-group="exam-answers"
+        aria-controls="<%= panelId %>" aria-expanded="false"
+        data-collapsed-label="Xem đáp án &amp; giải thích"
+        data-expanded-label="Ẩn đáp án &amp; giải thích"
+        style="margin-top:var(--art-space-3);">Xem đáp án &amp; giải thích</button>
+      <div class="art-panel art-reveal-target" id="<%= panelId %>" hidden>
+        <div class="art-prow art-prow--essence">
+          <span class="art-plabel">Bản chất</span>
+          <span class="art-ptext"><%= q.essence %></span>
+        </div>
+        <div class="art-prow">
+          <span class="art-plabel">Bẫy hay gặp</span>
+          <span class="art-ptext"><%= q.trap %></span>
+        </div>
+        <% if (q.wrong && q.wrong.length > 0) { %>
+        <div class="art-wrong-section">
+          <span class="art-wrong-section-label">Vì sao các phương án khác sai</span>
+          <% for (const w of q.wrong) { %>
+          <div class="art-wrong-item">
+            <span class="art-wletter"><%= w.letter %>.</span>
+            <span class="art-wreason">
+              <span class="art-woption"><%= w.opt %></span> — <%= w.why %>
+            </span>
+          </div>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+  <footer class="art-footer">
+    <span class="art-mono">Answer Key — Teacher Edition</span>
+    <span><%= it.title %></span>
+    <span class="art-mono" style="margin-left:auto;">oh-my-class</span>
+  </footer>
+
+</div>
+</body>
+</html>

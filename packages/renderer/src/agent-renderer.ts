@@ -4,6 +4,7 @@ import { ArtifactContentSchema } from "@oh-my-class/schemas/generated/artifact.j
 import { preserveComponents, preserveStudentComponents } from "./agent-component-projection.js";
 import { runWorkerLoop } from "./agent-worker.js";
 import { renderArtifact } from "./renderer.js";
+import { renderArtifactUi } from "./artifact-ui/renderer.js";
 import type {
   AnswerKeyData,
   DrillData,
@@ -190,9 +191,21 @@ export async function renderAgentArtifact(input: unknown): Promise<string> {
     case "infographic":
       return renderArtifact("infographic", infographicData(artifact));
     case "answer_key":
-      return renderArtifact("answer_key", answerKeyData(artifact));
+      // audience:'student' invariant — agent-renderer never generates teacher projections (Issue 012)
+      return renderArtifactUi({
+        family: "paper-dossier",
+        kind: "answer-key",
+        audience: "student",
+        data: answerKeyData(artifact),
+      });
     default:
-      return renderArtifact("lesson", lessonData(artifact));
+      // lesson — paper-dossier family, student-safe output (Issue 012)
+      return renderArtifactUi({
+        family: "paper-dossier",
+        kind: "lesson",
+        audience: "student",
+        data: lessonData(artifact),
+      });
   }
 }
 

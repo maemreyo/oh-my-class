@@ -51,6 +51,26 @@ export type { TeachingPackData } from "./schemas/teaching-pack.js";
 export type { RoadmapData, RoadmapHero, RoadmapSidebar, RoadmapSection, StatCard as RoadmapStatCard } from "./roadmap.js";
 export type { ContentComponent, QuestionCardComponent, QuestionListComponent } from "./components.js";
 
+// ── Artifact UI render-layer contracts (not in ArtifactDataMap — see ADR-024) ─
+export type {
+  VideoRouteData,
+  VideoRouteStation,
+  VideoRouteMetadata,
+  VideoRouteCue,
+} from "./video-route.js";
+
+export type {
+  RootCauseSessionData,
+  AnchorTimelineEntry,
+  ControlledComparison,
+  ComparisonVariant,
+  ScenarioAnchor,
+  GeneralizationCheckpoint,
+  StressTest,
+  MetaphorLog,
+  MasteryMarker,
+} from "./root-cause-session.js";
+
 // ── New schemas (Report 07) ───────────────────────────────────────────────────
 export type { CurriculumFramework, CurriculumStandard } from "./curriculum-standard.js";
 export type {

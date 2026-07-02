@@ -1,0 +1,163 @@
+<%
+/* investigation-folder/inverse-thinking.html  (Issue 003 + Issue 017)
+   Single template for both frameVariants — detective and neutral.
+   it = InvestigationFolderTemplateData
+   Fields: artifactCss, lang, title, subtitle?, frame (InverseThinkingFrame),
+           frameVariant ('detective' | 'neutral'),  ← mapped by adapter
+           subject, gradeLevel, artifactKind,
+           cases[]{id, title, alias?, disaster, key_clues[], safe_zone,
+                   filing_note, student_task, teacher_only?{rationale,answer_key}},
+           summaryTable[]{case_id, trap, clue, safe_rule},
+           isTeacher, teacherOnly?{rationale, answer_key}
+*/
+const lang = it.lang || 'vi';
+const cases = it.cases || [];
+const summaryTable = it.summaryTable || [];
+const isDetective = it.frameVariant === 'detective';
+%>
+<!DOCTYPE html>
+<html lang="<%= lang %>" data-artifact-theme="investigation-folder">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.title %> — Investigation Folder</title>
+  <style><%~ it.artifactCss %></style>
+</head>
+<body>
+<div class="art-root">
+
+  <% if (it.isTeacher) { %>
+  <div class="art-projection-flag">
+    Bản dành cho giáo viên — chứa đáp án &amp; lý giải phương pháp, không xuất cho học sinh
+  </div>
+  <% } %>
+
+  <header class="art-cover art-cover--folder<%= isDetective ? ' art-cover--folder--detective' : ' art-cover--folder--neutral' %>">
+    <p class="art-cover-eyebrow art-mono">
+      Investigation Folder · <%= isDetective ? 'Hồ sơ điều tra' : 'Inverse Thinking' %>
+    </p>
+    <h1 style="text-align:left;font-size:38px;"><%~ it.title %></h1>
+    <p class="art-cover-sub" style="text-align:left;">
+      <%= it.subtitle || (it.subject + ' · ' + it.gradeLevel) %>
+    </p>
+    <div class="art-meta-chips">
+      <span class="art-pill"><%= cases.length %> <%= isDetective ? 'vụ án' : 'tình huống' %></span>
+      <span class="art-pill"><%= it.gradeLevel %></span>
+      <% if (it.estimatedMinutes) { %>
+      <span class="art-pill"><%= it.estimatedMinutes %> phút</span>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="art-shell">
+
+    <nav class="art-tabs">
+      <button class="art-active">
+        <%= isDetective ? 'Hồ sơ vụ án' : 'Tình huống' %>
+      </button>
+      <button><%= isDetective ? 'Quy trình suy luận' : 'Quy trình loại trừ' %></button>
+      <button><%= isDetective ? 'Bằng chứng' : 'Phân tích' %></button>
+      <button>Kết luận</button>
+    </nav>
+
+    <% for (const c of cases) { %>
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono"><%= isDetective ? 'Vụ án' : 'Tình huống' %></span>
+        <h2><%= c.title %><% if (c.alias) { %> <span style="font-weight:400;color:var(--art-ink-soft);">(<%= c.alias %>)</span><% } %></h2>
+      </div>
+      <div class="art-case">
+        <div class="art-case-head">
+          <span class="art-case-tag"><%= isDetective ? 'Hiện trường' : 'Bối cảnh' %></span>
+          <span class="art-case-title"><%= c.disaster %></span>
+        </div>
+        <% if (c.key_clues && c.key_clues.length > 0) { %>
+        <ul class="art-clue-list">
+          <% for (const clue of c.key_clues) { %>
+          <li><%= clue %></li>
+          <% } %>
+        </ul>
+        <% } %>
+      </div>
+
+      <div class="art-section-head" style="margin-top:var(--art-space-5);">
+        <span class="art-section-eyebrow art-mono"><%= isDetective ? 'Vùng an toàn' : 'Điều kiện' %></span>
+        <h2 style="font-size:16px;"></h2>
+      </div>
+      <div class="art-callout">
+        <span class="art-glyph art-mono">✓</span>
+        <span><%= c.safe_zone %></span>
+      </div>
+
+      <p style="margin-top:var(--art-space-4);"><b><%= isDetective ? 'Ghi chú hồ sơ:' : 'Ghi chú:' %></b> <%= c.filing_note %></p>
+
+      <div class="art-section-head" style="margin-top:var(--art-space-4);">
+        <span class="art-section-eyebrow art-mono">Nhiệm vụ học sinh</span>
+      </div>
+      <div class="art-callout art-callout--dashed">
+        <span class="art-glyph art-mono">→</span>
+        <span><%= c.student_task %></span>
+      </div>
+
+      <% if (it.isTeacher && c.teacher_only) { %>
+      <div class="art-teacher-block" style="margin-top:var(--art-space-4);">
+        <div class="art-tb-label art-mono">Đáp án &amp; lý giải (giáo viên)</div>
+        <p><b>Đáp án:</b> <%= c.teacher_only.answer_key %></p>
+        <p><b>Lý giải:</b> <%= c.teacher_only.rationale %></p>
+      </div>
+      <% } %>
+    </section>
+    <% } %>
+
+    <% if (summaryTable.length > 0) { %>
+    <section class="art-section" style="margin-bottom:0;">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Kết luận</span>
+        <h2>Bảng tổng kết</h2>
+      </div>
+      <div class="art-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th><%= isDetective ? 'Bẫy' : 'Vấn đề' %></th>
+              <th><%= isDetective ? 'Manh mối' : 'Dấu hiệu' %></th>
+              <th>Quy tắc an toàn</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (const row of summaryTable) { %>
+            <tr>
+              <td class="art-mono"><%= row.case_id %></td>
+              <td><%= row.trap %></td>
+              <td><%= row.clue %></td>
+              <td><%= row.safe_rule %></td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <% } %>
+
+    <% if (it.isTeacher && it.teacherOnly) { %>
+    <section class="art-section" style="margin-bottom:0;">
+      <div class="art-teacher-block">
+        <div class="art-tb-label art-mono">Ghi chú tổng thể (giáo viên)</div>
+        <p><b>Đáp án chung:</b> <%= it.teacherOnly.answer_key %></p>
+        <p><b>Lý giải phương pháp:</b> <%= it.teacherOnly.rationale %></p>
+      </div>
+    </section>
+    <% } %>
+
+  </main>
+
+  <footer class="art-footer">
+    <span class="art-mono">Investigation Folder</span>
+    <span><%= it.title %></span>
+    <span class="art-mono" style="margin-left:auto;">oh-my-class</span>
+  </footer>
+
+</div>
+</body>
+</html>

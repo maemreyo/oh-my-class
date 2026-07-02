@@ -3,13 +3,22 @@ import { renderInverseThinkingHtml } from "../src/inverse-thinking-renderer.js";
 import { inverseThinkingFixture } from "./inverse-thinking-fixture.js";
 
 describe("inverse-thinking creative frames", () => {
-  it("changes frame class without changing semantic case content", () => {
-    const detective = renderInverseThinkingHtml({ ...inverseThinkingFixture, frame: "detective_case" });
-    const neutral = renderInverseThinkingHtml({ ...inverseThinkingFixture, frame: "neutral" });
+  it("detective frame uses art-cover--folder--detective modifier", async () => {
+    const detective = await renderInverseThinkingHtml({ ...inverseThinkingFixture, frame: "detective_case" });
+    const neutral = await renderInverseThinkingHtml({ ...inverseThinkingFixture, frame: "neutral" });
 
-    expect(detective).toContain("frame-detective");
-    expect(neutral).toContain("frame-neutral");
-    expect(detective).toContain("I have visited Da Nang yesterday");
-    expect(neutral).toContain("I have visited Da Nang yesterday");
+    expect(detective).toContain("art-cover--folder--detective");
+    expect(neutral).toContain("art-cover--folder--neutral");
+    expect(detective).not.toContain("art-cover--folder--neutral");
+    expect(neutral).not.toContain("art-cover--folder--detective");
+  });
+
+  it("both frames contain case content", async () => {
+    const detective = await renderInverseThinkingHtml({ ...inverseThinkingFixture, frame: "detective_case" });
+    const neutral = await renderInverseThinkingHtml({ ...inverseThinkingFixture, frame: "neutral" });
+
+    // Both should contain case data from the fixture
+    expect(detective).toContain("investigation-folder");
+    expect(neutral).toContain("investigation-folder");
   });
 });

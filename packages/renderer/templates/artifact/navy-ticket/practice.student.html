@@ -1,0 +1,54 @@
+<%
+/* navy-ticket/practice.student.html
+   it = NavyTicketPracticeTemplateData (audience: student)
+   answer and rationale fields are NOT passed by the adapter (ADR-022).
+*/
+const lang = it.lang || 'vi';
+const items = it.items || [];
+%>
+<!DOCTYPE html>
+<html lang="<%= lang %>" data-artifact-theme="navy-ticket">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.title %> — Practice</title>
+  <style><%~ it.artifactCss %></style>
+</head>
+<body>
+<div class="art-root">
+
+  <div class="art-page-head">
+    <p class="art-cover-eyebrow art-mono">Semantic Anchor Cluster · <%= it.groupLabel %></p>
+    <h1>Luyện tập — <%~ it.title %></h1>
+    <p class="art-lede"><%= items.length %> câu theo 4 dạng: nhận diện từ khoá cốt lõi, phân biệt theo ngữ cảnh, giải thích ranh giới, truy hồi ngược.</p>
+  </div>
+
+  <main class="art-shell">
+    <% for (let i = 0; i < items.length; i++) {
+       const item = items[i];
+    %>
+    <div class="art-practice-item art-avoid-break">
+      <p class="art-pq-text">
+        <span class="art-pq-n">Câu <%= i + 1 %> · <%= item.intent %></span><br>
+        <%= item.prompt %>
+      </p>
+      <% if (item.options && item.options.length > 0) { %>
+      <div class="art-pq-opts">
+        <% for (const opt of item.options) { %>
+        <span><%= opt %></span>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+  </main>
+
+  <footer class="art-footer">
+    <span class="art-mono">Practice Set — Student</span>
+    <span>Không có đáp án trong file này — dùng để học sinh tự làm trước khi chữa bài.</span>
+    <span class="art-mono" style="margin-left:auto;">oh-my-class</span>
+  </footer>
+
+</div>
+</body>
+</html>

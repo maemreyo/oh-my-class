@@ -1,6 +1,6 @@
 import { strToU8, zip } from "fflate";
 import type { PracticeSet, SemanticAnchorCluster } from "@oh-my-class/schemas";
-import { renderSemanticAnchorProjectionSet } from "@oh-my-class/renderer";
+import { renderArtifactUiSet } from "@oh-my-class/renderer";
 import { buildH5PPackage } from "../h5p-impl/packager.js";
 
 export type VocabularyBatchExportFormat = "html" | "gift" | "h5p";
@@ -169,19 +169,19 @@ export async function buildVocabularyBatchPackage(options: VocabularyBatchPackag
       if (!input.practiceSet) {
         throw new Error(`Vocabulary batch cluster ${cluster.cluster_id} cannot export HTML without a PracticeSet`);
       }
-      const projections = renderSemanticAnchorProjectionSet(cluster, input.practiceSet);
+      const projections = await renderArtifactUiSet({ cluster, practiceSet: input.practiceSet });
       const teacherTeaching = `${folder}/teaching-teacher.html`;
-      addText(files, teacherTeaching, projections.teachingTeacherHtml);
+      addText(files, teacherTeaching, projections.teachingTeacher);
       manifestFiles.push({ kind: "teaching_teacher_html", path: teacherTeaching });
       const teacherPractice = `${folder}/practice-teacher.html`;
-      addText(files, teacherPractice, projections.practiceTeacherHtml);
+      addText(files, teacherPractice, projections.practiceTeacher);
       manifestFiles.push({ kind: "practice_teacher_html", path: teacherPractice });
       if (status === "passed") {
         const studentTeaching = `${folder}/teaching-student.html`;
-        addText(files, studentTeaching, projections.teachingStudentHtml);
+        addText(files, studentTeaching, projections.teachingStudent);
         manifestFiles.push({ kind: "teaching_student_html", path: studentTeaching });
         const studentPractice = `${folder}/practice-student.html`;
-        addText(files, studentPractice, projections.practiceStudentHtml);
+        addText(files, studentPractice, projections.practiceStudent);
         manifestFiles.push({ kind: "practice_student_html", path: studentPractice });
       }
     }

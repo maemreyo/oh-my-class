@@ -1,0 +1,107 @@
+<%
+/* navy-ticket/teaching.teacher.html
+   it = NavyTicketTeachingTemplateData (audience: teacher)
+   Fields: artifactCss, interactivityJS, lang, groupLabel, title, subtitle,
+           accentCat, terms[]{word, impression, coreTrigger, visualCue,
+           studentExplanation, example, contrastNote, teacherScript,
+           sourceNotes, edgeCases}
+*/
+const lang = it.lang || 'vi';
+const terms = it.terms || [];
+%>
+<!DOCTYPE html>
+<html lang="<%= lang %>" data-artifact-theme="navy-ticket">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.title %> — Teaching Guide (Teacher)</title>
+  <style><%~ it.artifactCss %></style>
+</head>
+<body>
+<div class="art-root">
+
+  <div class="art-projection-flag">
+    Bản dành cho giáo viên — chứa kịch bản giảng &amp; nguồn tham chiếu, không xuất cho học sinh
+  </div>
+
+  <header class="art-cover">
+    <p class="art-cover-eyebrow art-mono">Semantic Anchor Cluster · <%= it.groupLabel %></p>
+    <h1><%~ it.title %></h1>
+    <p class="art-cover-sub">Teaching Guide · Teacher Edition</p>
+    <% if (it.subtitle) { %>
+    <p class="art-cover-copy"><%= it.subtitle %></p>
+    <% } %>
+    <div class="art-cover-pills">
+      <span class="art-pill"><%= terms.length %> từ trong cụm</span>
+      <% if (it.accentCat) { %><span class="art-pill"><%= it.accentCat %></span><% } %>
+    </div>
+  </header>
+
+  <main class="art-shell">
+    <div class="art-callout art-callout--dashed" style="margin-bottom:32px;">
+      <span class="art-glyph art-mono">i</span>
+      <span>Mỗi từ có một "ấn tượng" và một chuỗi liên tưởng riêng — dạy đúng thứ tự Word → Impression → Core trigger → Visual cue để học sinh ghi nhớ theo neo ngữ nghĩa, không học vẹt nghĩa tiếng Việt.</span>
+    </div>
+
+    <% for (const term of terms) { %>
+    <article class="art-ticket art-avoid-break">
+      <div class="art-ticket-main">
+        <h3 class="art-ticket-word"><%= term.word %></h3>
+        <p class="art-ticket-desc"><%= term.studentExplanation %></p>
+        <p class="art-semantic-chain">
+          <%= term.word %>
+          <span class="art-arrow">→</span>
+          <b><%= term.impression %>, <%= term.coreTrigger.toLowerCase() %></b>
+          <span class="art-arrow">→</span>
+          <%= term.coreTrigger %>
+          <span class="art-arrow">→</span>
+          <%= term.visualCue %>
+        </p>
+        <p style="font-size:13px;color:var(--art-ink-soft);margin:0 0 10px;">
+          <b style="color:var(--art-ink)">Ví dụ:</b> <em><%= term.example %></em>
+        </p>
+        <div class="art-contrast-quote">
+          <span class="art-who">Ranh giới</span><%= term.contrastNote %>
+        </div>
+
+        <div class="art-teacher-block">
+          <div class="art-tb-label art-mono">Kịch bản giảng (dùng nguyên văn trên lớp)</div>
+          <p class="art-teacher-script">
+            <span class="art-script-line"><%= term.teacherScript %></span>
+          </p>
+          <% if (term.sourceNotes) { %>
+          <p style="font-size:12px;color:var(--art-ink-faint);margin-top:10px;">
+            <b>Nguồn:</b> <%= term.sourceNotes %>
+          </p>
+          <% } %>
+          <% if (term.edgeCases) { %>
+          <p style="font-size:12px;color:var(--art-ink-faint);margin-top:4px;">
+            <b>Lưu ý:</b> <%= term.edgeCases %>
+          </p>
+          <% } %>
+        </div>
+      </div>
+      <div class="art-ticket-stub">
+        <svg class="art-anchor-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="5" r="2.2"/>
+          <line x1="12" y1="7.2" x2="12" y2="21"/>
+          <path d="M5 13a7 7 0 0 0 14 0"/>
+          <line x1="5" y1="13" x2="8" y2="13"/>
+          <line x1="19" y1="13" x2="16" y2="13"/>
+        </svg>
+        <span class="art-stub-label">Ấn tượng</span>
+        <span class="art-stub-badge"><%= term.impression %></span>
+      </div>
+    </article>
+    <% } %>
+  </main>
+
+  <footer class="art-footer">
+    <span class="art-mono">Teaching Guide — Teacher</span>
+    <span>Tài liệu nội bộ giáo viên. Không chia sẻ trực tiếp cho học sinh hoặc đăng lên nhóm lớp công khai.</span>
+    <span class="art-mono" style="margin-left:auto;">oh-my-class</span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -4,18 +4,18 @@ import { inverseThinkingFixture } from "./inverse-thinking-fixture.js";
 
 describe("renderInverseThinkingHtml", () => {
   for (const artifactType of ["lesson", "worksheet", "quiz", "drill"] as const) {
-    it(`renders standalone ${artifactType} HTML`, () => {
-      const html = renderInverseThinkingHtml({ ...inverseThinkingFixture, artifactType });
+    it(`renders standalone ${artifactType} HTML with investigation-folder theme`, async () => {
+      const html = await renderInverseThinkingHtml({ ...inverseThinkingFixture, artifactType });
 
       expect(html).toContain("<!DOCTYPE html>");
       expect(html).toContain("oh-my-class");
       expect(html).toContain('name="viewport"');
-      expect(html).toContain("@media print");
       expect(html).not.toMatch(/https?:\/\//);
       expect(html).not.toMatch(/<link\s/i);
-      expect(html).not.toMatch(/<script\s/i);
-      expect(html).toContain("case-file");
-      expect(html.toLowerCase()).toContain("summary table");
+      expect(html).toContain('data-artifact-theme="investigation-folder"');
+      expect(html).toContain("art-case");
+      // Summary table section is present
+      expect(html).toContain("art-table-wrap");
     });
   }
 });

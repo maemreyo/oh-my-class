@@ -7,9 +7,9 @@ const themes = ["default", "ocean", "forest"] as const;
 
 describe("theme visual fixture", () => {
   for (const theme of themes) {
-    it(`renders inverse-thinking artifact with ${theme} theme tokens and no external assets`, () => {
+    it(`renders inverse-thinking artifact with ${theme} theme tokens and no external assets`, async () => {
       const themeCss = loadTheme(theme);
-      const artifactHtml = renderInverseThinkingHtml(inverseThinkingFixture);
+      const artifactHtml = await renderInverseThinkingHtml(inverseThinkingFixture);
       const html = artifactHtml.replace("</head>", `<style>${themeCss}</style></head>`);
 
       expect(html).toContain("<!DOCTYPE html>");
