@@ -2,6 +2,9 @@ import sanitizeHtmlLib from "sanitize-html";
 import type { IOptions } from "sanitize-html";
 
 import { BASE_CONFIG } from "../sanitizer/base-config.js";
+import { ANSWER_KEY_CONFIG } from "../sanitizer/configs/answer_key.js";
+import { INFOGRAPHIC_CONFIG } from "../sanitizer/configs/infographic.js";
+import { LESSON_CONFIG } from "../sanitizer/configs/lesson.js";
 import { QUIZ_CONFIG } from "../sanitizer/configs/quiz.js";
 import type { SanitizerPolicy } from "./types.js";
 
@@ -20,6 +23,12 @@ function configFor(policy: SanitizerPolicy): IOptions {
       return BASE_CONFIG;
     case "quiz":
       return QUIZ_CONFIG;
+    case "infographic":
+      return INFOGRAPHIC_CONFIG;
+    case "lesson":
+      return LESSON_CONFIG;
+    case "answer_key":
+      return ANSWER_KEY_CONFIG;
   }
 }
 
