@@ -72,7 +72,9 @@ class TestGraphAcceptsStore:
         graph = build_teaching_pack_graph(store=store)
         expected_nodes = {stage.value for stage in TEACHING_PACK_STAGES}
         actual_nodes = set(graph.nodes) - {"__start__", "__end__"}
-        assert expected_nodes == actual_nodes
+        # Every stage must be a node; the graph also has worker nodes beyond the stage
+        # list (e.g. generate_one_artifact from the Send fan-out, asf-002).
+        assert expected_nodes <= actual_nodes
 
 
 class TestStoreFactory:
