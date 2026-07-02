@@ -66,8 +66,8 @@ describe("renderAgentArtifact", () => {
 
     expect(html).toContain("Which word is a synonym for 'happy'?");
     expect(html).toContain("Joyful");
-    expect(html).toContain("Giải thích");
-    expect(html).toContain("Joyful means feeling or expressing great pleasure.");
+    expect(html).not.toContain("Giải thích");
+    expect(html).not.toContain("Joyful means feeling or expressing great pleasure.");
   });
 
   it("does not render roleplay answer keys in lesson student HTML", async () => {

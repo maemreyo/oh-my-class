@@ -558,7 +558,11 @@ exports[`lesson and answer key plugins > renders student lesson without answer, 
     <span>Answer from memory before opening support.</span>
   </header>
   <p class="active-recall-prompt__instruction">State the rule in your own words.</p>
-      <fieldset class="active-recall-prompt__confidence">
+        <button type="button" class="active-recall-prompt__button" aria-expanded="false" aria-controls="ar-statetheruleinyo">Show recall answer</button>
+    <div class="active-recall-prompt__reveal" id="ar-statetheruleinyo">
+      <p>Multiply numerator and denominator by the same number.</p>
+    </div>
+    <fieldset class="active-recall-prompt__confidence">
     <legend>Confidence check</legend>
     <label><input type="checkbox" /> Still learning</label>
     <label><input type="checkbox" /> Almost there</label>

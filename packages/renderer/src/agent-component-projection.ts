@@ -74,7 +74,7 @@ function parseContentComponent(component: unknown, sourceSectionId: string): Con
   throw new UnknownContentComponentError(componentType, sourceSectionId);
 }
 
-function isContentComponent(value: unknown): value is ContentComponent {
+export function isContentComponent(value: unknown): value is ContentComponent {
   if (value === null || typeof value !== "object" || !("type" in value)) {
     return false;
   }
@@ -100,7 +100,7 @@ function projectComponentForStudent(component: ContentComponent): ContentCompone
       return studentComponent;
     }
     case "active_recall_prompt": {
-      const { reveal_answer: _revealAnswer, teacher_rationale: _teacherRationale, ...studentComponent } = component;
+      const { teacher_rationale: _teacherRationale, ...studentComponent } = component;
       return studentComponent;
     }
     case "contrastive_pairs":

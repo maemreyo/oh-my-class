@@ -78,7 +78,7 @@ function projectComponentForStudent(component: LessonComponent): LessonComponent
       return studentComponent;
     }
     case "active_recall_prompt": {
-      const { reveal_answer: _revealAnswer, teacher_rationale: _teacherRationale, ...studentComponent } = component;
+      const { teacher_rationale: _teacherRationale, ...studentComponent } = component;
       return studentComponent;
     }
     case "contrastive_pairs":

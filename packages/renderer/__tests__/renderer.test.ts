@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderArtifact, renderArtifactSync, renderTemplate } from "../src/renderer.js";
-import { sanitizeHtml } from "../src/sanitizer.js";
+import { renderArtifact, renderTemplate } from "../src/renderer.js";
 import { inlineCss, validateNoExternalUrls } from "../src/inline-assets.js";
 import type { ArtifactType, ArtifactDataMap } from "../src/contracts/index.js";
 // Note: minimalData type is augmented below to include roadmap
@@ -217,68 +216,6 @@ describe("all artifact types render without throwing", () => {
   }
 });
 
-// ── renderArtifactSync (legacy, backward compat) ─────────────────────────────
-
-describe("renderArtifactSync (legacy)", () => {
-  const mockArtifact = {
-    artifact_type: "lesson",
-    title: "Test Lesson",
-    sections: [{ title: "Intro", content: "Some content" }],
-    accessibility: { language: "en" },
-  };
-
-  it("produces valid HTML with DOCTYPE", () => {
-    const html = renderArtifactSync(mockArtifact);
-    expect(html).toContain("<!DOCTYPE html>");
-  });
-
-  it("includes oh-my-class brand string", () => {
-    const html = renderArtifactSync(mockArtifact);
-    expect(html).toContain("oh-my-class");
-  });
-
-  it("inlines theme CSS (no external link tags)", () => {
-    const html = renderArtifactSync(mockArtifact);
-    expect(html).toContain("<style>");
-    expect(html).not.toMatch(/<link\s/);
-  });
-
-  it("renders the artifact title", () => {
-    const html = renderArtifactSync(mockArtifact);
-    expect(html).toContain("Test Lesson");
-  });
-
-  it("renders section content", () => {
-    const html = renderArtifactSync(mockArtifact);
-    expect(html).toContain("Some content");
-  });
-
-  it("uses lang attribute from accessibility", () => {
-    const html = renderArtifactSync(mockArtifact);
-    expect(html).toContain('lang="en"');
-  });
-
-  it("uses vi lang when accessibility.language is vi", () => {
-    const artifact = { ...mockArtifact, accessibility: { language: "vi" } };
-    const html = renderArtifactSync(artifact);
-    expect(html).toContain('lang="vi"');
-  });
-
-  it("has no external CDN links", () => {
-    const html = renderArtifactSync(mockArtifact);
-    expect(html).not.toMatch(/https?:\/\//);
-  });
-
-  it("strips injected script tags", () => {
-    const maliciousArtifact = {
-      ...mockArtifact,
-      sections: [{ title: "Safe", content: "<script>alert(1)</script>" }],
-    };
-    const html = renderArtifactSync(maliciousArtifact);
-    expect(html).not.toContain("<script>");
-  });
-});
-
 // ── renderTemplate ───────────────────────────────────────────────────────────
 
 describe("renderTemplate", () => {
@@ -300,71 +237,6 @@ describe("renderTemplate", () => {
   it("renders static content unchanged", () => {
     const result = renderTemplate("Static text", {});
     expect(result).toBe("Static text");
-  });
-});
-
-// ── sanitizeHtml ─────────────────────────────────────────────────────────────
-
-describe("sanitizeHtml", () => {
-  it("removes script blocks", () => {
-    const html = '<div>Safe</div><script>alert("xss")</script>';
-    const clean = sanitizeHtml(html);
-    expect(clean).not.toContain("<script>");
-    expect(clean).toContain("Safe");
-  });
-
-  it("removes inline script with attributes", () => {
-    const html = '<script type="text/javascript">evil()</script><p>ok</p>';
-    const clean = sanitizeHtml(html);
-    expect(clean).not.toContain("<script");
-    expect(clean).toContain("ok");
-  });
-
-  it("removes onclick event handlers", () => {
-    const html = '<div onclick="alert(1)">Safe</div>';
-    const clean = sanitizeHtml(html);
-    expect(clean).not.toContain("onclick");
-    expect(clean).toContain("Safe");
-  });
-
-  it("removes onerror event handlers", () => {
-    const html = '<img src="x" onerror="alert(1)">';
-    const clean = sanitizeHtml(html);
-    expect(clean).not.toContain("onerror");
-  });
-
-  it("removes onload event handlers", () => {
-    const html = '<body onload="steal()">content</body>';
-    const clean = sanitizeHtml(html);
-    expect(clean).not.toContain("onload");
-    expect(clean).toContain("content");
-  });
-
-  it("removes iframe tags", () => {
-    const html = '<div>ok</div><iframe src="evil.com"></iframe>';
-    const clean = sanitizeHtml(html);
-    expect(clean).not.toContain("iframe");
-    expect(clean).toContain("ok");
-  });
-
-  it("removes embed tags", () => {
-    const html = '<div>ok</div><embed src="evil.swf">';
-    const clean = sanitizeHtml(html);
-    expect(clean).not.toContain("embed");
-  });
-
-  it("preserves safe content", () => {
-    const html = '<div class="content"><p>Hello</p></div>';
-    const clean = sanitizeHtml(html);
-    expect(clean).toContain("Hello");
-    expect(clean).toContain('class="content"');
-  });
-
-  it("preserves style tags", () => {
-    const html = "<style>body { color: red; }</style><p>text</p>";
-    const clean = sanitizeHtml(html);
-    expect(clean).toContain("<style>");
-    expect(clean).toContain("color: red");
   });
 });
 

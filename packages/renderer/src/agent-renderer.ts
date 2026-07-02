@@ -1,10 +1,10 @@
 import process from "node:process";
+import { randomUUID } from "node:crypto";
 import { ArtifactContentSchema } from "@oh-my-class/schemas/generated/artifact.js";
 
 import { preserveComponents, preserveStudentComponents } from "./agent-component-projection.js";
 import { runWorkerLoop } from "./agent-worker.js";
-import { renderArtifact } from "./renderer.js";
-import { renderArtifactUi } from "./artifact-ui/renderer.js";
+import { render } from "./core/render.js";
 import type {
   AnswerKeyData,
   DrillData,
@@ -14,6 +14,9 @@ import type {
   RecapData,
   WorksheetData,
 } from "./contracts/index.js";
+import type { RenderContext } from "./core/types.js";
+
+export { isContentComponent, UnknownContentComponentError } from "./agent-component-projection.js";
 
 type ArtifactRecord = Readonly<Record<string, unknown>>;
 
@@ -99,7 +102,7 @@ function quizAnswer(section: ArtifactRecord): string {
     section.answer,
     asString(
       section.correct_answer,
-      asString(section.correctAnswer, asString(section.correct_option, asString(section.correctOption))),
+      asString(section.correctAnswer, asString(section.correct_option, asString(section.correctOption, "—"))),
     ),
   );
 }
@@ -176,36 +179,38 @@ function answerKeyData(artifact: ArtifactRecord): AnswerKeyData {
   };
 }
 
+function makeContext(audience: RenderContext["audience"], lang: string): RenderContext {
+  return {
+    audience,
+    locale: lang === "en" ? "en" : "vi",
+    theme: "default",
+    renderMode: "preview",
+    requestId: randomUUID(),
+    versions: { rendererVersion: "0.1.0" },
+    assetPolicy: "inline-only",
+  };
+}
+
 export async function renderAgentArtifact(input: unknown): Promise<string> {
   const artifact = ArtifactContentSchema.parse(input);
   const artifactType = asString(artifact.artifact_type, "lesson");
+  const lang = asString(asRecord(asRecord(artifact).accessibility).language, "vi");
+
   switch (artifactType) {
     case "quiz":
-      return renderArtifact("quiz", quizData(artifact));
+      return render({ kind: "quiz", input: quizData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
     case "worksheet":
-      return renderArtifact("worksheet", worksheetData(artifact));
+      return render({ kind: "worksheet", input: worksheetData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
     case "drill":
-      return renderArtifact("drill", drillData(artifact));
+      return render({ kind: "drill", input: drillData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
     case "recap":
-      return renderArtifact("recap", recapData(artifact));
+      return render({ kind: "recap", input: recapData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
     case "infographic":
-      return renderArtifact("infographic", infographicData(artifact));
+      return render({ kind: "infographic", input: infographicData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
     case "answer_key":
-      // audience:'student' invariant — agent-renderer never generates teacher projections (Issue 012)
-      return renderArtifactUi({
-        family: "paper-dossier",
-        kind: "answer-key",
-        audience: "student",
-        data: answerKeyData(artifact),
-      });
+      return render({ kind: "answer_key", input: answerKeyData(artifact), context: makeContext("teacher", lang) }).then((r) => r.html);
     default:
-      // lesson — paper-dossier family, student-safe output (Issue 012)
-      return renderArtifactUi({
-        family: "paper-dossier",
-        kind: "lesson",
-        audience: "student",
-        data: lessonData(artifact),
-      });
+      return render({ kind: "lesson", input: lessonData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
   }
 }
 

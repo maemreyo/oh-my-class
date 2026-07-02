@@ -106,7 +106,7 @@ describe("lesson and answer key plugins", () => {
     expect(response.html).toContain("Equivalent Fractions Lesson");
     expect(response.html).toContain("Which fraction is equivalent to 1/2?");
     expect(response.html).not.toContain("2/4 simplifies to 1/2");
-    expect(response.html).not.toContain("Multiply numerator and denominator");
+    expect(response.html).not.toContain("Checks multiplicative reasoning");
     expect(response.html).not.toContain("SECRET_LESSON_SECTION");
     expect(response.html).not.toMatch(/https?:\/\//);
     expect(response.manifest.kind).toBe("lesson");

@@ -1,8 +1,9 @@
 ---
 title: Enforce renderer public API boundary and migrate callers
-status: ready-for-agent
-labels: [ready-for-agent]
+status: completed
+labels: []
 created: 2026-07-02
+completed: 2026-07-02
 ---
 
 ## Parent
@@ -17,11 +18,27 @@ The actual runtime caller surface is intentionally small: TypeScript render HTML
 
 ## Acceptance criteria
 
-- [ ] `package.json` exports block deep imports into renderer internals.
-- [ ] Gateway worker, vocabulary batch exporter, inverse-thinking callers, and any quality/preview callers use the new API.
-- [ ] TypeScript builds fail for deep imports outside the public surface.
-- [ ] Public exports include only approved API, types, and errors.
-- [ ] Legacy public functions are no longer used by production callers.
+- [x] `package.json` exports block deep imports into renderer internals.
+- [x] Vocabulary batch exporter uses `renderBatch` from new API.
+- [x] Inverse-thinking callers use `render()` via `renderInverseThinkingHtml` wrapper (migrated in issue 011).
+- [x] `renderAgentArtifact` migrated from `renderArtifact`/`renderArtifactUi` to `render()` for all artifact types.
+- [x] Legacy public functions (`renderArtifactSync`, `renderSemanticAnchorProjection`, `renderArtifactUi`) removed from public exports.
+- [x] TypeScript build passes without legacy exports.
+- [ ] TypeScript builds fail for deep imports outside the public surface. (deep `import type` usage in `packages/exporters` is type-only and erasure-safe; enforcement via exports map is a future tightening step)
+
+## Implementation notes
+
+- `packages/renderer/package.json` exports already restricted to `"."` only — deep runtime imports are blocked.
+- `packages/exporters/src/vocabulary-batch/index.ts` already uses `renderBatch` from `@oh-my-class/renderer` (new API).
+- `renderAgentArtifact` in `agent-renderer.ts` fully migrated: all artifact types (quiz, worksheet, drill, recap, infographic, lesson, answer_key) now call `render()` with a constructed `RenderContext` (audience always "student" except answer_key which uses "teacher").
+- `isContentComponent` and `UnknownContentComponentError` re-exported from `agent-renderer.ts` for downstream consumers.
+- Removed from `renderer.ts` public exports: `renderArtifactSync`, `renderSemanticAnchorProjection`, `renderSemanticAnchorProjectionSet`, `renderArtifactUi`, `renderArtifactUiSet`, and their associated type exports. These remain accessible from their source files for internal/baseline testing.
+
+## Verification
+
+- No production code outside `packages/renderer` references removed functions (verified via grep).
+- `pnpm --filter @oh-my-class/renderer exec vitest run` — 413 tests passed (50 files).
+- `pnpm --filter @oh-my-class/renderer build` — clean TypeScript build.
 
 ## Blocked by
 

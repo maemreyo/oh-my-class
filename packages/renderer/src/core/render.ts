@@ -7,6 +7,7 @@ import { loadManagedScripts } from "./managed-scripts.js";
 import { defaultRegistry } from "./runtime.js";
 import { sanitizeRenderedHtml } from "./sanitizer.js";
 import { defaultThemeResolver, type ThemeResolver } from "./theme-resolver.js";
+import { resolveMessages } from "../i18n/catalog.js";
 import type { PluginRegistry } from "./registry.js";
 import type { RenderBatchRequest, RenderManifest, RenderRequest, RenderResponse } from "./types.js";
 
@@ -32,6 +33,15 @@ export async function render(request: RenderRequest, options: RenderOptions = {}
     });
   }
 
+  if (request.context.renderMode === "print" && !plugin.capabilities.supportsPrint) {
+    throw new RendererError({
+      code: RendererErrorCode.UnsupportedMode,
+      category: RendererErrorCategory.Policy,
+      message: `Renderer plugin ${request.kind} does not support print mode.`,
+      details: { kind: request.kind, renderMode: request.context.renderMode },
+    });
+  }
+
   const parsed = plugin.schema.safeParse(request.input);
   if (!parsed.success) {
     throw new RendererError({
@@ -49,11 +59,13 @@ export async function render(request: RenderRequest, options: RenderOptions = {}
     locale: request.context.locale,
   });
   const managedScripts = loadManagedScripts(plugin.managedScripts);
-  const templateData = await plugin.adapt(parsed.data, request.context, {
+  const messages = resolveMessages(request.context.locale);
+  const adaptedData = await plugin.adapt(parsed.data, request.context, {
     themeCss: theme.css,
     managedScripts,
     renderChild: (childRequest) => render(childRequest, { registry, themeResolver }),
   });
+  const templateData = { ...adaptedData, messages };
   const rawHtml = await eta.renderAsync(plugin.templatePath(request.context), templateData);
   if (rawHtml === undefined) {
     throw new RendererError({
@@ -88,6 +100,10 @@ export async function render(request: RenderRequest, options: RenderOptions = {}
       templateVersion: plugin.templateVersion,
       themeVersion: plugin.themeVersion,
       sanitizerPolicyVersion: plugin.sanitizerPolicy.version,
+      renderMode: request.context.renderMode,
+      locale: request.context.locale,
+      audience: request.context.audience,
+      requestId: request.context.requestId,
       renderedAt,
       contentHash: createHash("sha256").update(html).digest("hex"),
       ...(childManifests ? { childManifests } : {}),

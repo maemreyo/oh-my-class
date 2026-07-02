@@ -47,6 +47,10 @@ export type RenderManifest = {
   readonly templateVersion: string;
   readonly themeVersion: string;
   readonly sanitizerPolicyVersion: string;
+  readonly renderMode: RenderMode;
+  readonly locale: RenderLocale;
+  readonly audience: RenderAudience;
+  readonly requestId: string;
   readonly renderedAt: string;
   readonly contentHash: string;
   readonly childManifests?: readonly RenderManifest[];

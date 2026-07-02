@@ -1,7 +1,7 @@
 {
   "packageName": "@oh-my-class/renderer",
   "packageVersion": "0.1.0",
-  "capturedGitCommit": "84f72e403bcf654c87d2da58da827d8cab7f31f7",
+  "capturedGitCommit": "cb081004e1a14cfaa7d84557f1be2d2e028a58dc",
   "updateCommand": "UPDATE_CURRENT_RENDERER_BASELINES=1 pnpm --filter @oh-my-class/renderer exec vitest run __tests__/current-renderer-baselines.test.ts",
   "baselineIds": [
     "agent-lesson",

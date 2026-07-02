@@ -2,7 +2,7 @@
 /* active_recall_prompt.html — retrieval practice prompt
    it = { instruction, time_minutes, scaffold_hint?, reveal_answer?, teacher_rationale?, reflection_note? }
    teacher_rationale is intentionally omitted from student-facing HTML. */
-const recallId = 'active-recall-' + Math.random().toString(36).slice(2);
+const recallId = 'ar-' + String(it.instruction || '').replace(/\W/g, '').toLowerCase().slice(0, 16);
 %>
 <section class="active-recall-prompt student-print-first" aria-label="Active Recall prompt">
   <header class="active-recall-prompt__header">

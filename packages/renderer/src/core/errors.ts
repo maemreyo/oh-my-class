@@ -3,6 +3,7 @@ export const RendererErrorCode = {
   UnknownKind: "unknown_kind",
   ValidationFailed: "validation_failed",
   UnsupportedAudience: "unsupported_audience",
+  UnsupportedMode: "unsupported_mode",
   TemplateMissing: "template_missing",
   ExternalAsset: "external_asset",
 } as const;

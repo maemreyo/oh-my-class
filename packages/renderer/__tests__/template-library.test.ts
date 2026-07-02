@@ -330,7 +330,7 @@ describe("template-library — vocab lesson page (Report 09)", () => {
     expect(html).toContain("get back");
   });
 
-  it("renders roleplay_script component via dispatcher with blanks and answer key", async () => {
+  it("renders roleplay_script component via dispatcher with blanks (answer key hidden in student lesson)", async () => {
     const html = await renderArtifact("lesson", {
       title: "Roleplay",
       sections: [{
@@ -350,8 +350,8 @@ describe("template-library — vocab lesson page (Report 09)", () => {
     expect(html).toContain("Người tiễn (A)");
     expect(html).toContain("(1)");
     expect(html).toContain("(2)");
-    expect(html).toContain("set off");
-    expect(html).toContain("miss");
+    expect(html).not.toContain("set off");
+    expect(html).not.toContain("miss");
   });
 
   it("renders contrastive_pairs component via dispatcher", async () => {

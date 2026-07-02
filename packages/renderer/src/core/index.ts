@@ -1,4 +1,6 @@
 export { RendererError, RendererErrorCategory, RendererErrorCode } from "./errors.js";
+export { ManifestStore } from "./manifest-store.js";
+export type { RenderedDocument } from "./manifest-store.js";
 export { PluginRegistry, createPluginRegistry } from "./registry.js";
 export { render, renderBatch } from "./render.js";
 export { rendererPluginMetadata } from "./runtime.js";
