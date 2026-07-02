@@ -20,6 +20,14 @@ def _json_list(value: JsonObject, key: str) -> list[JsonObject]:
 
 
 class TestTeachingPackArtifactWorkflow:
+    """These cover the imperative _artifact_workflow delegation, which asf-008 moved
+    behind the Send-fanout rollback flag. The default Send path is covered by the asf-*
+    and canonical-flow suites; here we exercise the rollback path explicitly."""
+
+    @pytest.fixture(autouse=True)
+    def _use_rollback_path(self, monkeypatch) -> None:
+        monkeypatch.setenv("OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1", "1")
+
     @pytest.mark.anyio
     async def test_artifact_workflow_delegates_to_content_creator_node(self, monkeypatch) -> None:
         from packages.agents.teaching_pack import nodes
