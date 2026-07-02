@@ -241,9 +241,12 @@ class TestFinalizeRendersHtml:
     def test_sets_current_step(self):
         artifact = {
             "artifact_id": "a-1",
-            "title": "Test",
+            "title": "Test Lesson",
             "artifact_type": "lesson",
-            "sections": [],
+            "theme": "default",
+            "sections": [{"title": "Intro", "content": "Body."}],
+            "metadata": {},
+            "accessibility": {"language": "en"},
         }
         state = _base_state(artifacts=[artifact])
         result = step_12_finalize(state)
@@ -262,14 +265,20 @@ class TestFinalizeSkipsTeacherOnly:
                 "artifact_id": "a-1",
                 "title": "Student Lesson",
                 "artifact_type": "lesson",
-                "sections": [],
+                "theme": "default",
+                "sections": [{"title": "Intro", "content": "Body."}],
+                "metadata": {},
+                "accessibility": {"language": "en"},
             },
             {
                 "artifact_id": "a-2",
                 "title": "Answer Key",
                 "artifact_type": "lesson",
                 "teacher_only": True,
-                "sections": [],
+                "theme": "default",
+                "sections": [{"title": "Key", "content": "Answers."}],
+                "metadata": {},
+                "accessibility": {"language": "en"},
             },
         ]
         state = _base_state(artifacts=artifacts)
@@ -337,7 +346,7 @@ class TestFinalizeHtmlInvariants:
             "artifact_id": "a-1",
             "title": "Test",
             "artifact_type": "lesson",
-            "sections": [],
+            "sections": [{"title": "Intro", "content": "Body."}],
             "accessibility": {"language": "en"},
         }
         state = _base_state(artifacts=[artifact])
@@ -350,7 +359,7 @@ class TestFinalizeHtmlInvariants:
             "artifact_id": "a-1",
             "title": '<script>alert("xss")</script>',
             "artifact_type": "lesson",
-            "sections": [],
+            "sections": [{"title": "Intro", "content": "Body."}],
         }
         state = _base_state(artifacts=[artifact])
         result = step_12_finalize(state)
