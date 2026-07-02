@@ -74,7 +74,18 @@ function buildDeck(run_id: string, artifacts: ArtifactEntry[]) {
     const c = artifact.content
 
     if (artifact.artifact_type === 'flashcard_deck') {
-      const raw = Array.isArray(c.cards) ? (c.cards as unknown[]) : []
+      // Cards may be at top-level (direct FlashcardDeckData) or nested in sections
+      // (ArtifactContent schema stores data in sections[].cards).
+      let raw: unknown[]
+      if (Array.isArray(c.cards)) {
+        raw = c.cards as unknown[]
+      } else {
+        const sections = Array.isArray(c.sections) ? (c.sections as unknown[]) : []
+        raw = sections.flatMap(s => {
+          const sec = s as Record<string, unknown>
+          return Array.isArray(sec.cards) ? (sec.cards as unknown[]) : []
+        })
+      }
       for (const card of raw) {
         const fc = card as FlashcardShape
         if (fc && typeof fc.front === 'string' && typeof fc.back === 'string') {
@@ -87,6 +98,12 @@ function buildDeck(run_id: string, artifacts: ArtifactEntry[]) {
       }
       if (typeof c.subject === 'string') subject = c.subject
       if (typeof c.gradeLevel === 'string') gradeLevel = c.gradeLevel
+      // Also check metadata for subject/gradeLevel (ArtifactContent stores these in metadata)
+      if (typeof c.metadata === 'object' && c.metadata !== null) {
+        const meta = c.metadata as Record<string, unknown>
+        if (!subject && typeof meta.subject === 'string') subject = meta.subject
+        if (!gradeLevel && typeof meta.gradeLevel === 'string') gradeLevel = meta.gradeLevel
+      }
       continue
     }
 

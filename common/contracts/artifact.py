@@ -16,6 +16,33 @@ from common.contracts.components import ContentComponent
 _component_ta = TypeAdapter(ContentComponent)
 
 
+class Flashcard(BaseModel):
+    """A single flashcard with front, back, and optional hint."""
+
+    id: str = Field(..., min_length=1)
+    front: str = Field(..., min_length=1)
+    back: str = Field(..., min_length=1)
+    hint: str | None = None
+
+
+class FlashcardDeckData(BaseModel):
+    """Structured data for a flashcard_deck artifact.
+
+    Mirrors the TypeScript FlashcardDeckData contract in
+    packages/renderer/src/contracts/flashcard_deck.ts.
+    Cards are stored in ArtifactContent.sections[].cards so that the
+    ArtifactContent Pydantic model (which requires ``sections``) stays valid;
+    subject/gradeLevel go in ArtifactContent.metadata.
+    """
+
+    title: str = Field(..., min_length=3, max_length=200)
+    subject: str = Field(..., min_length=1)
+    gradeLevel: str = Field(..., min_length=1)
+    cards: list[Flashcard] = Field(default_factory=list)
+    theme: str | None = None
+    lang: str | None = None
+
+
 class ArtifactContent(BaseModel):
     """A single artifact within a teaching pack.
 
@@ -25,7 +52,7 @@ class ArtifactContent(BaseModel):
 
     artifact_type: Literal[
         "lesson", "worksheet", "quiz", "drill", "recap", "infographic",
-        "answer_key", "roadmap",
+        "answer_key", "roadmap", "flashcard_deck",
     ]
     theme: str = Field(default="default", description="Visual theme name")
     title: str = Field(..., min_length=3, max_length=200)

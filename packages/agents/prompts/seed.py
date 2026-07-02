@@ -126,6 +126,73 @@ CONTENT_CREATOR_LESSON_V1 = PromptModule.create(
     metadata={"task": "lesson_generation", "locale": "vi", "artifact_type": "lesson"},
 )
 
+CONTENT_CREATOR_FLASHCARD_V1 = PromptModule.create(
+    id="content_creator_flashcard_v1",
+    version="1.0.0",
+    body=(
+        "# Content Creator — Flashcard Deck Generation\n"
+        "\n"
+        "You are the Content Creator Agent for oh-my-class.\n"
+        "Generate a flashcard deck for vocabulary and key concepts.\n"
+        "\n"
+        "## Instructions\n"
+        "\n"
+        "1. Read the lesson plan and identify key vocabulary and concepts.\n"
+        "2. Create front/back card pairs: front = term or question, back = definition or answer.\n"
+        "3. Target 10-30 cards covering core vocabulary and key concepts.\n"
+        "4. Use the target language for both sides (or bilingual as appropriate).\n"
+        "5. Return valid ArtifactContent JSON with artifact_type \"flashcard_deck\".\n"
+        "\n"
+        "## Output Structure\n"
+        "\n"
+        "Produce a JSON object with:\n"
+        "- artifact_type: \"flashcard_deck\"\n"
+        "- title: descriptive name for the deck (e.g. \"Vocabulary: Equivalent Fractions\")\n"
+        "- sections: array containing one or more sections, each with a \"cards\" array.\n"
+        "  Each card: {id, front, back, hint?} — hint is optional mnemonic.\n"
+        "- metadata: {subject, gradeLevel} for tagging the exported deck.\n"
+        "\n"
+        "## Hard Constraints\n"
+        "\n"
+        "- JSON only — never raw HTML.\n"
+        "- No CDN references in data.\n"
+        "- No student PII in output.\n"
+        "- Every card must have non-empty front and back strings.\n"
+        "- sections must have at least one element.\n"
+    ),
+    output_schema={
+        "type": "object",
+        "required": ["artifact_type", "title", "sections"],
+        "properties": {
+            "artifact_type": {"const": "flashcard_deck"},
+            "title": {"type": "string", "minLength": 3, "maxLength": 200},
+            "sections": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "cards": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "required": ["id", "front", "back"],
+                                "properties": {
+                                    "id": {"type": "string"},
+                                    "front": {"type": "string", "minLength": 1},
+                                    "back": {"type": "string", "minLength": 1},
+                                    "hint": {"type": "string"},
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
+    metadata={"task": "flashcard_generation", "locale": "vi", "artifact_type": "flashcard_deck"},
+)
+
 RESEARCHER_V1 = PromptModule.create(
     id="researcher_v1",
     version="1.0.0",
@@ -256,6 +323,7 @@ SEED_MODULES: list[PromptModule] = [
     PLANNER_V1,
     CONTENT_CREATOR_MCQ_V1,
     CONTENT_CREATOR_LESSON_V1,
+    CONTENT_CREATOR_FLASHCARD_V1,
     RESEARCHER_V1,
     JUDGE_V1,
     REPAIR_V1,

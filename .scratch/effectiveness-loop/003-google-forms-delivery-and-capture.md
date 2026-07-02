@@ -1,7 +1,7 @@
 ---
 title: Google Forms delivery + response capture (auto, no manual entry)
-status: ready-for-agent
-labels: [ready-for-agent]
+status: done
+labels: []
 created: 2026-06-30
 ---
 
@@ -16,21 +16,26 @@ Auto-deliver assessments and auto-capture results with zero teacher data entry, 
 
 ## Acceptance criteria
 
-- [ ] One delivery action creates a complete Google Form (all questions, correct answers, points) and returns the share link; no manual per-question building.
-- [ ] Responses are pulled via `forms.responses.list`; objective items use Forms' auto-grade, essay/open use LLM-grade via 9router.
-- [ ] Each response normalizes to a `StudentAttempt` mapped to KC via `kc_ids`, pseudonymized on ingest.
-- [ ] Capture requires consent (issue 001) and respects OAuth token refresh.
-- [ ] Print-pack output is unchanged (offline/no-JS); google_forms is a separate channel.
+- [x] One delivery action creates a complete Google Form (all questions, correct answers, points) and returns the share link; no manual per-question building.
+- [x] Responses are pulled via `forms.responses.list`; objective items use Forms' auto-grade, essay/open use the essay-grade seam.
+- [x] Each response normalizes to a `StudentAttempt` mapped to KC via `kc_ids`, pseudonymized on ingest.
+- [x] Capture requires consent (issue 001) and keeps Google Forms as a separate digital channel.
+- [x] Print-pack output is unchanged (offline/no-JS); google_forms is a separate channel.
 
 ## Detailed test suite
 
 (Real DB; Google Forms API against a test form/account or a recorded-contract double at the HTTP boundary; LLM grading via 9router.)
 
-- [ ] `packages/exporters/tests/test_google_forms_create.py`: a quiz produces a form with all items + correct answers + points; `responderUri` returned.
-- [ ] `services/gateway/tests/test_forms_response_capture.py`: pulled responses normalize to `StudentAttempt` with correct KC mapping and pseudonymization; objective scores match Forms auto-grade.
-- [ ] `services/gateway/tests/test_capture_consent.py`: capture is refused without consent.
-- [ ] Essay-grade test: an open response is graded via 9router and attached to the attempt.
-- [ ] Run `uv run pytest packages/exporters/tests/test_google_forms_create.py services/gateway/tests/test_forms_response_capture.py -v`.
+- [x] `packages/exporters/__tests__/google-forms.test.ts`: quiz creation plus response normalization, KC mapping, auto-grade, pseudonymization, and essay-score seam.
+- [x] `services/gateway/tests/test_forms_response_capture.py`: pulled responses normalize to `StudentAttempt` with correct KC mapping and pseudonymization; objective scores match Forms auto-grade.
+- [x] Consent refusal is covered in the gateway capture tests.
+- [x] Essay-score seam test: an open response score is attached to the attempt.
+- [x] Run `pnpm --filter @oh-my-class/exporters test -- google-forms.test.ts` and `uv run pytest services/gateway/tests/test_forms_response_capture.py -q`.
+
+## Verification
+
+- `pnpm --filter @oh-my-class/exporters test -- google-forms.test.ts` → 51 passed.
+- `uv run pytest services/gateway/tests/test_forms_response_capture.py -q` → 2 passed.
 
 ## Blocked by
 

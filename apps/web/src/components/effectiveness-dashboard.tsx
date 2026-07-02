@@ -7,17 +7,24 @@ export type EffectivenessMetric = {
 	readonly helper: string;
 };
 
+export type EffectivenessSnapshot = {
+	readonly averageMastery: number;
+	readonly learnerCount: number;
+	readonly learnersDat: number;
+};
+
 export type EffectivenessDashboardProps = {
-	readonly averageMastery: string;
-	readonly percentDat: string;
-	readonly trend: string;
+	readonly current: EffectivenessSnapshot;
+	readonly previous?: EffectivenessSnapshot;
 };
 
 export function EffectivenessDashboard({
-	averageMastery,
-	percentDat,
-	trend,
+ 	current,
+	previous,
 }: EffectivenessDashboardProps) {
+	const averageMastery = formatPercent(current.averageMastery);
+	const percentDat = formatPercent(current.learnersDat / current.learnerCount);
+	const trend = formatTrend(current.averageMastery - (previous?.averageMastery ?? current.averageMastery));
 	const metrics: readonly EffectivenessMetric[] = [
 		{
 			label: "Average mastery",
@@ -78,4 +85,16 @@ export function EffectivenessDashboard({
 			</Card>
 		</section>
 	);
+}
+
+function formatPercent(value: number): string {
+	return `${Math.round(value * 100)}%`;
+}
+
+function formatTrend(delta: number): string {
+	const points = Math.round(delta * 100);
+	if (points > 0) {
+		return `+${points} pts`;
+	}
+	return `${points} pts`;
 }

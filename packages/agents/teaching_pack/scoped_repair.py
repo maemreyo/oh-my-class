@@ -183,6 +183,8 @@ def _changed_path(plan: ScopedRepairPlan) -> str:
     path = plan.scope.artifact_id
     if plan.scope.section_index is not None:
         path = f"{path}.sections[{plan.scope.section_index}]"
+    if plan.scope.component_index is not None:
+        path = f"{path}.components[{plan.scope.component_index}]"
     return path
 
 

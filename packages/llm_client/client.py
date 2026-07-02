@@ -12,6 +12,7 @@ import openai
 from openai import Omit
 
 from packages.llm_client.budget.manager import TokenBudgetManager
+from packages.llm_client.circuit_breaker import breaker_for, should_skip_provider
 from packages.llm_client.config import LLMClientConfig
 from packages.llm_client.middleware import (
     CallMiddlewareRunner,
@@ -44,6 +45,12 @@ class ChatResponse:
     input_tokens: int
     output_tokens: int
     cached: bool = False
+
+
+class ProviderCircuitOpenError(RuntimeError):
+    def __init__(self, provider: str) -> None:
+        self.provider = provider
+        super().__init__(f"Provider circuit is open for {provider}")
 
 
 class LLMClient:
@@ -81,6 +88,9 @@ class LLMClient:
         response_format: completion_create_params.ResponseFormat | Omit = _OMIT,
     ) -> ChatResponse:
         """Send chat request. Returns ChatResponse with usage stats."""
+        if should_skip_provider(model):
+            raise ProviderCircuitOpenError(model)
+
         context = MiddlewareCallContext(
             agent=agent,
             task=task,
@@ -106,14 +116,20 @@ class LLMClient:
             "list[ChatCompletionMessageParam]",
             [{"role": m.role, "content": m.content} for m in messages],
         )
-        resp = await self._client.chat.completions.create(
-            model=model,
-            messages=typed_messages,
-            temperature=temperature if temperature is not None else self._config.temperature,
-            extra_body=extra,
-            max_tokens=effective_max_tokens,
-            response_format=response_format,
-        )
+        breaker = breaker_for(model)
+        try:
+            resp = await self._client.chat.completions.create(
+                model=model,
+                messages=typed_messages,
+                temperature=temperature if temperature is not None else self._config.temperature,
+                extra_body=extra,
+                max_tokens=effective_max_tokens,
+                response_format=response_format,
+            )
+        except openai.OpenAIError:
+            breaker.record_failure()
+            raise
+        breaker.record_success()
         choice = resp.choices[0]
         usage = resp.usage
 
@@ -145,6 +161,9 @@ class LLMClient:
         max_tokens: int | None = None,
     ) -> AsyncIterator[str]:
         """Stream chat response token by token."""
+        if should_skip_provider(model):
+            raise ProviderCircuitOpenError(model)
+
         context = MiddlewareCallContext(agent=agent, task=task, run_id=run_id, step=step, locale=locale)
         messages = [
             ChatMessage(role=message.role, content=message.content)
@@ -162,15 +181,21 @@ class LLMClient:
             "list[ChatCompletionMessageParam]",
             [{"role": m.role, "content": m.content} for m in messages],
         )
-        stream = await self._client.chat.completions.create(
-            model=model,
-            messages=typed_messages,
-            temperature=self._config.temperature,
-            extra_body=extra,
-            max_tokens=effective_max_tokens,
-            stream=True,
-        )
-        async for chunk in stream:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta
+        breaker = breaker_for(model)
+        try:
+            stream = await self._client.chat.completions.create(
+                model=model,
+                messages=typed_messages,
+                temperature=self._config.temperature,
+                extra_body=extra,
+                max_tokens=effective_max_tokens,
+                stream=True,
+            )
+            async for chunk in stream:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
+        except openai.OpenAIError:
+            breaker.record_failure()
+            raise
+        breaker.record_success()

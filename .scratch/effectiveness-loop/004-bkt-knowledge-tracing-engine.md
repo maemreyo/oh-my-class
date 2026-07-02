@@ -28,9 +28,14 @@ The mathematical bridge from attempts to per-KC mastery. Use BKT (pyBKT, MIT, Ca
 
 - [x] `packages/agents/tests/test_kt_engine.py`: correct attempts move mastery up; params stay bounded.
 - [x] same file: with <N attempts, mastery is flagged low-confidence (cold-start).
+- [x] same file: incorrect attempts reduce mastery and unverified concept alignment flags low-trust mastery.
 - [x] `StudentKCState` persistence remains covered by the existing outcome-store tests; local Postgres availability is required for DB execution.
 - [x] Degrade behavior is covered by `packages/agents/tests/test_mastery_into_planning.py` cold-start fallback.
-- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`.
+- [x] Run `uv run pytest packages/agents/tests/test_kt_engine.py -q`: `4 passed`.
+
+## Verification
+
+- `uv run pytest packages/agents/tests/test_kt_engine.py -q` → 4 passed.
 
 ## Blocked by
 

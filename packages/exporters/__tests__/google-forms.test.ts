@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { GoogleFormsExporter, questionToFormsItem } from '../src/google-forms/index.js'
+import { GoogleFormsExporter, normalizeFormsResponses, pseudonymizeRespondent, questionToFormsItem } from '../src/google-forms/index.js'
 import type { MultipleChoiceSingle, MultipleChoiceMultiple, TrueFalse4Item } from '@oh-my-class/renderer/contracts/questions/types/choice.js'
 import type { ShortAnswer } from '@oh-my-class/renderer/contracts/questions/types/text-entry.js'
 import type { Essay } from '@oh-my-class/renderer/contracts/questions/types/open.js'
@@ -130,5 +130,76 @@ describe('GoogleFormsExporter.buildBatchUpdateRequests', () => {
   it('sets pointValue from argument', () => {
     const reqs = gfExporter.buildBatchUpdateRequests([mcSingle], 5)
     expect(reqs[0].createItem.item.questionItem.question.grading?.pointValue).toBe(5)
+  })
+})
+
+describe('normalizeFormsResponses', () => {
+  it('maps forms auto-grade answers to pseudonymized StudentAttempt records', () => {
+    const attempts = normalizeFormsResponses({
+      classId: 'class-5A',
+      deliveryId: 'delivery-forms-1',
+      formId: 'form-1',
+      teacherId: 'teacher-1',
+      questionKcMap: {
+        item_1: { questionId: 'mc-gf-001', kcIds: ['KC-planets'] },
+      },
+      responses: [{
+        responseId: 'resp-1',
+        respondentEmail: 'student@example.com',
+        createTime: '2026-07-02T00:00:00Z',
+        answers: {
+          item_1: {
+            questionId: 'item_1',
+            grade: { score: 1, correct: true },
+          },
+        },
+      }],
+    })
+
+    expect(attempts).toHaveLength(1)
+    expect(attempts[0]).toMatchObject({
+      attempt_id: 'forms:form-1:resp-1:item_1',
+      question_id: 'mc-gf-001',
+      kc_ids: ['KC-planets'],
+      correct: true,
+      score: 1,
+      delivery_id: 'delivery-forms-1',
+    })
+    expect(attempts[0].student_pseudonym).toBe(pseudonymizeRespondent({
+      classId: 'class-5A',
+      respondent: 'student@example.com',
+      teacherId: 'teacher-1',
+    }))
+    expect(attempts[0].student_pseudonym).not.toContain('student@example.com')
+  })
+
+  it('uses essay scores supplied by the grader seam for open answers', () => {
+    const attempts = normalizeFormsResponses({
+      classId: 'class-5A',
+      deliveryId: 'delivery-forms-1',
+      formId: 'form-1',
+      teacherId: 'teacher-1',
+      questionKcMap: {
+        item_essay: { questionId: 'es-gf-001', kcIds: ['KC-writing'] },
+      },
+      essayScores: {
+        'resp-essay:item_essay': 0.75,
+      },
+      responses: [{
+        responseId: 'resp-essay',
+        respondentEmail: 'writer@example.com',
+        createTime: '2026-07-02T00:00:00Z',
+        answers: {
+          item_essay: {
+            questionId: 'item_essay',
+            textAnswers: { answers: [{ value: 'Because evaporation and condensation transfer water.' }] },
+          },
+        },
+      }],
+    })
+
+    expect(attempts).toHaveLength(1)
+    expect(attempts[0].score).toBe(0.75)
+    expect(attempts[0].correct).toBe(true)
   })
 })

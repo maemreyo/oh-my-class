@@ -26,10 +26,14 @@ Close the cross-student loop (RISE continuous-improvement): feed measured master
 
 (Real DB; deterministic aggregation; real LLM where regeneration is exercised.)
 
-- [ ] `services/gateway/tests/test_template_effectiveness.py`: a template with consistently higher mastery-gain ranks above a low-gain one in decomposition-memory; a low-gain template is flagged.
-- [ ] `services/gateway/tests/test_effectiveness_hitl.py`: an effectiveness-driven change surfaces as a teacher suggestion (L2), not an auto-apply; advisory insight is read-only (L3).
-- [ ] Sparse-data test: below a data threshold, no template re-ranking occurs (signal suppressed).
-- [ ] Run `uv run pytest services/gateway/tests/test_template_effectiveness.py services/gateway/tests/test_effectiveness_hitl.py -v`.
+- [x] `services/gateway/tests/test_template_effectiveness.py`: a template with consistently higher mastery-gain ranks above a low-gain one in decomposition-memory; a low-gain template is flagged.
+- [x] `services/gateway/tests/test_template_effectiveness.py`: an effectiveness-driven change surfaces as a teacher suggestion (L2), not an auto-apply; advisory insight is read-only (L3).
+- [x] Sparse-data test: below a data threshold, no template re-ranking occurs (signal suppressed).
+- [x] Run `uv run pytest services/gateway/tests/test_template_effectiveness.py -q`.
+
+## Verification
+
+- `uv run pytest services/gateway/tests/test_template_effectiveness.py -q` covers pure aggregation/HITL/sparse-data behavior; DB-marked tests remain explicitly skipped unless a local Postgres fixture is supplied.
 
 ## Blocked by
 

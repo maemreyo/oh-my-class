@@ -68,7 +68,8 @@ async def content_creator_node(state: ContentCreatorNodeState) -> dict[str, Any]
     from packages.agents.prompts.seed import create_seeded_registry
     from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
 
-    model = MODELS.content_creator
+    generation_model = state.get("generation_model")
+    model = generation_model if isinstance(generation_model, str) and generation_model else MODELS.content_creator
     run_id = str(state.get("run_id", ""))
     step = int(state.get("current_step", 8))
     system_prompt = load_system_prompt() + _JSON_ONLY_SUFFIX

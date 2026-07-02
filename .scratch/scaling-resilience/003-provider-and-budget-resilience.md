@@ -30,7 +30,7 @@ Stop turning transient LLM-provider exhaustion into hard run failures. Today an 
 - [x] `services/gateway/tests/test_provider_exhaustion_requeue.py`: a simulated free-tier-exhausted error requeues the job with `eligible_at` and emits `delayed_provider_quota` (status not FAILED); promotion re-runs it.
 - [x] `services/gateway/tests/test_permanent_failure_fails.py`: a bad-prompt/schema error → `FAILED` (not requeued).
 - [x] `packages/agents/tests/test_budget_hardstop.py`: `BudgetExceededError` hard-stops, preserves `completed_stages`, and (flag on) degrades to compressed model before stopping.
-- [x] `services/gateway/tests/test_provider_circuit_breaker.py`: repeated provider-down signals trip the breaker (backoff) and recover after cooldown.
+- [x] `services/gateway/tests/test_provider_circuit_breaker.py` and `packages/llm_client/tests/test_client.py`: repeated provider-down signals trip the breaker at the real `LLMClient.chat()` call surface, skip open circuits, and recover after cooldown/half-open success.
 - [x] Run `uv run pytest services/gateway/tests/test_provider_*.py packages/agents/tests/test_budget_hardstop.py services/gateway/tests/test_permanent_failure_fails.py -v`.
 
 ## Verification
@@ -50,6 +50,7 @@ All 23 tests pass in 1.28s (`uv run pytest ... -v`, 2026-06-30).
 - `ExceptionGroup` unwrapping in `_handle_job_error` handles anyio's task-group exception wrapping on Python 3.13.
 - `classify_openai_error` imports `openai` lazily so the module is usable without it installed.
 - Circuit breaker state transition OPEN → HALF_OPEN is triggered inside `is_open()` after `recovery_seconds` elapses.
+- `LLMClient.chat()` and `LLMClient.stream()` now consult `should_skip_provider()`, record OpenAI provider failures, and record success on recovered calls.
 
 ## Blocked by
 

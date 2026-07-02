@@ -210,6 +210,28 @@ class TestContentCreatorProvenance:
         assert tags["prompt_id"] == "content_creator_mcq_v1"
 
     @pytest.mark.asyncio
+    async def test_content_creator_uses_generation_model_override(self) -> None:
+        from typing import cast
+
+        from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+
+        transport = _TagCapturingTransport(self.VALID_ARTIFACTS)
+        state = cast("dict[str, Any]", {
+            "lesson_plan": {"topic": "Photosynthesis", "learning_objectives": []},
+            "research_bundle": {"sources": [], "topic": "Photosynthesis"},
+            "artifact_types": ["lesson"],
+            "theme": "default",
+            "run_id": "prov-cc-rollback-model-test",
+            "current_step": 8,
+            "generation_model": "last-known-good-model",
+        })
+
+        with patch.object(compiled_chat_mod, "complete_json_chat", transport):
+            await content_creator_node(state)
+
+        assert transport.calls[0]["model"] == "last-known-good-model"
+
+    @pytest.mark.asyncio
     async def test_content_creator_no_network(self) -> None:
         """Content creator never hits the network — transport is fully fake."""
         from typing import cast

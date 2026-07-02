@@ -5,6 +5,29 @@ const FORMS_API = 'https://forms.googleapis.com/v1/forms'
 export interface GoogleFormsClient {
   createForm(title: string): Promise<{ formId: string; responderUri: string }>
   batchUpdate(formId: string, requests: BatchUpdateRequest[]): Promise<void>
+  listResponses(formId: string): Promise<FormsResponse[]>
+}
+
+export interface FormsTextAnswer {
+  value: string
+}
+
+export interface FormsAnswerGrade {
+  score?: number
+  correct?: boolean
+}
+
+export interface FormsAnswer {
+  questionId: string
+  grade?: FormsAnswerGrade
+  textAnswers?: { answers: readonly FormsTextAnswer[] }
+}
+
+export interface FormsResponse {
+  responseId: string
+  respondentEmail?: string
+  createTime: string
+  answers: Record<string, FormsAnswer>
 }
 
 export interface BatchUpdateRequest {
@@ -42,6 +65,16 @@ export function createGoogleFormsClient(config: GoogleFormsClientConfig): Google
         body:    JSON.stringify({ requests }),
       })
       if (!res.ok) throw new Error(`Forms API batchUpdate failed: ${res.status}`)
+    },
+
+    async listResponses(formId: string) {
+      const res = await fetch(`${FORMS_API}/${formId}/responses`, {
+        method: 'GET',
+        headers,
+      })
+      if (!res.ok) throw new Error(`Forms API listResponses failed: ${res.status}`)
+      const data = await res.json() as { responses?: FormsResponse[] }
+      return data.responses ?? []
     },
   }
 }

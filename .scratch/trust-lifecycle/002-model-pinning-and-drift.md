@@ -27,7 +27,12 @@ Extend ADR-013's governance discipline from prompts to **models**. All agents us
 - [x] Snapshot construction is covered by `packages/agents/config/model_drift.py` diagnostics and focused rollback tests.
 - [x] Changed model snapshot triggers alert/rollback decision on seeded score drop.
 - [x] `packages/agents/tests/test_model_rollback.py`: a regressing canary rolls back to the last-known-good pin via `generation_model`.
-- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`.
+- [x] `packages/agents/tests/llm/test_production_provenance.py`: `content_creator_node` consumes the runtime `generation_model` override at the actual generation call boundary.
+- [x] Run `uv run pytest packages/agents/tests/llm/test_production_provenance.py packages/agents/tests/test_model_rollback.py -q`: `7 passed`.
+
+## Verification
+
+- `uv run pytest packages/agents/tests/llm/test_production_provenance.py packages/agents/tests/test_model_rollback.py -q` → 7 passed.
 
 ## Blocked by
 

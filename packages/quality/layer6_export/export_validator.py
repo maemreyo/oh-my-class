@@ -9,6 +9,8 @@ FORMAT_REQUIREMENTS: dict[str, list[str]] = {
     "gift": ["quiz"],
     "h5p": ["quiz", "drill"],
     "qti": ["quiz"],
+    "anki_apkg": ["flashcard_deck"],
+    "flashcard_tsv": ["flashcard_deck"],
 }
 
 INVERSE_THINKING_FORMAT_SUPPORT: dict[str, str] = {

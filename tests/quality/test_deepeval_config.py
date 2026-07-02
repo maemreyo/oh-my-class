@@ -46,6 +46,46 @@ def test_deepeval_can_import():
     assert HallucinationMetric.__name__ == "HallucinationMetric"
 
 
+def test_hallucination_metric_measure_is_invoked() -> None:
+    from deepeval.metrics import HallucinationMetric
+    from deepeval.models.base_model import DeepEvalBaseLLM
+    from deepeval.test_case import LLMTestCase
+
+    class GroundedJudge(DeepEvalBaseLLM):
+        measure_calls = 0
+
+        def load_model(self):
+            return self
+
+        def get_model_name(self) -> str:
+            return "grounded-judge"
+
+        def generate(self, prompt, schema=None):
+            self.measure_calls += 1
+            if schema is None:
+                return '{"reason":"grounded"}'
+            if schema.__name__ == "Verdicts":
+                return schema.model_validate({
+                    "verdicts": [{"verdict": "yes", "reason": "grounded in context"}],
+                })
+            return schema.model_validate({"reason": "grounded"})
+
+        async def a_generate(self, prompt, schema=None):
+            return self.generate(prompt, schema)
+
+    judge = GroundedJudge()
+    metric = HallucinationMetric(model=judge, async_mode=False, include_reason=True)
+    score = metric.measure(LLMTestCase(
+        input="What do plants use for photosynthesis?",
+        actual_output="Plants use light for photosynthesis.",
+        context=["Plants use light for photosynthesis."],
+    ))
+
+    assert judge.measure_calls >= 1
+    assert score == metric.score
+    assert metric.score == 0.0
+
+
 @pytest.mark.anyio
 async def test_deepeval_uses_9router_not_openai(deepeval_harness_config):
     """DeepEval judge must route through 9router, not OpenAI directly."""

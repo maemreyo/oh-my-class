@@ -26,10 +26,15 @@ Close the per-student loop and deliver the "giảm tải sổ sách" payoff.
 (Real DB + real LLM via 9router `:20228`/`4omc`.)
 
 - [x] `packages/agents/tests/test_mastery_into_planning.py`: low mastery yields reteach, high mastery assumes, cold-start falls back.
-- [x] `packages/agents/tests/test_moet_export.py`: outcomes export to a MoET tracking sheet with columns/scale/nhận xét present.
-- [x] `apps/web/tests/effectiveness-dashboard.test.tsx`: dashboard shows avg/%/trend; no prohibited evaluation or unverified-number strings present.
+- [x] `packages/agents/tests/test_moet_export.py`: outcomes export to a MoET tracking sheet with period columns/scale/nhận xét/ma trận present and rows derived from attempts.
+- [x] `apps/web/tests/effectiveness-dashboard.test.tsx`: dashboard derives avg/%/trend from outcome snapshots; no prohibited evaluation or unverified-number strings present.
 - [x] Honesty guard: tests assert no `0.4*...` composite or vendor-stat copy exists in the dashboard output.
-- [x] Run `uv run pytest ...` focused Wave 3/4 suite: `26 passed`; `pnpm --filter @oh-my-class/web test -- effectiveness-dashboard.test.tsx`: `140 passed`.
+- [x] Run `uv run pytest packages/agents/tests/test_moet_export.py -q`: `2 passed`; `pnpm --filter @oh-my-class/web test -- effectiveness-dashboard.test.tsx`: `174 passed`.
+
+## Verification
+
+- `uv run pytest packages/agents/tests/test_moet_export.py -q` → 2 passed.
+- `pnpm --filter @oh-my-class/web test -- effectiveness-dashboard.test.tsx` → 174 passed.
 
 ## Blocked by
 

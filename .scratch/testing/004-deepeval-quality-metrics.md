@@ -29,12 +29,12 @@ These metrics validate the **real** quality path; they are not a substitute for 
 
 (Real LLM via 9router `:20228` / `4omc`.)
 
-- [x] `tests/quality/test_deepeval_config.py`: deepeval importable; telemetry disabled; 9router config validated via fixture; metric scaffolds skipped pending te-004 follow-up.
+- [x] `tests/quality/test_deepeval_config.py`: deepeval importable; telemetry disabled; 9router config validated via fixture; `HallucinationMetric.measure()` is actually invoked with an `LLMTestCase`.
 - [x] `tests/quality/test_deepeval_config.py`: hallucination failure, faithfulness context, 9router model routing, telemetry-offline, and G-Eval majority semantics.
 - [x] `tests/quality/test_geval_majority.py`: covered by `test_deepeval_config.py` and existing `packages/quality/tests/test_layer4_judge.py` majority tests.
 - [ ] `tests/quality/test_export_readiness_dataset.py`: deferred to te-004 follow-up.
 - [ ] Routing test: deferred to te-004 follow-up.
-- [x] Run `uv run pytest -m real_llm tests/quality -q` → 2 passed (import + telemetry), 4 skipped.
+- [x] Run `uv run pytest tests/quality/test_deepeval_config.py -q` → 7 passed.
 
 ## Infrastructure changes
 

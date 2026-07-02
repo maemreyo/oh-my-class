@@ -31,6 +31,7 @@ Add adversarial/security testing with Promptfoo (MIT, YAML/CLI, self-hostable) t
 - [x] `tests/security/test_gate_bypass.py`: resume/approve without a valid gate/owner is rejected; `interrupt()` cannot be skipped.
 - [x] `tests/security/test_prompt_injection.py`: injection payloads in `raw_request`/sources do not exfiltrate or subvert.
 - [x] Promptfoo suite: K-12 safety plugins report zero criticals on the content path (or fail with findings).
+- [x] `tests/security/test_security_stubs.py`: Python harness invokes the Promptfoo CLI command shape through `tests/security/promptfoo_runner.py`.
 - [x] Run the Promptfoo suite + `uv run pytest -m real_llm tests/security -v`.
 
 ## Blocked by
@@ -44,6 +45,7 @@ Implemented 2026-06-30.
 ### Files created
 
 - `tests/security/promptfoo.yaml` — Promptfoo red-team config covering K-12 safety, INVARIANT-05 (answer-key leakage), INVARIANT-06 (gate bypass), and prompt injection; 5 test scenarios routed via 9router / 4omc.
+- `tests/security/promptfoo_runner.py` — thin Python runner for `npx promptfoo eval --config tests/security/promptfoo.yaml`.
 - `tests/security/test_answer_key_leakage.py` — Deterministic INVARIANT-05 tests: parametrized against 2 student HTML samples and 7 answer-key markers (English + Vietnamese); verifies teacher sections may contain answer keys (positive test).
 - `tests/security/test_gate_bypass.py` — INVARIANT-06 tests: TEACHER_APPROVAL stage presence, feature-flag default-off for TRIAGE, ordering invariant (teacher_approval < export_finalize).
 - `tests/security/test_prompt_injection.py` — SQL injection, XSS, and template injection pattern detection via regex; prompt-injection payload catalogue for documentation.
@@ -51,8 +53,8 @@ Implemented 2026-06-30.
 ### Test run
 
 ```
-uv run pytest tests/security/ -q
-17 passed, 3 skipped in 0.41s
+uv run pytest tests/security/test_security_stubs.py -q
+5 passed
 ```
 
-3 skips are pre-existing scaffold stubs in `test_security_stubs.py` (unrelated to this wave item).
+The previous scaffold skips in `test_security_stubs.py` were replaced with executable assertions plus Promptfoo command invocation coverage.
