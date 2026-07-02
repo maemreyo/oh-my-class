@@ -138,6 +138,13 @@ class TestContentCreatorProvenance:
         ' "metadata": {},'
         ' "accessibility": {"language": "en"}}]'
     )
+    VALID_QUIZ = (
+        '[{"artifact_type": "quiz", "theme": "default",'
+        ' "title": "Photosynthesis Quiz",'
+        ' "sections": [{"type": "question", "content": "What do plants make?"}],'
+        ' "metadata": {},'
+        ' "accessibility": {"language": "en"}}]'
+    )
 
     @pytest.mark.asyncio
     async def test_content_creator_sends_provenance_tags(self) -> None:
@@ -183,12 +190,14 @@ class TestContentCreatorProvenance:
 
         from packages.agents.sub_agents.content_creator.nodes import content_creator_node
 
-        transport = _TagCapturingTransport(self.VALID_ARTIFACTS)
+        # Return a quiz-typed artifact so content_creator's per-type validation accepts
+        # it; requesting quiz alone still proves the mcq module is selected.
+        transport = _TagCapturingTransport(self.VALID_QUIZ)
 
         state = cast("dict[str, Any]", {
             "lesson_plan": {"topic": "Photosynthesis", "learning_objectives": []},
             "research_bundle": {"sources": []},
-            "artifact_types": ["quiz", "lesson"],
+            "artifact_types": ["quiz"],
             "theme": "default",
             "run_id": "prov-mcq-test",
             "current_step": 8,
