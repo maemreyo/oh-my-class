@@ -1,0 +1,80 @@
+/*
+  ARTIFACT UI — FAMILY: investigation-folder
+  Source: docs/templates/inverse-thinking-template.html
+  Used by: inverse-thinking investigation dossier family (Issue 003)
+
+  Folder ochre cover distinct from the paper page background, with
+  stamped red/blue/gold evidence accents.
+*/
+
+[data-artifact-theme="investigation-folder"] {
+  /* Tier 1 — primitives */
+  --if-paper: #e6dfcb;
+  --if-paper-card: #faf7ee;
+  --if-folder: #c49a56;
+  --if-folder-dark: #8f6a33;
+  --if-ink: #202a36;
+  --if-ink-soft: #5c6573;
+  --if-red: #9b2b1f;
+  --if-red-deep: #6f1f16;
+  --if-blue: #274b72;
+  --if-blue-soft: #dee7f0;
+  --if-gold: #b9852a;
+  --if-gold-soft: #f4e2ae;
+
+  /* Tier 2 — semantic mapping */
+  --art-bg: var(--if-paper);
+  --art-bg-deep: #ddd4b9;
+  --art-on-bg-ink: var(--if-ink);
+  --art-on-bg-ink-soft: var(--if-ink-soft);
+  --art-on-bg-muted: var(--if-ink-soft);
+
+  --art-cover-bg: var(--if-folder);
+  --art-cover-ink: var(--if-ink);
+  --art-cover-ink-soft: rgba(32, 42, 54, 0.7);
+
+  --art-surface: var(--if-paper-card);
+  --art-surface-muted: var(--if-gold-soft);
+  --art-ink: var(--if-ink);
+  --art-ink-soft: var(--if-ink-soft);
+  --art-ink-faint: rgba(32, 42, 54, 0.55);
+
+  --art-border: rgba(32, 42, 54, 0.18);
+  --art-border-soft: rgba(32, 42, 54, 0.1);
+  --art-border-strong: var(--if-folder-dark);
+
+  --art-accent: var(--if-red);
+  --art-accent-ink: #ffffff;
+  --art-accent-2: var(--if-blue);
+  --art-accent-2-tint: var(--if-blue-soft);
+
+  --art-positive: #3c7a4e;
+  --art-positive-tint: rgba(60, 122, 78, 0.1);
+  --art-caution: var(--if-gold);
+  --art-caution-tint: var(--if-gold-soft);
+  --art-critical: var(--if-red);
+  --art-critical-tint: rgba(155, 43, 31, 0.1);
+
+  --art-cat-1: var(--if-red);
+  --art-cat-1-tint: rgba(155, 43, 31, 0.1);
+  --art-cat-2: var(--if-blue);
+  --art-cat-2-tint: var(--if-blue-soft);
+  --art-cat-3: var(--if-gold);
+  --art-cat-3-tint: var(--if-gold-soft);
+  --art-cat-4: #3c7a4e;
+  --art-cat-4-tint: rgba(60, 122, 78, 0.1);
+  --art-cat-5: #6b5ca0;
+  --art-cat-5-tint: rgba(107, 92, 160, 0.1);
+  --art-cat-6: var(--if-folder-dark);
+  --art-cat-6-tint: rgba(143, 106, 51, 0.14);
+
+  --art-shadow-card: 0 14px 34px rgba(40, 30, 14, 0.22);
+  --art-shadow-pop: 0 18px 40px rgba(40, 30, 14, 0.3);
+
+  /* Typography role: condensed, uppercase, stamped display headings.
+     Source uses Oswald (condensed sans) — approximated with
+     font-stretch: condensed on the display role, see families/
+     investigation-folder.css, plus component-reference.md. */
+
+  color-scheme: light;
+}

@@ -1,0 +1,90 @@
+/*
+  ARTIFACT UI — FAMILY: paper-dossier
+  Source: docs/templates/learning-vocab-template.html, path-template.html,
+          key-template.html (all three share one :root palette)
+  Used by: lesson/path dossier family + exam answer-key family (Issue 003)
+
+  Warm paper background, sticky-sidebar dossier layout, and a 5-slot
+  categorical palette (c-a..c-e) used for topic grouping, question-group
+  ranges, and phrasal-verb clusters. Light-on-light throughout — no
+  --art-on-bg-ink distinction needed from --art-ink.
+*/
+
+[data-artifact-theme="paper-dossier"] {
+  /* Tier 1 — primitives, named after the template's own variables */
+  --pd-paper: #fbf4f0;
+  --pd-paper-deep: #f3e2d9;
+  --pd-card: #ffffff;
+  --pd-ink: #22273a;
+  --pd-ink-soft: #5c6275;
+  --pd-ink-faint: #8b8fa0;
+  --pd-line: #e8d8cd;
+  --pd-line-soft: #efe3da;
+  --pd-red: #b23a2e;
+  --pd-red-deep: #8c2c22;
+  --pd-gold: #a8782e;
+  --pd-green: #2e6f4e;
+  --pd-c-a: #33508f;
+  --pd-c-b: #b9762a;
+  --pd-c-c: #3c7a4e;
+  --pd-c-d: #1f7a8c;
+  --pd-c-e: #8a4f7e;
+
+  /* Tier 2 — semantic mapping */
+  --art-bg: var(--pd-paper);
+  --art-bg-deep: var(--pd-paper-deep);
+  --art-on-bg-ink: var(--pd-ink);
+  --art-on-bg-ink-soft: var(--pd-ink-soft);
+  --art-on-bg-muted: var(--pd-ink-faint);
+
+  --art-cover-bg: var(--art-bg);
+  --art-cover-ink: var(--pd-ink);
+  --art-cover-ink-soft: var(--pd-ink-soft);
+
+  --art-surface: var(--pd-card);
+  --art-surface-muted: var(--pd-paper-deep);
+  --art-ink: var(--pd-ink);
+  --art-ink-soft: var(--pd-ink-soft);
+  --art-ink-faint: var(--pd-ink-faint);
+
+  --art-border: var(--pd-line);
+  --art-border-soft: var(--pd-line-soft);
+  --art-border-strong: var(--pd-ink-faint);
+
+  --art-accent: var(--pd-red-deep);
+  --art-accent-ink: #ffffff;
+  --art-accent-2: var(--pd-c-a);
+  --art-accent-2-tint: rgba(51, 80, 143, 0.08);
+
+  --art-positive: var(--pd-green);
+  --art-positive-tint: rgba(46, 111, 78, 0.08);
+  --art-caution: var(--pd-gold);
+  --art-caution-tint: rgba(168, 120, 46, 0.09);
+  --art-critical: var(--pd-red);
+  --art-critical-tint: rgba(178, 58, 46, 0.07);
+
+  --art-cat-1: var(--pd-c-a);
+  --art-cat-1-tint: rgba(51, 80, 143, 0.08);
+  --art-cat-2: var(--pd-c-b);
+  --art-cat-2-tint: rgba(185, 118, 42, 0.09);
+  --art-cat-3: var(--pd-c-c);
+  --art-cat-3-tint: rgba(60, 122, 78, 0.08);
+  --art-cat-4: var(--pd-c-d);
+  --art-cat-4-tint: rgba(31, 122, 140, 0.08);
+  --art-cat-5: var(--pd-c-e);
+  --art-cat-5-tint: rgba(138, 79, 126, 0.08);
+  --art-cat-6: #6b5ca0;
+  --art-cat-6-tint: rgba(107, 92, 160, 0.08);
+
+  --art-shadow-card: 0 1px 2px rgba(40, 20, 10, 0.04),
+    0 8px 24px -16px rgba(40, 20, 10, 0.25);
+  --art-shadow-pop: 0 16px 36px -12px rgba(40, 20, 10, 0.35);
+
+  /* Typography role: editorial serif display (see component-reference.md
+     "Typography without webfonts") layered on top of the shared body/mono
+     role stacks. Serif system fonts are pre-installed (zero network
+     weight) so this stays compliant with the standalone invariant. */
+  --art-font-display: Georgia, Cambria, "Times New Roman", var(--art-font-body);
+
+  color-scheme: light;
+}

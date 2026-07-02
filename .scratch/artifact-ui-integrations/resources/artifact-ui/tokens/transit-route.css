@@ -1,0 +1,81 @@
+/*
+  ARTIFACT UI — FAMILY: transit-route
+  Source: docs/templates/learning-via-video-template.html
+  Used by: video learning route family (Issue 003)
+
+  7-stop categorical palette drives the route line, matching the source
+  template's GA01..GA07 station colors one-to-one.
+*/
+
+[data-artifact-theme="transit-route"] {
+  /* Tier 1 — primitives */
+  --tr-ink: #182329;
+  --tr-ink-soft: #535d66;
+  --tr-paper: #f7f7f3;
+  --tr-card: #ffffff;
+  --tr-line-track: #dbdcd4;
+  --tr-c1: #d98e2b; /* Khởi động */
+  --tr-c2: #2c7a75; /* Nghe lần 1 */
+  --tr-c3: #bd4f3b; /* Nghe lần 2 */
+  --tr-c4: #6b5ca0; /* Từ vựng */
+  --tr-c5: #3568a8; /* Viết */
+  --tr-c6: #1e8f6f; /* Nói */
+  --tr-c7: #182329; /* Tự đánh giá */
+
+  /* Tier 2 — semantic mapping */
+  --art-bg: var(--tr-paper);
+  --art-bg-deep: #eeece4;
+  --art-on-bg-ink: var(--tr-ink);
+  --art-on-bg-ink-soft: var(--tr-ink-soft);
+  --art-on-bg-muted: var(--tr-ink-soft);
+
+  --art-cover-bg: var(--tr-ink);
+  --art-cover-ink: var(--tr-paper);
+  --art-cover-ink-soft: #c7ccce;
+
+  --art-surface: var(--tr-card);
+  --art-surface-muted: #f1f1ec;
+  --art-ink: var(--tr-ink);
+  --art-ink-soft: var(--tr-ink-soft);
+  --art-ink-faint: #838d94;
+
+  --art-border: var(--tr-line-track);
+  --art-border-soft: #e7e6de;
+  --art-border-strong: var(--tr-ink-soft);
+
+  --art-accent: var(--tr-c5);
+  --art-accent-ink: #ffffff;
+  --art-accent-2: var(--tr-c1);
+  --art-accent-2-tint: rgba(217, 142, 43, 0.12);
+
+  --art-positive: var(--tr-c6);
+  --art-positive-tint: rgba(30, 143, 111, 0.1);
+  --art-caution: var(--tr-c1);
+  --art-caution-tint: rgba(217, 142, 43, 0.14);
+  --art-critical: var(--tr-c3);
+  --art-critical-tint: rgba(189, 79, 59, 0.1);
+
+  --art-cat-1: var(--tr-c1);
+  --art-cat-1-tint: rgba(217, 142, 43, 0.12);
+  --art-cat-2: var(--tr-c2);
+  --art-cat-2-tint: rgba(44, 122, 117, 0.12);
+  --art-cat-3: var(--tr-c3);
+  --art-cat-3-tint: rgba(189, 79, 59, 0.12);
+  --art-cat-4: var(--tr-c4);
+  --art-cat-4-tint: rgba(107, 92, 160, 0.12);
+  --art-cat-5: var(--tr-c5);
+  --art-cat-5-tint: rgba(53, 104, 168, 0.12);
+  --art-cat-6: var(--tr-c6);
+  --art-cat-6-tint: rgba(30, 143, 111, 0.12);
+
+  --art-shadow-card: 0 1px 2px rgba(20, 25, 25, 0.05),
+    0 10px 26px -16px rgba(20, 25, 25, 0.3);
+  --art-shadow-pop: 0 16px 34px -10px rgba(20, 25, 25, 0.38);
+
+  /* Typography role: grotesk-forward, tight tracking on station codes.
+     Source pairs Space Grotesk + Inter; both are grotesk sans so the
+     shared system-sans role stack already reads close in character —
+     see component-reference.md. */
+
+  color-scheme: light;
+}

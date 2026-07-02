@@ -1,0 +1,153 @@
+/*
+  ARTIFACT UI — TOKEN CONTRACT
+  ADR-023 §4 · Issue 001 AC2
+
+  This file is the semantic contract every Artifact UI "family" token file
+  must implement. Core primitives (primitives.css) and specialized family
+  components (families/*.css) are written ONLY against these custom
+  properties — never against a family's raw hex values directly. That is
+  what lets one artifact swap its entire visual language by changing a
+  single `data-artifact-theme` attribute.
+
+  Tier 1 — PRIMITIVES  : raw values, declared per family (tokens/<family>.css)
+  Tier 2 — SEMANTIC     : meaning-carrying tokens declared below, mapped to
+                           primitives by each family file
+  Tier 3 — COMPONENT    : scoped tokens declared in primitives.css / families/*.css,
+                           derived from Tier 2
+
+  Mirrors the three-tier model already used for product UI (DESIGN.md §8,
+  AGENTS.md §8.3), applied to the Artifact UI layer instead.
+
+  Neutral fallback values are defined here so a primitive never renders
+  fully unstyled if a family file fails to load — but every shipped
+  artifact must set data-artifact-theme to one of:
+    navy-ticket | paper-dossier | transit-route | investigation-folder
+*/
+
+:root,
+[data-artifact-theme] {
+  /* ---------------------------------------------------------------- */
+  /* SHARED SCALES — identical across every family, not re-themed     */
+  /* ---------------------------------------------------------------- */
+  --art-space-1: 4px;
+  --art-space-2: 8px;
+  --art-space-3: 12px;
+  --art-space-4: 16px;
+  --art-space-5: 20px;
+  --art-space-6: 24px;
+  --art-space-8: 32px;
+  --art-space-10: 40px;
+  --art-space-12: 48px;
+  --art-space-16: 64px;
+  --art-space-20: 80px;
+
+  --art-text-eyebrow: 11.5px;
+  --art-text-caption: 12.5px;
+  --art-text-sm: 13.5px;
+  --art-text-body: 15.5px;
+  --art-text-lg: 17.5px;
+  --art-text-h3: 20px;
+  --art-text-h2: clamp(22px, 3.4vw, 27px);
+  --art-text-h1: clamp(28px, 5vw, 42px);
+  --art-text-display: clamp(38px, 8vw, 84px);
+
+  --art-radius-sm: 6px;
+  --art-radius-md: 10px;
+  --art-radius-lg: 14px;
+  --art-radius-pill: 999px;
+
+  --art-motion-micro: 150ms ease-out;
+  --art-motion-standard: 220ms ease-in-out;
+  --art-motion-emphasis: 420ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  --art-max-width: 900px;
+  --art-max-width-wide: 1160px;
+
+  /*
+    Font-family ROLE tokens. Per AGENTS.md §8.4 ("System font stack only —
+    zero weight"), Artifact UI does not load or embed webfonts, even though
+    the reference templates do. Typographic character is carried instead by
+    weight, tracking, case, and the display/body/mono ROLE split below —
+    see docs/component-reference.md "Typography without webfonts" for the
+    reasoning per family.
+  */
+  --art-font-display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --art-font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --art-font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code",
+    "IBM Plex Mono", monospace;
+
+  /* ---------------------------------------------------------------- */
+  /* SEMANTIC TOKENS — every family below must set all of these       */
+  /* ---------------------------------------------------------------- */
+
+  /* Page-level surface: the artifact shell itself */
+  --art-bg: #f3efe6;
+  --art-bg-deep: #e9e2d1;
+  --art-on-bg-ink: #24211a;
+  --art-on-bg-ink-soft: #5a5445;
+  --art-on-bg-muted: #8b8574;
+
+  /* Cover / hero block — usually a distinct band, not the page bg */
+  --art-cover-bg: var(--art-bg-deep);
+  --art-cover-ink: var(--art-on-bg-ink);
+  --art-cover-ink-soft: var(--art-on-bg-ink-soft);
+
+  /* Card-level surface: content sits on light paper/card in all 4 families */
+  --art-surface: #ffffff;
+  --art-surface-muted: #f1ede1;
+  --art-ink: #24211a;
+  --art-ink-soft: #5a5445;
+  --art-ink-faint: #8b8574;
+
+  --art-border: #ddd5c1;
+  --art-border-soft: #ece6d7;
+  --art-border-strong: rgba(36, 33, 26, 0.3);
+
+  /* Primary + secondary accent (family signature colors) */
+  --art-accent: #4f46e5;
+  --art-accent-ink: #ffffff;
+  --art-accent-2: #a8782e;
+  --art-accent-2-tint: rgba(168, 120, 46, 0.1);
+
+  /* Status semantics — shared meaning across every family */
+  --art-positive: #2e6f4e;
+  --art-positive-tint: rgba(46, 111, 78, 0.09);
+  --art-caution: #a8782e;
+  --art-caution-tint: rgba(168, 120, 46, 0.12);
+  --art-critical: #b23a2e;
+  --art-critical-tint: rgba(178, 58, 46, 0.09);
+
+  /* Extended categorical palette — for components that group by topic/
+     station/section rather than by status (route stops, question groups,
+     phrasal-verb clusters). 6 slots is enough for every template studied. */
+  --art-cat-1: #33508f;
+  --art-cat-1-tint: rgba(51, 80, 143, 0.08);
+  --art-cat-2: #b9762a;
+  --art-cat-2-tint: rgba(185, 118, 42, 0.09);
+  --art-cat-3: #3c7a4e;
+  --art-cat-3-tint: rgba(60, 122, 78, 0.08);
+  --art-cat-4: #1f7a8c;
+  --art-cat-4-tint: rgba(31, 122, 140, 0.08);
+  --art-cat-5: #8a4f7e;
+  --art-cat-5-tint: rgba(138, 79, 126, 0.08);
+  --art-cat-6: #6b5ca0;
+  --art-cat-6-tint: rgba(107, 92, 160, 0.08);
+
+  --art-shadow-card: 0 1px 2px rgba(20, 15, 10, 0.05),
+    0 8px 24px -16px rgba(20, 15, 10, 0.28);
+  --art-shadow-pop: 0 14px 34px rgba(20, 15, 10, 0.28);
+
+  color-scheme: light;
+}
+
+/* Teacher-only visual marker tokens (see primitives.css .art-projection-flag).
+   Kept in the shared tier because the meaning — "this region does not ship
+   to students" — must look consistent no matter which family theme is
+   active. Never used to hide content with CSS; the student build omits
+   this DOM entirely (ADR-022 §3). */
+:root,
+[data-artifact-theme] {
+  --art-teacher-flag-bg: #241c12;
+  --art-teacher-flag-ink: #f0e4c8;
+  --art-teacher-flag-accent: #c98a3e;
+}
