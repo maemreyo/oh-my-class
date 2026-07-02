@@ -142,6 +142,7 @@ class LLMClient:
         run_id: str | None = None,
         step: int | None = None,
         locale: str | None = None,
+        max_tokens: int | None = None,
     ) -> AsyncIterator[str]:
         """Stream chat response token by token."""
         context = MiddlewareCallContext(agent=agent, task=task, run_id=run_id, step=step, locale=locale)
@@ -153,6 +154,10 @@ class LLMClient:
             )
         ]
         extra = build_tags(agent, task, run_id, step)
+        # Budget parity with chat(): the streaming path must honour the agent's token
+        # budget too — otherwise the highest-budget agent (content_creator) silently
+        # streamed with no max_tokens (regression caught by test_max_tokens).
+        effective_max_tokens = max_tokens if max_tokens is not None else _budget.get_hard_limit(task)
         typed_messages = cast(
             "list[ChatCompletionMessageParam]",
             [{"role": m.role, "content": m.content} for m in messages],
@@ -162,6 +167,7 @@ class LLMClient:
             messages=typed_messages,
             temperature=self._config.temperature,
             extra_body=extra,
+            max_tokens=effective_max_tokens,
             stream=True,
         )
         async for chunk in stream:

@@ -43,21 +43,35 @@ def test_config_reads_from_env():
     assert MAX_TOKENS.default == 8192
 
 
-def _mock_response(content: str = '{"result": "ok"}') -> SimpleNamespace:
-    return SimpleNamespace(
-        id="resp-1",
-        model="test-model",
-        choices=[
-            SimpleNamespace(
-                message=SimpleNamespace(content=content, reasoning_content=None, reasoning=None),
-            ),
-        ],
-        usage=SimpleNamespace(
+class _DualModeResponse:
+    """Mock usable as BOTH a non-streaming response and a single-chunk stream.
+
+    Large-budget agents (>= LARGE_OUTPUT_TOKENS) route through the streaming transport
+    (transport_policy), so a fixed non-streaming mock no longer matches. This works for
+    either path, so max_tokens assertions hold regardless of the transport decision.
+    """
+
+    def __init__(self, content: str = '{"result": "ok"}') -> None:
+        self.id = "resp-1"
+        self.model = "test-model"
+        message = SimpleNamespace(content=content, reasoning_content=None, reasoning=None)
+        delta = SimpleNamespace(content=content)
+        self.choices = [SimpleNamespace(message=message, delta=delta)]
+        self.usage = SimpleNamespace(
             model_dump=lambda: {"prompt_tokens": 10, "completion_tokens": 5},
             prompt_tokens=10,
             completion_tokens=5,
-        ),
-    )
+        )
+
+    def __aiter__(self):
+        return self._stream()
+
+    async def _stream(self):
+        yield self
+
+
+def _mock_response(content: str = '{"result": "ok"}') -> _DualModeResponse:
+    return _DualModeResponse(content)
 
 
 def _messages(content: str = "hello") -> list[ChatCompletionMessageParam]:
@@ -86,7 +100,7 @@ _EVENT_PATCHER = patch("packages.agents.events.emit_run_event")
 async def test_complete_json_chat_passes_max_tokens_to_api():
     mock_create = AsyncMock(return_value=_mock_response())
 
-    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.llm_client.client.openai.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
         messages = _messages()
 
@@ -105,7 +119,7 @@ async def test_complete_json_chat_passes_max_tokens_to_api():
 async def test_explicit_max_tokens_overrides_agent_default():
     mock_create = AsyncMock(return_value=_mock_response())
 
-    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.llm_client.client.openai.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
         messages = _messages()
 
@@ -125,7 +139,7 @@ async def test_explicit_max_tokens_overrides_agent_default():
 async def test_unknown_agent_uses_default_max_tokens():
     mock_create = AsyncMock(return_value=_mock_response())
 
-    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.llm_client.client.openai.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
         messages = _messages()
 
@@ -144,7 +158,7 @@ async def test_unknown_agent_uses_default_max_tokens():
 async def test_content_creator_uses_streaming_transport():
     mock_create = AsyncMock(return_value=_MockStream(['{"result": ', '"ok"}']))
 
-    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.llm_client.client.openai.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
         messages = _messages()
 
@@ -165,7 +179,7 @@ async def test_content_creator_uses_streaming_transport():
 async def test_no_agent_tag_uses_default_max_tokens():
     mock_create = AsyncMock(return_value=_mock_response())
 
-    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
+    with patch("packages.llm_client.client.openai.AsyncOpenAI") as mock_cls, _EVENT_PATCHER:
         mock_cls.return_value.chat.completions.create = mock_create
         messages = _messages()
 
@@ -188,7 +202,7 @@ async def test_emits_llm_call_started_and_completed_events():
     def capture_event(rid: str, etype: str, data: dict[str, object]) -> None:
         events.append((etype, data))
 
-    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, \
+    with patch("packages.llm_client.client.openai.AsyncOpenAI") as mock_cls, \
          patch("packages.agents.events.emit_run_event", side_effect=capture_event):
         mock_cls.return_value.chat.completions.create = mock_create
         messages = _messages("test")
@@ -213,7 +227,7 @@ async def test_emits_llm_call_failed_on_exception():
     def capture_event(rid: str, etype: str, data: dict[str, object]) -> None:
         events.append((etype, data))
 
-    with patch("packages.agents.llm.chat.AsyncOpenAI") as mock_cls, \
+    with patch("packages.llm_client.client.openai.AsyncOpenAI") as mock_cls, \
          patch("packages.agents.events.emit_run_event", side_effect=capture_event):
         mock_cls.return_value.chat.completions.create = mock_create
         messages = _messages("test")

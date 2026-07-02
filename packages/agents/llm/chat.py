@@ -160,6 +160,7 @@ async def _complete_transport(
             task=context.task_name,
             run_id=context.run_id,
             step=context.step,
+            max_tokens=context.max_tokens,
         ):
             chunks.append(chunk)
         content = "".join(chunks)
