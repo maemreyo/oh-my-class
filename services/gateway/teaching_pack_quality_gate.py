@@ -16,12 +16,16 @@ class GatewayTeachingPackQualityGate:
     async def evaluate(self, state: ArtifactWorkflowState, artifact: JsonObject) -> ArtifactQualityReport:
         base_report = validate_artifact_quality(state.artifact_id, artifact)
         issues = [*base_report.issues]
-        text = _artifact_text(artifact)
+        # The grounded research corpus lives in metadata.research_sources but is
+        # evidence, not artifact content — exclude it from text/PII scanning so it is
+        # not mistaken for student content (fact_check still reads it from `artifact`).
+        content = _content_view(artifact)
+        text = _artifact_text(content)
 
-        issues.extend(_pii_issues(artifact))
+        issues.extend(_pii_issues(content))
         issues.extend(_age_issues(text, artifact))
         issues.extend(await _fact_issues(text, artifact))
-        issues.extend(_pedagogical_issues(artifact))
+        issues.extend(_pedagogical_issues(content, _pedagogy_context(artifact)))
         issues.extend(_html_issues(text))
 
         return ArtifactQualityReport(
@@ -32,8 +36,40 @@ class GatewayTeachingPackQualityGate:
         )
 
 
+# Gate-context metadata: evidence/context the gate reads but which is NOT student
+# content, so it must be excluded from text/PII/claim scanning.
+_GATE_CONTEXT_KEYS = ("research_sources", "pedagogy_context")
+
+
+def _content_view(artifact: JsonObject) -> JsonObject:
+    """Artifact minus gate-context metadata, for text/PII scanning.
+
+    ``research_sources`` (fetched evidence) and ``pedagogy_context`` (lesson-plan
+    subset) are inputs the gate cross-references against — not student-facing content —
+    so they must not be scanned as claims or PII, nor let content self-match its own
+    objectives.
+    """
+    metadata = artifact.get("metadata")
+    if not isinstance(metadata, dict) or not any(key in metadata for key in _GATE_CONTEXT_KEYS):
+        return artifact
+    scrubbed = {key: value for key, value in metadata.items() if key not in _GATE_CONTEXT_KEYS}
+    return {**artifact, "metadata": scrubbed}
+
+
+def _pedagogy_context(artifact: JsonObject) -> dict[str, JsonValue] | None:
+    metadata = artifact.get("metadata")
+    if isinstance(metadata, dict):
+        context = metadata.get("pedagogy_context")
+        if isinstance(context, dict):
+            return context
+    return None
+
+
 def _artifact_text(artifact: JsonObject) -> str:
-    return " ".join(_walk_strings(artifact))
+    # Join distinct artifact strings with a sentence boundary so claim extraction
+    # treats each field as its own unit instead of mashing titles/ids into the
+    # factual sentence (which polluted claim terms and blocked verification).
+    return ". ".join(_walk_strings(artifact))
 
 
 def _walk_strings(value: JsonValue) -> tuple[str, ...]:
@@ -86,8 +122,11 @@ async def _fact_issues(text: str, artifact: JsonObject) -> list[QualityIssue]:
     ]
 
 
-def _pedagogical_issues(artifact: JsonObject) -> list[QualityIssue]:
-    result = check_pedagogical_metrics(artifact)
+def _pedagogical_issues(
+    content: JsonObject,
+    lesson_plan: dict[str, JsonValue] | None,
+) -> list[QualityIssue]:
+    result = check_pedagogical_metrics(content, lesson_plan=lesson_plan)
     return [
         _issue(QualityFailureClass.PEDAGOGICAL_MISMATCH, "pedagogical", issue)
         for issue in result.issues

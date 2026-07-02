@@ -40,6 +40,11 @@ async def researcher_node(state: ResearcherNodeState) -> dict[str, Any]:
         fetch_limit=_fetch_limit(str(research_policy)),
         web_fetcher=web_fetch,
     )
+    # Deterministic (not LLM-decided): the fetched bodies ARE the grounding corpus the
+    # Layer-2 fact_check consumes. Persist them into the bundle sources by URL so the
+    # verified corpus carries its evidence instead of dropping it into the prompt only.
+    fetched_excerpts = _excerpts_by_url(research_evidence)
+    target_terms = _target_terms(lesson_plan, topic)
 
     user_prompt = f"""
 Research topic: {topic}
@@ -106,7 +111,7 @@ or credibility scores.
                 json_str = extract_json_text(content)
                 bundle_data = json.loads(json_str)
                 bundle = ResearchBundle.model_validate(bundle_data)
-                return {"research_bundle": bundle.model_dump()}
+                return {"research_bundle": _finalize_bundle(bundle.model_dump(), fetched_excerpts, target_terms)}
             except (ValueError, json.JSONDecodeError, Exception):
                 log_llm_failure(
                     "researcher",
@@ -145,7 +150,7 @@ or credibility scores.
                     "cross_references": [],
                     "research_policy": research_policy,
                 })
-                return {"research_bundle": bundle.model_dump()}
+                return {"research_bundle": _finalize_bundle(bundle.model_dump(), fetched_excerpts, target_terms)}
         except Exception as e:
             log_llm_failure("researcher", run_id, step, model, attempt_number, started, e)
             if attempt < 2:
@@ -177,9 +182,107 @@ or credibility scores.
                 "cross_references": [],
                 "research_policy": research_policy,
             })
-            return {"research_bundle": bundle.model_dump()}
+            return {"research_bundle": _attach_excerpts(bundle.model_dump(), fetched_excerpts)}
 
     raise ValueError("Researcher agent failed: exhausted retries")
+
+
+def _target_terms(lesson_plan: dict[str, Any], topic: object) -> list[str]:
+    """Terms the fetched evidence must corroborate: topic + learning-objective words."""
+    terms = [str(topic)]
+    objectives = lesson_plan.get("learning_objectives", [])
+    if isinstance(objectives, list):
+        for item in objectives:
+            if isinstance(item, str):
+                terms.append(item)
+            elif isinstance(item, dict):
+                for key in ("description", "objective", "text"):
+                    value = item.get(key)
+                    if isinstance(value, str):
+                        terms.append(value)
+    return terms
+
+
+def _apply_deterministic_verification(bundle: dict[str, Any], target_terms: list[str]) -> dict[str, Any]:
+    """Replace LLM-rated / fabricated credibility with code-computed triangulation.
+
+    A source is VERIFIED only when ≥2 independent domains corroborate the target terms;
+    credibility is heuristic (TLD/fetch/coverage/agreement). Sources without a fetched
+    body cannot be VERIFIED — no fabrication.
+    """
+    from packages.agents.sub_agents.researcher.triangulation import (
+        FetchedSource,
+        heuristic_credibility,
+        registrable_domain,
+        triangulate,
+    )
+
+    sources = bundle.get("sources")
+    if not isinstance(sources, list) or not sources:
+        return bundle
+    fetched = [
+        FetchedSource(
+            title=str(source.get("title", "")),
+            url=source.get("url") if isinstance(source.get("url"), str) else None,
+            excerpt=str(source.get("excerpt") or ""),
+        )
+        for source in sources
+    ]
+    triangulated = triangulate(fetched, target_terms)
+    corroborating_count = len(
+        {registrable_domain(t.source.url) for t in triangulated if t.covers and registrable_domain(t.source.url)}
+    )
+    for source, result in zip(sources, triangulated, strict=False):
+        if not isinstance(source, dict):
+            continue
+        source["verification_status"] = result.verification_status
+        source["credibility_score"] = heuristic_credibility(
+            source.get("url"),
+            covers=result.covers,
+            corroborating_count=corroborating_count if result.covers else 0,
+            fetched=bool(source.get("excerpt")),
+        )
+    return bundle
+
+
+def _finalize_bundle(
+    bundle: dict[str, Any],
+    fetched_excerpts: dict[str, str],
+    target_terms: list[str],
+) -> dict[str, Any]:
+    return _apply_deterministic_verification(_attach_excerpts(bundle, fetched_excerpts), target_terms)
+
+
+def _excerpts_by_url(research_evidence: list[dict[str, Any]]) -> dict[str, str]:
+    """Map source URL -> fetched excerpt for successfully FETCHED evidence only."""
+    mapping: dict[str, str] = {}
+    for entry in research_evidence:
+        if entry.get("fetch_status") != "FETCHED":
+            continue
+        source = entry.get("source")
+        excerpt = entry.get("excerpt")
+        if isinstance(source, dict) and isinstance(excerpt, str) and excerpt:
+            url = source.get("url")
+            if isinstance(url, str) and url:
+                mapping[url] = excerpt
+    return mapping
+
+
+def _attach_excerpts(bundle: dict[str, Any], excerpts: dict[str, str]) -> dict[str, Any]:
+    """Attach fetched excerpts to bundle sources by URL (deterministic, no fabrication).
+
+    Only fills excerpts we actually fetched; sources without a fetched body keep
+    ``excerpt=None`` so downstream can distinguish grounded from ungrounded sources.
+    """
+    for source in bundle.get("sources", []):
+        if not isinstance(source, dict):
+            continue
+        if source.get("excerpt"):
+            continue
+        url = source.get("url")
+        if isinstance(url, str) and url in excerpts:
+            source["excerpt"] = excerpts[url]
+    return bundle
 
 
 def _fetch_limit(research_policy: str) -> int:

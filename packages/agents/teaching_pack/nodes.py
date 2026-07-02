@@ -297,7 +297,7 @@ async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
         if not features().vocabulary_batch_v1:
             msg = "vocabulary_batch mode requires FEATURE_VOCABULARY_BATCH_V1=true"
             raise RuntimeError(msg)
-        return TeachingPackState(**run_vocabulary_batch_orchestrator(state))
+        return TeachingPackState(**await run_vocabulary_batch_orchestrator(state))
     if artifact_send_fanout_v1_enabled():
         return TeachingPackState(**coordinate_artifact_fanout(state))
     return await _rollback_artifact_workflow(state)

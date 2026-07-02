@@ -33,19 +33,20 @@ REQUIRE_WIRED: tuple[tuple[str, str], ...] = (
     # artifact-send-fanout — the one epic wired end-to-end (audit: REAL). Guard it.
     ("coordinate_artifact_fanout", "packages/agents/teaching_pack/artifact_fanout.py"),
     ("generate_one_artifact", "packages/agents/teaching_pack/generate_one_artifact.py"),
-    # vocabulary_batch orchestrator IS reached from _artifact_workflow (currently inert,
-    # but the branch is wired) — guard the branch does not silently disappear.
     ("run_vocabulary_batch_orchestrator", "packages/agents/teaching_pack/vocabulary_batch_orchestrator.py"),
-)
-
-# (symbol, defining_file) — audit-confirmed dark. Promote to REQUIRE_WIRED when wired.
-KNOWN_DARK: tuple[tuple[str, str], ...] = (
-    # --- vocabulary-batch capabilities (Phase 2 resurrection targets) ---
+    # --- vocabulary-batch capabilities: WIRED in Phase 2 (were Potemkin at audit) ---
+    ("gather_cluster_evidence", "packages/agents/sub_agents/researcher/lexical_evidence.py"),
     ("lexical_grounding_profile", "packages/agents/sub_agents/researcher/lexical_grounding.py"),
     ("synthesize_semantic_anchor_cluster", "packages/agents/sub_agents/content_creator/semantic_anchor_synthesis.py"),
     ("generate_semantic_anchor_practice", "packages/agents/sub_agents/practice_generator/semantic_anchor.py"),
     ("SemanticAnchoringQualityGate", "packages/quality/semantic_anchoring/gate.py"),
-    ("process_clusters_with_concurrency", "packages/agents/teaching_pack/vocabulary_batch_orchestrator.py"),
+)
+
+# (symbol, defining_file) — audit-confirmed dark. Promote to REQUIRE_WIRED when wired.
+# NOTE: process_clusters_with_concurrency is now wired but only within its own module
+# (called by run_vocabulary_batch_orchestrator), which this same-file-blind lint cannot
+# see; it is guarded transitively via run_vocabulary_batch_orchestrator in REQUIRE_WIRED.
+KNOWN_DARK: tuple[tuple[str, str], ...] = (
     # --- topic-decomposition (units) — parked ---
     ("create_parent_run", "services/gateway/unit_run_store.py"),
     ("retrieve_grounding", "packages/agents/grounding/retrieval.py"),

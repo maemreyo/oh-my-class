@@ -23,4 +23,7 @@ def test_generated_zod_schemas_include_topic_decomposition_contracts() -> None:
     assert "DecompositionIntentSchema" in run_contract
     assert "ClassProfileSchema" in class_profile
     assert "LearningPreferencesSchema" in class_profile
-    assert 'z.enum(["generate_pack","diagnose_then_generate","plan_unit"])' in run_contract
+    # PipelineMode gained "vocabulary_batch" (ADR-021); assert membership, not exact
+    # ordering, so adding a future mode does not re-break this stale-prone assertion.
+    for mode in ("generate_pack", "diagnose_then_generate", "plan_unit", "vocabulary_batch"):
+        assert f'"{mode}"' in run_contract

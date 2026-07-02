@@ -8,7 +8,11 @@ import anyio
 from pydantic import BaseModel, ConfigDict, Field
 
 from common.contracts.vocabulary_batch import InputNormalizationReport, NormalizedVocabularyCluster
-from common.contracts.vocabulary_cluster_workflow import VocabularyClusterWorkflow
+from common.contracts.vocabulary_cluster_workflow import (
+    VocabularyClusterStatus,
+    VocabularyClusterWorkflow,
+    apply_cluster_transition,
+)
 from packages.agents.teaching_pack.vocabulary_snapshot import vocabulary_cluster_snapshot_hash
 
 type VocabularyFailureKind = Literal[
@@ -103,21 +107,161 @@ def vocabulary_failure_action(failure: VocabularyFailureKind | str) -> Vocabular
             return "fail_cluster"
 
 
-def run_vocabulary_batch_orchestrator(state: dict[str, object]) -> dict[str, object]:
+@dataclass(frozen=True, slots=True)
+class VocabularyBatchStages:
+    """The five per-cluster stages, injectable so the chain is testable without LLM.
+
+    ``default_stages()`` wires the real capabilities; tests inject fakes. Keeping real
+    defaults (not optional no-ops) is what keeps this orchestrator out of the
+    false-green trap — the ``test_no_dark_runtime_modules`` lint guards it.
+    """
+
+    gather_evidence: Callable[..., Awaitable[Any]]
+    ground: Callable[..., Awaitable[Any]]
+    synthesize: Callable[..., Awaitable[Any]]
+    make_practice: Callable[..., Awaitable[Any]]
+    evaluate: Callable[..., Any]
+
+
+def default_stages() -> VocabularyBatchStages:
+    from packages.agents.sub_agents.content_creator.semantic_anchor_synthesis import (
+        synthesize_semantic_anchor_cluster,
+    )
+    from packages.agents.sub_agents.practice_generator.semantic_anchor import (
+        PracticeGenerationRequest,
+        generate_semantic_anchor_practice,
+    )
+    from packages.agents.sub_agents.researcher.lexical_evidence import gather_cluster_evidence
+    from packages.agents.sub_agents.researcher.lexical_grounding import lexical_grounding_profile
+    from packages.quality.semantic_anchoring.gate import (
+        SemanticAnchoringQualityGate,
+        SemanticAnchoringQualityInput,
+    )
+
+    gate = SemanticAnchoringQualityGate()
+
+    # Adapters keep the request/input Pydantic construction out of the orchestrator, so
+    # the chain is decoupled and fakes need not rebuild these contracts in tests.
+    async def make_practice(anchor: Any, run_id: str) -> Any:
+        return await generate_semantic_anchor_practice(PracticeGenerationRequest(cluster=anchor), run_id)
+
+    def evaluate(anchor: Any, practice: Any) -> Any:
+        return gate.evaluate(SemanticAnchoringQualityInput(cluster=anchor, practice=practice))
+
+    return VocabularyBatchStages(
+        gather_evidence=gather_cluster_evidence,
+        ground=lexical_grounding_profile,
+        synthesize=synthesize_semantic_anchor_cluster,
+        make_practice=make_practice,
+        evaluate=evaluate,
+    )
+
+
+def _advance(
+    workflow: VocabularyClusterWorkflow,
+    target: VocabularyClusterStatus,
+    *,
+    error: str | None = None,
+) -> VocabularyClusterWorkflow:
+    new_status = apply_cluster_transition(workflow.status, target)
+    updates: dict[str, object] = {"status": new_status}
+    if error is not None:
+        updates["last_error"] = error[:1000]
+    return workflow.model_copy(update=updates)
+
+
+@dataclass(frozen=True, slots=True)
+class _ClusterOutcome:
+    workflow: VocabularyClusterWorkflow
+    content: dict[str, Any] | None  # produced anchor/practice, present only when passed
+
+
+def _dump(obj: Any) -> Any:
+    dump = getattr(obj, "model_dump", None)
+    return dump(mode="json") if callable(dump) else obj
+
+
+async def _process_cluster(
+    cluster: NormalizedVocabularyCluster,
+    snapshot_hash: str,
+    run_id: str,
+    stages: VocabularyBatchStages,
+) -> _ClusterOutcome:
+    """Run one cluster through ground -> synthesize -> practice -> gate, fail-closed.
+
+    On a passing verdict the produced SemanticAnchorCluster + PracticeSet are captured
+    as ``content`` so downstream render/export/review can consume them (not just status).
+    """
+    workflow = _workflow_from_cluster(run_id, cluster)
+    try:
+        workflow = _advance(workflow, "grounding")
+        request = await stages.gather_evidence(cluster, snapshot_hash, run_id)
+        bundle = await stages.ground(request, run_id)
+        if bundle.readiness == "failed":
+            return _ClusterOutcome(_advance(workflow, "failed", error="lexical grounding failed"), None)
+        if bundle.readiness == "needs_review":
+            return _ClusterOutcome(_advance(workflow, "needs_review"), None)
+
+        workflow = _advance(workflow, "synthesizing")
+        anchor = await stages.synthesize(cluster, bundle, run_id)
+
+        workflow = _advance(workflow, "practice_generating")
+        practice = await stages.make_practice(anchor, run_id)
+
+        workflow = _advance(workflow, "validating")
+        result = stages.evaluate(anchor, practice)
+        final = _advance(workflow, result.verdict)
+        content = None
+        if final.status == "passed":
+            content = {
+                "cluster_id": cluster.cluster_id,
+                "anchor": _dump(anchor),
+                "practice": _dump(practice),
+                "quality_verdict": getattr(result, "verdict", None),
+            }
+        return _ClusterOutcome(final, content)
+    except Exception as exc:  # noqa: BLE001 - fail-closed: any stage error fails the cluster, never a silent pass
+        return _ClusterOutcome(_advance(workflow, "failed", error=f"{type(exc).__name__}: {exc}"), None)
+
+
+async def run_vocabulary_batch_orchestrator(
+    state: dict[str, object],
+    *,
+    stages: VocabularyBatchStages | None = None,
+    config: VocabularyBatchOrchestrationConfig | None = None,
+) -> dict[str, object]:
+    active_stages = stages or default_stages()
+    active_config = config or VocabularyBatchOrchestrationConfig()
     report = InputNormalizationReport.model_validate(state.get("input_normalization_report") or {})
     run_id = str(state["run_id"])
-    initialized = initialize_vocabulary_batch_workflows(run_id, report)
+
+    clusters_by_id = {cluster.cluster_id: cluster for cluster in report.ready_clusters}
+    snapshot_hashes = {
+        cluster.cluster_id: vocabulary_cluster_snapshot_hash(cluster.model_dump(mode="json"))
+        for cluster in report.ready_clusters
+    }
+
+    async def worker(cluster_id: str) -> _ClusterOutcome:
+        return await _process_cluster(
+            clusters_by_id[cluster_id], snapshot_hashes[cluster_id], run_id, active_stages
+        )
+
+    outcomes = await process_clusters_with_concurrency(
+        tuple(clusters_by_id), worker, active_config
+    )
+    workflows = [outcome.workflow for outcome in outcomes]
+    cluster_content = [outcome.content for outcome in outcomes if outcome.content is not None]
+    progress = _progress_from_workflows(workflows)
     return {
         "run_id": run_id,
-        "vocabulary_cluster_workflows": [
-            workflow.model_dump(mode="json") for workflow in initialized.workflows
-        ],
-        "vocabulary_batch_progress": initialized.progress.model_dump(mode="json"),
+        "vocabulary_cluster_workflows": [workflow.model_dump(mode="json") for workflow in workflows],
+        "vocabulary_cluster_content": cluster_content,
+        "vocabulary_batch_progress": progress.model_dump(mode="json"),
         "vocabulary_batch_events": [{
-            "event": "vocabulary_batch_initialized",
+            "event": "vocabulary_batch_completed",
             "run_id": run_id,
-            "total_clusters": initialized.progress.total_clusters,
-            "status_counts": initialized.progress.status_counts,
+            "total_clusters": progress.total_clusters,
+            "status_counts": progress.status_counts,
         }],
     }
 

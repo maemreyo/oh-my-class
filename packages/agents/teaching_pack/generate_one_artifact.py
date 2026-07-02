@@ -54,6 +54,8 @@ async def generate_one_artifact(payload: GenerateOneArtifactPayload) -> Generate
     except (ArtifactTypeMismatchError, ValidationError, ValueError) as exc:
         return {"artifact_workflow_states": [_workflow_state(payload, "failed", exc)]}
     chunk = {**parsed, "artifact_id": artifact_id, "artifact_generation_id": generation_id}
+    _stamp_research_sources(chunk, payload["research_brief"])
+    _stamp_pedagogy_context(chunk, payload["lesson_plan"])
     return {
         "artifact_chunks": [chunk],
         "artifact_workflow_states": [_workflow_state(
@@ -63,6 +65,63 @@ async def generate_one_artifact(payload: GenerateOneArtifactPayload) -> Generate
             artifact_id=artifact_id,
         )],
     }
+
+
+def _stamp_research_sources(chunk: dict[str, Any], research_brief: dict[str, Any]) -> None:
+    """Attach the run's grounded research corpus to the artifact metadata.
+
+    This closes the researcher -> Layer-2 fact_check seam: the gate reads
+    ``artifact.metadata.research_sources`` and cross-references factual claims against
+    the source bodies. Only sources with a fetched ``excerpt`` (real content) are
+    carried — content-less sources are useless to fact_check. Fail-open: never
+    overwrite an existing ``research_sources`` and never add an empty list.
+    """
+    sources = research_brief.get("sources")
+    if not isinstance(sources, list):
+        return
+    corpus: list[dict[str, str]] = []
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        excerpt = source.get("excerpt")
+        if not isinstance(excerpt, str) or not excerpt:
+            continue
+        entry: dict[str, str] = {"title": str(source.get("title", "")), "content": excerpt}
+        url = source.get("url")
+        if isinstance(url, str) and url:
+            entry["url"] = url
+        corpus.append(entry)
+    if not corpus:
+        return
+    metadata = dict(chunk.get("metadata") or {})
+    metadata.setdefault("research_sources", corpus)
+    chunk["metadata"] = metadata
+
+
+def _stamp_pedagogy_context(chunk: dict[str, Any], lesson_plan: dict[str, Any]) -> None:
+    """Attach a leakage-safe lesson-plan subset for the Layer-2 pedagogical check.
+
+    Only the learning objectives and target grade are carried — the fields the
+    pedagogical alignment/Bloom/readability checks need. Teacher scripts, answer keys,
+    and other plan internals are deliberately excluded. Without this the gate had no
+    lesson_plan and those metrics silently auto-passed. Fail-open and non-destructive.
+    """
+    if not isinstance(lesson_plan, dict):
+        return
+    context: dict[str, Any] = {}
+    objectives = lesson_plan.get("learning_objectives")
+    if isinstance(objectives, list) and objectives:
+        context["learning_objectives"] = objectives
+    for key in ("grade", "grade_level"):
+        value = lesson_plan.get(key)
+        if isinstance(value, (int, str)):
+            context[key] = value
+            break
+    if not context:
+        return
+    metadata = dict(chunk.get("metadata") or {})
+    metadata.setdefault("pedagogy_context", context)
+    chunk["metadata"] = metadata
 
 
 def _single_artifact(result: dict[str, Any]) -> dict[str, Any]:

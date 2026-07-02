@@ -15,6 +15,15 @@ class ResearchSource(BaseModel):
 
     title: str = Field(..., min_length=1, max_length=500)
     url: str | None = Field(default=None, max_length=2000)
+    excerpt: str | None = Field(
+        default=None,
+        max_length=8000,
+        description=(
+            "Fetched source body used for deterministic cross-referencing. This is the "
+            "corpus the Layer-2 fact_check consumes (one mechanism, two consumers). "
+            "None when the source was not fetched (e.g. SKIPPED/FAILED)."
+        ),
+    )
     credibility_score: float = Field(..., ge=0.0, le=1.0)
     verification_status: Literal["VERIFIED", "MODIFIED", "REMOVED", "UNCERTAIN"]
 
