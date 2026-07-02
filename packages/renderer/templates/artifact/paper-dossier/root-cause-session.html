@@ -34,7 +34,7 @@ const masteryClass = { aware: 'art-mastery--aware', applying: 'art-mastery--appl
   <title><%= it.title %> — Root-Cause Session</title>
   <style><%~ it.artifactCss %></style>
   <% if (it.interactivityJS) { %>
-  <script><%~ it.interactivityJS %></script>
+  <script data-managed-script-id="artifact-ui-interactivity"><%~ it.interactivityJS %></script>
   <% } %>
 </head>
 <body>

@@ -11,7 +11,7 @@
  *                            'neutral'         → frameVariant:'neutral'
  */
 
-import { renderArtifactUi } from "./artifact-ui/renderer.js";
+import { render } from "./core/render.js";
 
 export type InverseThinkingArtifactKind = "lesson" | "worksheet" | "quiz" | "drill" | "teacher_only";
 export type InverseThinkingFrame = "detective_case" | "neutral";
@@ -57,11 +57,18 @@ export async function renderInverseThinkingHtml(
   input: InverseThinkingRenderInput,
 ): Promise<string> {
   const audience = input.artifactType === "teacher_only" ? "teacher" : "student";
-  return renderArtifactUi({
-    family: "investigation-folder",
-    kind: "inverse-thinking",
-    audience,
-    data: input,
-    lang: input.lang,
+  const response = await render({
+    kind: "investigation-folder.inverse-thinking",
+    input,
+    context: {
+      audience,
+      locale: input.lang === "en" ? "en" : "vi",
+      theme: "default",
+      renderMode: "export",
+      requestId: `inverse-thinking:${input.artifactType}`,
+      versions: { rendererVersion: "inverse-thinking-wrapper-v1" },
+      assetPolicy: "inline-only",
+    },
   });
+  return response.html;
 }

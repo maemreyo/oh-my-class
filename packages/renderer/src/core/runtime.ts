@@ -12,6 +12,7 @@ import { exitTicketPlugin } from "../plugins/exit-ticket.js";
 import { roadmapPlugin } from "../plugins/roadmap.js";
 import { teachingPackPlugin } from "../plugins/teaching-pack.js";
 import { navyTicketPracticePlugin, navyTicketTeachingPlugin } from "../plugins/navy-ticket.js";
+import { inverseThinkingPlugin, rootCauseSessionPlugin, videoRoutePlugin } from "../plugins/specialty-artifact-ui.js";
 import { createPluginRegistry } from "./registry.js";
 
 export const defaultRegistry = createPluginRegistry([
@@ -30,6 +31,9 @@ export const defaultRegistry = createPluginRegistry([
   teachingPackPlugin,
   navyTicketTeachingPlugin,
   navyTicketPracticePlugin,
+  inverseThinkingPlugin,
+  rootCauseSessionPlugin,
+  videoRoutePlugin,
 ]);
 
 export function rendererPluginMetadata() {
