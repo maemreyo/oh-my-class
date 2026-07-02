@@ -70,8 +70,21 @@ export type SanitizerPolicy = {
   readonly version: string;
 };
 
+export type ManagedScriptDeclaration = {
+  readonly id: string;
+  readonly sourcePath: string;
+  readonly sha256: string;
+};
+
+export type ManagedScript = {
+  readonly id: string;
+  readonly source: string;
+  readonly sha256: string;
+};
+
 export type RenderServices = {
   readonly themeCss: string;
+  readonly managedScripts: readonly ManagedScript[];
 };
 
 export type ArtifactKindPlugin<TTemplateData extends Record<string, unknown>> = {
@@ -83,6 +96,8 @@ export type ArtifactKindPlugin<TTemplateData extends Record<string, unknown>> = 
   readonly audience: AudiencePolicy;
   readonly capabilities: ArtifactKindCapabilities;
   readonly sanitizerPolicy: SanitizerPolicy;
+  readonly familyId?: string;
+  readonly managedScripts?: readonly ManagedScriptDeclaration[];
   readonly adapt: (input: unknown, context: RenderContext, services: RenderServices) => TTemplateData | Promise<TTemplateData>;
   readonly templatePath: (context: RenderContext) => string;
 };

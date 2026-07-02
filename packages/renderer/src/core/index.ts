@@ -2,6 +2,10 @@ export { RendererError, RendererErrorCategory, RendererErrorCode } from "./error
 export { PluginRegistry, createPluginRegistry } from "./registry.js";
 export { render, renderBatch } from "./render.js";
 export { rendererPluginMetadata } from "./runtime.js";
+export { ThemeResolver, defaultThemeResolver } from "./theme-resolver.js";
+export { sanitizeRenderedHtml } from "./sanitizer.js";
+export { enforceInlineOnlyAssetPolicy } from "./asset-policy.js";
+export { hashManagedScriptSource, loadManagedScripts } from "./managed-scripts.js";
 export type {
   ArtifactKindCapabilities,
   ArtifactKindPlugin,
@@ -13,6 +17,8 @@ export type {
   RenderContext,
   RenderDiagnostic,
   RenderLocale,
+  ManagedScript,
+  ManagedScriptDeclaration,
   RenderManifest,
   RenderMetrics,
   RenderMode,
