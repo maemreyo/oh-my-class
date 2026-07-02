@@ -184,7 +184,7 @@ def _changed_path(plan: ScopedRepairPlan) -> str:
     if plan.scope.section_index is not None:
         path = f"{path}.sections[{plan.scope.section_index}]"
     if plan.scope.component_index is not None:
-        path = f"{path}.components[{plan.scope.component_index}]"
+        path = f"{path}.components[{plan.scope.component_index}]" if plan.scope.section_index is None else path
     return path
 
 

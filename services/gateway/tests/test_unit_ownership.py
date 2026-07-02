@@ -1,11 +1,18 @@
 from __future__ import annotations
 
-from pathlib import Path
+from services.gateway.main import app
+from services.gateway.routers import unit_runs
 
-ROUTERS_DIR = Path(__file__).resolve().parents[1] / "routers"
 
+def test_unit_routes_are_registered_with_adr017_unit_runtime() -> None:
+    included_unit_prefixes = {
+        route.include_context.prefix
+        for route in app.routes
+        if getattr(route, "original_router", None) is unit_runs.router
+    }
+    unit_route_paths = {route.path for route in unit_runs.router.routes if hasattr(route, "path")}
 
-def test_unit_routes_are_not_registered_before_adr017_unit_runtime_exists() -> None:
-    unit_route_files = sorted(ROUTERS_DIR.glob("*unit*.py"))
-
-    assert unit_route_files == []
+    assert unit_runs.router.routes != []
+    assert included_unit_prefixes == {"/teaching-packs"}
+    assert "/units/{parent_run_id}" in unit_route_paths
+    assert "/units/{parent_run_id}/status" in unit_route_paths

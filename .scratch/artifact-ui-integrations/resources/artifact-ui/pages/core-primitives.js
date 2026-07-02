@@ -1,5 +1,20 @@
 const { renderMultiThemePage, writeFile } = require("../render.js");
-const { diagnosticsPanel, projectionFlag, teacherBlock, footer } = require("../partials.js");
+const {
+  diagnosticsPanel,
+  projectionFlag,
+  teacherBlock,
+  footer,
+  renderAnchorTimeline,
+  renderControlledComparison,
+} = require("../partials.js");
+const {
+  futurePerfectTimeline,
+  futurePerfectContinuousTimeline,
+  twoTenseComparison,
+  threeTenseComparison,
+  fourTenseComparison,
+  sixTenseComparison,
+} = require("./root-cause-session-data.js");
 
 const signatureByFamily = {
   "navy-ticket": `
@@ -44,7 +59,7 @@ const signatureByFamily = {
 
 const body = `
 <header class="art-cover">
-  <p class="art-cover-eyebrow art-mono">Component showcase · Issue 001</p>
+  <p class="art-cover-eyebrow art-mono">Component showcase · Issue 001 + Issue 004</p>
   <h1>ARTIFACT UI</h1>
   <p class="art-cover-sub">Core Primitives · Standalone · Offline · Print-safe</p>
   <p class="art-cover-copy">Đây là kho cấu phần lõi dùng chung cho mọi loại artifact được sinh ra — từ thẻ từ vựng đến đề thi. Dùng nút bên trên để đổi visual family và xem cùng một cấu trúc HTML tự thay đổi hoàn toàn diện mạo, chỉ nhờ đổi bộ token.</p>
@@ -248,8 +263,38 @@ const body = `
     <div data-only-theme="investigation-folder">${signatureByFamily["investigation-folder"]}</div>
   </section>
 
+  <section class="art-section" style="margin-bottom:0;">
+    <div class="art-section-head">
+      <span class="art-section-eyebrow art-mono">10</span>
+      <h2>Root-cause / Socratic teaching primitives — Issue 004</h2>
+      <p class="art-section-sub">Nội dung demo lấy từ transcript thật (Zamery, rooted-in-strength-learning, Future Perfect vs. Future Perfect Continuous) — không dùng lorem ipsum. Chỉ 2 cấu phần bắt buộc theo AC Issue 004 (anchor timeline &amp; controlled comparison) được demo đầy đủ ở đây; 5 cấu phần còn lại (scenario anchor, checkpoint, stress test, metaphor log, mastery marker) có ví dụ đầy đủ hơn ở artifact thật, Issue 005.</p>
+    </div>
+
+    <div class="art-callout art-callout--dashed" style="margin-bottom:24px;">
+      <span class="art-glyph art-mono">i</span>
+      <span>Anchor timeline — "kéo Timeframe": đứng tại một mốc tương lai, quay đầu nhìn lại. Cùng một mốc (9h tối mai, mèo chạy qua sân), hai cách nhìn khác nhau về phía trước mốc.</span>
+    </div>
+    <div class="demo-grid demo-grid--2" style="margin-bottom:32px;">
+      ${renderAnchorTimeline(futurePerfectTimeline)}
+      ${renderAnchorTimeline(futurePerfectContinuousTimeline)}
+    </div>
+
+    <div class="art-callout art-callout--dashed" style="margin-bottom:24px;">
+      <span class="art-glyph art-mono">i</span>
+      <span>Controlled comparison — 1 hằng số (kịch bản), n biến thể trên đúng 1 trục. Verified tại n=2, n=3, n=4 (trường hợp thật của transcript), và n=6 (mở rộng cùng trục để chứng minh không hard-code cột).</span>
+    </div>
+    <p class="art-section-sub" style="margin-bottom:8px;"><b>n = 2</b> — đúng 2 thì transcript đang đối chiếu trực tiếp:</p>
+    ${renderControlledComparison(twoTenseComparison)}
+    <p class="art-section-sub" style="margin:20px 0 8px;"><b>n = 3</b>:</p>
+    ${renderControlledComparison(threeTenseComparison)}
+    <p class="art-section-sub" style="margin:20px 0 8px;"><b>n = 4</b> — trường hợp thật transcript cần (Issue 005's payload):</p>
+    ${renderControlledComparison(fourTenseComparison)}
+    <p class="art-section-sub" style="margin:20px 0 8px;"><b>n = 6</b> — mở rộng cùng trục, không phải nội dung transcript gốc:</p>
+    ${renderControlledComparison(sixTenseComparison)}
+  </section>
+
 </main>
-${footer("Core primitives showcase · Issue 001", "Mẫu này minh hoạ toàn bộ cấu phần lõi dùng chung cho 4 visual family. Không dùng trực tiếp làm artifact xuất cho giáo viên/học sinh.")}
+${footer("Core primitives showcase · Issue 001 + Issue 004", "Mẫu này minh hoạ toàn bộ cấu phần lõi dùng chung cho 4 visual family, gồm cả cấu phần root-cause/Socratic teaching bổ sung ở Issue 004. Không dùng trực tiếp làm artifact xuất cho giáo viên/học sinh.")}
 `;
 
 const extraCss = `

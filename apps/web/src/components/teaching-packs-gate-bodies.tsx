@@ -19,6 +19,8 @@ export function TeachingPackGateBody({ runId, gateName, event }: {
 			return <SearchPlanSummary event={event} />;
 		case "blueprint_approval":
 			return <BlueprintSummary event={event} />;
+		case "unit_approval":
+			return <UnitApprovalSummary event={event} />;
 		case "content_approval":
 			return <ContentApprovalBody runId={runId} snapshotIds={event.snapshot_ids ?? []} artifacts={event.artifact_statuses ?? event.artifacts ?? []} qualityScores={event.quality_scores} />;
 		default:
@@ -112,6 +114,24 @@ function BlueprintSummary({ event }: { readonly event: TeachingPackEventPayload 
 					</ul>
 				</div>
 			) : null}
+		</div>
+	);
+}
+
+function UnitApprovalSummary({ event }: { readonly event: TeachingPackEventPayload }) {
+	const sequence = arrayAt(event, "lesson_sequence");
+	return (
+		<div className="space-y-3 text-sm">
+			<p className="font-medium">Unit sequence</p>
+			{sequence.length > 0 ? (
+				<ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+					{sequence.map((lesson, index) => (
+						<li key={`unit-lesson-${index}`}>{formatValue(lesson)}</li>
+					))}
+				</ul>
+			) : (
+				<ReadableObject title="Gate payload" value={event} />
+			)}
 		</div>
 	);
 }

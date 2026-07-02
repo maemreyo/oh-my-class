@@ -245,6 +245,7 @@ function isGateName(value: unknown): value is TeachingPackGateName {
 		case "search_plan_confirmation":
 		case "blueprint_approval":
 		case "content_approval":
+		case "unit_approval":
 			return true;
 		default:
 			return false;
@@ -263,6 +264,8 @@ function labelFor(gateName: TeachingPackGateName): string {
 			return "Review the blueprint";
 		case "content_approval":
 			return "Review rendered content";
+		case "unit_approval":
+			return "Review the unit sequence";
 		default:
 			return assertNever(gateName);
 	}

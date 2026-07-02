@@ -227,14 +227,12 @@ def test_unit_sse_endpoint_returns_event_stream(app: FastAPI) -> None:
     )
     app.dependency_overrides[get_teaching_pack_session] = override_session
 
-    # Patch the generator so it yields one heartbeat and stops immediately,
-    # allowing TestClient to complete the request without hanging.
-    async def _finite_generator(*_args, **_kwargs):
+    async def _finite_stream(_store, _request):
         yield ": heartbeat\n\n"
 
     with patch(
-        "services.gateway.routers.unit_runs._unit_sse_generator",
-        side_effect=_finite_generator,
+        "services.gateway.routers.unit_runs.stream_visible_run_events",
+        side_effect=_finite_stream,
     ):
         with TestClient(app, raise_server_exceptions=False) as client:
             resp = client.get(f"/units/{parent_id}/status")

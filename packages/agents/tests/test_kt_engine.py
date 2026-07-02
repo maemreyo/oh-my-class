@@ -14,7 +14,8 @@ def test_correct_attempts_raise_mastery_and_params_stay_bounded() -> None:
     assert len(updates) == 1
     assert updates[0].confidence == "high"
     assert updates[0].state.mastery > 0.35
-    assert updates[0].state.params["pybkt_used"] == 1.0
+    assert updates[0].state.params["local_bayesian_ema_used"] == 1.0
+    assert "pybkt_used" not in updates[0].state.params
     assert all(0.0 <= value <= 3.0 for value in updates[0].state.params.values())
 
 
@@ -29,7 +30,7 @@ def test_incorrect_attempt_decreases_bkt_mastery() -> None:
     incorrect_update = update_knowledge_tracing([_attempt(0, correct=False)])[0]
 
     assert incorrect_update.state.mastery < correct_update.state.mastery
-    assert incorrect_update.state.params["pybkt_used"] == 1.0
+    assert incorrect_update.state.params["local_bayesian_ema_used"] == 1.0
 
 
 def test_unverified_alignment_flags_low_trust_mastery() -> None:

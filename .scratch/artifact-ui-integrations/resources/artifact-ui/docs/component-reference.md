@@ -68,6 +68,13 @@ changes required.
 | Projection flag | `.art-projection-flag` | Visual "teacher-only" marker banner | `{ text }` — **never used to hide content; see §4** |
 | Teacher block | `.art-teacher-block`, `.art-teacher-block-label` | Dashed-border teacher-only content region | `{ label, html }` |
 | Footer | `.art-footer`, `.art-signoff` | Brand signature (contains required "oh-my-class" string) | `{ note?, signoff? }` |
+| Anchor timeline | `.art-anchor-timeline`, `.art-anchor-timeline-svg`, `.art-anchor-timeline-legend` | SVG axis with one future "anchor" point, a backward-glance arc, and 0–n events placed before/at/after the anchor | `{ axisLabel, anchor: {label}, events: {label, position: 'before'\|'at'\|'after', state?}[] }` |
+| Controlled comparison | `.art-controlled-comparison`, `.art-controlled-comparison-constant`, `.art-controlled-comparison-grid` | One fixed constant band + n variant columns (n = 2–6, auto-fit, not hard-coded) | `{ constant: {label, value}, axis, variants: {label, value, note?}[] }` |
+| Scenario anchor | `.art-scenario-anchor`, `.asa-eyebrow`, `.asa-scenario` | Single vivid-scenario opener for a concept; no title/rule field, so it can't be used rule-first | `{ scenario }` |
+| Generalization checkpoint | `.art-generalization-checkpoint`, `.agc-claim`, `.agc-verdict--confirmed/corrected` | Two-state block: learner's own proposed wording, then a leading confirmed/corrected verdict | `{ learnerClaim, verdict: 'confirmed'\|'corrected', correction?, explanation }` |
+| Stress test | `.art-stress-test`, `.ast-attempt`, `.ast-why` | Learner-authored deliberately-broken example + why it breaks, visually distinct from `.art-wrong-item`'s teacher-authored distractor | `{ learnerAttempt, breaksBecause, tiesBackTo? }` |
+| Metaphor log | `.art-metaphor-log`, `.aml-landed`, `.aml-attempts` | Stack of 1–n metaphor attempts; the one that landed is promoted, earlier attempts collapsed but not deleted | `{ attempts: {device, text, landed: boolean}[] }` |
+| Mastery marker | `.art-mastery-marker`, `.art-mastery-marker--open/clicked` | Small learner-comprehension chip; separate namespace from ADR-021 content-QA states | `{ concept, state: 'open'\|'clicked' }` |
 
 ## 3. Family components — Issue 003
 
@@ -132,6 +139,52 @@ distinct Artifact UI treatment:
 | `failed` | `.art-diagnostics--failed` + a single `diagnostics.<id>.html` built from `diagnosticsOnlyBody()` | diagnostics report only — no teaching content generated |
 
 See `dist/semantic-vocabulary/` for one worked example of each.
+
+## 6a. Interactivity layer (`interactivity.js`) — Issue 006
+
+One vanilla-JS file, inlined via `render.js`'s `script` option
+(`vanilla only, no eval, no remote src`), backs three generic
+data-*/aria-* contracts rather than knowing about any single page's
+components by name. Full contract docs live at the top of
+`interactivity.js` itself; this is the pointer from the component
+catalog to that file, plus which components actually use each contract.
+
+| Contract | Attributes | Used by |
+|---|---|---|
+| 1 — reveal/toggle | `data-toggle-reveal`, `aria-controls`, `aria-expanded`, optional `data-hide-after-reveal` / `data-collapsed-label` + `data-expanded-label` / `data-toggle-group` | `.art-generalization-checkpoint`'s verdict (one-way — `data-hide-after-reveal`), the exception/wrinkle composite below, `.art-metaphor-log`'s earlier-attempts list, exam-key's per-question `.art-panel` (grouped under `"exam-answers"`) |
+| 2 — mode toggle | `data-mode-toggle`, `data-toggles-group`, `role="switch"`, `aria-checked` | `.art-mode-toggle` (exam-key sidebar) — bulk reveal/hide of every contract-1 member sharing its group name |
+| 3 — jump-to-target | `data-jump-input-el` / `data-jump-go` / `data-jump-input`, or a standalone `data-jump-to="N"` | `.art-jumpbox`'s typed input, and `.art-qgrid`'s per-question shortcut buttons — both land on `#q{N}`, scroll + focus it, and add `.art-jump-highlight` |
+
+Two things worth calling out because they're easy to get wrong by
+analogy with the rest of the catalog:
+
+- **The exception/wrinkle reveal is not an 8th primitive.** Issue 006 is
+  JS-wiring-only against Issue 004's existing CSS states — no new class
+  was added. `renderExceptionReveal()` (`partials.js`) composes two
+  primitives that already existed (`.art-callout--dashed` from Issue
+  001, `.art-reveal-btn`) under contract 1, the same as everything else.
+- **`.art-mastery-marker` is deliberately NOT wired.** It stays a static
+  chip (`state: 'open'|'clicked'` picked at render time, same as the
+  checkpoint's verdict) — see that row in §2 and `interactivity.js`'s
+  own "non-goals" comment for why a reader-clickable version would be
+  fake state given this catalog renders already-completed sessions.
+
+**Print.** Every control this script drives (`.art-reveal-btn`,
+`.art-mode-toggle`, `.art-jumpbox`, `.art-qgrid`) carries `.art-no-print`
+— clicking things isn't meaningful on paper. Content gated behind a
+reveal is the opposite: `.art-reveal-target[hidden]` is forced back to
+`display: revert` under `@media print` (`primitives.css`) so a printed
+Teacher Edition never ships a blank answer panel just because nobody
+clicked "Xem đáp án" first.
+
+**Accessibility.** Every interactive element is keyboard-reachable
+(native `<button>`/`<input>`, no `div` click targets) with the shared
+`:focus-visible` ring (`primitives.css`, DESIGN.md §7). One-way reveals
+move focus to the revealed content so it isn't lost when the triggering
+button disappears. `prefers-reduced-motion` removes the `.art-reveal-in`
+entrance animation and the decorative `.art-flash` on jump-land, but
+never removes content, the `.art-jump-highlight` outline, scroll, or
+focus movement — those fire unconditionally (DESIGN.md §6).
 
 ## 6. What is explicitly out of scope here
 

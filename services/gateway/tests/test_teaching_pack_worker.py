@@ -400,3 +400,6 @@ async def _delete_run(session: AsyncSession, run_id: RunId) -> None:
 
 async def _delete_test_runs(session: AsyncSession) -> None:
     await session.execute(delete(Run).where(Run.run_id.like("test-%")))
+    await session.execute(delete(Run).where(Run.run_id.like("test-mig-%")))
+    await session.execute(delete(Run).where(Run.run_id.like("null-test-%")))
+    await session.execute(delete(Run).where(Run.run_id.like("eligible-test-%")))

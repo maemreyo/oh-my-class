@@ -34,7 +34,7 @@ class TestTeachingPackArtifactWorkflow:
 
         calls = []
 
-        async def fake_content_creator_node(_state):
+        async def fake_content_creator_node(state):
             calls.append(state)
             return {
                 "artifacts": [{

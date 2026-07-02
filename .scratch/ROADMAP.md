@@ -27,7 +27,7 @@ A full code-verified audit (6 parallel auditors, checked against source, not che
 | `technical-debt/004` | ✅ | ⚠️ **PARTIAL** — Lead Agent gone, but root `docker-compose.prod.yml` still has a dangling `9router` dep. |
 | **`topic-decomposition/` (units)** | ✅✅✅ | ❌ **POTEMKIN** — no runtime ever creates a `UNIT_PARENT` row. REAL: `td-001/002/003`. `td-021` sequence_critic & `td-006` unit_planner are deterministic Python, **not** the specced LLM agents. `td-005/008/009/014/015/016/017/018` = zero non-test callers (dark). `td-019` "release-gate E2E" calls `decide()`, never runs end-to-end. `td-004/007/010/011/013` = partially-wired shells whose runtime paths never fire. |
 | **`vocabulary-batch/` (12)** | ✅ all | ❌ **POTEMKIN** — REAL: `vb-001/002`. Orchestrator stops at `status="queued"`; grounding→synthesis→practice→gate→export is **never chained**. `vb-004/005/006/008/010/012` = zero non-test callers. "E2E happy path" asserts the pipeline stops at `queued`. |
-| **`effectiveness-loop/004,005`** | ✅ | ❌ **POTEMKIN** — `el-004` "pyBKT" is a hardcoded EMA (pyBKT pinned, never imported); `el-005` dashboard shows literal `"74%"`; mastery never reaches the planner; `record_attempt`/`mastery_for`/`decide_mastery_action` = zero non-test callers. `el-003` (capture) honestly not-done — so 004/005 run on synthetic air. |
+| **`effectiveness-loop/004,005`** | ✅ | ❌ **POTEMKIN** — `el-004` now honestly reports a local Bayesian EMA model instead of pretending pyBKT is used, but the specced pyBKT engine is still not built; `el-005` dashboard shows literal `"74%"`; mastery never reaches the planner; `record_attempt`/`mastery_for`/`decide_mastery_action` = zero non-test callers. `el-003` (capture) honestly not-done — so 004/005 run on synthetic air. |
 | `scaling-resilience/003` | ✅ | ❌ **POTEMKIN** — circuit breaker & error classifier zero callers; `LLMClient.chat` never raises `TransientProviderError`; requeue unreachable. |
 | `ops-observability/002` | ✅ | ❌ **POTEMKIN** — DR is row-COUNT only; no `pg_dump`/`pg_restore`. |
 | `trust-lifecycle/002` | ✅ | ❌ **POTEMKIN** — `evaluate_model_drift`/`snapshot_models` zero callers; drift never triggers. |
@@ -98,7 +98,7 @@ A full code-verified audit (6 parallel auditors, checked against source, not che
 - `004` Post-delivery content recall + incident *(←effectiveness-loop-001)*
 
 ### `effectiveness-loop/` (7) — does it actually teach? (ADR-019) *(after topic-decomp KC contracts + scaling-005)*
-> ❌ **AUDIT 2026-07-01: el-004/005 POTEMKIN** — "pyBKT" is a hardcoded EMA (pyBKT pinned, never imported); dashboard shows literal `"74%"`; mastery never reaches the planner. `el-003` (capture) honestly not-done, so the loop runs on synthetic air. To be made real in a later phase (real `el-003` capture → genuine pyBKT). The ✅ marks below are superseded by the audit banner.
+> ❌ **AUDIT 2026-07-01: el-004/005 POTEMKIN** — `el-004` now honestly reports `local_bayesian_ema_used` and no longer stamps fake `pybkt_used`, but the specced pyBKT engine remains unbuilt; dashboard shows literal `"74%"`; mastery never reaches the planner. `el-003` (capture) honestly not-done, so the loop runs on synthetic air. To be made real in a later phase (real `el-003` capture → genuine pyBKT). The ✅ marks below are superseded by the audit banner.
 - `001` Outcome data model + question `kc_ids` + privacy/consent foundation *(←td-001)*
 - ✅ `002` De-stub pedagogical metrics (real proxies / explicit `unmeasured`) — **DONE 2026-06-30** *(no blockers — silent-pass fix, do early)*
 - `003` Google Forms delivery + response capture (auto, no manual entry) *(←001, scaling-005)*
@@ -262,10 +262,10 @@ Original wave table total: 13+10+9+6+4+2+2+3+1 = **50 listed issues** + 6 `rp` d
 
 **Verified 2026-07-01:** focused Wave 1 completion suite passed (`22 passed`): triage heuristic+LLM fallback, contract-confirmation decomposition persistence seam, intra-stage validator/healing trajectory, completion recorder, and DeepEval config/majority/hallucination harness. `services/gateway/tests/test_delivery_record_hook.py` is included and skips cleanly when local Postgres is unavailable; it exercises the real delivery-record hook against a migrated DB.
 
-### Wave 3 — **ALL DONE 2026-07-01**
-✅ `td-007` stage wiring/unit gate · ✅ `td-008` planner seed expand + drift guard · ✅ `td-015` ClassKnowledgeGraph · ✅ `td-021` sequence critic · ✅ `el-004` KT engine with pyBKT dependency and cold-start confidence · ✅ `tl-002` model snapshot drift/canary rollback seam.
+### Wave 3 — **AUDIT-CORRECTED: PARTIAL 2026-07-01**
+✅ `td-007` stage wiring/unit gate · ✅ `td-008` planner seed expand + drift guard · ✅ `td-015` ClassKnowledgeGraph · ✅ `td-021` sequence critic · ❌ `el-004` specced pyBKT engine not built (runtime uses honest local Bayesian EMA only) · ✅ `tl-002` model snapshot drift/canary rollback seam.
 
-**Verified 2026-07-01:** focused Wave 3 suite passed in the combined Wave 3/4 run (`26 passed`): unit branch routing/gate registry, planner expand/drift guard, class knowledge graph edge/query behavior, sequence critic/repair, KT cold-start and bounded params, model rollback. LSP diagnostics clean on changed Wave 3 Python files.
+**Verified 2026-07-01:** focused Wave 3 suite passed in the combined Wave 3/4 run (`26 passed`), but the audit supersedes `el-004`: KT cold-start and bounded params are covered for the local Bayesian EMA fallback, not for pyBKT. LSP diagnostics clean on changed Wave 3 Python files.
 
 ### Wave 4 — **ALL DONE 2026-07-01**
 ✅ `td-009` UnitContext theme/research/persona propagation · ✅ `td-014` decomposition-memory feedback/template/preference store + soft priors · ✅ `td-020` legacy approval compatibility by keeping `/run` approvals decommissioned and unit gates on teaching-pack resume registry · ✅ `el-005` mastery-to-planning decisions, MoET tracking export, and effectiveness dashboard.

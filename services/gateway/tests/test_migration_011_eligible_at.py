@@ -14,12 +14,12 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import delete, text
+from sqlalchemy import delete, text, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from services.gateway.models import Run
 from services.gateway.teaching_pack_job_store import TeachingPackJobStore, RunJobCreate
-from services.gateway.teaching_pack_models import RunJobKind, RunJobStatus
+from services.gateway.teaching_pack_models import RunJob, RunJobKind, RunJobStatus
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
 from services.gateway.teaching_pack_types import RunId, TeacherId
 
@@ -34,7 +34,11 @@ DATABASE_URL = "postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class"
 @pytest.fixture
 async def engine():
     eng = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    async with eng.begin() as conn:
+        await _delete_test_runs(conn)
     yield eng
+    async with eng.begin() as conn:
+        await _delete_test_runs(conn)
     await eng.dispose()
 
 
@@ -149,7 +153,7 @@ class TestMigration011ClaimBehavior:
         run_id = await _create_run(session)
         future = datetime(2099, 1, 1, tzinfo=UTC)
         store = TeachingPackJobStore(session)
-        await store.enqueue(
+        queued = await store.enqueue(
             RunJobCreate(
                 job_id=f"job-{uuid4()}",
                 run_id=run_id,
@@ -159,6 +163,7 @@ class TestMigration011ClaimBehavior:
                 eligible_at=future,
             ),
         )
+        await _prioritize_job(session, queued.job_id)
         await session.flush()
 
         claimed = await TeachingPackJobStore(session).claim_next(
@@ -168,7 +173,10 @@ class TestMigration011ClaimBehavior:
         )
         await session.commit()
 
-        assert claimed is None, "claim_next must not return a QUEUED job with future eligible_at"
+        persisted = await store.find_by_idempotency_key(queued.idempotency_key)
+        assert persisted is not None
+        assert persisted.status is RunJobStatus.QUEUED
+        assert claimed is None or claimed.job_id != queued.job_id, "claim_next must not return a QUEUED job with future eligible_at"
         await _delete_run(session, run_id)
 
     async def test_claim_next_grabs_eligible_queued_job(
@@ -189,6 +197,7 @@ class TestMigration011ClaimBehavior:
                 eligible_at=past_eligible,
             ),
         )
+        await _prioritize_job(session, queued.job_id)
         await session.flush()
 
         claimed = await TeachingPackJobStore(session).claim_next(
@@ -268,6 +277,21 @@ async def _create_run(session: AsyncSession) -> RunId:
     )
     await session.flush()
     return run_id
+
+
+async def _prioritize_job(session: AsyncSession, job_id: str) -> None:
+    await session.execute(
+        update(RunJob)
+        .where(RunJob.job_id == job_id)
+        .values(created_at=datetime(1900, 1, 1, tzinfo=UTC)),
+    )
+
+
+async def _delete_test_runs(conn) -> None:
+    await conn.execute(delete(Run).where(Run.run_id.like("test-%")))
+    await conn.execute(delete(Run).where(Run.run_id.like("test-mig-%")))
+    await conn.execute(delete(Run).where(Run.run_id.like("null-test-%")))
+    await conn.execute(delete(Run).where(Run.run_id.like("eligible-test-%")))
 
 
 async def _delete_run(

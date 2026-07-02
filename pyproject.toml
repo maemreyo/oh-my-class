@@ -16,7 +16,6 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.51",
     "litellm>=1.89.4",
     "deepeval>=2.0.0",
-    "pyBKT==1.4.1",
 ]
 
 [tool.uv.workspace]
@@ -45,6 +44,7 @@ addopts = ["--import-mode=importlib"]
 markers = [
     "property: adversarial property-style checks for hard invariants",
     "real_llm: live 9Router-backed LLM tests excluded from per-commit fast tier",
+    "e2e: end-to-end scenario tests that may require external services or full runtime setup",
 ]
 
 [tool.ruff]

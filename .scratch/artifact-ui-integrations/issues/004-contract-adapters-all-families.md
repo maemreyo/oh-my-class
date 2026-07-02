@@ -1,5 +1,5 @@
 ---
-title: Contract adapters for all 4 families
+title: Contract adapters for all families + root-cause session
 status: ready-for-agent
 labels: [renderer, contracts, adapters]
 created: 2026-07-02
@@ -27,9 +27,12 @@ Adapters handle:
 - Must handle: teacher scripts, source notes, edge cases, answer rationale (teacher-only)
 
 ### paper-dossier adapter (`adapters/paper-dossier.ts`)
-- Input: lesson plan data (from existing lesson contract)
-- Output: lesson/answer-key template data
+- Input: lesson plan data (from existing lesson contract) OR `RootCauseSessionData` (from `015-root-cause-session-contract.md`)
+- Output: lesson/answer-key/root-cause-session template data
 - Must handle: sidebar navigation, stat grid, objective cards, concept boxes, roleplay scripts
+- **Root-cause session variant:** binds against `RootCauseSessionData` (defined in Issue 015).
+  Transforms `anchorTimeline`, `comparisons`, `generalizationCheckpoints` into template data.
+  Sets `useInteractivity: true` flag for templates that need interactivity.js.
 
 ### transit-route adapter (`adapters/transit-route.ts`)
 - Input: video route data (from existing video route contract)
@@ -40,6 +43,8 @@ Adapters handle:
 - Input: inverse-thinking data (from existing inverse-thinking contract)
 - Output: inverse-thinking template data
 - Must handle: case cards, process strips, evidence blocks, stamps
+- **Frame variant:** adapter maps `input.frame` to `frameVariant: 'detective' | 'neutral'` in output.
+  See `017-investigation-folder-frame-variants.md` for the exact mapping and CSS class contract.
 
 ## Acceptance criteria
 
@@ -58,6 +63,8 @@ Adapters handle:
 - [ ] `packages/renderer/__tests__/artifact-ui/adapters/navy-ticket.test.ts`: student projection excludes `teacher_script_vi`, `source_notes`, `edge_cases`
 - [ ] `packages/renderer/__tests__/artifact-ui/adapters/navy-ticket.test.ts`: HTML-escapes `<script>` in word field → `&lt;script&gt;`
 - [ ] `packages/renderer/__tests__/artifact-ui/adapters/paper-dossier.test.ts`: transforms lesson plan sections into template data shape
+- [ ] `packages/renderer/__tests__/artifact-ui/adapters/paper-dossier.test.ts`: root-cause session variant transforms transcript data with anchor timeline, controlled comparison, generalization checkpoint
+- [ ] `packages/renderer/__tests__/artifact-ui/adapters/paper-dossier.test.ts`: root-cause session variant includes `useInteractivity: true` flag for templates that need interactivity.js
 - [ ] `packages/renderer/__tests__/artifact-ui/adapters/inverse-thinking.test.ts`: student projection excludes `teacher_only.rationale` and `teacher_only.answer_key`
 - [ ] All adapter tests: output matches expected TypeScript interface (compile-time check)
 
@@ -71,3 +78,5 @@ Adapters handle:
 
 - `001-port-css-foundation.md` — contracts must be importable (Zod schemas exist)
 - `003-eta-templates-all-families.md` — adapter output shape must match template expectations (can be developed in parallel if data shape is agreed upfront)
+- `015-root-cause-session-contract.md` — paper-dossier adapter binds against `RootCauseSessionData`
+- `017-investigation-folder-frame-variants.md` — investigation-folder adapter implements `frameVariant` mapping

@@ -70,9 +70,9 @@ Artifact-specific completeness requirement:
 Required quality bar:
 - Emit component JSON only.
 - Do not output raw HTML, CSS, class names, markdown, CDN URLs, or external image URLs.
-- Produce multiple sections/questions/items, not a one-section shell.
-- Keep answer keys in teacher_only sections or answer fields; never leak answers into student-facing content.
-- Support this artifact type without assuming other artifacts exist.
+- multiple sections/questions/items, not a one-section shell; enough for teacher to judge.
+- Keep answer keys in teacher_only or answer fields; never leak answers to students.
+- Do not assume other artifacts exist.
 """
 
 

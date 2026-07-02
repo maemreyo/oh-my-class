@@ -34,6 +34,7 @@ REQUIRE_WIRED: tuple[tuple[str, str], ...] = (
     ("coordinate_artifact_fanout", "packages/agents/teaching_pack/artifact_fanout.py"),
     ("generate_one_artifact", "packages/agents/teaching_pack/generate_one_artifact.py"),
     ("run_vocabulary_batch_orchestrator", "packages/agents/teaching_pack/vocabulary_batch_orchestrator.py"),
+    ("retrieve_grounding", "packages/agents/grounding/retrieval.py"),
     # --- vocabulary-batch capabilities: WIRED in Phase 2 (were Potemkin at audit) ---
     ("gather_cluster_evidence", "packages/agents/sub_agents/researcher/lexical_evidence.py"),
     ("lexical_grounding_profile", "packages/agents/sub_agents/researcher/lexical_grounding.py"),
@@ -49,7 +50,6 @@ REQUIRE_WIRED: tuple[tuple[str, str], ...] = (
 KNOWN_DARK: tuple[tuple[str, str], ...] = (
     # --- topic-decomposition (units) — parked ---
     ("create_parent_run", "services/gateway/unit_run_store.py"),
-    ("retrieve_grounding", "packages/agents/grounding/retrieval.py"),
     ("run_coherence_lint", "packages/agents/quality/unit_coherence.py"),
     # --- resilience / governance / ops — later phases ---
     ("evaluate_model_drift", "packages/agents/config/model_drift.py"),

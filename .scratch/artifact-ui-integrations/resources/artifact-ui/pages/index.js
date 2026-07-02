@@ -59,6 +59,17 @@ const body = `
     </div>
   </section>
 
+  <section class="art-section" style="margin-bottom:0;">
+    <div class="art-section-head">
+      <span class="art-section-eyebrow art-mono">Issue 004 · 005</span>
+      <h2>Root-Cause / Socratic Teaching Primitives</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      ${card("core-primitives.html#10", "cat3", "Component showcase", "7 cấu phần Socratic mới", "Anchor timeline, controlled comparison (n=2/3/4/6), scenario anchor, checkpoint, stress test, metaphor log, mastery marker — xem mục 10.")}
+      ${card("families/root-cause-session.html", "cat1", "paper-dossier", "Root-Cause Session Dossier", "Artifact thật đầu tiên dùng cả 7 cấu phần Issue 004 — buổi dạy Future Perfect vs. Future Perfect Continuous, dựng dưới family Paper Dossier có sẵn.")}
+    </div>
+  </section>
+
 </main>
 ${footer("Implementation handoff index", "Xem docs/component-reference.md và HANDOFF.md để biết chi tiết ánh xạ với acceptance criteria từng issue.")}
 `;

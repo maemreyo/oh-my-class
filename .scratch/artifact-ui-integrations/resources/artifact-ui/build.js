@@ -6,4 +6,5 @@ require("./pages/lesson-path.js");
 require("./pages/exam-key.js");
 require("./pages/video-route.js");
 require("./pages/inverse-thinking.js");
+require("./pages/root-cause-session.js");
 require("./pages/index.js");

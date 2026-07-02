@@ -21,9 +21,12 @@ Visual QA using Playwright to capture screenshots of all rendered artifact UI ou
 - `practice.teacher.html` at 375/768/1280
 - `practice.student.html` at 375/768/1280
 
-### paper-dossier (2 pages × 3 widths = 6 screenshots)
+### paper-dossier (3 pages × 3 widths = 9 screenshots)
 - `lesson.html` at 375/768/1280
-- `answer-key.html` at 375/768/1280
+- `answer-key.html` at 375/768/1280 (default state)
+- `answer-key.html` at 375/768/1280 (revealed state — all answers expanded)
+- `root-cause-session.html` at 375/768/1280 (default state)
+- `root-cause-session.html` at 375/768/1280 (revealed state — checkpoints expanded)
 
 ### transit-route (1 page × 3 widths = 3 screenshots)
 - `video-route.html` at 375/768/1280
@@ -31,12 +34,19 @@ Visual QA using Playwright to capture screenshots of all rendered artifact UI ou
 ### investigation-folder (1 page × 3 widths = 3 screenshots)
 - `inverse-thinking.html` at 375/768/1280
 
-**Total: 24 screenshots**
+### Interactivity state screenshots (5 targeted)
+- `answer-key-mode-toggle-768.png` — bulk reveal/hide action
+- `answer-key-jumpbox-landed-768.png` — jump-to-target landing
+- `answer-key-qgrid-jump-768.png` — question grid shortcut
+- `root-cause-session-revealed-768.png` — generalization checkpoint revealed
+- `exam-key-qgrid-jump-768.png` — question grid shortcut
+
+**Total: 32 screenshots** (24 default + 5 interactivity states + 3 reveal states)
 
 ## Acceptance criteria
 
-- [ ] All 24 screenshots captured and saved to `packages/renderer/__tests__/artifact-ui/qa/screenshots/`
-- [ ] Screenshots are named: `{family}-{kind}-{audience}-{width}px.png`
+- [ ] All 32 screenshots captured and saved to `packages/renderer/__tests__/artifact-ui/qa/screenshots/`
+- [ ] Screenshots are named: `{family}-{kind}-{audience}-{state}-{width}px.png`
 - [ ] No horizontal scroll at any width (content fits viewport)
 - [ ] No text clipping or overflow at 375px
 - [ ] Sidebar collapses to stacked layout at 768px (paper-dossier)
@@ -44,12 +54,16 @@ Visual QA using Playwright to capture screenshots of all rendered artifact UI ou
 - [ ] Print button is visible at 1280px, hidden in print preview
 - [ ] All screenshots show `oh-my-class` brand string
 - [ ] All screenshots show correct `data-artifact-theme` visual identity
+- [ ] Interactivity state screenshots show correct reveal/toggle/jump behavior
+- [ ] Reduced-motion screenshots show `.art-flash` removed but `.art-jump-highlight` preserved
 
 ## Detailed test suite
 
-- [ ] `packages/renderer/__tests__/artifact-ui/visual-qa.spec.ts`: Playwright test captures screenshots at all 3 widths for all 8 pages
+- [ ] `packages/renderer/__tests__/artifact-ui/visual-qa.spec.ts`: Playwright test captures screenshots at all 3 widths for all pages
+- [ ] `packages/renderer/__tests__/artifact-ui/visual-qa.spec.ts`: captures interactivity state screenshots (reveal, mode-toggle, jumpbox)
 - [ ] `packages/renderer/__tests__/artifact-ui/visual-qa.spec.ts`: asserts no horizontal scroll (`document.body.scrollWidth <= viewport.width`)
 - [ ] `packages/renderer/__tests__/artifact-ui/visual-qa.spec.ts`: asserts brand string visible in viewport
+- [ ] `packages/renderer/__tests__/artifact-ui/visual-qa.spec.ts`: asserts reduced-motion behavior (no `.art-flash`, `.art-jump-highlight` preserved)
 
 ## Verification
 

@@ -17,7 +17,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from starlette.testclient import TestClient
 
-from services.gateway.auth.dependencies import require_teacher
+from services.gateway.auth.dependencies import get_current_user_for_status_stream, require_teacher
 from services.gateway.auth.models import Role, User
 from services.gateway.models import Base, Run
 from services.gateway.purge import purge_expired_runs, purge_student_evidence
@@ -66,6 +66,11 @@ def client() -> Iterator[TestClient]:
         await engine.dispose()
 
     app.dependency_overrides[require_teacher] = lambda: User(
+        user_id="teacher-test",
+        username="teacher-test",
+        role=Role.TEACHER,
+    )
+    app.dependency_overrides[get_current_user_for_status_stream] = lambda: User(
         user_id="teacher-test",
         username="teacher-test",
         role=Role.TEACHER,
@@ -321,14 +326,6 @@ async def _skip_if_schema_missing() -> None:
     await engine.dispose()
 
 
-async def _get_session():
-    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
-    async with session_factory() as session:
-        yield session
-    await engine.dispose()
-
-
 async def _create_test_run(run_id: RunId) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -343,7 +340,7 @@ async def _create_test_run(run_id: RunId) -> None:
     await engine.dispose()
 
 
-async def _create_test_run_with_evidence(run_id: RunId, evidence: dict) -> None:
+async def _create_test_run_with_evidence(run_id: RunId, evidence: dict[str, str]) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as session:

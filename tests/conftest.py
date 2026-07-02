@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,6 +31,18 @@ def pytest_configure(config: pytest.Config) -> None:
         "markers",
         "real_llm: live 9Router-backed LLM tests excluded from per-commit fast tier",
     )
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    _ = config
+    if os.getenv("OMC_RUN_REAL_LLM_TESTS", "").casefold() in {"1", "true", "yes", "on"}:
+        return
+    skip_real_llm = pytest.mark.skip(
+        reason="set OMC_RUN_REAL_LLM_TESTS=1 to run live 9Router tests",
+    )
+    for item in items:
+        if "real_llm" in item.keywords:
+            item.add_marker(skip_real_llm)
 
 
 @pytest.fixture

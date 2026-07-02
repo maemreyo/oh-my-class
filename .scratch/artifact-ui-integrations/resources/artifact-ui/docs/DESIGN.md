@@ -284,11 +284,48 @@ Every generated artifact file:
 | Paper Dossier | A multi-page teaching document with a persistent navigation sidebar, OR a scored assessment with an answer key | Lesson plans, multi-week path/roadmap dossiers, exam answer keys, quiz reviews |
 | Transit Route | Content organized as an ordered sequence of timed steps tied to a media source | Video-based listening/viewing routes, any "watch → do → check" sequence |
 | Investigation Folder | An exercise built around elimination/comparison reasoning between distractors | Inverse-thinking / near-synonym discrimination exercises, error-analysis case studies |
+| Paper Dossier | A single-session, continuous-scroll Socratic/root-cause teaching record — no persistent sidebar, no scoring | Root-cause session dossiers (see Issue 005 verdict below) |
 
 If an artifact type doesn't clearly match one row, default to
 **Paper Dossier** (the most general-purpose family) rather than
 inventing a fifth family — see ADR-023 for the process to propose a new
 family when the fit is genuinely poor.
+
+#### Issue 005 verdict: does Paper Dossier fit a root-cause/Socratic session?
+
+**Fits — with one specific strain, not a structural break.** Built as
+`dist/families/root-cause-session.html`, one continuous `.art-shell` (not
+`.art-shell--split`, since a single session has no multi-week sidebar to
+pin), carrying all 7 Issue 004 primitives end to end for the real Future
+Perfect / Future Perfect Continuous transcript. It renders correctly,
+passes the §10.4 standalone-HTML invariants, and nothing in
+`families/paper-dossier.css` conflicts with any Issue 004 primitive — in
+fact `families/paper-dossier.css` never touches `.art-shell`,
+`.art-section`, or `.art-page-head` at all, so those are pure
+`primitives.css` behavior regardless of family.
+
+That last fact is itself the evidence worth naming: **this artifact uses
+none of Paper Dossier's actual distinguishing family components** —
+no `.art-phase-rail` roadmap, no `.art-concept-box`/`.art-triad`, no
+`.art-script` dialogue, no `.art-qgrid` exam grid. What it inherits from
+"Paper Dossier" is really just the token layer (serif display type, warm
+cream palette) plus the family-agnostic shell — the same thing choosing
+any other family's tokens would have given it. The fit here is by
+**default neutrality**, exactly as §10.5's own fallback rule predicts,
+not because Paper Dossier's specific idiom was designed with this content
+shape in mind.
+
+The one concrete strain: `.art-section`'s built-in rhythm
+(`margin-bottom: var(--art-space-16)` in `primitives.css`) is tuned for
+coarse, page-level breaks — a new week's phase, a new exam question, a
+new lesson objective — where each section is a self-contained unit. A
+Socratic session's sections are not self-contained; §02 (the two
+anchor-timelines) is a direct continuation of §01's scenario under Rule
+#11, and the large fixed gap between them reads as a bigger topic change
+than actually occurred. This did not break anything or require a
+workaround for Issue 005 — it is a pacing mismatch worth a follow-up
+(e.g. a `.art-section--tight` modifier for continuous-scroll session
+content), not a reason to open a new-family proposal.
 
 ### 10.6 Diagnostics states
 
@@ -296,3 +333,34 @@ Every generated item resolves to exactly one status —
 `passed` / `needs_review` / `failed` (ADR-021) — and the Artifact UI
 diagnostics panel is the one shared surface for reporting all three, in
 both internal QA tooling and teacher-facing review drafts.
+
+### 10.7 Interactivity layer (Issue 006)
+
+Stateful primitives (§10.2's checkpoint, metaphor-log, and the
+exception/wrinkle composite) and the pre-existing exam-key dense-nav
+(`.art-reveal-btn`, `.art-mode-toggle`, `.art-jumpbox`) are wired by one
+shared vanilla-JS file, `interactivity.js`, inlined via `render.js`'s
+`script` option. It is deliberately generic — three data-*/aria-*
+contracts (reveal/toggle, mode-toggle, jump-to-target), not per-page
+logic — so one file backs every family without knowing which page it's
+running on. Full contract reference: `docs/component-reference.md` §6a.
+
+This is an addition to, not a relaxation of, §6/§7 above:
+
+- Every reveal/toggle/jump control is a native `<button>`/`<input>`
+  (never a `div` click target) and gets the same `:focus-visible` ring
+  as everything else in §7.
+- `prefers-reduced-motion` (§6) removes the reveal-entrance animation
+  and the decorative jump `.art-flash`, but content, the
+  `.art-jump-highlight` outline, scroll-into-view, and focus movement
+  are load-bearing feedback and fire unconditionally regardless of the
+  motion preference.
+- Controls that only make sense on a screen (`.art-reveal-btn`,
+  `.art-mode-toggle`, `.art-jumpbox`, `.art-qgrid`) carry `.art-no-print`
+  per §10.4's print-safety requirement; the content they gate does the
+  opposite and is forced visible under `@media print` so a printed copy
+  never ships with an un-clicked, blank panel.
+- `.art-mastery-marker` stays intentionally un-wired — see
+  `interactivity.js`'s own non-goals comment and
+  `docs/component-reference.md` §6a.
+

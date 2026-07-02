@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 class RecordingTaskGroup:
     scheduled: list[str] = field(default_factory=list)
 
-    def start_soon(self, func: Callable[[TeachingPackStartJob], Awaitable[None]], *args) -> None:
+    def start_soon(self, func: Callable[[TeachingPackStartJob], Awaitable[None]], *_args) -> None:
         self.scheduled.append(func.__name__)
 
 
@@ -129,7 +129,7 @@ class TestTeachingPackExecutor:
 
         assert graph.calls == [(
             {"run_id": "run-1"},
-            {"configurable": {"thread_id": "run-1"}},
+            {"configurable": {"thread_id": "run-1"}, "max_concurrency": 2},
         )]
 
     @pytest.mark.anyio

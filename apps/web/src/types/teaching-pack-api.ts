@@ -15,7 +15,8 @@ export type TeachingPackGateName =
 	| "contract_confirmation"
 	| "search_plan_confirmation"
 	| "blueprint_approval"
-	| "content_approval";
+	| "content_approval"
+	| "unit_approval";
 
 export type TeachingPackGateAction = "answer" | "approve" | "edit" | "reject";
 

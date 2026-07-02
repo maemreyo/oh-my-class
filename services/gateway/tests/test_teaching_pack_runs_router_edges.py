@@ -230,9 +230,29 @@ async def _create_run_with_contract_gate(run_id: RunId, gate_id: str) -> None:
     async with session_factory() as session:
         teacher_id = TeacherId("teacher-route")
         contract_json = {
+            "contract_id": f"contract-{run_id}",
+            "run_id": run_id,
+            "teacher_id": teacher_id,
+            "mode": "generate_pack",
             "topic": "Fractions",
-            "grade_level": "Grade 5",
+            "grade_band": "Grade 5",
+            "subject": "math",
+            "locale": "vi-VN",
+            "instruction_language": "vi",
+            "citation_locale": "vi-VN",
+            "artifact_types": ["lesson"],
+            "export_formats": ["html"],
+            "research_policy": "standard",
+            "config_version": "test",
+            "config_hash": "0" * 64,
             "duration_minutes": 45,
+            "revision_meta": {
+                "revision": 1,
+                "actor": "teacher",
+                "source": "teacher",
+                "reason": "test contract",
+                "effective_stage": "setup_contract",
+            },
         }
         await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
             run_id=run_id,

@@ -14,7 +14,7 @@ from services.gateway.outcome_delivery import SqlAlchemyOutcomeDeliverySink
 from services.gateway.teaching_pack_completion import TeachingPackCompletionRecorder
 from services.gateway.teaching_pack_types import RunId
 
-from .test_teaching_pack_completion import RecordingExportWriter, RecordingFailureStore
+from services.gateway.tests.test_teaching_pack_completion import RecordingExportWriter, RecordingFailureStore
 
 DATABASE_URL = "postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class"
 

@@ -15,7 +15,8 @@ the pipeline logic from transport concerns.
 
 from __future__ import annotations
 
-import hashlib
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -31,13 +32,7 @@ from services.gateway.teaching_pack_control_store import (
     StaleGateResponseError,
 )
 from services.gateway.teaching_pack_models import (
-    GateInterrupt,
-    GateInterruptStatus,
     TeachingPackEventVisibility,
-    RunEvent,
-    RunJob,
-    RunJobKind,
-    RunJobStatus,
 )
 from services.gateway.teaching_pack_store import (
     TeachingPackEventCreate,
@@ -46,8 +41,8 @@ from services.gateway.teaching_pack_store import (
     TeachingPackStatusTransition,
 )
 from services.gateway.teaching_pack_status import validate_status_transition
-from services.gateway.teaching_pack_types import RunId, TeacherId
-from services.gateway.release_evidence import ReleaseEvidence, generate_evidence
+from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
+from services.gateway.release_evidence import generate_evidence
 from services.gateway.release_evidence_store import (
     get_evidence,
     list_evidence,
@@ -417,7 +412,7 @@ class TestExport:
         await create_test_run(session, run_id=run_id, teacher_id=teacher_id)
 
         store = TeachingPackRunStore(session)
-        content_json = {"title": "Equivalent Fractions Worksheet"}
+        content_json: JsonObject = {"title": "Equivalent Fractions Worksheet"}
         rendered_html = "<!DOCTYPE html><html><body>worksheet</body></html>"
 
         from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate
@@ -465,8 +460,9 @@ class TestExport:
 
         from services.gateway.teaching_pack_snapshot_store import snapshot_content_hash
         for i in range(3):
+            content_json: JsonObject = {"title": f"Artifact {i}"}
             assert await store.has_snapshot(snapshot_content_hash(
-                {"title": f"Artifact {i}"},
+                content_json,
                 f"<!DOCTYPE html><html><body>artifact {i}</body></html>",
             ))
 
@@ -576,15 +572,17 @@ class TestReleaseEvidenceGeneration:
 
     async def test_list_evidence_returns_newest_first(self, session: AsyncSession, teacher_id: TeacherId) -> None:
         """list_evidence should return records ordered by created_at descending."""
-        from datetime import UTC, datetime, timedelta
-
+        prefix = uuid4().hex
+        base_time = datetime(2099, 1, 1, tzinfo=UTC)
+        ids: list[RunId] = []
         for i in range(3):
-            rid = RunId(f"run-list-{i}")
+            rid = RunId(f"run-list-{prefix}-{i}")
+            ids.append(rid)
             await create_test_run(session, run_id=rid, teacher_id=teacher_id)
             ev = await generate_evidence(rid, session)
-            await save_evidence(ev, session)
+            await save_evidence(replace(ev, created_at=base_time + timedelta(seconds=i)), session)
         await session.flush()
 
-        items = await list_evidence(session, limit=50)
+        items = await list_evidence(session, limit=3)
         run_ids = [e.run_id for e in items]
-        assert {"run-list-0", "run-list-1", "run-list-2"}.issubset(set(run_ids))
+        assert run_ids == list(reversed(ids))

@@ -10,7 +10,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from starlette.testclient import TestClient
 
-from services.gateway.auth.dependencies import require_teacher
+from services.gateway.auth.dependencies import get_current_user_for_status_stream, require_teacher
 from services.gateway.auth.models import Role, User
 from services.gateway.models import Base, Run
 from services.gateway.routers.teaching_pack_runs import router
@@ -45,6 +45,11 @@ def other_teacher_client() -> Iterator[TestClient]:
         await engine.dispose()
 
     app.dependency_overrides[require_teacher] = lambda: User(
+        user_id="teacher-other",
+        username="teacher-other",
+        role=Role.TEACHER,
+    )
+    app.dependency_overrides[get_current_user_for_status_stream] = lambda: User(
         user_id="teacher-other",
         username="teacher-other",
         role=Role.TEACHER,

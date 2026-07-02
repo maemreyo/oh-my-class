@@ -23,6 +23,8 @@ This issue consolidates test files created by issues 001-007 into a coherent, co
 - Each family token file overrides contract tokens
 - No `--color-*` references in Artifact UI CSS (namespace isolation)
 - All `art-*` classes are prefixed correctly
+- `primitives.css` contains all 7 new primitives (art-anchor-timeline, art-controlled-comparison, art-scenario-anchor, art-generalization-checkpoint, art-stress-test, art-metaphor-log, art-mastery-marker)
+- Interactivity CSS states exist (art-reveal-target, art-jump-highlight, art-flash, art-reveal-in)
 
 ### 2. Standalone HTML Tests (`standalone-html.test.ts`)
 - Every rendered output starts with `<!DOCTYPE html>`
@@ -34,6 +36,8 @@ This issue consolidates test files created by issues 001-007 into a coherent, co
 - No rendered output contains `<link rel="stylesheet">`
 - No rendered output contains `<script src="http`
 - No rendered output contains `@import url(http`
+- Templates with interactivity contain `<script>` block with interactivity.js
+- Interactivity.js content contains no `eval(`
 
 ### 3. Teacher/Student Projection Safety Tests (`projection-safety.test.ts`)
 - Navy-ticket teacher teaching contains `art-projection-flag`
@@ -53,6 +57,26 @@ This issue consolidates test files created by issues 001-007 into a coherent, co
 - All rendered output contains `@media print` rules
 - Print rules hide `.art-print-btn` and `.art-no-print`
 - Print rules set `background: white` on `.art-root`
+- Print rules force `.art-reveal-target[hidden]` to `display: revert` (answer panels visible on paper)
+
+### 6. Interactivity Contract Tests (`interactivity.test.ts`)
+- Contract 1 (reveal/toggle): `data-toggle-reveal` button flips `hidden` on target and `aria-expanded` on button
+- Contract 1: `data-hide-after-reveal` hides button after reveal (one-way)
+- Contract 1: `data-collapsed-label`/`data-expanded-label` swap button text
+- Contract 2 (mode toggle): `data-mode-toggle` reveals/hides all group members
+- Contract 2: `aria-checked` stays in sync with group state
+- Contract 3 (jump-to-target): `data-jump-to` scrolls to target and adds `art-jump-highlight`
+- Contract 3: `prefers-reduced-motion` removes `.art-flash` but keeps `.art-jump-highlight`
+- All interactive elements are keyboard-reachable (native `<button>`/`<input>`)
+
+### 7. New Primitive Tests (`new-primitives.test.ts`)
+- Anchor timeline renders SVG with axis, anchor point, and events
+- Controlled comparison renders constant band + variant columns
+- Scenario anchor renders vivid scenario opener
+- Generalization checkpoint renders learner claim + verdict
+- Stress test renders broken example + why it breaks
+- Metaphor log renders landed attempt + collapsed earlier attempts
+- Mastery marker renders static chip (not interactive)
 
 ## Acceptance criteria
 

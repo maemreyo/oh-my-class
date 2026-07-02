@@ -29,7 +29,7 @@ def update_knowledge_tracing(attempts: list[StudentAttempt]) -> list[KTUpdate]:
 
 
 def _update_one(student: str, kc_id: str, attempts: list[StudentAttempt]) -> KTUpdate:
-    mastery = _pybkt_mastery(attempts)
+    mastery = _bayesian_mastery(attempts)
     aligned = all(attempt.alignment_verified for attempt in attempts)
     confidence = "high" if len(attempts) >= MIN_SUFFICIENT_ATTEMPTS and aligned else "low"
     return KTUpdate(
@@ -44,7 +44,7 @@ def _update_one(student: str, kc_id: str, attempts: list[StudentAttempt]) -> KTU
                 "slip": _SLIP,
                 "guess": _GUESS,
                 "attempts": float(len(attempts)),
-                "pybkt_used": 1.0,
+                "local_bayesian_ema_used": 1.0,
                 "alignment_verified": 1.0 if aligned else 0.0,
             },
             updated_at=datetime.now(UTC),
@@ -53,8 +53,7 @@ def _update_one(student: str, kc_id: str, attempts: list[StudentAttempt]) -> KTU
     )
 
 
-def _pybkt_mastery(attempts: list[StudentAttempt]) -> float:
-    _load_pybkt_model()
+def _bayesian_mastery(attempts: list[StudentAttempt]) -> float:
     mastery = _PRIOR
     for attempt in sorted(attempts, key=lambda row: row.timestamp):
         mastery = _posterior_after_observation(mastery, attempt.correct)
@@ -70,22 +69,3 @@ def _posterior_after_observation(prior_mastery: float, correct: bool) -> float:
         total = evidence + (1.0 - prior_mastery) * (1.0 - _GUESS)
     observed = evidence / total if total else prior_mastery
     return observed + (1.0 - observed) * _LEARN
-
-
-def _load_pybkt_model() -> type:
-    _patch_pybkt_sklearn_metric_bootstrap()
-    from pyBKT.models import Model
-
-    return Model
-
-
-def _patch_pybkt_sklearn_metric_bootstrap() -> None:
-    import sklearn.metrics._classification as classification_metrics
-
-    for metric_name in ("_log_loss", "d2_log_loss_score"):
-        if hasattr(classification_metrics, metric_name):
-            setattr(
-                classification_metrics,
-                metric_name,
-                lambda _y_true, _y_pred, *_args, **_kwargs: 0.0,
-            )

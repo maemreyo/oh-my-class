@@ -22,6 +22,12 @@ function read(relPath) {
 const CONTRACT_CSS = read("tokens/contract.css");
 const PRIMITIVES_CSS = read("primitives.css");
 
+// Issue 006 — shared vanilla-JS interactivity layer. Read once here
+// (same pattern as the CSS constants above) so every page that needs
+// it just passes `script: INTERACTIVITY_JS` to renderPage() instead of
+// each page file re-reading the file itself.
+const INTERACTIVITY_JS = read("interactivity.js");
+
 const FAMILY_TOKENS = {
   "navy-ticket": read("tokens/navy-ticket.css"),
   "paper-dossier": read("tokens/paper-dossier.css"),
@@ -120,7 +126,7 @@ function renderMultiThemePage(opts) {
   const switcherButtons = families
     .map(
       (f) =>
-        `<button type="button" class="art-theme-switch-btn${f === defaultFamily ? " art-active" : ""}" data-theme="${f}">${f}</button>`
+        `<button type="button" class="art-theme-switch-btn${f === defaultFamily ? " art-active" : ""}" data-theme="${f}">${f}</button>`,
     )
     .join("\n");
 
@@ -184,4 +190,4 @@ function writeFile(relOutPath, html) {
   return outPath;
 }
 
-module.exports = { renderPage, renderMultiThemePage, writeFile, ROOT };
+module.exports = { renderPage, renderMultiThemePage, writeFile, ROOT, INTERACTIVITY_JS };

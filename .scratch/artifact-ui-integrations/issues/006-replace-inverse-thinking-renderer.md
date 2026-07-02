@@ -30,7 +30,7 @@ This is a clean replacement — the old file is deleted after parity is verified
 - Old inline CSS (`styles()` function) is deleted
 - Old manual HTML generation is deleted
 - Public API signature remains identical (backward-compatible)
-- Detective/neutral frame support moves to adapter or template variant
+- Detective/neutral frame support is implemented via template conditional (see `017-investigation-folder-frame-variants.md`): single template, adapter sets `frameVariant: 'detective' | 'neutral'`, CSS modifier classes `art-folder-cover--detective` / `art-folder-cover--neutral`
 
 ## Acceptance criteria
 
@@ -39,7 +39,7 @@ This is a clean replacement — the old file is deleted after parity is verified
 - [ ] Teacher projection contains `art-projection-flag` and `art-teacher-block` markers
 - [ ] Student projection contains zero `art-teacher-block` or `art-projection-flag` elements
 - [ ] Student projection excludes `teacher_only.rationale` and `teacher_only.answer_key`
-- [ ] Detective/neutral frame support is preserved (either via template variant or adapter flag)
+- [ ] Detective/neutral frame support is preserved: detective input → `art-folder-cover--detective`, neutral input → `art-folder-cover--neutral` (per Issue 017)
 - [ ] All output is standalone HTML (no external assets, brand string present)
 - [ ] Existing callers continue to work without changes
 - [ ] Old `styles()` function and inline CSS are removed
@@ -66,3 +66,4 @@ This is a clean replacement — the old file is deleted after parity is verified
 - `003-eta-templates-all-families.md` — investigation-folder templates must exist
 - `004-contract-adapters-all-families.md` — investigation-folder adapter must exist
 - `007-public-api-render-artifact-ui.md` — renderArtifactUi() must exist
+- `017-investigation-folder-frame-variants.md` — frame variant spec must be read before implementing

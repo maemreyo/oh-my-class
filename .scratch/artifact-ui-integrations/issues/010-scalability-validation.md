@@ -26,10 +26,13 @@ And NO changes to: loader, renderer, existing families, existing tests.
 - [ ] Checklist includes: folder structure, CSS file requirements, template requirements, adapter requirements, registry entry format
 - [ ] Checklist includes: testing requirements (CSS contract tests, standalone HTML tests, visual QA)
 - [ ] Checklist includes: common pitfalls (namespace collisions, missing contract fields, student projection leakage)
+- [ ] Checklist explicitly states: **no sanitizer config is needed for a new family** — `sanitizeArtifactUi()` uses a single shared `ARTIFACT_UI_CONFIG` (Issue 014). Adding a family is exactly 4 artifacts: CSS (tokens + family), Eta templates, adapter, registry entry.
+- [ ] Checklist explicitly states: **`ArtifactDataMap` is NOT modified** when adding a new family — family types are render-layer concepts, not schema-layer types (see Issue 014 design note).
 - [ ] Example: document how "science-lab" family would be added (hypothetical, not implemented)
 - [ ] ADR-024 §8 (Scalability) is referenced in the docs
 - [ ] Docs include the family registry interface (`ArtifactFamily`) with field descriptions
 - [ ] Docs include the CSS loading order (contract → family tokens → primitives → family components)
+- [ ] Docs note that `loadArtifactCSS()` is memoized (Issue 016) — no performance concern for batch renders
 
 ## Detailed test suite
 

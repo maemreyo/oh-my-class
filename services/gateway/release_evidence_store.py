@@ -46,7 +46,7 @@ async def list_evidence(
     """List recent evidence records, newest first."""
     statement = (
         select(ReleaseEvidenceRecord)
-        .order_by(ReleaseEvidenceRecord.created_at.desc())
+        .order_by(ReleaseEvidenceRecord.created_at.desc().nullslast())
         .limit(limit)
     )
     result = await db.execute(statement)

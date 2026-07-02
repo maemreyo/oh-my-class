@@ -69,8 +69,12 @@ async def session() -> AsyncIterator[AsyncSession]:
         if "public.run_jobs" not in existing_tables:
             pytest.skip("Teaching Pack run_jobs table is not present")
     async with session_factory() as database_session:
+        await _delete_test_runs(database_session)
+        await database_session.commit()
         yield database_session
         await database_session.rollback()
+        await _delete_test_runs(database_session)
+        await database_session.commit()
     await engine.dispose()
 
 
@@ -117,6 +121,13 @@ async def _cleanup_run(session: AsyncSession, run_id: RunId) -> None:
     await session.execute(delete(GateInterrupt).where(GateInterrupt.run_id == run_id))
     await session.execute(delete(Run).where(Run.run_id == run_id))
     await session.commit()
+
+
+async def _delete_test_runs(session: AsyncSession) -> None:
+    await session.execute(delete(Run).where(Run.run_id.like("test-%")))
+    await session.execute(delete(Run).where(Run.run_id.like("test-mig-%")))
+    await session.execute(delete(Run).where(Run.run_id.like("null-test-%")))
+    await session.execute(delete(Run).where(Run.run_id.like("eligible-test-%")))
 
 
 # ===========================================================================
