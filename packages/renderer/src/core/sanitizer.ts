@@ -3,9 +3,13 @@ import type { IOptions } from "sanitize-html";
 
 import { BASE_CONFIG } from "../sanitizer/base-config.js";
 import { ANSWER_KEY_CONFIG } from "../sanitizer/configs/answer_key.js";
+import { EXIT_TICKET_CONFIG } from "../sanitizer/configs/exit_ticket.js";
+import { FLASHCARD_DECK_CONFIG } from "../sanitizer/configs/flashcard_deck.js";
 import { INFOGRAPHIC_CONFIG } from "../sanitizer/configs/infographic.js";
 import { LESSON_CONFIG } from "../sanitizer/configs/lesson.js";
 import { QUIZ_CONFIG } from "../sanitizer/configs/quiz.js";
+import { READING_PASSAGE_CONFIG } from "../sanitizer/configs/reading_passage.js";
+import { ROADMAP_CONFIG } from "../sanitizer/configs/roadmap.js";
 import type { SanitizerPolicy } from "./types.js";
 
 type FullDocumentParts = {
@@ -29,6 +33,14 @@ function configFor(policy: SanitizerPolicy): IOptions {
       return LESSON_CONFIG;
     case "answer_key":
       return ANSWER_KEY_CONFIG;
+    case "flashcard_deck":
+      return FLASHCARD_DECK_CONFIG;
+    case "reading_passage":
+      return READING_PASSAGE_CONFIG;
+    case "exit_ticket":
+      return EXIT_TICKET_CONFIG;
+    case "roadmap":
+      return ROADMAP_CONFIG;
   }
 }
 

@@ -1,0 +1,618 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`missing contract artifact plugins > renders exit_ticket standalone HTML with a manifest > exit-ticket-student-preview 1`] = `
+"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fraction Exit Ticket — oh-my-class</title>
+  <style>
+    :root {
+      --color-bg: #FBF4F0;
+      --color-bg-card: #FFFFFF;
+      --color-bg-deep: #F3E2D9;
+      --color-text: #22273A;
+      --color-text-soft: #5C6275;
+      --color-text-faint: #8B8FA0;
+      --color-border: #E8D8CD;
+      --color-border-soft: #EFE3DA;
+      --color-accent: #B23A2E;
+      --color-accent-deep: #8C2C22;
+      --color-accent-tint: rgba(178,58,46,0.07);
+      --color-success: #2E6F4E;
+      --color-warning: #A8782E;
+      --color-error: #B23A2E;
+      --color-category-a: #33508F;
+      --color-category-a-tint: rgba(51,80,143,0.08);
+      --color-category-b: #B9762A;
+      --color-category-b-tint: rgba(185,118,42,0.09);
+      --color-category-c: #3C7A4E;
+      --color-category-c-tint: rgba(60,122,78,0.08);
+      --color-category-d: #1F7A8C;
+      --color-category-d-tint: rgba(31,122,140,0.08);
+      --color-category-e: #8A4F7E;
+      --color-category-e-tint: rgba(138,79,126,0.08);
+      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace;    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+      margin: 0;
+      padding: 0;
+      background: var(--color-bg, #fafafa);
+      color: var(--color-text, #1a1a2e);
+      line-height: 1.65;
+    }
+
+    .omc-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 2px solid var(--color-border, #e2e8f0);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    .omc-header .brand { font-weight: 700; color: var(--color-accent, #b23a2e); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .omc-header .title { font-size: 1.35rem; font-weight: 600; margin: 0; flex: 1; }
+    .omc-header .meta { color: var(--color-text-soft, #5c6275); font-size: 0.875rem; white-space: nowrap; }
+
+    main { padding: 0 1.5rem 2rem; max-width: 900px; margin: 0 auto; }
+
+    .timed-quiz-summary {
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-bg-card, #fff);
+      color: var(--color-text, #1a1a2e);
+    }
+    .time-badge {
+      display: inline-block;
+      margin: 0.5rem 0;
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.875rem;
+      color: var(--color-text-soft, #5c6275);
+      background: var(--color-bg, #fafafa);
+    }
+
+    .omc-footer {
+      margin-top: 2rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--color-border, #e2e8f0);
+      color: var(--color-text-faint, #8b8fa0);
+      font-size: 0.8rem;
+    }
+
+    /* WCAG 2.2 AA — ensure focused/targeted elements are not obscured by sticky header */
+    :target, :focus { scroll-margin-top: 4rem; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+      .omc-footer { border-top: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body class="artifact artifact--exit_ticket">
+  <header class="omc-header">
+    <span class="brand">oh-my-class</span>
+    <h1 class="title">Fraction Exit Ticket</h1>
+        <div class="meta">
+      <span class="subject">Math</span>       ·       <span class="grade">Grade 5</span>    </div>
+      </header>
+
+  <main id="main-content">
+    <section class="exit-ticket-page"><div class="exit-ticket-header"><h2 class="exit-ticket-title">Vé Ra Lớp</h2><div class="exit-ticket-student"><span id="exit-ticket-student-name-label">Họ tên:</span> <span class="blank-line" role="textbox" aria-labelledby="exit-ticket-student-name-label"></span></div></div><ol class="exit-ticket-questions"><li class="exit-ticket-question"><p class="question-prompt"><span class="question-number" aria-hidden="true">1.</span> 1/2 = __/4</p><div class="answer-line"></div></li><li class="exit-ticket-question"><p class="question-prompt"><span class="question-number" aria-hidden="true">2.</span> How confident are you?</p><div class="rating-scale" role="radiogroup" aria-label="Rating 1-5"><label class="rating-option"><input type="radio" name="et-et2" value="1" /><span>1</span></label><label class="rating-option"><input type="radio" name="et-et2" value="2" /><span>2</span></label><label class="rating-option"><input type="radio" name="et-et2" value="3" /><span>3</span></label><label class="rating-option"><input type="radio" name="et-et2" value="4" /><span>4</span></label><label class="rating-option"><input type="radio" name="et-et2" value="5" /><span>5</span></label></div></li><li class="exit-ticket-question"><p class="question-prompt"><span class="question-number" aria-hidden="true">3.</span> Pick an equivalent fraction.</p><div class="options-grid" role="radiogroup"><label class="option"><input type="radio" name="et-et3" value="A" /><span class="option-label" aria-hidden="true">A</span><span class="option-text">2/4</span></label><label class="option"><input type="radio" name="et-et3" value="B" /><span class="option-label" aria-hidden="true">B</span><span class="option-text">2/5</span></label></div></li></ol><footer class="exit-ticket-footer no-print"><span>Hoàn thành trước khi ra về</span></footer></section>  </main>
+
+  <footer class="omc-footer">
+    <span>Generated by oh-my-class</span>
+  </footer>
+</body>
+</html>
+"
+`;
+
+exports[`missing contract artifact plugins > renders flashcard_deck standalone HTML with a manifest > flashcard-deck-student-preview 1`] = `
+"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fraction Flashcards — oh-my-class</title>
+  <style>
+    :root {
+      --color-bg: #FBF4F0;
+      --color-bg-card: #FFFFFF;
+      --color-bg-deep: #F3E2D9;
+      --color-text: #22273A;
+      --color-text-soft: #5C6275;
+      --color-text-faint: #8B8FA0;
+      --color-border: #E8D8CD;
+      --color-border-soft: #EFE3DA;
+      --color-accent: #B23A2E;
+      --color-accent-deep: #8C2C22;
+      --color-accent-tint: rgba(178,58,46,0.07);
+      --color-success: #2E6F4E;
+      --color-warning: #A8782E;
+      --color-error: #B23A2E;
+      --color-category-a: #33508F;
+      --color-category-a-tint: rgba(51,80,143,0.08);
+      --color-category-b: #B9762A;
+      --color-category-b-tint: rgba(185,118,42,0.09);
+      --color-category-c: #3C7A4E;
+      --color-category-c-tint: rgba(60,122,78,0.08);
+      --color-category-d: #1F7A8C;
+      --color-category-d-tint: rgba(31,122,140,0.08);
+      --color-category-e: #8A4F7E;
+      --color-category-e-tint: rgba(138,79,126,0.08);
+      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace;    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+      margin: 0;
+      padding: 0;
+      background: var(--color-bg, #fafafa);
+      color: var(--color-text, #1a1a2e);
+      line-height: 1.65;
+    }
+
+    .omc-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 2px solid var(--color-border, #e2e8f0);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    .omc-header .brand { font-weight: 700; color: var(--color-accent, #b23a2e); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .omc-header .title { font-size: 1.35rem; font-weight: 600; margin: 0; flex: 1; }
+    .omc-header .meta { color: var(--color-text-soft, #5c6275); font-size: 0.875rem; white-space: nowrap; }
+
+    main { padding: 0 1.5rem 2rem; max-width: 900px; margin: 0 auto; }
+
+    .timed-quiz-summary {
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-bg-card, #fff);
+      color: var(--color-text, #1a1a2e);
+    }
+    .time-badge {
+      display: inline-block;
+      margin: 0.5rem 0;
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.875rem;
+      color: var(--color-text-soft, #5c6275);
+      background: var(--color-bg, #fafafa);
+    }
+
+    .omc-footer {
+      margin-top: 2rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--color-border, #e2e8f0);
+      color: var(--color-text-faint, #8b8fa0);
+      font-size: 0.8rem;
+    }
+
+    /* WCAG 2.2 AA — ensure focused/targeted elements are not obscured by sticky header */
+    :target, :focus { scroll-margin-top: 4rem; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+      .omc-footer { border-top: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body class="artifact artifact--flashcard_deck">
+  <header class="omc-header">
+    <span class="brand">oh-my-class</span>
+    <h1 class="title">Fraction Flashcards</h1>
+        <div class="meta">
+      <span class="subject">Math</span>       ·       <span class="grade">Grade 5</span>    </div>
+      </header>
+
+  <main id="main-content">
+    <section class="flashcard-deck" aria-label="Flashcard deck: Fraction Flashcards"><div class="deck-progress"><span aria-live="polite" id="card-counter">1 / 2</span></div><div class="deck-container" role="list"><article class="flashcard flashcard--active" role="listitem" aria-label="Card 1: Equivalent"><button class="flashcard__inner" aria-label="Flip card to see back"><div class="flashcard__front"><span class="flashcard__term">Equivalent</span><span class="flashcard__hint">Think same amount</span></div><div class="flashcard__back" aria-hidden="true"><span class="flashcard__definition">Equal in value</span></div></button></article><article class="flashcard" role="listitem" aria-label="Card 2: 1/2"><button class="flashcard__inner" aria-label="Flip card to see back"><div class="flashcard__front"><span class="flashcard__term">1/2</span></div><div class="flashcard__back" aria-hidden="true"><span class="flashcard__definition">2/4</span></div></button></article></div><nav class="deck-nav no-print" aria-label="Card navigation"><button id="btn-prev" aria-label="Previous card">← Trước</button><button id="btn-next" aria-label="Next card">Tiếp →</button></nav></section>  </main>
+
+  <footer class="omc-footer">
+    <span>Generated by oh-my-class</span>
+  </footer>
+</body>
+</html>
+"
+`;
+
+exports[`missing contract artifact plugins > renders reading_passage without answer leakage > reading-passage-student-preview 1`] = `
+"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Garden Fractions — oh-my-class</title>
+  <style>
+    :root {
+      --color-bg: #FBF4F0;
+      --color-bg-card: #FFFFFF;
+      --color-bg-deep: #F3E2D9;
+      --color-text: #22273A;
+      --color-text-soft: #5C6275;
+      --color-text-faint: #8B8FA0;
+      --color-border: #E8D8CD;
+      --color-border-soft: #EFE3DA;
+      --color-accent: #B23A2E;
+      --color-accent-deep: #8C2C22;
+      --color-accent-tint: rgba(178,58,46,0.07);
+      --color-success: #2E6F4E;
+      --color-warning: #A8782E;
+      --color-error: #B23A2E;
+      --color-category-a: #33508F;
+      --color-category-a-tint: rgba(51,80,143,0.08);
+      --color-category-b: #B9762A;
+      --color-category-b-tint: rgba(185,118,42,0.09);
+      --color-category-c: #3C7A4E;
+      --color-category-c-tint: rgba(60,122,78,0.08);
+      --color-category-d: #1F7A8C;
+      --color-category-d-tint: rgba(31,122,140,0.08);
+      --color-category-e: #8A4F7E;
+      --color-category-e-tint: rgba(138,79,126,0.08);
+      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace;    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+      margin: 0;
+      padding: 0;
+      background: var(--color-bg, #fafafa);
+      color: var(--color-text, #1a1a2e);
+      line-height: 1.65;
+    }
+
+    .omc-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 2px solid var(--color-border, #e2e8f0);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    .omc-header .brand { font-weight: 700; color: var(--color-accent, #b23a2e); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .omc-header .title { font-size: 1.35rem; font-weight: 600; margin: 0; flex: 1; }
+    .omc-header .meta { color: var(--color-text-soft, #5c6275); font-size: 0.875rem; white-space: nowrap; }
+
+    main { padding: 0 1.5rem 2rem; max-width: 900px; margin: 0 auto; }
+
+    .timed-quiz-summary {
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-bg-card, #fff);
+      color: var(--color-text, #1a1a2e);
+    }
+    .time-badge {
+      display: inline-block;
+      margin: 0.5rem 0;
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.875rem;
+      color: var(--color-text-soft, #5c6275);
+      background: var(--color-bg, #fafafa);
+    }
+
+    .omc-footer {
+      margin-top: 2rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--color-border, #e2e8f0);
+      color: var(--color-text-faint, #8b8fa0);
+      font-size: 0.8rem;
+    }
+
+    /* WCAG 2.2 AA — ensure focused/targeted elements are not obscured by sticky header */
+    :target, :focus { scroll-margin-top: 4rem; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+      .omc-footer { border-top: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body class="artifact artifact--reading_passage">
+  <header class="omc-header">
+    <span class="brand">oh-my-class</span>
+    <h1 class="title">Garden Fractions</h1>
+        <div class="meta">
+      <span class="subject">Math</span>       ·       <span class="grade">Grade 5</span>    </div>
+      </header>
+
+  <main id="main-content">
+    <section class="reading-passage-page"><div class="passage-block" role="article" aria-label="Reading passage"><div class="passage-text"><p class="passage-paragraph"><span class="paragraph-number" aria-label="Paragraph 1">[1]</span> Mina planted half of a garden with beans.</p><p class="passage-paragraph"><span class="paragraph-number" aria-label="Paragraph 2">[2]</span> Later, she noticed two fourths of the garden were beans too.</p></div></div><div class="passage-questions"><h2 class="questions-heading">Câu hỏi</h2><ol class="question-list" aria-label="Comprehension questions"><li class="question-item"><article class="component-passage-q" id="pq-rp1"><p class="question-prompt"><span class="question-number" aria-hidden="true">1.</span> What fraction matched one half?</p><div class="answer-lines"><div class="answer-line"></div><div class="answer-line"></div></div></article></li><li class="question-item"><article class="component-passage-q" id="pq-rp2"><p class="question-prompt"><span class="question-number" aria-hidden="true">2.</span> Choose the equivalent fraction.</p><div class="options-grid" role="radiogroup"><label class="option"><input type="radio" name="pq-rp2" value="A" /><span class="option-label" aria-hidden="true">A</span><span class="option-text">2/4</span></label><label class="option"><input type="radio" name="pq-rp2" value="B" /><span class="option-label" aria-hidden="true">B</span><span class="option-text">3/5</span></label></div></article></li></ol></div></section>  </main>
+
+  <footer class="omc-footer">
+    <span>Generated by oh-my-class</span>
+  </footer>
+</body>
+</html>
+"
+`;
+
+exports[`missing contract artifact plugins > renders roadmap standalone HTML with a manifest > roadmap-student-preview 1`] = `
+"<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fraction Roadmap — oh-my-class</title>
+<style>
+/* === Theme CSS === */
+:root { --color-bg: #FBF4F0;
+      --color-bg-card: #FFFFFF;
+      --color-bg-deep: #F3E2D9;
+      --color-text: #22273A;
+      --color-text-soft: #5C6275;
+      --color-text-faint: #8B8FA0;
+      --color-border: #E8D8CD;
+      --color-border-soft: #EFE3DA;
+      --color-accent: #B23A2E;
+      --color-accent-deep: #8C2C22;
+      --color-accent-tint: rgba(178,58,46,0.07);
+      --color-success: #2E6F4E;
+      --color-warning: #A8782E;
+      --color-error: #B23A2E;
+      --color-category-a: #33508F;
+      --color-category-a-tint: rgba(51,80,143,0.08);
+      --color-category-b: #B9762A;
+      --color-category-b-tint: rgba(185,118,42,0.09);
+      --color-category-c: #3C7A4E;
+      --color-category-c-tint: rgba(60,122,78,0.08);
+      --color-category-d: #1F7A8C;
+      --color-category-d-tint: rgba(31,122,140,0.08);
+      --color-category-e: #8A4F7E;
+      --color-category-e-tint: rgba(138,79,126,0.08);
+      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace; }
+
+/* === Group color aliases === */
+:root {
+  --c-a: var(--color-category-a, #33508F); --c-a-tint: var(--color-category-a-tint, rgba(51,80,143,0.08));
+  --c-b: var(--color-category-b, #B9762A); --c-b-tint: var(--color-category-b-tint, rgba(185,118,42,0.09));
+  --c-c: var(--color-category-c, #3C7A4E); --c-c-tint: var(--color-category-c-tint, rgba(60,122,78,0.08));
+  --c-d: var(--color-category-d, #1F7A8C); --c-d-tint: var(--color-category-d-tint, rgba(31,122,140,0.08));
+  --c-e: var(--color-category-e, #8A4F7E); --c-e-tint: var(--color-category-e-tint, rgba(138,79,126,0.08));
+  --paper: var(--color-bg, #FBF4F0); --card: var(--color-bg-card, #FFFFFF);
+  --ink: var(--color-text, #22273A); --ink-soft: var(--color-text-soft, #5C6275);
+  --ink-faint: var(--color-text-faint, #8B8FA0); --line: var(--color-border, #E8D8CD);
+  --line-soft: var(--color-border-soft, #EFE3DA); --red: var(--color-accent, #B23A2E);
+  --red-deep: var(--color-accent-deep, #8C2C22); --red-tint: var(--color-accent-tint, rgba(178,58,46,0.07));
+  --gold: var(--color-warning, #A8782E); --gold-tint: rgba(168,120,46,0.09);
+  --green: var(--color-success, #2E6F4E); --green-tint: rgba(46,111,78,0.08);
+  --radius: 12px; --shadow: 0 1px 2px rgba(40,20,10,0.04), 0 8px 24px -16px rgba(40,20,10,0.25);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body, system-ui, -apple-system, 'Segoe UI', sans-serif); line-height: 1.65; font-size: 15.5px; }
+h1,h2,h3,h4 { font-family: var(--font-heading, Georgia, serif); margin: 0; color: var(--ink); font-weight: 700; }
+p { margin: 0 0 10px; } ul { margin: 0; padding-left: 20px; } li { margin-bottom: 5px; }
+
+/* Layout */
+.shell { display: flex; max-width: 1320px; margin: 0 auto; min-height: 100vh; }
+.sidebar { width: 264px; flex-shrink: 0; position: sticky; top: 0; align-self: flex-start; height: 100vh; overflow-y: auto; padding: 26px 18px 40px 26px; border-right: 1px solid var(--line); }
+.main { flex: 1; min-width: 0; padding: 38px 46px 110px; }
+
+/* Sidebar */
+.side-title { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 16px; line-height: 1.3; margin-bottom: 4px; }
+.side-sub { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 20px; }
+.side-nav { display: flex; flex-direction: column; gap: 2px; margin-bottom: 22px; }
+.side-nav a { display: flex; align-items: baseline; gap: 8px; padding: 7px 9px; border-radius: 7px; font-size: 13px; color: var(--ink); border-left: 3px solid transparent; text-decoration: none; }
+.side-nav a:hover { background: var(--card); }
+.side-stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+.side-stat .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 3px; }
+.side-stat .v { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 19px; color: var(--ink); }
+.legend { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--line); }
+.lt2 { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-faint); margin-bottom: 8px; font-weight: 700; }
+.legend-row { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-soft); margin-bottom: 5px; }
+
+/* Hero */
+.hero { margin-bottom: 38px; position: relative; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--red-deep); font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.hero h1 { font-size: 29px; line-height: 1.28; max-width: 700px; }
+.hero .lede { max-width: 660px; color: var(--ink-soft); font-size: 15px; margin-top: 12px; }
+.stamp { position: absolute; top: 18px; right: 46px; width: 104px; height: 104px; border: 2.5px solid var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; transform: rotate(-9deg); opacity: .88; font-weight: 700; color: var(--green); font-size: 11.5px; line-height: 1.3; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; max-width: 880px; }
+.stat-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+.stat-card .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 6px; }
+.stat-card .v { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 22px; line-height: 1.2; }
+.stat-card.target .v { color: var(--green); }
+.stat-card.now .v { color: var(--red-deep); }
+
+/* Sections */
+.section { margin-bottom: 50px; }
+.section-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+.section-head h2 { font-size: 21px; }
+.section-head .sub { font-size: 12px; color: var(--ink-faint); font-style: italic; }
+.section-head .tag-num { margin-left: auto; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; color: #fff; background: var(--ink); }
+.section-intro { font-size: 14px; color: var(--ink-soft); margin-bottom: 18px; max-width: 820px; }
+
+/* Table */
+.tbl-wrap { overflow-x: auto; margin-bottom: 18px; }
+table.dtable { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); font-size: 13.4px; }
+table.dtable th { background: var(--ink); color: #fff; text-align: left; padding: 9px 13px; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; font-weight: 600; }
+table.dtable td { padding: 9px 13px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+table.dtable tr:last-child td { border-bottom: none; }
+
+/* Stat grid component */
+.comp-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+.comp-stat-grid .stat-card--target .stat-v { color: var(--green); }
+.comp-stat-grid .stat-card--now .stat-v { color: var(--red-deep); }
+.stat-k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 6px; }
+.stat-v { font-family: var(--font-heading, Georgia, serif); font-weight: 700; font-size: 22px; }
+
+/* Pattern grid */
+.comp-pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.pattern-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; gap: 12px; box-shadow: var(--shadow); border-left-width: 4px; }
+.pc-id { font-weight: 700; font-size: 12px; color: #fff; padding: 3px 8px; border-radius: 5px; flex-shrink: 0; height: fit-content; }
+.pc-title { display: block; font-size: 14px; margin-bottom: 4px; color: var(--ink); }
+.pc-desc { font-size: 13.5px; color: var(--ink-soft); margin: 0; }
+
+/* Trait grid */
+.comp-trait-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.trait-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; gap: 12px; box-shadow: var(--shadow); }
+.trait-icon { font-size: 22px; flex-shrink: 0; }
+.trait-title { display: block; font-size: 14px; margin-bottom: 4px; font-weight: 600; }
+.trait-text { font-size: 13.5px; color: var(--ink-soft); margin: 0; }
+
+/* Taxonomy grid */
+.comp-taxonomy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.taxonomy-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; gap: 12px; box-shadow: var(--shadow); }
+.tax-icon { font-size: 22px; flex-shrink: 0; }
+.tax-title { display: block; font-size: 14px; margin-bottom: 4px; font-weight: 600; }
+.tax-body-text { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 4px; }
+.tax-example { font-size: 12.5px; color: var(--ink-faint); margin: 0; }
+
+/* Phase timeline */
+.comp-phase-timeline { display: flex; flex-direction: column; gap: 0; margin: 16px 0; position: relative; }
+.comp-phase-timeline::before { content: ''; position: absolute; left: 11px; top: 22px; bottom: 22px; width: 2px; background: var(--line); }
+.phase-item { display: flex; gap: 20px; padding: 0 0 28px; position: relative; }
+.phase-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; box-shadow: 0 0 0 4px var(--paper); z-index: 1; }
+.phase-card { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; box-shadow: var(--shadow); }
+.phase-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.phase-title { font-size: 16px; font-weight: 700; }
+.phase-when { font-size: 12px; color: var(--ink-faint); padding: 2px 8px; border-radius: 5px; background: var(--card); border: 1px solid var(--line); }
+.phase-goal { font-size: 14px; color: var(--ink-soft); margin-bottom: 12px; }
+.phase-blocks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.phase-block--full { grid-column: 1 / -1; }
+.block-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; color: var(--ink-faint); display: block; margin-bottom: 4px; }
+.block-text { font-size: 13.5px; color: var(--ink-soft); margin: 0; }
+.block-items { margin: 4px 0 0; padding-left: 16px; }
+.block-items li { font-size: 13.5px; color: var(--ink-soft); }
+.phase-output { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 13.5px; }
+.phase-output-label { font-weight: 700; color: var(--green); margin-right: 8px; }
+
+/* Flow step */
+.comp-flow-step { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+.flow-item { display: flex; gap: 14px; align-items: flex-start; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.flow-time { font-weight: 700; font-size: 12px; color: var(--ink-faint); flex-shrink: 0; padding: 3px 8px; background: var(--line-soft); border-radius: 5px; white-space: nowrap; }
+.flow-title { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.flow-text { font-size: 13.5px; color: var(--ink-soft); margin: 0; }
+
+/* Callout / Alert */
+.comp-callout { border-left: 4px solid var(--gold); background: var(--card); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.comp-callout .callout-title { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--gold); }
+.comp-callout--tip { border-left-color: var(--green); }
+.comp-callout--warning, .comp-callout--alert { border-left-color: var(--red); }
+.comp-alert { border-left: 4px solid var(--gold); background: var(--gold-tint, rgba(168,120,46,0.09)); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.comp-alert .alert-title { display: block; font-weight: 700; margin-bottom: 4px; }
+.comp-alert--error, .comp-alert--warning { border-left-color: var(--red); background: var(--red-tint); }
+.comp-alert--success { border-left-color: var(--green); background: var(--green-tint, rgba(46,111,78,0.08)); }
+
+/* Headings */
+.comp-heading--1 { font-size: 26px; margin: 24px 0 12px; }
+.comp-heading--2 { font-size: 20px; margin: 20px 0 10px; }
+.comp-heading--3 { font-size: 16px; margin: 16px 0 8px; }
+.comp-heading--4 { font-size: 14px; margin: 12px 0 6px; }
+
+/* Group colors */
+.g-a { border-left-color: var(--c-a); } .g-a .pc-id { background: var(--c-a); }
+.g-b { border-left-color: var(--c-b); } .g-b .pc-id { background: var(--c-b); }
+.g-c { border-left-color: var(--c-c); } .g-c .pc-id { background: var(--c-c); }
+.g-d { border-left-color: var(--c-d); } .g-d .pc-id { background: var(--c-d); }
+.g-e { border-left-color: var(--c-e); } .g-e .pc-id { background: var(--c-e); }
+
+@media (max-width: 880px) {
+  .shell { flex-direction: column; }
+  .sidebar { position: static; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); padding: 18px; }
+  .main { padding: 28px 20px 80px; }
+  .hero .stamp { display: none; }
+  .stat-grid, .comp-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .comp-pattern-grid, .comp-trait-grid, .comp-taxonomy-grid { grid-template-columns: 1fr; }
+  .phase-blocks { grid-template-columns: 1fr; }
+}
+@media print {
+  .sidebar, .no-print { display: none; }
+  .shell { display: block; }
+  .main { padding: 0; }
+  body { background: white; color: black; }
+  .phase-item { page-break-inside: avoid; }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1a1a2e; --card: #252540; --ink: #e8e8f0;
+    --ink-soft: #9999bb; --ink-faint: #666688;
+    --line: #333355; --line-soft: #2a2a48;
+  }
+}
+</style>
+</head>
+<body class="artifact artifact--roadmap">
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Roadmap navigation">
+    <div class="side-title">Roadmap</div>
+    <div class="side-sub">Grade 5 Math</div>
+        <div class="side-stat">
+      <div class="k">Steps</div>
+      <div class="v">3</div>
+    </div>
+    
+        <nav class="side-nav" aria-label="Sections">
+            
+        <span></span>
+        <span>Phase 1</span>
+      
+          </nav>
+    
+        <div class="legend">
+      <div class="lt2">Chú thích</div>
+            <div class="legend-row">
+        <span></span>
+        <span>Core</span>
+      </div>
+          </div>
+      </aside>
+
+  <main class="main" id="main-content">
+    <div class="hero">
+      <div class="eyebrow">Personal path</div>      <h1>Master equivalent fractions</h1>
+      <p class="lede">Move from visual models to symbolic reasoning.</p>      <div class="stamp" aria-hidden="true">READY</div>            <div class="stat-grid">
+                <div class="stat-card target">
+          <div class="k">Target</div>
+          <div class="v">Apply</div>
+        </div>
+              </div>
+          </div>
+
+        <div class="section" id="phase-1">
+      <div class="section-head">
+        <h2>Build visual meaning</h2>
+        <span class="sub">Concrete models</span>        <span class="tag-num">01</span>      </div>
+            <div class="comp-callout comp-callout--tip" role="note">
+  <strong class="callout-title">Focus</strong>  <div class="callout-body">Use equal wholes.</div>
+</div>
+          </div>
+    
+    <footer>
+      <span>Generated by oh-my-class</span>
+    </footer>
+  </main>
+</div>
+
+</body>
+</html>
+"
+`;

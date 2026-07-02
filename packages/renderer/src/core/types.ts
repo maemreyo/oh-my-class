@@ -68,7 +68,7 @@ export type ArtifactKindCapabilities = {
 
 export type SanitizerPolicy = {
   readonly version: string;
-  readonly config?: "base" | "quiz" | "infographic" | "lesson" | "answer_key";
+  readonly config?: "base" | "quiz" | "infographic" | "lesson" | "answer_key" | "flashcard_deck" | "reading_passage" | "exit_ticket" | "roadmap";
 };
 
 export type ManagedScriptDeclaration = {
