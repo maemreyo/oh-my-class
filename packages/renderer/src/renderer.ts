@@ -15,6 +15,36 @@ import { sanitize } from "./sanitizer/index.js";
 
 export type { ArtifactDataMap, ArtifactType } from "./contracts/index.js";
 export {
+  PluginRegistry,
+  RendererError,
+  RendererErrorCategory,
+  RendererErrorCode,
+  createPluginRegistry,
+  render,
+  renderBatch,
+  rendererPluginMetadata,
+} from "./core/index.js";
+export type {
+  ArtifactKindCapabilities,
+  ArtifactKindPlugin,
+  AudiencePolicy,
+  PluginMetadata,
+  RenderAssetPolicy,
+  RenderAudience,
+  RenderBatchRequest,
+  RenderContext,
+  RenderDiagnostic,
+  RenderLocale,
+  RenderManifest,
+  RenderMetrics,
+  RenderMode,
+  RenderRequest,
+  RenderResponse,
+  RenderServices,
+  RenderVersionContext,
+  SanitizerPolicy,
+} from "./core/index.js";
+export {
   renderSemanticAnchorProjection,
   renderSemanticAnchorProjectionSet,
 } from "./semantic-anchor-projections.js";
