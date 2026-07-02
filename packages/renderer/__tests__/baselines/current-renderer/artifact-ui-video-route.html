@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="vi" data-artifact-theme="transit-route">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airport Listening Route — Video Route</title>
+  <style>/*
+  ARTIFACT UI — TOKEN CONTRACT
+  ADR-023 §4 · Issue 001 AC2
+
+  This file is the semantic contract every Artifact UI "family" token file
+  must implement. Core primitives (primitives.css) and specialized family
+  components (families/*.css) are written ONLY against these custom
+  properties — never against a family's raw hex values directly. That is
+  what lets one artifact swap its entire visual language by changing a
+  single `data-artifact-theme` attribute.
+
+  Tier 1 — PRIMITIVES  : raw values, declared per family (tokens/<family>.css)
+  Tier 2 — SEMANTIC     : meaning-carrying tokens declared below, mapped to
+                           primitives by each family file
+  Tier 3 — COMPONENT    : scoped tokens declared in primitives.css / families/*.css,
+                           derived from Tier 2
+
+  Mirrors the three-tier model already used for product UI (DESIGN.md §8,
+  AGENTS.md §8.3), applied to the Artifact UI layer instead.
+
+  Neutral fallback values are defined here so a primitive never renders
+  fully unstyled if a family file fails to load — but every shipped
+  artifact must set data-artifact-theme to one of:
+    navy-ticket | paper-dossier | transit-route | investigation-folder
+*/
+
+:root,
+[data-artifact-theme] {
+  /* ---------------------------------------------------------------- */
+  /* SHARED SCALES — identical across every family, not re-themed     */
+  /* ---------------------------------------------------------------- */
+  --art-space-1: 4px;
+  --art-space-2: 8px;
+  --art-space-3: 12px;
+  --art-space-4: 16px;
+  --art-space-5: 20px;
+  --art-space-6: 24px;
+  --art-space-8: 32px;
+  --art-space-10: 40px;
+  --art-space-12: 48px;
+  --art-space-16: 64px;
+  --art-space-20: 80px;
+
+  --art-text-eyebrow: 11.5px;
+  --art-text-caption: 12.5px;
+  --art-text-sm: 13.5px;
+  --art-text-body: 15.5px;
+  --art-text-lg: 17.5px;
+  --art-text-h3: 20px;
+  --art-text-h2: clamp(22px, 3.4vw, 27px);
+  --art-text-h1: clamp(28px, 5vw, 42px);
+  --art-text-display: clamp(38px, 8vw, 84px);
+
+  --art-radius-sm: 6px;
+  --art-radius-md: 10px;
+  --art-radius-lg: 14px;
+  --art-radius-pill: 999px;
+
+  --art-motion-micro: 150ms ease-out;
+  --art-motion-standard: 220ms ease-in-out;
+  --art-motion-emphasis: 420ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  --art-max-width: 900px;
+  --art-max-width-wide: 1160px;
+
+  /*
+    Font-family ROLE tokens. Per AGENTS.md §8.4 ("System font stack only —
+    zero weight"), Artifact UI does not load or embed webfonts, even though
+    the reference templates do. Typographic character is carried instead by
+    weight, tracking, case, and the display/body/mono ROLE split below —
+    see docs/component-reference.md "Typography without webfonts" for the
+    reasoning per family.
+  */
+  --art-font-display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --art-font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --art-font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code",
+    "IBM Plex Mono", monospace;
+
+  /* ---------------------------------------------------------------- */
+  /* SEMANTIC TOKENS — every family below must set all of these       */
+  /* ---------------------------------------------------------------- */
+
+  /* Page-level surface: the artifact shell itself */
+  --art-bg: #f3efe6;
+  --art-bg-deep: #e9e2d1;
+  --art-on-bg-ink: #24211a;
+  --art-on-bg-ink-soft: #5a5445;
+  --art-on-bg-muted: #8b8574;
+
+  /* Cover / hero block — usually a distinct band, not the page bg */
+  --art-cover-bg: var(--art-bg-deep);
+  --art-cover-ink: var(--art-on-bg-ink);
+  --art-cover-ink-soft: var(--art-on-bg-ink-soft);
+
+  /* Card-level surface: content sits on light paper/card in all 4 families */
+  --art-surface: #ffffff;
+  --art-surface-muted: #f1ede1;
+  --art-ink: #24211a;
+  --art-ink-soft: #5a5445;
+  --art-ink-faint: #8b8574;
+
+  --art-border: #ddd5c1;
+  --art-border-soft: #ece6d7;
+  --art-border-strong: rgba(36, 33, 26, 0.3);
+
+  /* Primary + secondary accent (family signature colors) */
+  --art-accent: #4f46e5;
+  --art-accent-ink: #ffffff;
+  --art-accent-2: #a8782e;
+  --art-accent-2-tint: rgba(168, 120, 46, 0.1);
+
+  /* Status semantics — shared meaning across every family */
+  --art-positive: #2e6f4e;
+  --art-positive-tint: rgba(46, 111, 78, 0.09);
+  --art-caution: #a8782e;
+  --art-caution-tint: rgba(168, 120, 46, 0.12);
+  --art-critical: #b23a2e;
+  --art-critical-tint: rgba(178, 58, 46, 0.09);
+
+  /* Extended categorical palette — for components that group by topic/
+     station/section rather than by status (route stops, question groups,
+     phrasal-verb clusters). 6 slots is enough for every template studied. */
+  --art-cat-1: #33508f;
+  --art-cat-1-tint: rgba(51, 80, 143, 0.08);
+  --art-cat-2: #b9762a;
+  --art-cat-2-tint: rgba(185, 118, 42, 0.09);
+  --art-cat-3: #3c7a4e;
+  --art-cat-3-tint: rgba(60, 122, 78, 0.08);
+  --art-cat-4: #1f7a8c;
+  --art-cat-4-tint: rgba(31, 122, 140, 0.08);
+  --art-cat-5: #8a4f7e;
+  --art-cat-5-tint: rgba(138, 79, 126, 0.08);
+  --art-cat-6: #6b5ca0;
+  --art-cat-6-tint: rgba(107, 92, 160, 0.08);
+
+  --art-shadow-card: 0 1px 2px rgba(20, 15, 10, 0.05),
+    0 8px 24px -16px rgba(20, 15, 10, 0.28);
+  --art-shadow-pop: 0 14px 34px rgba(20, 15, 10, 0.28);
+
+  color-scheme: light;
+}
+
+/* Teacher-only visual marker tokens (see primitives.css .art-projection-flag).
+   Kept in the shared tier because the meaning — "this region does not ship
+   to students" — must look consistent no matter which family theme is
+   active. Never used to hide content with CSS; the student build omits
+   this DOM entirely (ADR-022 §3). */
+:root,
+[data-artifact-theme] {
+  --art-teacher-flag-bg: #241c12;
+  --art-teacher-flag-ink: #f0e4c8;
+  --art-teacher-flag-accent: #c98a3e;
+}
+
+
+/*
+  ARTIFACT UI — FAMILY: transit-route
+  Source: docs/templates/learning-via-video-template.html
+  Used by: video learning route family (Issue 003)
+
+  7-stop categorical palette drives the route line, matching the source
+  template's GA01..GA07 station colors one-to-one.
+*/
+
+[data-artifact-theme="transit-route"] {
+  /* Tier 1 — primitives */
+  --tr-ink: #182329;
+  --tr-ink-soft: #535d66;
+  --tr-paper: #f7f7f3;
+  --tr-card: #ffffff;
+  --tr-line-track: #dbdcd4;
+  --tr-c1: #d98e2b; /* Khởi động */
+  --tr-c2: #2c7a75; /* Nghe lần 1 */
+  --tr-c3: #bd4f3b; /* Nghe lần 2 */
+  --tr-c4: #6b5ca0; /* Từ vựng */
+  --tr-c5: #3568a8; /* Viết */
+  --tr-c6: #1e8f6f; /* Nói */
+  --tr-c7: #182329; /* Tự đánh giá */
+
+  /* Tier 2 — semantic mapping */
+  --art-bg: var(--tr-paper);
+  --art-bg-deep: #eeece4;
+  --art-on-bg-ink: var(--tr-ink);
+  --art-on-bg-ink-soft: var(--tr-ink-soft);
+  --art-on-bg-muted: var(--tr-ink-soft);
+
+  --art-cover-bg: var(--tr-ink);
+  --art-cover-ink: var(--tr-paper);
+  --art-cover-ink-soft: #c7ccce;
+
+  --art-surface: var(--tr-card);
+  --art-surface-muted: #f1f1ec;
+  --art-ink: var(--tr-ink);
+  --art-ink-soft: var(--tr-ink-soft);
+  --art-ink-faint: #838d94;
+
+  --art-border: var(--tr-line-track);
+  --art-border-soft: #e7e6de;
+  --art-border-strong: var(--tr-ink-soft);
+
+  --art-accent: var(--tr-c5);
+  --art-accent-ink: #ffffff;
+  --art-accent-2: var(--tr-c1);
+  --art-accent-2-tint: rgba(217, 142, 43, 0.12);
+
+  --art-positive: var(--tr-c6);
+  --art-positive-tint: rgba(30, 143, 111, 0.1);
+  --art-caution: var(--tr-c1);
+  --art-caution-tint: rgba(217, 142, 43, 0.14);
+  --art-critical: var(--tr-c3);
+  --art-critical-tint: rgba(189, 79, 59, 0.1);
+
+  --art-cat-1: var(--tr-c1);
+  --art-cat-1-tint: rgba(217, 142, 43, 0.12);
+  --art-cat-2: var(--tr-c2);
+  --art-cat-2-tint: rgba(44, 122, 117, 0.12);
+  --art-cat-3: var(--tr-c3);
+  --art-cat-3-tint: rgba(189, 79, 59, 0.12);
+  --art-cat-4: var(--tr-c4);
+  --art-cat-4-tint: rgba(107, 92, 160, 0.12);
+  --art-cat-5: var(--tr-c5);
+  --art-cat-5-tint: rgba(53, 104, 168, 0.12);
+  --art-cat-6: var(--tr-c6);
+  --art-cat-6-tint: rgba(30, 143, 111, 0.12);
+
+  --art-shadow-card: 0 1px 2px rgba(20, 25, 25, 0.05),
+    0 10px 26px -16px rgba(20, 25, 25, 0.3);
+  --art-shadow-pop: 0 16px 34px -10px rgba(20, 25, 25, 0.38);
+
+  /* Typography role: grotesk-forward, tight tracking on station codes.
+     Source pairs Space Grotesk + Inter; both are grotesk sans so the
+     shared system-sans role stack already reads close in character —
+     see component-reference.md. */
+
+  color-scheme: light;
+}
+
+
+/*
+  ARTIFACT UI — CORE PRIMITIVES
+  ADR-023 §2 · Issue 001
+
+  Every rule in this file reads ONLY from the semantic/component token
+  contract in tokens/contract.css. No family-specific hex value, font
+  name, or template-specific selector belongs here — that is what keeps
+  these primitives reusable across all four visual families (and any
+  future family) without a rewrite. Swapping `data-artifact-theme` on the
+  root element is the only thing that should change how these look.
+
+  Load order for any generated artifact page:
+    1. tokens/contract.css
+    2. tokens/<family>.css
+    3. primitives.css   (this file)
+    4. families/<family>.css   (family-specific components, if any)
+  All four get inlined into one <style> block at render time — see
+  build.js — to satisfy the standalone HTML invariant (AGENTS.md §8.4).
+
+  Issue 004 added 7 new family-agnostic primitives for root-cause /
+  Socratic teaching content (anchor-timeline, controlled-comparison,
+  scenario-anchor, generalization-checkpoint, stress-test, metaphor-log,
+  mastery-marker) — see the "ROOT-CAUSE / SOCRATIC TEACHING PRIMITIVES"
+  section near the end of this file. Issue 006 added the JS-facing hooks
+  (toggle-reveal, aria-controls, [hidden] overrides) that make the
+  stateful ones in that section actually change state — see interactivity.js.
+
+  Issue 006 also relocated `.art-reveal-btn` here from
+  families/paper-dossier.css: nothing in its declaration reads a
+  family-specific value (it was always written against semantic tokens
+  only), and Issue 004's `.art-generalization-checkpoint` needs the same
+  reveal-button look on families other than paper-dossier. Moving it
+  keeps one reveal-button primitive instead of two near-duplicates.
+*/
+
+/* ============================================================ */
+/* Reset + base                                                   */
+/* ============================================================ */
+.art-root,
+.art-root * {
+  box-sizing: border-box;
+}
+.art-root {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-root {
+    scroll-behavior: auto;
+  }
+}
+
+.art-root {
+  margin: 0;
+  background: var(--art-bg);
+  color: var(--art-on-bg-ink);
+  font-family: var(--art-font-body);
+  font-size: var(--art-text-body);
+  line-height: 1.65;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+.art-root,
+.art-root * {
+  overflow-wrap: break-word;
+}
+.art-mono,
+.art-root code {
+  overflow-wrap: anywhere;
+}
+.art-root h1,
+.art-root h2,
+.art-root h3,
+.art-root h4 {
+  font-family: var(--art-font-display);
+  margin: 0;
+  font-weight: 700;
+  color: inherit;
+}
+.art-root p {
+  margin: 0 0 10px;
+}
+.art-root ul,
+.art-root ol {
+  margin: 0;
+  padding-left: 20px;
+}
+.art-root li {
+  margin-bottom: 5px;
+}
+.art-root a {
+  color: var(--art-accent-2);
+  text-decoration: none;
+}
+.art-mono {
+  font-family: var(--art-font-mono);
+}
+
+.art-root a:focus-visible,
+.art-root button:focus-visible,
+.art-root [tabindex]:focus-visible {
+  outline: 3px solid var(--art-accent);
+  outline-offset: 2px;
+}
+
+/*
+  [hidden] safety net — Issue 006.
+  The browser's UA stylesheet sets `[hidden]{display:none}`, but several
+  primitives in this file declare their own `display` (flex/grid/block)
+  at author-stylesheet level, which wins over the UA rule regardless of
+  specificity. `.art-reveal-target` is the shared marker class every
+  element interactivity.js toggles via the `hidden` attribute carries
+  (see that file's contract 1 doc comment) — add it to a new toggleable
+  primitive instead of hand-listing selectors here.
+*/
+.art-reveal-target[hidden] {
+  display: none;
+}
+@media print {
+  /* §10.4 "remains legible when printed" applies to revealed content
+     too — a printed Teacher Edition with every answer panel blank
+     because nobody clicked "Xem đáp án" first would be a real
+     regression, not just a screen-only nicety. `revert` (not a fixed
+     `display: block`) so each primitive falls back to its OWN
+     flex/grid rule instead of one guessed value for all of them. */
+  .art-reveal-target[hidden] {
+    display: revert !important;
+  }
+}
+
+/*
+  Reveal-enter transition — Issue 006.
+  CSS animations restart automatically the moment an element goes from
+  display:none back to displayed, so reacting to `:not([hidden])` here
+  is enough to replay this on every reveal — interactivity.js does not
+  need to add/remove an animation class itself.
+*/
+.art-reveal-target:not([hidden]) {
+  animation: art-reveal-in var(--art-motion-standard) both;
+}
+@keyframes art-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-reveal-target:not([hidden]) {
+    animation: none;
+  }
+}
+
+/*
+  Jump-highlight — Issue 006, contract 3 (jump-to-target navigation).
+  A plain, non-animated outline marking where a jump just landed. This
+  is the load-bearing feedback interactivity.js applies unconditionally
+  on every jump — see that file's contract 3 doc comment. `.art-flash`
+  (families/paper-dossier.css) is a decorative animation layered on top
+  of this, skipped under prefers-reduced-motion; this outline is not,
+  so reduced-motion users still get a clear "you landed here" signal.
+  Family-agnostic on purpose: any family's dense-nav / jumpbox reuses
+  the same contract, not just paper-dossier's exam-key.
+*/
+.art-jump-highlight {
+  outline: 3px solid var(--art-accent);
+  outline-offset: 3px;
+  border-radius: var(--art-radius-md);
+}
+
+/* ============================================================ */
+/* Shell — print-safe page scaffold                               */
+/* ============================================================ */
+.art-shell {
+  max-width: var(--art-max-width);
+  margin: 0 auto;
+  padding: var(--art-space-10) var(--art-space-5) var(--art-space-16);
+  position: relative;
+}
+.art-shell--wide {
+  max-width: var(--art-max-width-wide);
+}
+
+/* Two-column shell: sticky sidebar + main content, used by dossier-style
+   families. Falls back to a stacked layout under 880px. */
+.art-shell--split {
+  max-width: var(--art-max-width-wide);
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  min-height: 100vh;
+}
+.art-shell-aside {
+  width: 264px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: var(--art-space-6) var(--art-space-4) var(--art-space-10) var(--art-space-6);
+  border-right: 1px solid var(--art-border);
+}
+.art-shell-main {
+  flex: 1;
+  min-width: 0;
+  padding: var(--art-space-8) var(--art-space-10) calc(var(--art-space-16) + var(--art-space-6));
+}
+@media (max-width: 880px) {
+  .art-shell--split {
+    flex-direction: column;
+  }
+  .art-shell-aside {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--art-border);
+    padding: var(--art-space-4);
+  }
+  .art-shell-main {
+    padding: var(--art-space-6) var(--art-space-4) var(--art-space-16);
+  }
+}
+
+.art-print-btn {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 50;
+  background: var(--art-surface);
+  color: var(--art-ink);
+  border: 1px solid var(--art-border);
+  border-radius: var(--art-radius-pill);
+  padding: 10px 18px;
+  font-family: var(--art-font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: var(--art-shadow-pop);
+}
+.art-print-btn:hover {
+  background: var(--art-surface-muted);
+}
+
+@media print {
+  .art-print-btn,
+  .art-no-print {
+    display: none !important;
+  }
+  .art-root {
+    background: white;
+  }
+  .art-card,
+  .art-manifest,
+  .art-stat-card {
+    box-shadow: none !important;
+  }
+  .art-avoid-break {
+    break-inside: avoid;
+  }
+  .art-page-break {
+    break-before: page;
+  }
+}
+
+/* ============================================================ */
+/* Cover / hero block                                             */
+/* ============================================================ */
+.art-cover {
+  background: var(--art-cover-bg);
+  color: var(--art-cover-ink);
+  padding: var(--art-space-16) var(--art-space-6) var(--art-space-12);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.art-cover-eyebrow {
+  font-family: var(--art-font-mono);
+  font-size: var(--art-text-eyebrow);
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--art-accent);
+  margin: 0 0 var(--art-space-4);
+}
+.art-cover h1 {
+  font-size: var(--art-text-display);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 0.98;
+}
+.art-cover-sub {
+  font-family: var(--art-font-mono);
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--art-cover-ink-soft);
+  margin: var(--art-space-2) 0 var(--art-space-6);
+}
+.art-cover-copy {
+  max-width: 560px;
+  margin: 0 auto var(--art-space-6);
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--art-cover-ink-soft);
+}
+.art-cover-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--art-space-2);
+}
+.art-pill {
+  font-family: var(--art-font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--art-border-strong);
+  color: inherit;
+  padding: 8px 14px;
+  border-radius: var(--art-radius-pill);
+}
+
+/* Compact, non-hero page header used for practice/answer-key/diagnostics
+   pages that don't need a full expressive hero. */
+.art-page-head {
+  margin-bottom: var(--art-space-8);
+}
+.art-page-head .art-cover-eyebrow {
+  color: var(--art-accent);
+}
+.art-page-head h1 {
+  font-size: var(--art-text-h1);
+  line-height: 1.24;
+  max-width: 700px;
+}
+.art-page-head .art-lede {
+  max-width: 660px;
+  color: var(--art-on-bg-ink-soft);
+  font-size: 15px;
+  margin-top: var(--art-space-3);
+}
+
+/* ============================================================ */
+/* Sidebar / route navigation                                     */
+/* ============================================================ */
+.art-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--art-space-4);
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--art-on-bg-ink-soft);
+}
+.art-nav-brand .art-nav-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--art-accent);
+  color: var(--art-accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+.art-nav-title {
+  font-family: var(--art-font-display);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.art-nav-sub {
+  font-size: 12.5px;
+  color: var(--art-on-bg-ink-soft);
+  margin-bottom: var(--art-space-4);
+}
+
+.art-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: var(--art-space-4) 0;
+}
+.art-nav-list a {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  font-size: 12.8px;
+  color: var(--art-on-bg-ink);
+  border-left: 3px solid transparent;
+}
+.art-nav-list a:hover {
+  background: var(--art-surface);
+}
+.art-nav-list a.is-active {
+  border-left-color: var(--art-accent);
+  background: var(--art-surface);
+  font-weight: 600;
+}
+.art-nav-list .art-nn {
+  font-family: var(--art-font-mono);
+  font-size: 10.5px;
+  color: var(--art-ink-faint);
+  flex-shrink: 0;
+}
+
+/* Route-style horizontal nav (transit-route family, but usable anywhere) */
+.art-route-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: var(--art-space-3) 0;
+  border-bottom: 1px solid var(--art-border);
+}
+.art-route-nav .art-stop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  color: var(--art-on-bg-ink-soft);
+  white-space: nowrap;
+}
+.art-route-nav .art-stop .art-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.art-route-nav .art-stop.is-active {
+  color: var(--art-accent);
+  font-weight: 700;
+}
+.art-route-nav .art-track {
+  flex: 1;
+  height: 2px;
+  background: var(--art-border);
+  min-width: 24px;
+}
+
+/* ============================================================ */
+/* Section header + rhythm                                        */
+/* ============================================================ */
+.art-section {
+  margin-bottom: var(--art-space-16);
+}
+.art-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--art-space-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--art-space-4);
+  margin-bottom: var(--art-space-6);
+  border-bottom: 2px solid var(--art-border);
+}
+.art-section-eyebrow {
+  font-family: var(--art-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  padding: 5px 10px;
+  border-radius: 4px;
+  background: var(--art-accent);
+  color: var(--art-accent-ink);
+  text-transform: uppercase;
+}
+.art-section-head h2 {
+  font-size: var(--art-text-h2);
+  letter-spacing: -0.01em;
+}
+.art-section-sub {
+  width: 100%;
+  font-size: 14.5px;
+  color: var(--art-on-bg-ink-soft);
+  margin-top: 2px;
+}
+.art-section-head .art-time-chip {
+  margin-left: auto;
+  font-family: var(--art-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--art-accent-ink);
+  background: var(--art-on-bg-ink);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* ============================================================ */
+/* Stat card + metadata chips                                     */
+/* ============================================================ */
+.art-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--art-space-3);
+}
+@media (max-width: 820px) {
+  .art-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.art-stat-card {
+  background: var(--art-surface);
+  border: 1px solid var(--art-border);
+  border-radius: var(--art-radius-md);
+  padding: var(--art-space-3) var(--art-space-4);
+  box-shadow: var(--art-shadow-card);
+}
+.art-stat-card .art-k {
+  font-family: var(--art-font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--art-ink-faint);
+  margin-bottom: 5px;
+}
+.art-stat-card .art-v {
+  font-family: var(--art-font-display);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--art-ink);
+}
+.art-stat-card .art-v small {
+  font-family: var(--art-font-body);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--art-ink-soft);
+}
+
+.art-chip {
+  font-family: var(--art-font-mono);
+  font-size: 11.5px;
+  background: var(--art-surface);
+  border: 1px solid var(--art-border);
+  border-radius: var(--art-radius-pill);
+  padding: 4px 11px;
+  color: var(--art-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.art-chiplist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* ============================================================ */
+/* Callout / note box                                             */
+/* ============================================================ */
+.art-callout {
+  display: flex;
+  gap: var(--art-space-3);
+  align-items: flex-start;
+  background: var(--art-surface);
+  border: 1px solid var(--art-border);
+  border-left: 4px solid var(--art-accent-2);
+  border-radius: var(--art-radius-md);
+  padding: var(--art-space-3) var(--art-space-4);
+  font-size: var(--art-text-sm);
+  line-height: 1.6;
+  color: var(--art-ink-soft);
+}
+.art-callout b {
+  color: var(--art-ink);
+}
+.art-callout .art-glyph {
+  font-family: var(--art-font-mono);
+  color: var(--art-accent-2);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Dashed variant, for usage notes sitting directly on the page bg */
+.art-callout--dashed {
+  background: transparent;
+  border: 1px dashed var(--art-border-strong);
+  color: var(--art-on-bg-ink-soft);
+}
+
+/* ============================================================ */
+/* Content card with accent rail                                  */
+/* ============================================================ */
+.art-card {
+  background: var(--art-surface);
+  border: 1px solid var(--art-border);
+  border-radius: var(--art-radius-md);
+  padding: var(--art-space-4) var(--art-space-5);
+  box-shadow: var(--art-shadow-card);
+  margin-bottom: var(--art-space-3);
+}
+.art-card--rail {
+  border-left: 4px solid var(--card-accent, var(--art-accent-2));
+}
+.art-card-title {
+  font-family: var(--art-font-display);
+  font-weight: 700;
+  font-size: 15.5px;
+  margin-bottom: 3px;
+  color: var(--art-ink);
+}
+.art-card-meta {
+  font-size: 12px;
+  color: var(--art-accent);
+  font-family: var(--art-font-mono);
+  margin-bottom: var(--art-space-2);
+  display: block;
+}
+
+/* ============================================================ */
+/* Table / comparison matrix                                      */
+/* ============================================================ */
+.art-table-wrap {
+  background: var(--art-surface);
+  border-radius: var(--art-radius-md);
+  overflow: hidden;
+  box-shadow: var(--art-shadow-card);
+  border-left: 6px solid var(--art-accent);
+}
+.art-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--art-on-bg-ink);
+  color: var(--art-bg);
+}
+.art-table-head span {
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--art-on-bg-muted);
+}
+.art-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.art-table thead th {
+  text-align: left;
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--art-ink-soft);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--art-border);
+}
+.art-table tbody td {
+  padding: 12px 20px;
+  font-size: var(--art-text-body);
+  color: var(--art-ink);
+  border-bottom: 1px solid var(--art-border-soft);
+}
+.art-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.art-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+.art-table td.art-strong {
+  font-weight: 700;
+}
+.art-table td.art-accented {
+  color: var(--art-accent);
+  font-weight: 700;
+}
+.art-table td.art-mono-cell {
+  font-family: var(--art-font-mono);
+  font-size: 13px;
+  color: var(--art-ink-soft);
+}
+@media (max-width: 600px) {
+  .art-table-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .art-table .art-hide-mobile {
+    display: none;
+  }
+}
+
+/* ============================================================ */
+/* Tag / stamp / badge                                            */
+/* ============================================================ */
+.art-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--art-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--tag-tint, var(--art-surface-muted));
+  color: var(--tag-color, var(--art-ink-soft));
+}
+.art-tag--cat1 {
+  --tag-color: var(--art-cat-1);
+  --tag-tint: var(--art-cat-1-tint);
+}
+.art-tag--cat2 {
+  --tag-color: var(--art-cat-2);
+  --tag-tint: var(--art-cat-2-tint);
+}
+.art-tag--cat3 {
+  --tag-color: var(--art-cat-3);
+  --tag-tint: var(--art-cat-3-tint);
+}
+.art-tag--cat4 {
+  --tag-color: var(--art-cat-4);
+  --tag-tint: var(--art-cat-4-tint);
+}
+.art-tag--cat5 {
+  --tag-color: var(--art-cat-5);
+  --tag-tint: var(--art-cat-5-tint);
+}
+.art-tag--cat6 {
+  --tag-color: var(--art-cat-6);
+  --tag-tint: var(--art-cat-6-tint);
+}
+.art-tag--positive {
+  --tag-color: var(--art-positive);
+  --tag-tint: var(--art-positive-tint);
+}
+.art-tag--caution {
+  --tag-color: var(--art-caution);
+  --tag-tint: var(--art-caution-tint);
+}
+.art-tag--critical {
+  --tag-color: var(--art-critical);
+  --tag-tint: var(--art-critical-tint);
+}
+
+.art-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2.5px solid var(--stamp-color, var(--art-accent));
+  color: var(--stamp-color, var(--art-accent));
+  transform: rotate(-8deg);
+  opacity: 0.9;
+  font-family: var(--art-font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.art-stamp--positive {
+  --stamp-color: var(--art-positive);
+}
+.art-stamp--caution {
+  --stamp-color: var(--art-caution);
+}
+.art-stamp--critical {
+  --stamp-color: var(--art-critical);
+}
+
+/* ============================================================ */
+/* Diagnostics / review-state panel                                */
+/* ============================================================ */
+.art-diagnostics {
+  border-radius: var(--art-radius-md);
+  border: 1px solid var(--art-border);
+  background: var(--art-surface);
+  padding: var(--art-space-5);
+  box-shadow: var(--art-shadow-card);
+}
+.art-diagnostics-head {
+  display: flex;
+  align-items: center;
+  gap: var(--art-space-3);
+  margin-bottom: var(--art-space-3);
+}
+.art-diagnostics-status {
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: var(--art-radius-pill);
+  background: var(--status-tint);
+  color: var(--status-color);
+}
+.art-diagnostics--passed .art-diagnostics-status {
+  --status-color: var(--art-positive);
+  --status-tint: var(--art-positive-tint);
+}
+.art-diagnostics--needs_review .art-diagnostics-status {
+  --status-color: var(--art-caution);
+  --status-tint: var(--art-caution-tint);
+}
+.art-diagnostics--failed .art-diagnostics-status {
+  --status-color: var(--art-critical);
+  --status-tint: var(--art-critical-tint);
+}
+.art-diagnostics-title {
+  font-family: var(--art-font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--art-ink);
+}
+.art-diagnostics-row {
+  display: flex;
+  gap: var(--art-space-3);
+  padding: 8px 0;
+  border-top: 1px dashed var(--art-border);
+  font-size: var(--art-text-sm);
+}
+.art-diagnostics-row:first-of-type {
+  border-top: none;
+}
+.art-diagnostics-row .art-dk {
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  color: var(--art-ink-faint);
+  width: 160px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.art-diagnostics-row .art-dv {
+  color: var(--art-ink);
+  flex: 1;
+}
+
+/* ============================================================ */
+/* Teacher-only / student-safe projection marker                  */
+/* ============================================================ */
+/*
+  IMPORTANT: this class is a VISUAL label for teacher-facing builds only.
+  It must never be relied on to "hide" teacher content in a student
+  build via CSS/JS — per ADR-022 §3, teacher-only DOM must not exist in
+  the student file at all. The renderer produces two separate files from
+  two separate projections; this wrapper only marks the teacher file so a
+  teacher can never mistake which document they're holding, including
+  when printed.
+*/
+.art-projection-flag {
+  display: flex;
+  align-items: center;
+  gap: var(--art-space-2);
+  background: var(--art-teacher-flag-bg);
+  color: var(--art-teacher-flag-ink);
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: var(--art-radius-sm);
+  margin-bottom: var(--art-space-3);
+}
+.art-projection-flag .art-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--art-teacher-flag-accent);
+}
+
+.art-teacher-block {
+  border: 1px dashed var(--art-teacher-flag-accent);
+  background: color-mix(in srgb, var(--art-teacher-flag-bg) 6%, var(--art-surface));
+  border-radius: var(--art-radius-md);
+  padding: var(--art-space-4);
+  margin-top: var(--art-space-3);
+}
+.art-teacher-block-label {
+  font-family: var(--art-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--art-teacher-flag-accent);
+  margin-bottom: var(--art-space-2);
+  display: block;
+}
+
+/* ============================================================ */
+/* Footer / brand signature                                       */
+/* ============================================================ */
+.art-footer {
+  max-width: var(--art-max-width);
+  margin: 0 auto;
+  padding: var(--art-space-5) var(--art-space-5) var(--art-space-16);
+  text-align: center;
+}
+.art-footer p {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--art-on-bg-muted);
+  max-width: 520px;
+  margin: 0 auto 10px;
+}
+.art-footer .art-signoff {
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--art-accent);
+}
+
+/* ============================================================ */
+/* Motion                                                          */
+/* ============================================================ */
+.art-rise {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: art-rise 0.5s ease forwards;
+}
+@keyframes art-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-rise {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================================================ */
+/* Reveal button — Issue 003 (exam-key), relocated + generalized  */
+/* in Issue 006. Family-agnostic: only reads semantic tokens, so   */
+/* it now backs both the old exam-key debt (.art-panel reveal)     */
+/* and Issue 004's checkpoint/metaphor-log/exception reveals.      */
+/* Pair with the toggle-reveal attribute and aria-controls on the button. */
+/* — see interactivity.js for the click handler.                   */
+/* ============================================================ */
+.art-reveal-btn {
+  font-family: var(--art-font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--art-accent-2);
+  background: var(--art-accent-2-tint);
+  border: 1px solid var(--art-accent-2);
+  border-radius: var(--art-radius-pill);
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background var(--art-motion-micro);
+}
+.art-reveal-btn:hover {
+  background: var(--art-accent-2);
+  color: var(--art-accent-ink);
+}
+.art-reveal-btn[aria-expanded="true"] {
+  background: transparent;
+}
+
+/* ============================================================ */
+/* ROOT-CAUSE / SOCRATIC TEACHING PRIMITIVES — Issue 004           */
+/* Static CSS states only in this section; Issue 006 wires the     */
+/* interactive ones (checkpoint, metaphor-log, exception reveals)  */
+/* via interactivity.js. Family-agnostic, semantic-tier tokens only,*/
+/* same discipline as the rest of this file (see file header).     */
+/* ============================================================ */
+
+/* ---------- 1. Anchor timeline — "kéo Timeframe" (Gap 1) ---------- */
+/* Typed input: { axisLabel, anchor: { label }, events: { label,
+   position: 'before'|'at'|'after', state? }[] }
+   The SVG body itself is generated per-instance (positions depend on
+   event count) — see partials.js `renderAnchorTimeline()`. Everything
+   below is the family-agnostic shell + the classes that markup emits. */
+.art-anchor-timeline {
+  background: var(--art-surface);
+  border: 1px solid var(--art-border);
+  border-radius: var(--art-radius-md);
+  padding: var(--art-space-4) var(--art-space-5);
+  box-shadow: var(--art-shadow-card);
+  margin-bottom: var(--art-space-4);
+}
+.art-anchor-timeline-head {
+  margin-bottom: var(--art-space-3);
+}
+.art-anchor-timeline-label {
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--art-ink-faint);
+}
+.art-anchor-timeline-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.aat-axis {
+  stroke: var(--art-border-strong);
+  stroke-width: 2;
+}
+.aat-glance-arc {
+  fill: none;
+  stroke: var(--art-accent-2);
+  stroke-width: 1.75;
+  stroke-dasharray: 4 4;
+}
+.aat-anchor-dot {
+  fill: var(--art-accent);
+  stroke: var(--art-surface);
+  stroke-width: 3;
+}
+.aat-anchor-label {
+  font-family: var(--art-font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  fill: var(--art-ink);
+  text-anchor: middle;
+}
+.aat-event-dot {
+  fill: var(--art-surface);
+  stroke: var(--art-ink-faint);
+  stroke-width: 2;
+}
+.aat-event--before .aat-event-dot {
+  stroke: var(--art-cat-4);
+}
+.aat-event--at .aat-event-dot {
+  stroke: var(--art-accent);
+  fill: var(--art-accent);
+}
+.aat-event--after .aat-event-dot {
+  stroke: var(--art-cat-2);
+}
+.aat-event-label {
+  font-family: var(--art-font-body);
+  font-size: 11px;
+  fill: var(--art-ink-soft);
+  text-anchor: middle;
+}
+.art-anchor-timeline-legend {
+  list-style: none;
+  margin: var(--art-space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--art-space-4);
+  font-size: 11.5px;
+  color: var(--art-ink-soft);
+}
+.art-anchor-timeline-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+.aat-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.aat-legend-dot--before {
+  background: var(--art-cat-4);
+}
+.aat-legend-dot--at {
+  background: var(--art-accent);
+}
+.aat-legend-dot--after {
+  background: var(--art-cat-2);
+}
+
+/* ---------- 2. Controlled comparison — n-way, 1 constant (Gap 2) ---------- */
+/* Typed input: { constant: { label, value }, axis, variants: { label,
+   value, note? }[] }, n = 2–6. Uses auto-fit instead of a hard-coded
+   column count (the exact gap `.art-triad` has, per Issue 004 Gap 2) so
+   it never needs a n=5/n=7 follow-up edit. */
+.art-controlled-comparison {
+  background: var(--art-surface);
+  border: 1px solid var(--art-border);
+  border-radius: var(--art-radius-md);
+  overflow: hidden;
+  box-shadow: var(--art-shadow-card);
+  margin-bottom: var(--art-space-4);
+}
+.art-controlled-comparison-constant {
+  display: flex;
+  align-items: baseline;
+  gap: var(--art-space-2);
+  flex-wrap: wrap;
+  background: var(--art-accent-2-tint);
+  padding: var(--art-space-3) var(--art-space-5);
+  border-bottom: 1px solid var(--art-border);
+}
+.acc-constant-label {
+  font-family: var(--art-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--art-accent-2);
+}
+.acc-constant-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--art-ink);
+}
+.art-controlled-comparison-axis {
+  padding: var(--art-space-2) var(--art-space-5) 0;
+  font-size: 11.5px;
+  color: var(--art-ink-faint);
+  font-style: italic;
+}
+.art-controlled-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: var(--art-border);
+  margin-top: var(--art-space-3);
+}
+.acc-variant {
+  background: var(--art-surface);
+  padding: var(--art-space-3) var(--art-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.acc-variant b {
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--art-accent);
+}
+.acc-value {
+  font-family: var(--art-font-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--art-ink);
+}
+.acc-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--art-ink-soft);
+}
+
+/* ---------- 3. Scenario anchor — concrete-first opener (Gap 3) ---------- */
+/* Typed input: { scenario } — deliberately no title/rule field, so the
+   primitive itself can't be used rule-first (Hard Rule #1). Visually
+   distinct from .art-callout (thin rail, note/warning tone) and
+   .art-cover (full-bleed page hero): a quote-marked band that opens one
+   concept, not a page. */
+.art-scenario-anchor {
+  position: relative;
+  background: var(--art-surface-muted);
+  border-radius: var(--art-radius-lg);
+  padding: var(--art-space-6) var(--art-space-6) var(--art-space-5);
+  margin-bottom: var(--art-space-5);
+  overflow: hidden;
+}
+.art-scenario-anchor::before {
+  content: "\201C";
+  position: absolute;
+  top: -6px;
+  left: 14px;
+  font-family: var(--art-font-display);
+  font-size: 76px;
+  line-height: 1;
+  color: var(--art-accent);
+  opacity: 0.28;
+  pointer-events: none;
+}
+.asa-eyebrow {
+  display: block;
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--art-accent);
+  margin-bottom: var(--art-space-2);
+}
+.asa-scenario {
+  position: relative;
+  font-family: var(--art-font-display);
+  font-size: var(--art-text-lg);
+  line-height: 1.55;
+  color: var(--art-ink);
+  margin: 0;
+  max-width: 640px;
+}
+
+/* ---------- 4. Generalization checkpoint — proposed → verdict (Gap 4) ---------- */
+/* Typed input: { learnerClaim, verdict: 'confirmed'|'corrected',
+   correction?, explanation }. The verdict variant (confirmed vs.
+   corrected) is picked at author/render time — it is authored content,
+   not something the client computes. Issue 006 only wires *reveal*, not
+   grading: the correct markup ships from render.js already. */
+.art-generalization-checkpoint {
+  background: var(--art-surface);
+  border: 1px dashed var(--art-border-strong);
+  border-radius: var(--art-radius-md);
+  padding: var(--art-space-4) var(--art-space-5);
+  margin-bottom: var(--art-space-4);
+}
+.agc-label {
+  display: block;
+  font-family: var(--art-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--art-ink-faint);
+  margin-bottom: 6px;
+}
+.agc-claim {
+  font-style: italic;
+  font-size: var(--art-text-body);
+  color: var(--art-ink-soft);
+  margin: 0 0 var(--art-space-3);
+}
+.agc-verdict {
+  margin-top: var(--art-space-4);
+  padding-top: var(--art-space-4);
+  border-top: 1px solid var(--art-border);
+}
+.agc-verdict-label {
+  display: inline-block;
+  font-family: var(--art-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: var(--art-radius-pill);
+  margin-bottom: var(--art-space-2);
+}
+.agc-verdict--confirmed .agc-verdict-label {
+  background: var(--art-positive-tint);
+  color: var(--art-positive);
+}
+.agc-verdict--corrected .agc-verdict-label {
+  background: var(--art-caution-tint);
+  color: var(--art-caution);
+}
+.agc-correction {
+  font-weight: 700;
+  color: var(--art-ink);
+  margin: 0 0 6px;
+}
+.agc-explanation {
+  color: var(--art-ink-soft);
+  font-size: var(--art-text-sm);
+  margin: 0;
+}
+
+/* ---------- 5. Stress test — learner-authored break, not a distractor (Gap 5) ---------- */
+/* Typed input: { learnerAttempt, breaksBecause, tiesBackTo? }. Static —
+   see Issue 006's non-goals: no client-side grading of learner input,
+   the why-it-breaks text is authored, not computed. Visually distinct
+   from .art-wrong-item (teacher-authored exam distractor, plain text,
+   pre-labeled wrong): dashed border + mono "attempt" block signal this
+   was constructed on purpose, by the learner, to test a boundary. */
+.art-stress-test {
+  background: var(--art-critical-tint);
+  border: 1px dashed var(--art-critical);
+  border-radius: var(--art-radius-md);
+  padding: var(--art-space-4) var(--art-space-5);
+  margin-bottom: var(--art-space-4);
+}
+.ast-label {
+  display: block;
+  font-family: var(--art-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--art-critical);
+  margin-bottom: 8px;
+}
+.ast-attempt {
+  font-family: var(--art-font-mono);
+  font-size: var(--art-text-sm);
+  color: var(--art-ink);
+  background: var(--art-surface);
+  border-radius: var(--art-radius-sm);
+  padding: 9px 13px;
+  margin: 0 0 var(--art-space-3);
+}
+.ast-why-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--art-ink-soft);
+  margin-bottom: 4px;
+}
+.ast-why-text {
+  color: var(--art-ink-soft);
+  font-size: var(--art-text-sm);
+  margin: 0;
+}
+.ast-ties {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--art-ink-faint);
+  font-family: var(--art-font-mono);
+}
+
+/* ---------- 6. Metaphor log — attempts stay visible, one promoted (Gap 6) ---------- */
+/* Typed input: { attempts: { device, text, landed: boolean }[] }. The
+   landed attempt renders promoted and open by default; earlier attempts
+   are collapsed (not deleted) behind `.aml-toggle` — see interactivity.js. */
+.art-metaphor-log {
+  background: var(--art-surface);
+  border: 1px solid var(--art-border);
+  border-radius: var(--art-radius-md);
+  padding: var(--art-space-4) var(--art-space-5);
+  box-shadow: var(--art-shadow-card);
+  margin-bottom: var(--art-space-4);
+}
+.aml-label {
+  display: block;
+  font-family: var(--art-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--art-ink-faint);
+  margin-bottom: var(--art-space-3);
+}
+.aml-landed {
+  border-left: 4px solid var(--art-positive);
+  background: var(--art-positive-tint);
+  border-radius: var(--art-radius-sm);
+  padding: var(--art-space-3) var(--art-space-4);
+  margin-bottom: var(--art-space-3);
+}
+.aml-landed-tag {
+  display: block;
+  font-family: var(--art-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--art-positive);
+  margin-bottom: 4px;
+}
+.aml-device {
+  display: block;
+  font-size: 14.5px;
+  color: var(--art-ink);
+  margin-bottom: 3px;
+}
+.aml-text {
+  font-size: var(--art-text-sm);
+  color: var(--art-ink-soft);
+  margin: 0;
+}
+.aml-toggle {
+  font-family: var(--art-font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--art-ink-faint);
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--art-ink-faint);
+  padding: 2px 0;
+  cursor: pointer;
+}
+.aml-toggle:hover {
+  color: var(--art-ink-soft);
+  border-color: var(--art-ink-soft);
+}
+.aml-attempts {
+  list-style: none;
+  margin: var(--art-space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aml-attempt {
+  background: var(--art-surface-muted);
+  border-radius: var(--art-radius-sm);
+  padding: var(--art-space-2) var(--art-space-3);
+  opacity: 0.85;
+}
+.aml-attempt b {
+  display: block;
+  font-size: 13px;
+  color: var(--art-ink-soft);
+  margin-bottom: 2px;
+}
+.aml-attempt p {
+  font-size: 12.5px;
+  color: var(--art-ink-faint);
+  margin: 0;
+}
+
+/* ---------- 7. Mastery marker — comprehension chip, own namespace (Gap 4b) ---------- */
+/* Typed input: { concept, state: 'open'|'clicked' }. Deliberately a
+   separate namespace from ADR-021's passed/needs_review/failed
+   (content QA) and from ADR-022's teacher/student projection markers —
+   this chip is about learner comprehension of one concept, nothing else.
+   Static by design per Issue 006: a rendered summary of an
+   already-completed session has no live click to wire without
+   fabricating state the transcript doesn't support. */
+.art-mastery-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--art-font-mono);
+  font-size: 11.5px;
+  border-radius: var(--art-radius-pill);
+  padding: 6px 13px 6px 10px;
+  border: 1px solid var(--art-border);
+}
+.amm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.amm-concept {
+  color: var(--art-ink);
+  font-weight: 600;
+}
+.amm-state {
+  color: var(--art-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10.5px;
+}
+.art-mastery-marker--open {
+  background: var(--art-surface);
+}
+.art-mastery-marker--open .amm-dot {
+  background: var(--art-accent-2);
+}
+.art-mastery-marker--clicked {
+  background: var(--art-positive-tint);
+  border-color: var(--art-positive);
+}
+.art-mastery-marker--clicked .amm-dot {
+  background: var(--art-positive);
+}
+.art-mastery-marker--clicked .amm-state {
+  color: var(--art-positive);
+}
+
+
+/*
+  ARTIFACT UI — FAMILY COMPONENTS: transit-route
+  Source: docs/templates/learning-via-video-template.html · Issue 003
+  Only loaded on pages with data-artifact-theme="transit-route".
+*/
+
+/* ---------- Ticket header (boarding-pass style cover) ---------- */
+.art-ticket-header {
+  background: var(--art-cover-bg); color: var(--art-cover-ink);
+  border-radius: var(--art-radius-lg); padding: var(--art-space-6) var(--art-space-6);
+  display: flex; justify-content: space-between; gap: var(--art-space-6); flex-wrap: wrap;
+  position: relative; overflow: hidden;
+}
+.art-ticket-header::after {
+  content: ""; position: absolute; right: -1px; top: 0; bottom: 0; width: 22px;
+  background-image: radial-gradient(circle, var(--art-bg) 5px, transparent 5.5px);
+  background-size: 22px 22px; background-position: center;
+}
+.art-ticket-header .art-line-name { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+.art-ticket-header .art-boarding { font-family: var(--art-font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--art-cover-ink-soft); margin-bottom: 6px; }
+.art-ticket-header .art-counter-row { display: flex; gap: var(--art-space-4); margin-top: var(--art-space-3); }
+.art-ticket-header .art-counter { font-family: var(--art-font-mono); }
+.art-ticket-header .art-counter .art-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--art-cover-ink-soft); display: block; }
+.art-ticket-header .art-counter .art-val { font-size: 18px; font-weight: 700; }
+
+/* ---------- Mini route map (overview strip) ---------- */
+.art-miniroute { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: var(--art-space-4) 0; }
+.art-miniroute .art-station-marker { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; gap: 6px; width: 84px; }
+.art-miniroute .art-station-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--st-color, var(--art-accent)); border: 3px solid var(--art-surface); box-shadow: 0 0 0 2px var(--st-color, var(--art-accent)); }
+.art-miniroute .art-station-code { font-family: var(--art-font-mono); font-size: 10px; font-weight: 700; color: var(--st-color, var(--art-accent)); }
+.art-miniroute .art-track { flex: 1; height: 3px; background: var(--art-border); min-width: 20px; }
+
+/* ---------- Station card (lesson step) ---------- */
+.art-station { display: flex; gap: var(--art-space-4); margin-bottom: var(--art-space-6); }
+.art-station .art-station-rail { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 14px; }
+.art-station .art-station-rail .art-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--st-color, var(--art-accent)); flex-shrink: 0; }
+.art-station .art-station-rail .art-thread { flex: 1; width: 2px; background: var(--art-border); margin-top: 6px; }
+.art-station-body { flex: 1; background: var(--art-surface); border: 1px solid var(--art-border); border-top: 3px solid var(--st-color, var(--art-accent)); border-radius: var(--art-radius-md); padding: var(--art-space-4) var(--art-space-5); box-shadow: var(--art-shadow-card); }
+.art-station-head { display: flex; align-items: baseline; gap: var(--art-space-2); margin-bottom: 8px; flex-wrap: wrap; }
+.art-station-code { font-family: var(--art-font-mono); font-size: 11px; font-weight: 700; color: var(--st-color, var(--art-accent)); text-transform: uppercase; letter-spacing: .04em; }
+.art-station-title { font-family: var(--art-font-display); font-size: 16px; font-weight: 700; color: var(--art-ink); }
+.art-station-sub { font-size: 12.5px; color: var(--art-ink-soft); margin-bottom: 8px; }
+
+.art-cat1 { --st-color: var(--art-cat-1); } .art-cat2 { --st-color: var(--art-cat-2); }
+.art-cat3 { --st-color: var(--art-cat-3); } .art-cat4 { --st-color: var(--art-cat-4); }
+.art-cat5 { --st-color: var(--art-cat-5); } .art-cat6 { --st-color: var(--art-cat-6); }
+
+/* ---------- Offline-safe video placeholder ---------- */
+.art-video-embed {
+  background: var(--art-on-bg-ink); border-radius: var(--art-radius-md); aspect-ratio: 16/9;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+  color: var(--art-bg); position: relative; overflow: hidden;
+}
+.art-video-embed .art-play-badge {
+  width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.14);
+  display: flex; align-items: center; justify-content: center;
+}
+.art-video-embed .art-play-badge::after { content: ""; border-style: solid; border-width: 9px 0 9px 15px; border-color: transparent transparent transparent #fff; margin-left: 3px; }
+.art-video-embed .art-video-note { font-family: var(--art-font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.7); text-align: center; padding: 0 var(--art-space-4); }
+/*
+  This is a deliberate PLACEHOLDER, not a video player. Per AGENTS.md
+  INVARIANT-04: exported HTML must not embed remote iframe or video elements.
+  Real video links are teacher-only metadata (URL text + note), rendered
+  outside this element — see docs/component-reference.md.
+*/
+
+/* ---------- Cue card (short listening/speaking prompt) ---------- */
+.art-cue-card { background: var(--art-surface-muted); border-radius: var(--art-radius-md); padding: var(--art-space-3) var(--art-space-4); font-size: 13.4px; color: var(--art-ink-soft); }
+.art-cue-card b { color: var(--art-ink); }
+
+/* ---------- Self-check counters ---------- */
+.art-counter-badge { font-family: var(--art-font-mono); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: var(--art-radius-pill); }
+.art-count-ok { background: var(--art-positive-tint); color: var(--art-positive); }
+.art-count-low { background: var(--art-caution-tint); color: var(--art-caution); }
+.art-count-high { background: var(--art-critical-tint); color: var(--art-critical); }
+</style>
+</head>
+<body>
+<div class="art-root">
+
+  <header class="art-ticket-header">
+    <div>
+      <p class="art-boarding">Video Learning Route · Unit 2</p>
+      <div class="art-line-name">Airport Listening Route</div>
+      <div class="art-counter-row">
+                <div class="art-counter">
+          <span class="art-lbl">Thời lượng video</span>
+          <span class="art-val">3:20</span>
+        </div>
+                <div class="art-counter">
+          <span class="art-lbl">Số trạm</span>
+          <span class="art-val">2</span>
+        </div>
+                <div class="art-counter">
+          <span class="art-lbl">Thời gian ước tính</span>
+          <span class="art-val">25 phút</span>
+        </div>
+              </div>
+    </div>
+  </header>
+
+  <main class="art-shell">
+
+        <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Overview</span>
+        <h2>Bản đồ tuyến học</h2>
+      </div>
+      <div class="art-miniroute">
+                <div class="art-station-marker">
+          <span class="art-station-dot"></span>
+          <span class="art-station-code">GA01</span>
+        </div>
+                <span class="art-track"></span>
+                        <div class="art-station-marker">
+          <span class="art-station-dot"></span>
+          <span class="art-station-code">GA02</span>
+        </div>
+                      </div>
+    </section>
+    
+    <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Video</span>
+        <h2>Nguồn video</h2>
+      </div>
+      <div class="art-video-embed">
+        <div class="art-play-badge"></div>
+        <div class="art-video-note">
+          Video placeholder — liên kết thật nằm trong metadata dành riêng cho giáo viên,
+          không nhúng trực tiếp vào artifact tĩnh này.
+        </div>
+      </div>
+    </section>
+
+        <section class="art-section">
+      <div class="art-section-head">
+        <span class="art-section-eyebrow art-mono">Lộ trình</span>
+        <h2>2 trạm học theo tuyến</h2>
+      </div>
+            <div class="art-station">
+        <div class="art-station-rail">
+          <span class="art-dot"></span>
+          <span class="art-thread"></span>
+        </div>
+        <div class="art-station-body art-cat1">
+          <div class="art-station-head">
+            <span class="art-station-code">GA01</span>
+            <span class="art-station-title">Khởi động</span>
+          </div>
+          <p class="art-station-sub">Xem 15 giây đầu, đoán chủ đề.</p>
+                  </div>
+      </div>
+            <div class="art-station">
+        <div class="art-station-rail">
+          <span class="art-dot"></span>
+          <span class="art-thread"></span>
+        </div>
+        <div class="art-station-body art-cat2">
+          <div class="art-station-head">
+            <span class="art-station-code">GA02</span>
+            <span class="art-station-title">Nghe lần 1</span>
+          </div>
+          <p class="art-station-sub">Nghe toàn bài, ghi ý chính.</p>
+                  </div>
+      </div>
+      
+          </section>
+    
+  </main>
+
+  <footer class="art-footer">
+    <span class="art-mono">Video Learning Route</span>
+    <span>Airport Listening Route</span>
+    <span class="art-mono">oh-my-class</span>
+  </footer>
+
+</div>
+</body>
+</html>

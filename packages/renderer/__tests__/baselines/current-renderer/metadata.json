@@ -1,0 +1,35 @@
+{
+  "packageName": "@oh-my-class/renderer",
+  "packageVersion": "0.1.0",
+  "capturedGitCommit": "84f72e403bcf654c87d2da58da827d8cab7f31f7",
+  "updateCommand": "UPDATE_CURRENT_RENDERER_BASELINES=1 pnpm --filter @oh-my-class/renderer exec vitest run __tests__/current-renderer-baselines.test.ts",
+  "baselineIds": [
+    "agent-lesson",
+    "agent-worksheet",
+    "agent-quiz",
+    "agent-drill",
+    "agent-recap",
+    "agent-infographic",
+    "artifact-ui-lesson",
+    "artifact-ui-answer-key",
+    "artifact-ui-root-cause-session-student",
+    "artifact-ui-root-cause-session-teacher",
+    "artifact-ui-video-route",
+    "artifact-ui-inverse-thinking-student",
+    "inverse-thinking-wrapper-teacher",
+    "semantic-anchor-wrapper-teaching-teacher",
+    "semantic-anchor-wrapper-practice-student",
+    "semantic-anchor-wrapper-set",
+    "artifact-ui-vocabulary-set"
+  ],
+  "sourceFiles": [
+    "packages/renderer/src/renderer.ts",
+    "packages/renderer/src/agent-renderer.ts",
+    "packages/renderer/src/artifact-ui/renderer.ts",
+    "packages/renderer/src/semantic-anchor-projections.ts",
+    "packages/renderer/src/inverse-thinking-renderer.ts",
+    "packages/renderer/templates/**",
+    "common/branding/kits/**/theme.json"
+  ],
+  "note": "Phase 0 current-renderer baselines for ADR-025. These snapshots intentionally predate the plugin-registry rewrite."
+}
