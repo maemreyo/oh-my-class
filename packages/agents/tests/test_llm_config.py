@@ -4,7 +4,7 @@ from packages.agents.config.models import LLM, MODELS
 
 
 def test_llm_config_defaults() -> None:
-    assert LLM.base_url == "http://localhost:20128/v1"
+    assert LLM.base_url == "http://localhost:20228/v1"  # 9router port (td-005 config hygiene)
     assert LLM.timeout == 600.0
     assert LLM.max_retries == 3
 

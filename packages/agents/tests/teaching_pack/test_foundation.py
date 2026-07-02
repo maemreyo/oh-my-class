@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -14,6 +14,7 @@ class TestTeachingPackStages:
     def test_stage_values_are_stable_and_do_not_collide_with_v1_step_names(self) -> None:
         expected = (
             "setup_contract",
+            "triage",
             "preplanning_search",
             "planning_blueprint",
             "post_blueprint_research",
@@ -88,33 +89,32 @@ class TestTeachingPackConfig:
 
 class TestTeachingPackGraph:
     def test_graph_compiles_with_all_stage_nodes(self) -> None:
-        from packages.agents.tests.test_graph import _make_langgraph_mocks
-
-        mocks, _, nodes = _make_langgraph_mocks()
-
-        with patch.dict("sys.modules", mocks):
-            graph = build_teaching_pack_graph(checkpointer=MagicMock())
+        # Build the real graph (the removed test_graph langgraph-mock helper is gone;
+        # langgraph is a real dependency, so build directly). Node completeness is also
+        # covered end-to-end by tests/e2e/test_canonical_flow.py.
+        graph = build_teaching_pack_graph(checkpointer=None)
 
         assert graph is not None
-        assert tuple(nodes) == tuple(stage.value for stage in TEACHING_PACK_STAGES)
+        node_names = set(graph.get_graph().nodes)
+        for stage in TEACHING_PACK_STAGES:
+            assert stage.value in node_names
 
     def test_graph_instantiation_does_not_initialize_external_clients(self) -> None:
-        from packages.agents.tests.test_graph import _make_langgraph_mocks
-
-        mocks, _, _ = _make_langgraph_mocks()
-
-        with patch.dict("sys.modules", mocks), patch(
-            "packages.agents.llm.chat.AsyncOpenAI",
+        # Invariant: constructing the graph must not eagerly initialize the LLM client.
+        with patch(
+            "packages.agents.llm.chat.LLMClient",
             side_effect=AssertionError("LLM client must not initialize during graph construction"),
         ):
-            graph = build_teaching_pack_graph(checkpointer=MagicMock())
+            graph = build_teaching_pack_graph(checkpointer=None)
 
         assert graph is not None
 
     def test_thread_config_uses_run_id_as_langgraph_thread_id(self) -> None:
+        # asf-005 added a top-level max_concurrency alongside the thread id.
         config = teaching_pack_thread_config("run-123")
 
-        assert config == {"configurable": {"thread_id": "run-123"}}
+        assert config["configurable"] == {"thread_id": "run-123"}
+        assert config["max_concurrency"] >= 1
 
 
 class TestTeachingPackPorts:

@@ -214,65 +214,9 @@ class TestReviewerState:
         assert "import OhMyClassState" not in source
 
 
-class TestLeadAgentState:
-    def test_instantiates_with_required_fields(self):
-        from packages.agents.lead_agent.state import LeadAgentState
-
-        state = LeadAgentState(  # pyright: ignore[reportCallIssue]
-            messages=[],
-            task="Generate a lesson on photosynthesis",
-            context={"raw_request": "Teach photosynthesis", "run_id": "r1"},
-            result=None,
-            recovery_guidance=None,
-        )
-        assert state["task"] == "Generate a lesson on photosynthesis"
-        assert state["result"] is None
-        assert state["recovery_guidance"] is None
-
-    def test_result_can_be_set(self):
-        from packages.agents.lead_agent.state import LeadAgentState
-
-        state = LeadAgentState(  # pyright: ignore[reportCallIssue]
-            messages=[],
-            task="task",
-            context={},
-            result={"lesson_plan": {"topic": "X"}},
-            recovery_guidance=None,
-        )
-        assert state["result"]["lesson_plan"]["topic"] == "X"  # pyright: ignore[reportOptionalSubscript]
-
-    def test_recovery_guidance_can_be_set(self):
-        from packages.agents.lead_agent.state import LeadAgentState
-
-        state = LeadAgentState(  # pyright: ignore[reportCallIssue]
-            messages=[],
-            task="task",
-            context={},
-            result=None,
-            recovery_guidance="Try with simpler vocabulary",
-        )
-        assert state["recovery_guidance"] == "Try with simpler vocabulary"
-
-    def test_has_messages_from_messages_state(self):
-        from packages.agents.lead_agent.state import LeadAgentState
-
-        state = LeadAgentState(  # pyright: ignore[reportCallIssue]
-            messages=[],
-            task="task",
-            context={},
-            result=None,
-            recovery_guidance=None,
-        )
-        assert "messages" in state
-
-    def test_independent_of_ohmy_class_state(self):
-        import inspect
-
-        import packages.agents.lead_agent.state as mod
-
-        source = inspect.getsource(mod)
-        assert "from packages.agents.state import" not in source
-        assert "import OhMyClassState" not in source
+# TestLeadAgentState removed: the Lead Agent was decommissioned (td-004); its module
+# packages.agents.lead_agent.state no longer exists and the removal is guarded by
+# tests/test_no_lead_agent.py.
 
 
 class TestOhMyClassStateGateFields:
