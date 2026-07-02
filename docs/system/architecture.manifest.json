@@ -40,7 +40,7 @@
     ],
     "fast_lane_threshold_default": null
   },
-  "migration_count": 18,
+  "migration_count": 19,
   "models": {
     "assignments": {
       "blueprint_design": "4omc",
