@@ -25,6 +25,7 @@ class KnowledgeGap(BaseModel):
     error_rate: ErrorRate
     severity: Severity
     question_ids: list[int | str]
+    confidence: ErrorRate = 0.5
 
 
 class BloomGap(BaseModel):
@@ -34,6 +35,7 @@ class BloomGap(BaseModel):
     vn_name: str
     error_count: int
     error_rate: ErrorRate
+    confidence: ErrorRate = 0.5
 
 
 class MisconceptionPattern(BaseModel):
@@ -44,6 +46,8 @@ class MisconceptionPattern(BaseModel):
     title: str
     description: str
     question_ids: list[int | str]
+    systematicity: Literal["systematic", "contextual"] = "contextual"
+    confidence: ErrorRate = 0.5
 
 
 class DiagnosticReport(BaseModel):

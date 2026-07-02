@@ -12,6 +12,11 @@ class PlannerNodeState(TypedDict, total=False):
     current_step: int
     lesson_plan: dict[str, Any] | None
     seed: dict[str, Any] | None
+    use_staged_planner: bool
+    persona_snapshot: dict[str, Any] | None
+    class_knowledge_graph: dict[str, Any] | None
+    kt_mastery: dict[str, Any] | None
+    teacher_preferences: dict[str, Any] | None
 
 
 class PlannerState(MessagesState):
@@ -26,3 +31,8 @@ class PlannerState(MessagesState):
     current_step: int
     lesson_plan: dict[str, Any] | None
     seed: dict[str, Any] | None
+    use_staged_planner: bool
+    persona_snapshot: dict[str, Any] | None
+    class_knowledge_graph: dict[str, Any] | None
+    kt_mastery: dict[str, Any] | None
+    teacher_preferences: dict[str, Any] | None

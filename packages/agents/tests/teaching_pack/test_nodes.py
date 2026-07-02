@@ -84,6 +84,10 @@ class TestTeachingPackPlanningResearch:
             "run_id": "run-plan",
             "current_step": 3,
             "lesson_plan": None,
+            "use_staged_planner": True,
+            "persona_snapshot": {},
+            "kt_mastery": {},
+            "teacher_preferences": {},
         }]
         lesson_plan = result.get("lesson_plan", {})
         assert lesson_plan.get("topic") == "Fractions"
@@ -162,6 +166,25 @@ class TestTeachingPackApprovalExport:
                 "action": "reject",
                 "rejection_type": "scoped",
                 "artifact_rejections": [{"artifact_id": "quiz-1", "reason": "Simplify."}],
+            },
+        )
+
+        assert route_after_teacher_approval(state) == "artifact_workflow"
+
+    def test_scoped_section_edit_routes_back_to_artifact_workflow(self) -> None:
+        state = TeachingPackState(
+            run_id="run-section-edit",
+            teacher_approved=False,
+            artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+            gate_payload={
+                "action": "edit",
+                "edit_type": "scoped_section",
+                "section_edit": {
+                    "artifact_id": "lesson-1",
+                    "section_id": "intro",
+                    "replacement_content": "Revised intro.",
+                    "rationale": "Align with objective.",
+                },
             },
         )
 

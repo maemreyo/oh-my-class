@@ -95,6 +95,6 @@ export function gateEventWithRunArtifactStatuses(
 	event: TeachingPackEventPayload,
 	artifactStatuses: TeachingPackEventPayload["artifact_statuses"],
 ): TeachingPackEventPayload {
-	if (event.artifact_statuses?.length || artifactStatuses.length === 0) return event;
+	if (event.artifact_statuses?.length || !artifactStatuses?.length) return event;
 	return { ...event, artifact_statuses: artifactStatuses };
 }

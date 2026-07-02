@@ -9,7 +9,9 @@ from packages.agents.teaching_pack.quality_routing import (
     pack_coherence_issues,
     render_quality_failure,
 )
+from packages.agents.teaching_pack.scoped_repair import scoped_repair_plans
 from packages.agents.teaching_pack.snapshots import build_snapshot
+from packages.agents.sub_agents.reviewer.live_quality_gate import LiveReviewerQualityGate
 
 from typing import TYPE_CHECKING
 
@@ -38,11 +40,33 @@ async def render_quality(
                 "run_id": state["run_id"],
                 "quality_issues": issues,
                 "quality_recovery_route": _string_field(failure, "quality_recovery_route", "repair"),
-                "quality_scores": _json_object(failure.get("quality_scores")),
+                "quality_scores": _with_scoped_repair(_json_object(failure.get("quality_scores")), issues),
             })
         raise TeachingPackQualityGateError(issues)
     passing_reports: list[ArtifactQualityReport] = []
-    if quality_gate is not None:
+    layer4_metadata: list[JsonObject] = []
+    if quality_gate is None:
+        reviewer_gate = LiveReviewerQualityGate()
+        evaluated = [
+            await reviewer_gate.evaluate_with_metadata(_workflow_state(str(state["run_id"]), artifact, index), artifact)
+            for index, artifact in enumerate(artifacts)
+            if _supports_workflow_state(artifact)
+        ]
+        reports = [report for report, _metadata in evaluated]
+        layer4_metadata = [_json_object(metadata) for _report, metadata in evaluated]
+        failed_issues = _failed_report_issues(reports)
+        if failed_issues:
+            failure = render_quality_failure(str(state["run_id"]), failed_issues)
+            return _state_update({
+                "run_id": state["run_id"],
+                "quality_issues": failed_issues,
+                "quality_recovery_route": _string_field(failure, "quality_recovery_route", "repair"),
+                "quality_scores": _with_scoped_repair(
+                    _with_layer4(_json_object(failure.get("quality_scores")), layer4_metadata),
+                    failed_issues,
+                ),
+            })
+    else:
         reports = [
             await quality_gate.evaluate(_workflow_state(str(state["run_id"]), artifact, index), artifact)
             for index, artifact in enumerate(artifacts)
@@ -56,7 +80,7 @@ async def render_quality(
                 "run_id": state["run_id"],
                 "quality_issues": failed_issues,
                 "quality_recovery_route": _string_field(healing, "quality_recovery_route", _string_field(failure, "quality_recovery_route", "repair")),
-                "quality_scores": _json_object(failure.get("quality_scores")),
+                "quality_scores": _with_scoped_repair(_json_object(failure.get("quality_scores")), failed_issues),
                 **healing,
             })
         passing_reports = reports
@@ -68,6 +92,8 @@ async def render_quality(
     }
     if passing_reports:
         quality_scores["reports"] = [r.model_dump(mode="json") for r in passing_reports]
+    if layer4_metadata:
+        quality_scores["layer4_reviewer"] = layer4_metadata[0]
     return _state_update({
         "run_id": state["run_id"],
         "rendered_snapshots": snapshots,
@@ -120,6 +146,16 @@ def _json_object(value: JsonValue | None) -> JsonObject:
     if isinstance(value, dict):
         return value
     return {}
+
+
+def _with_layer4(scores: JsonObject, metadata: list[JsonObject]) -> JsonObject:
+    if metadata:
+        return {**scores, "layer4_reviewer": metadata[0]}
+    return scores
+
+
+def _with_scoped_repair(scores: JsonObject, issues: list[str]) -> JsonObject:
+    return {**scores, "scoped_repair_plans": scoped_repair_plans(issues)}
 
 
 def _string_field(data: JsonObject, key: str, default: str) -> str:

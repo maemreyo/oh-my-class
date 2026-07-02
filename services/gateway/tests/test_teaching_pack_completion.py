@@ -146,6 +146,48 @@ class TestTeachingPackCompletionRecorder:
         assert store.snapshots[0].rendered_html == renderer.rendered_html
         assert store.snapshots[0].student_rendered_html is None
         assert store.gates[0].gate_name == "content_approval"
+        assert store.events[0].payload.get("content_artifacts") == []
+
+    @pytest.mark.anyio
+    async def test_content_update_event_is_teacher_visible_before_next_gate(self) -> None:
+        store = RecordingFailureStore()
+        renderer = RecordingRenderer()
+        recorder = TeachingPackCompletionRecorder(store, renderer)
+        artifact = {
+            "artifact_id": "lesson-1",
+            "artifact_type": "lesson",
+            "title": "Rendered Lesson",
+            "sections": [],
+        }
+
+        await recorder.persist_completion(RunId("run-1"), {
+            "content_update_event": {
+                "event_name": "teaching_pack.content_version.created",
+                "payload": {"artifact_id": "lesson-1", "authority": "teacher_edit"},
+            },
+            "__interrupt__": [{
+                "value": {
+                    "gate": "content_approval",
+                    "snapshot_ids": ["snapshot-1"],
+                    "content_artifacts": [artifact],
+                    "rendered_snapshots": [{
+                        "snapshot_id": "snapshot-1",
+                        "artifact_id": "lesson-1",
+                        "artifact_type": "lesson",
+                        "content_json": artifact,
+                    }],
+                },
+            }],
+        })
+
+        assert store.events[0] == TeachingPackEventCreate(
+            run_id=RunId("run-1"),
+            event_name="teaching_pack.content_version.created",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            payload={"artifact_id": "lesson-1", "authority": "teacher_edit"},
+        )
+        assert store.events[1].event_name == "teaching_pack.content_approval.opened"
+        assert store.events[1].payload["content_artifacts"] == [artifact]
 
     @pytest.mark.anyio
     async def test_writes_real_exports_and_notifies_teacher_before_completed_event(self) -> None:

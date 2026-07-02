@@ -169,6 +169,7 @@ class TestTeachingPackRenderQuality:
 
         assert result.get("quality_recovery_route") == "planning_blueprint"
         assert "pack.coherence: worksheet_not_aligned_with_objectives" in result.get("quality_issues", [])
+        assert result.get("quality_scores", {}).get("scoped_repair_plans", [])[0]["strategy"] == "regenerate_artifact"
         assert route_after_render_quality(TeachingPackState(**result)) == "planning_blueprint"
 
     @pytest.mark.anyio

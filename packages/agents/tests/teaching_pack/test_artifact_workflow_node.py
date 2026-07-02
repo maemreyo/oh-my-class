@@ -34,7 +34,7 @@ class TestTeachingPackArtifactWorkflow:
 
         calls = []
 
-        async def fake_content_creator_node(state):
+        async def fake_content_creator_node(_state):
             calls.append(state)
             return {
                 "artifacts": [{
@@ -69,6 +69,8 @@ class TestTeachingPackArtifactWorkflow:
             "current_step": 8,
             "artifacts": None,
             "revision_feedback": "",
+            "use_hierarchical_creator": True,
+            "component_effectiveness": {},
         }]
         assert _artifacts(result)[0].get("title") == "Generated Lesson"
         assert _artifacts(result)[0].get("status") == "ready"
@@ -77,7 +79,7 @@ class TestTeachingPackArtifactWorkflow:
     async def test_artifact_workflow_adds_stable_ids_when_creator_omits_them(self, monkeypatch) -> None:
         from packages.agents.teaching_pack import nodes
 
-        async def fake_content_creator_node(state):
+        async def fake_content_creator_node(_state):
             return {
                 "artifacts": [{
                     "artifact_type": "lesson",
@@ -117,7 +119,7 @@ class TestTeachingPackArtifactWorkflow:
     ) -> None:
         from packages.agents.teaching_pack import nodes
 
-        async def fake_content_creator_node(state):
+        async def fake_content_creator_node(_state):
             return {
                 "artifacts": [{
                     "artifact_type": "quiz",

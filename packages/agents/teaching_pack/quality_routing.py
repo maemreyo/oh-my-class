@@ -44,7 +44,7 @@ def pack_coherence_issues(issues: list[str]) -> list[str]:
 
 
 def quality_recovery_route(issues: list[str]) -> str:
-    joined = " ".join(pack_coherence_issues(issues))
+    joined = " ".join(issues)
     if "factual_uncertainty" in joined:
         return "post_blueprint_research"
     if "not_aligned_with_objectives" in joined or "vietnamese_difficulty" in joined:

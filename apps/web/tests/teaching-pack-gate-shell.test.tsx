@@ -38,4 +38,31 @@ describe("TeachingPackGateShell", () => {
 
 		expect(html).toContain("Reject specific artifacts");
 	});
+
+	it("shows structured section editor when content artifacts include sections", () => {
+		const html = renderToStaticMarkup(
+			<TeachingPackGateShell
+				runId="run-editor"
+				event={{
+					gate_id: "gate-content",
+					gate_name: "content_approval",
+					content_artifacts: [
+						{
+							artifact_id: "lesson-1",
+							artifact_type: "lesson",
+							sections: [
+								{
+									section_id: "warmup",
+									title: "Warm-up",
+									content: "Compare two equivalent fractions.",
+								},
+							],
+						},
+					],
+				}}
+			/>,
+		);
+
+		expect(html).toContain("Edit a section");
+	});
 });

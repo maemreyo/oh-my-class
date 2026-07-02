@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
 
 from langgraph.graph import MessagesState
 
@@ -12,3 +12,12 @@ class DiagnosticianState(MessagesState):
     run_id: str
     current_step: int
     diagnostic_report: dict[str, Any] | None
+    use_structured_diagnostic: bool | None
+
+
+class DiagnosticianNodeState(TypedDict, total=False):
+    student_responses: dict[str, Any]
+    run_id: str
+    current_step: int
+    diagnostic_report: dict[str, Any] | None
+    use_structured_diagnostic: bool

@@ -30,6 +30,15 @@ async def planner_node(state: PlannerNodeState) -> dict[str, Any]:
 
     Returns: {"lesson_plan": {...}}
     """
+    if state.get("use_staged_planner", False):
+        from packages.agents.sub_agents.planner.staged_engine import build_staged_lesson_plan
+
+        plan = build_staged_lesson_plan(state)
+        seed = state.get("seed")
+        if seed is not None:
+            ensure_seed_alignment(plan, SessionPlan.model_validate(seed))
+        return {"lesson_plan": plan.model_dump()}
+
     seed = state.get("seed")
     if seed is not None:
         session_seed = SessionPlan.model_validate(seed)

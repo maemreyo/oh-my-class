@@ -14,6 +14,10 @@ class ContentCreatorNodeState(TypedDict):
     current_step: int
     artifacts: list[dict[str, Any]] | None
     revision_feedback: NotRequired[str]
+    use_hierarchical_creator: NotRequired[bool]
+    force_section_failures: NotRequired[list[str]]
+    disable_methodology_components: NotRequired[bool]
+    component_effectiveness: NotRequired[dict[str, Any]]
 
 
 class ContentCreatorState(MessagesState):

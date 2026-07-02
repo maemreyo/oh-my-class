@@ -43,6 +43,11 @@ async def content_creator_node(state: ContentCreatorNodeState) -> dict[str, Any]
 
     Returns: {"artifacts": [...]}
     """
+    if state.get("use_hierarchical_creator", False):
+        from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
+
+        return build_hierarchical_artifacts(state)
+
     lesson_plan = state.get("lesson_plan") or {}
     research_bundle = state.get("research_bundle") or {}
     artifact_types = state.get("artifact_types") or ["lesson"]
@@ -201,37 +206,6 @@ async def content_creator_node(state: ContentCreatorNodeState) -> dict[str, Any]
                 ) from e
 
     return {"artifacts": validated_artifacts}
-
-
-# ── Placeholder fallback (kept for emergency use) ──────────────────────────
-
-
-def _build_placeholder_artifacts(
-    artifact_types: list[str], theme: str, topic: str,
-) -> list[dict[str, Any]]:
-    placeholders = []
-    for atype in artifact_types:
-        placeholder = ArtifactContent(
-            artifact_type=atype,  # type: ignore[arg-type]
-            theme=theme,
-            title=f"[Cần tạo lại] {topic} — {atype}",
-            sections=[{
-                "components": [{
-                    "type": "heading",
-                    "level": 2,
-                    "text": f"Nội dung {atype} đang chờ tạo lại",
-                }, {
-                    "type": "paragraph",
-                    "text": (
-                        "Hệ thống gặp lỗi khi tạo nội dung tự động. "
-                        "Vui lòng từ chối và yêu cầu tạo lại."
-                    ),
-                }],
-            }],
-            metadata={"placeholder": True, "error": "LLM timeout"},
-        )
-        placeholders.append(placeholder.model_dump())
-    return placeholders
 
 
 # ── Validation utilities ───────────────────────────────────────────────────

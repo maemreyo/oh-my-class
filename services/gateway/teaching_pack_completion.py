@@ -40,6 +40,14 @@ class TeachingPackCompletionRecorder:
         self._outcome_delivery = outcome_delivery
 
     async def persist_completion(self, run_id: RunId, state: JsonObject) -> None:
+        content_update_event = _content_update_event(state)
+        if content_update_event is not None:
+            await self._store.write_event(TeachingPackEventCreate(
+                run_id=run_id,
+                event_name=str(content_update_event.get("event_name", "teaching_pack.content_version.created")),
+                visibility=TeachingPackEventVisibility.TEACHER,
+                payload=_json_object(content_update_event.get("payload")),
+            ))
         gate_payload = _content_gate_payload(state)
         if gate_payload is not None:
             await self._persist_content_gate(run_id, gate_payload)
@@ -146,6 +154,8 @@ class TeachingPackCompletionRecorder:
                 "gate_id": gate_id,
                 "snapshot_ids": gate_payload.get("snapshot_ids", []),
                 "artifact_statuses": gate_payload.get("artifact_statuses", []),
+                "content_artifacts": gate_payload.get("content_artifacts", []),
+                "quality_scores": gate_payload.get("quality_scores", {}),
             },
         ))
 
@@ -216,6 +226,13 @@ def _content_gate_payload(state: JsonObject) -> JsonObject | None:
         value = _interrupt_value(interrupt_values[0])
         if value.get("gate") == "content_approval":
             return value
+    return None
+
+
+def _content_update_event(state: JsonObject) -> JsonObject | None:
+    value = state.get("content_update_event")
+    if isinstance(value, dict):
+        return value
     return None
 
 

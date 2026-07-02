@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, NotRequired, TypedDict, assert_never
+from typing import TYPE_CHECKING, Annotated, Any, NotRequired, TypedDict, assert_never
 
 from packages.agents.sub_agents.planner.state import PlannerNodeState
 from packages.agents.sub_agents.researcher.state import ResearcherNodeState
@@ -21,6 +21,8 @@ from packages.agents.teaching_pack.middleware_runtime import (
 from packages.agents.teaching_pack.quality_runtime import render_quality
 from packages.agents.teaching_pack.reducers import stable_merge_artifacts, stable_merge_workflow_states
 from packages.agents.teaching_pack.scoped_regeneration import (
+    apply_scoped_section_edit,
+    has_scoped_section_edit,
     rejected_artifact_types,
     scoped_rejections,
 )
@@ -65,6 +67,7 @@ class TeachingPackState(TypedDict):
     quality_scores: NotRequired[JsonObject]
     quality_issues: NotRequired[list[str]]
     quality_recovery_route: NotRequired[str]
+    content_update_event: NotRequired[JsonObject]
     approval_gate: NotRequired[JsonObject]
     teacher_approved: NotRequired[bool]
     teacher_decision: NotRequired[str]
@@ -79,6 +82,11 @@ class TeachingPackState(TypedDict):
     vocabulary_batch_progress: NotRequired[JsonObject]
     vocabulary_batch_events: NotRequired[list[JsonObject]]
     input_normalization_report: NotRequired[JsonObject]
+    diagnostic_report: NotRequired[JsonObject]
+    kt_mastery: NotRequired[JsonObject]
+    diagnostic_stage: NotRequired[JsonObject]
+    teacher_preferences: NotRequired[JsonObject]
+    component_effectiveness: NotRequired[JsonObject]
 
 
 def make_stage_node(
@@ -235,6 +243,9 @@ async def _planning_blueprint(
 ) -> TeachingPackState:
     state = await _run_generation_context_middleware("planner", state, 3)
     contract = state.get("contract", {})
+    diagnostic_update = await _diagnostic_preplanning(state)
+    if diagnostic_update:
+        state = TeachingPackState(**{**state, **diagnostic_update})
     from packages.agents.sub_agents.planner.nodes import planner_node
     from common.contracts.seam_contracts import PlannerHandoff
 
@@ -261,11 +272,51 @@ async def _planning_blueprint(
         "run_id": state["run_id"],
         "current_step": 3,
         "lesson_plan": None,
+        "use_staged_planner": True,
+        "persona_snapshot": _json_object(state.get("persona_snapshot")),
+        "kt_mastery": _json_object(state.get("kt_mastery")),
+        "teacher_preferences": _json_object(state.get("teacher_preferences")),
     }
     result = await planner_node(planner_state)
     lesson_plan = _json_object(result.get("lesson_plan"))
     PlannerHandoff(lesson_plan=lesson_plan)  # fail-closed seam contract
-    return {"run_id": state["run_id"], "lesson_plan": lesson_plan}
+    update: TeachingPackState = {"run_id": state["run_id"], "lesson_plan": lesson_plan}
+    if "diagnostic_report" in diagnostic_update:
+        update["diagnostic_report"] = _json_object(diagnostic_update.get("diagnostic_report"))
+    if "kt_mastery" in diagnostic_update:
+        update["kt_mastery"] = _json_object(diagnostic_update.get("kt_mastery"))
+    if "diagnostic_stage" in diagnostic_update:
+        update["diagnostic_stage"] = _json_object(diagnostic_update.get("diagnostic_stage"))
+    return update
+
+
+async def _diagnostic_preplanning(state: TeachingPackState) -> dict[str, Any]:
+    contract = state.get("contract", {})
+    if _string_field(contract, "mode", "generate_pack") != "diagnose_then_generate":
+        return {}
+    evidence = _json_object(contract.get("student_evidence"))
+    if not evidence:
+        return {}
+    from packages.agents.sub_agents.diagnostician.knowledge_state import KnowledgeStateStore
+    from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
+
+    result = await diagnostician_node({
+        "student_responses": evidence,
+        "run_id": state["run_id"],
+        "current_step": 0,
+        "diagnostic_report": None,
+        "use_structured_diagnostic": True,
+    })
+    report = _json_object(result.get("diagnostic_report"))
+    student_id = _string_field(report, "student_id", "unknown")
+    knowledge_state = KnowledgeStateStore()
+    knowledge_state.record_diagnostic(student_id, report)
+    return {
+        "run_id": state["run_id"],
+        "diagnostic_report": report,
+        "kt_mastery": knowledge_state.planner_mastery(student_id),
+        "diagnostic_stage": {"status": "passed", "student_id": student_id},
+    }
 
 
 async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackState:
@@ -311,6 +362,14 @@ async def _rollback_artifact_workflow(state: TeachingPackState) -> TeachingPackS
     from packages.agents.teaching_pack.scoped_regeneration import merge_regenerated_artifacts
 
     mediated_state = await _run_generation_context_middleware("content_creator", state, 8)
+    if has_scoped_section_edit(mediated_state.get("gate_payload", {})):
+        return TeachingPackState(**{
+            "run_id": mediated_state["run_id"],
+            **apply_scoped_section_edit(
+                mediated_state.get("artifacts", []),
+                mediated_state.get("gate_payload", {}),
+            ),
+        })
     contract = mediated_state.get("contract", {})
     artifact_types = _artifact_types_for_generation(mediated_state, contract)
     creator_state: ContentCreatorNodeState = {
@@ -322,6 +381,8 @@ async def _rollback_artifact_workflow(state: TeachingPackState) -> TeachingPackS
         "current_step": 8,
         "artifacts": None,
         "revision_feedback": mediated_state.get("revision_feedback", ""),
+        "use_hierarchical_creator": True,
+        "component_effectiveness": _json_object(mediated_state.get("component_effectiveness")),
     }
     result = await content_creator_node(creator_state)
     generated = normalize_generated_artifacts(result.get("artifacts", []), artifact_types)
@@ -362,6 +423,7 @@ def _teacher_approval(
         "rendered_snapshots": [*state.get("rendered_snapshots", [])],
         "artifacts": [*artifacts],
         "artifact_statuses": [*artifact_statuses],
+        "content_artifacts": [*state.get("artifacts", [])],
         "quality_scores": state.get("quality_scores", {}),
         "run_id": state["run_id"],
     }
@@ -467,6 +529,8 @@ def _export_finalize(
 def route_after_teacher_approval(state: TeachingPackState) -> str:
     if state.get("teacher_approved", False):
         return "export_finalize"
+    if has_scoped_section_edit(state.get("gate_payload", {})):
+        return "artifact_workflow"
     if _scoped_rejections(state):
         return "artifact_workflow"
     return "export_finalize"

@@ -20,6 +20,9 @@ async def roadmap_node(state: RoadmapAgentState) -> dict[str, Any]:
 
     Returns: {"roadmap_artifact": {...}, "artifacts": [{"type": "roadmap", ...}]}
     """
+    if state.get("use_structured_roadmap", False):
+        return _structured_roadmap(state)
+
     from packages.agents.sub_agents.roadmap_agent.prompts import load_system_prompt
 
     system_prompt = load_system_prompt()
@@ -109,3 +112,114 @@ Monthly Milestones:
     except Exception as e:
         log_llm_failure("roadmap_agent", run_id, step, model, 1, started, e)
         raise ValueError(f"Roadmap agent failed: {e}") from e
+
+
+def _structured_roadmap(state: RoadmapAgentState) -> dict[str, Any]:
+    diagnostic_report = state.get("diagnostic_report") or {}
+    student_profile = state.get("student_profile") or {}
+    focus_areas = _focus_areas(diagnostic_report)
+    months = _months(student_profile)
+    sections = [_milestone_section(index, focus_areas, student_profile, state.get("kt_mastery") or {}) for index in range(1, months + 1)]
+    roadmap = RoadmapContent(
+        title="Personalized macro roadmap",
+        theme="default",
+        hero={
+            "eyebrow": "Macro plan",
+            "title": f"{_exam(student_profile)} roadmap",
+            "lede": "Milestones compose into unit-planning inputs; no lesson content is generated here.",
+        },
+        sections=sections,
+        sidebar={
+            "title": "Focus",
+            "subtitle": ", ".join(focus_areas),
+            "nav": [{"label": section.title, "href": f"#{section.id}"} for section in sections],
+        },
+    ).model_dump()
+    roadmap["metadata"] = {
+        "generation_mode": "milestone_to_unit_macro",
+        "focus_areas": focus_areas,
+        "personalization": _personalization(student_profile),
+    }
+    unit_inputs = [_unit_input(section, focus_areas, state) for section in sections]
+    return {
+        "roadmap_artifact": roadmap,
+        "unit_decomposition_inputs": unit_inputs,
+        "artifacts": [{"id": f"roadmap-{diagnostic_report.get('student_id', 'unknown')}", "type": "roadmap", "data": roadmap}],
+    }
+
+
+def _milestone_section(
+    index: int,
+    focus_areas: list[str],
+    student_profile: dict[str, Any],
+    kt_mastery: dict[str, Any],
+):
+    from common.contracts.roadmap import RoadmapSection
+
+    focus = focus_areas[(index - 1) % len(focus_areas)] if focus_areas else "general skill"
+    mastery = _mastery_for(focus, kt_mastery)
+    title_prefix = "Reteach" if mastery < 0.5 else "Extend"
+    personalization = _personalization(student_profile)
+    return RoadmapSection(
+        id=f"milestone-{index}",
+        title=f"{title_prefix} {focus}",
+        subtitle=f"{_exam(student_profile)} skill milestone {index}",
+        tag_num=str(index),
+        components=[
+            {"type": "paragraph", "text": f"Focus area: {focus}. {personalization}"},
+            {"type": "paragraph", "text": "Compose this milestone into a topic-decomposition unit."},
+        ],
+    )
+
+
+def _unit_input(section, focus_areas: list[str], state: RoadmapAgentState) -> dict[str, Any]:
+    return {
+        "mode": "plan_unit",
+        "parent_run_id": state.get("run_id", ""),
+        "milestone_id": section.id,
+        "topic": section.title,
+        "focus_areas": focus_areas,
+    }
+
+
+def _focus_areas(diagnostic_report: dict[str, Any]) -> list[str]:
+    gaps = diagnostic_report.get("knowledge_gaps")
+    if not isinstance(gaps, list):
+        return ["general skill"]
+    areas = [str(gap.get("category")) for gap in gaps if isinstance(gap, dict) and gap.get("category")]
+    return areas or ["general skill"]
+
+
+def _personalization(student_profile: dict[str, Any]) -> str:
+    traits = student_profile.get("personality_traits")
+    trait_names: set[str] = set()
+    if isinstance(traits, list):
+        trait_names = {str(trait.get("trait")) for trait in traits if isinstance(trait, dict)}
+    if "shy" in trait_names:
+        return "Use low-pressure individual practice and avoid group performance."
+    if "film_learner" in trait_names:
+        return "Use short video anchors before practice."
+    if "depth_oriented" in trait_names:
+        return "Include explain why reasoning before drills."
+    return "Use balanced independent practice."
+
+
+def _exam(student_profile: dict[str, Any]) -> str:
+    value = student_profile.get("target_exam")
+    return str(value) if value else "Skill-based"
+
+
+def _months(student_profile: dict[str, Any]) -> int:
+    value = student_profile.get("study_duration_months")
+    if isinstance(value, int):
+        return max(1, min(12, value))
+    return 3
+
+
+def _mastery_for(focus: str, kt_mastery: dict[str, Any]) -> float:
+    value = kt_mastery.get(focus)
+    if isinstance(value, dict):
+        mastery = value.get("mastery")
+        if isinstance(mastery, int | float):
+            return float(mastery)
+    return 0.0

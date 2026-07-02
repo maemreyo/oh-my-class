@@ -178,6 +178,7 @@ const TEACHING_PACK_EVENT_NAMES = [
 	"teaching_pack.blueprint_approval.opened",
 	"teaching_pack.content_approval.opened",
 	"teaching_pack.artifact_workflow.status_changed",
+	"teaching_pack.content_version.created",
 	"teaching_pack.content.approved_snapshots",
 	"teaching_pack.run.cancelled",
 ] as const;

@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useResumeTeachingPackRun } from "@/hooks/use-teaching-packs";
 import type { TeachingPackEventPayload, TeachingPackGateAction, TeachingPackGateName } from "@/hooks/use-teaching-packs";
 import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
-import { TeachingPackScopedRejection } from "@/components/teaching-packs-scoped-rejection";
-import type { ArtifactRejection } from "@/components/teaching-packs-scoped-rejection";
+import { TeachingPackScopedRejection, TeachingPackSectionEditor } from "@/components/teaching-packs-scoped-rejection";
+import type { ArtifactRejection, ContentSectionEdit, EditableArtifactTarget } from "@/components/teaching-packs-scoped-rejection";
 
 export interface TeachingPackGateShellProps {
 	readonly runId: string;
@@ -19,6 +19,7 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 	const gateId = typeof event.gate_id === "string" ? event.gate_id : "";
 	const [feedback, setFeedback] = useState("");
 	const [scopedRejectionMode, setScopedRejectionMode] = useState(false);
+	const [sectionEditorMode, setSectionEditorMode] = useState(false);
 	const resume = useResumeTeachingPackRun(runId);
 
 	if (!gateName || !gateId) return null;
@@ -46,9 +47,24 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 		onResolved?.();
 	};
 
+	const handleSectionEdit = async (edit: ContentSectionEdit) => {
+		await resume.mutateAsync({
+			gate_id: gateId,
+			gate_name: gateName,
+			action: "edit",
+			response: {
+				edit_type: "scoped_section",
+				versioning: "new_content_snapshot",
+				section_edit: edit,
+			},
+		});
+		onResolved?.();
+	};
+
 	const rejectionSourceArtifacts = event.artifact_statuses ?? event.artifacts ?? [];
 	const showScopedRejection = gateName === "content_approval" && rejectionSourceArtifacts.length > 0;
-	const artifacts = rejectionSourceArtifacts.map((a) => ({ id: a.artifact_id, type: a.artifact_type }));
+	const artifacts = editableArtifactsFor(event, rejectionSourceArtifacts);
+	const showSectionEditor = gateName === "content_approval" && artifacts.some((artifact) => artifact.sections && artifact.sections.length > 0);
 
 	return (
 		<section aria-labelledby="teaching-packs-gate-title" className="rounded-lg border border-border bg-card p-6">
@@ -66,8 +82,25 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 				<TeachingPackGateBody runId={runId} gateName={gateName} event={event} />
 			</div>
 
-			{scopedRejectionMode && showScopedRejection ? (
-				<>
+				{sectionEditorMode && showSectionEditor ? (
+					<>
+						<div className="mt-4 rounded-md bg-muted p-4">
+							<TeachingPackSectionEditor
+								artifacts={artifacts}
+								onSubmit={handleSectionEdit}
+								disabled={resume.isPending}
+							/>
+						</div>
+						<button
+							type="button"
+							className="mt-2 text-sm text-muted-foreground hover:text-foreground"
+							onClick={() => setSectionEditorMode(false)}
+						>
+							Back to general feedback
+						</button>
+					</>
+				) : scopedRejectionMode && showScopedRejection ? (
+					<>
 					<div className="mt-4 rounded-md bg-destructive/10 p-4">
 						<TeachingPackScopedRejection
 							artifacts={artifacts}
@@ -98,11 +131,20 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 				</>
 			)}
 
-			{resume.error ? <p className="mt-3 text-sm text-destructive">{resume.error.message}</p> : null}
+				{resume.error ? <p className="mt-3 text-sm text-destructive">{resume.error.message}</p> : null}
 
-			<div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-				{showScopedRejection && !scopedRejectionMode ? (
-					<button
+				<div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+					{showSectionEditor && !sectionEditorMode && !scopedRejectionMode ? (
+						<button
+							type="button"
+							className="rounded-md border border-border px-4 py-2 text-sm text-foreground hover:bg-muted"
+							onClick={() => setSectionEditorMode(true)}
+						>
+							Edit a section
+						</button>
+					) : null}
+					{showScopedRejection && !scopedRejectionMode && !sectionEditorMode ? (
+						<button
 						type="button"
 						className="rounded-md border border-destructive px-4 py-2 text-sm text-destructive hover:bg-destructive/10"
 						onClick={() => setScopedRejectionMode(true)}
@@ -110,12 +152,12 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 						Reject specific artifacts
 					</button>
 				) : null}
-					{!scopedRejectionMode && gateName === "clarification_required" ? (
+						{!scopedRejectionMode && !sectionEditorMode && gateName === "clarification_required" ? (
 						<Button type="button" disabled={resume.isPending} onClick={() => submit("answer")}>
 							{resume.isPending ? "Submitting..." : "Submit answer"}
 						</Button>
 					) : null}
-					{!scopedRejectionMode && gateName !== "clarification_required" ? (
+						{!scopedRejectionMode && !sectionEditorMode && gateName !== "clarification_required" ? (
 						<>
 							<Button type="button" variant="outline" disabled={resume.isPending} onClick={() => submit("reject")}>
 								Reject
@@ -131,6 +173,56 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 				</div>
 			</section>
 	);
+}
+
+function editableArtifactsFor(
+	event: TeachingPackEventPayload,
+	fallback: readonly { readonly artifact_id: string; readonly artifact_type: string }[],
+): readonly EditableArtifactTarget[] {
+	const fromContentArtifacts = editableArtifactsFromUnknownList(event.content_artifacts);
+	if (fromContentArtifacts.length > 0) return fromContentArtifacts;
+	return fallback.map((artifact) => ({ id: artifact.artifact_id, type: artifact.artifact_type }));
+}
+
+function editableArtifactsFromUnknownList(value: unknown): readonly EditableArtifactTarget[] {
+	if (!Array.isArray(value)) return [];
+	return value.map(editableArtifactFromUnknown).filter((artifact) => artifact !== null);
+}
+
+function editableArtifactFromUnknown(value: unknown): EditableArtifactTarget | null {
+	if (!isRecord(value)) return null;
+	const id = stringField(value, "artifact_id") ?? stringField(value, "id");
+	const type = stringField(value, "artifact_type") ?? stringField(value, "type");
+	if (!id || !type) return null;
+	return {
+		id,
+		type,
+		sections: sectionTargetsFromUnknown(value.sections),
+	};
+}
+
+function sectionTargetsFromUnknown(value: unknown): readonly { readonly section_id: string; readonly title: string; readonly content: string }[] {
+	if (!Array.isArray(value)) return [];
+	return value.map(sectionTargetFromUnknown).filter((section) => section !== null);
+}
+
+function sectionTargetFromUnknown(value: unknown): { readonly section_id: string; readonly title: string; readonly content: string } | null {
+	if (!isRecord(value)) return null;
+	const sectionId = stringField(value, "section_id") ?? stringField(value, "id");
+	const content = stringField(value, "content") ?? "";
+	if (!sectionId) return null;
+	const title = stringField(value, "title") ?? sectionId;
+	return { section_id: sectionId, title, content };
+}
+
+function stringField(record: Readonly<Record<string, unknown>>, key: string): string | null {
+	const value = record[key];
+	if (typeof value === "string" && value.length > 0) return value;
+	return null;
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function responseFor(gateName: TeachingPackGateName, feedback: string): Readonly<Record<string, unknown>> {

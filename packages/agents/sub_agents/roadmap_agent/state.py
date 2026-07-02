@@ -13,3 +13,5 @@ class RoadmapAgentState(MessagesState):
     run_id: str
     current_step: int
     roadmap_artifact: dict[str, Any] | None
+    use_structured_roadmap: bool | None
+    kt_mastery: dict[str, Any] | None
