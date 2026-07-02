@@ -78,6 +78,12 @@ describe("buildVocabularyBatchPackage", () => {
     expect(files["manifest.json"]).toBeDefined();
     expect(files["clusters/cluster-passed/teaching-teacher.html"]).toBeDefined();
     expect(files["clusters/cluster-passed/teaching-student.html"]).toBeDefined();
+    expect(result.manifest.clusters[0]?.files.map((file) => file.manifest?.kind)).toEqual([
+      "navy-ticket.teaching",
+      "navy-ticket.practice",
+      "navy-ticket.teaching",
+      "navy-ticket.practice",
+    ]);
     expect(text(files, "index.html")).toContain("Vocabulary Batch");
     expect(text(files, "index.html")).not.toMatch(/https?:\/\//);
     expect(text(files, "index.html")).not.toContain("<script");
@@ -110,6 +116,7 @@ describe("buildVocabularyBatchPackage", () => {
       "needs_review",
       "failed",
     ]);
+    expect(result.manifest.clusters[1]?.files.every((file) => file.manifest?.rendererVersion === "vocabulary-batch-exporter-v1")).toBe(true);
   });
 
   it("generates LMS exports only from student-safe practice data", async () => {

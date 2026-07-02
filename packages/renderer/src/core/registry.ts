@@ -2,9 +2,9 @@ import { RendererError, RendererErrorCategory, RendererErrorCode } from "./error
 import type { ArtifactKindPlugin, PluginMetadata } from "./types.js";
 
 export class PluginRegistry {
-  readonly #plugins = new Map<string, ArtifactKindPlugin<Record<string, unknown>>>();
+  readonly #plugins = new Map<string, ArtifactKindPlugin<object>>();
 
-  register(plugin: ArtifactKindPlugin<Record<string, unknown>>): void {
+  register(plugin: ArtifactKindPlugin<object>): void {
     if (this.#plugins.has(plugin.kind)) {
       throw new RendererError({
         code: RendererErrorCode.DuplicateKind,
@@ -16,7 +16,7 @@ export class PluginRegistry {
     this.#plugins.set(plugin.kind, plugin);
   }
 
-  get(kind: string): ArtifactKindPlugin<Record<string, unknown>> {
+  get(kind: string): ArtifactKindPlugin<object> {
     const plugin = this.#plugins.get(kind);
     if (plugin) return plugin;
     throw new RendererError({
@@ -40,7 +40,7 @@ export class PluginRegistry {
   }
 }
 
-export function createPluginRegistry(plugins: readonly ArtifactKindPlugin<Record<string, unknown>>[]): PluginRegistry {
+export function createPluginRegistry(plugins: readonly ArtifactKindPlugin<object>[]): PluginRegistry {
   const registry = new PluginRegistry();
   for (const plugin of plugins) registry.register(plugin);
   return registry;

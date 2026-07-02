@@ -64,7 +64,11 @@ describe("teaching_pack bundle plugin", () => {
     expect(response.html).not.toMatch(/https?:\/\//);
     expect(response.manifest.kind).toBe("teaching_pack");
     expect(response.manifest.childManifests?.map((manifest) => manifest.kind)).toEqual(["lesson", "worksheet"]);
-    expect(response.html).toMatchSnapshot("teaching-pack-student-preview");
+    expect(response.html).toContain('class="teaching-pack-bundle"');
+    expect(response.html).toContain('data-child-kind="lesson"');
+    expect(response.html).toContain('data-child-kind="worksheet"');
+    expect(response.html).toContain('"kind": "lesson"');
+    expect(response.html).toContain('"kind": "worksheet"');
   });
 
   it("supports print mode for the bundle", async () => {

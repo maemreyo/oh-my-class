@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { getFamily } from "./registry.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const CSS_DIR = join(__dirname, "../artifact-ui");
+const CSS_DIR = join(__dirname, "../../src/artifact-ui");
 
 function readCSSFile(relativePath: string): string {
   return readFileSync(join(CSS_DIR, relativePath), "utf-8");

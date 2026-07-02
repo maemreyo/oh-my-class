@@ -1,6 +1,7 @@
 import { strToU8, zip } from "fflate";
 import type { PracticeSet, SemanticAnchorCluster } from "@oh-my-class/schemas";
-import { renderArtifactUiSet } from "@oh-my-class/renderer";
+import { renderBatch } from "@oh-my-class/renderer";
+import type { RenderContext, RenderRequest, RenderResponse } from "@oh-my-class/renderer";
 import { buildH5PPackage } from "../h5p-impl/packager.js";
 
 export type VocabularyBatchExportFormat = "html" | "gift" | "h5p";
@@ -22,6 +23,7 @@ export type VocabularyBatchPackageOptions = {
 export type VocabularyBatchManifestFile = {
   readonly kind: string;
   readonly path: string;
+  readonly manifest?: RenderResponse["manifest"];
 };
 
 export type VocabularyBatchManifestCluster = {
@@ -76,6 +78,47 @@ function exportStatus(input: VocabularyBatchClusterInput): VocabularyBatchManife
 
 function addText(files: ZipFileMap, path: string, content: string): void {
   files[path] = strToU8(content);
+}
+
+function renderContext(audience: RenderContext["audience"], requestId: string): RenderContext {
+  return {
+    audience,
+    locale: "vi",
+    theme: "default",
+    renderMode: "export",
+    requestId,
+    versions: { rendererVersion: "vocabulary-batch-exporter-v1" },
+    assetPolicy: "inline-only",
+  };
+}
+
+function vocabularyProjectionRequests(cluster: SemanticAnchorCluster, practiceSet: PracticeSet): readonly RenderRequest[] {
+  return [
+    {
+      kind: "navy-ticket.teaching",
+      input: { cluster },
+      context: renderContext("teacher", `${cluster.cluster_id}:teaching:teacher`),
+    },
+    {
+      kind: "navy-ticket.practice",
+      input: { cluster, practiceSet },
+      context: renderContext("teacher", `${cluster.cluster_id}:practice:teacher`),
+    },
+    {
+      kind: "navy-ticket.teaching",
+      input: { cluster },
+      context: renderContext("student", `${cluster.cluster_id}:teaching:student`),
+    },
+    {
+      kind: "navy-ticket.practice",
+      input: { cluster, practiceSet },
+      context: renderContext("student", `${cluster.cluster_id}:practice:student`),
+    },
+  ];
+}
+
+async function renderVocabularyProjections(cluster: SemanticAnchorCluster, practiceSet: PracticeSet): Promise<readonly RenderResponse[]> {
+  return renderBatch({ requests: vocabularyProjectionRequests(cluster, practiceSet) });
 }
 
 function giftEscape(value: string): string {
@@ -169,20 +212,20 @@ export async function buildVocabularyBatchPackage(options: VocabularyBatchPackag
       if (!input.practiceSet) {
         throw new Error(`Vocabulary batch cluster ${cluster.cluster_id} cannot export HTML without a PracticeSet`);
       }
-      const projections = await renderArtifactUiSet({ cluster, practiceSet: input.practiceSet });
+      const [teachingTeacher, practiceTeacher, teachingStudent, practiceStudent] = await renderVocabularyProjections(cluster, input.practiceSet);
       const teacherTeaching = `${folder}/teaching-teacher.html`;
-      addText(files, teacherTeaching, projections.teachingTeacher);
-      manifestFiles.push({ kind: "teaching_teacher_html", path: teacherTeaching });
+      addText(files, teacherTeaching, teachingTeacher.html);
+      manifestFiles.push({ kind: "teaching_teacher_html", path: teacherTeaching, manifest: teachingTeacher.manifest });
       const teacherPractice = `${folder}/practice-teacher.html`;
-      addText(files, teacherPractice, projections.practiceTeacher);
-      manifestFiles.push({ kind: "practice_teacher_html", path: teacherPractice });
+      addText(files, teacherPractice, practiceTeacher.html);
+      manifestFiles.push({ kind: "practice_teacher_html", path: teacherPractice, manifest: practiceTeacher.manifest });
       if (status === "passed") {
         const studentTeaching = `${folder}/teaching-student.html`;
-        addText(files, studentTeaching, projections.teachingStudent);
-        manifestFiles.push({ kind: "teaching_student_html", path: studentTeaching });
+        addText(files, studentTeaching, teachingStudent.html);
+        manifestFiles.push({ kind: "teaching_student_html", path: studentTeaching, manifest: teachingStudent.manifest });
         const studentPractice = `${folder}/practice-student.html`;
-        addText(files, studentPractice, projections.practiceStudent);
-        manifestFiles.push({ kind: "practice_student_html", path: studentPractice });
+        addText(files, studentPractice, practiceStudent.html);
+        manifestFiles.push({ kind: "practice_student_html", path: studentPractice, manifest: practiceStudent.manifest });
       }
     }
 

@@ -69,7 +69,7 @@ export type ArtifactKindCapabilities = {
 
 export type SanitizerPolicy = {
   readonly version: string;
-  readonly config?: "base" | "quiz" | "infographic" | "lesson" | "answer_key" | "flashcard_deck" | "reading_passage" | "exit_ticket" | "roadmap";
+  readonly config?: "base" | "quiz" | "infographic" | "lesson" | "answer_key" | "flashcard_deck" | "reading_passage" | "exit_ticket" | "roadmap" | "artifact_ui";
 };
 
 export type ManagedScriptDeclaration = {
@@ -90,7 +90,7 @@ export type RenderServices = {
   readonly renderChild: (request: RenderRequest) => Promise<RenderResponse>;
 };
 
-export type ArtifactKindPlugin<TTemplateData extends Record<string, unknown>> = {
+export type ArtifactKindPlugin<TTemplateData extends object> = {
   readonly kind: string;
   readonly version: string;
   readonly templateVersion: string;

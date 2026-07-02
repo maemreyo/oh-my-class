@@ -97,7 +97,8 @@ export async function render(request: RenderRequest, options: RenderOptions = {}
   };
 }
 
-function childManifestsFrom(templateData: Record<string, unknown>): readonly RenderManifest[] | undefined {
+function childManifestsFrom(templateData: object): readonly RenderManifest[] | undefined {
+  if (!("childManifests" in templateData)) return undefined;
   const value = templateData.childManifests;
   if (!Array.isArray(value)) return undefined;
   return value.every(isRenderManifest) ? value : undefined;

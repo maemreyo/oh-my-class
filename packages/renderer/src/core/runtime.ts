@@ -11,6 +11,7 @@ import { readingPassagePlugin } from "../plugins/reading-passage.js";
 import { exitTicketPlugin } from "../plugins/exit-ticket.js";
 import { roadmapPlugin } from "../plugins/roadmap.js";
 import { teachingPackPlugin } from "../plugins/teaching-pack.js";
+import { navyTicketPracticePlugin, navyTicketTeachingPlugin } from "../plugins/navy-ticket.js";
 import { createPluginRegistry } from "./registry.js";
 
 export const defaultRegistry = createPluginRegistry([
@@ -27,6 +28,8 @@ export const defaultRegistry = createPluginRegistry([
   exitTicketPlugin,
   roadmapPlugin,
   teachingPackPlugin,
+  navyTicketTeachingPlugin,
+  navyTicketPracticePlugin,
 ]);
 
 export function rendererPluginMetadata() {

@@ -10,6 +10,7 @@ import { LESSON_CONFIG } from "../sanitizer/configs/lesson.js";
 import { QUIZ_CONFIG } from "../sanitizer/configs/quiz.js";
 import { READING_PASSAGE_CONFIG } from "../sanitizer/configs/reading_passage.js";
 import { ROADMAP_CONFIG } from "../sanitizer/configs/roadmap.js";
+import { ARTIFACT_UI_CONFIG } from "../sanitizer/configs/artifact-ui.js";
 import type { SanitizerPolicy } from "./types.js";
 
 type FullDocumentParts = {
@@ -41,6 +42,8 @@ function configFor(policy: SanitizerPolicy): IOptions {
       return EXIT_TICKET_CONFIG;
     case "roadmap":
       return ROADMAP_CONFIG;
+    case "artifact_ui":
+      return ARTIFACT_UI_CONFIG;
   }
 }
 

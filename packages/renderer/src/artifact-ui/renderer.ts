@@ -37,7 +37,7 @@ let _interactivityJS: string | undefined;
 function getInteractivityJS(): string {
   if (_interactivityJS === undefined) {
     _interactivityJS = readFileSync(
-      join(__dirname, "../artifact-ui/interactivity.js"),
+      join(__dirname, "../../src/artifact-ui/interactivity.js"),
       "utf-8",
     );
   }
