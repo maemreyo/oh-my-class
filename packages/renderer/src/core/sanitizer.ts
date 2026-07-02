@@ -2,6 +2,7 @@ import sanitizeHtmlLib from "sanitize-html";
 import type { IOptions } from "sanitize-html";
 
 import { BASE_CONFIG } from "../sanitizer/base-config.js";
+import { QUIZ_CONFIG } from "../sanitizer/configs/quiz.js";
 import type { SanitizerPolicy } from "./types.js";
 
 type FullDocumentParts = {
@@ -13,8 +14,13 @@ function fullDocumentParts(html: string): FullDocumentParts | undefined {
   return bodyMatch ? { bodyMatch } : undefined;
 }
 
-function configFor(_policy: SanitizerPolicy): IOptions {
-  return BASE_CONFIG;
+function configFor(policy: SanitizerPolicy): IOptions {
+  switch (policy.config ?? "base") {
+    case "base":
+      return BASE_CONFIG;
+    case "quiz":
+      return QUIZ_CONFIG;
+  }
 }
 
 export function sanitizeRenderedHtml(html: string, policy: SanitizerPolicy): string {
