@@ -1,44 +1,82 @@
-"""INVARIANT-05: Answer key must never appear in student-facing sections.
-
-Deterministic tests — no LLM required. Tests the contract-level enforcement
-that student sections cannot contain answer key data.
-"""
 from __future__ import annotations
+
 import pytest
 
+from packages.agents.teaching_pack.nodes import JsonObject, TeachingPackState, _compliance_gate
+from packages.agents.teaching_pack.stages import StageEnum
 
-STUDENT_HTML_SAMPLES = [
-    "<html><body><h1>Exercise 1</h1><p>What is photosynthesis?</p></body></html>",
-    "<div class='student-section'><p>Fill in the blank: ___</p></div>",
-]
 
-ANSWER_KEY_MARKERS = [
+ANSWER_KEY_MARKERS = (
     "Answer Key:",
     "answer key",
     "Correct Answer:",
     "[ANSWER]",
     "✓ Correct:",
-    "Đáp án:",  # Vietnamese
+    "Đáp án:",
     "Đáp án đúng:",
-]
+)
+
+
+def _artifact() -> JsonObject:
+    return {
+        "artifact_id": "quiz-1",
+        "artifact_type": "quiz",
+        "theme": "default",
+        "title": "Photosynthesis Check",
+        "sections": [{"title": "Practice", "content": "Answer the questions."}],
+        "metadata": {},
+        "accessibility": {"language": "en"},
+    }
+
+
+def _snapshot(student_html: str, teacher_html: str = "Answer Key: 1=B 2=A") -> JsonObject:
+    return {
+        "snapshot_id": "snap-quiz-1",
+        "student_rendered_html": student_html,
+        "rendered_html": _html(teacher_html),
+    }
+
+
+def _html(body: str) -> str:
+    return (
+        "<!DOCTYPE html><html lang='en'><head>"
+        "<meta name='viewport' content='width=device-width'></head>"
+        f"<body>oh-my-class {body}</body></html>"
+    )
+
+
+def _state(snapshot: JsonObject) -> TeachingPackState:
+    return TeachingPackState(
+        run_id="run-answer-leak",
+        current_stage=StageEnum.COMPLIANCE_GATE,
+        artifacts=[_artifact()],
+        rendered_snapshots=[snapshot],
+    )
 
 
 class TestStudentHtmlInvariant05:
-    @pytest.mark.parametrize("html", STUDENT_HTML_SAMPLES)
-    def test_student_html_has_no_answer_markers(self, html: str):
-        for marker in ANSWER_KEY_MARKERS:
-            assert marker.lower() not in html.lower(), (
-                f"INVARIANT-05 VIOLATED: Answer key marker {marker!r} found in student HTML"
-            )
+    @pytest.mark.parametrize("marker", ANSWER_KEY_MARKERS)
+    def test_student_html_answer_markers_fail_compliance_gate(self, marker: str) -> None:
+        result = _compliance_gate(_state(_snapshot(_html(f"Question 1. {marker} B"))))
+        compliance_result = result.get("compliance_result", {})
+        assert isinstance(compliance_result, dict)
+        violations = compliance_result.get("violations", [])
+        assert isinstance(violations, list)
 
-    def test_answer_marker_list_is_comprehensive(self):
-        assert len(ANSWER_KEY_MARKERS) >= 5, "Add more Vietnamese/English answer key markers"
+        assert result.get("compliance_passed") is False
+        assert "answer_key_leakage" in violations
 
-    def test_teacher_section_may_contain_answer_key(self):
-        """Teacher HTML is allowed to contain answer keys (positive test)."""
-        teacher_html = "<div class='teacher-only'>Answer Key: 1=B 2=A</div>"
-        # This should NOT raise — teacher view can have answer keys
-        has_marker = any(
-            m.lower() in teacher_html.lower() for m in ANSWER_KEY_MARKERS
-        )
-        assert has_marker, "Teacher section should contain answer key for this test fixture"
+    def test_clean_student_html_passes_while_teacher_answer_key_is_allowed(self) -> None:
+        result = _compliance_gate(_state(_snapshot(_html("Question 1. Choose the best answer."))))
+
+        assert result.get("compliance_passed") is True
+
+    def test_nested_student_answer_key_fails_content_gate(self) -> None:
+        from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
+
+        result = check_answer_key_leakage({
+            "artifact_type": "quiz",
+            "sections": [{"components": [{"type": "question_card", "text": "2+2?", "answer": "4"}]}],
+        })
+
+        assert result["passed"] is False

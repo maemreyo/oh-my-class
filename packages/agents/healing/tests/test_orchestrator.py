@@ -27,6 +27,17 @@ def make_state(**overrides) -> dict[str, Any]:
     return base
 
 
+class _MemoryBreakerStore:
+    def __init__(self) -> None:
+        self.values: dict[str, dict[str, float | int | str]] = {}
+
+    def get(self, key: str) -> dict[str, float | int | str] | None:
+        return self.values.get(key)
+
+    def set(self, key: str, value: dict[str, float | int | str], _ttl_seconds: float) -> None:
+        self.values[key] = value
+
+
 class TestHealingOrchestrator:
     def test_rewrite_on_first_validation_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
@@ -91,6 +102,23 @@ class TestHealingOrchestrator:
         state = make_state(fail_count=3, fail_type="validation")
         result = HealingOrchestrator(max_retries=3).heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "escalate"
+
+    def test_run_breaker_exhaustion_escalates_for_same_run(self):
+        from packages.agents.events import clear_run, get_run_events
+        from packages.agents.healing.orchestrator import HealingOrchestrator
+
+        clear_run("run-breaker")
+        store = _MemoryBreakerStore()
+        orchestrator = HealingOrchestrator(max_retries=3, breaker_store=store)
+
+        for fail_count in range(3):
+            orchestrator.heal(cast("TeachingPackState", make_state(run_id="run-breaker", fail_count=fail_count)))
+        result = orchestrator.heal(cast("TeachingPackState", make_state(run_id="run-breaker", fail_count=3)))
+
+        assert result["healing_strategy"] == "escalate"
+        assert result["escalate"] is True
+        assert store.values["cb:run:run-breaker"]["state"] == "open"
+        assert [event["event_type"] for event in get_run_events("run-breaker")][-2:] == ["healing_decision", "escalate"]
 
     def test_healing_node_is_callable(self):
         from packages.agents.healing.orchestrator import healing_node

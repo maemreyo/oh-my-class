@@ -141,6 +141,9 @@ class CircuitBreaker:
         current = self._load_state()
         return current.state == "open" and current.failures >= self.threshold
 
+    def is_open(self) -> bool:
+        return self._blocks(self._load_state())
+
     def call[T](self, fn: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         current = self._load_state()
         if self._blocks(current):

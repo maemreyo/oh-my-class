@@ -103,17 +103,18 @@ The decommissioned Lead Agent and `task()` delegation stub are not runtime surfa
 
 The authoritative LangGraph runtime is the teaching-pack stage graph (`packages/agents/teaching_pack/graph.py`). Legacy graph/Lead-Agent surfaces are decommissioned and guarded by deletion tests.
 
-### 3.1 Teaching-Pack Stage Graph — 8 Stages (`build_teaching_pack_graph`)
+### 3.1 Teaching-Pack Stage Graph — 9 Stages (`build_teaching_pack_graph`)
 
 **Status**: Authoritative runtime. Single-lesson runs use this path.
 
 ```
 setup_contract → preplanning_search → planning_blueprint → post_blueprint_research
-  → artifact_workflow → render_quality → teacher_approval → export_finalize → END
+  → artifact_workflow → render_quality → compliance_gate → teacher_approval → export_finalize → END
 ```
 
-**Conditional seams** (2):
-- After `render_quality`: routes to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `teacher_approval`
+**Conditional seams** (3):
+- After `render_quality`: routes to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `compliance_gate`
+- After `compliance_gate`: routes to `teacher_approval` on pass or `artifact_workflow` on fail-closed hard blocks
 - After `teacher_approval`: routes to `export_finalize` (approve) or `artifact_workflow` (reject with scoped feedback)
 
 **ADR-017 extension** (proposed, not yet implemented):
@@ -124,13 +125,14 @@ setup_contract → preplanning_search → planning_blueprint → post_blueprint_
 
 | Gate | Graph | Teacher Action | On Reject |
 |------|-------|---------------|-----------|
-| `teacher_approval` | Teaching-pack | approve / edit / reject / audited fast-lane auto-approve | Loop back to `artifact_workflow` |
+| `teacher_approval` | Teaching-pack | approve / edit / reject / audited fast-lane auto-approve with visible revert window | Loop back to `artifact_workflow` |
 
 Gates time out after **24 hours** and auto-escalate to admin.
 
 ### Conditional Routing
 
-- After `render_quality`: route to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `teacher_approval` based on quality recovery output.
+- After `render_quality`: route to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `compliance_gate` based on quality recovery output.
+- After `compliance_gate`: route to `teacher_approval` only when deterministic hard-block checks pass; otherwise return to `artifact_workflow`.
 - After `teacher_approval`: route to `export_finalize` on approval or back to `artifact_workflow` on scoped rejection.
 
 ---
@@ -208,7 +210,7 @@ class ArtifactContent(BaseModel):
 - Return JSON only — never raw HTML
 - No CDN references in data
 - No student PII (name, email, score) in output
-- Answer keys must be in a separate `teacher_only` section
+- Answer keys must be absent from student-facing output; deterministic compliance fails closed on English/Vietnamese answer-key leakage markers.
 
 ### 4.4 Reviewer Agent
 
@@ -240,11 +242,13 @@ Schema:  JudgeOutput (Pydantic v2)
 
 ## 5. State Schema
 
+The live teaching-pack runtime uses `TeachingPackState` in `packages/agents/teaching_pack/nodes.py`, with boundary-local state shapes for middleware, gates, and node adapters. The deleted legacy state module is not a runtime contract.
+
 ```python
 from typing import Annotated, NotRequired
 from langgraph.graph import StateGraph
 
-class OhMyClassState(TypedDict):
+class TeachingPackState(TypedDict):
     # ── Input ──────────────────────────────
     raw_request: str
     teacher_id: str
@@ -687,7 +691,6 @@ oh-my-class/
 │   │   │   ├── safety/          # Safety middleware
 │   │   │   └── terminal/        # Terminal middleware
 │   │   ├── tools/
-│   │   ├── state.py             # OhMyClassState TypedDict
 │   │   ├── gates.py             # interrupt() gate node implementations
 │   │   ├── healing.py           # Self-heal orchestrator
 │   │   ├── events.py            # In-memory event bus (SSE/observability only)
@@ -782,11 +785,11 @@ apps/*              →  MAY import from       packages/* and common/* and servi
 # packages/agents/sub_agents/planner/agent.py
 
 # ✅ DO: typed function signatures with Pydantic models
-def design_lesson_plan(state: OhMyClassState) -> dict[str, Any]:
+def design_lesson_plan(state: TeachingPackState) -> dict[str, Any]:
     ...
 
 # ✅ DO: explicit return types for LangGraph nodes
-def quality_review_node(state: OhMyClassState) -> OhMyClassState:
+def quality_review_node(state: TeachingPackState) -> TeachingPackState:
     return {"quality_scores": scores, "quality_passed": passed}
 
 # ❌ DON'T: raise bare exceptions — use typed domain exceptions
@@ -884,7 +887,7 @@ E2E Tests          tests/e2e/                          pytest
 ```python
 # Unit-test each agent node in isolation
 def test_planner_node():
-    state = OhMyClassState(
+    state = TeachingPackState(
         raw_request="Toán lớp 5 — Phân số",
         teacher_id="t-001",
         class_info={"grade": 5, "subject": "math", "student_count": 30}

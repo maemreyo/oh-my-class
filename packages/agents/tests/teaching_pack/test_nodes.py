@@ -156,6 +156,13 @@ class TestTeachingPackApprovalExport:
         monkeypatch.setattr("packages.agents.teaching_pack.teacher_memory.write_gate_approval", lambda *_args: None)
         monkeypatch.setenv("GATE_FAST_LANE_THRESHOLD", "0.8")
 
+        class StoreItem:
+            value = {"events": [{"action": "approve", "artifact_types": ["lesson"]}]}
+
+        class TrustStore:
+            def get(self, _namespace, _key):
+                return StoreItem()
+
         result = nodes._teacher_approval(
             TeachingPackState(
                 run_id="run-fast-lane",
@@ -163,11 +170,51 @@ class TestTeachingPackApprovalExport:
                 compliance_passed=False,
                 rendered_snapshots=[{"snapshot_id": "snap-1"}],
             ),
-            store=object(),
+            store=TrustStore(),
         )
 
         assert result["teacher_approved"] is True
         assert result["approval_gate"].get("auto_approved") is None
+
+    def test_teacher_fast_lane_still_opens_visible_gate(self, monkeypatch) -> None:
+        from packages.agents.teaching_pack import nodes
+
+        captured = {}
+
+        def fake_interrupt(payload):
+            captured.update(payload)
+            return {}
+
+        monkeypatch.setattr("langgraph.types.interrupt", fake_interrupt)
+        monkeypatch.setattr("packages.agents.teaching_pack.gate_trust.should_fast_lane", lambda *_args: True)
+        monkeypatch.setattr("packages.agents.teaching_pack.gate_trust.record_gate_event", lambda *_args: None)
+        monkeypatch.setattr("packages.agents.teaching_pack.teacher_memory.write_gate_approval", lambda *_args: None)
+        monkeypatch.setenv("GATE_FAST_LANE_THRESHOLD", "0.8")
+
+        class StoreItem:
+            value = {"events": [{"action": "approve", "artifact_types": ["lesson"]}]}
+
+        class TrustStore:
+            def get(self, _namespace, _key):
+                return StoreItem()
+
+        result = nodes._teacher_approval(
+            TeachingPackState(
+                run_id="run-fast-lane-visible",
+                contract={"teacher_id": "teacher-1"},
+                compliance_passed=True,
+                rendered_snapshots=[{"snapshot_id": "snap-1"}],
+                artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+            ),
+            store=TrustStore(),
+        )
+
+        assert captured["auto_approved"] is True
+        assert captured["approval_mode"] == "auto_approved"
+        assert captured["revert_window_seconds"] == 900
+        assert captured["artifact_explanations"][0]["approval_mode"] == "auto_approved"
+        assert result["teacher_approved"] is True
+        assert result["gate_payload"] == {"action": "approve"}
 
     def test_teacher_gate_payload_explains_artifacts(self, monkeypatch) -> None:
         from packages.agents.teaching_pack import nodes

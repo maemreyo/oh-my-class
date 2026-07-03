@@ -90,6 +90,9 @@ Assignees:
 - Pure LOC audit for post-review files returned all files below the 250 LOC ceiling; largest checked file was `176` pure LOC.
 - The no-excuse helper referenced by the programming skill is not present at `scripts/python/check-no-excuse-rules.py`, so the available repo gates used here were focused pytest, LSP diagnostics, raw bypass search, manual smoke, and pure LOC measurement.
 - Size audit performed on changed files; no new/modified Issue #26 file exceeded 250 pure LOC. Pre-existing large tests/modules remain outside this issue's scope.
+- Round 2 remediation wired production sub-agent tool entrypoints through `bind_agent_tools(...)` for planner, researcher, content creator, and reviewer, so the capability registry is exercised by runtime-facing tool modules rather than only by tests over `AGENT_CAPABILITIES`.
+- Round 2 guard: `packages/agents/tests/test_no_unimplemented_tool_bound.py::test_production_tool_entrypoints_call_capability_registry` fails if production tool entrypoints bypass the capability registry.
+- Round 2 verification: `uv run pytest packages/agents/tests/test_no_unimplemented_tool_bound.py packages/agents/tests/test_agent_runtime_tools.py packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorTools -q` → 12 passed.
 
 ## Body
 

@@ -410,8 +410,8 @@ class TestProgressStream:
         queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue(maxsize=1)
         _event_subscribers["run-full"].append(queue)
         try:
-            emit_run_event("run-full", "event1", {})
-            emit_run_event("run-full", "event2", {})  # should not raise
+            emit_run_event("run-full", "stage_transition", {})
+            emit_run_event("run-full", "gate_decision", {})
             assert queue.qsize() == 1
         finally:
             _event_subscribers["run-full"].remove(queue)

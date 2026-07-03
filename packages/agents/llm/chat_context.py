@@ -129,6 +129,18 @@ class CallContext:
             "usage": result.usage,
         }
 
+    def cost_event(self, result: TransportResult) -> dict[str, object]:
+        usage = result.usage or {}
+        return {
+            "agent": self.agent_name,
+            "model": self.request_model,
+            "attempt": self.attempt,
+            "step": self.step,
+            "usage": usage,
+            "prompt_tokens": usage.get("prompt_tokens", 0),
+            "completion_tokens": usage.get("completion_tokens", 0),
+        }
+
     def failed_event(self, exc: Exception) -> dict[str, object]:
         return {
             "agent": self.agent_name,

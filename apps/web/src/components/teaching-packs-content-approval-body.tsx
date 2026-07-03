@@ -2,28 +2,29 @@
 
 import { useState } from "react";
 import { snapshotPreviewUrl } from "@/hooks/use-teaching-packs";
-import type { ArtifactProgressItem, TeachingPackEventPayload } from "@/hooks/use-teaching-packs";
+import type { TeachingPackEventPayload } from "@/hooks/use-teaching-packs";
 import { TeachingPackArtifactProgress } from "@/components/teaching-packs-artifact-progress";
 import { TeachingPackTrustPanel } from "@/components/teaching-packs-trust-panel";
 
-export function ContentApprovalBody({ runId, event, onRevertFastLane, onRequestRevision }: {
+export function ContentApprovalBody({ runId, event, onRevertFastLaneAction, onRequestRevisionAction }: {
 	readonly runId: string;
 	readonly event: TeachingPackEventPayload;
-	readonly onRevertFastLane?: (artifactId: string) => void;
-	readonly onRequestRevision?: (artifactId: string) => void;
+	readonly onRevertFastLaneAction?: (artifactId: string) => void;
+	readonly onRequestRevisionAction?: (artifactId: string) => void;
 }) {
 	const artifacts = event.artifact_statuses ?? event.artifacts ?? [];
 	return (
 		<div className="space-y-4">
 			<TeachingPackTrustPanel
 				autoApproved={event.auto_approved}
+				trustScore={event.trust_score}
 				revertWindowSeconds={event.revert_window_seconds}
 				explanations={event.artifact_explanations}
 				onRevert={() => {
 					const artifactId = event.artifact_explanations?.[0]?.artifact_id;
-					if (artifactId) onRevertFastLane?.(artifactId);
+					if (artifactId) onRevertFastLaneAction?.(artifactId);
 				}}
-				onRequestRevision={onRequestRevision}
+				onRequestRevision={onRequestRevisionAction}
 			/>
 			{artifacts.length > 0 && <TeachingPackArtifactProgress artifacts={artifacts} />}
 			<QualityFlagsPanel qualityScores={event.quality_scores} />

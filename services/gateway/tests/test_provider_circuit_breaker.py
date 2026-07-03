@@ -3,14 +3,23 @@ from __future__ import annotations
 
 import time
 
-import pytest
-
 from packages.llm_client.circuit_breaker import (
     CircuitBreaker,
     CircuitState,
     breaker_for,
     should_skip_provider,
 )
+
+
+class SharedStore:
+    def __init__(self) -> None:
+        self.values: dict[str, dict[str, float | int | str]] = {}
+
+    def get(self, key: str) -> dict[str, float | int | str] | None:
+        return self.values.get(key)
+
+    def set(self, key: str, value: dict[str, float | int | str], _ttl_seconds: float) -> None:
+        self.values[key] = value
 
 
 def test_breaker_starts_closed() -> None:
@@ -79,7 +88,10 @@ def test_record_success_from_closed_stays_closed() -> None:
 
 def test_global_breaker_for_returns_same_instance() -> None:
     from packages.llm_client.circuit_breaker import _breakers
+    import packages.llm_client.circuit_breaker as breaker_module
+
     _breakers.clear()
+    breaker_module._provider_store = None
     b1 = breaker_for("openai")
     b2 = breaker_for("openai")
     assert b1 is b2
@@ -87,13 +99,19 @@ def test_global_breaker_for_returns_same_instance() -> None:
 
 def test_should_skip_provider_false_when_closed() -> None:
     from packages.llm_client.circuit_breaker import _breakers
+    import packages.llm_client.circuit_breaker as breaker_module
+
     _breakers.clear()
+    breaker_module._provider_store = None
     assert should_skip_provider("provider-x") is False
 
 
 def test_should_skip_provider_true_after_failures() -> None:
     from packages.llm_client.circuit_breaker import _breakers
+    import packages.llm_client.circuit_breaker as breaker_module
+
     _breakers.clear()
+    breaker_module._provider_store = SharedStore()
     cb = breaker_for("flaky-provider")
     for _ in range(3):
         cb.record_failure()

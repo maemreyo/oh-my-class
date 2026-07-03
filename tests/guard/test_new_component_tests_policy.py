@@ -31,3 +31,33 @@ def test_added_generated_component_is_ignored() -> None:
     )
 
     assert missing == []
+
+
+def test_partial_substring_test_name_does_not_satisfy_component() -> None:
+    missing = missing_component_tests(
+        added_paths=["packages/agents/new.py"],
+        all_paths=["packages/agents/tests/test_new_component.py"],
+        changed_paths=[],
+    )
+
+    assert missing == ["packages/agents/new.py"]
+
+
+def test_colocated_typescript_component_test_passes() -> None:
+    missing = missing_component_tests(
+        added_paths=["apps/web/src/components/teacher-gate.tsx"],
+        all_paths=["apps/web/src/components/__tests__/teacher-gate.test.tsx"],
+        changed_paths=[],
+    )
+
+    assert missing == []
+
+
+def test_changed_matching_test_satisfies_new_component() -> None:
+    missing = missing_component_tests(
+        added_paths=["packages/quality/component_gate.py"],
+        all_paths=[],
+        changed_paths=["packages/quality/tests/test_component_gate.py"],
+    )
+
+    assert missing == []

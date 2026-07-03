@@ -95,3 +95,22 @@ def test_trip_emits_observability_event_and_run_exhausts() -> None:
     assert events[-1]["scope"] == "run"
     assert events[-1]["breaker_key"] == "cb:run:run-event"
     assert breaker.exhausted is True
+
+
+def test_real_redis_breaker_store_round_trips_when_available() -> None:
+    from packages.agents.healing.redis_breaker_store import RedisBreakerStore
+
+    store = RedisBreakerStore()
+    try:
+        reachable = store.ping()
+    except (ConnectionError, OSError):
+        pytest.skip("Redis is not available on localhost:6379")
+    if not reachable:
+        pytest.skip("Redis did not respond to PING")
+
+    key = "cb:test:real-redis"
+    store.delete(key)
+    store.set(key, {"failures": 2, "state": "open", "last_failure_time": 123.0}, 5)
+
+    assert store.get(key) == {"failures": "2", "state": "open", "last_failure_time": "123.0"}
+    store.delete(key)

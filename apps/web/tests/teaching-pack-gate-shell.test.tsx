@@ -75,10 +75,11 @@ describe("TeachingPackGateShell", () => {
 		const html = renderToStaticMarkup(
 			<TeachingPackGateShell
 				runId="run-trust"
-				event={{
+					event={{
 					gate_id: "gate-content",
 					gate_name: "content_approval",
 					auto_approved: true,
+					trust_score: 0.82,
 					revert_window_seconds: 900,
 					artifact_explanations: [
 						{
@@ -86,7 +87,7 @@ describe("TeachingPackGateShell", () => {
 							artifact_type: "quiz",
 							judge_rationale: "Quiz aligns to the objectives.",
 							revision_count: 2,
-							healing_history: [{ strategy: "rewrite" }],
+							healing_history: [{ strategy: "rewrite", note: "Fixed missing rubric." }],
 							approval_mode: "auto_approved",
 						},
 					],
@@ -97,6 +98,10 @@ describe("TeachingPackGateShell", () => {
 		expect(html).toContain("Auto-approved fast lane");
 		expect(html).toContain("View details");
 		expect(html).toContain("Revert available for 15 minutes");
+		expect(html).toContain("Teacher trust score");
+		expect(html).toContain("82%");
 		expect(html).toContain("Quiz aligns to the objectives.");
+		expect(html).toContain("Healing history");
+		expect(html).toContain("rewrite: Fixed missing rubric.");
 	});
 });

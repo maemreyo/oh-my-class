@@ -43,7 +43,7 @@ Teacher (Next.js :3000) ──REST/SSE──▶ FastAPI gateway :8101
    gate interrupt() ──▶ run pauses ──▶ teacher resumes ──▶ new RESUME job
 ```
 
-`packages/agents/graph.py` (legacy) — **removed**. `packages/agents/state.py::OhMyClassState` — **removed**; the runtime uses `TeachingPackState` plus boundary-local `MiddlewareState`, `GateState`, and `NodeState` shapes where needed.
+The former legacy graph and state module are **removed**; the runtime uses `TeachingPackState` plus boundary-local `MiddlewareState`, `GateState`, and `NodeState` shapes where needed.
 
 ### System diagram — runtime flow
 
@@ -135,7 +135,7 @@ setup_contract → preplanning_search → planning_blueprint → post_blueprint_
 | artifact_workflow | generate artifacts | ✅ `content_creator_node` imperative batch by default; ✅ flag-gated ADR-020 wave-based `Send` fan-out via `generate_one_artifact` |
 | render_quality | quality check + healing routing | ✅ 6-layer gate (see §6) |
 | compliance_gate | deterministic hard-block enforcement before teacher approval | — |
-| teacher_approval | **HITL `interrupt()`**; fast-lane auto-approval requires `compliance_passed is True` | — |
+| teacher_approval | **HITL `interrupt()`**; fast-lane auto-approval requires `compliance_passed is True` and still opens a teacher-visible gate payload with revert window/evidence | — |
 | export_finalize | write exports | ✅ HTML/GIFT/H5P/QTI (see §8) |
 
 **Conditional routing:** after `render_quality` → recovery routes (`planning_blueprint` / `post_blueprint_research` / `artifact_workflow`) or `compliance_gate`; after `compliance_gate` → `teacher_approval` on pass or `artifact_workflow` on fail; after `teacher_approval` → `export_finalize` (approve) or `artifact_workflow` (scoped reject).
@@ -175,8 +175,8 @@ The agents are **imperative calls inside stage nodes**, not graph nodes themselv
 - Inter-agent handoff carries the **full** `lesson_plan`/`research_bundle` in state; `summarizers.py` truncation is **prompt-side inside `content_creator`**, not a lossy graph handoff.
 > These constraints are tracked in `.scratch/agent-interaction/` and `.scratch/artifact-send-fanout/`: stage = agent graph-identity; typed seam contracts; BaseStore substrate; state-flag/conditional-edge revision protocol; and ADR-020's wave-based `Send` artifact fan-out. Artifact `Send` fan-out is the default path; the old imperative path is rollback-only.
 
-### Lead agent
-The `create_react_agent` runtime (`agent.py`/`node.py`) and `lead_agent_node` bridge have been **removed** (confirmed by `architecture.manifest.json::lead_agent_present=false`). Parked helpers (`config.py`, `recovery.py`, `tools.py`) remain in `packages/agents/lead_agent/` — middleware and sub-agent call sites that still use them retain those references; the ReAct orchestrator itself is gone.
+### Former supervisor surface
+The former ReAct supervisor runtime, bridge node, and parked helper package have been **removed** (confirmed by the generated architecture manifest). The teaching-pack stage graph is the runtime orchestration surface.
 
 ---
 
@@ -186,7 +186,7 @@ Gate registry **exists**: `services/gateway/teaching_pack_gate_registry.py`:
 - Gates: `clarification_required`, `contract_confirmation`, `search_plan_confirmation`, `blueprint_approval`, `content_approval`.
 - Actions: `answer`, `approve`, `reject`, `edit` (validated per-gate by `validate_gate_response`).
 
-Mechanics: `teacher_approval` stage calls LangGraph `interrupt()`; a `GateInterrupt` row is opened (partial-unique index: one ACTIVE gate per (run, gate_name)); teacher resumes via `POST /teaching-packs/runs/{id}/resume`; a `GateResponse` is recorded; a RESUME `RunJob` is enqueued. Contract edits at `contract_confirmation` bump a `ContractRevision`.
+Mechanics: `teacher_approval` stage calls LangGraph `interrupt()` for both manual approval and eligible fast-lane approval. Fast-lane payloads are labelled `auto_approved`, include a revert window and artifact explanations, and can only occur after `compliance_gate` passes. A `GateInterrupt` row is opened (partial-unique index: one ACTIVE gate per (run, gate_name)); teacher resumes via `POST /teaching-packs/runs/{id}/resume`; a `GateResponse` is recorded; a RESUME `RunJob` is enqueued. Contract edits at `contract_confirmation` bump a `ContractRevision`.
 
 ---
 
@@ -254,7 +254,7 @@ Export also fails closed when required generated artifacts are unavailable. The 
 
 - **Model config** `packages/agents/config/models.py`: every agent/task uses alias **`4omc`** (no per-tier differentiation, no version pinning); per-agent `max_tokens` caps.
 - **Client path (single)**: `packages/llm_client/` (OpenAI SDK + cost tags + `TokenBudgetManager` soft/hard limits + call-level middleware runner). All sub-agents route through it. `packages/agents/llm/transport.py` is orphaned (no live importers; guarded by `tests/test_no_legacy_transport.py`). Endpoint = `LLM_BASE_URL` (host 9Router default `:20228`; optional production LiteLLM uses `http://litellm:4000`).
-- **Cost tags** (INVARIANT-07): `build_tags()` attaches `agent/task/run/step` metadata as `extra_body` (LiteLLM logs it; 9Router ignores).
+- **Cost tags** (INVARIANT-07): `AgentRuntime.tags()` attaches `agent:{name}`, `step:{number}`, `stage:{label}`, `run:{id}`, `attempt:{n}`, optional extra tags, and `pipeline:oh-my-class` metadata to every LLM call (LiteLLM logs it; 9Router ignores).
 - ✅ **9Router runs on the host (by design)**: the dev/operator runs 9Router locally on `:20228` and agents call it directly via `LLM_BASE_URL`. `services/router/Dockerfile` is an intentional placeholder because 9Router is **not containerized** — it lives on the host. For the current single-operator (dev = teacher) setup this is the correct topology, not a defect. (If/when multi-tenant hosting is needed, 9Router would be containerized or replaced.)
 - ✅ **LiteLLM** proxy is a real image (`ghcr.io/berriai/litellm`), prod-only, routes → 9Router, `max_budget=0` (no paid fallback).
 - ✅ **Langfuse** tracing integrated (`observability/tracing.py` `trace_node`/`trace_llm_call`), degrades to no-op when unconfigured.
@@ -326,7 +326,7 @@ INVARIANT-04 no external URLs in HTML (shared compliance policy + renderer/expor
 
 Docs drift because they are hand-written and unverified (that's why the previous architecture doc was wrong). The fix (tracked in `.scratch/technical-debt/006`):
 
-1. **Generate the volatile facts** — `scripts/generate_architecture_manifest.py` emits `docs/system/architecture.manifest.json` from code: stage list, routers, `RunStatus` values, gate names, migration count, exporter-registry formats, model assignments, and **wiring booleans** (`quality_gate_injected`, `middleware_runner_active`, `lead_agent_present`, `legacy_graph_present`, artifact Send worker/reducer/default/rollback status). This doc cites the manifest for volatile lists instead of hand-maintaining them.
+1. **Generate the volatile facts** — `scripts/generate_architecture_manifest.py` emits `docs/system/architecture.manifest.json` from code: stage list, routers, `RunStatus` values, gate names, migration count, exporter-registry formats, model assignments, and **wiring booleans** for quality-gate injection, middleware runner activation, removed legacy surfaces, and artifact Send worker/reducer/default/rollback status. This doc cites the manifest for volatile lists instead of hand-maintaining them.
 2. **CI drift test** — `tests/test_architecture_sync.py` fails the build when the manifest diverges from code (e.g. someone injects/removes the quality gate, adds a stage, or changes export formats). Structural/wiring claims are machine-checked; prose stays human-authored.
 
 ---

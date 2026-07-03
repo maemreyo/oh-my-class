@@ -5,8 +5,8 @@ from enum import StrEnum
 import time
 
 from packages.agents.healing.circuit_breaker import (
+    BreakerStore,
     CircuitBreaker as LayeredCircuitBreaker,
-    InMemoryBreakerStore,
 )
 
 
@@ -31,17 +31,19 @@ class CircuitBreaker:
         if self.provider is None:
             return None
         if self._delegate is None:
+            kwargs = {"store": _provider_store} if _provider_store is not None else {}
             self._delegate = LayeredCircuitBreaker.provider(
                 self.provider,
                 threshold=self.failure_threshold,
                 recovery_timeout=self.recovery_seconds,
-                store=_store,
+                **kwargs,
             )
         return self._delegate
 
     def record_success(self) -> None:
         if self.delegate is not None:
             self.delegate.record_success()
+            return
         self._failures = 0
         self._state = CircuitState.CLOSED
         self._opened_at = None
@@ -49,14 +51,17 @@ class CircuitBreaker:
     def record_failure(self) -> None:
         if self.delegate is not None:
             self.delegate.record_failure()
+            return
         self._failures += 1
         if self._state is CircuitState.CLOSED and self._failures >= self.failure_threshold:
             self._state = CircuitState.OPEN
             self._opened_at = time.monotonic()
 
     def is_open(self) -> bool:
+        if self.delegate is not None:
+            return self.delegate.is_open()
         if self._state is CircuitState.CLOSED:
-            return self.delegate is not None and self.delegate.exhausted
+            return False
         if self._state is CircuitState.HALF_OPEN:
             return False
         if self._opened_at is not None and time.monotonic() - self._opened_at >= self.recovery_seconds:
@@ -69,11 +74,19 @@ class CircuitBreaker:
 
     @property
     def state(self) -> CircuitState:
+        if self.delegate is not None:
+            match self.delegate.state:
+                case "open":
+                    return CircuitState.OPEN
+                case "half-open":
+                    return CircuitState.HALF_OPEN
+                case _:
+                    return CircuitState.CLOSED
         return self._state
 
 
 _breakers: dict[str, CircuitBreaker] = {}
-_store = InMemoryBreakerStore()
+_provider_store: BreakerStore | None = None
 
 
 def breaker_for(provider: str) -> CircuitBreaker:

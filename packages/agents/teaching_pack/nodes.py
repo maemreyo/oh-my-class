@@ -473,8 +473,9 @@ def _teacher_approval(
 
     if store is not None and teacher_id and state.get("compliance_passed") is True:
         from packages.agents.config.gate_config import GateConfig
-        from packages.agents.teaching_pack.gate_trust import should_fast_lane
+        from packages.agents.teaching_pack.gate_trust import compute_trust_score, should_fast_lane
         threshold = GateConfig().fast_lane_threshold
+        gate_payload["trust_score"] = compute_trust_score(store, teacher_id, "content_approval")
         if threshold is not None and should_fast_lane(store, teacher_id, "content_approval", threshold):
             auto_approved = True
             gate_payload["auto_approved"] = True
@@ -482,13 +483,9 @@ def _teacher_approval(
             gate_payload["revert_window_seconds"] = 900
             gate_payload["artifact_explanations"] = artifact_explanations_for_teacher(state, "auto_approved")
 
-    if auto_approved:
-        action, feedback = "approve", ""
-        gate_response: JsonObject = {}
-    else:
-        gate_response = interrupt(gate_payload)
-        action = _string_field(gate_response, "action", "reject")
-        feedback = _string_field(gate_response, "feedback", "")
+    gate_response = interrupt(gate_payload)
+    action = _string_field(gate_response, "action", "approve" if auto_approved else "reject")
+    feedback = _string_field(gate_response, "feedback", "")
     normalized_action = normalized_teacher_action(action)
     from packages.agents.events import emit_run_event
 
@@ -508,7 +505,7 @@ def _teacher_approval(
     return {
         "run_id": state["run_id"],
         "approval_gate": gate_payload,
-        "gate_payload": gate_response,
+        "gate_payload": {"action": action, **gate_response},
         "teacher_approved": normalized_action == "approve",
         "teacher_decision": action,
         "revision_feedback": feedback,

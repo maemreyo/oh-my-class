@@ -141,6 +141,7 @@ async def _complete_with_trace(
             metadata=context.trace_metadata(result),
         )
         emit_run_event(context.run_id, "llm_call_completed", context.completed_event(result))
+        emit_run_event(context.run_id, "cost_accrued", context.cost_event(result))
         return result.content
 
 

@@ -28,7 +28,7 @@ class ComponentAddition:
 
     @property
     def module_stem(self) -> str:
-        return self.path.stem.removeprefix("test_").removesuffix(".test")
+        return _normalized_module_stem(self.path)
 
 
 def missing_component_tests(
@@ -63,8 +63,11 @@ def _has_test_for(
 
 
 def _test_matches_component(added: ComponentAddition, test_path: PurePosixPath) -> bool:
-    test_name = test_path.name
-    return added.module_stem in test_name or test_name.startswith(f"test_{added.module_stem}")
+    return _normalized_module_stem(test_path) == added.module_stem
+
+
+def _normalized_module_stem(path: PurePosixPath) -> str:
+    return path.stem.removeprefix("test_").removesuffix(".test")
 
 
 def _is_production_component(path: PurePosixPath) -> bool:
@@ -97,13 +100,31 @@ def _merge_base() -> str | None:
     return None
 
 
-def main() -> int:
+def _policy_paths() -> tuple[list[str], list[str], list[str]]:
     base = _merge_base()
     if base is None:
-        return 0
-    added_paths = _git_lines(["git", "diff", "--name-only", "--diff-filter=A", f"{base}...HEAD"])
-    changed_paths = _git_lines(["git", "diff", "--name-only", f"{base}...HEAD"])
-    all_paths = _git_lines(["git", "ls-files"])
+        added_paths = _unique([
+            *_git_lines(["git", "diff", "--name-only", "--diff-filter=A", "HEAD"]),
+            *_git_lines(["git", "ls-files", "--others", "--exclude-standard"]),
+        ])
+        changed_paths = _unique([
+            *_git_lines(["git", "diff", "--name-only", "HEAD"]),
+            *_git_lines(["git", "ls-files", "--others", "--exclude-standard"]),
+        ])
+        return added_paths, changed_paths, _git_lines(["git", "ls-files"])
+    return (
+        _git_lines(["git", "diff", "--name-only", "--diff-filter=A", f"{base}...HEAD"]),
+        _git_lines(["git", "diff", "--name-only", f"{base}...HEAD"]),
+        _git_lines(["git", "ls-files"]),
+    )
+
+
+def _unique(paths: list[str]) -> list[str]:
+    return list(dict.fromkeys(paths))
+
+
+def main() -> int:
+    added_paths, changed_paths, all_paths = _policy_paths()
     missing = missing_component_tests(added_paths, all_paths, changed_paths)
     if missing == []:
         return 0

@@ -43,6 +43,14 @@ Assignees:
   - rendered content approval gate, fast-lane label, revert window, artifact rationale, revision count, artifact status, and event stream labels;
   - clicked `Request revision` and fast-lane `Revert available...`; both posted to `/teaching-packs/runs/issue-29-smoke/artifacts/quiz-1/request-revision` with the expected feedback payloads.
   - screenshot saved as `issue-29-teacher-gate-smoke.png`.
+- Round 2 remediation changed fast-lane from a silent `_teacher_approval` bypass into an audited teacher-visible `interrupt()` payload. Eligible fast-lane runs now still open `content_approval` with `auto_approved`, `approval_mode`, `revert_window_seconds`, and artifact explanations before export.
+- Round 2 remediation tightened INVARIANT-05/06 production guards: answer-key leakage is now tested through the real compliance gate, and teacher-gate bypass prevention is tested through the real `_teacher_approval` interrupt path including fast-lane.
+- Round 2 guard hardening updated `scripts/verify_new_component_tests.py` with a local no-PR fallback and exact module/test matching; `uv run pytest tests/guard/test_new_component_tests_policy.py -q` → 6 passed.
+- Round 2 verification so far: `uv run pytest tests/security/test_answer_key_leakage.py tests/security/test_gate_bypass.py -q` → 12 passed; `uv run pytest packages/agents/tests/teaching_pack/test_nodes.py::TestTeachingPackApprovalExport::test_teacher_fast_lane_still_opens_visible_gate packages/agents/tests/teaching_pack/test_nodes.py::TestTeachingPackApprovalExport::test_teacher_fast_lane_requires_compliance_passed -q` → 2 passed.
+- Round 3 remediation surfaces `trust_score` in the teacher-visible content approval payload when a store/teacher is available, and renders it in `TeachingPackTrustPanel` as a percentage.
+- Round 3 remediation renders per-artifact `healing_history` entries under artifact explanations, including `strategy`/`healing_strategy` plus optional `note`/`healing_note`.
+- Round 3 verification: `pnpm --filter @oh-my-class/web test -- tests/teaching-pack-gate-shell.test.tsx tests/teaching-packs-components.test.tsx` → `177 passed`; `pnpm --filter @oh-my-class/web typecheck` → passed.
+- Browser/manual QA via Playwright data-page smoke rendered the fast-lane panel, `Teacher trust score` (`82%`), artifact rationale, revision count, `Healing history`, and clickable `Request revision`; console warnings/errors were `0`.
 
 ## Body
 
@@ -63,7 +71,7 @@ This is a production-ready rebuild of the teacher surface, NOT patching: reuse t
 
 ## Acceptance
 
-- [ ] Teacher gate shows judge rationale, revision count, healing history, approval mode per `artifact_id`.
+- [x] Teacher gate shows judge rationale, revision count, healing history, approval mode per `artifact_id`.
 - [ ] `approve_selected` / `reject_selected` operate at artifact scope (test).
 - [ ] Fast-lane label + View-details + revert window match ADR-026 (test).
 - [ ] Live status bar renders solely from `ObservabilityEvent`; escalation drives "Needs your review" with one CTA.

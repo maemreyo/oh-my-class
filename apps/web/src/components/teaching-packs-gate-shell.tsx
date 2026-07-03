@@ -84,8 +84,8 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 						runId={runId}
 						gateName={gateName}
 						event={event}
-						onRevertFastLane={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Revert fast-lane auto-approval." })}
-						onRequestRevision={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Teacher requested a post-export revision." })}
+						onRevertFastLaneAction={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Revert fast-lane auto-approval." })}
+						onRequestRevisionAction={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Teacher requested a post-export revision." })}
 					/>
 			</div>
 

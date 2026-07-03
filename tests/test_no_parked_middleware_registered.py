@@ -24,6 +24,17 @@ def test_no_parked_react_registry_exists() -> None:
     assert "PARKED_REACT_MIDDLEWARE" not in source
 
 
+def test_parked_middleware_files_are_physically_deleted() -> None:
+    middleware_root = ROOT / "packages/agents/middleware"
+    offenders = [
+        path.relative_to(ROOT).as_posix()
+        for path in middleware_root.rglob("*.py")
+        if path.stem in PARKED_MIDDLEWARE_NAMES
+    ]
+
+    assert offenders == []
+
+
 def test_no_parked_middleware_is_registered() -> None:
     active_names = {middleware.name for middleware in ORDERED_MIDDLEWARE_LIST}
 

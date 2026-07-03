@@ -30,27 +30,29 @@ Langfuse DB (schema: langfuse)
 
 ```
 Trace: run:{run_id}
-├── Span: step-03-planner
-│   └── Generation: f.light (deepseek-v4-flash via 9Router, 150 tokens, $0)
-├── Span: step-07-researcher
-│   └── Generation: f.light (deepseek-v4-flash via 9Router, 200 tokens, $0)
-├── Span: step-08-content-creator
-│   └── Generation: f.light (deepseek-free via 9Router, 500 tokens, $0)
-└── Span: step-10-reviewer
-    └── Generation: f.pro (content-fusion via 9Router, 300 tokens, $0)
+├── Span: planning_blueprint
+│   └── Generation: 4omc via 9Router, tags include agent:planner and stage:planning_blueprint
+├── Span: post_blueprint_research
+│   └── Generation: 4omc via 9Router, tags include agent:researcher and stage:post_blueprint_research
+├── Span: artifact_workflow
+│   └── Generation: 4omc via 9Router, tags include agent:content_creator and stage:artifact_workflow
+└── Span: render_quality
+    └── Generation: 4omc via 9Router, tags include agent:reviewer and stage:render_quality
 ```
 
-> All LLM calls route through 9Router combos (f.light, f.pro).
-> Cost is $0 because all providers are free tier.
+> Dev LLM calls route to the host 9Router endpoint; production may place LiteLLM in front for budget and logging.
 
 ## Metadata Tags
 
-Every trace includes:
-- `run_id`: Links to the active teaching-pack run state
-- `agent`: Which agent (planner, researcher, content_creator, reviewer)
-- `step`: Pipeline step number (1-13)
-- `teacher_id`: Which teacher initiated the run
-- `pipeline`: Always "oh-my-class"
+Every LLM call includes metadata tags:
+- `agent:{name}`: Which agent made the call
+- `step:{number}`: Numeric teaching-pack stage number
+- `stage:{label}`: Stage label, such as `artifact_workflow`
+- `run:{id}`: Links to the active teaching-pack run state
+- `attempt:{n}`: Retry attempt number
+- `pipeline:oh-my-class`: Fixed pipeline identifier
+
+Teacher-visible run events are persisted through gateway `RunEvent` rows after package-level observability events are drained. Important event names include `stage_transition`, `gate_decision`, `healing_decision`, `escalate`, `breaker_tripped`, and `hard_block_violation`.
 
 ## Setup
 

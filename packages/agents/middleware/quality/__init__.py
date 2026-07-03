@@ -8,14 +8,8 @@ from packages.agents.middleware.quality.learning_objective_alignment import (
 )
 from packages.agents.middleware.quality.pedagogical_quality import PedagogicalQualityMiddleware
 from packages.agents.middleware.quality.readability_level import ReadabilityLevelMiddleware
-from packages.agents.middleware.quality.subagent_limit import (
-    SubagentLimitExceededError,
-    SubagentLimitMiddleware,
-)
 
 __all__ = [
-    "SubagentLimitMiddleware",
-    "SubagentLimitExceededError",
     "CurriculumAlignmentMiddleware",
     "ReadabilityLevelMiddleware",
     "PedagogicalQualityMiddleware",

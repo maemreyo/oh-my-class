@@ -43,10 +43,14 @@ EXTERNAL_ASSET_PATTERNS: Final[tuple[str, ...]] = (
 
 ANSWER_LEAK_PATTERNS: Final[tuple[str, ...]] = (
     r"answer\s*key",
+    r"\[\s*answer\s*\]",
     r"correct\s+answer[s]?\s*:",
     r"correct\s+answer[s]?\s+is\s+[A-D0-9]",
+    r"[✓✔]\s*correct\s*:",
     r"solution[s]?\s*:",
     r"\banswer[s]?\s*:\s*[A-D0-9]",
+    r"đáp\s*án\s*:",
+    r"đáp\s*án\s*đúng\s*:",
 )
 
 STUDENT_ARTIFACT_TYPES: Final[frozenset[str]] = frozenset({

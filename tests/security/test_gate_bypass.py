@@ -1,52 +1,72 @@
-"""INVARIANT-06: Gate bypass prevention.
-
-Tests that the teacher gate cannot be bypassed by:
-1. Direct API calls without auth
-2. Prompt injection attempts
-3. Legacy endpoint rejection (410 Gone)
-"""
 from __future__ import annotations
+
 import pytest
+from langgraph.store.memory import InMemoryStore
+
+from packages.agents.teaching_pack.nodes import JsonObject, TeachingPackState
 
 
 class TestGateBypassInvariant06:
-    def test_gate_requires_interruption(self):
-        """Teacher approval gate MUST go through interrupt(), not be skipped.
+    def test_teacher_approval_stage_calls_interrupt_before_export(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from packages.agents.teaching_pack import nodes
 
-        Verifies that the TEACHER_APPROVAL stage uses interrupt() by checking
-        that TeachingPackStage has TEACHER_APPROVAL and the graph wires a
-        conditional edge to handle the gate.
-        """
-        from packages.agents.teaching_pack.stages import TeachingPackStage
-        assert hasattr(TeachingPackStage, "TEACHER_APPROVAL"), (
-            "TEACHER_APPROVAL stage must exist"
+        captured: JsonObject = {}
+
+        def fake_interrupt(payload: JsonObject) -> JsonObject:
+            captured.update(payload)
+            return {"action": "approve"}
+
+        monkeypatch.setattr("langgraph.types.interrupt", fake_interrupt)
+
+        result = nodes._teacher_approval(TeachingPackState(
+            run_id="run-gate-visible",
+            rendered_snapshots=[{"snapshot_id": "snap-1"}],
+            artifacts=[{"artifact_id": "quiz-1", "artifact_type": "quiz"}],
+        ))
+
+        assert captured["gate"] == "content_approval"
+        assert captured["snapshot_ids"] == ["snap-1"]
+        assert result.get("teacher_approved") is True
+
+    def test_fast_lane_still_calls_interrupt_with_audited_revert_window(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from packages.agents.teaching_pack import nodes
+
+        captured: JsonObject = {}
+
+        def fake_interrupt(payload: JsonObject) -> JsonObject:
+            captured.update(payload)
+            return {}
+
+        monkeypatch.setattr("langgraph.types.interrupt", fake_interrupt)
+        monkeypatch.setattr("packages.agents.teaching_pack.gate_trust.should_fast_lane", lambda *_args: True)
+        monkeypatch.setattr("packages.agents.teaching_pack.gate_trust.record_gate_event", lambda *_args: None)
+        monkeypatch.setattr("packages.agents.teaching_pack.teacher_memory.write_gate_approval", lambda *_args: None)
+        monkeypatch.setenv("GATE_FAST_LANE_THRESHOLD", "0.8")
+
+        result = nodes._teacher_approval(
+            TeachingPackState(
+                run_id="run-fast-lane-visible",
+                contract={"teacher_id": "teacher-1"},
+                compliance_passed=True,
+                rendered_snapshots=[{"snapshot_id": "snap-1"}],
+                artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+            ),
+            store=InMemoryStore(),
         )
 
-    def test_triage_is_feature_flagged(self):
-        """TRIAGE stage is a no-op when feature flag is off (no unexpected pipeline changes)."""
-        import os
-        from packages.agents.teaching_pack.features import topic_decomposition_v1_enabled
+        assert captured["auto_approved"] is True
+        assert captured["approval_mode"] == "auto_approved"
+        assert captured["revert_window_seconds"] == 900
+        assert result.get("teacher_approved") is True
 
-        original = os.environ.pop("OMC_FEATURE_TOPIC_DECOMPOSITION_V1", None)
-        try:
-            assert not topic_decomposition_v1_enabled(), (
-                "Feature flag must default to disabled"
-            )
-        finally:
-            if original is not None:
-                os.environ["OMC_FEATURE_TOPIC_DECOMPOSITION_V1"] = original
-
-    def test_teaching_pack_stages_contain_approval(self):
-        """All 9 expected stages exist — no stage can be removed to bypass approval."""
+    def test_teaching_pack_stages_order_approval_before_export(self) -> None:
         from packages.agents.teaching_pack.stages import TEACHING_PACK_STAGES, TeachingPackStage
+
         stage_values = [s.value for s in TEACHING_PACK_STAGES]
         assert "teacher_approval" in stage_values, (
             "teacher_approval must be in TEACHING_PACK_STAGES — cannot be bypassed"
         )
-        assert "triage" in stage_values, (
-            "triage must be in TEACHING_PACK_STAGES"
-        )
-        # Approval comes before export
+        assert TeachingPackStage.TEACHER_APPROVAL.value == "teacher_approval"
         approval_idx = stage_values.index("teacher_approval")
         export_idx = stage_values.index("export_finalize")
         assert approval_idx < export_idx, (

@@ -61,6 +61,9 @@ Assignees:
   - `services/gateway/tests/test_teaching_pack_worker.py`
 - `services/gateway/teaching_pack_store.py` has only pre-existing SQLAlchemy event-listener hints for unaccessed listener functions.
 - Python no-excuse helper referenced by the programming skill is not present at `scripts/python/check-no-excuse-rules.py`; pure LOC check for the newly created/modified focused Python files returned `231`, with each file under the 250 LOC ceiling.
+- Round 3 remediation removed placeholder `event1`/`event2` observability event kinds, wired production `healing_decision` + `escalate` emits from `HealingOrchestrator`, and wired `cost_accrued` emits from successful `complete_json_chat()` calls.
+- Round 3 verification: `uv run pytest packages/agents/tests/test_events.py services/gateway/tests/test_teaching_pack_worker.py services/gateway/tests/test_teaching_pack_runs_router.py -q` → `34 passed`.
+- Round 3 focused backend slice: `uv run pytest packages/agents/healing/tests/test_orchestrator.py packages/agents/healing/tests/test_circuit_breaker.py packages/agents/tests/test_events.py services/gateway/tests/test_runs_router.py packages/agents/tests/teaching_pack/test_nodes.py::TestTeachingPackApprovalExport -q` → `110 passed, 1 skipped`.
 
 ## Boundary / blocker
 

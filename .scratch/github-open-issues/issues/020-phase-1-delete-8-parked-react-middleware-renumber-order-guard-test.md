@@ -31,6 +31,8 @@ Assignees:
 - Type check: `uv run basedpyright packages/agents/middleware/registry.py packages/agents/middleware/base.py packages/agents/middleware/terminal/clarification.py packages/agents/tests/middleware/test_middleware_suite.py tests/test_no_parked_middleware_registered.py` → 0 errors.
 - LSP diagnostics: clean on changed middleware/test Python files.
 - Surface QA: imported `packages.agents.middleware` and observed count 23, orders 1-23, last middleware `clarification`, and no parked middleware active.
+- Round 2 remediation physically deleted parked middleware/shim files and removed parked exports from middleware package `__init__.py` files; the guard now asserts those files are absent, not merely unregistered.
+- Round 2 verification: `uv run pytest tests/test_no_parked_middleware_registered.py packages/agents/tests/test_no_legacy_judge_live_path.py packages/quality/tests/test_layer4_judge.py packages/quality/tests/test_judge_interface.py packages/agents/tests/middleware/test_middleware_suite.py -q` → 64 passed.
 
 ## Body
 

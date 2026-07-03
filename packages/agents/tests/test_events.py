@@ -108,6 +108,18 @@ def test_observability_event_model_serializes_legacy_dict():
     assert "timestamp" in legacy_event
 
 
+def test_observability_event_types_are_production_events_only():
+    from typing import get_args
+
+    from packages.agents.events import ObservabilityEventType
+
+    event_types = set(get_args(ObservabilityEventType.__value__))
+
+    assert "event1" not in event_types
+    assert "event2" not in event_types
+    assert {"healing_decision", "escalate", "cost_accrued"}.issubset(event_types)
+
+
 def test_publish_event_notifies_subscribers_with_legacy_payload():
     queue = subscribe("test-run-1")
     publish_event(ObservabilityEvent(

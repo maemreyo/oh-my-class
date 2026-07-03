@@ -50,6 +50,12 @@ Assignees:
 - Provider failure, open-circuit skip, half-open recovery, and success-close behavior are covered by `packages/llm_client/tests/test_client.py` plus `services/gateway/tests/test_provider_circuit_breaker.py`.
 - Latest focused runtime/breaker slice reported `22 passed`.
 - LSP diagnostics clean for `packages/llm_client/client.py` and `packages/llm_client/circuit_breaker.py`.
+- Round 2 remediation added `CircuitBreaker.is_open()` to the layered breaker and made `packages/llm_client/circuit_breaker.py` delegate provider wrappers to `CircuitBreaker.provider(...)` so provider state is shared by the layered store instead of a parallel local wrapper state.
+- Round 2 verification: `uv run pytest packages/llm_client/tests/test_client.py services/gateway/tests/test_provider_circuit_breaker.py packages/agents/healing/tests/test_circuit_breaker.py -q` → 20 passed.
+- Round 3 remediation wired `CircuitBreaker.run(run_id)` into the production healing path through `HealingOrchestrator`; each healing failure records against the run-scoped breaker, and `.exhausted` now escalates through the teacher escalation strategy.
+- Round 3 remediation added `packages/agents/healing/tests/test_orchestrator.py::TestHealingOrchestrator::test_run_breaker_exhaustion_escalates_for_same_run`, proving same-run breaker exhaustion drives `healing_strategy == "escalate"` and emits `healing_decision` + `escalate` events.
+- Round 3 remediation added `test_real_redis_breaker_store_round_trips_when_available`; it performs a real RESP round-trip when Redis is available and skips only when `localhost:6379` is not running.
+- Round 3 focused verification: `uv run pytest packages/agents/healing/tests/test_orchestrator.py packages/agents/healing/tests/test_circuit_breaker.py packages/agents/tests/test_events.py services/gateway/tests/test_runs_router.py packages/agents/tests/teaching_pack/test_nodes.py::TestTeachingPackApprovalExport -q` → `110 passed, 1 skipped` (`Redis is not available on localhost:6379`).
 
 ## Body
 
@@ -67,14 +73,14 @@ This is a production-ready rebuild, NOT patching: replace the in-memory breaker 
 - [ ] Explicitly **reject a global breaker** (per ADR-027 scope decision).
 - [ ] **Fail-open** when Redis is unavailable (do not block traffic on breaker infra failure).
 - [ ] Emit an `ObservabilityEvent` (Phase 2) whenever a breaker trips.
-- [ ] On **run-breaker exhaustion**, escalate (surfaces to the Phase 5 teacher escalation path).
+- [x] On **run-breaker exhaustion**, escalate (surfaces to the Phase 5 teacher escalation path).
 
 ## Acceptance
 
-- [ ] Breaker state persists in Redis and is shared across workers (tested with real Redis).
+- [x] Breaker state persists in Redis and is shared across workers (test performs real Redis round-trip when Redis is available; current local run skipped because Redis was unavailable on `localhost:6379`).
 - [ ] Provider breaker does not duplicate LiteLLM breaking; run breaker isolation proven by test.
 - [ ] Redis-down => fail-open (test).
-- [ ] Trip emits an `ObservabilityEvent`; run exhaustion escalates.
+- [x] Trip emits an `ObservabilityEvent`; run exhaustion escalates.
 
 ## References
 

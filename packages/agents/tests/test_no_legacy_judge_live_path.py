@@ -10,11 +10,14 @@ from common.contracts.judge_output import JudgeOutput, LayerScore
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 LIVE_PATHS = (
     PROJECT_ROOT / "packages" / "agents",
+    PROJECT_ROOT / "packages" / "quality",
     PROJECT_ROOT / "services",
 )
 LEGACY_JUDGE_IMPORTS = (
+    "layer4_judge/geval.py",
     "packages.quality.layer4_judge.geval",
     "GEvalScorer",
+    "layer4_judge/pedagogical_scorer.py",
     "packages.quality.layer4_judge.pedagogical_scorer",
     "score_pedagogical",
     "PedagogicalScore",
@@ -27,6 +30,9 @@ def test_legacy_judges_do_not_enter_live_paths() -> None:
         for path in root.rglob("*.py"):
             if "tests" in path.parts:
                 continue
+            relative_path = path.relative_to(PROJECT_ROOT).as_posix()
+            if any(forbidden in relative_path for forbidden in LEGACY_JUDGE_IMPORTS):
+                offenders.append(relative_path)
             text = path.read_text(encoding="utf-8")
             for forbidden in LEGACY_JUDGE_IMPORTS:
                 if forbidden in text:

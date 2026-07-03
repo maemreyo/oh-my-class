@@ -10,6 +10,17 @@ from packages.llm_client.client import ChatMessage, LLMClient, ProviderCircuitOp
 from packages.llm_client.config import LLMClientConfig
 
 
+class SharedStore:
+    def __init__(self) -> None:
+        self.values: dict[str, dict[str, float | int | str]] = {}
+
+    def get(self, key: str) -> dict[str, float | int | str] | None:
+        return self.values.get(key)
+
+    def set(self, key: str, value: dict[str, float | int | str], _ttl_seconds: float) -> None:
+        self.values[key] = value
+
+
 def test_config_reads_from_centralized_llm_config() -> None:
     config = LLMClientConfig()
     assert config.base_url == "http://localhost:20228/v1"
@@ -38,8 +49,10 @@ def test_config_uses_llm_env_vars(monkeypatch) -> None:
 @pytest.mark.anyio
 async def test_chat_records_provider_failure_and_skips_open_circuit() -> None:
     from packages.llm_client.circuit_breaker import _breakers
+    import packages.llm_client.circuit_breaker as breaker_module
 
     _breakers.clear()
+    breaker_module._provider_store = SharedStore()
     client = LLMClient()
     client._client = _FailingOpenAIClient()
 
@@ -79,13 +92,16 @@ async def test_chat_records_provider_failure_and_skips_open_circuit() -> None:
 @pytest.mark.anyio
 async def test_stream_success_closes_half_open_provider_circuit() -> None:
     from packages.llm_client.circuit_breaker import _breakers
+    import packages.llm_client.circuit_breaker as breaker_module
 
     _breakers.clear()
+    store = SharedStore()
+    breaker_module._provider_store = store
     breaker = breaker_for("recovering-provider")
     breaker.record_failure()
     breaker.record_failure()
     breaker.record_failure()
-    breaker._opened_at = 0.0
+    store.values["cb:provider:recovering-provider"]["last_failure_time"] = 0.0
 
     client = LLMClient()
     client._client = _StreamingOpenAIClient()
@@ -99,6 +115,21 @@ async def test_stream_success_closes_half_open_provider_circuit() -> None:
 
     assert chunks == ["ok"]
     assert breaker_for("recovering-provider").is_open() is False
+
+
+def test_provider_breaker_state_is_shared_through_store() -> None:
+    from packages.llm_client.circuit_breaker import _breakers
+    import packages.llm_client.circuit_breaker as breaker_module
+
+    _breakers.clear()
+    breaker_module._provider_store = SharedStore()
+    first_worker = breaker_for("shared-provider")
+    first_worker.record_failure()
+    first_worker.record_failure()
+    first_worker.record_failure()
+    _breakers.clear()
+
+    assert breaker_for("shared-provider").is_open() is True
 
 
 class _FailingCompletions:

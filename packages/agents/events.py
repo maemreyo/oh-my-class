@@ -38,8 +38,6 @@ type ObservabilityEventType = Literal[
     "llm_call_completed",
     "llm_call_failed",
     "breaker_tripped",
-    "event1",
-    "event2",
 ]
 
 

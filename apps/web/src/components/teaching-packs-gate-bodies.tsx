@@ -3,12 +3,12 @@
 import type { TeachingPackEventPayload, TeachingPackGateName } from "@/hooks/use-teaching-packs";
 import { ContentApprovalBody } from "@/components/teaching-packs-content-approval-body";
 
-export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLane, onRequestRevision }: {
+export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneAction, onRequestRevisionAction }: {
 	readonly runId: string;
 	readonly gateName: TeachingPackGateName;
 	readonly event: TeachingPackEventPayload;
-	readonly onRevertFastLane?: (artifactId: string) => void;
-	readonly onRequestRevision?: (artifactId: string) => void;
+	readonly onRevertFastLaneAction?: (artifactId: string) => void;
+	readonly onRequestRevisionAction?: (artifactId: string) => void;
 }) {
 	switch (gateName) {
 		case "clarification_required":
@@ -22,7 +22,7 @@ export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLane,
 		case "unit_approval":
 			return <UnitApprovalSummary event={event} />;
 		case "content_approval":
-			return <ContentApprovalBody runId={runId} event={event} onRevertFastLane={onRevertFastLane} onRequestRevision={onRequestRevision} />;
+			return <ContentApprovalBody runId={runId} event={event} onRevertFastLaneAction={onRevertFastLaneAction} onRequestRevisionAction={onRequestRevisionAction} />;
 		default:
 			return assertNever(gateName);
 	}

@@ -23,3 +23,17 @@ def test_deliberately_bound_stub_is_caught() -> None:
 
     assert exc_info.value.fail_type == "tool_unavailable"
     assert exc_info.value.reason == ToolStatus.UNIMPLEMENTED.value
+
+
+def test_production_tool_entrypoints_call_capability_registry() -> None:
+    import inspect
+
+    from packages.agents.sub_agents.content_creator import tools as content_creator_tools
+    from packages.agents.sub_agents.planner import tools as planner_tools
+    from packages.agents.sub_agents.researcher import tools as researcher_tools
+    from packages.agents.sub_agents.reviewer import tools as reviewer_tools
+
+    modules = (content_creator_tools, planner_tools, researcher_tools, reviewer_tools)
+    for module in modules:
+        source = inspect.getsource(module)
+        assert "bind_agent_tools(" in source

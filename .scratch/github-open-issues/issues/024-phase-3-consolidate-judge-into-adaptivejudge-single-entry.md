@@ -45,6 +45,8 @@ Assignees:
 - Guard scan: `rg "GEvalScorer|packages\.quality\.layer4_judge\.geval|pedagogical_scorer|score_pedagogical|PedagogicalScore" packages/agents services common tests -n` only reports the guard literals in `packages/agents/tests/test_no_legacy_judge_live_path.py`.
 - LSP diagnostics clean for the changed Python judge/reviewer files and generated TS schema checked during the final pass.
 - Five-lane post-implementation review returned PASS overall: goal verification PASS, QA PASS, code quality PASS with minor cleanup suggestions fixed, security PASS with low/medium operational finding fixed by the `teacher_facing_summary` length bound, context mining conditional PASS with remaining Phase 3 milestone items noted as out-of-scope for Issue #24.
+- Round 2 remediation physically deleted `packages/quality/layer4_judge/geval.py`, `packages/quality/layer4_judge/pedagogical_scorer.py`, and legacy parity/scorer tests; the live-path guard now scans `packages/quality` in addition to `packages/agents` and `services`.
+- Round 2 verification: `uv run pytest tests/test_no_parked_middleware_registered.py packages/agents/tests/test_no_legacy_judge_live_path.py packages/quality/tests/test_layer4_judge.py packages/quality/tests/test_judge_interface.py packages/agents/tests/middleware/test_middleware_suite.py -q` → 64 passed.
 
 ## Body
 

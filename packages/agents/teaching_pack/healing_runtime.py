@@ -27,6 +27,7 @@ def heal_quality_failure(
     fail_type = _fail_type(failure_classes)
     fail_context: JsonObject = {"errors": [*issues]}
     healing_state: dict[str, JsonValue] = {
+        "run_id": _string_field(state, "run_id"),
         "fail_count": _int_field(state, "fail_count"),
         "fail_type": fail_type,
         "fail_layer": "quality",
@@ -84,6 +85,13 @@ def _int_field(state: dict[str, JsonValue | list[str]], key: str) -> int:
     if isinstance(value, int):
         return value
     return 0
+
+
+def _string_field(state: dict[str, JsonValue | list[str]], key: str) -> str:
+    value = state.get(key)
+    if isinstance(value, str):
+        return value
+    return ""
 
 
 def _healing_update(value: dict[str, JsonValue]) -> HealingUpdate:
