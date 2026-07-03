@@ -2,32 +2,27 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class CurriculumAlignmentMiddleware(BaseMiddleware):
     """Warns when artifacts may not align with the lesson plan curriculum standard."""
 
     name: str = "curriculum_alignment"
-    order: int = 24
+    order: int = 16
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         artifacts = state.get("artifacts")
         standard = state.get("lesson_plan", {}).get("curriculum_standard")
         if artifacts and standard:

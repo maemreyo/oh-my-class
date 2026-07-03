@@ -63,7 +63,7 @@ def rejected_artifact_types(artifacts: list[JsonObject], gate_payload: JsonObjec
 
 
 def scoped_rejections(artifacts: list[JsonObject], gate_payload: JsonObject) -> list[JsonObject]:
-    if gate_payload.get("rejection_type") != "scoped":
+    if gate_payload.get("rejection_type") != "scoped" and gate_payload.get("action") != "reject_selected":
         return []
     raw_rejections = gate_payload.get("artifact_rejections")
     if not isinstance(raw_rejections, list):

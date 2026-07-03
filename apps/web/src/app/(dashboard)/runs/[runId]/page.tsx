@@ -16,6 +16,7 @@ export default function RunDetailPage() {
 	const { subscribe } = useTeachingPackStatus(runId);
 	const [teachingPackEvents, setTeachingPackEvents] = useState<TeachingPackStatusEvent[]>([]);
 	const [activeGate, setActiveGate] = useState<TeachingPackEventPayload | null>(null);
+	const escalated = hasEscalation(teachingPackEvents);
 
 	useEffect(() => {
 		const unsubscribe = subscribe((event) => {
@@ -58,6 +59,17 @@ export default function RunDetailPage() {
 
 			<TeachingPackStageProgress status={run?.status ?? "unknown"} />
 
+			{escalated ? (
+				<section aria-labelledby="needs-review-title" className="rounded-lg border border-destructive/40 bg-destructive/10 p-4">
+					<p className="text-sm font-medium text-destructive">Needs your review</p>
+					<h2 id="needs-review-title" className="mt-1 text-xl font-semibold tracking-tight">A teaching pack issue needs a decision</h2>
+					<p className="mt-2 text-sm text-muted-foreground">Review the current gate or request a focused artifact revision before export continues.</p>
+					<a href="#teaching-packs-events-title" className="mt-3 inline-flex rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
+						Review latest status
+					</a>
+				</section>
+			) : null}
+
 			{activeGate ? (
 				<TeachingPackGateShell
 					runId={runId}
@@ -74,8 +86,8 @@ export default function RunDetailPage() {
 					) : null}
 					{teachingPackEvents.map((event, index) => (
 						<div key={`teaching-pack-${event.name}-${index}`} className="border-b border-border py-2 last:border-b-0">
-							<span className="text-primary">{event.name}</span>{" "}
-						<span className="break-all text-muted-foreground">{JSON.stringify(event.payload)}</span>
+							<span className="text-primary">{teacherStatusLabel(event)}</span>
+							<span className="block break-all text-muted-foreground">{teacherStatusDetail(event)}</span>
 						</div>
 					))}
 				</div>
@@ -83,6 +95,75 @@ export default function RunDetailPage() {
 
 		</div>
 	);
+}
+
+export function teacherStatusLabel(event: TeachingPackStatusEvent): string {
+	if (isEscalationEvent(event)) return "Needs your review";
+	switch (event.name) {
+		case "stage_transition":
+			return stageTransitionLabel(event.payload);
+		case "gate_decision":
+			return "Teacher decision recorded";
+		case "healing_decision":
+			return "Content repair plan updated";
+		case "breaker_tripped":
+			return "Automatic retry paused";
+		case "teaching_pack.run.accepted":
+			return "Teaching pack run accepted";
+		case "teaching_pack.artifact_workflow.status_changed":
+			return artifactStatusLabel(event.payload);
+		case "teaching_pack.content_approval.opened":
+			return "Content is ready for approval";
+		case "teaching_pack.blueprint_approval.opened":
+			return "Blueprint is ready for approval";
+		case "teaching_pack.clarification_required.opened":
+			return "Clarification is needed";
+		case "teaching_pack.contract_confirmation.opened":
+			return "Teaching contract is ready to confirm";
+		case "teaching_pack.search_plan_confirmation.opened":
+			return "Research plan is ready to confirm";
+		default:
+			return "Teaching pack status updated";
+	}
+}
+
+export function teacherStatusDetail(event: TeachingPackStatusEvent): string {
+	const payload = eventPayload(event.payload);
+	const reason = typeof payload.reason === "string" ? payload.reason : undefined;
+	const stage = typeof payload.stage === "string" ? payload.stage.replaceAll("_", " ") : undefined;
+	if (isEscalationEvent(event)) return reason ?? "The system needs a teacher decision before continuing.";
+	if (stage) return `Stage: ${stage}`;
+	return "No action needed right now.";
+}
+
+export function hasEscalation(events: readonly TeachingPackStatusEvent[]): boolean {
+	return events.some(isEscalationEvent);
+}
+
+function isEscalationEvent(event: TeachingPackStatusEvent): boolean {
+	const payload = eventPayload(event.payload);
+	return event.name === "escalate" || event.name.includes("escalat") || payload.observability_event_type === "escalate";
+}
+
+function eventPayload(payload: TeachingPackEventPayload): TeachingPackEventPayload {
+	const nested = payload.payload;
+	if (nested !== null && typeof nested === "object" && !Array.isArray(nested)) {
+		return { ...payload, ...Object.fromEntries(Object.entries(nested)) };
+	}
+	return payload;
+}
+
+function stageTransitionLabel(payload: TeachingPackEventPayload): string {
+	const stage = typeof payload.stage === "string" ? payload.stage.replaceAll("_", " ") : "Pipeline";
+	const status = typeof payload.status === "string" ? payload.status.replaceAll("_", " ") : "updated";
+	return `${stage} ${status}`;
+}
+
+function artifactStatusLabel(payload: TeachingPackEventPayload): string {
+	const artifactType = typeof payload.artifact_type === "string" ? payload.artifact_type : "artifact";
+	const status = typeof payload.status === "string" ? payload.status : "updated";
+	if (status === "escalated") return `${artifactType} needs teacher support`;
+	return `${artifactType} ${status.replaceAll("_", " ")}`;
 }
 
 function isGateEvent(event: TeachingPackStatusEvent): boolean {

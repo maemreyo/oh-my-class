@@ -50,7 +50,6 @@ class RunResponse(BaseModel):
 
 
 def build_initial_state(request: RunRequest, run_id: str) -> dict[str, Any]:
-    """Create the initial OhMyClassState dict from a RunRequest."""
     return {
         "raw_request": request.raw_request,
         "teacher_id": request.teacher_id,
@@ -225,13 +224,6 @@ async def create_run(
     _run_request: RunRequest,
     _current_user: Annotated[User, Depends(require_teacher)],
 ) -> RunResponse:
-    """POST /run — Start a new teaching pack generation run.
-
-    Creates an OhMyClassState, invokes the compiled LangGraph graph,
-    persists the run, and returns a structured RunResponse.
-    Teacher ID is always derived from the authenticated user —
-    request.body teacher_id is ignored.
-    """
     raise HTTPException(
         status_code=status.HTTP_410_GONE,
         detail="Legacy /run creation is decommissioned; use /teaching-packs/runs.",

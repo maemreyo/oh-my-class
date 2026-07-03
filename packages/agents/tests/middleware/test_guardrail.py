@@ -1,15 +1,14 @@
 """Tests for guardrail middleware."""
 
-from typing import Any, cast
+from typing import Any
 
 import pytest
 
-from packages.agents.middleware.base import MiddlewareContext
+from packages.agents.middleware.base import MiddlewareContext, MiddlewareState
 from packages.agents.middleware.guardrail import GuardrailMiddleware, GuardrailViolationError
-from packages.agents.state import OhMyClassState
 
 
-def make_state(**overrides: Any) -> OhMyClassState:
+def make_state(**overrides: Any) -> MiddlewareState:
     base: dict[str, Any] = {
         "raw_request": "Teach photosynthesis",
         "teacher_id": "t-001",
@@ -29,7 +28,7 @@ def make_state(**overrides: Any) -> OhMyClassState:
         "cost_usd": 0.0,
         "research_policy": "basic",
     }
-    return cast("OhMyClassState", {**base, **overrides})
+    return MiddlewareState(**{**base, **overrides})
 
 
 class TestGuardrail:
@@ -111,4 +110,4 @@ class TestGuardrail:
 
     def test_name_and_order(self):
         assert GuardrailMiddleware.name == "guardrail"
-        assert GuardrailMiddleware.order == 8
+        assert GuardrailMiddleware.order == 7

@@ -20,6 +20,7 @@ from packages.agents.sub_agents.researcher.runtime_grounding import (
     remember_verified_sources,
     target_terms,
 )
+from packages.agents.teaching_pack.stages import StageEnum, stage_number
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.researcher.state import ResearcherNodeState
@@ -95,128 +96,70 @@ or credibility scores.
 
     from packages.agents.config.gate_config import GateConfig
     from packages.agents.config.models import MODELS
-    from packages.agents.llm import (
-        chat_messages,
-        complete_json_chat,
-        extract_json_text,
-        log_llm_failure,
-        log_llm_start,
-        log_llm_success,
-    )
+    from packages.agents.llm import extract_json_text
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
 
     config = GateConfig()
     model = MODELS.researcher
     run_id = str(state.get("run_id", ""))
-    step = int(state.get("current_step", 7))
+    current_step = state.get("current_step", StageEnum.POST_BLUEPRINT_RESEARCH)
+    step = stage_number(current_step)
     system_prompt = (
         researcher_system_prompt
         + "\n\nCRITICAL: Respond ONLY with a single JSON object. "
         "No prose, no explanation, no markdown code fences. "
         "Just the raw JSON."
     )
-    messages = chat_messages(system_prompt, user_prompt)
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="researcher",
+        run_id=run_id,
+        step=step,
+        step_label=current_step.value,
+        model=model,
+        max_retries=config.max_retries,
+        base_temperature=0.7,
+        retry_temperature=0.3,
+    ))
+    messages = runtime.messages(system_prompt, user_prompt)
 
-    for attempt in range(config.max_retries):
-        attempt_number = attempt + 1
-        started = log_llm_start("researcher", run_id, step, model, attempt_number)
-        try:
-            content = await complete_json_chat(
-                model=model,
-                messages=messages,
-                temperature=0.3 if attempt > 0 else 0.7,
-                tags=[
-                    "agent:researcher",
-                    f"step:{state.get('current_step', 7)}",
-                    f"run:{state.get('run_id', '')}",
-                    f"attempt:{attempt_number}",
-                    "pipeline:oh-my-class",
-                ],
-            )
-            log_llm_success("researcher", run_id, step, model, attempt_number, started)
-            try:
-                json_str = extract_json_text(content)
-                bundle_data = json.loads(json_str)
-                bundle = ResearchBundle.model_validate(bundle_data)
-                finalized = finalize_bundle(bundle.model_dump(), fetched_excerpts, terms)
-                remember_verified_sources(memory_key, finalized)
-                return {"research_bundle": finalized}
-            except (ValueError, json.JSONDecodeError, Exception):
-                log_llm_failure(
-                    "researcher",
-                    run_id,
-                    step,
-                    model,
-                    attempt_number,
-                    started,
-                    ValueError("invalid JSON response"),
-                )
-                if attempt < 2:
-                    messages = chat_messages(
-                        system_prompt,
-                        "Invalid response. Return ONLY the JSON object. No prose.",
-                    )
-                    continue
-                sources = [
-                    {
-                        "title": str(source["title"]),
-                        "url": str(source["url"]),
-                        "credibility_score": 0.5,
-                        "verification_status": "UNCERTAIN",
-                    }
-                    for source in source_candidates
-                ]
-                # Ensure minimum 2 sources for validation
-                if len(sources) < 2:
-                    sources = _synthetic_sources(topic)
-                bundle = ResearchBundle.model_validate({
-                    "topic": str(topic),
-                    "sources": sources,
-                    "key_findings": [
-                        "Research could not be fully verified automatically; "
-                        "sources are provided for teacher review.",
-                    ],
-                    "cross_references": [],
-                    "research_policy": research_policy,
-                })
-                finalized = finalize_bundle(bundle.model_dump(), fetched_excerpts, terms)
-                remember_verified_sources(memory_key, finalized)
-                return {"research_bundle": finalized}
-        except Exception as e:
-            log_llm_failure("researcher", run_id, step, model, attempt_number, started, e)
-            if attempt < 2:
-                continue
-            # Graceful degradation: return UNCERTAIN sources instead of crashing
-            # the pipeline. Unverified sources are better than no pipeline at all.
-            _LOGGER.warning(
-                "researcher.fallback_uncertain run_id=%s model=%s error=%s",
-                run_id, model, str(e)[:200],
-            )
-            sources = [
-                {
-                    "title": str(source.get("title", "Unknown")),
-                    "url": str(source.get("url", "")),
-                    "credibility_score": 0.3,
-                    "verification_status": "UNCERTAIN",
-                }
-                for source in source_candidates
-            ]
-            if len(sources) < 2:
-                sources = _synthetic_sources(topic)
-            bundle = ResearchBundle.model_validate({
-                "topic": str(topic),
-                "sources": sources,
-                "key_findings": [
-                    "Research agent encountered LLM errors; "
-                    "sources are unverified and provided for teacher review.",
-                ],
-                "cross_references": [],
-                "research_policy": research_policy,
-            })
-            finalized = attach_excerpts(bundle.model_dump(), fetched_excerpts)
-            remember_verified_sources(memory_key, finalized)
-            return {"research_bundle": finalized}
-
-    raise ValueError("Researcher agent failed: exhausted retries")
+    try:
+        bundle = await runtime.complete_json_with_retries(
+            messages=messages,
+            parse=lambda content: ResearchBundle.model_validate(json.loads(extract_json_text(content))),
+            retry_messages=lambda _error, _content: runtime.messages(
+                system_prompt,
+                "Invalid response. Return ONLY the JSON object. No prose.",
+            ),
+        )
+        finalized = finalize_bundle(bundle.model_dump(), fetched_excerpts, terms)
+        remember_verified_sources(memory_key, finalized)
+        return {"research_bundle": finalized}
+    except (ValueError, json.JSONDecodeError) as exc:
+        finalized = _fallback_uncertain_bundle(
+            topic,
+            source_candidates,
+            research_policy,
+            fetched_excerpts,
+            terms,
+            verified=False,
+        )
+        remember_verified_sources(memory_key, finalized)
+        return {"research_bundle": finalized}
+    except Exception as exc:
+        _LOGGER.warning(
+            "researcher.fallback_uncertain run_id=%s model=%s error=%s",
+            run_id, model, str(exc)[:200],
+        )
+        finalized = _fallback_uncertain_bundle(
+            topic,
+            source_candidates,
+            research_policy,
+            fetched_excerpts,
+            terms,
+            verified=False,
+        )
+        remember_verified_sources(memory_key, finalized)
+        return {"research_bundle": finalized}
 
 
 def _synthetic_sources(topic: str) -> list[dict[str, Any]]:
@@ -234,3 +177,35 @@ def _synthetic_sources(topic: str) -> list[dict[str, Any]]:
             "verification_status": "UNCERTAIN",
         },
     ]
+
+
+def _fallback_uncertain_bundle(
+    topic: Any,
+    source_candidates: list[dict[str, Any]],
+    research_policy: Any,
+    fetched_excerpts: dict[str, str],
+    terms: set[str],
+    *,
+    verified: bool,
+) -> dict[str, Any]:
+    sources = [
+        {
+            "title": str(source.get("title", "Unknown")),
+            "url": str(source.get("url", "")),
+            "credibility_score": 0.5 if verified else 0.3,
+            "verification_status": "UNCERTAIN",
+        }
+        for source in source_candidates
+    ]
+    if len(sources) < 2:
+        sources = _synthetic_sources(str(topic))
+    bundle = ResearchBundle.model_validate({
+        "topic": str(topic),
+        "sources": sources,
+        "key_findings": [
+            "Research could not be fully verified automatically; sources are provided for teacher review.",
+        ],
+        "cross_references": [],
+        "research_policy": research_policy,
+    })
+    return finalize_bundle(bundle.model_dump(), fetched_excerpts, terms)

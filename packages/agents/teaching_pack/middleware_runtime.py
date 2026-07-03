@@ -11,7 +11,6 @@ from packages.agents.middleware.registry import (
 
 if TYPE_CHECKING:
     from packages.agents.middleware.base import BaseMiddleware
-    from packages.agents.state import OhMyClassState
     from packages.agents.teaching_pack.nodes import TeachingPackState
 
 
@@ -38,7 +37,7 @@ async def _run_before_group(
     state: TeachingPackState,
     step: int,
 ) -> TeachingPackState:
-    current = _as_oh_my_class_state(state)
+    current = dict(state)
     context = MiddlewareContext(agent_name=agent_name, step=step, run_id=state["run_id"])
     for middleware_type in group:
         current = await middleware_type().before_model(current, context)
@@ -51,12 +50,8 @@ async def _run_after_group(
     state: TeachingPackState,
     step: int,
 ) -> TeachingPackState:
-    current = _as_oh_my_class_state(state)
+    current = dict(state)
     context = MiddlewareContext(agent_name=agent_name, step=step, run_id=state["run_id"])
     for middleware_type in group:
         current = await middleware_type().after_model(current, context)
     return cast("TeachingPackState", current)
-
-
-def _as_oh_my_class_state(state: TeachingPackState) -> OhMyClassState:
-    return cast("OhMyClassState", dict(state))

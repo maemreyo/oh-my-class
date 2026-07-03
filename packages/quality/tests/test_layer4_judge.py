@@ -23,6 +23,7 @@ def make_judge_output(passed: bool = True, score: float = 8.0, critical_issues: 
         critical_issues=critical_issues or [],
         passed=passed,
         rationale="Test rationale",
+        teacher_facing_summary="Teacher summary",
     )
 
 
@@ -184,6 +185,7 @@ class TestGEvalScorer:
 
         async def side_effect(**kwargs):
             nonlocal call_count
+            assert kwargs
             call_count += 1
             if call_count == 1:
                 raise RuntimeError("First judge failed")

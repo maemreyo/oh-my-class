@@ -15,6 +15,7 @@ import pytest
 
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
 from packages.agents.sub_agents.content_creator.prompt_contract import build_single_artifact_prompt
+from packages.agents.teaching_pack.stages import StageEnum
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.content_creator.state import ContentCreatorState
@@ -53,10 +54,6 @@ def _artifact_json(artifact: dict[str, Any]) -> str:
     return json.dumps(artifact)
 
 
-def _artifact_wrapped(artifact: dict[str, Any]) -> str:
-    return f"```json\n{json.dumps(artifact)}\n```"
-
-
 def _make_state(**overrides: Any) -> dict[str, Any]:
     base = {
         "lesson_plan": {"topic": "Photosynthesis", "learning_objectives": []},
@@ -64,7 +61,7 @@ def _make_state(**overrides: Any) -> dict[str, Any]:
         "artifact_types": ["lesson"],
         "theme": "default",
         "run_id": "test-per-artifact",
-        "current_step": 8,
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
     }
     base.update(overrides)
     return base

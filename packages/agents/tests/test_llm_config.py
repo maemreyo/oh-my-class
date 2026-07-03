@@ -10,7 +10,6 @@ def test_llm_config_defaults() -> None:
 
 
 def test_model_assignments_defaults() -> None:
-    assert MODELS.lead_agent == "4omc"
     assert MODELS.planner == "4omc"
     assert MODELS.researcher == "4omc"
     assert MODELS.content_creator == "4omc"

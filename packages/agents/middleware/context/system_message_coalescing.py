@@ -2,31 +2,26 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class SystemMessageCoalescingMiddleware(BaseMiddleware):
     """Sets system_messages_coalesced flag in context metadata."""
 
     name: str = "system_message_coalescing"
-    order: int = 22
+    order: int = 15
 
     async def before_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         context.metadata["system_messages_coalesced"] = True
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state

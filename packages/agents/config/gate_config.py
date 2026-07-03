@@ -53,12 +53,6 @@ class GateConfig(BaseSettings):
     healing_base_delay_s: float = 0.5
     healing_max_delay_s: float = 10.0
 
-    # Hard blocks — never disable in production
-    block_missing_doctype: bool = True
-    block_external_assets: bool = True
-    block_answer_key_leakage: bool = True
-    block_missing_brand: bool = True
-
     # Pipeline
     preflight_min_length: int = 10
     title_max_length: int = 50

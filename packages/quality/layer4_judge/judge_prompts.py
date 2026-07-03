@@ -35,7 +35,8 @@ IMPORTANT RULES:
   "layer_scores": [{{"layer": "<name>", "score": <0-10>, "weight": <0-1>}}],
   "critical_issues": ["..."],
   "passed": <bool>,
-  "rationale": "..."
+  "rationale": "...",
+  "teacher_facing_summary": "one short teacher-facing explanation of the verdict"
 }}
 """
 

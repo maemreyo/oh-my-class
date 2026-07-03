@@ -10,12 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class LoopDetectedError(Exception):
@@ -37,7 +32,7 @@ class LoopDetectionMiddleware(BaseMiddleware):
         self.threshold = threshold
         self._hash_history: list[str] = []
 
-    def _compute_hash(self, state: OhMyClassState) -> str:
+    def _compute_hash(self, state: MiddlewareState) -> str:
         """Compute hash of relevant state fields."""
         relevant = {
             "lesson_plan": state.get("lesson_plan"),
@@ -50,9 +45,9 @@ class LoopDetectionMiddleware(BaseMiddleware):
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         """Check for loop conditions before LLM call."""
         current_hash = self._compute_hash(state)
 
@@ -67,9 +62,9 @@ class LoopDetectionMiddleware(BaseMiddleware):
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         """Record response hash after LLM call."""
         current_hash = self._compute_hash(state)
         self._hash_history.append(current_hash)

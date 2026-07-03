@@ -3,25 +3,20 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class DynamicContextMiddleware(BaseMiddleware):
     """Injects today's date and class summary into context metadata."""
 
     name: str = "dynamic_context"
-    order: int = 13
+    order: int = 10
 
     async def before_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         class_info = state.get("class_info", {})
         parts = []
         if class_info.get("grade"):
@@ -39,7 +34,7 @@ class DynamicContextMiddleware(BaseMiddleware):
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state

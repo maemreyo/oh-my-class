@@ -6,12 +6,7 @@ Blocks LLM calls when the budget is exceeded.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class TokenBudgetExceededError(Exception):
@@ -35,9 +30,9 @@ class TokenBudgetMiddleware(BaseMiddleware):
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         """Check remaining budget before LLM call."""
         tokens = state.get("tokens_used", 0)
         if isinstance(tokens, int):
@@ -50,9 +45,9 @@ class TokenBudgetMiddleware(BaseMiddleware):
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         """Sync token usage from state after LLM call."""
         tokens = state.get("tokens_used", 0)
         if isinstance(tokens, int):

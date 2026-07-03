@@ -38,20 +38,24 @@ async def lexical_grounding_profile(
         return _needs_review_bundle(request, verified_evidence, keys)
 
     from packages.agents.config.models import MODELS
-    from packages.agents.llm import chat_messages, complete_json_chat, extract_json_text
+    from packages.agents.llm import extract_json_text
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
+    from packages.agents.teaching_pack.stages import StageEnum, stage_number
 
-    messages = chat_messages(_system_prompt(), _user_prompt(request, verified_evidence, keys))
-    content = await complete_json_chat(
+    current_step = StageEnum.POST_BLUEPRINT_RESEARCH
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="researcher",
+        run_id=run_id,
+        step=stage_number(current_step),
+        step_label=current_step.value,
         model=MODELS.researcher,
-        messages=messages,
-        temperature=0.2,
-        tags=[
-            "agent:researcher",
-            "profile:lexical_grounding",
-            "step:7",
-            f"run:{run_id}",
-            "pipeline:oh-my-class",
-        ],
+        base_temperature=0.2,
+        retry_temperature=0.2,
+    ))
+    content = await runtime.complete_json(
+        messages=runtime.messages(_system_prompt(), _user_prompt(request, verified_evidence, keys)),
+        attempt=0,
+        extra_tags=("profile:lexical_grounding",),
     )
     data = json.loads(extract_json_text(content))
     return LexicalGroundingBundle.model_validate(data)

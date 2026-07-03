@@ -7,6 +7,11 @@ vi.mock("@/hooks/use-teaching-packs", () => ({
 		isPending: false,
 		error: null,
 	}),
+	useRequestArtifactRevision: () => ({
+		mutate: vi.fn(),
+		isPending: false,
+		error: null,
+	}),
 }));
 
 vi.mock("@/lib/api-client", () => ({
@@ -39,7 +44,7 @@ describe("TeachingPackGateShell", () => {
 		expect(html).toContain("Reject specific artifacts");
 	});
 
-	it("shows structured section editor when content artifacts include sections", () => {
+	 it("shows structured section editor when content artifacts include sections", () => {
 		const html = renderToStaticMarkup(
 			<TeachingPackGateShell
 				runId="run-editor"
@@ -64,5 +69,34 @@ describe("TeachingPackGateShell", () => {
 		);
 
 		expect(html).toContain("Edit a section");
+	});
+
+	it("shows explainable approval evidence and fast-lane affordances", () => {
+		const html = renderToStaticMarkup(
+			<TeachingPackGateShell
+				runId="run-trust"
+				event={{
+					gate_id: "gate-content",
+					gate_name: "content_approval",
+					auto_approved: true,
+					revert_window_seconds: 900,
+					artifact_explanations: [
+						{
+							artifact_id: "quiz-1",
+							artifact_type: "quiz",
+							judge_rationale: "Quiz aligns to the objectives.",
+							revision_count: 2,
+							healing_history: [{ strategy: "rewrite" }],
+							approval_mode: "auto_approved",
+						},
+					],
+				}}
+			/>,
+		);
+
+		expect(html).toContain("Auto-approved fast lane");
+		expect(html).toContain("View details");
+		expect(html).toContain("Revert available for 15 minutes");
+		expect(html).toContain("Quiz aligns to the objectives.");
 	});
 });

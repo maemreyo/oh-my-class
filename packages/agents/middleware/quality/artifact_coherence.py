@@ -2,32 +2,27 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class ArtifactCoherenceMiddleware(BaseMiddleware):
     """Records artifact count and type diversity in context metadata."""
 
     name: str = "artifact_coherence"
-    order: int = 28
+    order: int = 20
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         artifacts = state.get("artifacts", [])
         if artifacts:
             types = set()

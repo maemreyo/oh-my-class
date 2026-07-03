@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 from sqlalchemy import event, func, select, text
 from sqlalchemy.orm import Session
 
+from packages.agents.events import ObservabilityEvent
 from services.gateway.models import Run, RunStatus
+from services.gateway.observability_events import observability_event_row
 from services.gateway.teaching_pack_event_bus import notify_run_event
 from services.gateway.teaching_pack_models import (
     GateInterrupt,
@@ -230,6 +232,25 @@ class TeachingPackRunStore:
             event_name=payload.event_name,
             visibility=payload.visibility,
             payload=payload.payload,
+        )
+
+    async def write_observability_event(
+        self,
+        event: ObservabilityEvent,
+        visibility: TeachingPackEventVisibility = TeachingPackEventVisibility.INTERNAL,
+    ) -> TeachingPackEventRead:
+        sequence = await self._next_sequence(RunId(event.run_id))
+        row = observability_event_row(event, sequence, visibility)
+        self._session.add(row)
+        await self._session.flush()
+        run_ids = self._session.sync_session.info.setdefault(_PENDING_EVENT_RUN_IDS, set())
+        run_ids.add(event.run_id)
+        return TeachingPackEventRead(
+            run_id=RunId(event.run_id),
+            sequence=sequence,
+            event_name=event.event_type,
+            visibility=visibility,
+            payload=row.payload,
         )
 
     async def replay_events(

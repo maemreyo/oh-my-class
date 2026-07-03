@@ -1,6 +1,6 @@
 # Issue #20: [Phase 1] Delete 8 PARKED_REACT middleware, renumber order, guard test
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/20
 State: OPEN
 Created: 2026-07-02T16:42:29Z
@@ -10,11 +10,27 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Implementation Notes
+
+- Removed the `PARKED_REACT_MIDDLEWARE` registry surface.
+- Removed the 8 parked ReAct-only middleware from `ORDERED_MIDDLEWARE_LIST`.
+- Renumbered the active middleware chain to 23 contiguous layers.
+- Kept `ClarificationMiddleware` last and updated its order to 23.
+- Added `tests/test_no_parked_middleware_registered.py` to fail if the parked registry returns, parked middleware becomes active, or order continuity/last-clarification breaks.
+- Updated middleware ordering tests to the new active chain.
+
+## Verification
+
+- Targeted tests: `uv run pytest packages/agents/tests/middleware/test_middleware_suite.py tests/test_no_parked_middleware_registered.py` → 12 passed.
+- Type check: `uv run basedpyright packages/agents/middleware/registry.py packages/agents/middleware/base.py packages/agents/middleware/terminal/clarification.py packages/agents/tests/middleware/test_middleware_suite.py tests/test_no_parked_middleware_registered.py` → 0 errors.
+- LSP diagnostics: clean on changed middleware/test Python files.
+- Surface QA: imported `packages.agents.middleware` and observed count 23, orders 1-23, last middleware `clarification`, and no parked middleware active.
 
 ## Body
 
@@ -47,4 +63,3 @@ This is a production-ready rebuild, NOT patching: delete the parked dict big-ban
 ## Depends on
 
 - `[Epic][Phase 1] Dead-code removal & documentation drift` (parent). Independent of other issues. See milestone `agents-hardening`.
-

@@ -1,6 +1,6 @@
 # Issue #19: [Phase 1] Delete Lead Agent + task() stub, add guard test
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/19
 State: OPEN
 Created: 2026-07-02T16:42:27Z
@@ -10,11 +10,28 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Implementation Notes
+
+- Deleted `packages/agents/lead_agent/` and generated cache leftovers.
+- Deleted `packages/agents/tools/task.py` and removed its package export.
+- Deleted the old lead-agent tests under `packages/agents/tests/test_lead_agent.py`.
+- Expanded `tests/test_no_lead_agent.py` so it fails if the Lead Agent directory, the task stub, or the old top-level lead-agent test returns.
+- Removed `lead_agent` model assignment/config tests because the runtime surface is decommissioned.
+- Removed lead-agent prompt/state references from related tests.
+
+## Verification
+
+- Red first: `uv run pytest tests/test_no_lead_agent.py` failed while the dead surfaces existed.
+- Targeted tests: `uv run pytest tests/test_no_lead_agent.py packages/agents/config/tests/test_gate_config.py packages/agents/config/tests/test_model_tiering.py packages/agents/tests/test_llm_config.py packages/agents/tests/test_prompt_management.py packages/agents/tests/test_state_schemas.py` → 109 passed.
+- Type check: `uv run basedpyright tests/test_no_lead_agent.py packages/agents/tools/__init__.py packages/agents/config/models.py packages/agents/config/model_drift.py packages/agents/config/tests/test_gate_config.py packages/agents/config/tests/test_model_tiering.py packages/agents/tests/test_llm_config.py packages/agents/tests/test_prompt_management.py packages/agents/tests/test_state_schemas.py` → 0 errors.
+- LSP diagnostics: clean on changed Python files.
+- Surface QA: imported `packages.agents.tools` and confirmed `task` is not exported; importing `packages.agents.lead_agent` and `packages.agents.tools.task` raises `ModuleNotFoundError`.
 
 ## Body
 
@@ -45,4 +62,3 @@ This is a production-ready rebuild, NOT patching: physically delete the dead sur
 ## Depends on
 
 - `[Epic][Phase 1] Dead-code removal & documentation drift` (parent). No code dependency on other issues. See milestone `agents-hardening`.
-

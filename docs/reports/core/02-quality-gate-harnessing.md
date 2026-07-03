@@ -1046,16 +1046,7 @@ graph TD
 
 ### 9.2 Hard Blocks (Tự động fail)
 
-```python
-HARD_BLOCKS = {
-    "missing_doctype": "File HTML phải có <!DOCTYPE html>",
-    "external_assets": "KHÔNG dùng CDN, external CSS/JS/images",
-    "answer_key_leakage": "Answer key KHÔNG được lọt vào student output",
-    "native_radio_inputs": "KHÔNG dùng native radio/checkbox — dùng styled divs",
-    "unmanaged_js": "KHÔNG dùng JS runtime không được quản lý",
-    "missing_brand": "Brand strings (oh-my-class) phải có mặt",
-}
-```
+Deterministic hard-block policy is owned in `packages/quality/compliance_policy.py`. Layer-3 HTML validation, Layer-4 judge hard-block classification, presentation gate compatibility wrappers, and the teaching-pack `compliance_gate` delegate to that single policy. The compliance gate runs after `render_quality`; any violation fails closed back to artifact regeneration before teacher approval.
 
 ### 9.3 Gate Configuration
 

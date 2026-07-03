@@ -1,6 +1,6 @@
 # Issue #27: [Phase 3] Scoped replan — heal per artifact_id, not whole batch
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/27
 State: OPEN
 Created: 2026-07-02T16:42:57Z
@@ -10,11 +10,37 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Progress notes
+
+- Rewrote `packages/agents/healing/strategies/replan.py` to use `TeachingPackState` field names only.
+- Scoped replan now reads `fail_context["artifact_id"]` and clears only the failed artifact plus downstream dependents:
+  - `lesson` clears `worksheet`, `quiz`, `drill`, and `recap`.
+  - `quiz` clears `recap`.
+  - other artifact failures clear only the failed artifact.
+- Full replan remains reserved for upstream `planning_blueprint` and `post_blueprint_research` failures, or for missing artifact scope.
+- Scoped clearing applies consistently to `artifact_chunks`, `artifacts`, `artifact_workflow_states`, `rendered_snapshots`, and `quality_scores.reports`.
+- Added `packages/agents/healing/tests/test_replan_strategy.py` with regression coverage for a wave-2 `quiz` failure preserving wave-1 `lesson` and unrelated artifacts while clearing `quiz` and dependent `recap`.
+
+## Verification evidence
+
+- Red check before implementation: `uv run pytest packages/agents/healing/tests/test_orchestrator.py::TestReplanStrategy -q` failed because `artifact_chunks` was `None` and upstream failures still routed to `artifact_workflow`.
+- `uv run pytest packages/agents/healing/tests/test_orchestrator.py packages/agents/healing/tests/test_replan_strategy.py packages/agents/tests/teaching_pack/test_healing_recovery.py packages/agents/tests/teaching_pack/test_render_quality.py -q` → `51 passed`.
+- LSP diagnostics clean for:
+  - `packages/agents/healing/strategies/replan.py`
+  - `packages/agents/healing/tests/test_orchestrator.py`
+  - `packages/agents/healing/tests/test_replan_strategy.py`
+- Legacy-field guard: `rg -n "review_results|judge_score|schema_valid|content_review_passed" packages/agents/healing/strategies/replan.py` → no output.
+- Manual surface smoke through `replan.apply()` with failed `quiz-1` preserved `lesson-1`, removed `quiz-1` and `recap-1`, and kept `quality_recovery_route == "artifact_workflow"`: `issue-027 scoped replan smoke: PASS`.
+- Pure LOC audit after splitting tests:
+  - `packages/agents/healing/strategies/replan.py` → `95`
+  - `packages/agents/healing/tests/test_orchestrator.py` → `208`
+  - `packages/agents/healing/tests/test_replan_strategy.py` → `75`
 
 ## Body
 
@@ -46,4 +72,3 @@ This is a production-ready rebuild, NOT patching. It depends on the Phase 2 stat
 ## Depends on
 
 - Phase 2 state unify (`[Phase 2] Unify state model`) so `fail_context` and field names are reliable. Parent: `[Epic][Phase 3] Core correctness`. Scoped actions align with the Phase 5 teacher gate. See milestone `agents-hardening`.
-

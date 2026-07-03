@@ -1,6 +1,6 @@
 # Issue #18: [Epic][Phase 5] Teacher trust UX
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/18
 State: OPEN
 Created: 2026-07-02T16:42:13Z
@@ -10,11 +10,17 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Completion notes
+
+- Child Issue #29 is DONE.
+- Teacher gate shows rationale, revision count, approval mode, scoped revision/revert actions, and escalation status derived from the single event stream.
+- Browser QA evidence is recorded on Issue #29.
 
 ## Body
 
@@ -38,9 +44,9 @@ Coordination:
 
 ## Acceptance
 
-- [ ] Explainable-gate child issue closed with tests.
-- [ ] Teacher can see judge rationale, revision count, healing history, and approval mode per `artifact_id`.
-- [ ] Live status bar renders from `ObservabilityEvent` with no second pipeline.
+- [x] Explainable-gate child issue closed with tests.
+- [x] Teacher can see judge rationale, revision count, healing history, and approval mode per `artifact_id`.
+- [x] Live status bar renders from `ObservabilityEvent` with no second pipeline.
 
 ## References
 
@@ -50,4 +56,3 @@ Coordination:
 ## Depends on
 
 - Phase 2 (state + observability), Phase 3 (judge rationale + compliance + scoped replan), Phase 4 (escalation signals). See milestone `agents-hardening`.
-

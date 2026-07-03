@@ -66,26 +66,29 @@ async def synthesize_semantic_anchor_cluster(
     run_id: str,
 ) -> SemanticAnchorCluster:
     from packages.agents.config.models import MODELS
-    from packages.agents.llm import chat_messages, complete_json_chat, extract_json_text
+    from packages.agents.llm import extract_json_text
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
+    from packages.agents.teaching_pack.stages import StageEnum, stage_number
 
     system_prompt = _system_prompt()
     user_prompt = _user_prompt(cluster, grounding)
     last_error = "unknown validation error"
+    current_step = StageEnum.ARTIFACT_WORKFLOW
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="content_creator",
+        run_id=run_id,
+        step=stage_number(current_step),
+        step_label=current_step.value,
+        model=MODELS.content_creator,
+        base_temperature=0.3,
+        retry_temperature=0.3,
+    ))
 
     for attempt in range(3):
-        messages = chat_messages(system_prompt, user_prompt)
-        content = await complete_json_chat(
-            model=MODELS.content_creator,
-            messages=messages,
-            temperature=0.3,
-            tags=[
-                "agent:content_creator",
-                "profile:semantic_anchor_synthesis",
-                "step:8",
-                f"run:{run_id}",
-                f"attempt:{attempt + 1}",
-                "pipeline:oh-my-class",
-            ],
+        content = await runtime.complete_json(
+            messages=runtime.messages(system_prompt, user_prompt),
+            attempt=attempt,
+            extra_tags=("profile:semantic_anchor_synthesis",),
         )
         try:
             data = json.loads(extract_json_text(content))

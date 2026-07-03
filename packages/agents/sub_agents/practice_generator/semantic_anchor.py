@@ -82,25 +82,29 @@ async def generate_semantic_anchor_practice(
     run_id: str,
 ) -> PracticeSet:
     from packages.agents.config.models import MODELS
-    from packages.agents.llm import chat_messages, complete_json_chat, extract_json_text
+    from packages.agents.llm import extract_json_text
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
+    from packages.agents.teaching_pack.stages import StageEnum, stage_number
 
     system_prompt = _system_prompt()
     user_prompt = _prompt_payload(PracticePromptContext(request=request))
     last_error = "unknown validation error"
+    current_step = StageEnum.ARTIFACT_WORKFLOW
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="practice_generator",
+        run_id=run_id,
+        step=stage_number(current_step),
+        step_label=current_step.value,
+        model=MODELS.content_creator,
+        base_temperature=0.3,
+        retry_temperature=0.3,
+    ))
 
     for attempt in range(3):
-        content = await complete_json_chat(
-            model=MODELS.content_creator,
-            messages=chat_messages(system_prompt, user_prompt),
-            temperature=0.3,
-            tags=[
-                "agent:practice_generator",
-                "profile:semantic_anchor_practice",
-                "step:8",
-                f"run:{run_id}",
-                f"attempt:{attempt + 1}",
-                "pipeline:oh-my-class",
-            ],
+        content = await runtime.complete_json(
+            messages=runtime.messages(system_prompt, user_prompt),
+            attempt=attempt,
+            extra_tags=("profile:semantic_anchor_practice",),
         )
         try:
             data = json.loads(extract_json_text(content))

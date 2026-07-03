@@ -160,6 +160,32 @@ class TestTeachingPackRunsRouter:
         assert response.json()["detail"] == "action_not_allowed"
         anyio.run(_delete_run, run_id)
 
+    def test_request_artifact_revision_enqueues_scoped_resume_job(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        gate_id = f"gate-{uuid4()}"
+        artifact_id = "worksheet-1"
+        anyio.run(_create_run_with_gate, run_id, gate_id)
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/request-revision",
+            json={"feedback": "Regenerate the worksheet examples."},
+        )
+
+        assert response.status_code == 202
+        data = response.json()
+        assert data["run_id"] == run_id
+        assert data["artifact_id"] == artifact_id
+
+        persisted = anyio.run(_get_revision_job_payload, run_id, data["job_id"])
+        assert persisted == {
+            "action": "reject_selected",
+            "rejection_type": "scoped",
+            "artifact_rejections": [
+                {"artifact_id": artifact_id, "reason": "Regenerate the worksheet examples."},
+            ],
+        }
+        anyio.run(_delete_run, run_id)
+
 async def _skip_if_schema_missing() -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     async with engine.begin() as connection:
@@ -189,6 +215,17 @@ async def _get_resume_result(run_id: RunId, job_id: str) -> tuple[RunJobKind, st
         response_statement = select(GateResponse.response_json).where(GateResponse.run_id == run_id)
         response_result = await session.execute(response_statement)
         return job_result.scalar_one(), response_result.scalar_one()["action"]
+
+
+async def _get_revision_job_payload(run_id: RunId, job_id: str) -> dict[str, object]:
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        statement = select(RunJob).where(RunJob.run_id == run_id, RunJob.job_id == job_id)
+        result = await session.execute(statement)
+        job = result.scalar_one()
+        assert job.kind is RunJobKind.RESUME
+        return job.payload["resume_payload"]
 
 
 async def _create_run_with_gate(run_id: RunId, gate_id: str) -> None:

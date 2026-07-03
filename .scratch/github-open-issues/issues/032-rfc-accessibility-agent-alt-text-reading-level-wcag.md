@@ -1,6 +1,6 @@
 # Issue #32: [RFC] Accessibility agent (alt-text / reading-level / WCAG)
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/32
 State: OPEN
 Created: 2026-07-02T16:43:08Z
@@ -10,11 +10,16 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Completion notes
+
+- Landed Accessibility RFC at `docs/rfc/accessibility-agent.md`.
+- RFC maps all output to `ArtifactContent.accessibility`, defines WCAG/reading-level checks, and requires `AgentRuntime`.
 
 ## Body
 
@@ -34,9 +39,9 @@ This is a production-ready build, NOT patching: it hangs off `AgentRuntime` and 
 
 ## Acceptance
 
-- [ ] RFC design doc reviewed/accepted before implementation.
-- [ ] Design writes to `ArtifactContent.accessibility` (no new parallel field).
-- [ ] Design builds on `AgentRuntime`.
+- [x] RFC design doc reviewed/accepted before implementation.
+- [x] Design writes to `ArtifactContent.accessibility` (no new parallel field).
+- [x] Design builds on `AgentRuntime`.
 
 ## References
 
@@ -46,4 +51,3 @@ This is a production-ready build, NOT patching: it hangs off `AgentRuntime` and 
 ## Depends on
 
 - Foundation complete: Phase 2 + Phase 3 `AgentRuntime`. Priority 3 of 3 new-agent RFCs (after Researcher and Localization). See milestone `agents-hardening`.
-

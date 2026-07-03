@@ -14,7 +14,7 @@
 
 ## Vấn đề nghiêm trọng nhất — đọc ngay Verdict 03
 
-**Fast-lane trust-score auto-approve tại `teacher_approval` gate mâu thuẫn trực tiếp với INVARIANT-06** ("Teacher Gate CANNOT be bypassed", đánh dấu ✅ trong chính tài liệu này). Một tính năng auto-approve dựa trên trust score, về bản chất, **là** một bypass. Đây không phải lỗi code — đây là một invariant bị vi phạm bởi chính spec, cần quyết định sản phẩm/compliance trước khi engineering đụng vào, đặc biệt vì hệ thống phục vụ nội dung K-12 và có middleware PII/answer-key riêng.
+**Fast-lane trust-score auto-approve tại `teacher_approval` gate từng mâu thuẫn trực tiếp với INVARIANT-06** ("Teacher Gate CANNOT be bypassed"). Phase 0 đã chốt hướng xử lý trong ADR-026: giữ fast-lane nhưng reword invariant thành "cannot be silently bypassed" và chỉ cho phép auto-approve sau `compliance_gate_node`, với audit riêng, nhãn UI rõ ràng và revert window. Phần implementation/test của compliance gate vẫn thuộc Phase 3/5.
 
 ## Bảng mức độ ưu tiên
 

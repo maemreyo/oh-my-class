@@ -13,6 +13,7 @@ from common.contracts.vocabulary_batch import (
     LexicalGroundingSourceEvidence,
     NormalizedVocabularyCluster,
 )
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 def _travel_request() -> LexicalGroundingRequest:
@@ -103,9 +104,11 @@ async def test_lexical_grounding_profile_returns_source_notes_and_confidence() -
     assert bundle.cache_keys.term_distinction_key.endswith("excursion|journey|travel|trip|voyage")
     assert mock_llm.call_args.kwargs["tags"] == [
         "agent:researcher",
-        "profile:lexical_grounding",
-        "step:7",
+        "step:5",
+        "stage:post_blueprint_research",
         "run:run-vocab-1",
+        "attempt:1",
+        "profile:lexical_grounding",
         "pipeline:oh-my-class",
     ]
 
@@ -134,7 +137,7 @@ async def test_ordinary_post_blueprint_research_prompt_is_unchanged_for_generate
             "lesson_plan": {"topic": "Photosynthesis", "learning_objectives": []},
             "research_policy": "standard",
             "run_id": "run-generate-pack",
-            "current_step": 7,
+            "current_step": StageEnum.POST_BLUEPRINT_RESEARCH,
             "research_bundle": None,
         })
 

@@ -1,6 +1,6 @@
 # Issue #26: [Phase 3] AgentRuntime shared harness + tool capability registry
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/26
 State: OPEN
 Created: 2026-07-02T16:42:44Z
@@ -10,11 +10,86 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Progress notes
+
+- Added `packages/agents/runtime.py` with shared `AgentRuntime` / `AgentRuntimeConfig` for the four production agents:
+  - centralizes retry-attempt logging, temperature schedule, INVARIANT-07 tags, and the underlying streaming/transport selection already owned by `complete_json_chat`.
+  - emits numeric `step:` plus human `stage:` tags so existing transport policy can parse step numbers while traces keep stage identity.
+- Migrated production agent call paths to `AgentRuntime`:
+  - `packages/agents/sub_agents/planner/nodes.py`
+  - `packages/agents/sub_agents/researcher/nodes.py`
+  - `packages/agents/sub_agents/content_creator/nodes.py`
+  - `packages/agents/sub_agents/reviewer/nodes.py`
+- Added `packages/agents/tools/capabilities.py` with `AGENT_CAPABILITIES`, `ToolStatus`, `ToolCapability`, and `bind_agent_tools()`.
+- Added `packages/agents/tools/fs.py` as the single sandboxed read/write implementation with:
+  - workspace path enforcement;
+  - `ToolUnavailableError.fail_type == "tool_unavailable"` for forbidden/out-of-sandbox access;
+  - in-memory write audit log via `write_audit_log()` / `clear_write_audit_log()`.
+- Replaced legacy/stub FS surfaces with delegation to `tools/fs.py`:
+  - `packages/agents/tools/read_file.py`
+  - `packages/agents/tools/write_file.py`
+  - `packages/agents/sub_agents/planner/tools.py`
+  - `packages/agents/sub_agents/researcher/tools.py`
+  - `packages/agents/sub_agents/content_creator/tools.py`
+  - `packages/agents/sub_agents/reviewer/tools.py`
+- Added guard/runtime tests:
+  - `packages/agents/tests/test_agent_runtime_tools.py`
+  - `packages/agents/tests/test_no_unimplemented_tool_bound.py`
+- Updated existing content-creator tool tests to exercise workspace-sandboxed FS paths and the reviewer live-path test to patch the new shared runtime seam.
+
+## Verification evidence
+
+- `uv run pytest packages/agents/tests/test_agent_runtime_tools.py packages/agents/tests/test_no_unimplemented_tool_bound.py packages/agents/tests/sub_agents/test_content_creator.py packages/agents/tests/sub_agents/test_researcher.py packages/agents/tests/sub_agents/test_planner.py packages/agents/tests/test_no_legacy_judge_live_path.py packages/agents/tests/llm/test_production_provenance.py -q` → `98 passed`.
+- Post-review remediation migrated auxiliary sub-agent LLM profiles onto `AgentRuntime`:
+  - `packages/agents/sub_agents/diagnostician/nodes.py`
+  - `packages/agents/sub_agents/roadmap_agent/nodes.py`
+  - `packages/agents/sub_agents/practice_generator/semantic_anchor.py`
+  - `packages/agents/sub_agents/content_creator/semantic_anchor_synthesis.py`
+  - `packages/agents/sub_agents/researcher/lexical_grounding.py`
+- Added `packages/agents/tests/test_no_sub_agent_runtime_bypass.py` to fail when sub-agent modules directly reference `complete_json_chat` instead of the shared runtime.
+- `rg -n "complete_json_chat|compiled_json_chat|log_llm_start|log_llm_success|log_llm_failure" packages/agents/sub_agents -g "*.py"` → no prohibited live direct usage.
+- `uv run pytest packages/agents/tests/test_agent_runtime_tools.py packages/agents/tests/test_no_unimplemented_tool_bound.py packages/agents/tests/test_no_sub_agent_runtime_bypass.py packages/agents/tests/sub_agents/test_content_creator.py packages/agents/tests/sub_agents/test_researcher.py packages/agents/tests/sub_agents/test_planner.py packages/agents/tests/test_no_legacy_judge_live_path.py packages/agents/tests/llm/test_production_provenance.py packages/agents/tests/sub_agents/test_diagnostician.py packages/agents/tests/sub_agents/test_roadmap_agent.py packages/agents/tests/test_practice_generator_semantic_anchor.py packages/agents/tests/test_semantic_anchor_synthesis.py packages/agents/tests/test_researcher_lexical_grounding.py -q` → `183 passed`.
+- Post-review remediation centralized retry helpers in `AgentRuntime`:
+  - `complete_json_with_retries(...)` for uncompiled JSON calls;
+  - `complete_compiled_json_with_retries(...)` for prompt-compiler-backed calls.
+- Planner, researcher, and content-creator manual retry loops now delegate through the shared runtime retry helpers while preserving their parse/retry-prompt semantics.
+- Reviewer transport now preserves judge-supplied temperatures (`0.3`, `0.4`, `0.5`) and maps `judge:N` metadata to `attempt:N` runtime tags instead of hardcoding `attempt=0`.
+- Added runtime regression coverage for explicit temperature preservation in `packages/agents/tests/test_agent_runtime_tools.py`.
+- `uv run pytest packages/agents/tests/test_agent_runtime_tools.py packages/agents/tests/test_no_sub_agent_runtime_bypass.py packages/agents/tests/test_no_unimplemented_tool_bound.py packages/llm_client/tests/test_client.py services/gateway/tests/test_provider_circuit_breaker.py -q` → `22 passed`.
+- Broader post-review focused suite covering runtime, bypass guards, sub-agent retry users, LLM breaker, worker observability, router, and gate registry → `147 passed`.
+- LSP diagnostics clean for changed Issue #26 Python files checked:
+  - `packages/agents/runtime.py`
+  - `packages/agents/tools/fs.py`
+  - `packages/agents/tools/capabilities.py`
+  - `packages/agents/sub_agents/planner/nodes.py`
+  - `packages/agents/sub_agents/researcher/nodes.py`
+  - `packages/agents/sub_agents/content_creator/nodes.py`
+  - `packages/agents/sub_agents/reviewer/nodes.py`
+  - `packages/agents/tests/test_agent_runtime_tools.py`
+  - `packages/agents/tests/test_no_unimplemented_tool_bound.py`
+  - `packages/agents/sub_agents/diagnostician/nodes.py`
+  - `packages/agents/sub_agents/roadmap_agent/nodes.py`
+  - `packages/agents/sub_agents/practice_generator/semantic_anchor.py`
+  - `packages/agents/sub_agents/content_creator/semantic_anchor_synthesis.py`
+  - `packages/agents/sub_agents/researcher/lexical_grounding.py`
+  - `packages/agents/tests/test_no_sub_agent_runtime_bypass.py`
+  - `packages/agents/tests/test_researcher_lexical_grounding.py`
+- Manual surface smoke through the runtime/tool API:
+  - `AgentRuntime.tags()` returned agent/run/step/stage/attempt/task/pipeline metadata;
+  - `bind_agent_tools("content_creator", ("read_file", "write_file"))` succeeded;
+  - binding `task` raised `ToolUnavailableError` with `fail_type="tool_unavailable"`;
+  - `write_file()` wrote `.scratch/issue-026-manual-smoke.txt`, `read_file()` read it back, and the audit log recorded path/bytes;
+  - reading `/tmp/issue-026-outside.txt` raised `ToolUnavailableError` with `tool_name="fs"`.
+- Post-review manual smoke through the async FS API again passed: `issue-026 manual smoke: PASS`.
+- Pure LOC audit for post-review files returned all files below the 250 LOC ceiling; largest checked file was `176` pure LOC.
+- The no-excuse helper referenced by the programming skill is not present at `scripts/python/check-no-excuse-rules.py`, so the available repo gates used here were focused pytest, LSP diagnostics, raw bypass search, manual smoke, and pure LOC measurement.
+- Size audit performed on changed files; no new/modified Issue #26 file exceeded 250 pure LOC. Pre-existing large tests/modules remain outside this issue's scope.
 
 ## Body
 
@@ -47,4 +122,3 @@ This is a production-ready rebuild, NOT patching: extract one `AgentRuntime`, un
 ## Depends on
 
 - `[Epic][Phase 3] Core correctness` (parent) and Phase 2 state unify. Feeds Phase 4 resilience (breaker/fallback hang off `AgentRuntime`) and the RFC new-agents. See milestone `agents-hardening`.
-

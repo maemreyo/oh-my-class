@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 import pytest
 
@@ -10,11 +10,11 @@ from packages.agents.nodes.finalize import step_12_finalize
 from packages.agents.nodes.pack_scope import step_05_pack_scope
 from packages.agents.nodes.preflight import step_01_preflight
 from packages.agents.nodes.quickstart import step_02_quickstart
+from packages.agents.nodes.state import NodeState
 from packages.agents.nodes.visual_engine import step_06_visual_engine
-from packages.agents.state import OhMyClassState  # noqa: TC001  needed at runtime (cast)
 
 
-def _base_state(**overrides: Any) -> OhMyClassState:
+def _base_state(**overrides: Any) -> NodeState:
     base: dict[str, Any] = {
         "raw_request": "Teach photosynthesis in grade 5",
         "teacher_id": "t-001",
@@ -34,8 +34,7 @@ def _base_state(**overrides: Any) -> OhMyClassState:
         "cost_usd": 0.0,
         "research_policy": "standard",
     }
-    base.update(overrides)
-    return cast("OhMyClassState", base)
+    return NodeState(**{**base, **overrides})
 
 
 # ── Preflight ─────────────────────────────────────────────────────────────────

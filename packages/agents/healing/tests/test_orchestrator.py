@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+    from packages.agents.teaching_pack.nodes import TeachingPackState
 
 
 
@@ -31,7 +31,7 @@ class TestHealingOrchestrator:
     def test_rewrite_on_first_validation_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
         state = make_state(fail_count=0, fail_type="validation")
-        result = HealingOrchestrator().heal(cast("OhMyClassState", state))
+        result = HealingOrchestrator().heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "rewrite"
         assert result["artifacts"] is None
         assert result["fail_count"] == 1
@@ -39,35 +39,49 @@ class TestHealingOrchestrator:
     def test_rewrite_on_first_content_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
         state = make_state(fail_count=0, fail_type="content")
-        result = HealingOrchestrator().heal(cast("OhMyClassState", state))
+        result = HealingOrchestrator().heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "rewrite"
 
     def test_retry_on_first_transient_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
         state = make_state(fail_count=0, fail_type="transient")
         with patch("packages.agents.healing.strategies.retry.time.sleep"):
-            result = HealingOrchestrator().heal(cast("OhMyClassState", state))
+            result = HealingOrchestrator().heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "retry"
 
     def test_reroute_on_second_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
         state = make_state(fail_count=1, fail_type="validation", generation_model="f.light")
-        result = HealingOrchestrator().heal(cast("OhMyClassState", state))
+        result = HealingOrchestrator().heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "reroute"
         assert result["generation_model"] == "4omc"
 
     def test_replan_on_third_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
         state = make_state(fail_count=2, fail_type="validation")
-        result = HealingOrchestrator().heal(cast("OhMyClassState", state))
+        result = HealingOrchestrator().heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "replan"
-        assert result["artifacts"] is None
-        assert result["judge_score"] is None
+        assert result["artifact_chunks"] is None
+        assert result["quality_scores"] is None
+
+    def test_replan_uses_teaching_pack_state_fields(self):
+        from packages.agents.healing.strategies.replan import apply
+
+        result = apply({}, 3)
+
+        assert result["artifact_chunks"] is None
+        assert result["quality_scores"] is None
+        assert result["rendered_snapshots"] is None
+        assert result["quality_issues"] is None
+        assert "review_results" not in result
+        assert "judge_score" not in result
+        assert "schema_valid" not in result
+        assert "content_review_passed" not in result
 
     def test_escalate_after_max_retries(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
         state = make_state(fail_count=4, fail_type="validation", fail_layer="schema")
-        result = HealingOrchestrator(max_retries=3).heal(cast("OhMyClassState", state))
+        result = HealingOrchestrator(max_retries=3).heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "escalate"
         assert result["escalate"] is True
         assert result["fail_count"] == 5
@@ -75,7 +89,7 @@ class TestHealingOrchestrator:
     def test_escalate_at_exactly_max_retries_plus_one(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
         state = make_state(fail_count=3, fail_type="validation")
-        result = HealingOrchestrator(max_retries=3).heal(cast("OhMyClassState", state))
+        result = HealingOrchestrator(max_retries=3).heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "escalate"
 
     def test_healing_node_is_callable(self):
@@ -84,12 +98,12 @@ class TestHealingOrchestrator:
 
     def test_route_after_healing_escalate(self):
         from packages.agents.healing.orchestrator import route_after_healing
-        assert route_after_healing(cast("OhMyClassState", {"escalate": True})) == "escalate_node"
+        assert route_after_healing(cast("TeachingPackState", {"escalate": True})) == "escalate_node"
 
     def test_route_after_healing_generate(self):
         from packages.agents.healing.orchestrator import route_after_healing
-        assert route_after_healing(cast("OhMyClassState", {"escalate": False})) == "step_08_generate"  # noqa: E501
-        assert route_after_healing(cast("OhMyClassState", {})) == "step_08_generate"
+        assert route_after_healing(cast("TeachingPackState", {"escalate": False})) == "step_08_generate"  # noqa: E501
+        assert route_after_healing(cast("TeachingPackState", {})) == "step_08_generate"
 
 
 class TestRetryStrategy:
@@ -158,20 +172,6 @@ class TestRerouteStrategy:
         from packages.agents.healing.strategies.reroute import apply
         result = apply({}, 2)
         assert result["artifacts"] is None
-
-
-class TestReplanStrategy:
-    def test_clears_all_downstream_state(self):
-        from packages.agents.healing.strategies.replan import apply
-        result = apply({}, 3)
-        assert result["artifacts"] is None
-        assert result["judge_score"] is None
-        assert result["schema_valid"] is None
-
-    def test_returns_replan_strategy(self):
-        from packages.agents.healing.strategies.replan import apply
-        result = apply({}, 3)
-        assert result["healing_strategy"] == "replan"
 
 
 class TestEscalateStrategy:

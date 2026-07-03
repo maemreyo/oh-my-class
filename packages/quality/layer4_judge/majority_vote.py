@@ -82,4 +82,5 @@ def majority_vote(
         critical_issues=critical_issues,
         passed=passed,
         rationale=judge_outputs[0].rationale,
+        teacher_facing_summary=judge_outputs[0].teacher_facing_summary,
     )

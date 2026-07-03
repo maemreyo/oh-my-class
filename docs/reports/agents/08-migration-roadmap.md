@@ -13,9 +13,9 @@ Ba câu hỏi quyết định một verdict nằm ở phase nào:
 ## Sơ đồ phụ thuộc
 
 ```
-Phase 0 (Quyết định sản phẩm — KHÔNG code)
-  ├─► 03: Fast-lane Option A/B
-  └─► 05: Circuit breaker scope (ADR)
+Phase 0 (Quyết định sản phẩm — ĐÃ CHỐT qua ADR-026/027)
+  ├─► 03: Fast-lane Option A — giữ fast-lane, chỉ auto-approve sau compliance gate
+  └─► 05: Circuit breaker scope — layered per-provider + per-run, Redis-backed
          │
          ▼
 Phase 1 (Zero-risk, chạy song song, không phụ thuộc gì)
@@ -51,14 +51,14 @@ Phase 5 (UX — phụ thuộc trực tiếp Phase 2 + 3 + 4)
 
 ---
 
-## Phase 0 — Quyết định sản phẩm (1-2 tuần, không có code merge)
+## Phase 0 — Quyết định sản phẩm (đã chốt qua ADR)
 
-| Việc | Output | Ai chốt |
+| Việc | Output | Trạng thái |
 |---|---|---|
-| Fast-lane vs INVARIANT-06 | Option A (giữ fast-lane, sửa cách diễn đạt + audit + revert) hay Option B (bỏ fast-lane) | Product + Compliance/K-12 safety review |
-| Circuit breaker scope | ADR: provider-level + run-level (khuyến nghị Verdict 05) hay khác | Engineering lead + Infra |
+| Fast-lane vs INVARIANT-06 | ADR-026: Option A — giữ fast-lane, nhưng chỉ sau `compliance_gate_node`, có audit riêng, nhãn UI rõ ràng và revert window | Decided |
+| Circuit breaker scope | ADR-027: layered circuit breaker theo per-provider/model + per-run, Redis-backed; không dùng global breaker | Decided |
 
-**Điều kiện ra khỏi Phase 0**: cả hai quyết định có văn bản (ADR ngắn, tương tự ADR-018 đã có precedent trong hệ thống). Phase 3 và Phase 4 không được bắt đầu phần liên quan nếu Phase 0 chưa chốt.
+**Điều kiện ra khỏi Phase 0**: đã đạt. `docs/adr/026-fast-lane-teacher-gate-and-invariant-06.md` và `docs/adr/027-circuit-breaker-scope.md` là nguồn quyết định. Phase 3/4 không được đổi lại các giả định này nếu không có ADR mới.
 
 ## Phase 1 — Dọn dẹp zero-risk (có thể chạy song song với Phase 0, ngay lập tức)
 
@@ -123,7 +123,7 @@ Sau khi rà soát toàn bộ 5 agent hiện có (Planner, Researcher, Content Cr
 
 ## Checklist theo dõi tiến độ tổng (roll-up từ 01-07)
 
-- [ ] Phase 0 hoàn tất: 2 ADR có văn bản, được review bởi product + compliance
+- [x] Phase 0 hoàn tất: ADR-026 và ADR-027 có văn bản, roadmap tham chiếu quyết định đã chốt
 - [ ] Phase 1 hoàn tất: Lead Agent + PARKED_REACT xóa vật lý, AGENTS.md đúng, 2 guard test mới xanh
 - [ ] Phase 2 hoàn tất: `OhMyClassState` xóa, `StageEnum` là nguồn sự thật duy nhất, `ObservabilityEvent`/`run_events` wired
 - [ ] Phase 3 hoàn tất: `AdaptiveJudge` là entry point duy nhất, `compliance_gate_node` live, scoped replan verified bằng test

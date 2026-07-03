@@ -40,6 +40,10 @@ class TeachingPackJobStore:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    @property
+    def session(self) -> AsyncSession:
+        return self._session
+
     async def enqueue(self, payload: RunJobCreate) -> RunJobRead:
         initial_status = (
             RunJobStatus.QUEUED if payload.eligible_at is not None else RunJobStatus.PENDING

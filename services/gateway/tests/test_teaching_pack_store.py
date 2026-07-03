@@ -8,6 +8,7 @@ import pytest
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from packages.agents.events import ObservabilityEvent
 from packages.agents.teaching_pack.stages import TeachingPackStage
 from services.gateway.models import Base, Run, RunStatus
 from services.gateway.teaching_pack_models import (
@@ -36,12 +37,16 @@ DATABASE_URL = "postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class"
 async def session() -> AsyncIterator[AsyncSession]:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
-    async with engine.begin() as connection:
-        existing_tables = await connection.run_sync(
-            lambda sync_connection: set(Base.metadata.tables),
-        )
-        if "public.run_events" not in existing_tables:
-            pytest.skip("Teaching Pack tables are not present")
+    try:
+        async with engine.begin() as connection:
+            existing_tables = await connection.run_sync(
+                lambda sync_connection: set(Base.metadata.tables),
+            )
+            if "public.run_events" not in existing_tables:
+                pytest.skip("Teaching Pack tables are not present")
+    except OSError as exc:
+        await engine.dispose()
+        pytest.skip(f"Postgres is not reachable: {exc}")
     async with session_factory() as database_session:
         yield database_session
         await database_session.rollback()
@@ -165,6 +170,40 @@ class TestTeachingPackStore:
         after_first = await store.replay_events(run_id, after_sequence=1)
 
         assert [event.sequence for event in after_first] == [2]
+
+        await session.execute(delete(Run).where(Run.run_id == run_id))
+        await session.commit()
+
+    async def test_observability_events_persist_to_run_events(self, session: AsyncSession) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        store = TeachingPackRunStore(session)
+        await store.create_run(TeachingPackRunCreate(
+            run_id=run_id,
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Teach plants",
+            class_info={"grade": 4},
+        ))
+
+        written = await store.write_observability_event(
+            ObservabilityEvent(
+                run_id=str(run_id),
+                event_type="healing_decision",
+                payload={"healing_strategy": "retry"},
+                teacher_id="teacher-a",
+                stage="render_quality",
+            ),
+            visibility=TeachingPackEventVisibility.TEACHER,
+        )
+        await session.commit()
+
+        replayed = await store.replay_events(run_id, after_sequence=0)
+
+        assert written.sequence == 1
+        assert replayed[0].event_name == "healing_decision"
+        assert replayed[0].visibility is TeachingPackEventVisibility.TEACHER
+        assert replayed[0].payload is not None
+        assert replayed[0].payload["observability_event_type"] == "healing_decision"
+        assert replayed[0].payload["payload"] == {"healing_strategy": "retry"}
 
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()

@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+from packages.agents.teaching_pack.stages import StageEnum
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.content_creator.state import ContentCreatorState
@@ -94,7 +95,7 @@ def _state() -> ContentCreatorState:
             "artifact_types": ["lesson"],
             "theme": "default",
             "run_id": "prompt-size-run",
-            "current_step": 8,
+            "current_step": StageEnum.ARTIFACT_WORKFLOW,
         },
     )
 

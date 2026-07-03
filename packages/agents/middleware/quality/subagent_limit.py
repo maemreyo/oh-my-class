@@ -2,12 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class SubagentLimitExceededError(Exception):
@@ -23,9 +18,9 @@ class SubagentLimitMiddleware(BaseMiddleware):
 
     async def before_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         active = context.metadata.get("active_subagents", 0)
         if active >= 5:
             raise SubagentLimitExceededError(f"Too many active subagents: {active}")
@@ -33,7 +28,7 @@ class SubagentLimitMiddleware(BaseMiddleware):
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state

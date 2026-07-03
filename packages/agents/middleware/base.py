@@ -1,18 +1,28 @@
 """Middleware base class for the oh-my-class agent pipeline.
 
 Every middleware implements the BaseMiddleware interface and operates as a
-single-concern layer in the chain. Middleware order is fixed (1–30);
-Clarification middleware MUST always be last (order=31).
+single-concern layer in the chain. Middleware order is fixed (1–22);
+Clarification middleware MUST always be last (order=23).
 """
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import Any, NotRequired, TypedDict
 
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+
+class MiddlewareState(TypedDict, total=False):
+    raw_request: str
+    teacher_id: str
+    class_info: dict[str, Any]
+    run_id: str
+    tokens_used: int
+    uploaded_files: list[dict[str, Any]]
+    teacher_decision: str
+    clarification_needed: bool
+    artifacts: list[dict[str, Any]]
+    metadata: NotRequired[dict[str, Any]]
 
 
 @dataclass
@@ -28,11 +38,11 @@ class MiddlewareContext:
 class BaseMiddleware(ABC):
     """Abstract base class for all pipeline middleware.
 
-    Each middleware must have a unique `order` value (1–30).
-    The Clarification middleware (order=31) MUST always be last.
+    Each middleware must have a unique `order` value (1–22).
+    The Clarification middleware (order=23) MUST always be last.
 
-    INVARIANT-08: Clarification middleware is always the last in the chain (order=31).
-    All other middleware order values must be 1–30.
+    INVARIANT-08: Clarification middleware is always the last in the chain (order=23).
+    All other middleware order values must be 1–22.
     """
 
     name: str
@@ -41,9 +51,9 @@ class BaseMiddleware(ABC):
     @abstractmethod
     async def before_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         """Run before the LLM call. Can modify state, inject context, or short-circuit.
 
         Args:
@@ -58,9 +68,9 @@ class BaseMiddleware(ABC):
     @abstractmethod
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         """Run after the LLM call. Can validate output, modify state, or log metrics.
 
         Args:

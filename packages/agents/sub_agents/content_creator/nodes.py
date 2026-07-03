@@ -18,6 +18,7 @@ from packages.agents.sub_agents.content_creator.summarizers import (
     summarize_lesson_plan,
     summarize_research_bundle,
 )
+from packages.agents.teaching_pack.stages import StageEnum, stage_number
 
 _build_single_artifact_prompt = build_single_artifact_prompt
 _retry_single_artifact_prompt = retry_single_artifact_prompt
@@ -56,23 +57,27 @@ async def content_creator_node(state: ContentCreatorNodeState) -> dict[str, Any]
     research_summary = summarize_research_bundle(research_bundle)
 
     from packages.agents.config.models import MODELS
-    from packages.agents.llm import (
-        chat_messages,
-        compiled_json_chat,
-        extract_json_text,
-        log_llm_failure,
-        log_llm_start,
-        log_llm_success,
-    )
+    from packages.agents.llm import extract_json_text
     from packages.agents.prompts.compiler import PromptCompiler
     from packages.agents.prompts.seed import create_seeded_registry
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
     from packages.agents.sub_agents.content_creator.prompts import load_system_prompt
 
     generation_model = state.get("generation_model")
     model = generation_model if isinstance(generation_model, str) and generation_model else MODELS.content_creator
     run_id = str(state.get("run_id", ""))
-    step = int(state.get("current_step", 8))
+    current_step = state.get("current_step", StageEnum.ARTIFACT_WORKFLOW)
+    step = stage_number(current_step)
     system_prompt = load_system_prompt() + _JSON_ONLY_SUFFIX
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="content_creator",
+        run_id=run_id,
+        step=step,
+        step_label=current_step.value,
+        model=model,
+        base_temperature=0.3,
+        retry_temperature=0.3,
+    ))
 
     validated_artifacts: list[dict[str, Any]] = []
     artifact_failure_context: list[dict[str, Any]] = []
@@ -82,7 +87,7 @@ async def content_creator_node(state: ContentCreatorNodeState) -> dict[str, Any]
             lesson_summary, research_summary, artifact_type, theme,
         )
         base_user_prompt = user_prompt
-        messages = chat_messages(system_prompt, user_prompt)
+        messages = runtime.messages(system_prompt, user_prompt)
 
         prompt_module = (
             "content_creator_mcq_v1" if artifact_type == "quiz"
@@ -92,121 +97,75 @@ async def content_creator_node(state: ContentCreatorNodeState) -> dict[str, Any]
             module_id=prompt_module, variables={},
         )
 
-        content = None
-        last_content = None
-        for attempt in range(3):
-            attempt_number = attempt + 1
-            started = log_llm_start(
-                "content_creator", run_id, step, model, attempt_number,
+        try:
+            artifact = await runtime.complete_compiled_json_with_retries(
+                compiled=compiled,
+                messages=messages,
+                parse=lambda content: _parse_artifact_content(content, artifact_type),
+                retry_messages=lambda error, content: runtime.messages(
+                    system_prompt,
+                    retry_single_artifact_prompt(
+                        base_user_prompt, artifact_type, error, content,
+                    ),
+                ),
+                extra_tags=(f"artifact:{artifact_type}",),
             )
-            try:
-                content = await compiled_json_chat(
-                    model=model,
-                    compiled=compiled,
-                    messages=messages,
-                    temperature=0.3,
-                    tags=[
-                        "agent:content_creator",
-                        f"step:{state.get('current_step', 8)}",
-                        f"run:{state.get('run_id', '')}",
-                        f"attempt:{attempt_number}",
-                        f"artifact:{artifact_type}",
-                        "pipeline:oh-my-class",
-                    ],
-                )
-                last_content = content
-                log_llm_success(
-                    "content_creator", run_id, step, model, attempt_number, started,
-                )
-                json_str = extract_json_text(content)
-                artifact_data = json.loads(json_str)
-
-                # Unwrap array — LLM should return single object but handle array too
-                if isinstance(artifact_data, list):
-                    if not artifact_data:
-                        raise ValueError("LLM returned empty array")
-                    artifact_data = artifact_data[0]
-
-                if not isinstance(artifact_data, dict):
-                    raise ValueError(
-                        f"Expected dict, got {type(artifact_data).__name__}",
-                    )
-
-                # Validate artifact_type matches request
-                returned_type = artifact_data.get("artifact_type")
-                if returned_type != artifact_type:
-                    raise ValueError(
-                        f"Artifact type mismatch: expected '{artifact_type}', "
-                        f"got '{returned_type}'",
-                    )
-
-                artifact = ArtifactContent.model_validate(artifact_data)
-                validated_artifacts.append(artifact.model_dump())
-                break  # success — move to next artifact type
-
-            except (ValueError, json.JSONDecodeError) as parse_err:
-                log_llm_failure(
-                    "content_creator", run_id, step, model,
-                    attempt_number, started, parse_err,
-                )
-                error_class = type(parse_err).__name__
-                _LOGGER.warning(
-                    "content_creator.artifact_failed artifact_type=%s "
-                    "attempts=%d error=%s",
-                    artifact_type, attempt_number, str(parse_err)[:200],
-                )
-                if attempt < 2:
-                    messages = chat_messages(
-                        system_prompt,
-                        retry_single_artifact_prompt(
-                            base_user_prompt, artifact_type, parse_err, last_content,
-                        ),
-                    )
-                    continue
-                artifact_failure_context.append({
-                    "artifact_type": artifact_type,
-                    "attempts": attempt_number,
-                    "error_class": error_class,
-                    "last_error": str(parse_err)[:500],
-                })
-                raise ValueError(
-                    f"Content creator failed for '{artifact_type}' "
-                    f"({error_class}, after {attempt_number} attempts): "
-                    f"{parse_err}",
-                ) from parse_err
-
-            except Exception as e:
-                log_llm_failure(
-                    "content_creator", run_id, step, model,
-                    attempt_number, started, e,
-                )
-                error_class = type(e).__name__
-                _LOGGER.warning(
-                    "content_creator.artifact_failed artifact_type=%s "
-                    "attempts=%d error=%s",
-                    artifact_type, attempt_number, str(e)[:200],
-                )
-                if attempt < 2:
-                    messages = chat_messages(
-                        system_prompt,
-                        retry_single_artifact_prompt(
-                            base_user_prompt, artifact_type, e, last_content,
-                        ),
-                    )
-                    continue
-                artifact_failure_context.append({
-                    "artifact_type": artifact_type,
-                    "attempts": attempt_number,
-                    "error_class": error_class,
-                    "last_error": str(e)[:500],
-                })
-                raise ValueError(
-                    f"Content creator failed for '{artifact_type}' "
-                    f"({error_class}, after {attempt_number} attempts): "
-                    f"{e}",
-                ) from e
+            validated_artifacts.append(artifact.model_dump())
+        except (ValueError, json.JSONDecodeError) as parse_err:
+            _record_artifact_failure(artifact_failure_context, artifact_type, parse_err, runtime.config.max_retries)
+            raise ValueError(
+                f"Content creator failed for '{artifact_type}' "
+                f"({type(parse_err).__name__}, after {runtime.config.max_retries} attempts): "
+                f"{parse_err}",
+            ) from parse_err
+        except Exception as exc:
+            _record_artifact_failure(artifact_failure_context, artifact_type, exc, runtime.config.max_retries)
+            raise ValueError(
+                f"Content creator failed for '{artifact_type}' "
+                f"({type(exc).__name__}, after {runtime.config.max_retries} attempts): "
+                f"{exc}",
+            ) from exc
 
     return {"artifacts": validated_artifacts}
+
+
+def _parse_artifact_content(content: str, artifact_type: str) -> ArtifactContent:
+    from packages.agents.llm import extract_json_text
+
+    artifact_data = json.loads(extract_json_text(content))
+    if isinstance(artifact_data, list):
+        if not artifact_data:
+            raise ValueError("LLM returned empty array")
+        artifact_data = artifact_data[0]
+    if not isinstance(artifact_data, dict):
+        raise ValueError(f"Expected dict, got {type(artifact_data).__name__}")
+    returned_type = artifact_data.get("artifact_type")
+    if returned_type != artifact_type:
+        raise ValueError(
+            f"Artifact type mismatch: expected '{artifact_type}', got '{returned_type}'",
+        )
+    return ArtifactContent.model_validate(artifact_data)
+
+
+def _record_artifact_failure(
+    artifact_failure_context: list[dict[str, Any]],
+    artifact_type: str,
+    error: BaseException,
+    attempts: int,
+) -> None:
+    error_class = type(error).__name__
+    _LOGGER.warning(
+        "content_creator.artifact_failed artifact_type=%s attempts=%d error=%s",
+        artifact_type,
+        attempts,
+        str(error)[:200],
+    )
+    artifact_failure_context.append({
+        "artifact_type": artifact_type,
+        "attempts": attempts,
+        "error_class": error_class,
+        "last_error": str(error)[:500],
+    })
 
 
 # ── Validation utilities ───────────────────────────────────────────────────

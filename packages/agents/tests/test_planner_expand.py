@@ -4,6 +4,7 @@ import pytest
 
 from common.contracts.lesson_plan import LessonPlan
 from packages.agents.sub_agents.planner.nodes import planner_node
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 @pytest.mark.asyncio
@@ -12,7 +13,7 @@ async def test_expand_mode_preserves_seed_constraints() -> None:
         "raw_request": "Generate child lesson",
         "class_info": {"grade": "Grade 5", "subject": "math"},
         "run_id": "run-expand",
-        "current_step": 3,
+        "current_step": StageEnum.PLANNING_BLUEPRINT,
         "lesson_plan": None,
         "seed": _seed(),
     })

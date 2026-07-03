@@ -7,10 +7,14 @@ import pytest
 from packages.agents.teaching_pack.config import TeachingPackConfig, load_policy_file
 from packages.agents.teaching_pack.graph import build_teaching_pack_graph, teaching_pack_thread_config
 from packages.agents.teaching_pack import ports
-from packages.agents.teaching_pack.stages import TEACHING_PACK_STAGES, TeachingPackStage
+from packages.agents.teaching_pack.stages import StageEnum, TEACHING_PACK_STAGES, TeachingPackStage, stage_number
 
 
 class TestTeachingPackStages:
+    def test_stage_enum_is_the_canonical_stage_type(self) -> None:
+        assert TeachingPackStage is StageEnum
+        assert all(isinstance(stage, StageEnum) for stage in TEACHING_PACK_STAGES)
+
     def test_stage_values_are_stable_and_do_not_collide_with_v1_step_names(self) -> None:
         expected = (
             "setup_contract",
@@ -20,6 +24,7 @@ class TestTeachingPackStages:
             "post_blueprint_research",
             "artifact_workflow",
             "render_quality",
+            "compliance_gate",
             "teacher_approval",
             "export_finalize",
         )
@@ -34,6 +39,12 @@ class TestTeachingPackStages:
 
         assert stage.started_event == "teaching_pack.artifact_workflow.started"
         assert stage.completed_event == "teaching_pack.artifact_workflow.completed"
+
+    def test_stage_number_maps_stage_enum_to_telemetry_step(self) -> None:
+        assert stage_number(StageEnum.SETUP_CONTRACT) == 1
+        assert stage_number(StageEnum.ARTIFACT_WORKFLOW) == 6
+        assert stage_number(StageEnum.COMPLIANCE_GATE) == 8
+        assert stage_number(StageEnum.UNIT_PLANNING) == len(TEACHING_PACK_STAGES) + 1
 
 
 class TestTeachingPackConfig:

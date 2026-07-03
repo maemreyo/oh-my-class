@@ -4,14 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from packages.agents.state import (
-    OhMyClassState,  # noqa: TC001  needed at runtime for LangGraph get_type_hints
-)
+from packages.agents.nodes.state import NodeState
 
 SUPPORTED_THEMES = {"default", "ocean", "forest"}
 
 
-def step_06_visual_engine(state: OhMyClassState) -> dict[str, Any]:
+def step_06_visual_engine(state: NodeState) -> dict[str, Any]:
     """Select theme and visual treatments for the teaching pack.
 
     Validates theme is supported, falls back to default if not.

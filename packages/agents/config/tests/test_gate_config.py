@@ -44,24 +44,6 @@ class TestGateConfigDefaults:
         assert GateConfig().export_min_score == 7.0
 
 
-class TestGateConfigHardBlocks:
-    def test_block_external_assets_default_true(self):
-        from packages.agents.config.gate_config import GateConfig
-        assert GateConfig().block_external_assets is True
-
-    def test_block_missing_doctype_default_true(self):
-        from packages.agents.config.gate_config import GateConfig
-        assert GateConfig().block_missing_doctype is True
-
-    def test_block_answer_key_leakage_default_true(self):
-        from packages.agents.config.gate_config import GateConfig
-        assert GateConfig().block_answer_key_leakage is True
-
-    def test_block_missing_brand_default_true(self):
-        from packages.agents.config.gate_config import GateConfig
-        assert GateConfig().block_missing_brand is True
-
-
 class TestGateConfigEnvOverride:
     def test_env_override_judge_min_score(self, monkeypatch):
         monkeypatch.setenv("GATE_JUDGE_MIN_SCORE", "8.5")
@@ -155,10 +137,6 @@ class TestModelConfig:
     def test_researcher_is_f_pro(self):
         from packages.agents.config.models import MODELS
         assert MODELS.researcher == "4omc"
-
-    def test_lead_agent_is_f_pro(self):
-        from packages.agents.config.models import MODELS
-        assert MODELS.lead_agent == "4omc"
 
     def test_env_override_model(self, monkeypatch):
         monkeypatch.setenv("MODEL_CONTENT_GENERATION", "f.light")

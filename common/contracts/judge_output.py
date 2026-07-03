@@ -48,3 +48,9 @@ class JudgeOutput(BaseModel):
         min_length=1,
         description="Think-before-score rationale (written before numeric scores)",
     )
+    teacher_facing_summary: str = Field(
+        ...,
+        min_length=1,
+        max_length=500,
+        description="Short explanation shown to teachers at the approval gate",
+    )

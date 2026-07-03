@@ -6,12 +6,7 @@ Screens both inputs and artifact outputs for content blocked in an educational c
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 BLOCKED_PATTERNS = re.compile(r"violence|gore|explicit|adult\s+content|nsfw", re.IGNORECASE)
@@ -30,9 +25,9 @@ class ContentSafetyMiddleware(BaseMiddleware):
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         raw = state.get("raw_request", "")
         if BLOCKED_PATTERNS.search(raw):
             raise ContentSafetyError("Content blocked: inappropriate for K-12")
@@ -40,9 +35,9 @@ class ContentSafetyMiddleware(BaseMiddleware):
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         for artifact in state.get("artifacts", []):
             content = artifact.get("content", "") if isinstance(artifact, dict) else str(artifact)
             if BLOCKED_PATTERNS.search(content):

@@ -27,9 +27,8 @@ class LLMConfig(BaseSettings):
 # ─────────┼───────────────────────┼─────────────────────────────────────────────
 # strong   │ MODEL_STRONG_DEFAULT  │ blueprint_design, content_generation,
 #          │                       │ llm_judge, fact_verification, quality_gate
-# medium   │ (always "4omc")       │ lead_agent, planner, researcher,
-#          │                       │ content_creator, reviewer, diagnostician,
-#          │                       │ content_review_light
+# medium   │ (always "4omc")       │ planner, researcher, content_creator,
+#          │                       │ reviewer, diagnostician, content_review_light
 # fast     │ MODEL_FAST_DEFAULT    │ summarization, title_generation,
 #          │                       │ schema_rewrite
 #
@@ -73,7 +72,6 @@ class ModelAssignments(BaseSettings):
     strong_default: str = "4omc"  # MODEL_STRONG_DEFAULT
 
     # medium tier — always "4omc" regardless of tier aliases
-    lead_agent: str = "4omc"            # medium
     planner: str = "4omc"               # medium
     researcher: str = "4omc"            # medium
     content_creator: str = "4omc"       # medium

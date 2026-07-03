@@ -61,11 +61,12 @@ def test_diagnostician_and_kt_share_knowledge_state_store() -> None:
 @pytest.mark.anyio
 async def test_diagnostician_repairs_malformed_dimension_without_crashing() -> None:
     from packages.agents.sub_agents.diagnostician.nodes import diagnostician_node
+    from packages.agents.teaching_pack.stages import StageEnum
 
     result = await diagnostician_node({
         "student_responses": {**_student_evidence(), "force_malformed_dimension": True},
         "run_id": "run-diagnostic-repair",
-        "current_step": 0,
+        "current_step": StageEnum.PLANNING_BLUEPRINT,
         "diagnostic_report": None,
         "use_structured_diagnostic": True,
     })

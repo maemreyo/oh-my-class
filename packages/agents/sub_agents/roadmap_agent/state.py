@@ -4,6 +4,8 @@ from typing import Any
 
 from langgraph.graph import MessagesState
 
+from packages.agents.teaching_pack.stages import StageEnum
+
 
 class RoadmapAgentState(MessagesState):
     """Internal state for the Roadmap Agent."""
@@ -11,7 +13,7 @@ class RoadmapAgentState(MessagesState):
     diagnostic_report: dict[str, Any]
     student_profile: dict[str, Any] | None
     run_id: str
-    current_step: int
+    current_step: StageEnum
     roadmap_artifact: dict[str, Any] | None
     use_structured_roadmap: bool | None
     kt_mastery: dict[str, Any] | None

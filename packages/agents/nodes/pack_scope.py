@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from packages.agents.state import (
-    OhMyClassState,  # noqa: TC001  needed at runtime for LangGraph get_type_hints
-)
+from packages.agents.nodes.state import NodeState
 
 # Default artifact types when none specified
 DEFAULT_ARTIFACT_TYPES = ["lesson", "worksheet", "quiz"]
@@ -15,7 +13,7 @@ DEFAULT_ARTIFACT_TYPES = ["lesson", "worksheet", "quiz"]
 SUPPORTED_ARTIFACT_TYPES = {"lesson", "worksheet", "quiz", "drill", "recap", "infographic"}
 
 
-def step_05_pack_scope(state: OhMyClassState) -> dict[str, Any]:
+def step_05_pack_scope(state: NodeState) -> dict[str, Any]:
     """Determine artifact types from request context and defaults.
 
     Uses existing artifact_types if set by quickstart, otherwise falls back to defaults.

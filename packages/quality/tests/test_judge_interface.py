@@ -12,13 +12,13 @@ import pytest
 
 from common.contracts.judge_output import JudgeOutput, LayerScore
 from common.contracts.rubric import Rubric
+from packages.quality.layer4_judge.hard_blocks import enforce_hard_blocks
 from packages.quality.layer4_judge.judge_interface import (
     HARD_BLOCK_CODES,
     AdaptiveJudge,
     JudgeResult,
     JudgeUnavailableError,
     UnavailableStrategy,
-    _enforce_hard_blocks,
 )
 from packages.quality.layer4_judge.judge_policy import JudgePolicyContext, judge_policy_decision
 from packages.quality.layer4_judge.rubric_selector import RubricSelector
@@ -37,6 +37,7 @@ def _make_passing_judge_output(score: float = 8.0) -> JudgeOutput:
         critical_issues=[],
         passed=score >= 7.0,
         rationale="Test rationale",
+        teacher_facing_summary="Teacher summary",
     )
 
 
@@ -57,6 +58,10 @@ def _make_fake_llm_transport(*outputs: JudgeOutput):
         extra_body: dict[str, Any],
     ) -> str:
         nonlocal call_count
+        assert model
+        assert messages
+        assert temperature >= 0.0
+        assert extra_body
         idx = call_count % len(outputs_list)
         call_count += 1
         return outputs_list[idx].model_dump_json()
@@ -66,6 +71,7 @@ def _make_fake_llm_transport(*outputs: JudgeOutput):
 
 async def _failing_transport(**kwargs: Any) -> str:
     """Fake LLM transport that always raises."""
+    assert kwargs
     raise ConnectionError("LLM service unreachable")
 
 
@@ -167,14 +173,14 @@ class TestRubricSelector:
 class TestHardBlockEnforcement:
     def test_no_hard_blocks_passes_through(self):
         output = _make_passing_judge_output(8.0)
-        result, blocked, violations = _enforce_hard_blocks(output, [], teacher_approved=True)
+        result, blocked, violations = enforce_hard_blocks(output, [], teacher_approved=True)
         assert blocked is False
         assert violations == []
         assert result.passed is True
 
     def test_missing_doctype_forces_fail(self):
         output = _make_passing_judge_output(9.5)  # Near-perfect LLM score
-        result, blocked, violations = _enforce_hard_blocks(
+        result, blocked, violations = enforce_hard_blocks(
             output, ["missing_doctype"], teacher_approved=True
         )
         assert blocked is True
@@ -184,7 +190,7 @@ class TestHardBlockEnforcement:
 
     def test_external_assets_forces_fail(self):
         output = _make_passing_judge_output(9.0)
-        result, blocked, violations = _enforce_hard_blocks(
+        result, blocked, violations = enforce_hard_blocks(
             output, ["external_assets"], teacher_approved=True
         )
         assert blocked is True
@@ -193,7 +199,7 @@ class TestHardBlockEnforcement:
 
     def test_answer_key_leakage_forces_fail(self):
         output = _make_passing_judge_output(9.0)
-        result, blocked, violations = _enforce_hard_blocks(
+        result, blocked, _violations = enforce_hard_blocks(
             output, ["answer_key_leakage"], teacher_approved=True
         )
         assert blocked is True
@@ -201,7 +207,7 @@ class TestHardBlockEnforcement:
 
     def test_pii_leakage_forces_fail(self):
         output = _make_passing_judge_output(9.0)
-        result, blocked, violations = _enforce_hard_blocks(
+        result, blocked, _violations = enforce_hard_blocks(
             output, ["pii_leakage"], teacher_approved=True
         )
         assert blocked is True
@@ -219,8 +225,9 @@ class TestHardBlockEnforcement:
             critical_issues=[],
             passed=True,
             rationale="Perfect score",
+            teacher_facing_summary="Teacher summary",
         )
-        result, blocked, violations = _enforce_hard_blocks(
+        result, blocked, violations = enforce_hard_blocks(
             perfect_output, ["missing_doctype", "external_assets"], teacher_approved=True
         )
         assert result.passed is False
@@ -229,7 +236,7 @@ class TestHardBlockEnforcement:
 
     def test_teacher_not_approved_forces_fail(self):
         output = _make_passing_judge_output(9.0)
-        result, blocked, violations = _enforce_hard_blocks(
+        result, blocked, violations = enforce_hard_blocks(
             output, [], teacher_approved=False
         )
         assert blocked is True
@@ -238,7 +245,7 @@ class TestHardBlockEnforcement:
 
     def test_teacher_not_approved_plus_hard_blocks(self):
         output = _make_passing_judge_output(9.0)
-        result, blocked, violations = _enforce_hard_blocks(
+        result, blocked, violations = enforce_hard_blocks(
             output, ["missing_doctype"], teacher_approved=False
         )
         assert blocked is True
@@ -248,7 +255,7 @@ class TestHardBlockEnforcement:
     def test_non_hard_block_issues_not_forced_fail(self):
         """Issues that are NOT in the hard block set do not force failure."""
         output = _make_passing_judge_output(8.0)
-        result, blocked, violations = _enforce_hard_blocks(
+        result, blocked, _violations = enforce_hard_blocks(
             output, ["accessibility_warning", "minor_typo"], teacher_approved=True
         )
         assert blocked is False
@@ -257,7 +264,7 @@ class TestHardBlockEnforcement:
     def test_existing_critical_issues_preserved(self):
         output = _make_passing_judge_output(8.0)
         output.critical_issues = ["pre_existing_issue"]
-        result, _, _ = _enforce_hard_blocks(
+        result, _, _ = enforce_hard_blocks(
             output, ["missing_doctype"], teacher_approved=True
         )
         assert "pre_existing_issue" in result.critical_issues
@@ -265,7 +272,7 @@ class TestHardBlockEnforcement:
 
     def test_rationale_appended_with_override_info(self):
         output = _make_passing_judge_output(8.0)
-        result, _, _ = _enforce_hard_blocks(
+        result, _, _ = enforce_hard_blocks(
             output, ["missing_doctype"], teacher_approved=True
         )
         assert "[Deterministic override:" in result.rationale
@@ -485,12 +492,11 @@ class TestHardBlockCodeCoverage:
         # These must be in HARD_BLOCK_CODES
         assert expected_hard_blocks.issubset(HARD_BLOCK_CODES)
 
-    def test_html_validator_hard_blocks_covered(self):
-        """The HTML validator's HARD_BLOCKS should overlap with ours."""
-        from packages.quality.layer3_html.html_validator import HARD_BLOCKS
+    def test_compliance_policy_hard_blocks_covered(self):
+        from packages.quality.compliance_policy import COMPLIANCE_HARD_BLOCK_CODES
 
         # At minimum, these must overlap
-        overlap = set(HARD_BLOCKS) & HARD_BLOCK_CODES
+        overlap = COMPLIANCE_HARD_BLOCK_CODES & HARD_BLOCK_CODES
         assert "missing_doctype" in overlap
         assert "external_assets" in overlap
         assert "answer_key_leakage" in overlap
@@ -511,6 +517,9 @@ class TestLLMTransportMetadata:
             temperature: float,
             extra_body: dict[str, Any],
         ) -> str:
+            assert model
+            assert messages
+            assert temperature >= 0.0
             received_tags.append(extra_body["metadata"]["tags"])
             return _make_passing_judge_output(8.0).model_dump_json()
 
@@ -537,6 +546,9 @@ class TestLLMTransportMetadata:
             temperature: float,
             extra_body: dict[str, Any],
         ) -> str:
+            assert model
+            assert messages
+            assert extra_body
             temps.append(temperature)
             return _make_passing_judge_output(8.0).model_dump_json()
 

@@ -28,10 +28,11 @@ vi.mock("@tanstack/react-query", () => ({
 }));
 
 vi.mock("@/components/ui/badge", () => ({ Badge: () => null }));
-vi.mock("@/components/ui/button", () => ({ Button: ({ children }: { children: React.ReactNode }) => null }));
+vi.mock("@/components/ui/button", () => ({ Button: () => null }));
 
 import { snapshotPreviewUrl } from "@/hooks/use-teaching-packs";
 import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
+import { hasEscalation, teacherStatusDetail, teacherStatusLabel } from "@/app/(dashboard)/runs/[runId]/page";
 
 type GateName =
 	| "clarification_required"
@@ -240,6 +241,32 @@ describe("TeachingPackGateBody content preview", () => {
 		expect(html).toContain(
 			"http://gateway.test/teaching-packs/runs/run-1/snapshots/snap-1/preview?view=student",
 		);
+	});
+});
+
+describe("teacher-facing observability labels", () => {
+	it("maps escalation events to a single review CTA label", () => {
+		const event = {
+			name: "escalate",
+			payload: { reason: "Artifact regeneration exceeded retry budget." },
+		};
+
+		expect(teacherStatusLabel(event)).toBe("Needs your review");
+		expect(teacherStatusDetail(event)).toBe("Artifact regeneration exceeded retry budget.");
+		expect(hasEscalation([event])).toBe(true);
+	});
+
+	it("maps persisted observability escalation payloads to the same review CTA", () => {
+		const event = {
+			name: "teaching_pack.status.changed",
+			payload: {
+				observability_event_type: "escalate",
+				payload: { reason: "Manual review required." },
+			},
+		};
+
+		expect(teacherStatusLabel(event)).toBe("Needs your review");
+		expect(teacherStatusDetail(event)).toBe("Manual review required.");
 	});
 });
 

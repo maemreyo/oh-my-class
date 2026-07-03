@@ -7,9 +7,7 @@ import subprocess
 from typing import Any
 
 from packages.agents.gates.artifact_extract import extract_external_urls
-from packages.agents.state import (
-    OhMyClassState,  # noqa: TC001  needed at runtime for LangGraph get_type_hints
-)
+from packages.agents.nodes.state import NodeState
 
 _RENDERER_DIR = "packages/renderer"
 
@@ -47,7 +45,7 @@ def _check_no_external_urls(artifact: dict[str, Any]) -> list[str]:
     return [f"External URL found in student content: {url}" for url in urls]
 
 
-def step_12_finalize(state: OhMyClassState) -> dict[str, Any]:
+def step_12_finalize(state: NodeState) -> dict[str, Any]:
     """Render artifacts to standalone HTML and record exported files."""
     artifacts = state.get("artifacts") or []
     export_formats = state.get("export_formats") or ["html"]

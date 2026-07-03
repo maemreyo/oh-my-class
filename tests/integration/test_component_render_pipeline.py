@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 import pytest
 
 from common.contracts.artifact import ArtifactContent
 from packages.agents.nodes.finalize import step_12_finalize
-from packages.agents.state import OhMyClassState
+from packages.agents.nodes.state import NodeState
 from packages.quality.layer1_schema.component_gate import validate_component_minimums
 from packages.quality.layer2_content.component_scorer import score_component_usage
 
@@ -128,19 +128,19 @@ def test_component_artifact_scores_above_flat_baseline(
 def test_component_artifact_renders_component_markup(
     lesson_with_components: dict[str, Any],
 ) -> None:
-    state = cast(OhMyClassState, {
-        "raw_request": "Teach travel vocabulary",
-        "teacher_id": "t-001",
-        "class_info": {"grade": 8, "subject": "English"},
-        "run_id": "component-render-test",
-        "artifact_types": ["lesson"],
-        "theme": "default",
-        "artifacts": [lesson_with_components],
-        "export_formats": ["html"],
-        "exported_files": [],
-        "current_step": 11,
-        "research_policy": "basic",
-    })
+    state = NodeState(
+        raw_request="Teach travel vocabulary",
+        teacher_id="t-001",
+        class_info={"grade": 8, "subject": "English"},
+        run_id="component-render-test",
+        artifact_types=["lesson"],
+        theme="default",
+        artifacts=[lesson_with_components],
+        export_formats=["html"],
+        exported_files=[],
+        current_step=11,
+        research_policy="basic",
+    )
 
     result = step_12_finalize(state)
     html = result["exported_files"][0]["content"]

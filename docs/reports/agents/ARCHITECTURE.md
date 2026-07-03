@@ -1079,7 +1079,7 @@ Content Creator là agent duy nhất sử dụng streaming transport. Tất cả
 | INVARIANT-03 | Every node is pure function (state) → partial_state | ✅ |
 | INVARIANT-04 | HTML output MUST NOT contain http(s):// asset | ✅ Layer 3 enforcement |
 | INVARIANT-05 | Answer keys in teacher_only sections | ✅ Layer 2 enforcement |
-| INVARIANT-06 | Teacher Gate CANNOT be bypassed | ✅ interrupt() enforced |
+| INVARIANT-06 | Teacher Gate cannot be silently bypassed: trust-score auto-approval is audited, visibly labelled, revertible, and allowed only after `compliance_gate_node` passes (ADR-026) | ⚠️ ADR decided; dedicated invariant test + compliance gate wiring tracked in Phase 3/5 |
 | INVARIANT-07 | All LLM calls include metadata.tags | ✅ Per-agent cost attribution |
 | INVARIANT-08 | Clarification middleware is always last (order=31) | ✅ Registry enforced |
 | INVARIANT-09 | theme.json is single source of truth | ✅ Renderer enforced |

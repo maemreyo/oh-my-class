@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from common.contracts.roadmap import RoadmapContent
 from packages.agents.sub_agents.roadmap_agent.tools import book_recommender, milestone_calculator
+from packages.agents.teaching_pack.stages import StageEnum, stage_number
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.roadmap_agent.state import RoadmapAgentState
@@ -55,33 +56,28 @@ Monthly Milestones:
 """
 
     from packages.agents.config.models import MODELS
-    from packages.agents.llm import (
-        chat_messages,
-        complete_json_chat,
-        log_llm_failure,
-        log_llm_start,
-        log_llm_success,
-    )
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
 
     model = MODELS.blueprint_design
     run_id = str(state.get("run_id", ""))
-    step = int(state.get("current_step", 0))
-    messages = chat_messages(system_prompt, user_prompt)
+    current_step = state.get("current_step", StageEnum.UNIT_PREP)
+    step = stage_number(current_step)
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="roadmap_agent",
+        run_id=run_id,
+        step=step,
+        step_label=current_step.value,
+        model=model,
+        base_temperature=0.5,
+        retry_temperature=0.5,
+    ))
+    messages = runtime.messages(system_prompt, user_prompt)
 
-    started = log_llm_start("roadmap_agent", run_id, step, model, 1)
     try:
-        content = await complete_json_chat(
-            model=model,
+        content = await runtime.complete_json(
             messages=messages,
-            temperature=0.5,
-            tags=[
-                "agent:roadmap_agent",
-                f"step:{state.get('current_step', 0)}",
-                f"run:{state.get('run_id', '')}",
-                "pipeline:oh-my-class",
-            ],
+            attempt=0,
         )
-        log_llm_success("roadmap_agent", run_id, step, model, 1, started)
 
         if "```json" in content:
             json_str = content.split("```json")[1].split("```")[0].strip()
@@ -107,10 +103,8 @@ Monthly Milestones:
         }
 
     except json.JSONDecodeError as e:
-        log_llm_failure("roadmap_agent", run_id, step, model, 1, started, e)
         raise ValueError(f"Invalid JSON from LLM: {e}") from e
     except Exception as e:
-        log_llm_failure("roadmap_agent", run_id, step, model, 1, started, e)
         raise ValueError(f"Roadmap agent failed: {e}") from e
 
 

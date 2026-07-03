@@ -43,7 +43,7 @@ Teacher (Next.js :3000) ──REST/SSE──▶ FastAPI gateway :8101
    gate interrupt() ──▶ run pauses ──▶ teacher resumes ──▶ new RESUME job
 ```
 
-`packages/agents/graph.py` (legacy) — **removed**. `packages/agents/state.py::OhMyClassState` — **legacy, unused** (the runtime uses an inline `TeachingPackState`).
+`packages/agents/graph.py` (legacy) — **removed**. `packages/agents/state.py::OhMyClassState` — **removed**; the runtime uses `TeachingPackState` plus boundary-local `MiddlewareState`, `GateState`, and `NodeState` shapes where needed.
 
 ### System diagram — runtime flow
 
@@ -62,9 +62,11 @@ flowchart TB
     S3 --> S4["post_blueprint_research<br/>→ researcher_node"] --> S5["artifact_workflow<br/>→ content_creator_node<br/>or flag-gated Send fan-out"]
     S5 --> S6{"render_quality<br/>✅ 6-layer gate (rollout-flagged)<br/>+ healing routing"}
     S6 -->|recover| S3
-    S6 -->|ok| S7["teacher_approval<br/>interrupt() 🔴 HITL"]
-    S7 -->|reject scoped| S5
-    S7 -->|approve| S8["export_finalize<br/>ExporterRegistry (HTML/GIFT/H5P/QTI ✅)"]
+    S6 -->|ok| S7["compliance_gate<br/>deterministic hard-block policy"]
+    S7 -->|fail closed| S5
+    S7 -->|pass| S8["teacher_approval<br/>interrupt() 🔴 HITL"]
+    S8 -->|reject scoped| S5
+    S8 -->|approve| S9["export_finalize<br/>ExporterRegistry (HTML/GIFT/H5P/QTI ✅)"]
   end
   RENDER["Node subprocess<br/>renderer (Eta) → standalone HTML"]
   LLM["llm_client → 9Router :20228 (host) → 4omc<br/>(prod: + LiteLLM :4000)"]
@@ -76,7 +78,7 @@ flowchart TB
   S5 --> RENDER
   S8 --> RENDER
   GRAPH --> DB
-  S7 -.interrupt.-> SSE -.live events.-> Teacher
+  S8 -.interrupt.-> SSE -.live events.-> Teacher
   SSE -.gate pending.-> Teacher --> API
 ```
 
@@ -121,7 +123,7 @@ flowchart LR
 
 ```
 setup_contract → preplanning_search → planning_blueprint → post_blueprint_research
-  → artifact_workflow → render_quality → teacher_approval → export_finalize → END
+  → artifact_workflow → render_quality → compliance_gate → teacher_approval → export_finalize → END
 ```
 
 | Stage | Does | Sub-agent |
@@ -132,10 +134,11 @@ setup_contract → preplanning_search → planning_blueprint → post_blueprint_
 | post_blueprint_research | enrich research | ✅ `researcher_node` |
 | artifact_workflow | generate artifacts | ✅ `content_creator_node` imperative batch by default; ✅ flag-gated ADR-020 wave-based `Send` fan-out via `generate_one_artifact` |
 | render_quality | quality check + healing routing | ✅ 6-layer gate (see §6) |
-| teacher_approval | **HITL `interrupt()`** | — |
+| compliance_gate | deterministic hard-block enforcement before teacher approval | — |
+| teacher_approval | **HITL `interrupt()`**; fast-lane auto-approval requires `compliance_passed is True` | — |
 | export_finalize | write exports | ✅ HTML/GIFT/H5P/QTI (see §8) |
 
-**Conditional routing:** after `render_quality` → recovery routes (`planning_blueprint` / `post_blueprint_research` / `artifact_workflow` / `teacher_approval`); after `teacher_approval` → `export_finalize` (approve) or `artifact_workflow` (scoped reject).
+**Conditional routing:** after `render_quality` → recovery routes (`planning_blueprint` / `post_blueprint_research` / `artifact_workflow`) or `compliance_gate`; after `compliance_gate` → `teacher_approval` on pass or `artifact_workflow` on fail; after `teacher_approval` → `export_finalize` (approve) or `artifact_workflow` (scoped reject).
 
 ### Partially implemented mode: `vocabulary_batch` (ADR-021 / ADR-022)
 
@@ -211,15 +214,15 @@ Mechanics: `teacher_approval` stage calls LangGraph `interrupt()`; a `GateInterr
 **What runs in `render_quality`** (✅ `quality_runtime.py` → `GatewayTeachingPackQualityGate` → full 6-layer system):
 1. **Fast pre-check** (`quality_issues()`): schema validation, placeholder regex, answer-key-leakage, `accessibility.language`, pack coherence (quiz↔lesson alignment, Bloom coverage, VN difficulty distribution 40/30/20/10).
 2. **Layer-2 content** (real metrics, not stubs): `pedagogical.py` (objective-alignment, Bloom, CLT load, misconception-coverage via real proxies; unmeasured metrics excluded from pass), `age_check.py` (Flesch-Kincaid + age-band table), `fact_check.py` (claim verification against `research_bundle` sources; no sources → `unmeasured`), `readability_checker.py`, `pii.py`, `methodology.py`.
-3. **Layer-3 HTML** (`html_validator.py`): DOCTYPE, no external assets, no brand strings, no native radio, no unmanaged JS — auto-fail hard-blocks.
-4. **Layer-4 G-Eval** (`layer4_judge/`): majority-vote 3-judge scoring; `hard_blocks.py` auto-fail.
+3. **Layer-3 HTML** (`html_validator.py`): compatibility validator delegated to the shared compliance policy for DOCTYPE, no external assets, brand strings, native radio, unmanaged JS, answer keys, and accessibility hard-blocks.
+4. **Layer-4 G-Eval** (`layer4_judge/`): majority-vote 3-judge scoring; `hard_blocks.py` delegates hard-block classification to the shared compliance policy.
 5. **Layer-6 export** readiness check.
 
 Gate is **rollout-flagged** (`OMC_ENABLE_SIX_LAYER_QUALITY`, default `true`): injected as `GatewayTeachingPackQualityGate()` in `lifespan`. Pass threshold: `overall ≥ 7.0` AND no critical/hard-block. On failure → healing routing (§7). LLM-judge layers use 9Router `4omc`.
 
 **Gateway artifact-workflow quality** (⚪ separate module, not the production graph path): `services/gateway/artifact_workflow.py` contains a legacy `ArtifactOrchestrator` with dependency waves, `CapacityLimiter`, per-artifact retry, `validate_artifact_content()`, and `try_heal_artifact()`. The teaching-pack graph does not instantiate it; production artifact generation uses ADR-020 `Send` fan-out in `packages/agents/teaching_pack`, with `_rollback_artifact_workflow()` kept only for explicit rollback.
 
-> Net: the live path runs all 6 layers for each artifact: fast schema/coherence pre-check → real Layer-2 pedagogical/age/fact metrics → HTML hard-blocks → G-Eval 3-judge → export readiness. Manifest boolean `quality_gate_injected` is machine-verified each CI run.
+> Net: the live path runs all 6 layers for each artifact: fast schema/coherence pre-check → real Layer-2 pedagogical/age/fact metrics → delegated HTML/compliance checks → G-Eval 3-judge → deterministic `compliance_gate` → export readiness. Manifest boolean `quality_gate_injected` is machine-verified each CI run.
 
 ---
 
@@ -293,7 +296,7 @@ Codegen (`scripts/generate_zod_schemas.py`): Pydantic → JSON Schema → Zod TS
 
 ## 13. Hard invariants (enforced)
 
-INVARIANT-04 no external URLs in HTML (post-render guard) · INVARIANT-05 answer keys teacher-only (regex + sanitizer) · INVARIANT-06 teacher gate via `interrupt()` (24h TTL → escalate) · INVARIANT-07 LLM calls carry metadata tags · INVARIANT-08 clarification middleware last · INVARIANT-10 contracts canonical in `common/contracts`.
+INVARIANT-04 no external URLs in HTML (shared compliance policy + renderer/export guards) · INVARIANT-05 answer keys teacher-only (shared compliance policy + sanitizer) · INVARIANT-06 teacher gate via `interrupt()` only after `compliance_gate` passes (24h TTL → escalate) · INVARIANT-07 LLM calls carry metadata tags · INVARIANT-08 clarification middleware last · INVARIANT-10 contracts canonical in `common/contracts`.
 
 ---
 
@@ -303,7 +306,7 @@ INVARIANT-04 no external URLs in HTML (post-render guard) · INVARIANT-05 answer
 
 **Wired but thin/partial (🟡):** worker pool configurable via `WORKER_CONCURRENCY` (default 1) · no schema_version on contracts.
 
-**Exists but NOT wired (⚪):** google_forms exporter · diagnostician/roadmap as pipeline stages · legacy `OhMyClassState` (kept for healing adapter only).
+**Exists but NOT wired (⚪):** google_forms exporter · diagnostician/roadmap as pipeline stages.
 
 **Stub / broken (🔴):** auth login + FE JWT verify · `.env` secret defaults.
 

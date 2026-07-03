@@ -20,6 +20,7 @@ from enum import StrEnum
 from typing import Any
 
 from common.contracts.judge_output import JudgeOutput
+from common.contracts.rubric import Rubric
 from packages.quality.layer4_judge.hard_blocks import (
     HARD_BLOCK_CODES as _HARD_BLOCK_CODES,
     enforce_hard_blocks,
@@ -44,7 +45,6 @@ logger = logging.getLogger(__name__)
 
 # Re-export for backward-compatible imports from this module.
 HARD_BLOCK_CODES = _HARD_BLOCK_CODES
-_enforce_hard_blocks = enforce_hard_blocks  # noqa: SLF001
 
 
 # ---------------------------------------------------------------------------
@@ -236,6 +236,7 @@ class AdaptiveJudge:
                 critical_issues=["llm_judge_unavailable"],
                 passed=False,
                 rationale="LLM judge produced no outputs; failing closed.",
+                teacher_facing_summary="The automated reviewer was unavailable, so this artifact needs review before approval.",
             )
 
         # Step 4: Enforce hard blocks (deterministic gates always win)
@@ -260,7 +261,7 @@ class AdaptiveJudge:
         self,
         *,
         artifacts: list[dict[str, Any]],
-        rubric: Any,
+        rubric: Rubric,
         lesson_plan: dict[str, Any] | None,
         deterministic_issues: list[str],
     ) -> list[JudgeOutput]:

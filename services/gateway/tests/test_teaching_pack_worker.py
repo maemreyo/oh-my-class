@@ -9,10 +9,17 @@ import pytest
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from packages.agents.events import clear_run, emit_run_event
 from services.gateway.models import Base, Run
 from services.gateway.teaching_pack_executor import TeachingPackResumeJob, TeachingPackStartJob
 from services.gateway.teaching_pack_job_store import TeachingPackJobStore, RunJobCreate
-from services.gateway.teaching_pack_models import RunJob, RunJobKind, RunJobStatus
+from services.gateway.teaching_pack_models import (
+    RunEvent,
+    RunJob,
+    RunJobKind,
+    RunJobStatus,
+    TeachingPackEventVisibility,
+)
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
 from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
 from services.gateway.teaching_pack_worker import TeachingPackWorker, TeachingPackWorkerConfig
@@ -329,6 +336,47 @@ class TestTeachingPackWorker:
         assert queued_status is RunJobStatus.COMPLETED
         await _delete_run(session, run_id)
 
+    async def test_run_one_persists_observability_events(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        run_id = await _create_run(session)
+        job = await _enqueue_job(
+            session,
+            run_id,
+            RunJobKind.START,
+            {"initial_state": {"run_id": run_id, "raw_request": "Observe worker"}},
+        )
+        clear_run(run_id)
+        emit_run_event(
+            run_id,
+            "stage_transition",
+            {"stage": "planning_blueprint", "status": "started"},
+        )
+        executor = RecordingExecutor()
+        worker = TeachingPackWorker(
+            TeachingPackJobStore(session),
+            executor,
+            TeachingPackWorkerConfig(worker_id="worker-a", lease_seconds=30, idle_sleep_seconds=0),
+        )
+
+        did_work = await worker.run_one()
+        events = await _run_events(session, run_id)
+
+        assert did_work is True
+        assert await _job_status(session, job.job_id) is RunJobStatus.COMPLETED
+        assert [(event.event_name, event.visibility, event.payload) for event in events] == [(
+            "stage_transition",
+            TeachingPackEventVisibility.TEACHER,
+            {
+                "event_id": events[0].payload["event_id"],
+                "observability_event_type": "stage_transition",
+                "timestamp": events[0].payload["timestamp"],
+                "payload": {"stage": "planning_blueprint", "status": "started"},
+            },
+        )]
+        await _delete_run(session, run_id)
+
     async def test_cancel_run_jobs_cancels_queued_jobs(
         self, session: AsyncSession,
     ) -> None:
@@ -391,6 +439,12 @@ async def _job_status(session: AsyncSession, job_id: str) -> RunJobStatus:
     statement = select(RunJob.status).where(RunJob.job_id == job_id)
     result = await session.execute(statement)
     return result.scalar_one()
+
+
+async def _run_events(session: AsyncSession, run_id: RunId) -> list[RunEvent]:
+    statement = select(RunEvent).where(RunEvent.run_id == run_id).order_by(RunEvent.sequence)
+    result = await session.execute(statement)
+    return list(result.scalars().all())
 
 
 async def _delete_run(session: AsyncSession, run_id: RunId) -> None:

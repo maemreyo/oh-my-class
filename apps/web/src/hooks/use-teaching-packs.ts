@@ -5,20 +5,24 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient, gatewayUrl } from "@/lib/api-client";
 import type {
 	ArtifactStatusItem,
+	ArtifactExplanation,
 	TeachingPackCreateRunRequest,
 	TeachingPackGateName,
 	TeachingPackResumeAcceptedResponse,
 	TeachingPackResumeRequest,
+	TeachingPackRevisionAcceptedResponse,
 	TeachingPackRunAcceptedResponse,
 	TeachingPackRunStatusResponse,
 } from "@/types/teaching-pack-api";
 
 export type {
+	ArtifactExplanation,
 	TeachingPackCreateRunRequest,
 	TeachingPackGateAction,
 	TeachingPackGateName,
 	TeachingPackResumeAcceptedResponse,
 	TeachingPackResumeRequest,
+	TeachingPackRevisionAcceptedResponse,
 	TeachingPackRunAcceptedResponse,
 	TeachingPackRunStatus,
 	TeachingPackRunStatusResponse,
@@ -43,6 +47,9 @@ export interface TeachingPackEventPayload {
 	readonly questions?: readonly Readonly<Record<string, unknown>>[];
 	readonly artifacts?: readonly ArtifactProgressItem[];
 	readonly artifact_statuses?: readonly ArtifactStatusItem[];
+	readonly artifact_explanations?: readonly ArtifactExplanation[];
+	readonly auto_approved?: boolean;
+	readonly revert_window_seconds?: number;
 	readonly [key: string]: unknown;
 }
 
@@ -85,6 +92,21 @@ export function useResumeTeachingPackRun(runId: string) {
 				`/teaching-packs/runs/${runId}/resume`,
 				request,
 				{ headers: { "Idempotency-Key": idempotencyKey(`resume:${runId}`) } },
+			),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["teaching-pack", "run", runId] });
+		},
+	});
+}
+
+export function useRequestArtifactRevision(runId: string) {
+	const queryClient = useQueryClient();
+	return useMutation<TeachingPackRevisionAcceptedResponse, Error, { readonly artifact_id: string; readonly feedback: string }>({
+		mutationFn: (request) =>
+			apiClient.post<TeachingPackRevisionAcceptedResponse>(
+				`/teaching-packs/runs/${runId}/artifacts/${request.artifact_id}/request-revision`,
+				{ feedback: request.feedback },
+				{ headers: { "Idempotency-Key": idempotencyKey(`revision:${runId}:${request.artifact_id}`) } },
 			),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["teaching-pack", "run", runId] });
@@ -181,4 +203,9 @@ const TEACHING_PACK_EVENT_NAMES = [
 	"teaching_pack.content_version.created",
 	"teaching_pack.content.approved_snapshots",
 	"teaching_pack.run.cancelled",
+	"stage_transition",
+	"gate_decision",
+	"healing_decision",
+	"escalate",
+	"breaker_tripped",
 ] as const;

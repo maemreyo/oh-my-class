@@ -61,6 +61,7 @@ class TeachingPackWorker:
             await self._handle_job_error(job, exc, now=now)
         else:
             await self._job_store.mark_completed(job.job_id)
+        await _persist_observability_events(self._job_store, str(job.run_id))
         await self._job_store.promote_eligible(
             limit=self._config.promote_batch_size,
             now=now,
@@ -74,6 +75,7 @@ class TeachingPackWorker:
             await self._handle_job_error(job, exc)
         else:
             await self._job_store.mark_completed(job.job_id)
+        await _persist_observability_events(self._job_store, str(job.run_id))
 
     async def _handle_job_error(
         self,
@@ -221,3 +223,23 @@ def _resume_payload(job: RunJobRead) -> JsonObject:
     if isinstance(resume_payload, dict):
         return resume_payload
     return {"response_id": job.payload.get("response_id", "")}
+
+
+async def _persist_observability_events(
+    store: TeachingPackJobStore,
+    run_id: str,
+) -> None:
+    from packages.agents.events import drain_observability_events
+    from services.gateway.teaching_pack_models import TeachingPackEventVisibility
+    from services.gateway.teaching_pack_store import TeachingPackRunStore
+
+    run_store = TeachingPackRunStore(store.session)
+    for event in drain_observability_events(run_id):
+        visibility = TeachingPackEventVisibility.TEACHER if event.event_type in {
+            "stage_transition",
+            "gate_decision",
+            "healing_decision",
+            "escalate",
+            "breaker_tripped",
+        } else TeachingPackEventVisibility.INTERNAL
+        await run_store.write_observability_event(event, visibility=visibility)

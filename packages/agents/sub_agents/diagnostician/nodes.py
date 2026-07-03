@@ -13,6 +13,7 @@ from packages.agents.sub_agents.diagnostician.tools import (
     bloom_taxonomy_lookup,
     question_type_classifier,
 )
+from packages.agents.teaching_pack.stages import StageEnum, stage_number
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.diagnostician.state import DiagnosticianState
@@ -66,34 +67,28 @@ Bloom taxonomy reference (Vietnamese names):
 """
 
     from packages.agents.config.models import MODELS
-    from packages.agents.llm import (
-        chat_messages,
-        complete_json_chat,
-        log_llm_failure,
-        log_llm_start,
-        log_llm_success,
-    )
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
 
     model = MODELS.diagnostician
     run_id = str(state.get("run_id", ""))
-    step = int(state.get("current_step", 0))
-    messages = chat_messages(system_prompt, user_prompt)
+    current_step = state.get("current_step", StageEnum.PLANNING_BLUEPRINT)
+    step = stage_number(current_step)
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="diagnostician",
+        run_id=run_id,
+        step=step,
+        step_label=current_step.value,
+        model=model,
+        base_temperature=0.3,
+        retry_temperature=0.3,
+    ))
+    messages = runtime.messages(system_prompt, user_prompt)
 
-    started = log_llm_start("diagnostician", run_id, step, model, 1)
     try:
-        content = await complete_json_chat(
-            model=model,
+        content = await runtime.complete_json(
             messages=messages,
-            temperature=0.3,
-            tags=[
-                "agent:diagnostician",
-                f"step:{state.get('current_step', 0)}",
-                f"run:{state.get('run_id', '')}",
-                "attempt:1",
-                "pipeline:oh-my-class",
-            ],
+            attempt=0,
         )
-        log_llm_success("diagnostician", run_id, step, model, 1, started)
 
         if "```json" in content:
             json_str = content.split("```json")[1].split("```")[0].strip()
@@ -107,10 +102,8 @@ Bloom taxonomy reference (Vietnamese names):
         return {"diagnostic_report": report.model_dump()}
 
     except json.JSONDecodeError as e:
-        log_llm_failure("diagnostician", run_id, step, model, 1, started, e)
         raise ValueError(f"Invalid JSON from LLM: {e}") from e
     except Exception as e:
-        log_llm_failure("diagnostician", run_id, step, model, 1, started, e)
         raise ValueError(f"Diagnostician agent failed: {e}") from e
 
 

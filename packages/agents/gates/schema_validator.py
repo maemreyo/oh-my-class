@@ -5,10 +5,9 @@ common/contracts/artifact.py.  Required keys: artifact_type, title, sections.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.gates.state import GateState
 
 REQUIRED_ARTIFACT_KEYS = {"artifact_type", "title", "sections"}
 
@@ -16,17 +15,6 @@ _VALID_ARTIFACT_TYPES = frozenset({
     "lesson", "worksheet", "quiz", "drill", "recap", "infographic",
     "answer_key", "roadmap",
 })
-
-
-def _extract_text_content(artifact: dict[str, Any]) -> str:
-    """Extract concatenated text from an artifact's sections list."""
-    sections = artifact.get("sections") or []
-    parts: list[str] = []
-    for section in sections:
-        text = section.get("content", "")
-        if isinstance(text, str) and text.strip():
-            parts.append(text.strip())
-    return "\n".join(parts)
 
 
 def _section_has_payload(section: dict[str, Any]) -> bool:
@@ -37,7 +25,7 @@ def _section_has_payload(section: dict[str, Any]) -> bool:
     )
 
 
-def step_09_schema_validate(state: OhMyClassState) -> dict[str, Any]:
+def step_09_schema_validate(state: GateState) -> dict[str, Any]:
     """Layer 1: Validate artifacts against ArtifactContent contract.
 
     Checks each artifact has required keys (artifact_type, title, sections),

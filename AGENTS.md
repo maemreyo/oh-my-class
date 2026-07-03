@@ -3,7 +3,7 @@
 > **Purpose**: Single source of truth for every AI agent, developer, and tool working in this codebase.
 > Read this file before touching any code. All architectural decisions flow from here.
 >
-> **Version**: 1.1 | **Date**: 2026-06-30
+> **Version**: 1.2 | **Date**: 2026-07-03
 
 ---
 
@@ -47,7 +47,7 @@
 
 ### Design Principles (non-negotiable)
 
-- **SoC** — Each agent has one responsibility. Lead Agent never generates content.
+- **SoC** — Each stage/sub-agent has one responsibility. The stage graph orchestrates; content generation stays inside content-creator nodes.
 - **Modular** — Every layer (middleware, gate, template, agent) is a standalone unit, independently testable.
 - **Standalone HTML** — All output is self-contained: no CDN, no external assets, works offline.
 - **Config-driven** — Behavior controlled via YAML/JSON; no magic in code.
@@ -69,10 +69,11 @@
 │               FastAPI Gateway  :8001                         │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │         LangGraph Runtime (Embedded)                 │    │
-│  │  ┌──────────┐   ┌─────────────────────────────┐    │    │
-│  │  │  Lead    │   │   Middleware Chain (24)       │    │    │
-│  │  │  Agent   │◄──│   see §7 for full list        │    │    │
-│  │  └──────────┘   └─────────────────────────────┘    │    │
+│  │  ┌──────────────────────────────────────────┐    │    │
+│  │  │        Teaching-Pack Stage Graph          │    │    │
+│  │  │ setup_contract → planning → artifacts     │    │    │
+│  │  │ → render_quality → teacher_approval       │    │    │
+│  │  └──────────────────────────────────────────┘    │    │
 │  │       │                                              │    │
 │  │  ┌────┴────────────────────────────────────┐        │    │
 │  │  ▼           ▼             ▼            ▼           │    │
@@ -84,43 +85,25 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Agent Interaction Pattern
+### Stage Interaction Pattern
 
 ```
-Lead Agent
-  ├─► task(planner, "Design learning plan")     → LessonPlan JSON
-  ├─► task(researcher, "Gather sources")         → ResearchBundle JSON
-  ├─► task(content-creator, "Generate HTML")     → ArtifactContent JSON
-  └─► task(reviewer, "QA check")                 → JudgeOutput JSON
+Teaching-Pack Stage Graph
+  ├─► planning_blueprint        → Planner node → LessonPlan JSON
+  ├─► post_blueprint_research   → Researcher node → ResearchBundle JSON
+  ├─► artifact_workflow         → ContentCreator node → ArtifactContent JSON
+  └─► render_quality            → Reviewer/quality gate → JudgeOutput / quality reports
 ```
 
-Lead Agent **never** calls an LLM directly to create content. It only calls `task()`.
+The decommissioned Lead Agent and `task()` delegation stub are not runtime surfaces.
 
 ---
 
 ## 3. Pipeline Graphs
 
-The project has **two** LangGraph runtimes. The legacy step-based graph (`packages/agents/graph.py`) is frozen; the teaching-pack stage graph (`packages/agents/teaching_pack/graph.py`) is the authoritative runtime for current and new features.
+The authoritative LangGraph runtime is the teaching-pack stage graph (`packages/agents/teaching_pack/graph.py`). Legacy graph/Lead-Agent surfaces are decommissioned and guarded by deletion tests.
 
-### 3.1 Legacy Graph — 18 Nodes (`build_oh_my_class_graph`)
-
-**Status**: Frozen. Not extended by new features (ADR-017).
-
-```
-step_00_diagnostic → step_01_preflight → step_02_quickstart → step_03_blueprint
-  → gate_01_blueprint_approval → step_04b_roadmap
-  → step_05_pack_scope → step_06_visual_engine → step_07_research
-  → step_08_generate → step_09_schema_validate → step_10_content_review
-  → step_10b_llm_judge → gate_02_content_approval
-  → step_11_export_readiness → step_12_finalize → END
-
-healing_node (self-heal orchestrator, routes back or escalates)
-escalate_node (terminal failure → END)
-```
-
-**Node count**: 18 total — 12 named steps + `step_00_diagnostic` + `step_04b_roadmap` + `step_10b_llm_judge` + 2 gates + healing + escalate.
-
-### 3.2 Teaching-Pack Stage Graph — 8 Stages (`build_teaching_pack_graph`)
+### 3.1 Teaching-Pack Stage Graph — 8 Stages (`build_teaching_pack_graph`)
 
 **Status**: Authoritative runtime. Single-lesson runs use this path.
 
@@ -141,57 +124,20 @@ setup_contract → preplanning_search → planning_blueprint → post_blueprint_
 
 | Gate | Graph | Teacher Action | On Reject |
 |------|-------|---------------|-----------|
-| `blueprint_approval` | Legacy only | approve / edit / reject | Loop back to step_03 |
-| `content_approval` | Both (teaching-pack: `teacher_approval` stage) | approve / edit / reject | Loop back to step_08 / artifact_workflow |
+| `teacher_approval` | Teaching-pack | approve / edit / reject / audited fast-lane auto-approve | Loop back to `artifact_workflow` |
 
 Gates time out after **24 hours** and auto-escalate to admin.
 
-### Conditional Routing (Legacy Graph)
+### Conditional Routing
 
-```python
-# After quality review (step_10b_llm_judge)
-def route_after_judge(state) -> str:
-    score = state.get("judge_score", 0)
-    if score >= GateConfig().judge_min_score:
-        return "gate_02_content_approval"
-    return "healing_node"
-
-# After teacher gate (gate_02_content_approval)
-def route_after_content_gate(state) -> str:
-    decision = state.get("teacher_decision", "approve")
-    return "step_11_export_readiness" if decision in ("approve", "edit") else "step_08_generate"
-
-# After healing
-def route_after_healing(state) -> str:
-    if state.get("escalate"):
-        return "escalate_node"
-    return state.get("healing_strategy", "step_08_generate")
-```
+- After `render_quality`: route to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `teacher_approval` based on quality recovery output.
+- After `teacher_approval`: route to `export_finalize` on approval or back to `artifact_workflow` on scoped rejection.
 
 ---
 
 ## 4. Agent Definitions
 
-### 4.1 Lead Agent — Supervisor
-
-```
-Model:   gpt-5.4  (via LiteLLM "gpt-5.4" route)
-Tools:   task, ask_clarification, read_file, write_file
-Role:    Orchestrator. Decomposes tasks, delegates, synthesizes results.
-         NEVER generates educational content directly.
-Turns:   Unlimited (pipeline steps)
-```
-
-**System prompt core:**
-```
-You are the Lead Agent of oh-my-class.
-1. NEVER generate lesson content directly — always delegate via task().
-2. ALWAYS return structured JSON responses.
-3. Each step must complete before advancing.
-4. Teacher gates are MANDATORY — never self-approve.
-```
-
-### 4.2 Planner Agent
+### 4.1 Planner Agent
 
 ```
 Model:   deepseek-v4-flash  (via LiteLLM)
@@ -215,7 +161,7 @@ class LessonPlan(BaseModel):
     assessment_checkpoints: list[dict]
 ```
 
-### 4.3 Researcher Agent
+### 4.2 Researcher Agent
 
 ```
 Model:   deepseek-v4-flash  (via LiteLLM)
@@ -236,7 +182,7 @@ Schema:  ResearchBundle (Pydantic v2)
 
 Default policy: `standard`.
 
-### 4.4 Content Creator Agent
+### 4.3 Content Creator Agent
 
 ```
 Model:   deepseek-v4-flash  (via LiteLLM, fallback: deepseek-compressed)
@@ -264,7 +210,7 @@ class ArtifactContent(BaseModel):
 - No student PII (name, email, score) in output
 - Answer keys must be in a separate `teacher_only` section
 
-### 4.5 Reviewer Agent
+### 4.4 Reviewer Agent
 
 ```
 Model:   gpt-5.4  (via LiteLLM; different model from generator = bias mitigation)
@@ -403,7 +349,6 @@ All agents call **LiteLLM Proxy** at `http://litellm:4000`. LiteLLM routes to pr
 
 | Agent / Task | Primary Model | Fallback | ~Cost/call |
 |-------------|--------------|----------|-----------|
-| Lead Agent | `gpt-5.4` | `claude-sonnet-4-6` | $0.015 |
 | Planner | `deepseek-v4-flash` | `deepseek-v4-pro` | $0.0017 |
 | Researcher | `deepseek-v4-flash` | `deepseek-v4-pro` | $0.0010 |
 | Content Creator | `deepseek-free` → `deepseek-compressed` → `deepseek-direct` | `gpt-4.1-mini` | $0 → $0.0017 |
@@ -547,16 +492,7 @@ response = interrupt({
 
 ### Hard Blocks (auto-fail regardless of score)
 
-```python
-HARD_BLOCKS = [
-    "missing_doctype",          # No <!DOCTYPE html>
-    "external_assets",          # Any CDN/http link
-    "answer_key_leakage",       # Answer key in student view
-    "native_radio_inputs",      # <input type="radio"> visible to student
-    "unmanaged_js_runtime",     # External JS framework loaded
-    "missing_brand_string",     # "oh-my-class" not present
-]
-```
+`packages/quality/compliance_policy.py` is the single owner for deterministic hard-block policy. Layer-3 HTML validation, Layer-4 judge hard-block checks, presentation gate compatibility wrappers, and the teaching-pack `compliance_gate` all delegate to that policy. Violations fail closed before teacher approval and emit `hard_block_violation` observability events with non-sensitive code/reason/location payloads.
 
 ---
 
@@ -730,7 +666,6 @@ Maximum portability?                 → QTI 2.1
 oh-my-class/
 ├── packages/
 │   ├── agents/                  # LangGraph multi-agent pipeline (Python)
-│   │   ├── lead_agent/
 │   │   ├── sub_agents/          # planner, researcher, content_creator, reviewer, diagnostician, roadmap_agent
 │   │   ├── teaching_pack/       # Authoritative stage graph (ADR-017 runtime)
 │   │   │   ├── graph.py         # build_teaching_pack_graph — 8-stage StateGraph
@@ -744,16 +679,15 @@ oh-my-class/
 │   │   │   ├── checkpointing.py
 │   │   │   ├── artifacts.py
 │   │   │   └── config.py
-│   │   ├── middleware/          # 24 single-concern layers
-│   │   │   ├── base.py          # BaseMiddleware ABC (order 1–24)
+│   │   ├── middleware/          # 23 active single-concern layers
+│   │   │   ├── base.py          # BaseMiddleware ABC (order 1–23)
 │   │   │   ├── registry.py      # Middleware chain registration
-│   │   │   ├── context/         # Context middleware (deferred_tool_filter, dynamic_context, memory)
+│   │   │   ├── context/         # Context middleware (dynamic_context, memory, etc.)
 │   │   │   ├── quality/         # Quality middleware
 │   │   │   ├── safety/          # Safety middleware
 │   │   │   └── terminal/        # Terminal middleware
 │   │   ├── tools/
 │   │   ├── state.py             # OhMyClassState TypedDict
-│   │   ├── graph.py             # Legacy build_oh_my_class_graph (frozen)
 │   │   ├── gates.py             # interrupt() gate node implementations
 │   │   ├── healing.py           # Self-heal orchestrator
 │   │   ├── events.py            # In-memory event bus (SSE/observability only)
@@ -884,13 +818,24 @@ Every middleware is a single Python file `~200 lines` implementing one `BaseMidd
 ```python
 class BaseMiddleware:
     name: str
-    order: int                # 1–24; Clarification MUST be 24
+    order: int                # 1–23; Clarification MUST be 23
 
     async def before_model(self, state: ThreadState, context: MiddlewareContext) -> ThreadState: ...
     async def after_model(self, state: ThreadState, context: MiddlewareContext) -> ThreadState: ...
 ```
 
-Middleware execution order is fixed. **Clarification (24) must always be last.**
+Middleware execution order is fixed. **Clarification (23) must always be last.**
+
+### Parked-status TTL policy
+
+Parked code is temporary, not a permanent state. Any component intentionally parked in the repo must carry this marker in the file that owns the component or in the closest component README:
+
+```text
+Status: Parked
+Parked-Until: YYYY-MM-DD
+```
+
+`Parked-Until` must be no more than 90 days after the parking decision. `tests/test_parked_status_ttl.py` scans live component paths in CI and fails when a parked marker has no date or the date is expired. The same test includes an intentionally expired fixture to prove the policy catches expiry.
 
 ### LangGraph Nodes
 
@@ -1006,8 +951,8 @@ describe("quiz template", () => {
 These rules are never negotiable. CI enforces them.
 
 ```
-INVARIANT-01  Lead Agent NEVER calls an LLM to generate content.
-              It only calls task(agent_name, prompt).
+INVARIANT-01  The stage graph owns orchestration; content is generated only by
+              the content-creator node, not by a supervisor/Lead Agent surface.
 
 INVARIANT-02  packages/agents NEVER imports from services/* or apps/*.
               packages/quality NEVER imports from services/* or apps/*.
@@ -1023,14 +968,15 @@ INVARIANT-05  Answer keys MUST be in teacher_only sections.
               Student-facing artifacts MUST NOT contain correct answers in any
               parseable or scrapeable form.
 
-INVARIANT-06  Teacher Gate CANNOT be bypassed or self-approved by any agent.
-              interrupt() must be called; teacher response is required.
+INVARIANT-06  Teacher Gate cannot be silently bypassed. Trust-score auto-approval
+              is audited, visibly labelled, revertible, and permitted only after
+              `compliance_gate_node` passes (ADR-026).
 
 INVARIANT-07  All LLM calls MUST include metadata.tags with agent and run_id.
               Required for cost attribution.
 
-INVARIANT-08  Clarification middleware is always the last in the chain (order=31).
-              All other middleware order values must be 1–30.
+INVARIANT-08  Clarification middleware is always the last active middleware (order=23).
+              All other active middleware order values must be 1–22.
 
 INVARIANT-09  theme.json is the single source of truth for all brand tokens.
               theme_*.css files are auto-generated — never edit them manually.
@@ -1060,7 +1006,7 @@ Single-context: one `CONTEXT.md` at repo root + `docs/adr/` for ADRs. See `docs/
 
 ---
 
-> **Last updated**: 2026-06-23
+> **Last updated**: 2026-07-03
 > **Maintained by**: Core team. PRs that violate any Hard Invariant will be rejected.
 > **Source docs**: Technical Reports 01–07 (multi-agent blueprint, quality gates,
 >   template system, LLM proxy, 9Router integration, exercise catalog, content research)

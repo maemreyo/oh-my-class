@@ -1,9 +1,10 @@
 """Layer 2-3: FACT hybrid + HTML validation + age-appropriateness."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from packages.agents.config.gate_config import GateConfig
+from packages.agents.gates.state import GateState
 from packages.agents.gates.artifact_extract import extract_student_text
 from packages.agents.gates.fact_check import run_fact_check
 from packages.agents.gates.presentation import (
@@ -14,11 +15,7 @@ from packages.agents.gates.presentation import (
 from packages.quality.layer1_schema.component_gate import validate_component_minimums
 from packages.quality.layer2_content.methodology import check_methodology_compliance
 
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
-
-
-def step_10_content_review(state: OhMyClassState) -> dict[str, Any]:
+def step_10_content_review(state: GateState) -> dict[str, Any]:
     """Layer 2-3: Content review (fact-check, HTML, age-appropriateness, answer key).
 
     Runs all sub-checks on all artifacts. Fails on first hard error.
@@ -46,11 +43,7 @@ def step_10_content_review(state: OhMyClassState) -> dict[str, Any]:
 
         # HTML validation (only for html-type artifacts)
         if "html" in artifact_type.lower() or content.strip().startswith("<"):
-            html_result = validate_html(
-                content,
-                block_external_assets=config.block_external_assets,
-                block_missing_doctype=config.block_missing_doctype,
-            )
+            html_result = validate_html(content)
             if not html_result["passed"]:
                 errors.extend(html_result["errors"])
             warnings.extend(html_result.get("warnings", []))
@@ -62,10 +55,9 @@ def step_10_content_review(state: OhMyClassState) -> dict[str, Any]:
                 errors.extend(age_result["errors"])
 
         # Answer key leakage
-        if config.block_answer_key_leakage:
-            ak_result = check_answer_key_leakage(artifact)
-            if not ak_result["passed"]:
-                errors.extend(ak_result["errors"])
+        ak_result = check_answer_key_leakage(artifact)
+        if not ak_result["passed"]:
+            errors.extend(ak_result["errors"])
 
         # Methodology compliance gate (lesson artifacts with methodology tags only)
         if artifact_type == "lesson" and methodology_tags:

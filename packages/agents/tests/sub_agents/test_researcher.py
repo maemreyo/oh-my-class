@@ -2,13 +2,14 @@
 
 import contextlib
 import json
-from collections.abc import Iterator
+from collections.abc import Generator
 from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from common.contracts.research_bundle import ResearchBundle
+from packages.agents.teaching_pack.stages import StageEnum
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.researcher.state import ResearcherState
@@ -29,7 +30,7 @@ def _make_state(**overrides) -> dict[str, Any]:
         "lesson_plan": {"topic": "Photosynthesis", "learning_objectives": []},
         "research_policy": "standard",
         "run_id": "test-run-001",
-        "current_step": 7,
+        "current_step": StageEnum.POST_BLUEPRINT_RESEARCH,
     }
     base.update(overrides)
     return base
@@ -64,7 +65,7 @@ SEARCH_RESULTS = [
 
 
 @contextlib.contextmanager
-def _patch_research_tools(mock_llm: AsyncMock) -> Iterator[None]:
+def _patch_research_tools(mock_llm: AsyncMock) -> Generator[None]:
     with contextlib.ExitStack() as stack:
         stack.enter_context(patch("packages.agents.llm.complete_json_chat", mock_llm))
         stack.enter_context(

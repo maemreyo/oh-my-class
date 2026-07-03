@@ -1,17 +1,3 @@
-"""Langfuse configuration for oh-my-class.
-
-Integration points:
-1. LangGraph nodes — trace each pipeline step
-2. LiteLLM proxy — cost tracking per agent per run
-3. Agent calls — trace individual LLM calls with metadata
-
-All traces include:
-- run_id: links to OhMyClassState.run_id
-- agent: which agent made the call
-- step: which pipeline step (1-13)
-- cost: token usage and cost attribution
-"""
-
 from __future__ import annotations
 
 import os

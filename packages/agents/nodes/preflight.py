@@ -4,12 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from packages.agents.state import (
-    OhMyClassState,  # noqa: TC001  needed at runtime for LangGraph get_type_hints
-)
+from packages.agents.nodes.state import NodeState
 
 
-def step_01_preflight(state: OhMyClassState) -> dict[str, Any]:
+def step_01_preflight(state: NodeState) -> dict[str, Any]:
     """Validate raw_request is non-empty and structurally sound."""
     from packages.agents.config.gate_config import GateConfig
     config = GateConfig()

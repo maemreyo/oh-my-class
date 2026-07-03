@@ -2,32 +2,27 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class ReadabilityLevelMiddleware(BaseMiddleware):
     """Performs a basic readability check on artifact content."""
 
     name: str = "readability_level"
-    order: int = 25
+    order: int = 17
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         for artifact in state.get("artifacts", []):
             content = artifact.get("content", "") if isinstance(artifact, dict) else str(artifact)
             # Basic word count estimate

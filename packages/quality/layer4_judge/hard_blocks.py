@@ -3,30 +3,20 @@
 Hard blocks are deterministic gate violations that override any LLM score.
 A high LLM score can NEVER override these — they are FAIL-CLOSED by design.
 
-Sourced from packages/quality/layer3_html/html_validator.py HARD_BLOCKS
-and common/contracts/quality.py QualityFailureClass values.
+Sourced from packages/quality/compliance_policy.py.
 """
 
 from __future__ import annotations
 
 from common.contracts.judge_output import JudgeOutput
+from packages.quality.compliance_policy import COMPLIANCE_HARD_BLOCK_CODES, hard_block_violations
 
 # ---------------------------------------------------------------------------
 # Hard block codes — deterministic gate violations that override any LLM score.
 # These are NEVER overridable by LLM judge output.
 # ---------------------------------------------------------------------------
 
-HARD_BLOCK_CODES: frozenset[str] = frozenset({
-    "missing_doctype",
-    "external_assets",          # HTML validator naming
-    "external_asset",           # QualityFailureClass naming
-    "answer_key_leakage",
-    "pii_leakage",
-    "native_radio_inputs",
-    "unmanaged_js_runtime",
-    "missing_brand_string",
-    "schema_invalid",
-})
+HARD_BLOCK_CODES = COMPLIANCE_HARD_BLOCK_CODES
 
 
 def enforce_hard_blocks(
@@ -44,17 +34,7 @@ def enforce_hard_blocks(
     - All hard block codes are added to ``critical_issues``
     - The ``overall_score`` is preserved for diagnostics (not zeroed)
     """
-    violations: list[str] = []
-
-    # Check deterministic issues against hard block codes
-    for issue in deterministic_issues:
-        normalized = issue.strip().lower().replace(" ", "_")
-        if normalized in HARD_BLOCK_CODES:
-            violations.append(issue)
-
-    # Check teacher gate state
-    if not teacher_approved:
-        violations.append("teacher_gate_not_approved")
+    violations = hard_block_violations(deterministic_issues, teacher_approved=teacher_approved)
 
     if not violations:
         return judge_output, False, []
@@ -74,6 +54,10 @@ def enforce_hard_blocks(
         rationale=(
             judge_output.rationale
             + f"\n[Deterministic override: {', '.join(violations)} forced fail]"
+        ),
+        teacher_facing_summary=(
+            judge_output.teacher_facing_summary
+            + f" Deterministic checks found blocking issues: {', '.join(violations)}."
         ),
     )
 

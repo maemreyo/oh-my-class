@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useResumeTeachingPackRun } from "@/hooks/use-teaching-packs";
+import { useRequestArtifactRevision, useResumeTeachingPackRun } from "@/hooks/use-teaching-packs";
 import type { TeachingPackEventPayload, TeachingPackGateAction, TeachingPackGateName } from "@/hooks/use-teaching-packs";
 import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
 import { TeachingPackScopedRejection, TeachingPackSectionEditor } from "@/components/teaching-packs-scoped-rejection";
@@ -21,6 +21,7 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 	const [scopedRejectionMode, setScopedRejectionMode] = useState(false);
 	const [sectionEditorMode, setSectionEditorMode] = useState(false);
 	const resume = useResumeTeachingPackRun(runId);
+	const revision = useRequestArtifactRevision(runId);
 
 	if (!gateName || !gateId) return null;
 
@@ -38,7 +39,7 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 		await resume.mutateAsync({
 			gate_id: gateId,
 			gate_name: gateName,
-			action: "reject",
+				action: "reject_selected",
 			response: {
 				rejection_type: "scoped",
 				artifact_rejections: rejections,
@@ -79,7 +80,13 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 			</div>
 
 			<div className="mt-4 rounded-md bg-muted p-4">
-				<TeachingPackGateBody runId={runId} gateName={gateName} event={event} />
+					<TeachingPackGateBody
+						runId={runId}
+						gateName={gateName}
+						event={event}
+						onRevertFastLane={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Revert fast-lane auto-approval." })}
+						onRequestRevision={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Teacher requested a post-export revision." })}
+					/>
 			</div>
 
 				{sectionEditorMode && showSectionEditor ? (

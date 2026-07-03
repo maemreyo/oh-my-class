@@ -1,6 +1,6 @@
 # Issue #14: [Epic][Phase 1] Dead-code removal & documentation drift
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/14
 State: OPEN
 Created: 2026-07-02T16:42:04Z
@@ -10,11 +10,24 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Implementation Notes
+
+- Child Issue #19 is DONE: Lead Agent and task stub deleted, guard test added.
+- Child Issue #20 is DONE: PARKED_REACT registry removed, active middleware chain is 23 contiguous layers, guard test added.
+- Child Issue #21 is DONE: AGENTS.md runtime drift fixed and Parked-status TTL CI policy added.
+
+## Verification
+
+- Issue #19 targeted suite: 109 passed and basedpyright clean.
+- Issue #20 targeted suite: 12 passed and basedpyright clean.
+- Issue #21 targeted suite: 3 passed and basedpyright clean.
+- Surface QA for each child was recorded in the child ticket notes.
 
 ## Body
 
@@ -51,4 +64,3 @@ Coordination for this epic:
 ## Depends on
 
 - Phase 0 decisions locked (`[Epic][Phase 0] Product decisions locked`). See milestone `agents-hardening`.
-

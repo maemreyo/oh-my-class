@@ -2,12 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 BLOOMS_LEVELS = ["remember", "understand", "apply", "analyze", "evaluate", "create"]
@@ -17,20 +12,20 @@ class PedagogicalQualityMiddleware(BaseMiddleware):
     """Counts Bloom's taxonomy verbs present in learning objectives."""
 
     name: str = "pedagogical_quality"
-    order: int = 26
+    order: int = 18
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         objectives = state.get("lesson_plan", {}).get("learning_objectives", [])
         if objectives:
             text = " ".join(objectives).lower()

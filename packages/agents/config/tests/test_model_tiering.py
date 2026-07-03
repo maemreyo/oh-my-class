@@ -29,7 +29,6 @@ class TestNoEnvVarsAllDefault:
         assert m.researcher == "4omc"
         assert m.content_creator == "4omc"
         assert m.reviewer == "4omc"
-        assert m.lead_agent == "4omc"
         assert m.diagnostician == "4omc"
         assert m.content_review_light == "4omc"
 

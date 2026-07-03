@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from common.contracts.lesson_plan import LessonPlan
+from packages.agents.teaching_pack.stages import StageEnum
 from common.contracts.research_bundle import ResearchBundle, ResearchSource
 
 if TYPE_CHECKING:
@@ -187,7 +188,7 @@ class TestPlannerAgent:
             "raw_request": "Teach photosynthesis to grade 5",
             "class_info": {"grade": 5, "subject": "science", "student_count": 30},
             "run_id": "test-run-001",
-            "current_step": 3,
+            "current_step": StageEnum.PLANNING_BLUEPRINT,
         }
         base.update(overrides)
         return base

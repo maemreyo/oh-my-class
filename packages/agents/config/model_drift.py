@@ -22,7 +22,6 @@ def snapshot_models(models: ModelAssignments, *, config_version: str = "models.v
     return ModelSnapshot(
         config_version=config_version,
         assignments={
-            "lead_agent": models.lead_agent,
             "planner": models.planner,
             "researcher": models.researcher,
             "content_creator": models.content_creator,

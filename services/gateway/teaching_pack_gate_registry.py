@@ -17,7 +17,9 @@ class TeachingPackGateName(StrEnum):
 class TeachingPackGateAction(StrEnum):
     ANSWER = "answer"
     APPROVE = "approve"
+    APPROVE_SELECTED = "approve_selected"
     REJECT = "reject"
+    REJECT_SELECTED = "reject_selected"
     EDIT = "edit"
 
 
@@ -68,7 +70,9 @@ def allowed_actions_for_gate(gate: TeachingPackGateName) -> frozenset[TeachingPa
         case TeachingPackGateName.CONTENT_APPROVAL:
             return frozenset({
                 TeachingPackGateAction.APPROVE,
+                TeachingPackGateAction.APPROVE_SELECTED,
                 TeachingPackGateAction.REJECT,
+                TeachingPackGateAction.REJECT_SELECTED,
                 TeachingPackGateAction.EDIT,
             })
         case TeachingPackGateName.UNIT_APPROVAL:

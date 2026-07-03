@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any
 from unittest.mock import patch
 
 import pytest
 
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.gates.state import GateState
 
 
-
-def make_base_state(**overrides: Any) -> OhMyClassState:
+def make_base_state(**overrides: Any) -> GateState:
     base: dict[str, Any] = {
         "raw_request": "Teach photosynthesis",
         "teacher_id": "t-001",
@@ -32,7 +30,7 @@ def make_base_state(**overrides: Any) -> OhMyClassState:
         "cost_usd": 0.0,
         "research_policy": "basic",
     }
-    return cast("OhMyClassState", {**base, **overrides})
+    return GateState(**{**base, **overrides})
 
 
 # ── gate_01_blueprint_approval ────────────────────────────────────────────────

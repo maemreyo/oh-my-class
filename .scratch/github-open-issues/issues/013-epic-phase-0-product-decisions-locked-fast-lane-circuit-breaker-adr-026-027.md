@@ -1,6 +1,6 @@
 # Issue #13: [Epic][Phase 0] Product decisions locked — fast-lane + circuit-breaker (ADR-026/027)
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/13
 State: OPEN
 Created: 2026-07-02T16:42:01Z
@@ -10,11 +10,24 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Implementation Notes
+
+- Confirmed ADR-026 exists and decides fast-lane Option A.
+- Confirmed ADR-027 exists and decides layered per-provider/per-run Redis-backed circuit breakers.
+- Updated `docs/reports/agents/ARCHITECTURE.md` INVARIANT-06 wording to match ADR-026.
+- Updated `docs/reports/agents/08-migration-roadmap.md` so Phase 0 is marked complete and references ADR-026/027 as decided.
+- Updated `docs/reports/agents/00-EXECUTIVE-SUMMARY.md` so the former contradiction is described as resolved by ADR-026, with implementation still tracked in later phases.
+
+## Verification
+
+- Targeted text check: confirmed `INVARIANT-06` now says "cannot be silently bypassed" in `ARCHITECTURE.md`.
+- Surface QA: inspected the local markdown ticket and documentation text as rendered markdown source; links/paths are present and status is DONE.
 
 ## Body
 
@@ -43,4 +56,3 @@ This is a production-ready rebuild, NOT patching. Where code changes land in lat
 ## Depends on
 
 - Nothing — this is the root epic. All other phases assume these decisions are locked. See milestone `agents-hardening`.
-

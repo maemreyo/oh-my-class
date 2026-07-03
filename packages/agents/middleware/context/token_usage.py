@@ -2,33 +2,28 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class TokenUsageMiddleware(BaseMiddleware):
     """Records step_start_tokens and computes step_token_delta after the LLM call."""
 
     name: str = "token_usage"
-    order: int = 17
+    order: int = 12
 
     async def before_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         context.metadata["step_start_tokens"] = state.get("tokens_used", 0)
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         start = context.metadata.get("step_start_tokens", 0)
         current = state.get("tokens_used", 0)
         context.metadata["step_token_delta"] = current - start

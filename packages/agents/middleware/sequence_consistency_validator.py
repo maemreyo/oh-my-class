@@ -2,15 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Literal, assert_never
+from typing import Literal, assert_never
 
 import networkx as nx
 
 from common.contracts.lesson_sequence import BloomLevel, LessonSequence
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 ConsistencyRule = Literal[
     "cycle",
@@ -37,7 +34,7 @@ class ConsistencyIssue:
 
 class SequenceConsistencyValidator(BaseMiddleware):
     name = "sequence_consistency_validator"
-    order = 30
+    order = 22
 
     def validate(self, sequence: LessonSequence) -> list[ConsistencyIssue]:
         session_graph = _session_graph(sequence)
@@ -53,16 +50,16 @@ class SequenceConsistencyValidator(BaseMiddleware):
 
     async def before_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         _context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         _context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         return state
 
 

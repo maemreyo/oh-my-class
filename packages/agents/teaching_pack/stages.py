@@ -6,7 +6,7 @@ from enum import StrEnum
 from typing import Final, assert_never
 
 
-class TeachingPackStage(StrEnum):
+class StageEnum(StrEnum):
     """Stable stage identifiers for Teaching Pack."""
 
     SETUP_CONTRACT = "setup_contract"
@@ -19,6 +19,7 @@ class TeachingPackStage(StrEnum):
     POST_BLUEPRINT_RESEARCH = "post_blueprint_research"
     ARTIFACT_WORKFLOW = "artifact_workflow"
     RENDER_QUALITY = "render_quality"
+    COMPLIANCE_GATE = "compliance_gate"
     TEACHER_APPROVAL = "teacher_approval"
     EXPORT_FINALIZE = "export_finalize"
 
@@ -33,44 +34,57 @@ class TeachingPackStage(StrEnum):
         return _event_name(self, "completed")
 
 
-TEACHING_PACK_STAGES: Final[tuple[TeachingPackStage, ...]] = (
-    TeachingPackStage.SETUP_CONTRACT,
-    TeachingPackStage.TRIAGE,
-    TeachingPackStage.PREPLANNING_SEARCH,
-    TeachingPackStage.PLANNING_BLUEPRINT,
-    TeachingPackStage.POST_BLUEPRINT_RESEARCH,
-    TeachingPackStage.ARTIFACT_WORKFLOW,
-    TeachingPackStage.RENDER_QUALITY,
-    TeachingPackStage.TEACHER_APPROVAL,
-    TeachingPackStage.EXPORT_FINALIZE,
+TeachingPackStage = StageEnum
+
+
+TEACHING_PACK_STAGES: Final[tuple[StageEnum, ...]] = (
+    StageEnum.SETUP_CONTRACT,
+    StageEnum.TRIAGE,
+    StageEnum.PREPLANNING_SEARCH,
+    StageEnum.PLANNING_BLUEPRINT,
+    StageEnum.POST_BLUEPRINT_RESEARCH,
+    StageEnum.ARTIFACT_WORKFLOW,
+    StageEnum.RENDER_QUALITY,
+    StageEnum.COMPLIANCE_GATE,
+    StageEnum.TEACHER_APPROVAL,
+    StageEnum.EXPORT_FINALIZE,
 )
 
 
-def _event_name(stage: TeachingPackStage, suffix: str) -> str:
+def stage_number(stage: StageEnum) -> int:
+    for index, candidate in enumerate(TEACHING_PACK_STAGES, start=1):
+        if candidate is stage:
+            return index
+    return len(TEACHING_PACK_STAGES) + 1
+
+
+def _event_name(stage: StageEnum, suffix: str) -> str:
     match stage:
-        case TeachingPackStage.SETUP_CONTRACT:
+        case StageEnum.SETUP_CONTRACT:
             value = "setup_contract"
-        case TeachingPackStage.TRIAGE:
+        case StageEnum.TRIAGE:
             value = "triage"
-        case TeachingPackStage.UNIT_PLANNING:
+        case StageEnum.UNIT_PLANNING:
             value = "unit_planning"
-        case TeachingPackStage.UNIT_APPROVAL:
+        case StageEnum.UNIT_APPROVAL:
             value = "unit_approval"
-        case TeachingPackStage.UNIT_PREP:
+        case StageEnum.UNIT_PREP:
             value = "unit_prep"
-        case TeachingPackStage.PREPLANNING_SEARCH:
+        case StageEnum.PREPLANNING_SEARCH:
             value = "preplanning_search"
-        case TeachingPackStage.PLANNING_BLUEPRINT:
+        case StageEnum.PLANNING_BLUEPRINT:
             value = "planning_blueprint"
-        case TeachingPackStage.POST_BLUEPRINT_RESEARCH:
+        case StageEnum.POST_BLUEPRINT_RESEARCH:
             value = "post_blueprint_research"
-        case TeachingPackStage.ARTIFACT_WORKFLOW:
+        case StageEnum.ARTIFACT_WORKFLOW:
             value = "artifact_workflow"
-        case TeachingPackStage.RENDER_QUALITY:
+        case StageEnum.RENDER_QUALITY:
             value = "render_quality"
-        case TeachingPackStage.TEACHER_APPROVAL:
+        case StageEnum.COMPLIANCE_GATE:
+            value = "compliance_gate"
+        case StageEnum.TEACHER_APPROVAL:
             value = "teacher_approval"
-        case TeachingPackStage.EXPORT_FINALIZE:
+        case StageEnum.EXPORT_FINALIZE:
             value = "export_finalize"
         case unreachable:
             assert_never(unreachable)

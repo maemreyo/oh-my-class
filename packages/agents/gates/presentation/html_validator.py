@@ -4,11 +4,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
-DOCTYPE_PATTERN = re.compile(r"<!DOCTYPE\s+html", re.IGNORECASE)
-EXTERNAL_ASSET_PATTERN = re.compile(r'(?:src|href)=["\']https?://', re.IGNORECASE)
+from packages.quality.compliance_policy import check_doctype, external_asset_issues
 
 
-def validate_html(html: str, *, block_external_assets: bool = True, block_missing_doctype: bool = True) -> dict[str, Any]:  # noqa: E501
+def validate_html(html: str) -> dict[str, Any]:
     """Validate HTML artifact for structural issues.
 
     Returns:
@@ -17,10 +16,10 @@ def validate_html(html: str, *, block_external_assets: bool = True, block_missin
     errors = []
     warnings = []
 
-    if block_missing_doctype and not DOCTYPE_PATTERN.search(html):
+    if not check_doctype(html):
         errors.append("Missing <!DOCTYPE html> declaration")
 
-    if block_external_assets and EXTERNAL_ASSET_PATTERN.search(html):
+    if external_asset_issues(html):
         errors.append("External assets detected (src/href with http:// or https://)")
 
     # Check for unclosed common tags

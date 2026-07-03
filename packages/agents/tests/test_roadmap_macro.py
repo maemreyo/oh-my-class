@@ -61,6 +61,8 @@ async def test_roadmap_kt_mastery_update_shifts_milestones() -> None:
 
 
 def _state(**overrides: object) -> dict[str, object]:
+    from packages.agents.teaching_pack.stages import StageEnum
+
     state: dict[str, object] = {
         "diagnostic_report": {
             "student_id": "student-1",
@@ -78,7 +80,7 @@ def _state(**overrides: object) -> dict[str, object]:
             "study_duration_months": 2,
         },
         "run_id": "run-roadmap",
-        "current_step": 0,
+        "current_step": StageEnum.UNIT_PREP,
         "roadmap_artifact": None,
         "use_structured_roadmap": True,
     }

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from packages.agents.tools.fs import read_file as sandboxed_read_file
 from packages.agents.tools.ninerouter_web import NineRouterFetchRequest, NineRouterWebClient
 from packages.agents.tools.web_search import web_search as shared_web_search
 
@@ -17,13 +18,4 @@ async def web_fetch(url: str, *, extract_text: bool = True) -> str:
 
 
 async def read_file(path: str) -> str:
-    """Read a file from the workspace.
-
-    Args:
-        path: File path to read.
-
-    Returns:
-        File contents as string.
-    """
-    with open(path, encoding="utf-8") as f:
-        return f.read()
+    return await sandboxed_read_file(path)

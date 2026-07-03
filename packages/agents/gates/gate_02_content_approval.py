@@ -6,15 +6,14 @@ Lead Agent is transparent to this gate — it only sees teacher_decision in stat
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from langgraph.types import interrupt
 
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.gates.state import GateState
 
 
-def gate_02_content_approval(state: OhMyClassState) -> dict[str, Any]:
+def gate_02_content_approval(state: GateState) -> dict[str, Any]:
     """HITL gate: teacher reviews and approves the generated artifacts.
 
     Interrupts graph execution. When resumed, injects teacher_decision,

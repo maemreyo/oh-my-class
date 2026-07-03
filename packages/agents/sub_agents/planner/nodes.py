@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from common.contracts.lesson_plan import LessonPlan
 from common.contracts.lesson_sequence import SessionPlan
+from packages.agents.teaching_pack.stages import StageEnum, stage_number
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.planner.state import PlannerNodeState
@@ -60,70 +61,49 @@ Class information:
 """
 
     from packages.agents.config.models import MODELS
-    from packages.agents.llm import (
-        chat_messages,
-        compiled_json_chat,
-        extract_json_text,
-        log_llm_failure,
-        log_llm_start,
-        log_llm_success,
-    )
+    from packages.agents.llm import extract_json_text
     from packages.agents.prompts.compiler import PromptCompiler
     from packages.agents.prompts.seed import create_seeded_registry
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
 
     model = MODELS.planner
     run_id = str(state.get("run_id", ""))
-    step = int(state.get("current_step", 3))
+    current_step = state.get("current_step", StageEnum.PLANNING_BLUEPRINT)
+    step = stage_number(current_step)
     system_prompt = (
         planner_system_prompt
         + "\n\nCRITICAL: Respond ONLY with a single JSON object. "
         "No prose, no explanation, no markdown code fences."
     )
-    messages = chat_messages(system_prompt, user_prompt)
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="planner",
+        run_id=run_id,
+        step=step,
+        step_label=current_step.value,
+        model=model,
+        base_temperature=0.7,
+        retry_temperature=0.3,
+    ))
+    messages = runtime.messages(system_prompt, user_prompt)
     compiled = PromptCompiler(create_seeded_registry()).compile(
         module_id="planner_v1", variables={},
     )
 
-    for attempt in range(3):
-        attempt_number = attempt + 1
-        started = log_llm_start("planner", run_id, step, model, attempt_number)
-        try:
-            content = await compiled_json_chat(
-                model=model,
-                compiled=compiled,
-                messages=messages,
-                temperature=0.3 if attempt > 0 else 0.7,
-                tags=[
-                    "agent:planner",
-                    f"step:{state.get('current_step', 3)}",
-                    f"run:{state.get('run_id', '')}",
-                    f"attempt:{attempt_number}",
-                    "pipeline:oh-my-class",
-                ],
-            )
-            log_llm_success("planner", run_id, step, model, attempt_number, started)
-            json_str = extract_json_text(content)
-            plan_data = json.loads(json_str)
-            plan = LessonPlan.model_validate(plan_data)
-            return {"lesson_plan": plan.model_dump()}
-        except (ValueError, json.JSONDecodeError) as parse_err:
-            log_llm_failure(
-                "planner", run_id, step, model, attempt_number, started, parse_err,
-            )
-            if attempt < 2:
-                messages = chat_messages(
-                    system_prompt,
-                    "Invalid response. Return ONLY the JSON object.",
-                )
-                continue
-            raise ValueError(f"Planner agent failed: {parse_err}") from parse_err
-        except Exception as e:
-            log_llm_failure("planner", run_id, step, model, attempt_number, started, e)
-            if attempt < 2:
-                continue
-            raise ValueError(f"Planner agent failed: {e}") from e
-
-    raise ValueError("Planner agent failed: exhausted retries")
+    try:
+        plan = await runtime.complete_compiled_json_with_retries(
+            compiled=compiled,
+            messages=messages,
+            parse=lambda content: LessonPlan.model_validate(json.loads(extract_json_text(content))),
+            retry_messages=lambda _error, _content: runtime.messages(
+                system_prompt,
+                "Invalid response. Return ONLY the JSON object.",
+            ),
+        )
+        return {"lesson_plan": plan.model_dump()}
+    except (ValueError, json.JSONDecodeError) as parse_err:
+        raise ValueError(f"Planner agent failed: {parse_err}") from parse_err
+    except Exception as exc:
+        raise ValueError(f"Planner agent failed: {exc}") from exc
 
 
 def expand_lesson_plan_from_seed(seed: SessionPlan, state: PlannerNodeState) -> LessonPlan:

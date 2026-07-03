@@ -1,6 +1,6 @@
 # Issue #17: [Epic][Phase 4] Resilience, config, test taxonomy
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/17
 State: OPEN
 Created: 2026-07-02T16:42:11Z
@@ -10,11 +10,25 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Completion notes
+
+- Child Issue #28 is DONE: provider/run scoped circuit breaker is layered and live LLM client chat/stream paths use the provider breaker.
+- Existing 9Router provider evidence probe covers provider health and no-paid-fallback behavior.
+- Added test taxonomy directories: `tests/guard`, `tests/contract`, `tests/unit`, `tests/integration`, `tests/e2e`, `tests/resilience`.
+- Added CI policy script `scripts/verify_new_component_tests.py` and wired it into `.github/workflows/ci.yml` so newly added production components require a matching test.
+- Added Content Creator interrupted-generation regression proving a mid-generation transport failure retries and succeeds through the shared runtime attempt tags.
+- `INVARIANT_REGISTRY` covers all 10 hard invariants and is guarded by `tests/test_invariant_coverage.py`.
+
+## Verification
+
+- `uv run pytest tests/guard/test_new_component_tests_policy.py packages/agents/tests/sub_agents/test_content_creator.py::TestContentCreatorAgent::test_recovers_after_interrupted_generation_stream tests/test_invariant_coverage.py services/gateway/tests/test_provider_evidence.py -q` → `28 passed`.
+- LSP diagnostics clean for `scripts/verify_new_component_tests.py`, `tests/guard/test_new_component_tests_policy.py`, and `packages/agents/tests/sub_agents/test_content_creator.py`.
 
 ## Body
 
@@ -43,10 +57,10 @@ In-body checklist for the rest of Phase 4:
 
 ## Acceptance
 
-- [ ] Circuit-breaker child issue closed with tests.
-- [ ] Streaming-interruption resilience test passes.
-- [ ] Test taxonomy dirs exist and CI enforces "new component ships with a test".
-- [ ] All 10 invariant tests pass.
+- [x] Circuit-breaker child issue closed with tests.
+- [x] Streaming-interruption resilience test passes.
+- [x] Test taxonomy dirs exist and CI enforces "new component ships with a test".
+- [x] All 10 invariant tests pass.
 
 ## References
 
@@ -56,4 +70,3 @@ In-body checklist for the rest of Phase 4:
 ## Depends on
 
 - Phase 2 (`[Epic][Phase 2] State unification + observability backbone`) for the event bus, and Phase 3 (`[Epic][Phase 3] Core correctness`) for the shared harness. See milestone `agents-hardening`.
-

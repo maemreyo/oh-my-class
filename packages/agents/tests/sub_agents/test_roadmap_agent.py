@@ -301,6 +301,8 @@ VALID_ROADMAP_WRAPPED = f"```json\n{VALID_ROADMAP_JSON}\n```"
 
 class TestRoadmapNode:
     def _make_state(self, **overrides) -> dict[str, Any]:
+        from packages.agents.teaching_pack.stages import StageEnum
+
         base = {
             "diagnostic_report": {
                 "student_id": "s1",
@@ -320,7 +322,7 @@ class TestRoadmapNode:
                 "study_duration_months": 6,
             },
             "run_id": "test-run-001",
-            "current_step": 0,
+            "current_step": StageEnum.UNIT_PREP,
         }
         base.update(overrides)
         return base
@@ -408,6 +410,8 @@ class TestRoadmapNode:
 
 class TestRoadmapNodeValidation:
     def _make_state(self) -> dict[str, Any]:
+        from packages.agents.teaching_pack.stages import StageEnum
+
         return {
             "diagnostic_report": {
                 "student_id": "s1",
@@ -420,7 +424,7 @@ class TestRoadmapNodeValidation:
                 "summary": "Cần ôn tập.",
             },
             "run_id": "r1",
-            "current_step": 4,
+            "current_step": StageEnum.UNIT_PREP,
         }
 
     @pytest.mark.asyncio

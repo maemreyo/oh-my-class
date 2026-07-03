@@ -3,12 +3,8 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
 
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 BIAS_PATTERNS = re.compile(
@@ -21,20 +17,20 @@ class BiasDetectionMiddleware(BaseMiddleware):
     """Scans artifact content for basic gendered bias patterns (warning only)."""
 
     name: str = "bias_detection"
-    order: int = 27
+    order: int = 19
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         for artifact in state.get("artifacts", []):
             content = artifact.get("content", "") if isinstance(artifact, dict) else str(artifact)
             # Scan for basic bias patterns (warning only, not blocking in this implementation)

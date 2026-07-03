@@ -381,6 +381,8 @@ VALID_REPORT_GENERIC_FENCE = f"```\n{VALID_REPORT_JSON}\n```"
 
 class TestDiagnosticianNode:
     def _make_state(self, **overrides) -> dict[str, Any]:
+        from packages.agents.teaching_pack.stages import StageEnum
+
         base = {
             "student_responses": {
                 "student_id": "s1",
@@ -389,7 +391,7 @@ class TestDiagnosticianNode:
                 "answers": [],
             },
             "run_id": "test-run-001",
-            "current_step": 0,
+            "current_step": StageEnum.PLANNING_BLUEPRINT,
         }
         base.update(overrides)
         return base

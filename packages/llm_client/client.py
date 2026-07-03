@@ -12,7 +12,7 @@ import openai
 from openai import Omit
 
 from packages.llm_client.budget.manager import TokenBudgetManager
-from packages.llm_client.circuit_breaker import breaker_for, should_skip_provider
+from packages.llm_client.circuit_breaker import breaker_for
 from packages.llm_client.config import LLMClientConfig
 from packages.llm_client.middleware import (
     CallMiddlewareRunner,
@@ -88,7 +88,8 @@ class LLMClient:
         response_format: completion_create_params.ResponseFormat | Omit = _OMIT,
     ) -> ChatResponse:
         """Send chat request. Returns ChatResponse with usage stats."""
-        if should_skip_provider(model):
+        breaker = breaker_for(model)
+        if breaker.is_open():
             raise ProviderCircuitOpenError(model)
 
         context = MiddlewareCallContext(
@@ -116,7 +117,6 @@ class LLMClient:
             "list[ChatCompletionMessageParam]",
             [{"role": m.role, "content": m.content} for m in messages],
         )
-        breaker = breaker_for(model)
         try:
             resp = await self._client.chat.completions.create(
                 model=model,
@@ -161,7 +161,8 @@ class LLMClient:
         max_tokens: int | None = None,
     ) -> AsyncIterator[str]:
         """Stream chat response token by token."""
-        if should_skip_provider(model):
+        breaker = breaker_for(model)
+        if breaker.is_open():
             raise ProviderCircuitOpenError(model)
 
         context = MiddlewareCallContext(agent=agent, task=task, run_id=run_id, step=step, locale=locale)
@@ -181,7 +182,6 @@ class LLMClient:
             "list[ChatCompletionMessageParam]",
             [{"role": m.role, "content": m.content} for m in messages],
         )
-        breaker = breaker_for(model)
         try:
             stream = await self._client.chat.completions.create(
                 model=model,

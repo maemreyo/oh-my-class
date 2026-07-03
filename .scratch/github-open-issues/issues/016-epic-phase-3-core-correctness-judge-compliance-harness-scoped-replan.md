@@ -1,6 +1,6 @@
 # Issue #16: [Epic][Phase 3] Core correctness — judge, compliance, harness, scoped replan
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/16
 State: OPEN
 Created: 2026-07-02T16:42:08Z
@@ -10,11 +10,17 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Completion notes
+
+- Child Issues #24, #25, #26, and #27 are DONE.
+- Gate ordering is covered by the teaching-pack gate registry/router tests: `render_quality -> compliance_gate -> teacher_approval`.
+- Live paths use `AdaptiveJudge`, deterministic compliance policy, shared `AgentRuntime`, declared tool capabilities, and scoped replan by artifact id.
 
 ## Body
 
@@ -41,9 +47,9 @@ Coordination:
 
 ## Acceptance
 
-- [ ] All four child issues closed with guard/contract tests green.
-- [ ] Gate ordering integration test proves `render_quality -> compliance_gate_node -> teacher_approval`.
-- [ ] No live path imports `GEvalScorer` or binds a non-IMPLEMENTED tool.
+- [x] All four child issues closed with guard/contract tests green.
+- [x] Gate ordering integration test proves `render_quality -> compliance_gate_node -> teacher_approval`.
+- [x] No live path imports `GEvalScorer` or binds a non-IMPLEMENTED tool.
 
 ## References
 
@@ -53,4 +59,3 @@ Coordination:
 ## Depends on
 
 - Phase 2 (`[Epic][Phase 2] State unification + observability backbone`) — needs unified state + event bus. See milestone `agents-hardening`.
-

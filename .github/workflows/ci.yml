@@ -69,6 +69,8 @@ jobs:
           python-version: "3.12"
       - run: pip install -e packages/agents -e packages/quality -e common/contracts -e services/gateway
       - run: python scripts/verify_registry_drift.py
+      - run: python scripts/verify_new_component_tests.py
+      - run: pytest tests/test_parked_status_ttl.py --tb=short
       - run: pytest --tb=short
       - run: pytest packages/agents/tests --cov=packages/agents --cov-fail-under=85
       - run: pytest common/contracts/tests --cov=common/contracts --cov-fail-under=95

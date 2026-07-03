@@ -8,6 +8,7 @@ from packages.agents.middleware.sequence_consistency_validator import (
     SequenceConsistencyValidator,
 )
 from packages.agents.sub_agents.unit_planner import ClarificationRequiredError, unit_planner_node
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 @pytest.mark.asyncio
@@ -17,7 +18,7 @@ async def test_unit_planner_outputs_grounded_valid_sequence() -> None:
         "class_info": {"grade": 5, "subject": "math", "student_count": 30, "topic": "Phân số"},
         "grounding": {"grounding_status": "grounded"},
         "run_id": "run-unit-1",
-        "current_step": 1,
+        "current_step": StageEnum.UNIT_PLANNING,
     })
 
     sequence = LessonSequence.model_validate(result["lesson_sequence"])
@@ -37,7 +38,7 @@ async def test_methodology_assignment_varies_by_bloom_level() -> None:
         "class_info": {"grade": 5, "subject": "math", "student_count": 30, "topic": "Fractions"},
         "grounding": {"grounding_status": "grounded"},
         "run_id": "run-unit-2",
-        "current_step": 1,
+        "current_step": StageEnum.UNIT_PLANNING,
     })
 
     sequence = LessonSequence.model_validate(result["lesson_sequence"])
@@ -57,7 +58,7 @@ async def test_ungrounded_ambiguous_topic_fails_closed() -> None:
             "class_info": {"grade": 5, "subject": "math", "student_count": 30},
             "grounding": {"grounding_status": "ungrounded"},
             "run_id": "run-unit-3",
-            "current_step": 1,
+            "current_step": StageEnum.UNIT_PLANNING,
         })
 
 
@@ -68,7 +69,7 @@ async def test_persona_changes_reteach_and_duration_decisions() -> None:
         "class_info": {"grade": 5, "subject": "math", "student_count": 30, "topic": "Fractions"},
         "grounding": {"grounding_status": "partial"},
         "run_id": "run-unit-4",
-        "current_step": 1,
+        "current_step": StageEnum.UNIT_PLANNING,
     }
     weak_persona = {
         "grade": "Grade 5",

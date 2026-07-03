@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from packages.agents.teaching_pack.nodes import JsonObject, TeachingPackState, _render_quality
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 def _artifacts(result: TeachingPackState) -> list[JsonObject]:
@@ -66,7 +67,7 @@ class TestTeachingPackArtifactWorkflow:
             "artifact_types": ["lesson"],
             "theme": "default",
             "run_id": "run-content",
-            "current_step": 8,
+            "current_step": StageEnum.ARTIFACT_WORKFLOW,
             "artifacts": None,
             "revision_feedback": "",
             "use_hierarchical_creator": True,
@@ -161,7 +162,7 @@ class TestTeachingPackArtifactWorkflow:
     ) -> None:
         from packages.agents.teaching_pack import nodes
 
-        async def fake_content_creator_node(state):
+        async def fake_content_creator_node(_state):
             return {
                 "artifacts": [{
                     "artifact_type": "quiz",

@@ -1,16 +1,3 @@
-"""Langfuse tracing helpers for LangGraph nodes.
-
-Usage in pipeline nodes:
-
-    from observability.tracing import trace_node, trace_llm_call
-
-    def design_lesson_plan(state: OhMyClassState) -> dict:
-        with trace_node("planner", state["run_id"], step=3) as trace:
-            # ... node logic ...
-            trace.update(output=lesson_plan)
-            return {"lesson_plan": lesson_plan}
-"""
-
 from contextlib import contextmanager
 
 from .langfuse_config import get_langfuse_config, get_trace_metadata
@@ -107,7 +94,7 @@ def trace_llm_call(agent_name: str, run_id: str, model: str, step: int):
 class _NoOpTrace:
     """No-op trace when Langfuse is not configured."""
 
-    def update(self, **kwargs):
+    def update(self, **_kwargs):
         pass
 
     def end(self):

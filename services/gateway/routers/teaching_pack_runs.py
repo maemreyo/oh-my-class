@@ -50,8 +50,10 @@ from services.gateway.routers.teaching_pack_helpers import hash_json
 from services.gateway.routers.teaching_pack_lifecycle import lifecycle_router
 from services.gateway.routers.teaching_pack_schemas import (
     TeachingPackCreateRunRequest,
+    TeachingPackArtifactRevisionRequest,
     TeachingPackResumeAcceptedResponse,
     TeachingPackResumeRequest,
+    TeachingPackRevisionAcceptedResponse,
     TeachingPackRunAcceptedResponse,
 )
 from services.gateway.routers.teaching_pack_stream import stream_router
@@ -275,3 +277,56 @@ async def resume_teaching_pack_run(
         job_id=job.job_id,
     )
 
+
+@router.post(
+    "/runs/{run_id}/artifacts/{artifact_id}/request-revision",
+    response_model=TeachingPackRevisionAcceptedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def request_artifact_revision(
+    run_id: str,
+    artifact_id: str,
+    payload: TeachingPackArtifactRevisionRequest,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+) -> TeachingPackRevisionAcceptedResponse:
+    await get_run_with_ownership(run_id, current_user, session)
+    typed_run_id = RunId(run_id)
+    teacher_id = TeacherId(current_user.user_id)
+    request_hash = hash_json({"artifact_id": artifact_id, "feedback": payload.feedback})
+    job_store = TeachingPackJobStore(session)
+    scoped_key = (
+        scoped_resume_idempotency_key(typed_run_id, teacher_id, idempotency_key)
+        if idempotency_key is not None
+        else f"request_revision:{run_id}:{artifact_id}:{uuid4()}"
+    )
+    existing_job = await job_store.find_by_idempotency_key(scoped_key)
+    if existing_job is not None:
+        if existing_job.payload.get("request_hash") != request_hash:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="idempotency_conflict")
+        return TeachingPackRevisionAcceptedResponse(
+            run_id=existing_job.run_id,
+            artifact_id=artifact_id,
+            job_id=existing_job.job_id,
+        )
+    job = await job_store.enqueue(RunJobCreate(
+        job_id=f"job-{uuid4()}",
+        run_id=typed_run_id,
+        kind=RunJobKind.RESUME,
+        idempotency_key=scoped_key,
+        payload={
+            "request_hash": request_hash,
+            "resume_payload": {
+                "action": "reject_selected",
+                "rejection_type": "scoped",
+                "artifact_rejections": [{"artifact_id": artifact_id, "reason": payload.feedback}],
+            },
+        },
+    ))
+    await session.commit()
+    return TeachingPackRevisionAcceptedResponse(
+        run_id=job.run_id,
+        artifact_id=artifact_id,
+        job_id=job.job_id,
+    )

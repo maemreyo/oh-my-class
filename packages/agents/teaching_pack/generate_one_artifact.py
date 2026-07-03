@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from common.contracts.artifact import ArtifactContent
 
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 class GenerateOneArtifactPayload(TypedDict):
@@ -41,7 +42,7 @@ async def generate_one_artifact(payload: GenerateOneArtifactPayload) -> Generate
         "artifact_types": [artifact_type],
         "theme": payload["theme"],
         "run_id": payload["run_id"],
-        "current_step": 8,
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
         "artifacts": payload.get("dependency_artifacts", []),
         "revision_feedback": payload.get("revision_feedback", ""),
     })
@@ -106,8 +107,6 @@ def _stamp_pedagogy_context(chunk: dict[str, Any], lesson_plan: dict[str, Any]) 
     and other plan internals are deliberately excluded. Without this the gate had no
     lesson_plan and those metrics silently auto-passed. Fail-open and non-destructive.
     """
-    if not isinstance(lesson_plan, dict):
-        return
     context: dict[str, Any] = {}
     objectives = lesson_plan.get("learning_objectives")
     if isinstance(objectives, list) and objectives:

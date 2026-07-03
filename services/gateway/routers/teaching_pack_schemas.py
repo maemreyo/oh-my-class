@@ -33,6 +33,16 @@ class TeachingPackResumeAcceptedResponse(BaseModel):
     job_id: str | None
 
 
+class TeachingPackArtifactRevisionRequest(BaseModel):
+    feedback: str = Field(min_length=1)
+
+
+class TeachingPackRevisionAcceptedResponse(BaseModel):
+    run_id: str
+    artifact_id: str
+    job_id: str
+
+
 class TeachingPackRunStatusResponse(BaseModel):
     run_id: str
     status: RunStatus

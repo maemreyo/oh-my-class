@@ -26,12 +26,17 @@ from packages.agents.teaching_pack.scoped_regeneration import (
     rejected_artifact_types,
     scoped_rejections,
 )
+from packages.agents.teaching_pack.stages import StageEnum
+from packages.agents.teaching_pack.teacher_gate_payload import (
+    artifact_explanations_for_teacher,
+    is_scoped_teacher_action,
+    normalized_teacher_action,
+)
 
 if TYPE_CHECKING:
     from langgraph.store.base import BaseStore
 
     from packages.agents.teaching_pack.ports import QualityGate
-    from packages.agents.teaching_pack.stages import TeachingPackStage
 
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
@@ -40,8 +45,9 @@ type JsonObject = dict[str, JsonValue]
 class TeachingPackState(TypedDict):
     run_id: str
     contract: NotRequired[JsonObject]
-    current_stage: NotRequired[str]
-    completed_stages: NotRequired[list[str]]
+    current_stage: NotRequired[StageEnum]
+    current_step: NotRequired[StageEnum]
+    completed_stages: NotRequired[list[StageEnum]]
     research_brief: NotRequired[JsonObject]
     lesson_plan: NotRequired[JsonObject]
     lesson_sequence: NotRequired[JsonObject]
@@ -67,6 +73,18 @@ class TeachingPackState(TypedDict):
     quality_scores: NotRequired[JsonObject]
     quality_issues: NotRequired[list[str]]
     quality_recovery_route: NotRequired[str]
+    compliance_passed: NotRequired[bool]
+    compliance_result: NotRequired[JsonObject]
+    fail_layer: NotRequired[str | None]
+    fail_count: NotRequired[int]
+    fail_type: NotRequired[str | None]
+    fail_context: NotRequired[JsonObject | None]
+    escalate: NotRequired[bool]
+    escalate_reason: NotRequired[str | None]
+    healing_strategy: NotRequired[str | None]
+    healing_note: NotRequired[str | None]
+    healing_context: NotRequired[JsonObject | None]
+    generation_model: NotRequired[str | None]
     content_update_event: NotRequired[JsonObject]
     approval_gate: NotRequired[JsonObject]
     teacher_approved: NotRequired[bool]
@@ -90,13 +108,19 @@ class TeachingPackState(TypedDict):
 
 
 def make_stage_node(
-    stage: TeachingPackStage,
+    stage: StageEnum,
     quality_gate: QualityGate | None = None,
     store: BaseStore | None = None,
 ):
     async def stage_node(state: TeachingPackState) -> TeachingPackState:
-        if stage.value in state.get("completed_stages", []) and not _can_reenter_stage(state, stage.value):
+        if stage in state.get("completed_stages", []) and not _can_reenter_stage(state, stage):
             return state
+        from packages.agents.events import emit_run_event
+
+        emit_run_event(state["run_id"], "stage_transition", {
+            "stage": stage.value,
+            "status": "started",
+        })
         match stage.value:
             case "setup_contract":
                 state = await _run_entry_middleware(state)
@@ -119,6 +143,8 @@ def make_stage_node(
                 update = await _artifact_workflow(state)
             case "render_quality":
                 update = await _render_quality(state, quality_gate=quality_gate)
+            case "compliance_gate":
+                update = _compliance_gate(state)
             case "teacher_approval":
                 update = await _teacher_approval_with_middleware(state, store=store)
             case "export_finalize":
@@ -130,7 +156,12 @@ def make_stage_node(
         if stage.value == "artifact_workflow" and artifact_send_fanout_v1_enabled():
             if not merged_state.get("artifact_fanout_complete", False):
                 return merged_state
-        return _complete_stage(merged_state, stage.value)
+        completed = _complete_stage(merged_state, stage)
+        emit_run_event(state["run_id"], "stage_transition", {
+            "stage": stage.value,
+            "status": "completed",
+        })
+        return completed
 
     stage_node.__name__ = stage.value
     return stage_node
@@ -167,7 +198,7 @@ async def _unit_planning(state: TeachingPackState) -> TeachingPackState:
         "grounding": _json_object(contract.get("grounding")),
         "persona_snapshot": _json_object(contract.get("persona_snapshot")),
         "run_id": state["run_id"],
-        "current_step": 1,
+        "current_step": StageEnum.UNIT_PLANNING,
     })
     sequence = LessonSequence.model_validate(result["lesson_sequence"])
     critiques = critique_sequence(sequence)
@@ -270,7 +301,7 @@ async def _planning_blueprint(
         "raw_request": _string_field(contract, "raw_request", _topic(contract)),
         "class_info": class_info,
         "run_id": state["run_id"],
-        "current_step": 3,
+        "current_step": StageEnum.PLANNING_BLUEPRINT,
         "lesson_plan": None,
         "use_staged_planner": True,
         "persona_snapshot": _json_object(state.get("persona_snapshot")),
@@ -303,7 +334,7 @@ async def _diagnostic_preplanning(state: TeachingPackState) -> dict[str, Any]:
     result = await diagnostician_node({
         "student_responses": evidence,
         "run_id": state["run_id"],
-        "current_step": 0,
+        "current_step": StageEnum.PLANNING_BLUEPRINT,
         "diagnostic_report": None,
         "use_structured_diagnostic": True,
     })
@@ -328,7 +359,7 @@ async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackStat
         "lesson_plan": state.get("lesson_plan", {}),
         "research_policy": _string_field(contract, "research_policy", "standard"),
         "run_id": state["run_id"],
-        "current_step": 7,
+        "current_step": StageEnum.POST_BLUEPRINT_RESEARCH,
         "research_bundle": state.get("research_brief", {}),
     }
     result = await researcher_node(researcher_state)
@@ -378,7 +409,7 @@ async def _rollback_artifact_workflow(state: TeachingPackState) -> TeachingPackS
         "artifact_types": artifact_types,
         "theme": _string_field(contract, "theme", "default"),
         "run_id": mediated_state["run_id"],
-        "current_step": 8,
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
         "artifacts": None,
         "revision_feedback": mediated_state.get("revision_feedback", ""),
         "use_hierarchical_creator": True,
@@ -400,6 +431,13 @@ async def _render_quality(
     quality_gate: QualityGate | None = None,
 ) -> TeachingPackState:
     return TeachingPackState(**await render_quality(state, quality_gate))
+
+
+def _compliance_gate(state: TeachingPackState) -> TeachingPackState:
+    from packages.agents.teaching_pack.compliance import compliance_gate_state
+
+    return TeachingPackState(**compliance_gate_state(state))
+
 
 def _teacher_approval(
     state: TeachingPackState,
@@ -426,19 +464,23 @@ def _teacher_approval(
         "content_artifacts": [*state.get("artifacts", [])],
         "quality_scores": state.get("quality_scores", {}),
         "run_id": state["run_id"],
+        "artifact_explanations": artifact_explanations_for_teacher(state, "manual"),
     }
 
     contract = state.get("contract", {})
     teacher_id = _string_field(contract, "teacher_id", "")
     auto_approved = False
 
-    if store is not None and teacher_id:
+    if store is not None and teacher_id and state.get("compliance_passed") is True:
         from packages.agents.config.gate_config import GateConfig
         from packages.agents.teaching_pack.gate_trust import should_fast_lane
         threshold = GateConfig().fast_lane_threshold
         if threshold is not None and should_fast_lane(store, teacher_id, "content_approval", threshold):
             auto_approved = True
             gate_payload["auto_approved"] = True
+            gate_payload["approval_mode"] = "auto_approved"
+            gate_payload["revert_window_seconds"] = 900
+            gate_payload["artifact_explanations"] = artifact_explanations_for_teacher(state, "auto_approved")
 
     if auto_approved:
         action, feedback = "approve", ""
@@ -447,21 +489,30 @@ def _teacher_approval(
         gate_response = interrupt(gate_payload)
         action = _string_field(gate_response, "action", "reject")
         feedback = _string_field(gate_response, "feedback", "")
+    normalized_action = normalized_teacher_action(action)
+    from packages.agents.events import emit_run_event
+
+    emit_run_event(state["run_id"], "gate_decision", {
+        "gate": "content_approval",
+        "decision": "auto_approved" if auto_approved else normalized_action,
+        "raw_action": action,
+        "via": "fast_lane" if auto_approved else "teacher",
+    })
 
     if store is not None and teacher_id:
         from packages.agents.teaching_pack.gate_trust import record_gate_event
         from packages.agents.teaching_pack.teacher_memory import write_gate_approval
-        record_gate_event(store, teacher_id, "content_approval", action, artifact_types)
-        write_gate_approval(store, teacher_id, "content_approval", action, artifact_types)
+        record_gate_event(store, teacher_id, "content_approval", normalized_action, artifact_types)
+        write_gate_approval(store, teacher_id, "content_approval", normalized_action, artifact_types)
 
     return {
         "run_id": state["run_id"],
         "approval_gate": gate_payload,
         "gate_payload": gate_response,
-        "teacher_approved": action == "approve",
+        "teacher_approved": normalized_action == "approve",
         "teacher_decision": action,
         "revision_feedback": feedback,
-        "approved_snapshot_ids": snapshot_ids if action == "approve" else [],
+        "approved_snapshot_ids": snapshot_ids if normalized_action == "approve" else [],
     }
 
 
@@ -529,11 +580,19 @@ def _export_finalize(
 def route_after_teacher_approval(state: TeachingPackState) -> str:
     if state.get("teacher_approved", False):
         return "export_finalize"
+    if is_scoped_teacher_action(state.get("gate_payload", {})):
+        return "artifact_workflow"
     if has_scoped_section_edit(state.get("gate_payload", {})):
         return "artifact_workflow"
     if _scoped_rejections(state):
         return "artifact_workflow"
     return "export_finalize"
+
+
+def route_after_compliance_gate(state: TeachingPackState) -> str:
+    if state.get("compliance_passed", False):
+        return "teacher_approval"
+    return "artifact_workflow"
 
 
 def route_after_triage(state: TeachingPackState) -> str:
@@ -551,22 +610,23 @@ def route_after_unit_approval(state: TeachingPackState) -> str:
     return "unit_planning"
 
 
-def _can_reenter_stage(state: TeachingPackState, stage: str) -> bool:
-    if stage == "artifact_workflow" and artifact_send_fanout_v1_enabled():
+def _can_reenter_stage(state: TeachingPackState, stage: StageEnum) -> bool:
+    if stage.value == "artifact_workflow" and artifact_send_fanout_v1_enabled():
         if not state.get("artifact_fanout_complete", False):
             return True
         return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
-    if stage == "render_quality" and artifact_send_fanout_v1_enabled():
+    if stage.value == "render_quality" and artifact_send_fanout_v1_enabled():
         return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
-    if stage == "teacher_approval" and artifact_send_fanout_v1_enabled():
+    if stage.value == "teacher_approval" and artifact_send_fanout_v1_enabled():
         return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
     return False
 
 
-def _complete_stage(state: TeachingPackState, stage: str) -> TeachingPackState:
+def _complete_stage(state: TeachingPackState, stage: StageEnum) -> TeachingPackState:
     return {
         **state,
         "current_stage": stage,
+        "current_step": stage,
         "completed_stages": [*state.get("completed_stages", []), stage],
     }
 

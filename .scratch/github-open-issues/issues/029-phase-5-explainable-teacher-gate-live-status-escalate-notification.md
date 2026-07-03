@@ -1,6 +1,6 @@
 # Issue #29: [Phase 5] Explainable teacher gate + live status + escalate notification
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/29
 State: OPEN
 Created: 2026-07-02T16:43:01Z
@@ -10,11 +10,39 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification for implemented slices
+- [x] Run surface/manual QA
+- [x] Update this ticket status to DONE only when all acceptance is verified
+
+## Progress notes
+
+- Added teacher-facing artifact explanation payloads via `packages/agents/teaching_pack/teacher_gate_payload.py` and included them in content approval / fast-lane gate payloads.
+- Added scoped teacher action aliases `approve_selected` and `reject_selected` through the gate registry and scoped regeneration route.
+- Added fast-lane teacher UI affordances in `apps/web/src/components/teaching-packs-trust-panel.tsx`, including auto-approved labeling and callback-backed revert/request-revision actions.
+- Added `POST /runs/{run_id}/artifacts/{artifact_id}/request-revision` to enqueue a scoped `reject_selected` resume job for a single artifact.
+- Added frontend mutation plumbing via `useRequestArtifactRevision(runId)` and gate-shell callback wiring.
+- Added router regression coverage that verifies the request-revision endpoint enqueues the expected scoped resume payload.
+- Fixed post-review UI wiring issues in `TeachingPackGateBody`, `ContentApprovalBody`, and the gate-shell hook mock.
+- Completed per-artifact revision-count support in teacher explanations: artifact-local `revision_count` wins, then `artifact_revision_counts[artifact_id]`, then the global generation revision fallback.
+- Wired persisted/live `ObservabilityEvent` names (`stage_transition`, `gate_decision`, `healing_decision`, `escalate`, `breaker_tripped`) into the web SSE allowlist.
+- Added the teacher-facing “Needs your review” dashboard CTA for escalation events, plus teacher-language event details that avoid raw internal event-name display.
+
+## Verification evidence
+
+- `uv run pytest services/gateway/tests/test_teaching_pack_runs_router.py -q` → `6 passed`.
+- `pnpm --filter @oh-my-class/web test -- tests/teaching-pack-gate-shell.test.tsx tests/teaching-packs-components.test.tsx` → `23 passed`, `175 passed`.
+- `pnpm --filter @oh-my-class/web typecheck` → passed.
+- Broader post-review focused Python suite including router/gate registry/runtime/breaker/worker coverage → `147 passed`.
+- LSP diagnostics clean for the post-review touched Python/TS/TSX files checked.
+- `uv run pytest packages/agents/tests/teaching_pack/test_nodes.py::TestTeachingPackApprovalExport services/gateway/tests/test_teaching_pack_runs_router.py services/gateway/tests/test_teaching_pack_gate_registry.py -q` → `25 passed`.
+- `pnpm --filter @oh-my-class/web test -- tests/teaching-pack-gate-shell.test.tsx tests/teaching-packs-components.test.tsx` → `23 passed`, `177 passed`.
+- Browser/manual QA via Playwright on `http://localhost:3000/runs/issue-29-smoke` with mocked run API + SSE:
+  - rendered “Needs your review” escalation CTA;
+  - rendered content approval gate, fast-lane label, revert window, artifact rationale, revision count, artifact status, and event stream labels;
+  - clicked `Request revision` and fast-lane `Revert available...`; both posted to `/teaching-packs/runs/issue-29-smoke/artifacts/quiz-1/request-revision` with the expected feedback payloads.
+  - screenshot saved as `issue-29-teacher-gate-smoke.png`.
 
 ## Body
 
@@ -49,4 +77,3 @@ This is a production-ready rebuild of the teacher surface, NOT patching: reuse t
 ## Depends on
 
 - Phase 2 (observability + state), Phase 3 (judge rationale, compliance_gate_node, scoped replan), Phase 4 (escalation signals). Parent: `[Epic][Phase 5] Teacher trust UX`. See milestone `agents-hardening`.
-

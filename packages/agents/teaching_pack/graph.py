@@ -7,6 +7,7 @@ from typing import Literal, NotRequired, TypedDict
 from packages.agents.teaching_pack.nodes import (
     TeachingPackState,
     make_stage_node,
+    route_after_compliance_gate,
     route_after_triage,
     route_after_unit_approval,
     route_after_teacher_approval,
@@ -109,6 +110,15 @@ def build_teaching_pack_graph(
                 {
                     TeachingPackStage.PLANNING_BLUEPRINT.value: TeachingPackStage.PLANNING_BLUEPRINT.value,
                     TeachingPackStage.POST_BLUEPRINT_RESEARCH.value: TeachingPackStage.POST_BLUEPRINT_RESEARCH.value,
+                    TeachingPackStage.ARTIFACT_WORKFLOW.value: TeachingPackStage.ARTIFACT_WORKFLOW.value,
+                    TeachingPackStage.COMPLIANCE_GATE.value: TeachingPackStage.COMPLIANCE_GATE.value,
+                },
+            )
+        elif previous is TeachingPackStage.COMPLIANCE_GATE:
+            graph.add_conditional_edges(
+                previous.value,
+                route_after_compliance_gate,
+                {
                     TeachingPackStage.ARTIFACT_WORKFLOW.value: TeachingPackStage.ARTIFACT_WORKFLOW.value,
                     TeachingPackStage.TEACHER_APPROVAL.value: TeachingPackStage.TEACHER_APPROVAL.value,
                 },

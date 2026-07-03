@@ -18,6 +18,7 @@ import pytest
 
 import packages.agents.llm.compiled_chat as compiled_chat_mod
 from packages.agents.events import clear_run
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 def _parse_tags(raw_tags: list[str]) -> dict[str, str]:
@@ -81,7 +82,7 @@ class TestPlannerProvenance:
             "raw_request": "Teach photosynthesis to grade 5",
             "class_info": {"grade": 5, "subject": "science", "student_count": 30},
             "run_id": "prov-planner-test",
-            "current_step": 3,
+            "current_step": StageEnum.PLANNING_BLUEPRINT,
         })
 
         with patch.object(compiled_chat_mod, "complete_json_chat", transport):
@@ -115,7 +116,7 @@ class TestPlannerProvenance:
             "raw_request": "Teach fractions",
             "class_info": {"grade": 3, "subject": "math", "student_count": 25},
             "run_id": "no-net-test",
-            "current_step": 3,
+            "current_step": StageEnum.PLANNING_BLUEPRINT,
         })
 
         with patch.object(compiled_chat_mod, "complete_json_chat", transport):
@@ -162,7 +163,7 @@ class TestContentCreatorProvenance:
             "artifact_types": ["lesson"],
             "theme": "default",
             "run_id": "prov-cc-test",
-            "current_step": 8,
+            "current_step": StageEnum.ARTIFACT_WORKFLOW,
         })
 
         with patch.object(compiled_chat_mod, "complete_json_chat", transport):
@@ -200,7 +201,7 @@ class TestContentCreatorProvenance:
             "artifact_types": ["quiz"],
             "theme": "default",
             "run_id": "prov-mcq-test",
-            "current_step": 8,
+            "current_step": StageEnum.ARTIFACT_WORKFLOW,
         })
 
         with patch.object(compiled_chat_mod, "complete_json_chat", transport):
@@ -222,7 +223,7 @@ class TestContentCreatorProvenance:
             "artifact_types": ["lesson"],
             "theme": "default",
             "run_id": "prov-cc-rollback-model-test",
-            "current_step": 8,
+            "current_step": StageEnum.ARTIFACT_WORKFLOW,
             "generation_model": "last-known-good-model",
         })
 
@@ -246,7 +247,7 @@ class TestContentCreatorProvenance:
             "artifact_types": ["lesson"],
             "theme": "default",
             "run_id": "no-net-cc",
-            "current_step": 8,
+            "current_step": StageEnum.ARTIFACT_WORKFLOW,
         })
 
         with patch.object(compiled_chat_mod, "complete_json_chat", transport):

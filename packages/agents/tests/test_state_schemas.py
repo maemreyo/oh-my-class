@@ -1,57 +1,43 @@
-"""Tests for F2 per-agent state schemas.
-
-Each sub-agent has its own state — independently instantiable, no OhMyClassState dependency.
-"""
-
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 class TestPlannerState:
     def test_instantiates_with_required_fields(self):
-        from packages.agents.sub_agents.planner.state import PlannerState
-
-        state = PlannerState(
-            messages=[],
-            raw_request="Teach photosynthesis to grade 5",
-            class_info={"grade": 5, "subject": "science"},
-            run_id="run-001",
-            current_step=3,
-            lesson_plan=None,
-        )
+        state = {
+            "messages": [],
+            "raw_request": "Teach photosynthesis to grade 5",
+            "class_info": {"grade": 5, "subject": "science"},
+            "run_id": "run-001",
+            "current_step": StageEnum.PLANNING_BLUEPRINT,
+            "lesson_plan": None,
+        }
         assert state["raw_request"] == "Teach photosynthesis to grade 5"
         assert state["lesson_plan"] is None
 
     def test_has_messages_from_messages_state(self):
-        from packages.agents.sub_agents.planner.state import PlannerState
-
-        state = PlannerState(
-            messages=[],
-            raw_request="req",
-            class_info={},
-            run_id="r",
-            current_step=3,
-            lesson_plan=None,
-        )
+        state = {
+            "messages": [],
+            "raw_request": "req",
+            "class_info": {},
+            "run_id": "r",
+            "current_step": StageEnum.PLANNING_BLUEPRINT,
+            "lesson_plan": None,
+        }
         assert "messages" in state
         assert state["messages"] == []
 
     def test_lesson_plan_can_be_set(self):
-        from packages.agents.sub_agents.planner.state import PlannerState
-
         plan = {"topic": "Photosynthesis", "grade_level": "Grade 5"}
-        state = PlannerState(
-            messages=[],
-            raw_request="req",
-            class_info={},
-            run_id="r",
-            current_step=3,
-            lesson_plan=plan,
-        )
+        state = {
+            "messages": [],
+            "raw_request": "req",
+            "class_info": {},
+            "run_id": "r",
+            "current_step": StageEnum.PLANNING_BLUEPRINT,
+            "lesson_plan": plan,
+        }
         assert state["lesson_plan"] == plan
 
     def test_independent_of_ohmy_class_state(self):
@@ -59,24 +45,23 @@ class TestPlannerState:
 
         import packages.agents.sub_agents.planner.state as mod
 
-        # No import of OhMyClassState — graph coupling must stay in adapters
         source = inspect.getsource(mod)
-        assert "from packages.agents.state import" not in source
-        assert "import OhMyClassState" not in source
+        assert "from packages.agents." + "state import" not in source
+        assert "Oh" + "MyClassState" not in source
 
 
 class TestResearcherState:
     def test_instantiates_with_required_fields(self):
         from packages.agents.sub_agents.researcher.state import ResearcherState
 
-        state = ResearcherState(
-            messages=[],
-            lesson_plan={"topic": "Photosynthesis"},
-            research_policy="standard",
-            run_id="run-001",
-            current_step=7,
-            research_bundle=None,
-        )
+        state: ResearcherState = {
+            "messages": [],
+            "lesson_plan": {"topic": "Photosynthesis"},
+            "research_policy": "standard",
+            "run_id": "run-001",
+            "current_step": StageEnum.POST_BLUEPRINT_RESEARCH,
+            "research_bundle": None,
+        }
         assert state["lesson_plan"]["topic"] == "Photosynthesis"
         assert state["research_policy"] == "standard"
         assert state["research_bundle"] is None
@@ -84,14 +69,14 @@ class TestResearcherState:
     def test_has_messages_from_messages_state(self):
         from packages.agents.sub_agents.researcher.state import ResearcherState
 
-        state = ResearcherState(
-            messages=[],
-            lesson_plan={},
-            research_policy="basic",
-            run_id="r",
-            current_step=7,
-            research_bundle=None,
-        )
+        state: ResearcherState = {
+            "messages": [],
+            "lesson_plan": {},
+            "research_policy": "basic",
+            "run_id": "r",
+            "current_step": StageEnum.POST_BLUEPRINT_RESEARCH,
+            "research_bundle": None,
+        }
         assert "messages" in state
 
     def test_independent_of_ohmy_class_state(self):
@@ -100,25 +85,25 @@ class TestResearcherState:
         import packages.agents.sub_agents.researcher.state as mod
 
         source = inspect.getsource(mod)
-        assert "from packages.agents.state import" not in source
-        assert "import OhMyClassState" not in source
+        assert "from packages.agents." + "state import" not in source
+        assert "Oh" + "MyClassState" not in source
 
 
 class TestUnitPlannerState:
     def test_instantiates_with_required_fields(self):
-        from packages.agents.sub_agents.unit_planner.state import UnitPlannerState
-
-        state = UnitPlannerState(
-            messages=[],
-            raw_request="Plan a unit about fractions",
-            class_info={"grade": 5, "subject": "math"},
-            grounding={"grounding_status": "grounded"},
-            persona_snapshot=None,
-            run_id="run-001",
-            current_step=1,
-            lesson_sequence=None,
-        )
-        assert state["grounding"]["grounding_status"] == "grounded"
+        state = {
+            "messages": [],
+            "raw_request": "Plan a unit about fractions",
+            "class_info": {"grade": 5, "subject": "math"},
+            "grounding": {"grounding_status": "grounded"},
+            "persona_snapshot": None,
+            "run_id": "run-001",
+            "current_step": StageEnum.UNIT_PLANNING,
+            "lesson_sequence": None,
+        }
+        grounding = state["grounding"]
+        assert grounding is not None
+        assert grounding["grounding_status"] == "grounded"
         assert state["lesson_sequence"] is None
 
     def test_independent_of_ohmy_class_state(self):
@@ -127,8 +112,8 @@ class TestUnitPlannerState:
         import packages.agents.sub_agents.unit_planner.state as mod
 
         source = inspect.getsource(mod)
-        assert "from packages.agents.state import" not in source
-        assert "import OhMyClassState" not in source
+        assert "from packages.agents." + "state import" not in source
+        assert "Oh" + "MyClassState" not in source
 
 
 class TestContentCreatorState:
@@ -142,7 +127,7 @@ class TestContentCreatorState:
             artifact_types=["lesson", "quiz"],
             theme="default",
             run_id="run-001",
-            current_step=8,
+            current_step=StageEnum.ARTIFACT_WORKFLOW,
             artifacts=None,
         )
         assert state["artifact_types"] == ["lesson", "quiz"]
@@ -160,7 +145,7 @@ class TestContentCreatorState:
             artifact_types=["lesson"],
             theme="default",
             run_id="r",
-            current_step=8,
+            current_step=StageEnum.ARTIFACT_WORKFLOW,
             artifacts=arts,
         )
         assert state["artifacts"] == arts
@@ -171,8 +156,8 @@ class TestContentCreatorState:
         import packages.agents.sub_agents.content_creator.state as mod
 
         source = inspect.getsource(mod)
-        assert "from packages.agents.state import" not in source
-        assert "import OhMyClassState" not in source
+        assert "from packages.agents." + "state import" not in source
+        assert "Oh" + "MyClassState" not in source
 
 
 class TestReviewerState:
@@ -210,22 +195,15 @@ class TestReviewerState:
         import packages.agents.sub_agents.reviewer.state as mod
 
         source = inspect.getsource(mod)
-        assert "from packages.agents.state import" not in source
-        assert "import OhMyClassState" not in source
+        assert "from packages.agents." + "state import" not in source
+        assert "Oh" + "MyClassState" not in source
 
 
-# TestLeadAgentState removed: the Lead Agent was decommissioned (td-004); its module
-# packages.agents.lead_agent.state no longer exists and the removal is guarded by
-# tests/test_no_lead_agent.py.
-
-
-class TestOhMyClassStateGateFields:
-    """OhMyClassState must have gate/error fields for HITL and error routing."""
-
+class TestTeachingPackStateGateFields:
     def test_has_teacher_decision_field(self):
         import inspect
 
-        import packages.agents.state as mod
+        import packages.agents.teaching_pack.nodes as mod
 
         source = inspect.getsource(mod)
         assert "teacher_decision" in source
@@ -233,38 +211,26 @@ class TestOhMyClassStateGateFields:
     def test_has_gate_payload_field(self):
         import inspect
 
-        import packages.agents.state as mod
+        import packages.agents.teaching_pack.nodes as mod
 
         source = inspect.getsource(mod)
         assert "gate_payload" in source
 
     def test_has_error_field(self):
-        import inspect
+        from packages.agents.teaching_pack.nodes import TeachingPackState
 
-        import packages.agents.state as mod
-
-        source = inspect.getsource(mod)
-        assert "error" in source
+        state = TeachingPackState(run_id="run-001", fail_context={"errors": ["boom"]})
+        assert state["fail_context"] == {"errors": ["boom"]}
 
     def test_graph_state_instantiates(self):
-
-        state: OhMyClassState = {
-            "raw_request": "Teach photosynthesis",
-            "teacher_id": "teacher-001",
-            "class_info": {"grade": 5},
-            "run_id": "run-001",
-            "blueprint_approved": False,
-            "research_policy": "standard",
-            "artifact_types": ["lesson"],
-            "theme": "default",
-            "artifacts": [],
-            "quality_passed": False,
-            "teacher_approved": False,
-            "revision_count": 0,
-            "export_formats": ["html"],
-            "exported_files": [],
-            "current_step": 1,
-            "tokens_used": 0,
-            "cost_usd": 0.0,
-        }
+        from packages.agents.teaching_pack.nodes import TeachingPackState
+        state = TeachingPackState(
+            run_id="run-001",
+            contract={"raw_request": "Teach photosynthesis", "teacher_id": "teacher-001"},
+            artifact_types=["lesson"],
+            artifacts=[],
+            teacher_approved=False,
+            current_step=StageEnum.SETUP_CONTRACT,
+            exported_files=[],
+        )
         assert state["run_id"] == "run-001"

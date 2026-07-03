@@ -6,27 +6,24 @@ import asyncio
 import sys
 from pathlib import Path
 
-import pytest
-
 # Ensure packages.agents is importable
 _root = str(Path(__file__).resolve().parents[3])
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
 from packages.agents.events import (
+    ObservabilityEvent,
     clear_run,
     emit_run_event,
     get_run_events,
     has_terminal_event,
+    publish_event,
     subscribe,
     unsubscribe,
 )
 
 
-@pytest.fixture(autouse=True)
-def _cleanup_run():
-    """Clean up test events after each test."""
-    yield
+def teardown_function() -> None:
     for run_id in ("test-run-1", "test-run-2"):
         clear_run(run_id)
 
@@ -94,6 +91,37 @@ def test_event_schema_has_required_fields():
     assert "timestamp" in event
 
 
+def test_observability_event_model_serializes_legacy_dict():
+    event = ObservabilityEvent(
+        run_id="test-run-1",
+        event_type="healing_decision",
+        payload={"healing_strategy": "retry"},
+        teacher_id="teacher-1",
+        stage="render_quality",
+    )
+
+    legacy_event = event.legacy_dict()
+
+    assert legacy_event["event_type"] == "healing_decision"
+    assert legacy_event["run_id"] == "test-run-1"
+    assert legacy_event["healing_strategy"] == "retry"
+    assert "timestamp" in legacy_event
+
+
+def test_publish_event_notifies_subscribers_with_legacy_payload():
+    queue = subscribe("test-run-1")
+    publish_event(ObservabilityEvent(
+        run_id="test-run-1",
+        event_type="stage_transition",
+        payload={"stage": "setup_contract"},
+    ))
+
+    event = queue.get_nowait()
+
+    assert event["event_type"] == "stage_transition"
+    assert event["stage"] == "setup_contract"
+
+
 def test_no_full_content_in_events():
     long_content = "x" * 1000
     emit_run_event("test-run-1", "llm_call_started", {
@@ -125,7 +153,7 @@ def test_unsubscribe_stops_delivery():
 
 def test_clear_run_removes_events_and_subscribers():
     emit_run_event("test-run-1", "step_started", {})
-    queue = subscribe("test-run-1")
+    subscribe("test-run-1")
     clear_run("test-run-1")
     assert get_run_events("test-run-1") == []
     assert not has_terminal_event("test-run-1")

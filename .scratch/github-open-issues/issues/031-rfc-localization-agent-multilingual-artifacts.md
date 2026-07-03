@@ -1,6 +1,6 @@
 # Issue #31: [RFC] Localization agent (multilingual artifacts)
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/31
 State: OPEN
 Created: 2026-07-02T16:43:05Z
@@ -10,11 +10,16 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Completion notes
+
+- Landed Localization RFC at `docs/rfc/localization-agent.md`.
+- RFC enumerates renderer, `theme.json`, contract i18n fields, `AgentRuntime`, and acceptance tests.
 
 ## Body
 
@@ -35,9 +40,9 @@ This is a production-ready build, NOT patching: it hangs off `AgentRuntime` and 
 
 ## Acceptance
 
-- [ ] RFC design doc reviewed/accepted before implementation.
-- [ ] Renderer, `theme.json`, and contract i18n-field changes enumerated in the RFC.
-- [ ] Design builds on `AgentRuntime`.
+- [x] RFC design doc reviewed/accepted before implementation.
+- [x] Renderer, `theme.json`, and contract i18n-field changes enumerated in the RFC.
+- [x] Design builds on `AgentRuntime`.
 
 ## References
 
@@ -47,4 +52,3 @@ This is a production-ready build, NOT patching: it hangs off `AgentRuntime` and 
 ## Depends on
 
 - Foundation complete: Phase 2 + Phase 3 `AgentRuntime`. Priority 2 of 3 new-agent RFCs (after Researcher, before Accessibility). See milestone `agents-hardening`.
-

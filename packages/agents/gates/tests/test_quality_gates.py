@@ -1,15 +1,13 @@
 """Tests for quality gate nodes — schema, content review, LLM judge, export readiness."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import Any
 
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
-
+from packages.agents.gates.state import GateState
 
 
-def make_base_state(**overrides) -> OhMyClassState:
-    base = {
+def make_base_state(**overrides: Any) -> GateState:
+    base: dict[str, Any] = {
         "raw_request": "Teach photosynthesis",
         "teacher_id": "t-001",
         "class_info": {"grade": 5, "subject": "science"},
@@ -29,8 +27,7 @@ def make_base_state(**overrides) -> OhMyClassState:
         "research_policy": "basic",
         "fail_count": 0,
     }
-    base.update(overrides)
-    return cast("OhMyClassState", base)
+    return GateState(**{**base, **overrides})
 
 
 COMPONENT_ARTIFACT = {
@@ -416,10 +413,10 @@ class TestHTMLValidator:
         result = validate_html('<!DOCTYPE html><html><body><img src="https://cdn.example.com/img.png"></body></html>')
         assert result["passed"] is False
 
-    def test_no_doctype_check_when_disabled(self):
+    def test_missing_doctype_cannot_be_disabled(self):
         from packages.agents.gates.presentation.html_validator import validate_html
-        result = validate_html("<html><body>Hello</body></html>", block_missing_doctype=False)
-        assert result["passed"] is True
+        result = validate_html("<html><body>Hello</body></html>")
+        assert result["passed"] is False
 
 
 class TestAnswerKeyGuard:

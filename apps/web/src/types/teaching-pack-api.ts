@@ -18,7 +18,7 @@ export type TeachingPackGateName =
 	| "content_approval"
 	| "unit_approval";
 
-export type TeachingPackGateAction = "answer" | "approve" | "edit" | "reject";
+export type TeachingPackGateAction = "answer" | "approve" | "approve_selected" | "edit" | "reject" | "reject_selected";
 
 export interface TeachingPackCreateRunRequest {
 	readonly raw_request: string;
@@ -47,6 +47,15 @@ export interface ArtifactStatusItem {
 	readonly teacher_action: string;
 }
 
+export interface ArtifactExplanation {
+	readonly artifact_id: string;
+	readonly artifact_type: string;
+	readonly judge_rationale: string;
+	readonly revision_count: number;
+	readonly healing_history: readonly Readonly<Record<string, unknown>>[];
+	readonly approval_mode: "manual" | "auto_approved" | string;
+}
+
 export interface TeachingPackRunStatusResponse {
 	readonly run_id: string;
 	readonly status: TeachingPackRunStatus;
@@ -65,6 +74,12 @@ export interface TeachingPackResumeAcceptedResponse {
 	readonly run_id: string;
 	readonly response_id: string;
 	readonly job_id: string | null;
+}
+
+export interface TeachingPackRevisionAcceptedResponse {
+	readonly run_id: string;
+	readonly artifact_id: string;
+	readonly job_id: string;
 }
 
 export interface TeachingPackCancelResponse {

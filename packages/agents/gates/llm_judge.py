@@ -1,14 +1,12 @@
 """Layer 4: G-Eval LLM judge (4omc, single judge MVP)."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from packages.agents.config.gate_config import GateConfig
 from packages.agents.gates.artifact_extract import extract_student_text
+from packages.agents.gates.state import GateState
 from packages.quality.layer2_content.component_scorer import score_component_usage
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
 
 
 def _word_count(text: str) -> int:
@@ -48,7 +46,7 @@ def _score_artifact(
     return round(min(total, 10.0), 2)
 
 
-def step_10b_llm_judge(state: OhMyClassState) -> dict[str, Any]:
+def step_10b_llm_judge(state: GateState) -> dict[str, Any]:
     """Layer 4: LLM-as-Judge using G-Eval pattern.
 
     Scores each artifact on 5 dimensions. Returns overall score.

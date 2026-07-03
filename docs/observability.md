@@ -46,7 +46,7 @@ Trace: run:{run_id}
 ## Metadata Tags
 
 Every trace includes:
-- `run_id`: Links to OhMyClassState.run_id
+- `run_id`: Links to the active teaching-pack run state
 - `agent`: Which agent (planner, researcher, content_creator, reviewer)
 - `step`: Pipeline step number (1-13)
 - `teacher_id`: Which teacher initiated the run

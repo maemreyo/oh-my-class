@@ -7,7 +7,6 @@ Includes adaptive judge interface (task 6) that selects rubrics by
 artifact type, enforces deterministic hard blocks, and tracks provenance.
 """
 
-from packages.quality.layer4_judge.geval import GEvalScorer
 from packages.quality.layer4_judge.judge_interface import (
     AdaptiveJudge,
     JudgeResult,
@@ -15,17 +14,13 @@ from packages.quality.layer4_judge.judge_interface import (
     UnavailableStrategy,
 )
 from packages.quality.layer4_judge.majority_vote import majority_vote
-from packages.quality.layer4_judge.pedagogical_scorer import PedagogicalScore, score_pedagogical
 from packages.quality.layer4_judge.rubric_selector import RubricSelector
 
 __all__ = [
     "AdaptiveJudge",
-    "GEvalScorer",
     "JudgeResult",
     "JudgeUnavailableError",
-    "PedagogicalScore",
     "RubricSelector",
     "UnavailableStrategy",
     "majority_vote",
-    "score_pedagogical",
 ]

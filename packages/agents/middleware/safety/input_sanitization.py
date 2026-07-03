@@ -5,12 +5,7 @@ First line of defense: ensures requests are well-formed before entering the pipe
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class InputValidationError(Exception):
@@ -26,9 +21,9 @@ class InputSanitizationMiddleware(BaseMiddleware):
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         raw = state.get("raw_request", "")
         if not raw or not raw.strip():
             raise InputValidationError("raw_request is empty")
@@ -44,7 +39,7 @@ class InputSanitizationMiddleware(BaseMiddleware):
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state

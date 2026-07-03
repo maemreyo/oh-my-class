@@ -30,6 +30,7 @@ def _judge_response(*, passed: bool, score: float, issue: str | None = None) -> 
         critical_issues=[] if issue is None else [issue],
         passed=passed,
         rationale="test judge rationale",
+        teacher_facing_summary="Teacher summary",
     )
     response = MagicMock()
     response.choices = [MagicMock()]
@@ -89,13 +90,16 @@ def test_hallucination_metric_measure_is_invoked() -> None:
 @pytest.mark.anyio
 async def test_deepeval_uses_9router_not_openai(deepeval_harness_config):
     """DeepEval judge must route through 9router, not OpenAI directly."""
-    from packages.quality.layer4_judge.geval import GEvalConfig, GEvalScorer
+    from packages.quality.layer4_judge.judge_interface import AdaptiveJudge
 
     litellm = MagicMock()
     litellm.acompletion = AsyncMock(return_value=_judge_response(passed=True, score=8.0))
     with patch.dict(sys.modules, {"litellm": litellm}):
-        scorer = GEvalScorer(GEvalConfig(num_judges=1, judge_model=deepeval_harness_config.judge_model))
-        await scorer.score([{"artifact_type": "lesson", "title": "Fractions"}])
+        judge = AdaptiveJudge(model=deepeval_harness_config.judge_model, num_judges=1)
+        await judge.judge(
+            artifacts=[{"artifact_type": "lesson", "title": "Fractions"}],
+            artifact_type="lesson",
+        )
 
     assert litellm.acompletion.call_args.kwargs["model"] == deepeval_harness_config.judge_model
     assert deepeval_harness_config.judge_base_url.endswith(":20228")
@@ -122,7 +126,7 @@ async def test_hallucination_metric_flags_injected_factual_error():
     Full wiring (inject factual error, assert metric fails) deferred to
     te-004 follow-up once runtime-parity/001 six-layer path is confirmed.
     """
-    from packages.quality.layer4_judge.geval import GEvalConfig, GEvalScorer
+    from packages.quality.layer4_judge.judge_interface import AdaptiveJudge
 
     litellm = MagicMock()
     litellm.acompletion = AsyncMock(return_value=_judge_response(
@@ -136,10 +140,13 @@ async def test_hallucination_metric_flags_injected_factual_error():
         "sections": [{"content": "The Moon is made of green cheese."}],
     }
     with patch.dict(sys.modules, {"litellm": litellm}):
-        result = await GEvalScorer(GEvalConfig(num_judges=1)).score([artifact])
+        result = await AdaptiveJudge(model="4omc", num_judges=1).judge(
+            artifacts=[artifact],
+            artifact_type="lesson",
+        )
 
-    assert result.passed is False
-    assert "hallucinated_claim" in result.critical_issues
+    assert result.judge_output.passed is False
+    assert "hallucinated_claim" in result.judge_output.critical_issues
 
 
 @pytest.mark.anyio
@@ -148,7 +155,7 @@ async def test_faithfulness_metric_uses_research_context(deepeval_harness_config
 
     Full wiring deferred to te-004 follow-up.
     """
-    from packages.quality.layer4_judge.geval import GEvalConfig, GEvalScorer
+    from packages.quality.layer4_judge.judge_interface import AdaptiveJudge
 
     litellm = MagicMock()
     litellm.acompletion = AsyncMock(return_value=_judge_response(passed=True, score=8.0))
@@ -157,8 +164,9 @@ async def test_faithfulness_metric_uses_research_context(deepeval_harness_config
         "sources": [{"title": "Curriculum", "summary": "Equivalent fractions"}],
     }
     with patch.dict(sys.modules, {"litellm": litellm}):
-        await GEvalScorer(GEvalConfig(num_judges=1)).score(
-            [{"artifact_type": "lesson", "title": "Equivalent fractions"}],
+        await AdaptiveJudge(model="4omc", num_judges=1).judge(
+            artifacts=[{"artifact_type": "lesson", "title": "Equivalent fractions"}],
+            artifact_type="lesson",
             lesson_plan=lesson_plan,
         )
 
@@ -183,6 +191,7 @@ def test_geval_majority_vote_reproduces_quality_rubric(deepeval_harness_config):
             critical_issues=[],
             passed=True,
             rationale="pass",
+            teacher_facing_summary="Teacher summary",
         ),
         JudgeOutput(
             overall_score=7.5,
@@ -190,6 +199,7 @@ def test_geval_majority_vote_reproduces_quality_rubric(deepeval_harness_config):
             critical_issues=[],
             passed=True,
             rationale="pass",
+            teacher_facing_summary="Teacher summary",
         ),
         JudgeOutput(
             overall_score=6.0,
@@ -197,6 +207,7 @@ def test_geval_majority_vote_reproduces_quality_rubric(deepeval_harness_config):
             critical_issues=[],
             passed=False,
             rationale="fail",
+            teacher_facing_summary="Teacher summary",
         ),
     ]
 

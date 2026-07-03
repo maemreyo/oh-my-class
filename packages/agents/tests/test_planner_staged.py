@@ -9,6 +9,7 @@ from packages.agents.sub_agents.planner.lesson_consistency_validator import (
 )
 from packages.agents.sub_agents.planner.lesson_critic import CritiqueSeverity, critique_lesson
 from packages.agents.sub_agents.planner.nodes import planner_node
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 @pytest.mark.asyncio
@@ -23,7 +24,7 @@ async def test_staged_planner_builds_assessment_first_valid_plan() -> None:
             "topic": "Phân số",
         },
         "run_id": "run-staged",
-        "current_step": 3,
+        "current_step": StageEnum.PLANNING_BLUEPRINT,
         "use_staged_planner": True,
     })
 
@@ -57,7 +58,7 @@ async def test_staged_planner_adapts_to_weak_prerequisites_and_advanced_persona(
         },
         "kt_mastery": {"Fraction foundations": {"mastery": 0.2, "confidence": "high"}},
         "run_id": "run-weak",
-        "current_step": 3,
+        "current_step": StageEnum.PLANNING_BLUEPRINT,
         "use_staged_planner": True,
     })
     advanced = await planner_node({
@@ -70,7 +71,7 @@ async def test_staged_planner_adapts_to_weak_prerequisites_and_advanced_persona(
         },
         "kt_mastery": {"Fraction foundations": {"mastery": 0.9, "confidence": "high"}},
         "run_id": "run-advanced",
-        "current_step": 3,
+        "current_step": StageEnum.PLANNING_BLUEPRINT,
         "use_staged_planner": True,
     })
 
@@ -125,7 +126,7 @@ async def test_seed_mode_uses_staged_engine_without_drifting_seed_constraints() 
         "raw_request": "Generate child lesson",
         "class_info": {"grade": "Grade 5", "subject": "math"},
         "run_id": "run-seed-staged",
-        "current_step": 3,
+        "current_step": StageEnum.PLANNING_BLUEPRINT,
         "use_staged_planner": True,
         "seed": {
             "session_id": "S01",

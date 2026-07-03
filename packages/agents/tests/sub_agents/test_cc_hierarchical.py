@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 def test_hierarchical_creator_outlines_then_fills_sections() -> None:
@@ -12,7 +13,7 @@ def test_hierarchical_creator_outlines_then_fills_sections() -> None:
         "artifact_types": ["lesson"],
         "theme": "default",
         "run_id": "run-cc-hierarchy",
-        "current_step": 8,
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
         "artifacts": None,
     })
 
@@ -31,7 +32,7 @@ def test_hierarchical_creator_marks_failed_section_needs_regen() -> None:
         "artifact_types": ["lesson", "quiz"],
         "theme": "default",
         "run_id": "run-cc-resilience",
-        "current_step": 8,
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
         "artifacts": None,
         "force_section_failures": ["lesson:guided_practice"],
     })
@@ -57,7 +58,7 @@ def test_hierarchical_creator_enforces_guards_and_verified_facts() -> None:
         "artifact_types": ["lesson"],
         "theme": "default",
         "run_id": "run-cc-grounding",
-        "current_step": 8,
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
         "artifacts": None,
     })
 
@@ -80,7 +81,7 @@ def test_hierarchical_creator_fails_hard_on_missing_methodology_component() -> N
             "artifact_types": ["lesson"],
             "theme": "default",
             "run_id": "run-cc-methodology",
-            "current_step": 8,
+            "current_step": StageEnum.ARTIFACT_WORKFLOW,
             "artifacts": None,
             "disable_methodology_components": True,
         })

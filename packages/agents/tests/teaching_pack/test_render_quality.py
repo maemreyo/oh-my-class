@@ -12,6 +12,9 @@ from packages.agents.teaching_pack.quality_routing import route_after_render_qua
 
 
 class TestTeachingPackRenderQuality:
+    def test_success_routes_to_compliance_gate_before_teacher_approval(self) -> None:
+        assert route_after_render_quality(TeachingPackState(run_id="run-ok")) == "compliance_gate"
+
     @pytest.mark.anyio
     async def test_render_quality_invokes_injected_quality_gate_for_valid_artifacts(self) -> None:
         calls = []

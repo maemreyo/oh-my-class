@@ -1,6 +1,6 @@
 # Issue #15: [Epic][Phase 2] State unification + observability backbone
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/15
 State: OPEN
 Created: 2026-07-02T16:42:06Z
@@ -10,11 +10,17 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Completion notes
+
+- Child Issue #22 is DONE: state unification and `StageEnum` guard coverage are in place.
+- Child Issue #23 is DONE: `ObservabilityEvent` flows through the package event bus, gateway worker persistence, `run_events`, and SSE replay.
+- Verification evidence is recorded on the child tickets, including focused Python suites and worker/router regressions.
 
 ## Body
 
@@ -40,9 +46,9 @@ Coordination:
 
 ## Acceptance
 
-- [ ] Both child issues closed with their guard/meta tests passing.
-- [ ] No live code path reads or writes `OhMyClassState`.
-- [ ] Events flow into `run_events` and are consumable by a single downstream reader.
+- [x] Both child issues closed with their guard/meta tests passing.
+- [x] No live code path reads or writes `OhMyClassState`.
+- [x] Events flow into `run_events` and are consumable by a single downstream reader.
 
 ## References
 
@@ -52,4 +58,3 @@ Coordination:
 ## Depends on
 
 - Phase 1 dead-code removal (`[Epic][Phase 1] Dead-code removal & documentation drift`) so the tree is clean before restructuring state. See milestone `agents-hardening`.
-

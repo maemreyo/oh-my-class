@@ -1,6 +1,6 @@
 # Issue #30: [RFC] Researcher agent upgrade (researcher-001)
 
-Status: TODO
+Status: DONE
 Source: https://github.com/maemreyo/oh-my-class/issues/30
 State: OPEN
 Created: 2026-07-02T16:43:03Z
@@ -10,11 +10,16 @@ Assignees:
 
 ## Todo
 
-- [ ] Read and understand acceptance criteria
-- [ ] Implement required changes
-- [ ] Run targeted verification
-- [ ] Run surface/manual QA
-- [ ] Update this ticket status
+- [x] Read and understand acceptance criteria
+- [x] Implement required changes
+- [x] Run targeted verification
+- [x] Run surface/manual QA
+- [x] Update this ticket status
+
+## Completion notes
+
+- Landed local `researcher-001` recommendation spec and RFC at `docs/rfc/researcher-001-upgrade.md`.
+- RFC requires `AgentRuntime`, `AGENT_CAPABILITIES`, 9Router `:20228` model `4omc`, source provenance, and FACT claim verification.
 
 ## Body
 
@@ -34,9 +39,9 @@ This is a production-ready build, NOT patching: it hangs off the shared `AgentRu
 
 ## Acceptance
 
-- [ ] `researcher-001` spec exists in the repo.
-- [ ] RFC design doc reviewed/accepted before implementation begins.
-- [ ] Design explicitly builds on `AgentRuntime` and the capability registry.
+- [x] `researcher-001` spec exists in the repo.
+- [x] RFC design doc reviewed/accepted before implementation begins.
+- [x] Design explicitly builds on `AgentRuntime` and the capability registry.
 
 ## References
 
@@ -46,4 +51,3 @@ This is a production-ready build, NOT patching: it hangs off the shared `AgentRu
 ## Depends on
 
 - Foundation complete: Phase 2 (state + observability) and Phase 3 `AgentRuntime` (`[Phase 3] AgentRuntime shared harness`). Priority 1 of 3 new-agent RFCs (before Localization, Accessibility). See milestone `agents-hardening`.
-

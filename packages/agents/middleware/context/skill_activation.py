@@ -3,12 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 SUBJECT_SKILL_MAP = {
@@ -23,13 +18,13 @@ class SkillActivationMiddleware(BaseMiddleware):
     """Injects curriculum skill files into context metadata based on subject."""
 
     name: str = "skill_activation"
-    order: int = 14
+    order: int = 11
 
     async def before_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         subject = state.get("class_info", {}).get("subject", "").lower()
         skill_rel = SUBJECT_SKILL_MAP.get(subject)
         if skill_rel:
@@ -42,7 +37,7 @@ class SkillActivationMiddleware(BaseMiddleware):
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state

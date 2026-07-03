@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, patch
 
@@ -16,6 +17,7 @@ from packages.agents.sub_agents.content_creator.nodes import (
     validate_no_cdn,
     validate_no_pii,
 )
+from packages.agents.teaching_pack.stages import StageEnum
 
 if TYPE_CHECKING:
     from packages.agents.sub_agents.content_creator.state import ContentCreatorState
@@ -38,7 +40,7 @@ def _make_state(**overrides) -> dict[str, Any]:
         "artifact_types": ["lesson"],
         "theme": "default",
         "run_id": "test-run-001",
-        "current_step": 8,
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
     }
     base.update(overrides)
     return base
@@ -224,6 +226,22 @@ class TestContentCreatorAgent:
         assert "base prompt" in result
         assert "Validation error" in result or "validation error" in result
 
+    @pytest.mark.asyncio
+    async def test_recovers_after_interrupted_generation_stream(self):
+        interrupted_then_valid = AsyncMock(side_effect=[
+            RuntimeError("stream interrupted mid-generation"),
+            VALID_ARTIFACT_JSON,
+        ])
+        with patch("packages.agents.llm.compiled_chat.complete_json_chat", interrupted_then_valid):
+            result = await generate_artifacts(cast("ContentCreatorState", _make_state()))
+
+        assert result["artifacts"][0]["title"] == "Photosynthesis Lesson"
+        assert interrupted_then_valid.await_count == 2
+        first_tags = interrupted_then_valid.await_args_list[0].kwargs["tags"]
+        second_tags = interrupted_then_valid.await_args_list[1].kwargs["tags"]
+        assert "attempt:1" in first_tags
+        assert "attempt:2" in second_tags
+
 
 # ── validate_no_cdn ───────────────────────────────────────────────────────────
 
@@ -299,43 +317,44 @@ class TestValidateNoPii:
 
 class TestContentCreatorTools:
     @pytest.mark.asyncio
-    async def test_read_file_returns_content(self, tmp_path):
+    async def test_read_file_returns_content(self):
         from packages.agents.sub_agents.content_creator.tools import read_file
+        from packages.agents.sub_agents.content_creator.tools import write_file
 
-        f = tmp_path / "test.txt"
-        f.write_text("hello world")
-        content = await read_file(str(f))
+        path = ".scratch/test-content-creator-read.txt"
+        await write_file(path, "hello world", overwrite=True)
+        content = await read_file(path)
         assert content == "hello world"
 
     @pytest.mark.asyncio
-    async def test_write_file_creates_file(self, tmp_path):
+    async def test_write_file_creates_file(self):
         from packages.agents.sub_agents.content_creator.tools import write_file
 
-        path = str(tmp_path / "out.txt")
-        result = await write_file(path, "artifact content")
+        path = Path(".scratch/test-content-creator-out.txt")
+        path.unlink(missing_ok=True)
+        result = await write_file(str(path), "artifact content")
         assert result is True
-        with open(path) as f:
-            assert f.read() == "artifact content"
+        assert path.read_text() == "artifact content"
 
     @pytest.mark.asyncio
-    async def test_write_file_no_overwrite_by_default(self, tmp_path):
+    async def test_write_file_no_overwrite_by_default(self):
         from packages.agents.sub_agents.content_creator.tools import write_file
 
-        f = tmp_path / "existing.txt"
-        f.write_text("original")
-        result = await write_file(str(f), "new content")
+        path = Path(".scratch/test-content-creator-existing.txt")
+        path.write_text("original")
+        result = await write_file(str(path), "new content")
         assert result is False
-        assert f.read_text() == "original"
+        assert path.read_text() == "original"
 
     @pytest.mark.asyncio
-    async def test_write_file_overwrite_flag(self, tmp_path):
+    async def test_write_file_overwrite_flag(self):
         from packages.agents.sub_agents.content_creator.tools import write_file
 
-        f = tmp_path / "existing.txt"
-        f.write_text("original")
-        result = await write_file(str(f), "new content", overwrite=True)
+        path = Path(".scratch/test-content-creator-overwrite.txt")
+        path.write_text("original")
+        result = await write_file(str(path), "new content", overwrite=True)
         assert result is True
-        assert f.read_text() == "new content"
+        assert path.read_text() == "new content"
 
 
 # ── Prompts ───────────────────────────────────────────────────────────────────

@@ -5,11 +5,12 @@ Tests the end-to-end flow: schema validation → content review → LLM judge
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any
 from unittest.mock import patch
 
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.gates.state import GateState
+from packages.agents.nodes.state import NodeState
+from packages.agents.teaching_pack.nodes import TeachingPackState
 
 
 VALID_ARTIFACT = {
@@ -136,14 +137,14 @@ class TestSchemaValidator:
     def test_passes_valid_artifacts(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
         state = _base_state(artifacts=[VALID_ARTIFACT])
-        result = step_09_schema_validate(cast("OhMyClassState", state))
+        result = step_09_schema_validate(GateState(**state))
         assert result["schema_valid"] is True
         assert "fail_layer" not in result
 
     def test_fails_empty_artifacts(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
         state = _base_state(artifacts=[])
-        result = step_09_schema_validate(cast("OhMyClassState", state))
+        result = step_09_schema_validate(GateState(**state))
         assert result["schema_valid"] is False
         assert result["fail_layer"] == "schema"
         assert result["fail_type"] == "validation"
@@ -151,7 +152,7 @@ class TestSchemaValidator:
     def test_fails_missing_keys(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
         state = _base_state(artifacts=[{"content": "test"}])
-        result = step_09_schema_validate(cast("OhMyClassState", state))
+        result = step_09_schema_validate(GateState(**state))
         assert result["schema_valid"] is False
         assert result["fail_layer"] == "schema"
 
@@ -159,7 +160,7 @@ class TestSchemaValidator:
         from packages.agents.gates.schema_validator import step_09_schema_validate
         artifact = {"type": "lesson", "content": ""}
         state = _base_state(artifacts=[artifact])
-        result = step_09_schema_validate(cast("OhMyClassState", state))
+        result = step_09_schema_validate(GateState(**state))
         assert result["schema_valid"] is False
 
     def test_passes_components_only_section(self):
@@ -181,13 +182,13 @@ class TestSchemaValidator:
                 }
             ],
         }
-        result = step_09_schema_validate(cast("OhMyClassState", _base_state(artifacts=[artifact])))
+        result = step_09_schema_validate(GateState(**_base_state(artifacts=[artifact])))
         assert result["schema_valid"] is True
 
     def test_preserves_fail_count_from_state(self):
         from packages.agents.gates.schema_validator import step_09_schema_validate
         state = _base_state(artifacts=[], fail_count=2)
-        result = step_09_schema_validate(cast("OhMyClassState", state))
+        result = step_09_schema_validate(GateState(**state))
         assert result["fail_count"] == 2
 
 
@@ -198,16 +199,13 @@ class TestContentReviewer:
     def test_passes_clean_content(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
         state = _base_state(artifacts=[_component_lesson_artifact()])
-        result = step_10_content_review(cast("OhMyClassState", state))
+        result = step_10_content_review(GateState(**state))
         assert result["content_review_passed"] is True
         assert "fail_layer" not in result
 
     def test_fails_flat_lesson_without_components(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
-        result = step_10_content_review(cast(
-            "OhMyClassState",
-            _base_state(artifacts=[VALID_ARTIFACT]),
-        ))
+        result = step_10_content_review(GateState(**_base_state(artifacts=[VALID_ARTIFACT])))
         assert result["content_review_passed"] is False
         assert result["fail_layer"] == "content"
         assert any("components" in error for error in result["fail_context"]["errors"])
@@ -219,7 +217,7 @@ class TestContentReviewer:
             "title": "Bad Lesson",
             "sections": [{"content": "violence and gore in this lesson"}],
         }])
-        result = step_10_content_review(cast("OhMyClassState", state))
+        result = step_10_content_review(GateState(**state))
         assert result["content_review_passed"] is False
         assert result["fail_layer"] == "content"
 
@@ -234,12 +232,12 @@ class TestContentReviewer:
             "title": "HTML Lesson",
             "sections": [{"content": html_content}],
         }
-        result = step_10_content_review(cast("OhMyClassState", _base_state(artifacts=[artifact])))
+        result = step_10_content_review(GateState(**_base_state(artifacts=[artifact])))
         assert result["content_review_passed"] is False
 
     def test_no_artifacts_passes(self):
         from packages.agents.gates.content_reviewer import step_10_content_review
-        result = step_10_content_review(cast("OhMyClassState", _base_state(artifacts=[])))
+        result = step_10_content_review(GateState(**_base_state(artifacts=[])))
         assert result["content_review_passed"] is True
 
 
@@ -256,14 +254,14 @@ class TestLLMJudge:
                 "learning_objectives": ["Explain photosynthesis"],
             },
         )
-        result = step_10b_llm_judge(cast("OhMyClassState", state))
+        result = step_10b_llm_judge(GateState(**state))
         assert result["judge_score"] >= 7.0
         assert result["quality_scores"]["overall"] >= 7.0
         assert "fail_layer" not in result
 
     def test_quality_scores_include_component_intelligence(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
-        result = step_10b_llm_judge(cast("OhMyClassState", _base_state(
+        result = step_10b_llm_judge(GateState(**_base_state(
             artifacts=[_component_lesson_artifact()],
             lesson_plan={"methodology": {"tags": ["concept_map", "why_wrong_reasoning"]}},
         )))
@@ -276,20 +274,20 @@ class TestLLMJudge:
         from packages.agents.gates.llm_judge import step_10b_llm_judge
 
         state = _base_state(artifacts=[VALID_ARTIFACT], lesson_plan={"topic": "Math"})
-        result = step_10b_llm_judge(cast("OhMyClassState", state))
+        result = step_10b_llm_judge(GateState(**state))
         assert result["judge_score"] < 7.0
         assert result["fail_layer"] == "judge"
 
     def test_fails_empty_artifacts(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
-        result = step_10b_llm_judge(cast("OhMyClassState", _base_state(artifacts=[])))
+        result = step_10b_llm_judge(GateState(**_base_state(artifacts=[])))
         assert result["judge_score"] == 0.0
         assert result["fail_layer"] == "judge"
         assert result["fail_type"] == "score"
 
     def test_empty_content_scores_zero(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
-        result = step_10b_llm_judge(cast("OhMyClassState", _base_state(artifacts=[{
+        result = step_10b_llm_judge(GateState(**_base_state(artifacts=[{
             "artifact_type": "lesson",
             "title": "Empty Lesson",
             "sections": [{"content": ""}],
@@ -298,7 +296,7 @@ class TestLLMJudge:
 
     def test_score_is_float(self):
         from packages.agents.gates.llm_judge import step_10b_llm_judge
-        result = step_10b_llm_judge(cast("OhMyClassState", _base_state(artifacts=[VALID_ARTIFACT])))
+        result = step_10b_llm_judge(GateState(**_base_state(artifacts=[VALID_ARTIFACT])))
         assert isinstance(result["judge_score"], float)
 
 
@@ -308,61 +306,61 @@ class TestLLMJudge:
 class TestHealingOrchestrator:
     def test_first_validation_failure_rewrites(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(fail_count=0, fail_type="validation"))
+        state = TeachingPackState(**_base_state(fail_count=0, fail_type="validation"))
         result = HealingOrchestrator(max_retries=3).heal(state)
         assert result.get("healing_strategy") == "rewrite"
         assert result["fail_count"] == 1
 
     def test_first_content_failure_rewrites(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(fail_count=0, fail_type="content"))
+        state = TeachingPackState(**_base_state(fail_count=0, fail_type="content"))
         result = HealingOrchestrator(max_retries=3).heal(state)
         assert result.get("healing_strategy") == "rewrite"
         assert result["fail_count"] == 1
 
     def test_second_failure_reroutes(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(fail_count=1, fail_type="validation"))
+        state = TeachingPackState(**_base_state(fail_count=1, fail_type="validation"))
         result = HealingOrchestrator(max_retries=3).heal(state)
         assert result.get("healing_strategy") == "reroute"
         assert result["fail_count"] == 2
 
     def test_third_failure_replans(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(fail_count=2, fail_type="score"))
+        state = TeachingPackState(**_base_state(fail_count=2, fail_type="score"))
         result = HealingOrchestrator(max_retries=3).heal(state)
         assert result.get("healing_strategy") == "replan"
         assert result["fail_count"] == 3
 
     def test_fourth_failure_escalates(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(fail_count=3, fail_type="score"))
+        state = TeachingPackState(**_base_state(fail_count=3, fail_type="score"))
         result = HealingOrchestrator(max_retries=3).heal(state)
         assert result.get("escalate") is True
         assert result["fail_count"] == 4
 
     def test_first_transient_failure_retries(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(fail_count=0, fail_type="transient"))
+        state = TeachingPackState(**_base_state(fail_count=0, fail_type="transient"))
         with patch("packages.agents.healing.strategies.retry.time.sleep"):
             result = HealingOrchestrator(max_retries=3).heal(state)
         assert result.get("healing_strategy") == "retry"
 
     def test_first_score_failure_rewrites(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(fail_count=0, fail_type="score"))
+        state = TeachingPackState(**_base_state(fail_count=0, fail_type="score"))
         result = HealingOrchestrator(max_retries=3).heal(state)
         assert result.get("healing_strategy") == "rewrite"
 
     def test_rewrite_clears_artifacts(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(fail_count=0, fail_type="validation"))
+        state = TeachingPackState(**_base_state(fail_count=0, fail_type="validation"))
         result = HealingOrchestrator(max_retries=3).heal(state)
         assert result["artifacts"] is None
 
     def test_escalate_sets_error_field(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = cast("OhMyClassState", _base_state(
+        state = TeachingPackState(**_base_state(
             fail_count=3, fail_type="score", fail_layer="judge",
         ))
         result = HealingOrchestrator(max_retries=3).heal(state)
@@ -463,7 +461,7 @@ class TestFinalizeHardInvariant:
         )
         with patch("packages.agents.nodes.finalize._render_artifact_with_renderer") as render:
             render.return_value = "<!DOCTYPE html><html><body>renderer-template</body></html>"
-            result = step_12_finalize(cast("OhMyClassState", state))
+            result = step_12_finalize(NodeState(**state))
         assert len(result["exported_files"]) == 1
         assert "renderer-template" in result["exported_files"][0]["content"]
         assert "fail_context" not in result
@@ -474,7 +472,7 @@ class TestFinalizeHardInvariant:
             artifacts=[FINALIZE_ARTIFACT_WITH_URL],
             export_formats=["html"],
         )
-        result = step_12_finalize(cast("OhMyClassState", state))
+        result = step_12_finalize(NodeState(**state))
         assert result.get("export_ready") is False
         assert result.get("fail_type") == "invariant"
         errors = result["fail_context"]["errors"]
@@ -486,7 +484,7 @@ class TestFinalizeHardInvariant:
             artifacts=[FINALIZE_ARTIFACT_TEACHER_ONLY],
             export_formats=["html"],
         )
-        result = step_12_finalize(cast("OhMyClassState", state))
+        result = step_12_finalize(NodeState(**state))
         assert len(result["exported_files"]) == 0
         assert "fail_context" not in result
 
@@ -505,7 +503,7 @@ class TestFinalizeHardInvariant:
         state = _base_state(artifacts=[artifact], export_formats=["html"])
         with patch("packages.agents.nodes.finalize._render_artifact_with_renderer") as render:
             render.return_value = "<!DOCTYPE html><html><body>renderer-template</body></html>"
-            result = step_12_finalize(cast("OhMyClassState", state))
+            result = step_12_finalize(NodeState(**state))
         assert len(result["exported_files"]) == 1
         assert "fail_context" not in result
 
@@ -522,7 +520,7 @@ class TestFinalizeHardInvariant:
             "accessibility": {"language": "en"},
         }
         state = _base_state(artifacts=[artifact], export_formats=["html"])
-        result = step_12_finalize(cast("OhMyClassState", state))
+        result = step_12_finalize(NodeState(**state))
         assert result.get("export_ready") is False
         assert result.get("fail_type") == "invariant"
 
@@ -536,7 +534,7 @@ class TestFinalizeHardInvariant:
             render.return_value = (
                 "<!DOCTYPE html><html><body>oh-my-class renderer-template</body></html>"
             )
-            result = step_12_finalize(cast("OhMyClassState", state))
+            result = step_12_finalize(NodeState(**state))
         html = result["exported_files"][0]["content"]
         assert "<!DOCTYPE html>" in html
         assert "oh-my-class" in html
@@ -546,5 +544,5 @@ class TestFinalizeHardInvariant:
     def test_finalize_empty_artifacts_exports_nothing(self):
         from packages.agents.nodes.finalize import step_12_finalize
         state = _base_state(artifacts=[], export_formats=["html"])
-        result = step_12_finalize(cast("OhMyClassState", state))
+        result = step_12_finalize(NodeState(**state))
         assert result["exported_files"] == []

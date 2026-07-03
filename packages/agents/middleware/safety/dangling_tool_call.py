@@ -6,12 +6,7 @@ network failure, or process crash). Cleans up partial state before retry.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class DanglingToolCallMiddleware(BaseMiddleware):
@@ -26,9 +21,9 @@ class DanglingToolCallMiddleware(BaseMiddleware):
 
     async def before_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         """Check for and recover from dangling tool calls."""
         # Inspect context metadata for any tool calls registered in prior turn
         pending = context.metadata.get("pending_tool_calls", [])
@@ -39,9 +34,9 @@ class DanglingToolCallMiddleware(BaseMiddleware):
 
     async def after_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         """Register any tool calls emitted this turn for tracking."""
         # Tool call IDs would be extracted from LLM response messages;
         # state doesn't carry raw messages in this pipeline so no-op for now.

@@ -71,16 +71,6 @@ class TestReviewerPrompt:
         from packages.agents.sub_agents.reviewer.prompts import load_system_prompt
         assert "hard" in load_system_prompt().lower() or "block" in load_system_prompt().lower()
 
-
-# ── Lead Agent prompt (already exists) ───────────────────────────────────────
-
-def test_lead_agent_prompt_loads():
-    from packages.agents.lead_agent.prompts import load_system_prompt
-    prompt = load_system_prompt()
-    assert "Lead Agent" in prompt
-    assert "run_planner" in prompt
-
-
 # ── Skills directory ──────────────────────────────────────────────────────────
 
 class TestSkillsDirectory:

@@ -2,32 +2,27 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext
-
-if TYPE_CHECKING:
-    from packages.agents.state import OhMyClassState
+from packages.agents.middleware.base import BaseMiddleware, MiddlewareContext, MiddlewareState
 
 
 class LearningObjectiveAlignmentMiddleware(BaseMiddleware):
     """Marks alignment_check passed when both objectives and artifacts are present."""
 
     name: str = "learning_objective_alignment"
-    order: int = 29
+    order: int = 21
 
     async def before_model(
         self,
-        state: OhMyClassState,
-        context: MiddlewareContext,
-    ) -> OhMyClassState:
+        state: MiddlewareState,
+        _context: MiddlewareContext,
+    ) -> MiddlewareState:
         return state
 
     async def after_model(
         self,
-        state: OhMyClassState,
+        state: MiddlewareState,
         context: MiddlewareContext,
-    ) -> OhMyClassState:
+    ) -> MiddlewareState:
         objectives = state.get("lesson_plan", {}).get("learning_objectives", [])
         artifacts = state.get("artifacts", [])
         if objectives and artifacts:

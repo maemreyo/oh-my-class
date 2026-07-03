@@ -4,12 +4,14 @@ from typing import Any, TypedDict
 
 from langgraph.graph import MessagesState
 
+from packages.agents.teaching_pack.stages import StageEnum
+
 
 class PlannerNodeState(TypedDict, total=False):
     raw_request: str
     class_info: dict[str, Any]
     run_id: str
-    current_step: int
+    current_step: StageEnum
     lesson_plan: dict[str, Any] | None
     seed: dict[str, Any] | None
     use_staged_planner: bool
@@ -20,15 +22,10 @@ class PlannerNodeState(TypedDict, total=False):
 
 
 class PlannerState(MessagesState):
-    """Internal state for the Planner Agent.
-
-    Graph node adapter extracts these fields from OhMyClassState before invocation,
-    then injects lesson_plan back into the graph state.
-    """
     raw_request: str
     class_info: dict[str, Any]
     run_id: str
-    current_step: int
+    current_step: StageEnum
     lesson_plan: dict[str, Any] | None
     seed: dict[str, Any] | None
     use_staged_planner: bool
