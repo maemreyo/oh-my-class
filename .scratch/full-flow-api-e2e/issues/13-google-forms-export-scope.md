@@ -1,6 +1,6 @@
 # [FFA-13] google_forms export — decide scope + dry-run coverage
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, exporters
 ADR: 031
 Depends on: none
@@ -15,13 +15,13 @@ implementation (`packages/exporters/src/google-forms/`) requires Google OAuth + 
 
 ## Scope
 
-- [ ] Decide + document status: either (a) explicitly **out of offline e2e scope** (deferred,
+- [x] Decide + document status: either (a) explicitly **out of offline e2e scope** (deferred,
       with reason), or (b) wire it behind credentials with a dry-run/mock path.
-- [ ] If kept: add a mock/dry-run test (question_mapper output validated without network) so the
+- [x] If kept: add a mock/dry-run test (question_mapper output validated without network) so the
       mapping logic is covered; mark the live path as manual/credentialed-only.
-- [ ] If deferred: remove `google_forms` from advertised/requestable export_formats OR clearly
+- [x] If deferred: remove `google_forms` from advertised/requestable export_formats OR clearly
       document it as unsupported so requesting it fails fast instead of silently producing nothing.
-- [ ] Reflect the decision in ADR-031's matrix (D).
+- [x] Reflect the decision in ADR-031's matrix (D).
 
 ## Acceptance
 

@@ -1,6 +1,6 @@
 # [FFA-03] Persist `fail_count` across healing rounds (unfreeze the ladder)
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, healing
 ADR: 029
 Depends on: none (foundational for FFA-04/05)
@@ -16,13 +16,13 @@ This is the root cause behind the orphaned-escalation finding (agents-hardening 
 
 ## Scope
 
-- [ ] Persist the healing counter into graph state each round so the ladder advances
+- [x] Persist the healing counter into graph state each round so the ladder advances
       retry/rewrite → reroute → replan → escalate. Round-trip through the state reducer,
       not a transient local.
-- [ ] Track at the granularity the fan-out supports: per `artifact_id`/`workflow_id` for a
+- [x] Track at the granularity the fan-out supports: per `artifact_id`/`workflow_id` for a
       single failing artifact (aligns with scoped-replan #27), run-level for upstream
       (blueprint/research) failures.
-- [ ] Ensure `heal_quality_failure` (`teaching_pack/healing_runtime.py`) reads and writes the
+- [x] Ensure `heal_quality_failure` (`teaching_pack/healing_runtime.py`) reads and writes the
       persisted counter.
 
 ## Acceptance

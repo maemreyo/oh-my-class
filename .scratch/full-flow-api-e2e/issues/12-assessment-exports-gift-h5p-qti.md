@@ -1,6 +1,6 @@
 # [FFA-12] Assessment export coverage — gift / h5p / qti
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, exporters, e2e
 ADR: 031, 030
 Depends on: FFA-06/07 (artifacts), FFA-10 (driver)
@@ -16,14 +16,14 @@ blanks, summary, flashcards content types). They derive from assessment artifact
 
 ## Scope
 
-- [ ] Driver requests `export_formats` including `gift, h5p, qti` for a run with
+- [x] Driver requests `export_formats` including `gift, h5p, qti` for a run with
       quiz/worksheet/drill artifacts.
-- [ ] Ensure the generated assessment content includes the question kinds GIFT/H5P/QTI support
+- [x] Ensure the generated assessment content includes the question kinds GIFT/H5P/QTI support
       so exports are non-trivial (not empty).
-- [ ] Assert each produced file (`<run_id>.gift.txt`, `.h5p`, `.qti.xml`) exists, is non-empty,
+- [x] Assert each produced file (`<run_id>.gift.txt`, `.h5p`, `.qti.xml`) exists, is non-empty,
       and is structurally valid (GIFT parses; .h5p is a valid zip with content.json; QTI is
       well-formed XML).
-- [ ] Include these files in the per-scenario output folder + `summary.json` matrix.
+- [x] Include these files in the per-scenario output folder + `summary.json` matrix.
 
 ## Acceptance
 

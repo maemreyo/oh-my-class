@@ -49,6 +49,10 @@ export interface TeachingPackEventPayload {
 	readonly artifact_statuses?: readonly ArtifactStatusItem[];
 	readonly artifact_explanations?: readonly ArtifactExplanation[];
 	readonly auto_approved?: boolean;
+	readonly escalated?: boolean;
+	readonly needs_review?: boolean;
+	readonly approval_mode?: string;
+	readonly escalate_reason?: string;
 	readonly trust_score?: number;
 	readonly revert_window_seconds?: number;
 	readonly [key: string]: unknown;

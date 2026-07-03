@@ -34,12 +34,19 @@ type JsonObject = dict[str, Any]
 
 GENERATE_ONE_ARTIFACT_NODE: Final = "generate_one_artifact"
 RENDER_QUALITY_NODE: Final = "render_quality"
-_WAVES: Final[tuple[tuple[str, ...], ...]] = (("lesson",), ("worksheet", "quiz", "drill"), ("recap",))
+_WAVES: Final[tuple[tuple[str, ...], ...]] = (
+    ("lesson",),
+    ("worksheet", "quiz", "drill", "flashcard_deck", "roadmap"),
+    ("recap", "answer_key"),
+)
 _DEPENDENCIES: Final[dict[str, tuple[str, ...]]] = {
     "worksheet": ("lesson",),
     "quiz": ("lesson",),
     "drill": ("lesson",),
     "recap": ("lesson", "quiz"),
+    "flashcard_deck": ("lesson",),
+    "answer_key": ("quiz",),
+    "roadmap": ("lesson",),
 }
 
 

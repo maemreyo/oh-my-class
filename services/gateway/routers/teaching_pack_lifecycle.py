@@ -11,8 +11,9 @@ from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import User  # noqa: TC001
 from services.gateway.models import RunStatus
 from services.gateway.teaching_pack_control_store import TeachingPackControlStore
+from services.gateway.teaching_pack_gate_registry import TeachingPackGateName, allowed_actions_for_gate
 from services.gateway.teaching_pack_job_store import TeachingPackJobStore
-from services.gateway.teaching_pack_models import TeachingPackEventVisibility
+from services.gateway.teaching_pack_models import GateInterrupt, TeachingPackEventVisibility
 from services.gateway.teaching_pack_store import (
     InvalidRunStatusTransitionError,
     TeachingPackEventCreate,
@@ -29,6 +30,7 @@ from services.gateway.routers.teaching_pack_deps import (
 from services.gateway.routers.teaching_pack_schemas import (
     TeachingPackCancelResponse,
     TeachingPackDeleteResponse,
+    TeachingPackPendingGateResponse,
     TeachingPackRestoreResponse,
     TeachingPackRunStatusResponse,
 )
@@ -46,11 +48,13 @@ async def get_teaching_pack_run(
 ) -> TeachingPackRunStatusResponse:
     run = await get_run_with_ownership(run_id, current_user, session)
     events = await TeachingPackRunStore(session).replay_events(RunId(run_id))
+    pending_gate = await _pending_gate(session, RunId(run_id))
     return TeachingPackRunStatusResponse(
         run_id=run.run_id,
         status=run.status,
         raw_request=run.raw_request,
         artifact_statuses=_latest_artifact_statuses(events),
+        pending_gate=pending_gate,
     )
 
 
@@ -61,6 +65,29 @@ def _latest_artifact_statuses(events: list[TeachingPackEventRead]) -> list[dict[
         if isinstance(values, list):
             return [dict(value) for value in values if isinstance(value, dict)]
     return []
+
+
+async def _pending_gate(
+    session: AsyncSession,
+    run_id: RunId,
+) -> TeachingPackPendingGateResponse | None:
+    active_gates = await TeachingPackControlStore(session).list_active_gates(run_id)
+    if not active_gates:
+        return None
+    return _pending_gate_response(active_gates[-1])
+
+
+def _pending_gate_response(gate: GateInterrupt) -> TeachingPackPendingGateResponse:
+    gate_name = TeachingPackGateName(gate.gate_name)
+    payload = gate.payload or {}
+    snapshot_values = payload.get("snapshot_ids")
+    snapshot_ids = [str(value) for value in snapshot_values] if isinstance(snapshot_values, list) else []
+    return TeachingPackPendingGateResponse(
+        gate_id=gate.gate_id,
+        gate_name=gate.gate_name,
+        allowed_actions=[action.value for action in allowed_actions_for_gate(gate_name)],
+        snapshot_ids=snapshot_ids,
+    )
 
 
 @lifecycle_router.post("/run/{run_id}/cancel", response_model=TeachingPackCancelResponse)

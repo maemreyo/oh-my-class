@@ -62,6 +62,42 @@ class TestTeachingPackContractSetup:
         assert result.contract.export_formats == ["html"]
         assert len(result.contract.config_hash) == 64
 
+    def test_all_renderable_artifact_types_are_requestable(self) -> None:
+        result = resolve_contract_setup(ContractSetupInput(
+            run_id=RunId("run-full-artifacts"),
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Fractions",
+            class_info={
+                "topic": "Fractions",
+                "grade": 5,
+                "subject": "math",
+                "artifact_types": [
+                    "lesson",
+                    "worksheet",
+                    "quiz",
+                    "drill",
+                    "recap",
+                    "infographic",
+                    "flashcard_deck",
+                    "answer_key",
+                    "roadmap",
+                ],
+            },
+        ))
+
+        assert isinstance(result, ContractSetupReady)
+        assert result.contract.artifact_types == [
+            "lesson",
+            "worksheet",
+            "quiz",
+            "drill",
+            "recap",
+            "infographic",
+            "flashcard_deck",
+            "answer_key",
+            "roadmap",
+        ]
+
     def test_risky_inferred_topic_opens_contract_confirmation(self) -> None:
         result = resolve_contract_setup(ContractSetupInput(
             run_id=RunId("run-c"),

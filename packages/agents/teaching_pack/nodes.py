@@ -466,12 +466,22 @@ def _teacher_approval(
         "run_id": state["run_id"],
         "artifact_explanations": artifact_explanations_for_teacher(state, "manual"),
     }
+    if state.get("escalate") is True:
+        gate_payload["escalated"] = True
+        gate_payload["needs_review"] = True
+        gate_payload["approval_mode"] = "manual_required"
+        gate_payload["escalate_reason"] = _state_string_field(
+            state,
+            "escalate_reason",
+            "Quality checks did not pass after repeated attempts.",
+        )
+        gate_payload["healing_history"] = _healing_history(state)
 
     contract = state.get("contract", {})
     teacher_id = _string_field(contract, "teacher_id", "")
     auto_approved = False
 
-    if store is not None and teacher_id and state.get("compliance_passed") is True:
+    if store is not None and teacher_id and state.get("compliance_passed") is True and state.get("escalate") is not True:
         from packages.agents.config.gate_config import GateConfig
         from packages.agents.teaching_pack.gate_trust import compute_trust_score, should_fast_lane
         threshold = GateConfig().fast_lane_threshold
@@ -511,6 +521,25 @@ def _teacher_approval(
         "revision_feedback": feedback,
         "approved_snapshot_ids": snapshot_ids if normalized_action == "approve" else [],
     }
+
+
+def _healing_history(state: TeachingPackState) -> list[JsonValue]:
+    context = state.get("healing_context")
+    if isinstance(context, dict):
+        history = context.get("history")
+        if isinstance(history, list):
+            return [_json_object(item) for item in history if isinstance(item, dict)]
+    strategy = state.get("healing_strategy")
+    if isinstance(strategy, str) and strategy:
+        return [{"strategy": strategy, "fail_count": state.get("fail_count", 0)}]
+    return []
+
+
+def _state_string_field(state: TeachingPackState, key: str, default: str) -> str:
+    value = state.get(key)
+    if isinstance(value, str) and value:
+        return value
+    return default
 
 
 async def _teacher_approval_with_middleware(

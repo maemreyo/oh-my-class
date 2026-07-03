@@ -1,6 +1,6 @@
 # [FFA-14] Pipeline-mode coverage — diagnose / plan_unit / vocabulary_batch
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, e2e
 ADR: 031
 Depends on: FFA-02, FFA-10
@@ -20,14 +20,14 @@ A "full test" must exercise each mode at least once, not just `generate_pack`.
 
 ## Scope
 
-- [ ] Driver adds one scenario per non-default mode:
+- [x] Driver adds one scenario per non-default mode:
       - `diagnose_then_generate` with a sample `student_evidence`.
       - `plan_unit` with a `decomposition_intent`; drive the `unit_approval` gate (approve),
         then continue; capture the roadmap + unit lessons.
       - `vocabulary_batch`; capture the cluster manifest + per-cluster html/gift/h5p.
-- [ ] Handle each mode's distinct gate sequence (e.g. `unit_approval` before content).
-- [ ] Emit each mode's outputs into its own `.scratch/teacher-scenarios/<mode>/` folder + index.
-- [ ] Record mode coverage in `summary.json`.
+- [x] Handle each mode's distinct gate sequence (e.g. `unit_approval` before content).
+- [x] Emit each mode's outputs into its own `.scratch/teacher-scenarios/<mode>/` folder + index.
+- [x] Record mode coverage in `summary.json`.
 
 ## Acceptance
 

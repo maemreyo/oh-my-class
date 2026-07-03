@@ -1,6 +1,6 @@
 # [FFA-04] Wire escalate route → `content_approval` with `escalated` flag
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, healing, gateway
 ADR: 029
 Depends on: FFA-03
@@ -15,13 +15,13 @@ dead safety valve for a K-12 product.
 
 ## Scope
 
-- [ ] Add `teacher_approval` as a valid target of `route_after_render_quality`
+- [x] Add `teacher_approval` as a valid target of `route_after_render_quality`
       (`quality_routing.py`) AND to the `render_quality` conditional-edge map in `graph.py`.
-- [ ] On escalate, open the existing `content_approval` gate flagged
+- [x] On escalate, open the existing `content_approval` gate flagged
       `escalated=true`, `needs_review=true`, with `escalate_reason` + `healing_history`
       in the gate payload (reuse the #29 explainable-gate surface; teacher UI shows a
       "Needs your review" badge + single CTA).
-- [ ] Ensure an escalated gate is NEVER fast-lane auto-approved (ADR-026): assert
+- [x] Ensure an escalated gate is NEVER fast-lane auto-approved (ADR-026): assert
       `escalated → approval_mode == manual_required`.
 
 ## Acceptance

@@ -10,7 +10,10 @@ from packages.agents.sub_agents.content_creator.nodes import validate_no_cdn, va
 
 from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeState
 
-ArtifactKind = Literal["lesson", "worksheet", "quiz", "drill", "recap", "infographic"]
+ArtifactKind = Literal[
+    "lesson", "worksheet", "quiz", "drill", "recap", "infographic",
+    "flashcard_deck", "answer_key", "roadmap",
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,6 +51,12 @@ def _artifact_kind(value: str) -> ArtifactKind:
             return "recap"
         case "infographic":
             return "infographic"
+        case "flashcard_deck":
+            return "flashcard_deck"
+        case "answer_key":
+            return "answer_key"
+        case "roadmap":
+            return "roadmap"
         case _:
             msg = f"unsupported artifact type: {value}"
             raise ValueError(msg)
@@ -88,8 +97,12 @@ def _outline(artifact_type: ArtifactKind, lesson_plan: dict[str, Any]) -> list[S
             return base[1:3] + [SectionOutline("independent_practice", "Independent practice", "student practice", objectives[-1] if objectives else None, None)]
         case "quiz":
             return [SectionOutline("assessment", "Assessment", "quiz objectives", objective, "assess_performance") for objective in objectives[:5]]
-        case "recap" | "infographic":
+        case "recap" | "infographic" | "roadmap":
             return [SectionOutline(event, event.replace("_", " ").title(), "summarize phase", None, event) for event in phases[:4]]
+        case "flashcard_deck":
+            return [SectionOutline("cards", "Flashcards", "build active-recall cards", objectives[0] if objectives else None, "enhance_retention")]
+        case "answer_key":
+            return [SectionOutline("teacher_only_answers", "Teacher-only answer key", "explain correct answers", objective, "assess_performance") for objective in objectives[:5]]
         case unreachable:
             assert_never(unreachable)
 
@@ -109,7 +122,7 @@ def _fill_section(
         {"type": "paragraph", "text": f"{outline.job}: {fact}"},
     ]
     components.extend(_methodology_components(lesson_plan, state))
-    return {
+    section = {
         "section_id": outline.section_id,
         "title": outline.title,
         "content": f"{outline.job}: {fact}",
@@ -118,6 +131,25 @@ def _fill_section(
         "components": components,
         "metadata": {"filled_independently": True, "grounded_fact": fact},
     }
+    if artifact_type == "answer_key":
+        section["teacher_only"] = True
+    if artifact_type == "flashcard_deck":
+        section["cards"] = _flashcards(lesson_plan, fact)
+    return section
+
+
+def _flashcards(lesson_plan: dict[str, Any], fact: str) -> list[dict[str, str]]:
+    objectives = _objective_texts(lesson_plan) or [fact]
+    doubled_objectives = [*objectives, *objectives]
+    return [
+        {
+            "id": f"card-{index}",
+            "front": objective,
+            "back": f"Key idea: {fact}",
+            "hint": "Connect this card to the lesson objective.",
+        }
+        for index, objective in enumerate(doubled_objectives, start=1)
+    ][:8]
 
 
 def _regen_placeholder(outline: SectionOutline) -> dict[str, Any]:

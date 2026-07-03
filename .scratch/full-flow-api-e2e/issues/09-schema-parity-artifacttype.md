@@ -1,6 +1,6 @@
 # [FFA-09] Schema parity for new `ArtifactType` members (Pydantic ↔ Zod)
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, contracts, schemas
 ADR: 030
 Depends on: none (do before FFA-06/07)
@@ -14,12 +14,12 @@ client and the parity check (`make check-schemas`).
 
 ## Scope
 
-- [ ] Update `ArtifactType` Literal in `common/contracts/run_contract.py` (add answer_key,
+- [x] Update `ArtifactType` Literal in `common/contracts/run_contract.py` (add answer_key,
       roadmap; flashcard_deck already present).
-- [ ] Regenerate Zod/TS schemas (`make gen-schemas`) and verify parity (`make check-schemas`).
-- [ ] Update any `ArtifactContent.artifact_type` Literal (`common/contracts/artifact.py`) if
+- [x] Regenerate Zod/TS schemas (`make gen-schemas`) and verify parity (`make check-schemas`).
+- [x] Update any `ArtifactContent.artifact_type` Literal (`common/contracts/artifact.py`) if
       it diverges; confirm renderer contract types match.
-- [ ] Update `SUPPORTED_ARTIFACTS`-style validation set(s) consistently.
+- [x] Update `SUPPORTED_ARTIFACTS`-style validation set(s) consistently.
 
 ## Acceptance
 

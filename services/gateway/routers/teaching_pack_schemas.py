@@ -43,11 +43,19 @@ class TeachingPackRevisionAcceptedResponse(BaseModel):
     job_id: str
 
 
+class TeachingPackPendingGateResponse(BaseModel):
+    gate_id: str
+    gate_name: str
+    allowed_actions: list[str]
+    snapshot_ids: list[str] = Field(default_factory=list)
+
+
 class TeachingPackRunStatusResponse(BaseModel):
     run_id: str
     status: RunStatus
     raw_request: str
     artifact_statuses: list[JsonObject] = Field(default_factory=list)
+    pending_gate: TeachingPackPendingGateResponse | None = None
 
 
 class TeachingPackCancelResponse(BaseModel):

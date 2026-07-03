@@ -10,7 +10,17 @@ from packages.agents.nodes.state import NodeState
 DEFAULT_ARTIFACT_TYPES = ["lesson", "worksheet", "quiz"]
 
 # All supported artifact types
-SUPPORTED_ARTIFACT_TYPES = {"lesson", "worksheet", "quiz", "drill", "recap", "infographic"}
+SUPPORTED_ARTIFACT_TYPES = {
+    "lesson",
+    "worksheet",
+    "quiz",
+    "drill",
+    "recap",
+    "infographic",
+    "flashcard_deck",
+    "answer_key",
+    "roadmap",
+}
 
 
 def step_05_pack_scope(state: NodeState) -> dict[str, Any]:

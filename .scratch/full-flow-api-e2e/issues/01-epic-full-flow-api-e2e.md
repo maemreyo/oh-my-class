@@ -1,6 +1,6 @@
 # [FFA-01][Epic] Full-flow API operability + teacher-scenario e2e
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, epic
 ADR: 028, 029, 030
 
@@ -19,16 +19,16 @@ fast-lane auto-approve, scoped reject→regenerate, escalate) across all output 
 
 ## Scope (children)
 
-- [ ] FFA-02 REST gate discovery (`pending_gate`)
-- [ ] FFA-03 Persist `fail_count` across healing rounds
-- [ ] FFA-04 Wire escalate → `content_approval` (escalated flag)
-- [ ] FFA-05 `TEACHING_PACK_FORCE_ESCALATE` test seam
-- [ ] FFA-06 Enable `flashcard_deck`
-- [ ] FFA-07 Enable `answer_key` + `roadmap`
-- [ ] FFA-08 Flashcard exports (ADR-024)
-- [ ] FFA-09 Schema parity for new `ArtifactType`
-- [ ] FFA-10 Teacher-scenario driver
-- [ ] FFA-11 Retire legacy `/run` e2e scripts
+- [x] FFA-02 REST gate discovery (`pending_gate`)
+- [x] FFA-03 Persist `fail_count` across healing rounds
+- [x] FFA-04 Wire escalate → `content_approval` (escalated flag)
+- [x] FFA-05 `TEACHING_PACK_FORCE_ESCALATE` test seam
+- [x] FFA-06 Enable `flashcard_deck`
+- [x] FFA-07 Enable `answer_key` + `roadmap`
+- [x] FFA-08 Flashcard exports (ADR-024)
+- [x] FFA-09 Schema parity for new `ArtifactType`
+- [x] FFA-10 Teacher-scenario driver
+- [x] FFA-11 Retire legacy `/run` e2e scripts
 
 ## Acceptance
 

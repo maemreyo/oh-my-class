@@ -2,7 +2,7 @@
 
 ## Status
 
-**Proposed** (2026-07-02) — Enable teachers to export flashcard decks as TSV (Quizlet import) and APKG (Anki import) from the teaching-pack pipeline, via the existing but unwired `flashcard_tsv` and `anki_apkg` exporters.
+**Accepted** (2026-07-03) — Enable teachers to export flashcard decks as TSV (Quizlet import) and APKG (Anki import) from the teaching-pack pipeline, via the `flashcard_tsv` and `anki_apkg` exporters. Accepted by ADR-030 full artifact/export coverage.
 
 ## Context
 

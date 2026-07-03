@@ -25,6 +25,7 @@ from services.gateway.teaching_pack_models import (
     RunJobKind,
 )
 from services.gateway.teaching_pack_control_store import GateInterruptCreate, TeachingPackControlStore
+from services.gateway.teaching_pack_gate_registry import TeachingPackGateName, allowed_actions_for_gate
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
 from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
 
@@ -118,6 +119,42 @@ class TestTeachingPackLifecycle:
         assert anyio.run(_get_gate_status, gate_id) is GateInterruptStatus.CANCELLED
         anyio.run(_delete_run, run_id)
 
+    def test_run_status_exposes_pending_content_approval_gate(
+        self,
+        client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        gate_id = f"gate-{uuid4()}"
+        anyio.run(_create_awaiting_run_with_content_gate, run_id, gate_id)
+
+        response = client.get(f"/teaching-packs/runs/{run_id}")
+
+        assert response.status_code == 200
+        pending_gate = response.json()["pending_gate"]
+        assert pending_gate == {
+            "gate_id": gate_id,
+            "gate_name": "content_approval",
+            "allowed_actions": [
+                action.value
+                for action in allowed_actions_for_gate(TeachingPackGateName.CONTENT_APPROVAL)
+            ],
+            "snapshot_ids": ["snap-a", "snap-b"],
+        }
+        anyio.run(_delete_run, run_id)
+
+    def test_run_status_has_null_pending_gate_when_no_gate_is_open(
+        self,
+        client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_create_run_without_gate, run_id)
+
+        response = client.get(f"/teaching-packs/runs/{run_id}")
+
+        assert response.status_code == 200
+        assert response.json()["pending_gate"] is None
+        anyio.run(_delete_run, run_id)
+
 
 async def _skip_if_schema_missing() -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
@@ -174,6 +211,43 @@ async def _create_run_with_gate(run_id: RunId, gate_id: str) -> None:
             run_id=run_id,
             gate_name="blueprint_approval",
             payload={"topic": "Fractions"},
+        ))
+        await session.commit()
+    await engine.dispose()
+
+
+async def _create_awaiting_run_with_content_gate(run_id: RunId, gate_id: str) -> None:
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
+            run_id=run_id,
+            teacher_id=TeacherId("teacher-route"),
+            raw_request="Teach gate discovery",
+            class_info={"grade": 5},
+        ))
+        run = await session.get(Run, run_id)
+        assert run is not None
+        run.status = RunStatus.AWAITING_APPROVAL
+        await TeachingPackControlStore(session).open_gate(GateInterruptCreate(
+            gate_id=gate_id,
+            run_id=run_id,
+            gate_name="content_approval",
+            payload={"snapshot_ids": ["snap-a", "snap-b"]},
+        ))
+        await session.commit()
+    await engine.dispose()
+
+
+async def _create_run_without_gate(run_id: RunId) -> None:
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
+            run_id=run_id,
+            teacher_id=TeacherId("teacher-route"),
+            raw_request="Teach no gate",
+            class_info={"grade": 5},
         ))
         await session.commit()
     await engine.dispose()

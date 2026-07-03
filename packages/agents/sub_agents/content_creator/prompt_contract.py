@@ -10,6 +10,9 @@ ACTIVE_ARTIFACT_TYPES: Final[tuple[str, ...]] = (
     "drill",
     "recap",
     "infographic",
+    "flashcard_deck",
+    "answer_key",
+    "roadmap",
 )
 
 COMPONENT_CONTRACT = """Use renderer component JSON only. No CSS classes, styles, raw HTML, or markdown.
@@ -36,6 +39,9 @@ ARTIFACT_RICHNESS = {
     "drill": "Include at least 6 progressively harder practice prompts with immediate practice structure; use question_card/question_list where multiple choice is useful.",
     "recap": "Include at least 4 recap items/sections: key idea, common misconception, example, and exit reflection.",
     "infographic": "Include at least 4 visual sections with concise labels, stat_grid/timeline/concept_map/table components where useful, and no external image URLs.",
+    "flashcard_deck": "Include at least 8 cards in sections[].cards with front/back/hint fields, grounded in the lesson objectives.",
+    "answer_key": "Emit teacher_only answer sections only. Include keys for quiz, worksheet, and drill when available; no answers in student body text.",
+    "roadmap": "Include a hero, sidebar, and at least 3 milestone sections that map the lesson sequence and practice path.",
 }
 
 

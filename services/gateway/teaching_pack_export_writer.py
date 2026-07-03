@@ -45,6 +45,12 @@ class FileSystemTeachingPackExportWriter:
         approved_ids = _approved_snapshot_ids(state)
         export_dir = self.base_dir / str(run_id)
         export_dir.mkdir(parents=True, exist_ok=True)
+        unsupported_formats = _unsupported_formats(state)
+        if unsupported_formats:
+            raise ExportAdapterError(
+                "Unsupported export format for offline gateway writer: "
+                + ", ".join(unsupported_formats),
+            )
         exported_files: list[str] = []
         approved_snapshots: list[JsonObject] = []
         for snapshot in _rendered_snapshots(state):
@@ -82,6 +88,7 @@ def _rendered_snapshots(state: JsonObject) -> list[JsonObject]:
 
 _INLINE_ASSESSMENT_FORMATS: frozenset[str] = frozenset({"gift", "h5p", "qti"})
 _SUBPROCESS_EXPORT_FORMATS: frozenset[str] = frozenset({"anki_apkg", "flashcard_tsv"})
+_UNSUPPORTED_GATEWAY_FORMATS: frozenset[str] = frozenset({"google_forms"})
 
 
 def _assessment_formats(state: JsonObject) -> list[ExportFormat]:
@@ -108,6 +115,14 @@ def _subprocess_formats(state: JsonObject) -> list[ExportFormat]:
     ]
 
 
+def _unsupported_formats(state: JsonObject) -> list[str]:
+    contract = _json_object(state.get("contract"))
+    values = contract.get("export_formats")
+    if not isinstance(values, list):
+        return []
+    return [str(value) for value in values if str(value) in _UNSUPPORTED_GATEWAY_FORMATS]
+
+
 def _export_format(value: str) -> ExportFormat:
     match value:
         case "html":
@@ -125,7 +140,7 @@ def _export_format(value: str) -> ExportFormat:
         case "google_forms":
             return "google_forms"
         case _:
-            return "google_forms"
+            raise ExportAdapterError(f"Unsupported export format: {value}")
 
 
 def _assessment_filename(run_id: RunId, export_format: ExportFormat) -> str:

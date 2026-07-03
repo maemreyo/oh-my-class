@@ -10,6 +10,7 @@ from packages.agents.teaching_pack.nodes import (
     route_after_compliance_gate,
     route_after_teacher_approval,
 )
+from packages.agents.teaching_pack.quality_routing import route_after_render_quality
 from packages.agents.teaching_pack.stages import StageEnum, TeachingPackStage
 
 
@@ -215,6 +216,53 @@ class TestTeachingPackApprovalExport:
         assert captured["artifact_explanations"][0]["approval_mode"] == "auto_approved"
         assert result["teacher_approved"] is True
         assert result["gate_payload"] == {"action": "approve"}
+
+    def test_escalated_teacher_gate_is_manual_required(self, monkeypatch) -> None:
+        from packages.agents.teaching_pack import nodes
+
+        captured = {}
+
+        def fake_interrupt(payload):
+            captured.update(payload)
+            return {"action": "reject"}
+
+        monkeypatch.setattr("langgraph.types.interrupt", fake_interrupt)
+        monkeypatch.setattr("packages.agents.teaching_pack.gate_trust.should_fast_lane", lambda *_args: True)
+        monkeypatch.setattr("packages.agents.teaching_pack.gate_trust.record_gate_event", lambda *_args: None)
+        monkeypatch.setattr("packages.agents.teaching_pack.teacher_memory.write_gate_approval", lambda *_args: None)
+        monkeypatch.setenv("GATE_FAST_LANE_THRESHOLD", "0.8")
+
+        class StoreItem:
+            value = {"events": [{"action": "approve", "artifact_types": ["lesson"]}]}
+
+        class TrustStore:
+            def get(self, _namespace, _key):
+                return StoreItem()
+
+        result = nodes._teacher_approval(
+            TeachingPackState(
+                run_id="run-escalated",
+                contract={"teacher_id": "teacher-1"},
+                compliance_passed=True,
+                escalate=True,
+                escalate_reason="Quality checks did not pass after 4 attempts.",
+                healing_strategy="escalate",
+                fail_count=4,
+                rendered_snapshots=[{"snapshot_id": "snap-1"}],
+                artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+            ),
+            store=TrustStore(),
+        )
+
+        assert captured["escalated"] is True
+        assert captured["needs_review"] is True
+        assert captured["approval_mode"] == "manual_required"
+        assert "auto_approved" not in captured
+        assert captured["healing_history"] == [{"strategy": "escalate", "fail_count": 4}]
+        assert result["teacher_approved"] is False
+
+    def test_render_quality_escalate_routes_to_teacher_approval(self) -> None:
+        assert route_after_render_quality({"quality_recovery_route": "teacher_approval"}) == "teacher_approval"
 
     def test_teacher_gate_payload_explains_artifacts(self, monkeypatch) -> None:
         from packages.agents.teaching_pack import nodes

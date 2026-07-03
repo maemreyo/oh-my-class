@@ -1,6 +1,6 @@
 # [FFA-07] Enable `answer_key` + `roadmap` end-to-end (INVARIANT-05)
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, contracts, content, safety
 ADR: 030
 Depends on: FFA-09 (schema parity)
@@ -15,12 +15,12 @@ teacher-only and never leak into student HTML (INVARIANT-05; enforced by the com
 
 ## Scope
 
-- [ ] Add `answer_key` and `roadmap` to the `ArtifactType` Literal + supported/validation set.
-- [ ] `content_creator` generation contracts (prompt + RCM + richness) for both.
-- [ ] Fan-out dependencies: `answer_key` depends on the assessment artifacts it keys
+- [x] Add `answer_key` and `roadmap` to the `ArtifactType` Literal + supported/validation set.
+- [x] `content_creator` generation contracts (prompt + RCM + richness) for both.
+- [x] Fan-out dependencies: `answer_key` depends on the assessment artifacts it keys
       (quiz/worksheet/drill); `roadmap` depends on `lesson`.
-- [ ] `answer_key` content is emitted into `teacher_only` sections only.
-- [ ] Extend INVARIANT-05 tests: student view of an `answer_key`-bearing pack contains NO
+- [x] `answer_key` content is emitted into `teacher_only` sections only.
+- [x] Extend INVARIANT-05 tests: student view of an `answer_key`-bearing pack contains NO
       answer markers; teacher view does. Run through the real compliance gate.
 
 ## Acceptance

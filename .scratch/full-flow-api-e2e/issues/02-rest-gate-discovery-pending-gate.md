@@ -1,6 +1,6 @@
 # [FFA-02] REST gate discovery — `pending_gate` on GET /runs/{id}
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, gateway
 ADR: 028
 Depends on: none (foundational)
@@ -16,14 +16,14 @@ only (`services/gateway/routers/teaching_pack_schemas.py`) — no gate fields. T
 
 ## Scope
 
-- [ ] Add `pending_gate: {gate_id, gate_name, allowed_actions, snapshot_ids} | null` to
+- [x] Add `pending_gate: {gate_id, gate_name, allowed_actions, snapshot_ids} | null` to
       `TeachingPackRunStatusResponse` and the `GET /runs/{id}` handler
       (`teaching_pack_lifecycle.py`).
-- [ ] Source `allowed_actions` from `allowed_actions_for_gate`
+- [x] Source `allowed_actions` from `allowed_actions_for_gate`
       (`teaching_pack_gate_registry.py`) — single source of truth, no client hardcoding.
-- [ ] Populate from the currently-open gate (control store); `null` when none open.
-- [ ] Keep SSE `/status` unchanged (additive, backward-compatible).
-- [ ] Document the REST poll-drive loop in `docs/observability.md` or API docs.
+- [x] Populate from the currently-open gate (control store); `null` when none open.
+- [x] Keep SSE `/status` unchanged (additive, backward-compatible).
+- [x] Document the REST poll-drive loop in `docs/observability.md` or API docs.
 
 ## Acceptance
 

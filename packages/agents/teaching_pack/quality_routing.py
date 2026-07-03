@@ -33,6 +33,8 @@ def route_after_render_quality(state: QualityRecoveryState) -> str:
             return "post_blueprint_research"
         case "artifact_workflow":
             return "artifact_workflow"
+        case "teacher_approval":
+            return "teacher_approval"
         case None:
             return "compliance_gate"
         case _:

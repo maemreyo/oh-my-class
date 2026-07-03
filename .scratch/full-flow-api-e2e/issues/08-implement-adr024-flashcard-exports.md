@@ -1,6 +1,6 @@
 # [FFA-08] Implement ADR-024 flashcard exports (`flashcard_tsv` / `anki_apkg`)
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, exporters
 ADR: 030, 024
 Depends on: FFA-06
@@ -14,13 +14,13 @@ have no content; with it, the wiring must be finished and ADR-024 accepted.
 
 ## Scope
 
-- [ ] Move ADR-024 status Proposed → Accepted; reconcile with ADR-030.
-- [ ] Wire export: when `export_formats` includes `flashcard_tsv`/`anki_apkg` AND a
+- [x] Move ADR-024 status Proposed → Accepted; reconcile with ADR-030.
+- [x] Wire export: when `export_formats` includes `flashcard_tsv`/`anki_apkg` AND a
       `flashcard_deck` artifact exists, produce those files via the Node CLI
       (`teaching_pack_export_writer.py` `_node_export`).
-- [ ] Fail-closed with a clear error if `packages/exporters/dist/cli.js` is not built;
+- [x] Fail-closed with a clear error if `packages/exporters/dist/cli.js` is not built;
       add the build step to CI/setup docs.
-- [ ] E2E: exported `.tsv` / `.apkg` land in `.scratch/pipeline-v2/artifacts/exports/<run_id>/`.
+- [x] E2E: exported `.tsv` / `.apkg` land in `.scratch/pipeline-v2/artifacts/exports/<run_id>/`.
 
 ## Acceptance
 

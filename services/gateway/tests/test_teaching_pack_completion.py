@@ -7,7 +7,7 @@ import pytest
 
 from services.gateway.models import RunStatus
 from services.gateway.teaching_pack_completion import TeachingPackCompletionRecorder
-from services.gateway.teaching_pack_export_writer import FileSystemTeachingPackExportWriter
+from services.gateway.teaching_pack_export_writer import ExportAdapterError, FileSystemTeachingPackExportWriter
 from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate
 from services.gateway.teaching_pack_store import (
@@ -340,3 +340,18 @@ class TestTeachingPackCompletionRecorder:
         assert "imsqti_v2p1" in (tmp_path / "run-assessment" / "run-assessment.qti.xml").read_text(
             encoding="utf-8",
         )
+
+    @pytest.mark.anyio
+    async def test_filesystem_export_writer_fails_fast_for_google_forms(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        writer = FileSystemTeachingPackExportWriter(base_dir=tmp_path, renderer=RecordingRenderer())
+        state = {
+            "approved_snapshot_ids": ["snapshot-1"],
+            "contract": {"export_formats": ["html", "google_forms"]},
+            "rendered_snapshots": [{"snapshot_id": "snapshot-1", "content_json": {"title": "Approved"}}],
+        }
+
+        with pytest.raises(ExportAdapterError, match="google_forms"):
+            await writer.write_exports(RunId("run-google-forms"), state)

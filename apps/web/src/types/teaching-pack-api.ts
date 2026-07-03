@@ -56,11 +56,19 @@ export interface ArtifactExplanation {
 	readonly approval_mode: "manual" | "auto_approved" | string;
 }
 
+export interface TeachingPackPendingGateResponse {
+	readonly gate_id: string;
+	readonly gate_name: TeachingPackGateName;
+	readonly allowed_actions: readonly TeachingPackGateAction[];
+	readonly snapshot_ids: readonly string[];
+}
+
 export interface TeachingPackRunStatusResponse {
 	readonly run_id: string;
 	readonly status: TeachingPackRunStatus;
 	readonly raw_request: string;
 	readonly artifact_statuses?: readonly ArtifactStatusItem[];
+	readonly pending_gate?: TeachingPackPendingGateResponse | null;
 }
 
 export interface TeachingPackResumeRequest {

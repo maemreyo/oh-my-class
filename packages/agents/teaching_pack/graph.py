@@ -112,6 +112,7 @@ def build_teaching_pack_graph(
                     TeachingPackStage.POST_BLUEPRINT_RESEARCH.value: TeachingPackStage.POST_BLUEPRINT_RESEARCH.value,
                     TeachingPackStage.ARTIFACT_WORKFLOW.value: TeachingPackStage.ARTIFACT_WORKFLOW.value,
                     TeachingPackStage.COMPLIANCE_GATE.value: TeachingPackStage.COMPLIANCE_GATE.value,
+                    TeachingPackStage.TEACHER_APPROVAL.value: TeachingPackStage.TEACHER_APPROVAL.value,
                 },
             )
         elif previous is TeachingPackStage.COMPLIANCE_GATE:

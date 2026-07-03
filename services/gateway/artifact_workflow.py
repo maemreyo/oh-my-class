@@ -34,7 +34,9 @@ if TYPE_CHECKING:
     from common.contracts.artifact import ArtifactContent
     from common.contracts.run_contract import ArtifactType
 
-_CORE_ARTIFACTS: tuple[CoreArtifactType, ...] = ("lesson", "worksheet", "quiz", "drill", "recap", "flashcard_deck")
+_CORE_ARTIFACTS: tuple[CoreArtifactType, ...] = (
+    "lesson", "worksheet", "quiz", "drill", "recap", "flashcard_deck", "answer_key", "roadmap",
+)
 _DEPENDENCIES: dict[CoreArtifactType, tuple[CoreArtifactType, ...]] = {
     "lesson": (),
     "worksheet": ("lesson",),
@@ -42,6 +44,8 @@ _DEPENDENCIES: dict[CoreArtifactType, tuple[CoreArtifactType, ...]] = {
     "drill": ("lesson",),
     "recap": ("lesson", "quiz"),
     "flashcard_deck": ("lesson",),
+    "answer_key": ("quiz",),
+    "roadmap": ("lesson",),
 }
 
 
@@ -181,7 +185,7 @@ def _core_artifact_types(artifact_types: list[ArtifactType]) -> tuple[CoreArtifa
     core_artifacts: list[CoreArtifactType] = []
     for artifact_type in artifact_types:
         match artifact_type:
-            case "lesson" | "worksheet" | "quiz" | "drill" | "recap" | "flashcard_deck":
+            case "lesson" | "worksheet" | "quiz" | "drill" | "recap" | "flashcard_deck" | "answer_key" | "roadmap":
                 core_artifacts.append(artifact_type)
             case "infographic":
                 raise UnsupportedArtifactTypeError(artifact_type)

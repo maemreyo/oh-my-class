@@ -73,3 +73,13 @@ If Langfuse is not configured (no API keys) or unreachable:
 - Tracing is silently disabled (no-op)
 - Pipeline continues without tracing
 - No errors thrown — observability never breaks the pipeline
+# Teaching-pack REST gate discovery
+
+Headless clients can drive a teaching-pack run without subscribing to SSE:
+
+1. `POST /teaching-packs/runs` to create the run.
+2. Poll `GET /teaching-packs/runs/{run_id}` until `pending_gate` is non-null.
+3. POST the returned `pending_gate.gate_id`, `pending_gate.gate_name`, and a supported action to `/teaching-packs/runs/{run_id}/resume`.
+4. Fetch previews by `pending_gate.snapshot_ids` through the snapshot preview endpoints.
+
+`pending_gate.allowed_actions` is sourced from the server gate registry. SSE `/status` remains the live dashboard channel; REST is sufficient for poll-drive clients and CI drivers.

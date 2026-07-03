@@ -1,6 +1,6 @@
 # [FFA-11] Retire stale legacy `/run` e2e scripts
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, cleanup, testing
 ADR: —
 Depends on: FFA-10 (replacement in place first)
@@ -15,12 +15,12 @@ violate the "physical deletion + guard test" precedent.
 
 ## Scope
 
-- [ ] After FFA-10 lands the replacement, delete `scripts/test_full_flow.py`,
+- [x] After FFA-10 lands the replacement, delete `scripts/test_full_flow.py`,
       `scripts/test_e2e_real_llm.py`, and the legacy `scripts/run_e2e.sh` /
       `.scratch/api-test-output/run_live_flow.py` driver (or rewrite `run_e2e.sh` to invoke
       FFA-10's driver).
-- [ ] Grep for any Make target / CI step referencing them; repoint to the new driver.
-- [ ] Guard test / note asserting no script calls the decommissioned `/run` create/approve API.
+- [x] Grep for any Make target / CI step referencing them; repoint to the new driver.
+- [x] Guard test / note asserting no script calls the decommissioned `/run` create/approve API.
 
 ## Acceptance
 

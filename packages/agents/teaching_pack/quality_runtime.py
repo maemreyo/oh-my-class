@@ -24,7 +24,16 @@ type JsonObject = dict[str, JsonValue]
 type TeachingPackQualityValue = JsonValue | list[str]
 type TeachingPackQualityState = dict[str, TeachingPackQualityValue]
 
-_CORE_ARTIFACT_TYPES = frozenset({"lesson", "worksheet", "quiz", "drill", "recap"})
+_CORE_ARTIFACT_TYPES = frozenset({
+    "lesson",
+    "worksheet",
+    "quiz",
+    "drill",
+    "recap",
+    "flashcard_deck",
+    "answer_key",
+    "roadmap",
+})
 
 
 async def render_quality(

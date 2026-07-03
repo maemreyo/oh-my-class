@@ -1,6 +1,6 @@
 # [FFA-05] `TEACHING_PACK_FORCE_ESCALATE` test seam + guard
 
-Status: TODO
+Status: DONE
 Labels: full-flow-api, healing, testing
 ADR: 029
 Depends on: FFA-04
@@ -13,12 +13,12 @@ the escalate scenario without relying on LLM output quality.
 
 ## Scope
 
-- [ ] Add a test-only env flag `TEACHING_PACK_FORCE_ESCALATE` read in `heal_quality_failure`
+- [x] Add a test-only env flag `TEACHING_PACK_FORCE_ESCALATE` read in `heal_quality_failure`
       (`teaching_pack/healing_runtime.py`) that short-circuits to the escalate outcome
       (`escalate=true`, route `teacher_approval`).
-- [ ] Off by default; must NOT change production behaviour when unset.
-- [ ] Guard test asserting the seam is inert unless explicitly set to a truthy value.
-- [ ] Document the flag as test/demo-only (not for production config).
+- [x] Off by default; must NOT change production behaviour when unset.
+- [x] Guard test asserting the seam is inert unless explicitly set to a truthy value.
+- [x] Document the flag as test/demo-only (not for production config).
 
 ## Acceptance
 

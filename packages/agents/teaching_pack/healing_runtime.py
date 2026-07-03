@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from common.contracts.quality import QualityFailureClass
 from packages.agents.healing.orchestrator import HealingOrchestrator
 from packages.agents.teaching_pack.config import TeachingPackConfig
@@ -20,6 +22,15 @@ def heal_quality_failure(
     issues: list[str],
 ) -> HealingUpdate:
     max_healing_attempts = _max_healing_attempts(state)
+    if _force_escalate_enabled():
+        fail_count = _int_field(state, "fail_count") + 1
+        return _healing_update({
+            "fail_count": fail_count,
+            "healing_strategy": "escalate",
+            "escalate": True,
+            "escalate_reason": "Forced escalation for teaching-pack test seam.",
+            "quality_recovery_route": "teacher_approval",
+        })
     if max_healing_attempts == 0:
         return _healing_update({
             "quality_recovery_route": _route_without_healing(failure_classes),
@@ -42,6 +53,11 @@ def heal_quality_failure(
         **healing,
         "quality_recovery_route": route,
     })
+
+
+def _force_escalate_enabled() -> bool:
+    value = os.getenv("TEACHING_PACK_FORCE_ESCALATE", "")
+    return value.casefold() in {"1", "true", "yes", "on"}
 
 
 def _route_for_healing(
