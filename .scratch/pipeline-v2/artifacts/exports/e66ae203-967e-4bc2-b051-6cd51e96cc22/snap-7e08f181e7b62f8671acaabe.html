@@ -121,12 +121,35 @@
     .fiveset { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin: 10px 0; }
     .fcard { background: var(--paper, #FBF4F0); border-radius: 8px; padding: 9px 10px; font-size: 12.3px; color: var(--ink-soft); }
     .fcard b { display: block; color: var(--c-a); margin-bottom: 3px; font-size: 12.8px; }
+    .vocab-cluster { overflow-wrap: anywhere; }
+    .vocab-cluster__header { margin-bottom: 10px; }
+    .vocab-cluster__map { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: stretch; }
+    .vocab-cluster__node { position: relative; min-width: 0; background: var(--paper, #FBF4F0); border: 1px solid var(--line-soft); border-radius: 9px; padding: 10px 13px; }
+    .vocab-cluster__node::after { content: "→"; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); }
+    .vocab-cluster__node:last-child::after { content: ""; }
+    .vocab-cluster__node b { display: block; font-size: 13px; color: var(--c-a); margin-bottom: 4px; }
+    .vocab-cluster__node span { display: block; font-size: 12.6px; color: var(--ink-soft); }
+    .vocab-cluster__node em { display: block; margin-top: 5px; font-size: 12.2px; color: var(--ink); font-style: italic; }
+    .vocab-cluster__prompt { margin-top: 10px; font-size: 13.2px; color: var(--ink-soft); }
 
     /* Quick pairs table */
     .quickpairs { width: 100%; border-collapse: collapse; font-size: 13.2px; margin-top: 6px; }
     .quickpairs th { background: var(--ink); color: #fff; text-align: left; padding: 7px 11px; font-size: 10.5px; text-transform: uppercase; }
     .quickpairs td { padding: 7px 11px; border-bottom: 1px solid var(--line-soft); }
     .quickpairs tr:nth-child(even) td { background: rgba(140,90,70,0.025); }
+    .contrastive-pairs { overflow-wrap:anywhere; }
+    .contrastive-pairs__sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+    .contrastive-pairs__side { min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .contrastive-pairs__side h4 { font-size: 14px; color: var(--c-a); }
+    .contrastive-pairs__rows { display: grid; gap: 10px; }
+    .contrastive-pairs__row { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--c-a); border-radius: 10px; padding: 12px 14px; }
+    .contrastive-pairs__marker { font-size: 13px; color: var(--ink); margin-bottom: 6px; }
+    .contrastive-pairs__distinction { font-size: 13.2px; color: var(--ink-soft); }
+    .contrastive-pairs__examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+    .contrastive-pairs__examples div { min-width: 0; background: var(--paper, #FBF4F0); border-radius: 8px; padding: 9px 10px; }
+    .contrastive-pairs__examples span { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; color: var(--ink-faint); margin-bottom: 4px; }
+    .contrastive-pairs__examples p { font-size: 12.6px; color: var(--ink); margin: 0; }
+    .contrastive-pairs__boundary { margin-top: 8px; font-size: 12.8px; color: var(--ink-soft); background: var(--gold-tint); border-radius: 8px; padding: 8px 10px; }
 
     /* Film */
     .film-opt { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 14px; }
@@ -136,6 +159,12 @@
     .huntsheet { background: var(--paper, #FBF4F0); border: 1px dashed var(--ink-faint); border-radius: 10px; padding: 13px 17px; font-size: 13.3px; color: var(--ink-soft); }
     .chiplist { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
     .chip { font-size: 11.5px; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 4px 11px; color: var(--ink); }
+    .film-clip-activity { display: grid; gap: 12px; overflow-wrap: anywhere; }
+    .film-clip-activity__sequence { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+    .film-clip-activity__step { min-width: 0; background: var(--paper, #FBF4F0); border: 1px solid var(--line-soft); border-radius: 10px; padding: 12px 14px; }
+    .film-clip-activity__step h4 { font-size: 13.5px; margin-bottom: 5px; color: var(--c-a); }
+    .film-clip-activity__step p { font-size: 12.8px; color: var(--ink-soft); margin: 0; }
+    .film-clip-activity__reference { font-size: 12.8px; color: var(--ink-soft); background: var(--gold-tint); border-radius: 8px; padding: 8px 10px; }
 
     /* Phrasal verbs */
     .pv-clusters { display: grid; grid-template-columns: repeat(2,1fr); gap: 11px; margin: 10px 0; }
@@ -170,13 +199,31 @@
 
     /* Roleplay */
     .script { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; box-shadow: var(--shadow); }
+    .roleplay-card { page-break-inside: avoid; break-inside: avoid; }
     .script .line { display: flex; gap: 12px; margin-bottom: 9px; font-size: 13.6px; }
+    .roleplay-line { align-items: flex-start; flex-wrap: wrap; border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; }
+    .roleplay-line:last-child { border-bottom: none; padding-bottom: 0; }
     .script .who { font-weight: 700; font-size: 12px; flex-shrink: 0; width: 84px; padding-top: 1px; }
     .script .who.A { color: var(--c-b); }
     .script .who.B { color: var(--c-d); }
+    .script .who.teacher { color: var(--c-b); }
+    .script .who.student { color: var(--c-d); }
     .script .what { flex: 1; color: var(--ink); }
+    .roleplay-cue { flex-basis: 100%; margin-left: 96px; font-size: 12.4px; color: var(--ink-soft); background: var(--green-tint); border-radius: 7px; padding: 6px 9px; }
+    .roleplay-scaffold { font-size: 13px; color: var(--green); background: var(--green-tint); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
     .script .blank { background: var(--paper, #FBF4F0); border-radius: 4px; padding: 1px 6px; color: var(--ink-faint); font-style: italic; }
     .script-key { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 12.6px; color: var(--ink-soft); }
+    .active-recall-prompt { background: var(--green-tint); border: 1px solid rgba(46,111,78,0.25); border-left: 4px solid var(--green); border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+    .active-recall-prompt__header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; color: var(--green); }
+    .active-recall-prompt__header span { font-size: 12.4px; color: var(--ink-soft); }
+    .active-recall-prompt__instruction { margin-top: 8px; color: var(--ink); }
+    .active-recall-prompt__hint, .active-recall-prompt__reflection { margin-top: 8px; font-size: 12.8px; color: var(--ink-soft); }
+    .active-recall-prompt__button { margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); padding: 7px 10px; font: inherit; cursor: pointer; }
+    .active-recall-prompt__reveal { margin-top: 8px; border-radius: 8px; background: var(--card); border: 1px dashed var(--green); padding: 8px 10px; transition: opacity 150ms ease-out; }
+    .active-recall-prompt__confidence { margin: 10px 0 0; border: 1px solid var(--line-soft); border-radius: 8px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .active-recall-prompt__confidence legend { font-size: 12px; font-weight: 700; color: var(--green); padding: 0 4px; }
+    .active-recall-prompt__confidence label { font-size: 12.5px; color: var(--ink-soft); }
+    @media (prefers-reduced-motion: reduce) { .active-recall-prompt__reveal { transition: none; } }
 
     /* HW list */
     .hw-list { list-style: none; padding: 0; }
@@ -200,8 +247,13 @@
       .stat-grid { grid-template-columns: repeat(2,1fr); }
       .tri { grid-template-columns: 1fr; }
       .fiveset { grid-template-columns: repeat(2,1fr); }
+      .vocab-cluster__map { grid-template-columns: 1fr; }
+      .vocab-cluster__node::after { content: "↓"; right: 14px; top: auto; bottom: -14px; transform: none; }
+      .contrastive-pairs__sides, .contrastive-pairs__examples { grid-template-columns: 1fr; }
       .film-opt { grid-template-columns: 1fr; }
+      .film-clip-activity__sequence { grid-template-columns: 1fr; }
       .pv-clusters { grid-template-columns: 1fr; }
+      .roleplay-cue { margin-left: 0; }
     }
     @media print {
       .sidebar, .no-print { display: none; }
@@ -235,36 +287,38 @@
               <div class="section-head">
           <h2>Fruits Vocabulary</h2>                  </div>
                                   <h2 class="comp-heading comp-heading--2">Common Fruits</h2>
-                              <div class="concept-box">
-  <div class="cb-title">Common Fruits</div>
-  <span class="cb-link">Sweet, juicy, and packed with vitamins. Practice saying each word aloud.</span>  <div class="fiveset">
-          <div class="fcard">
+                              <section class="concept-box vocab-cluster" aria-label="Concept Map vocabulary cluster">
+  <header class="vocab-cluster__header">
+    <div class="cb-title">Common Fruits</div>
+    <p class="cb-link">Sweet, juicy, and packed with vitamins. Practice saying each word aloud.</p>  </header>
+  <div class="vocab-cluster__map" role="list" aria-label="Concept groups and relationships">
+          <article class="vocab-cluster__node" role="listitem" aria-label="apple: A round fruit with red, green, or yellow skin and crisp white flesh.">
         <b>apple</b>
         <span>A round fruit with red, green, or yellow skin and crisp white flesh.</span>
-        <em>I eat an apple every morning for a healthy snack.</em>      </div>
-          <div class="fcard">
+        <em>I eat an apple every morning for a healthy snack.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="banana: A long curved fruit with a thick yellow peel and soft sweet flesh.">
         <b>banana</b>
         <span>A long curved fruit with a thick yellow peel and soft sweet flesh.</span>
-        <em>She sliced a banana into her cereal bowl.</em>      </div>
-          <div class="fcard">
+        <em>She sliced a banana into her cereal bowl.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="grapes: Small round fruits that grow in bunches, green or purple.">
         <b>grapes</b>
         <span>Small round fruits that grow in bunches, green or purple.</span>
-        <em>We bought a bunch of grapes for the picnic.</em>      </div>
-          <div class="fcard">
+        <em>We bought a bunch of grapes for the picnic.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="orange: A round citrus fruit with a tough orange rind and juicy segments.">
         <b>orange</b>
         <span>A round citrus fruit with a tough orange rind and juicy segments.</span>
-        <em>He peeled the orange and shared the segments with his friend.</em>      </div>
-          <div class="fcard">
+        <em>He peeled the orange and shared the segments with his friend.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="strawberry: A small red fruit with tiny seeds on the outside, sweet and fragrant.">
         <b>strawberry</b>
         <span>A small red fruit with tiny seeds on the outside, sweet and fragrant.</span>
-        <em>Strawberry ice cream is my favorite flavor.</em>      </div>
-          <div class="fcard">
+        <em>Strawberry ice cream is my favorite flavor.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="watermelon: A large oval fruit with a green rind, red juicy flesh, and black seeds.">
         <b>watermelon</b>
         <span>A large oval fruit with a green rind, red juicy flesh, and black seeds.</span>
-        <em>Nothing beats cold watermelon on a hot summer day.</em>      </div>
+        <em>Nothing beats cold watermelon on a hot summer day.</em>      </article>
       </div>
-      <p class="section-intro">Which of these fruits grow on trees? Which grow on vines or bushes?</p>
-  </div>
+      <p class="vocab-cluster__prompt">Which of these fruits grow on trees? Which grow on vines or bushes?</p>
+  </section>
                               <div class="comp-callout comp-callout--note" role="note">
     <div class="callout-body">Remember: fruits usually have seeds inside or on the outside and are often sweet.</div>
 </div>
@@ -273,36 +327,38 @@
               <div class="section-head">
           <h2>Vegetables Vocabulary</h2>                  </div>
                                   <h2 class="comp-heading comp-heading--2">Common Vegetables</h2>
-                              <div class="concept-box">
-  <div class="cb-title">Common Vegetables</div>
-  <span class="cb-link">Crunchy, colorful, and full of nutrients. Practice saying each word aloud.</span>  <div class="fiveset">
-          <div class="fcard">
+                              <section class="concept-box vocab-cluster" aria-label="Concept Map vocabulary cluster">
+  <header class="vocab-cluster__header">
+    <div class="cb-title">Common Vegetables</div>
+    <p class="cb-link">Crunchy, colorful, and full of nutrients. Practice saying each word aloud.</p>  </header>
+  <div class="vocab-cluster__map" role="list" aria-label="Concept groups and relationships">
+          <article class="vocab-cluster__node" role="listitem" aria-label="carrot: A long orange root vegetable that is crunchy and sweet.">
         <b>carrot</b>
         <span>A long orange root vegetable that is crunchy and sweet.</span>
-        <em>She grated carrots into her salad.</em>      </div>
-          <div class="fcard">
+        <em>She grated carrots into her salad.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="broccoli: A green vegetable with a tree-like head full of florets.">
         <b>broccoli</b>
         <span>A green vegetable with a tree-like head full of florets.</span>
-        <em>He likes broccoli steamed with a little cheese.</em>      </div>
-          <div class="fcard">
+        <em>He likes broccoli steamed with a little cheese.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="bell pepper: A sweet pepper that comes in red, yellow, or green, shaped like a bell.">
         <b>bell pepper</b>
         <span>A sweet pepper that comes in red, yellow, or green, shaped like a bell.</span>
-        <em>She sliced red bell pepper for the stir-fry.</em>      </div>
-          <div class="fcard">
+        <em>She sliced red bell pepper for the stir-fry.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="spinach: Dark green leafy leaves that are soft and full of iron.">
         <b>spinach</b>
         <span>Dark green leafy leaves that are soft and full of iron.</span>
-        <em>Add fresh spinach to your omelet for extra nutrition.</em>      </div>
-          <div class="fcard">
+        <em>Add fresh spinach to your omelet for extra nutrition.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="tomato: A juicy red fruit often used as a vegetable in salads and sauces.">
         <b>tomato</b>
         <span>A juicy red fruit often used as a vegetable in salads and sauces.</span>
-        <em>She sliced tomatoes for her sandwich.</em>      </div>
-          <div class="fcard">
+        <em>She sliced tomatoes for her sandwich.</em>      </article>
+          <article class="vocab-cluster__node" role="listitem" aria-label="cucumber: A long green vegetable with a mild taste and lots of water.">
         <b>cucumber</b>
         <span>A long green vegetable with a mild taste and lots of water.</span>
-        <em>He likes cucumber slices with hummus as a snack.</em>      </div>
+        <em>He likes cucumber slices with hummus as a snack.</em>      </article>
       </div>
-      <p class="section-intro">Which of these vegetables are leafy? Which are root vegetables?</p>
-  </div>
+      <p class="vocab-cluster__prompt">Which of these vegetables are leafy? Which are root vegetables?</p>
+  </section>
                               <div class="comp-callout comp-callout--tip" role="note">
     <div class="callout-body">Try to eat a rainbow of vegetables each day for the best nutrition.</div>
 </div>
@@ -311,15 +367,42 @@
               <div class="section-head">
           <h2>Healthy vs Unhealthy Food</h2>                  </div>
                                   <h2 class="comp-heading comp-heading--2">Sorting Foods</h2>
-                              <table class="quickpairs">
-  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
-  <tbody>
-          <tr><td><strong>apple, banana, broccoli, carrot</strong></td><td>These are generally healthy choices – they provide vitamins, fiber, and little added sugar.</td></tr>
-          <tr><td><strong>doughnut, candy, fried chicken, soda</strong></td><td>These are often unhealthy – high in sugar, unhealthy fats, or salt.</td></tr>
-          <tr><td><strong>grilled chicken, baked fish, steamed vegetables</strong></td><td>Cooking methods like grilling, baking, or steaming keep food healthy.</td></tr>
-          <tr><td><strong>fried chips, pizza with extra cheese, ice cream</strong></td><td>Fried foods and heavy toppings add extra calories and unhealthy fats.</td></tr>
-      </tbody>
-</table>
+                              <section class="contrastive-pairs" role="region" aria-label="Contrastive Pairs comparison">
+    <div class="contrastive-pairs__sides" aria-label="Pair sides">
+    <article class="contrastive-pairs__side">
+      <h4>Side A</h4>
+    </article>
+    <article class="contrastive-pairs__side">
+      <h4>Side B</h4>
+    </article>
+  </div>
+  <div class="contrastive-pairs__rows">
+          <article class="contrastive-pairs__row" aria-label="Difference marker: apple, banana, broccoli, carrot">
+        <div class="contrastive-pairs__marker"><strong>apple, banana, broccoli, carrot</strong></div>
+        <p class="contrastive-pairs__distinction">These are generally healthy choices – they provide vitamins, fiber, and little added sugar.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+          <article class="contrastive-pairs__row" aria-label="Difference marker: doughnut, candy, fried chicken, soda">
+        <div class="contrastive-pairs__marker"><strong>doughnut, candy, fried chicken, soda</strong></div>
+        <p class="contrastive-pairs__distinction">These are often unhealthy – high in sugar, unhealthy fats, or salt.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+          <article class="contrastive-pairs__row" aria-label="Difference marker: grilled chicken, baked fish, steamed vegetables">
+        <div class="contrastive-pairs__marker"><strong>grilled chicken, baked fish, steamed vegetables</strong></div>
+        <p class="contrastive-pairs__distinction">Cooking methods like grilling, baking, or steaming keep food healthy.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+          <article class="contrastive-pairs__row" aria-label="Difference marker: fried chips, pizza with extra cheese, ice cream">
+        <div class="contrastive-pairs__marker"><strong>fried chips, pizza with extra cheese, ice cream</strong></div>
+        <p class="contrastive-pairs__distinction">Fried foods and heavy toppings add extra calories and unhealthy fats.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+      </div>
+</section>
                               <div class="comp-callout comp-callout--warning" role="note">
     <div class="callout-body">Remember: ‘healthy’ does not mean boring – you can make tasty meals with good choices!</div>
 </div>

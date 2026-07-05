@@ -68,6 +68,7 @@
       body { background: white; }
       .omc-footer { border-top: 1px solid #ccc; }
     }
+    <% if (it.pageCSS) { %><%~ it.pageCSS %><% } %>
   </style>
 </head>
 <body class="artifact artifact--<%= it.type || 'unknown' %>">

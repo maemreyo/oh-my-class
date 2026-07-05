@@ -43,9 +43,27 @@
     content += '</ol></section>';
   }
   content += '</div>';
+
+  const pageCSS = `
+    .worksheet-header { display: flex; gap: 2rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
+    .worksheet-name-line, .worksheet-date-line { display: flex; align-items: baseline; gap: 0.5rem; font-size: 0.9375rem; color: var(--color-text-soft); }
+    .blank-line { display: inline-block; min-width: 8rem; border-bottom: 1.5px solid var(--color-text); flex: 1; }
+    .worksheet-section { margin-bottom: 2rem; }
+    .section-title { font-size: 1rem; font-weight: 700; color: var(--color-accent); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 0.875rem; }
+    .section-instructions { font-size: 0.875rem; color: var(--color-text-soft); margin: 0 0 0.75rem; font-style: italic; }
+    .question-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1.25rem; }
+    .component-worksheet-q { }
+    .question-prompt { margin: 0 0 0.5rem; font-weight: 500; line-height: 1.55; }
+    .answer-lines { display: flex; flex-direction: column; gap: 0.5rem; padding-left: 1rem; }
+    .answer-line { height: 0; border-bottom: 1px solid var(--color-border); min-width: 100%; }
+    .fill-blank-slot { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.375rem; }
+    @media print {
+      .component-worksheet-q { break-inside: avoid; }
+      .answer-line { border-bottom-color: #ccc; }
+    }`;
 %>
 <%~ include('../base.html', {
   title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
   lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
-  type: 'worksheet', content: content
+  type: 'worksheet', content: content, pageCSS: pageCSS
 }) %>

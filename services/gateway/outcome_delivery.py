@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Protocol
 from uuid import uuid4
 
+import anyio
 from common.contracts.outcome import DeliveryRecord
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -13,6 +14,13 @@ from services.gateway.teaching_pack_types import JsonObject, JsonValue, RunId
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+# Outcome delivery must never block the main job session from committing.
+# The FK fk_delivery_records_run_id is DEFERRABLE INITIALLY DEFERRED so the
+# FK check happens at COMMIT time (not INSERT time), eliminating the lock-wait
+# deadlock where the delivery session would block on the uncommitted runs row.
+# This timeout is a belt-and-suspenders guard in case the DB is unavailable.
+_DELIVERY_TIMEOUT_SECONDS = 30.0
 
 
 class OutcomeDeliverySink(Protocol):
@@ -52,9 +60,12 @@ class SqlAlchemyOutcomeDeliverySink:
             class_id=_optional_string(contract.get("class_id")),
         )
         try:
-            async with self.session_factory() as session:
-                await record_delivery(session, record)
-                await session.commit()
+            with anyio.fail_after(_DELIVERY_TIMEOUT_SECONDS):
+                async with self.session_factory() as session:
+                    await record_delivery(session, record)
+                    await session.commit()
+        except TimeoutError as exc:
+            raise OutcomeDeliveryWriteError(run_id) from exc
         except SQLAlchemyError as exc:
             raise OutcomeDeliveryWriteError(run_id) from exc
 

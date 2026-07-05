@@ -121,12 +121,35 @@
     .fiveset { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin: 10px 0; }
     .fcard { background: var(--paper, #FBF4F0); border-radius: 8px; padding: 9px 10px; font-size: 12.3px; color: var(--ink-soft); }
     .fcard b { display: block; color: var(--c-a); margin-bottom: 3px; font-size: 12.8px; }
+    .vocab-cluster { overflow-wrap: anywhere; }
+    .vocab-cluster__header { margin-bottom: 10px; }
+    .vocab-cluster__map { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: stretch; }
+    .vocab-cluster__node { position: relative; min-width: 0; background: var(--paper, #FBF4F0); border: 1px solid var(--line-soft); border-radius: 9px; padding: 10px 13px; }
+    .vocab-cluster__node::after { content: "→"; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); }
+    .vocab-cluster__node:last-child::after { content: ""; }
+    .vocab-cluster__node b { display: block; font-size: 13px; color: var(--c-a); margin-bottom: 4px; }
+    .vocab-cluster__node span { display: block; font-size: 12.6px; color: var(--ink-soft); }
+    .vocab-cluster__node em { display: block; margin-top: 5px; font-size: 12.2px; color: var(--ink); font-style: italic; }
+    .vocab-cluster__prompt { margin-top: 10px; font-size: 13.2px; color: var(--ink-soft); }
 
     /* Quick pairs table */
     .quickpairs { width: 100%; border-collapse: collapse; font-size: 13.2px; margin-top: 6px; }
     .quickpairs th { background: var(--ink); color: #fff; text-align: left; padding: 7px 11px; font-size: 10.5px; text-transform: uppercase; }
     .quickpairs td { padding: 7px 11px; border-bottom: 1px solid var(--line-soft); }
     .quickpairs tr:nth-child(even) td { background: rgba(140,90,70,0.025); }
+    .contrastive-pairs { overflow-wrap:anywhere; }
+    .contrastive-pairs__sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+    .contrastive-pairs__side { min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .contrastive-pairs__side h4 { font-size: 14px; color: var(--c-a); }
+    .contrastive-pairs__rows { display: grid; gap: 10px; }
+    .contrastive-pairs__row { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--c-a); border-radius: 10px; padding: 12px 14px; }
+    .contrastive-pairs__marker { font-size: 13px; color: var(--ink); margin-bottom: 6px; }
+    .contrastive-pairs__distinction { font-size: 13.2px; color: var(--ink-soft); }
+    .contrastive-pairs__examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+    .contrastive-pairs__examples div { min-width: 0; background: var(--paper, #FBF4F0); border-radius: 8px; padding: 9px 10px; }
+    .contrastive-pairs__examples span { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; color: var(--ink-faint); margin-bottom: 4px; }
+    .contrastive-pairs__examples p { font-size: 12.6px; color: var(--ink); margin: 0; }
+    .contrastive-pairs__boundary { margin-top: 8px; font-size: 12.8px; color: var(--ink-soft); background: var(--gold-tint); border-radius: 8px; padding: 8px 10px; }
 
     /* Film */
     .film-opt { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 14px; }
@@ -136,6 +159,12 @@
     .huntsheet { background: var(--paper, #FBF4F0); border: 1px dashed var(--ink-faint); border-radius: 10px; padding: 13px 17px; font-size: 13.3px; color: var(--ink-soft); }
     .chiplist { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
     .chip { font-size: 11.5px; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 4px 11px; color: var(--ink); }
+    .film-clip-activity { display: grid; gap: 12px; overflow-wrap: anywhere; }
+    .film-clip-activity__sequence { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+    .film-clip-activity__step { min-width: 0; background: var(--paper, #FBF4F0); border: 1px solid var(--line-soft); border-radius: 10px; padding: 12px 14px; }
+    .film-clip-activity__step h4 { font-size: 13.5px; margin-bottom: 5px; color: var(--c-a); }
+    .film-clip-activity__step p { font-size: 12.8px; color: var(--ink-soft); margin: 0; }
+    .film-clip-activity__reference { font-size: 12.8px; color: var(--ink-soft); background: var(--gold-tint); border-radius: 8px; padding: 8px 10px; }
 
     /* Phrasal verbs */
     .pv-clusters { display: grid; grid-template-columns: repeat(2,1fr); gap: 11px; margin: 10px 0; }
@@ -170,13 +199,31 @@
 
     /* Roleplay */
     .script { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; box-shadow: var(--shadow); }
+    .roleplay-card { page-break-inside: avoid; break-inside: avoid; }
     .script .line { display: flex; gap: 12px; margin-bottom: 9px; font-size: 13.6px; }
+    .roleplay-line { align-items: flex-start; flex-wrap: wrap; border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; }
+    .roleplay-line:last-child { border-bottom: none; padding-bottom: 0; }
     .script .who { font-weight: 700; font-size: 12px; flex-shrink: 0; width: 84px; padding-top: 1px; }
     .script .who.A { color: var(--c-b); }
     .script .who.B { color: var(--c-d); }
+    .script .who.teacher { color: var(--c-b); }
+    .script .who.student { color: var(--c-d); }
     .script .what { flex: 1; color: var(--ink); }
+    .roleplay-cue { flex-basis: 100%; margin-left: 96px; font-size: 12.4px; color: var(--ink-soft); background: var(--green-tint); border-radius: 7px; padding: 6px 9px; }
+    .roleplay-scaffold { font-size: 13px; color: var(--green); background: var(--green-tint); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
     .script .blank { background: var(--paper, #FBF4F0); border-radius: 4px; padding: 1px 6px; color: var(--ink-faint); font-style: italic; }
     .script-key { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 12.6px; color: var(--ink-soft); }
+    .active-recall-prompt { background: var(--green-tint); border: 1px solid rgba(46,111,78,0.25); border-left: 4px solid var(--green); border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+    .active-recall-prompt__header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; color: var(--green); }
+    .active-recall-prompt__header span { font-size: 12.4px; color: var(--ink-soft); }
+    .active-recall-prompt__instruction { margin-top: 8px; color: var(--ink); }
+    .active-recall-prompt__hint, .active-recall-prompt__reflection { margin-top: 8px; font-size: 12.8px; color: var(--ink-soft); }
+    .active-recall-prompt__button { margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); padding: 7px 10px; font: inherit; cursor: pointer; }
+    .active-recall-prompt__reveal { margin-top: 8px; border-radius: 8px; background: var(--card); border: 1px dashed var(--green); padding: 8px 10px; transition: opacity 150ms ease-out; }
+    .active-recall-prompt__confidence { margin: 10px 0 0; border: 1px solid var(--line-soft); border-radius: 8px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .active-recall-prompt__confidence legend { font-size: 12px; font-weight: 700; color: var(--green); padding: 0 4px; }
+    .active-recall-prompt__confidence label { font-size: 12.5px; color: var(--ink-soft); }
+    @media (prefers-reduced-motion: reduce) { .active-recall-prompt__reveal { transition: none; } }
 
     /* HW list */
     .hw-list { list-style: none; padding: 0; }
@@ -200,8 +247,13 @@
       .stat-grid { grid-template-columns: repeat(2,1fr); }
       .tri { grid-template-columns: 1fr; }
       .fiveset { grid-template-columns: repeat(2,1fr); }
+      .vocab-cluster__map { grid-template-columns: 1fr; }
+      .vocab-cluster__node::after { content: "↓"; right: 14px; top: auto; bottom: -14px; transform: none; }
+      .contrastive-pairs__sides, .contrastive-pairs__examples { grid-template-columns: 1fr; }
       .film-opt { grid-template-columns: 1fr; }
+      .film-clip-activity__sequence { grid-template-columns: 1fr; }
       .pv-clusters { grid-template-columns: 1fr; }
+      .roleplay-cue { margin-left: 0; }
     }
     @media print {
       .sidebar, .no-print { display: none; }
@@ -290,48 +342,48 @@
           <h2>Create Your Own Dialogue</h2>                  </div>
                                   <h2 class="comp-heading comp-heading--2">Create Your Own Dialogue</h2>
                               <p class="comp-paragraph">In pairs, write a 10‑line mini‑dialogue about a Vietnamese student's daily routine. The dialogue must correctly use at least one example of each present tense: present simple, present continuous, present perfect, and present perfect continuous.</p>
-                              <p class="section-intro">Read the dialogue aloud, filling in the blanks with the correct verb form.</p><div class="script">
-      <div class="line">
+                              <article class="script roleplay-card" aria-label="Low-pressure roleplay practice">
+  <p class="section-intro">Read the dialogue aloud, filling in the blanks with the correct verb form.</p>        <section class="line roleplay-line" aria-label="A line">
       <span class="who A">A</span>
       <span class="what">Every morning I ______ (wake) up at 6 a.m.</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="B line">
       <span class="who B">B</span>
       <span class="what">Really? I ______ (usually/feel) tired, but today I ______ (feel) great.</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="A line">
       <span class="who A">A</span>
       <span class="what">I ______ (have) breakfast with my family before I ______ (leave) for school.</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="B line">
       <span class="who B">B</span>
       <span class="what">How long ______ (you/know) your best friend?</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="A line">
       <span class="who A">A</span>
       <span class="what">We ______ (know) each other since primary school.</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="B line">
       <span class="who B">B</span>
       <span class="what">What ______ (you/do) right now?</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="A line">
       <span class="who A">A</span>
       <span class="what">I ______ (study) for my English test.</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="B line">
       <span class="who B">B</span>
       <span class="what">How long ______ (you/study) today?</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="A line">
       <span class="who A">A</span>
       <span class="what">I ______ (study) for three hours already.</span>
-    </div>
-      <div class="line">
+          </section>
+      <section class="line roleplay-line" aria-label="B line">
       <span class="who B">B</span>
       <span class="what">Great! Let ______ (we/go) out for a snack after this.</span>
-    </div>
-    </div>
+          </section>
+  </article>
                               <p class="comp-paragraph">{'type': 'hw_list', 'items': [{'tag': 'Review', 'text': 'Rewrite the dialogue using correct verb forms and underline each tense.'}, {'tag': 'Extension', 'text': 'Create a second dialogue set in a different context (e.g., at a market) using all four tenses.'}]}</p>
                   </section>
     

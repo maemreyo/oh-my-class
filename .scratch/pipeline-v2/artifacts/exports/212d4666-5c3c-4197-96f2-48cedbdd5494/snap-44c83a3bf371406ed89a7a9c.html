@@ -121,12 +121,35 @@
     .fiveset { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin: 10px 0; }
     .fcard { background: var(--paper, #FBF4F0); border-radius: 8px; padding: 9px 10px; font-size: 12.3px; color: var(--ink-soft); }
     .fcard b { display: block; color: var(--c-a); margin-bottom: 3px; font-size: 12.8px; }
+    .vocab-cluster { overflow-wrap: anywhere; }
+    .vocab-cluster__header { margin-bottom: 10px; }
+    .vocab-cluster__map { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: stretch; }
+    .vocab-cluster__node { position: relative; min-width: 0; background: var(--paper, #FBF4F0); border: 1px solid var(--line-soft); border-radius: 9px; padding: 10px 13px; }
+    .vocab-cluster__node::after { content: "→"; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); }
+    .vocab-cluster__node:last-child::after { content: ""; }
+    .vocab-cluster__node b { display: block; font-size: 13px; color: var(--c-a); margin-bottom: 4px; }
+    .vocab-cluster__node span { display: block; font-size: 12.6px; color: var(--ink-soft); }
+    .vocab-cluster__node em { display: block; margin-top: 5px; font-size: 12.2px; color: var(--ink); font-style: italic; }
+    .vocab-cluster__prompt { margin-top: 10px; font-size: 13.2px; color: var(--ink-soft); }
 
     /* Quick pairs table */
     .quickpairs { width: 100%; border-collapse: collapse; font-size: 13.2px; margin-top: 6px; }
     .quickpairs th { background: var(--ink); color: #fff; text-align: left; padding: 7px 11px; font-size: 10.5px; text-transform: uppercase; }
     .quickpairs td { padding: 7px 11px; border-bottom: 1px solid var(--line-soft); }
     .quickpairs tr:nth-child(even) td { background: rgba(140,90,70,0.025); }
+    .contrastive-pairs { overflow-wrap:anywhere; }
+    .contrastive-pairs__sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+    .contrastive-pairs__side { min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .contrastive-pairs__side h4 { font-size: 14px; color: var(--c-a); }
+    .contrastive-pairs__rows { display: grid; gap: 10px; }
+    .contrastive-pairs__row { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--c-a); border-radius: 10px; padding: 12px 14px; }
+    .contrastive-pairs__marker { font-size: 13px; color: var(--ink); margin-bottom: 6px; }
+    .contrastive-pairs__distinction { font-size: 13.2px; color: var(--ink-soft); }
+    .contrastive-pairs__examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+    .contrastive-pairs__examples div { min-width: 0; background: var(--paper, #FBF4F0); border-radius: 8px; padding: 9px 10px; }
+    .contrastive-pairs__examples span { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; color: var(--ink-faint); margin-bottom: 4px; }
+    .contrastive-pairs__examples p { font-size: 12.6px; color: var(--ink); margin: 0; }
+    .contrastive-pairs__boundary { margin-top: 8px; font-size: 12.8px; color: var(--ink-soft); background: var(--gold-tint); border-radius: 8px; padding: 8px 10px; }
 
     /* Film */
     .film-opt { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 14px; }
@@ -136,6 +159,12 @@
     .huntsheet { background: var(--paper, #FBF4F0); border: 1px dashed var(--ink-faint); border-radius: 10px; padding: 13px 17px; font-size: 13.3px; color: var(--ink-soft); }
     .chiplist { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
     .chip { font-size: 11.5px; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 4px 11px; color: var(--ink); }
+    .film-clip-activity { display: grid; gap: 12px; overflow-wrap: anywhere; }
+    .film-clip-activity__sequence { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+    .film-clip-activity__step { min-width: 0; background: var(--paper, #FBF4F0); border: 1px solid var(--line-soft); border-radius: 10px; padding: 12px 14px; }
+    .film-clip-activity__step h4 { font-size: 13.5px; margin-bottom: 5px; color: var(--c-a); }
+    .film-clip-activity__step p { font-size: 12.8px; color: var(--ink-soft); margin: 0; }
+    .film-clip-activity__reference { font-size: 12.8px; color: var(--ink-soft); background: var(--gold-tint); border-radius: 8px; padding: 8px 10px; }
 
     /* Phrasal verbs */
     .pv-clusters { display: grid; grid-template-columns: repeat(2,1fr); gap: 11px; margin: 10px 0; }
@@ -170,13 +199,31 @@
 
     /* Roleplay */
     .script { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; box-shadow: var(--shadow); }
+    .roleplay-card { page-break-inside: avoid; break-inside: avoid; }
     .script .line { display: flex; gap: 12px; margin-bottom: 9px; font-size: 13.6px; }
+    .roleplay-line { align-items: flex-start; flex-wrap: wrap; border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; }
+    .roleplay-line:last-child { border-bottom: none; padding-bottom: 0; }
     .script .who { font-weight: 700; font-size: 12px; flex-shrink: 0; width: 84px; padding-top: 1px; }
     .script .who.A { color: var(--c-b); }
     .script .who.B { color: var(--c-d); }
+    .script .who.teacher { color: var(--c-b); }
+    .script .who.student { color: var(--c-d); }
     .script .what { flex: 1; color: var(--ink); }
+    .roleplay-cue { flex-basis: 100%; margin-left: 96px; font-size: 12.4px; color: var(--ink-soft); background: var(--green-tint); border-radius: 7px; padding: 6px 9px; }
+    .roleplay-scaffold { font-size: 13px; color: var(--green); background: var(--green-tint); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
     .script .blank { background: var(--paper, #FBF4F0); border-radius: 4px; padding: 1px 6px; color: var(--ink-faint); font-style: italic; }
     .script-key { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 12.6px; color: var(--ink-soft); }
+    .active-recall-prompt { background: var(--green-tint); border: 1px solid rgba(46,111,78,0.25); border-left: 4px solid var(--green); border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+    .active-recall-prompt__header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; color: var(--green); }
+    .active-recall-prompt__header span { font-size: 12.4px; color: var(--ink-soft); }
+    .active-recall-prompt__instruction { margin-top: 8px; color: var(--ink); }
+    .active-recall-prompt__hint, .active-recall-prompt__reflection { margin-top: 8px; font-size: 12.8px; color: var(--ink-soft); }
+    .active-recall-prompt__button { margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); padding: 7px 10px; font: inherit; cursor: pointer; }
+    .active-recall-prompt__reveal { margin-top: 8px; border-radius: 8px; background: var(--card); border: 1px dashed var(--green); padding: 8px 10px; transition: opacity 150ms ease-out; }
+    .active-recall-prompt__confidence { margin: 10px 0 0; border: 1px solid var(--line-soft); border-radius: 8px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .active-recall-prompt__confidence legend { font-size: 12px; font-weight: 700; color: var(--green); padding: 0 4px; }
+    .active-recall-prompt__confidence label { font-size: 12.5px; color: var(--ink-soft); }
+    @media (prefers-reduced-motion: reduce) { .active-recall-prompt__reveal { transition: none; } }
 
     /* HW list */
     .hw-list { list-style: none; padding: 0; }
@@ -200,8 +247,13 @@
       .stat-grid { grid-template-columns: repeat(2,1fr); }
       .tri { grid-template-columns: 1fr; }
       .fiveset { grid-template-columns: repeat(2,1fr); }
+      .vocab-cluster__map { grid-template-columns: 1fr; }
+      .vocab-cluster__node::after { content: "↓"; right: 14px; top: auto; bottom: -14px; transform: none; }
+      .contrastive-pairs__sides, .contrastive-pairs__examples { grid-template-columns: 1fr; }
       .film-opt { grid-template-columns: 1fr; }
+      .film-clip-activity__sequence { grid-template-columns: 1fr; }
       .pv-clusters { grid-template-columns: 1fr; }
+      .roleplay-cue { margin-left: 0; }
     }
     @media print {
       .sidebar, .no-print { display: none; }
@@ -260,37 +312,90 @@
               <div class="section-head">
           <h2>Forms of Precipitation</h2>                  </div>
                                   <h2 class="comp-heading comp-heading--2">Match precipitation type to conditions</h2>
-                              <table class="quickpairs">
-  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
-  <tbody>
-          <tr><td><strong>Rain</strong></td><td>Forms when cloud droplets coalesce and fall as liquid; temperatures stay above freezing throughout the cloud.</td></tr>
-          <tr><td><strong>Snow</strong></td><td>Forms when temperatures are below freezing throughout the cloud, allowing ice crystals to grow and fall.</td></tr>
-          <tr><td><strong>Sleet</strong></td><td>Forms when snowflakes melt partially in a warm layer then refreeze into ice pellets before reaching the ground.</td></tr>
-          <tr><td><strong>Hail</strong></td><td>Forms in strong thunderstorms with strong updrafts; layered ice balls grow as they are carried up and down through supercooled water.</td></tr>
-      </tbody>
-</table>
+                              <section class="contrastive-pairs" role="region" aria-label="Contrastive Pairs comparison">
+    <div class="contrastive-pairs__sides" aria-label="Pair sides">
+    <article class="contrastive-pairs__side">
+      <h4>Side A</h4>
+    </article>
+    <article class="contrastive-pairs__side">
+      <h4>Side B</h4>
+    </article>
+  </div>
+  <div class="contrastive-pairs__rows">
+          <article class="contrastive-pairs__row" aria-label="Difference marker: Rain">
+        <div class="contrastive-pairs__marker"><strong>Rain</strong></div>
+        <p class="contrastive-pairs__distinction">Forms when cloud droplets coalesce and fall as liquid; temperatures stay above freezing throughout the cloud.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+          <article class="contrastive-pairs__row" aria-label="Difference marker: Snow">
+        <div class="contrastive-pairs__marker"><strong>Snow</strong></div>
+        <p class="contrastive-pairs__distinction">Forms when temperatures are below freezing throughout the cloud, allowing ice crystals to grow and fall.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+          <article class="contrastive-pairs__row" aria-label="Difference marker: Sleet">
+        <div class="contrastive-pairs__marker"><strong>Sleet</strong></div>
+        <p class="contrastive-pairs__distinction">Forms when snowflakes melt partially in a warm layer then refreeze into ice pellets before reaching the ground.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+          <article class="contrastive-pairs__row" aria-label="Difference marker: Hail">
+        <div class="contrastive-pairs__marker"><strong>Hail</strong></div>
+        <p class="contrastive-pairs__distinction">Forms in strong thunderstorms with strong updrafts; layered ice balls grow as they are carried up and down through supercooled water.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+      </div>
+</section>
                   </section>
         <section class="section" id="section-4">
               <div class="section-head">
           <h2>Label the Water Cycle Diagram</h2>                  </div>
                                   <p class="comp-paragraph">Imagine a typical water‑cycle diagram showing oceans, lakes, clouds, mountains, and groundwater. Your task is to label the following processes: evaporation, transpiration, condensation, precipitation, collection, runoff, infiltration.</p>
-                              <div class="note-callout">
-  <strong>✎ Recall (5 phút)</strong>
-  <p>Label each process on the diagram in your notebook. Use arrows or labels to show where each process occurs. Spend five minutes recalling from memory, then check your labels against a reference diagram.</p>
-      <p><em>Think about where water changes state and where gravity pulls water down.</em></p>
-  </div>
+                              <section class="active-recall-prompt student-print-first" aria-label="Active Recall prompt">
+  <header class="active-recall-prompt__header">
+    <strong>Recall first (5 min)</strong>
+    <span>Answer from memory before opening support.</span>
+  </header>
+  <p class="active-recall-prompt__instruction">Label each process on the diagram in your notebook. Use arrows or labels to show where each process occurs. Spend five minutes recalling from memory, then check your labels against a reference diagram.</p>
+      <p class="active-recall-prompt__hint">Think about where water changes state and where gravity pulls water down.</p>
+      <fieldset class="active-recall-prompt__confidence">
+    <legend>Confidence check</legend>
+    <label><input type="checkbox" /> Still learning</label>
+    <label><input type="checkbox" /> Almost there</label>
+    <label><input type="checkbox" /> Confident</label>
+  </fieldset>
+  </section>
                   </section>
         <section class="section" id="section-5">
               <div class="section-head">
           <h2>Human Impact on the Water Cycle</h2>                  </div>
                                   <h2 class="comp-heading comp-heading--2">How humans change the cycle</h2>
-                              <table class="quickpairs">
-  <thead><tr><th>Cặp từ</th><th>Phân biệt nhanh</th></tr></thead>
-  <tbody>
-          <tr><td><strong>Deforestation</strong></td><td>Removes trees that release water vapor via transpiration, reducing atmospheric moisture and local precipitation.</td></tr>
-          <tr><td><strong>Urbanization</strong></td><td>Replaces permeable soil with impermeable pavement, increasing runoff and reducing infiltration, which can lead to more flooding and less groundwater recharge.</td></tr>
-      </tbody>
-</table>
+                              <section class="contrastive-pairs" role="region" aria-label="Contrastive Pairs comparison">
+    <div class="contrastive-pairs__sides" aria-label="Pair sides">
+    <article class="contrastive-pairs__side">
+      <h4>Side A</h4>
+    </article>
+    <article class="contrastive-pairs__side">
+      <h4>Side B</h4>
+    </article>
+  </div>
+  <div class="contrastive-pairs__rows">
+          <article class="contrastive-pairs__row" aria-label="Difference marker: Deforestation">
+        <div class="contrastive-pairs__marker"><strong>Deforestation</strong></div>
+        <p class="contrastive-pairs__distinction">Removes trees that release water vapor via transpiration, reducing atmospheric moisture and local precipitation.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+          <article class="contrastive-pairs__row" aria-label="Difference marker: Urbanization">
+        <div class="contrastive-pairs__marker"><strong>Urbanization</strong></div>
+        <p class="contrastive-pairs__distinction">Replaces permeable soil with impermeable pavement, increasing runoff and reducing infiltration, which can lead to more flooding and less groundwater recharge.</p>
+        <div class="contrastive-pairs__examples">
+                            </div>
+              </article>
+      </div>
+</section>
                   </section>
         <section class="section" id="section-6">
               <div class="section-head">
@@ -326,7 +431,7 @@
       <b class="letter">A</b>
       <span>Dec‑Feb – evaporation</span>
     </div>
-        <div class="option correct">
+        <div class="option">
       <b class="letter">B</b>
       <span>Oct‑Dec – precipitation</span>
     </div>
@@ -339,13 +444,7 @@
       <span>Sep‑Nov – infiltration</span>
     </div>
       </div>
-  <div class="panel">
-    <div class="prow explain">
-      <span class="plabel">Giải thích</span>
-      <span class="ptext">The highest rainfall occurs in October, November, and December (90+130+150 mm). This period reflects strong precipitation driven by cooling air and condensation.</span>
-    </div>
-          </div>
-  </article>
+    </article>
                   </section>
         <section class="section" id="section-7">
               <div class="section-head">
@@ -361,7 +460,7 @@
       <b class="letter">A</b>
       <span>More concrete will increase infiltration, so no action is needed.</span>
     </div>
-        <div class="option correct">
+        <div class="option">
       <b class="letter">B</b>
       <span>Loss of trees reduces transpiration; planting native vegetation in remaining green spaces can help restore moisture.</span>
     </div>
@@ -374,13 +473,7 @@
       <span>The mall will increase evaporation from roofs, balancing the loss of trees.</span>
     </div>
       </div>
-  <div class="panel">
-    <div class="prow explain">
-      <span class="plabel">Giải thích</span>
-      <span class="ptext">Removing forest lowers transpiration, decreasing atmospheric moisture. Re‑planting vegetation helps restore the missing flux.</span>
-    </div>
-          </div>
-  </article>
+    </article>
                   </section>
     
     

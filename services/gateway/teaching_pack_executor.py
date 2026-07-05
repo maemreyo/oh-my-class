@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Protocol
 
+from langgraph.errors import EmptyInputError
 from langgraph.types import Command
 
 from packages.agents.llm.error_summary import safe_error_summary
@@ -16,6 +18,8 @@ from services.gateway.teaching_pack_store import (
 from services.gateway.teaching_pack_types import JsonObject, RunId
 
 from .teaching_pack_executor_types import TeachingPackNotificationSink, TeachingPackRunEventStore
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,6 +138,19 @@ class TeachingPackExecutor:
                 config=teaching_pack_thread_config(job.run_id),
             )
             await self._persist_completion(job.run_id, state)
+        except EmptyInputError:
+            # The LangGraph checkpoint for this thread is missing — the in-memory
+            # checkpointer (MemorySaver) was cleared by a process restart. The run
+            # cannot be resumed without its checkpoint. Mark it failed so the teacher
+            # can restart from scratch rather than leaving it stuck in AWAITING_APPROVAL.
+            _log.error(
+                "resume.no_checkpoint run_id=%s — checkpoint lost (process restart?); run marked FAILED",
+                job.run_id,
+            )
+            await self._persist_failure(job.run_id, EmptyInputError(
+                "LangGraph checkpoint lost (process restart). Re-start the run to regenerate."
+            ))
+            raise
         except Exception as exc:
             await self._persist_failure(job.run_id, exc)
             raise

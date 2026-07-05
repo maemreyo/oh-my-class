@@ -96,7 +96,7 @@ class TeachingPackCompletionRecorder:
                         run.teacher_id,
                         state,
                     )
-                except OutcomeDeliveryWriteError:
+                except (OutcomeDeliveryWriteError, TimeoutError):
                     await self._store.write_event(TeachingPackEventCreate(
                         run_id=run_id,
                         event_name="teaching_pack.outcome_delivery.failed",

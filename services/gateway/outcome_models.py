@@ -75,7 +75,7 @@ class DeliveryRecordModel(Base):
     delivery_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     run_id: Mapped[str] = mapped_column(
         String(64),
-        ForeignKey("public.runs.run_id", ondelete="CASCADE"),
+        ForeignKey("public.runs.run_id", ondelete="CASCADE", deferrable=True, initially="DEFERRED"),
         nullable=False,
     )
     teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)

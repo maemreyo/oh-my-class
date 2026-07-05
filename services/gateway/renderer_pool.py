@@ -129,6 +129,11 @@ class RendererPool:
                 )
             except (BrokenPipeError, ConnectionResetError) as exc:
                 raise RendererAdapterError("Renderer worker pipe failed") from exc
+            except RuntimeError as exc:
+                # asyncio raises RuntimeError when transport.write() is called on a
+                # closed transport — the subprocess exited and its stdin pipe was
+                # garbage-collected or explicitly closed. Treat the same as a broken pipe.
+                raise RendererAdapterError("Renderer worker transport closed") from exc
             except TimeoutError:
                 raise RendererAdapterError(
                     f"Renderer worker timed out after {self._config.timeout_seconds}s",

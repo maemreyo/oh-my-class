@@ -73,17 +73,22 @@ function worksheetData(artifact: ArtifactRecord): WorksheetData {
     ...common(artifact),
     sections: sections.map((section, index) => {
       const explicitQuestions = asRecordArray(section.questions);
-      // Component-based structure: question_card items nested inside section.components
+      // Direct question_card items inside section.components
       const componentCards = asRecordArray(section.components)
         .filter((c) => asString(c.type) === "question_card");
+      // question_card items nested inside question_list containers
+      const listCards = asRecordArray(section.components)
+        .filter((c) => asString(c.type) === "question_list")
+        .flatMap((list) => asRecordArray(list.questions).filter((q) => asString(q.type) === "question_card"));
+      const allCards = componentCards.length > 0 ? componentCards : listCards;
       const questions = explicitQuestions.length > 0
         ? explicitQuestions.map((question, questionIndex) => ({
             id: asString(question.id, `w${index + 1}-${questionIndex + 1}`),
             prompt: asString(question.prompt, asString(question.content, "Write your answer.")),
             type: asString(question.type, "short_answer"),
           }))
-        : componentCards.length > 0
-          ? componentCards.map((card, cardIndex) => ({
+        : allCards.length > 0
+          ? allCards.map((card, cardIndex) => ({
               id: asString(card.id, `w${index + 1}-${cardIndex + 1}`),
               prompt: asString(card.text, asString(card.content, "Write your answer.")),
               type: "short_answer",
