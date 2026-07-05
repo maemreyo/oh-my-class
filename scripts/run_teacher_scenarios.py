@@ -184,15 +184,17 @@ class RestClient:
 
 
 def _check_prereqs(config: DriverConfig) -> None:
-    # 1. Gateway reachable
+    # 1. Gateway reachable (401 is acceptable — means it's up but needs auth)
     try:
-        urllib.request.urlopen(
-            f"{config.base_url}/slo",
-            timeout=5.0,
-        )
-    except Exception as exc:
+        urllib.request.urlopen(f"{config.base_url}/slo", timeout=5.0)
+    except urllib.error.HTTPError as exc:
+        if exc.code != 401:
+            raise RuntimeError(
+                f"Gateway at {config.base_url} returned HTTP {exc.code} — check logs.\n{exc}"
+            ) from exc
+    except urllib.error.URLError as exc:
         raise RuntimeError(
-            f"Gateway not reachable at {config.base_url}/slo — start the gateway first.\n{exc}"
+            f"Gateway not reachable at {config.base_url} — start the gateway first.\n{exc}"
         ) from exc
 
     # 2. Exporter CLI built
@@ -231,6 +233,18 @@ def _gate_flags(raw: JsonObject) -> JsonObject:
     return flags
 
 
+# Default actions for gates not explicitly in the caller's action_map.
+# clarification_required only accepts "answer"; all other intermediate gates accept "approve".
+_DEFAULT_GATE_ACTIONS: dict[str, str] = {
+    "clarification_required": "answer",
+    "contract_confirmation": "approve",
+    "search_plan_confirmation": "approve",
+    "blueprint_approval": "approve",
+    "content_approval": "approve",
+    "unit_approval": "approve",
+}
+
+
 def _drive_to_completion(
     client: RestClient,
     run_id: str,
@@ -238,6 +252,9 @@ def _drive_to_completion(
     timeout_seconds: float,
 ) -> tuple[JsonObject, list[GateDriven]]:
     """Poll a run, drive every gate via action_map, return (final_status, gates_driven)."""
+    # Merge caller overrides onto the safe defaults so no gate is ever stranded
+    effective_map = {**_DEFAULT_GATE_ACTIONS, **action_map}
+
     deadline = time.monotonic() + timeout_seconds
     gates_driven: list[GateDriven] = []
     last_status: JsonObject = {}
@@ -255,8 +272,11 @@ def _drive_to_completion(
             gate = _parse_gate(raw_gate)
             if gate is not None:
                 gate_name = gate["gate_name"]
-                action = action_map.get(gate_name, "approve")
-                client.resume_gate(run_id, gate, action)
+                action = effective_map.get(gate_name, "approve")
+                extra: JsonObject | None = None
+                if gate_name == "clarification_required":
+                    extra = {"text": "Please proceed with standard fractions content for Grade 5."}
+                client.resume_gate(run_id, gate, action, extra)
                 gates_driven.append({
                     "gate_name": gate_name,
                     "gate_id": gate["gate_id"],
@@ -458,9 +478,7 @@ _MODE_EXTRA_CLASS_INFO: dict[PipelineMode, JsonObject] = {
     "plan_unit": {
         "decomposition_intent": "Break fractions into a 3-lesson unit: concepts, operations, applications.",
     },
-    "vocabulary_batch": {
-        "artifact_types": ["lesson"],  # vocabulary_batch uses its own output structure
-    },
+    "vocabulary_batch": {},  # vocabulary_batch uses its own internal output structure; no extra overrides
     "generate_pack": {},
 }
 

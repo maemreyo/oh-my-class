@@ -44,6 +44,7 @@ type JsonObject = dict[str, JsonValue]
 
 class TeachingPackState(TypedDict):
     run_id: str
+    raw_request: NotRequired[str]
     contract: NotRequired[JsonObject]
     current_stage: NotRequired[StageEnum]
     current_step: NotRequired[StageEnum]
@@ -311,7 +312,16 @@ async def _planning_blueprint(
     result = await planner_node(planner_state)
     lesson_plan = _json_object(result.get("lesson_plan"))
     PlannerHandoff(lesson_plan=lesson_plan)  # fail-closed seam contract
-    update: TeachingPackState = {"run_id": state["run_id"], "lesson_plan": lesson_plan}
+    update: TeachingPackState = {
+        "run_id": state["run_id"],
+        "lesson_plan": lesson_plan,
+        # Signal downstream to re-run: allows artifact_workflow and render_quality to
+        # re-enter completed_stages. coordinate_artifact_fanout's _needs_new_generation_cycle
+        # detects artifact_fanout_complete=True + quality_recovery_route="artifact_workflow"
+        # and starts a fresh generation revision automatically. render_quality clears this
+        # to None on success, routing to compliance_gate.
+        "quality_recovery_route": "artifact_workflow",
+    }
     if "diagnostic_report" in diagnostic_update:
         update["diagnostic_report"] = _json_object(diagnostic_update.get("diagnostic_report"))
     if "kt_mastery" in diagnostic_update:
@@ -458,10 +468,10 @@ def _teacher_approval(
         "gate": "content_approval",
         "gate_name": "content_approval",
         "snapshot_ids": [*snapshot_ids],
-        "rendered_snapshots": [*state.get("rendered_snapshots", [])],
+        "rendered_snapshots": [*(state.get("rendered_snapshots") or [])],
         "artifacts": [*artifacts],
         "artifact_statuses": [*artifact_statuses],
-        "content_artifacts": [*state.get("artifacts", [])],
+        "content_artifacts": [*(state.get("artifacts") or [])],
         "quality_scores": state.get("quality_scores", {}),
         "run_id": state["run_id"],
         "artifact_explanations": artifact_explanations_for_teacher(state, "manual"),
@@ -640,11 +650,17 @@ def _can_reenter_stage(state: TeachingPackState, stage: StageEnum) -> bool:
     if stage.value == "artifact_workflow" and artifact_send_fanout_v1_enabled():
         if not state.get("artifact_fanout_complete", False):
             return True
-        return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
+        return state.get("quality_recovery_route") in ("artifact_workflow", "planning_blueprint") or bool(_scoped_rejections(state))
     if stage.value == "render_quality" and artifact_send_fanout_v1_enabled():
         return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
     if stage.value == "teacher_approval" and artifact_send_fanout_v1_enabled():
         return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
+    # Allow re-entry of planning/research stages when quality gate routes back to them.
+    recovery_route = state.get("quality_recovery_route", "")
+    if stage.value == "planning_blueprint" and recovery_route == "planning_blueprint":
+        return True
+    if stage.value == "post_blueprint_research" and recovery_route in ("planning_blueprint", "post_blueprint_research"):
+        return True
     return False
 
 

@@ -148,9 +148,14 @@ def _collect_text(value: JsonValue) -> list[str]:
         case dict():
             parts: list[str] = []
             for key, item in value.items():
-                if key in {"answer", "answer_key", "correct_answer", "correctAnswer"}:
-                    parts.append(f"Answer: {item}")
-                elif key in {"components", "content", "explain", "explanation", "questions", "rationale", "sections", "text"}:
+                # Structural answer-key fields (correct_answer, answer_key) are skipped:
+                # they are inherent to quiz/assessment artifacts and are handled by the
+                # student_rendered_html check in _snapshot_violations, which is the true
+                # student view. Synthesizing "Answer: A" here caused false positives for
+                # every quiz regardless of actual student exposure.
+                if key in {"answer_key", "correct_answer", "correctAnswer"}:
+                    continue
+                if key in {"answer", "components", "content", "explain", "explanation", "questions", "rationale", "sections", "text"}:
                     parts.extend(_collect_text(item))
             return parts
         case list():

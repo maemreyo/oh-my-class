@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 from uuid import uuid4
+
+_LOG = logging.getLogger(__name__)
 
 import networkx as nx
 
@@ -322,4 +325,11 @@ async def reconcile_units(session: AsyncSession) -> None:
             unit_run_store=unit_run_store,
             job_store=job_store,
         )
-        await orchestrator.react(RunId(parent_run.run_id))
+        try:
+            await orchestrator.react(RunId(parent_run.run_id))
+        except Exception:
+            _LOG.warning(
+                "reconcile_units: skipping run %s due to error (run may have stale state)",
+                parent_run.run_id,
+                exc_info=True,
+            )

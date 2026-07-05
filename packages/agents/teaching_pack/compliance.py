@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 from packages.agents.events import ObservabilityEvent, publish_event
+
+_log = logging.getLogger(__name__)
 from packages.quality.compliance_policy import ComplianceResultDict, check_artifact_answer_key_leakage, hard_block_violations, html_hard_blocks
 from packages.quality.layer2_content.pii import detect_pii
 
@@ -35,6 +38,8 @@ class ComplianceResult:
 
 def compliance_gate_state(state: JsonObject) -> JsonObject:
     result = evaluate_compliance(state)
+    if not result.passed:
+        _log.warning("compliance_gate.violations run_id=%s violations=%r", state.get("run_id"), [v.code for v in result.violations])
     if result.passed:
         return {
             "run_id": str(state["run_id"]),

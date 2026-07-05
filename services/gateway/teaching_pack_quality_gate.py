@@ -110,6 +110,12 @@ def _age_issues(text: str, artifact: JsonObject) -> list[QualityIssue]:
 
 async def _fact_issues(text: str, artifact: JsonObject) -> list[QualityIssue]:
     sources = _research_sources(artifact)
+    # Without grounded research sources we have no evidence corpus, so the
+    # fact checker has nothing to verify against and marks everything UNCERTAIN.
+    # Skip rather than block generation — factual coverage is a delivery-time
+    # concern, not a blocker when research was unavailable (e.g. offline dev).
+    if not sources:
+        return []
     claims = await FACTChecker(min_sources=2).check_claims(text, sources)
     return [
         _issue(

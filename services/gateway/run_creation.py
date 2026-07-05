@@ -74,7 +74,8 @@ async def create_teaching_pack_run_record(
         case ContractSetupReady(contract=contract):
             await _mark_unit_parent_if_needed(session, contract)
             return await _create_ready_run(
-                session, run_store, contract, request_hash, idempotency_key, eligible_at,
+                session, run_store, contract, request_hash, idempotency_key,
+                raw_request=raw_request, eligible_at=eligible_at,
             )
         case ContractSetupGate(gate_name=gate_name, payload=gate_payload, contract=contract):
             if contract is not None:
@@ -101,6 +102,7 @@ async def _create_ready_run(
     contract: RunContract,
     request_hash: str,
     idempotency_key: str | None,
+    raw_request: str = "",
     eligible_at: datetime | None = None,
 ) -> TeachingPackCreateRunResult:
     control_store = TeachingPackControlStore(session)
@@ -127,6 +129,7 @@ async def _create_ready_run(
             "source": "http_create",
             "request_hash": request_hash,
             "contract": contract.model_dump(mode="json"),
+            "raw_request": raw_request,
         },
         eligible_at=eligible_at,
     ))

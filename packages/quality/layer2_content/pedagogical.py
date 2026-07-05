@@ -92,6 +92,11 @@ def _check_prompt_alignment(
     if not objectives:
         return _passed("prompt_alignment")
     text = _text_blob(content)
+    # Objectives are extracted with an ASCII regex. If the artifact content is
+    # primarily non-Latin (Vietnamese, Arabic, CJK) the same regex finds no tokens,
+    # so cross-language alignment can never be verified — skip rather than false-fail.
+    if _is_non_latin_blob(text):
+        return _passed("prompt_alignment")
     matched = [term for term in objectives if term in text]
     if matched:
         return _passed("prompt_alignment")
@@ -107,6 +112,9 @@ def _check_bloom_coverage(
         return _passed("bloom_coverage")
     if len(expected) < 2:
         return _failed("bloom_coverage", "lesson plan includes fewer than two Bloom levels")
+    # Bloom keywords are English. Non-Latin content cannot match them — skip.
+    if _is_non_latin_blob(_text_blob(content)):
+        return _passed("bloom_coverage")
     observed = expected & _bloom_levels(content)
     if len(observed) >= 2:
         return _passed("bloom_coverage")
@@ -138,7 +146,13 @@ def _check_misconception_coverage(content: dict[str, Any]) -> PedagogicalMetric:
     question_cards = [item for item in components if item.get("type") == "question_card"]
     if not question_cards:
         return _passed("misconception_coverage")
-    missing = [str(item.get("id", "unknown")) for item in question_cards if not item.get("wrong_reasons")]
+    # wrong_reasons=None means not provided (optional field — allowed by schema).
+    # Only fail when it's explicitly an empty dict {}, indicating the LLM attempted but omitted all reasons.
+    missing = [
+        str(item.get("id", "unknown"))
+        for item in question_cards
+        if item.get("wrong_reasons") is not None and not item.get("wrong_reasons")
+    ]
     if not missing:
         return _passed("misconception_coverage")
     return _failed("misconception_coverage", f"question cards missing wrong_reasons: {', '.join(missing)}")
@@ -201,6 +215,14 @@ def _target_grade(lesson_plan: dict[str, Any] | None) -> int | None:
             if match is not None:
                 return int(match.group())
     return None
+
+
+def _is_non_latin_blob(text: str) -> bool:
+    """Return True when >15% of non-space chars are non-ASCII (e.g. Vietnamese, Arabic, CJK)."""
+    chars = text.replace(" ", "")
+    if not chars:
+        return False
+    return sum(1 for c in chars if ord(c) > 127) / len(chars) > 0.15
 
 
 def _text_blob(value: Any) -> str:

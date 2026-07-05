@@ -31,6 +31,14 @@ def _count_syllables(word: str) -> int:
     return max(1, count)
 
 
+def _is_non_latin_text(words: list[str]) -> bool:
+    """Return True when >15% of word chars are non-ASCII (e.g. Vietnamese, Arabic)."""
+    all_chars = "".join(words)
+    if not all_chars:
+        return False
+    return sum(1 for c in all_chars if ord(c) > 127) / len(all_chars) > 0.15
+
+
 def check_readability(text: str, target_grade: int) -> ReadabilityResult:
     """Check Flesch-Kincaid Grade Level against a target grade.
 
@@ -41,11 +49,21 @@ def check_readability(text: str, target_grade: int) -> ReadabilityResult:
     Returns:
         ReadabilityResult with fk_grade_level, deviation, passed, and optional warning.
         An empty/short text always passes with fk_grade_level=0.
+        Non-Latin text (>15% non-ASCII chars) always passes — FK is English-only.
     """
     sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
     words = [w for w in text.split() if w]
 
     if not sentences or not words:
+        return ReadabilityResult(
+            fk_grade_level=0.0,
+            target_grade=target_grade,
+            deviation=0.0,
+            passed=True,
+            warning=None,
+        )
+
+    if _is_non_latin_text(words):
         return ReadabilityResult(
             fk_grade_level=0.0,
             target_grade=target_grade,

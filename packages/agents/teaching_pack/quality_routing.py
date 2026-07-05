@@ -7,7 +7,7 @@ type JsonObject = dict[str, JsonValue]
 
 
 class QualityRecoveryState(TypedDict, total=False):
-    quality_recovery_route: str
+    quality_recovery_route: str | None
 
 
 def render_quality_failure(run_id: str, issues: list[str]) -> JsonObject:

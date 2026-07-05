@@ -19,5 +19,5 @@ def apply(state: dict[str, Any], fail_count: int) -> dict[str, Any]:
         "fail_count": fail_count,
         "healing_strategy": "rewrite",
         "healing_context": healing_context,
-        "artifacts": None,
+        "artifacts": [],
     }

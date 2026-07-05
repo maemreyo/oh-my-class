@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from common.contracts.artifact_workflow import ArtifactWorkflowState
 from common.contracts.quality import QualityFailureClass
 
@@ -9,6 +11,8 @@ from packages.agents.teaching_pack.quality_routing import (
     pack_coherence_issues,
     render_quality_failure,
 )
+
+_log = logging.getLogger(__name__)
 from packages.agents.teaching_pack.scoped_repair import scoped_repair_plans
 from packages.agents.teaching_pack.snapshots import build_snapshot
 from packages.agents.sub_agents.reviewer.live_quality_gate import LiveReviewerQualityGate
@@ -43,6 +47,7 @@ async def render_quality(
     artifacts = _json_objects(state.get("artifacts"))
     issues = quality_issues(artifacts)
     if issues:
+        _log.warning("render_quality.layer1_issues run_id=%s artifact_count=%d issues=%r", state.get("run_id"), len(artifacts), issues)
         if pack_coherence_issues(issues):
             failure = render_quality_failure(str(state["run_id"]), issues)
             return _state_update({
@@ -83,6 +88,7 @@ async def render_quality(
         ]
         failed_issues = _failed_report_issues(reports)
         if failed_issues:
+            _log.warning("render_quality.layer2_issues run_id=%s artifact_count=%d issues=%r route=%s", state.get("run_id"), len(artifacts), failed_issues, heal_quality_failure(state, _failure_classes(reports), failed_issues).get("quality_recovery_route"))
             failure = render_quality_failure(str(state["run_id"]), failed_issues)
             healing = heal_quality_failure(state, _failure_classes(reports), failed_issues)
             return _state_update({
@@ -107,6 +113,7 @@ async def render_quality(
         "run_id": state["run_id"],
         "rendered_snapshots": snapshots,
         "quality_scores": quality_scores,
+        "quality_recovery_route": None,
     })
 
 

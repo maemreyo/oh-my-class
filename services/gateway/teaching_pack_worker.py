@@ -214,7 +214,10 @@ def _initial_state(job: RunJobRead) -> JsonObject:
         return initial_state
     contract = job.payload.get("contract")
     if isinstance(contract, dict):
-        return {"run_id": job.run_id, "contract": contract}
+        # raw_request may be stored explicitly in the payload; fall back to the
+        # contract topic so InputSanitizationMiddleware never sees an empty value.
+        raw_request = job.payload.get("raw_request") or contract.get("topic", "")
+        return {"run_id": job.run_id, "contract": contract, "raw_request": raw_request}
     return {"run_id": job.run_id}
 
 

@@ -71,20 +71,30 @@ function worksheetData(artifact: ArtifactRecord): WorksheetData {
   const sections = asRecordArray(artifact.sections).filter((section) => section.teacher_only !== true);
   return {
     ...common(artifact),
-    sections: sections.map((section, index) => ({
-      title: asString(section.title, `Practice ${index + 1}`),
-      questions: asRecordArray(section.questions).length > 0
-        ? asRecordArray(section.questions).map((question, questionIndex) => ({
+    sections: sections.map((section, index) => {
+      const explicitQuestions = asRecordArray(section.questions);
+      // Component-based structure: question_card items nested inside section.components
+      const componentCards = asRecordArray(section.components)
+        .filter((c) => asString(c.type) === "question_card");
+      const questions = explicitQuestions.length > 0
+        ? explicitQuestions.map((question, questionIndex) => ({
             id: asString(question.id, `w${index + 1}-${questionIndex + 1}`),
             prompt: asString(question.prompt, asString(question.content, "Write your answer.")),
             type: asString(question.type, "short_answer"),
           }))
-        : [{
-            id: `w${index + 1}-1`,
-            prompt: asString(section.content, "Complete this practice task."),
-            type: "short_answer",
-          }],
-    })),
+        : componentCards.length > 0
+          ? componentCards.map((card, cardIndex) => ({
+              id: asString(card.id, `w${index + 1}-${cardIndex + 1}`),
+              prompt: asString(card.text, asString(card.content, "Write your answer.")),
+              type: "short_answer",
+            }))
+          : [{
+              id: `w${index + 1}-1`,
+              prompt: asString(section.content, "Complete this practice task."),
+              type: "short_answer",
+            }];
+      return { title: asString(section.title, `Practice ${index + 1}`), questions };
+    }),
   };
 }
 
@@ -112,11 +122,17 @@ function quizExplanation(section: ArtifactRecord): string {
 }
 
 function quizData(artifact: ArtifactRecord): QuizData {
-  const sections = asRecordArray(artifact.sections).filter((section) => section.teacher_only !== true);
+  const rawSections = asRecordArray(artifact.sections).filter((section) => section.teacher_only !== true);
+  // Component-based structure: question_card items nested inside container sections.
+  // Flatten them so both the legacy flat format and the nested format render correctly.
+  const questionSections = rawSections.flatMap((section) => {
+    const cards = asRecordArray(section.components).filter((c) => asString(c.type) === "question_card");
+    return cards.length > 0 ? cards : [section];
+  });
   return {
     ...common(artifact),
     timeLimit: 10,
-    questions: sections.map((section, index) => ({
+    questions: questionSections.map((section, index) => ({
       id: asString(section.id, `q${index + 1}`),
       prompt: asString(section.prompt, asString(section.content, asString(section.text, "Question"))),
       options: optionList(section.options),

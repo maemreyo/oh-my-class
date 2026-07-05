@@ -36,17 +36,17 @@ class ArtifactTypeMismatchError(ValueError):
 async def generate_one_artifact(payload: GenerateOneArtifactPayload) -> GenerateOneArtifactResult:
     artifact_type = payload["artifact_type"]
     generation_id = payload["artifact_generation_id"]
-    result = await content_creator_node({
-        "lesson_plan": payload["lesson_plan"],
-        "research_bundle": payload["research_brief"],
-        "artifact_types": [artifact_type],
-        "theme": payload["theme"],
-        "run_id": payload["run_id"],
-        "current_step": StageEnum.ARTIFACT_WORKFLOW,
-        "artifacts": payload.get("dependency_artifacts", []),
-        "revision_feedback": payload.get("revision_feedback", ""),
-    })
     try:
+        result = await content_creator_node({
+            "lesson_plan": payload["lesson_plan"],
+            "research_bundle": payload["research_brief"],
+            "artifact_types": [artifact_type],
+            "theme": payload["theme"],
+            "run_id": payload["run_id"],
+            "current_step": StageEnum.ARTIFACT_WORKFLOW,
+            "artifacts": payload.get("dependency_artifacts", []),
+            "revision_feedback": payload.get("revision_feedback", ""),
+        })
         artifact = _single_artifact(result)
         if str(artifact.get("artifact_type", "")) != artifact_type:
             raise ArtifactTypeMismatchError(artifact_type, str(artifact.get("artifact_type", "")))
