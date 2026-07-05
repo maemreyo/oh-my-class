@@ -868,6 +868,8 @@ agents:
 
 ## 13. Testing
 
+> **Runbook** (commands, tiers, REST walkthrough, artifact verification): [`docs/testbook/runbook.md`](docs/testbook/runbook.md)
+
 ### Test Pyramid
 
 ```
