@@ -18,6 +18,7 @@ import type { ReadingPassageData } from "./reading_passage.js";
 import type { ExitTicketData } from "./exit_ticket.js";
 import type { TeachingPackData } from "./schemas/teaching-pack.js";
 import type { RoadmapData } from "./roadmap.js";
+import type { SlideDeckData } from "./slide_deck.js";
 
 export type ArtifactDataMap = {
   lesson:          LessonData;
@@ -32,6 +33,7 @@ export type ArtifactDataMap = {
   exit_ticket:     ExitTicketData;
   teaching_pack:   TeachingPackData;   // TP1: type 11 — bundle artifact
   roadmap:         RoadmapData;        // R08: personalized learning roadmap
+  slide_deck:      SlideDeckData;
 };
 
 export type ArtifactType = keyof ArtifactDataMap;
@@ -49,6 +51,14 @@ export type { ReadingPassageData, ComprehensionQuestion } from "./reading_passag
 export type { ExitTicketData, ExitTicketQuestion } from "./exit_ticket.js";
 export type { TeachingPackData } from "./schemas/teaching-pack.js";
 export type { RoadmapData, RoadmapHero, RoadmapSidebar, RoadmapSection, StatCard as RoadmapStatCard } from "./roadmap.js";
+export type {
+  SlideDeckData,
+  SlideDeckBlock,
+  SlideDeckInteraction,
+  SlideDeckInteractionOption,
+  SlideDeckSlide,
+  SlideDeckTeacherOnly,
+} from "./slide_deck.js";
 export type { ContentComponent, QuestionCardComponent, QuestionListComponent } from "./components.js";
 
 // ── Artifact UI render-layer contracts (not in ArtifactDataMap — see ADR-024) ─

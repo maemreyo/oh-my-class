@@ -1,7 +1,7 @@
 ---
 title: Support scoped slide_deck regeneration from teacher feedback
-status: ready-for-agent
-labels: [slide-deck-engine, teacher-gate, regeneration, ready-for-agent]
+status: done
+labels: [slide-deck-engine, teacher-gate, regeneration, done]
 created: 2026-07-06
 ---
 
@@ -17,21 +17,29 @@ This slice should integrate with the existing scoped rejection/regeneration sema
 
 ## Acceptance criteria
 
-- [ ] Teacher feedback payloads can identify deck-level, slide-level, block-level, and interaction-level targets using stable IDs.
-- [ ] Scoped regeneration of one slide preserves other slides unless a plan-level dependency requires broader regeneration.
-- [ ] Scoped regeneration of `slide_deck` preserves accepted non-slide artifacts when their dependencies remain valid.
-- [ ] The engine records whether the repair was block, slide, plan, or full-deck scoped and why.
-- [ ] If a scoped repair would violate objective coverage, pacing, teacher-only separation, or density policies, the engine escalates scope predictably.
-- [ ] Tests cover rejecting slide 4 for density, rejecting an interaction for answer-leak risk, and deck-level style/tone feedback.
+- [x] Teacher feedback payloads can identify deck-level, slide-level, block-level, and interaction-level targets using stable IDs.
+- [x] Scoped regeneration of one slide preserves other slides unless a plan-level dependency requires broader regeneration.
+- [x] Scoped regeneration of `slide_deck` preserves accepted non-slide artifacts when their dependencies remain valid.
+- [x] The engine records whether the repair was block, slide, plan, or full-deck scoped and why.
+- [x] If a scoped repair would violate objective coverage, pacing, teacher-only separation, or density policies, the engine escalates scope predictably.
+- [x] Tests cover rejecting slide 4 for density, rejecting an interaction for answer-leak risk, and deck-level style/tone feedback.
 
 ## Todo items
 
-- [ ] Extend teacher feedback payloads with deck, slide, block, and interaction target identifiers.
-- [ ] Wire targeted feedback into existing scoped regeneration semantics for `slide_deck`.
-- [ ] Preserve accepted sibling slides and non-slide artifacts when dependencies remain valid.
-- [ ] Record repair scope and escalation rationale in engine trace metadata.
-- [ ] Add deterministic escalation when scoped repair breaks coverage, pacing, teacher-only separation, or density policy.
-- [ ] Add tests for density rejection, interaction answer-leak rejection, and deck-level style/tone feedback.
+- [x] Extend teacher feedback payloads with deck, slide, block, and interaction target identifiers.
+- [x] Wire targeted feedback into existing scoped regeneration semantics for `slide_deck`.
+- [x] Preserve accepted sibling slides and non-slide artifacts when dependencies remain valid.
+- [x] Record repair scope and escalation rationale in engine trace metadata.
+- [x] Add deterministic escalation when scoped repair breaks coverage, pacing, teacher-only separation, or density policy.
+- [x] Add tests for density rejection, interaction answer-leak rejection, and deck-level style/tone feedback.
+
+## Completion notes
+
+- Added typed `SlideDeckFeedbackTarget` and `SlideDeckScopedRepairReport` models for deck, slide, block, and interaction feedback targets.
+- Added deterministic scoped regeneration handling behind `SlideDeckEngine.generate()` without a separate slide workflow.
+- Recorded applied scope, preserved slide IDs, non-slide artifact preservation, and escalation rationale in internal trace metadata.
+- Added plan-scope escalation when scoped slide feedback affects objective coverage or pacing.
+- Verified with `uv run pytest packages/agents/tests/slide_deck_engine/test_engine.py common/contracts/tests/test_slide_deck.py` → `25 passed` and LSP diagnostics clean.
 
 ## Blocked by
 

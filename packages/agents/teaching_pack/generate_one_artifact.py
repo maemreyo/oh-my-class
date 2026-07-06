@@ -46,6 +46,7 @@ async def generate_one_artifact(payload: GenerateOneArtifactPayload) -> Generate
             "current_step": StageEnum.ARTIFACT_WORKFLOW,
             "artifacts": payload.get("dependency_artifacts", []),
             "revision_feedback": payload.get("revision_feedback", ""),
+            "use_hierarchical_creator": artifact_type == "slide_deck",
         })
         artifact = _single_artifact(result)
         if str(artifact.get("artifact_type", "")) != artifact_type:

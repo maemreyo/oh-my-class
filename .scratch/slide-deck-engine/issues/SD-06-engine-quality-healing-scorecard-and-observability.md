@@ -1,7 +1,7 @@
 ---
 title: Add engine quality, typed healing, scorecard, and observability
-status: ready-for-agent
-labels: [slide-deck-engine, quality, observability, ready-for-agent]
+status: done
+labels: [slide-deck-engine, quality, observability, done]
 created: 2026-07-06
 ---
 
@@ -17,21 +17,29 @@ The deterministic scorecard should cover objective coverage, pacing fit, text de
 
 ## Acceptance criteria
 
-- [ ] Engine validators return typed failure codes for density overflow, invalid layout/block/interaction, missing alt text, unsupported media, pacing mismatch, missing source refs, teacher-only leak risk, and objective coverage gaps.
-- [ ] Healing maps each failure class to a scoped repair strategy and records attempts, outcomes, and final status.
-- [ ] Deterministic scorecard is produced for every generated deck and is testable without LLM judge calls.
-- [ ] Engine trace artifacts include plan, data, validation report, healing report, scorecard, source-ref map, model/cost metadata placeholders, and export readiness manifest.
-- [ ] Trace artifacts are internal only and redact or omit student PII, raw untrusted research prose where inappropriate, answer keys from student-surface diagnostics, and provider stack traces.
-- [ ] Existing Layer 4 judge remains the qualitative gate; deterministic scorecard does not replace it.
+- [x] Engine validators return typed failure codes for density overflow, invalid layout/block/interaction, missing alt text, unsupported media, pacing mismatch, missing source refs, teacher-only leak risk, and objective coverage gaps.
+- [x] Healing maps each failure class to a scoped repair strategy and records attempts, outcomes, and final status.
+- [x] Deterministic scorecard is produced for every generated deck and is testable without LLM judge calls.
+- [x] Engine trace artifacts include plan, data, validation report, healing report, scorecard, source-ref map, model/cost metadata placeholders, and export readiness manifest.
+- [x] Trace artifacts are internal only and redact or omit student PII, raw untrusted research prose where inappropriate, answer keys from student-surface diagnostics, and provider stack traces.
+- [x] Existing Layer 4 judge remains the qualitative gate; deterministic scorecard does not replace it.
 
 ## Todo items
 
-- [ ] Define typed slide-deck validation failure codes and validator outputs.
-- [ ] Map each failure class to block, slide, plan, or deck-scoped healing strategies.
-- [ ] Implement deterministic scorecard metrics for coverage, pacing, density, variety, accessibility, interactions, separation, offline readiness, and source refs.
-- [ ] Emit internal trace artifacts for plan, validation, healing, scorecard, source refs, model/cost placeholders, and export readiness.
-- [ ] Add redaction checks so traces do not expose PII, answer keys, raw unsafe prose, or provider stack traces.
-- [ ] Add tests proving the deterministic scorecard complements, not replaces, Layer 4 judge gating.
+- [x] Define typed slide-deck validation failure codes and validator outputs.
+- [x] Map each failure class to block, slide, plan, or deck-scoped healing strategies.
+- [x] Implement deterministic scorecard metrics for coverage, pacing, density, variety, accessibility, interactions, separation, offline readiness, and source refs.
+- [x] Emit internal trace artifacts for plan, validation, healing, scorecard, source refs, model/cost placeholders, and export readiness.
+- [x] Add redaction checks so traces do not expose PII, answer keys, raw unsafe prose, or provider stack traces.
+- [x] Add tests proving the deterministic scorecard complements, not replaces, Layer 4 judge gating.
+
+## Completion notes
+
+- Added typed validation codes/scopes, healing outcomes, expanded deterministic scorecard dimensions, and internal trace artifact fields to the engine result model.
+- Added deterministic engine quality validators for registry membership, pacing, source references, objective coverage, media support, teacher-only separation, density, accessibility, surfaces, and export readiness.
+- Added scoped healing report mapping for block, slide, plan, and deck repairs using existing healing vocabulary.
+- Added redacted internal trace artifacts for plan, deck data, validation, healing, scorecard, source references, model/cost placeholders, and export readiness.
+- Verified with `uv run pytest packages/agents/tests/slide_deck_engine/test_engine.py common/contracts/tests/test_slide_deck.py` → `21 passed`.
 
 ## Blocked by
 

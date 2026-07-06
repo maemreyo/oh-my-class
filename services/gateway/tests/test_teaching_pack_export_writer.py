@@ -34,3 +34,73 @@ class TestTeachingPackExportWriter:
 
         with pytest.raises(ExportAdapterError, match="unknown_format"):
             await writer.write_exports(RunId("run-unknown-export"), state)
+
+    @pytest.mark.anyio
+    async def test_filesystem_writer_exports_approved_slide_deck_html(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        renderer = RecordingRenderer("<!DOCTYPE html><html><body>oh-my-class slide deck</body></html>")
+        writer = FileSystemTeachingPackExportWriter(base_dir=tmp_path, renderer=renderer)
+        slide_deck = {
+            "artifact_type": "slide_deck",
+            "title": "Equivalent Fractions Slide Deck",
+            "theme": "default",
+            "sections": [{"title": "Deck", "slide_deck": {"deck_id": "deck-1"}}],
+            "metadata": {"slide_deck_data": {"deck_id": "deck-1"}},
+            "accessibility": {"language": "en"},
+        }
+        state = {
+            "approved_snapshot_ids": ["slide-deck-snapshot"],
+            "contract": {"export_formats": ["html"]},
+            "rendered_snapshots": [
+                {"snapshot_id": "slide-deck-snapshot", "content_json": slide_deck},
+            ],
+        }
+
+        exported = await writer.write_exports(RunId("run-slide-export"), state)
+
+        assert len(exported) == 1
+        export_path = Path(exported[0])
+        assert export_path.name == "slide-deck-snapshot.html"
+        assert export_path.read_text(encoding="utf-8") == "<!DOCTYPE html><html><body>oh-my-class slide deck</body></html>"
+        assert renderer.calls == [slide_deck]
+
+    @pytest.mark.anyio
+    async def test_filesystem_writer_exports_release_gate_html_matrix(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        renderer = RecordingRenderer("<!DOCTYPE html><html><body>oh-my-class release gate</body></html>")
+        writer = FileSystemTeachingPackExportWriter(base_dir=tmp_path, renderer=renderer)
+        artifacts = [
+            {
+                "snapshot_id": "lesson-snapshot",
+                "content_json": {"artifact_id": "lesson-1", "artifact_type": "lesson", "title": "Lesson"},
+            },
+            {
+                "snapshot_id": "slide-deck-snapshot",
+                "content_json": {"artifact_id": "slide-1", "artifact_type": "slide_deck", "title": "Slide Deck"},
+            },
+            {
+                "snapshot_id": "quiz-snapshot",
+                "content_json": {"artifact_id": "quiz-1", "artifact_type": "quiz", "title": "Quiz"},
+            },
+        ]
+        state = {
+            "approved_snapshot_ids": ["lesson-snapshot", "slide-deck-snapshot", "quiz-snapshot"],
+            "contract": {"export_formats": ["html", "gift", "h5p", "qti"]},
+            "rendered_snapshots": artifacts,
+        }
+
+        exported = await writer.write_exports(RunId("run-slide-release"), state)
+
+        assert {Path(path).name for path in exported} == {
+            "lesson-snapshot.html",
+            "slide-deck-snapshot.html",
+            "quiz-snapshot.html",
+            "run-slide-release.gift.txt",
+            "run-slide-release.h5p",
+            "run-slide-release.qti.xml",
+        }
+        assert renderer.calls == [snapshot["content_json"] for snapshot in artifacts]

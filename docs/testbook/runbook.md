@@ -16,6 +16,7 @@
 | Real LLM tests | `uv run pytest tests/e2e/ -v -m real_llm` | Requires 9router :20228 · excluded from CI |
 | Headless driver | `uv run python scripts/run_teacher_scenarios.py --base-url http://localhost:8101` | All 4 scenarios → HTML artifacts |
 | Fixture mode (offline) | `uv run python scripts/run_teacher_scenarios.py --fixture` | No gateway, no Postgres · <5 s |
+| Slide deck release gate | `uv run pytest common/contracts/tests/test_slide_deck_golden_fixtures.py packages/agents/tests/teaching_pack/test_slide_deck_release_gate.py services/gateway/tests/test_teaching_pack_export_writer.py -q && pnpm --dir packages/renderer exec vitest run __tests__/slide-deck-release-gate.test.ts && pnpm --dir apps/web exec playwright test tests/e2e/slide-deck-visual-smoke.spec.ts` | Golden fixtures + pipeline/export + browser visual smoke |
 
 ---
 
@@ -155,6 +156,33 @@ uv run python scripts/run_teacher_scenarios.py --fixture
 | Summary JSON | `.scratch/teacher-scenarios/summary.json` |
 | Per-scenario artifacts | `.scratch/teacher-scenarios/{scenario}/` |
 | Gateway raw exports | `.scratch/pipeline-v2/artifacts/exports/{run_id}/` |
+
+### Native slide deck release gate
+
+Use this focused gate after changes to `SlideDeckData`, `SlideDeckEngine`, slide rendering,
+teacher preview, scoped regeneration, or export behavior:
+
+```bash
+uv run pytest \
+  common/contracts/tests/test_slide_deck_golden_fixtures.py \
+  packages/agents/tests/teaching_pack/test_slide_deck_release_gate.py \
+  services/gateway/tests/test_teaching_pack_export_writer.py -q
+
+pnpm --dir packages/renderer exec vitest run \
+  __tests__/slide-deck-renderer.test.ts \
+  __tests__/slide-deck-release-gate.test.ts
+
+pnpm --dir apps/web exec playwright test \
+  tests/e2e/slide-deck-visual-smoke.spec.ts
+```
+
+Covered outputs are recorded as `slide_deck:student`, `slide_deck:teacher`, and
+`slide_deck:print`. The gate uses golden fixtures for simple lesson, media-heavy,
+interaction, teacher-notes, and answer-leak regression decks. It checks student-facing HTML
+for absence of answer keys, correct answers, teacher notes, hidden answer JSON, external
+assets in offline mode, and raw provider/debug traces. Browser visual smoke runs at the
+configured Playwright widths 375, 768, 1280, and 1920 px and covers slide navigation/reveal
+fallback, focus visibility, no horizontal overflow, dark color scheme, and print surface.
 
 ---
 

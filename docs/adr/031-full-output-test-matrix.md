@@ -19,6 +19,7 @@ subset (e.g. HTML + flashcards) and misses the assessment exports and alternate 
 **A. Standalone HTML** — every artifact type, `student` and `teacher` view
 (`<snapshot_id>.html`; preview endpoint `?view=student|teacher`):
 `lesson, worksheet, quiz, drill, recap, infographic, flashcard_deck, answer_key, roadmap` (9 × 2 views).
+`slide_deck` additionally produces first-class `student`, `teacher`, and `print` HTML surfaces from one canonical `SlideDeckData` model.
 
 **B. Assessment exports** — wired inline (`_INLINE_ASSESSMENT_FORMATS`, export_writer.py:83),
 derived from assessment artifacts (quiz/worksheet/drill):
@@ -50,6 +51,8 @@ manual approve · fast-lane auto-approve · scoped reject→regenerate · escala
    9 artifact types and export_formats `[html, gift, h5p, qti, flashcard_tsv, anki_apkg]`, and
    emit every produced file (HTML student+teacher per artifact, plus each export) into the
    per-scenario output folder with an index.
+   Native `slide_deck` release evidence additionally records the covered output cells
+   `slide_deck:student`, `slide_deck:teacher`, and `slide_deck:print`.
 2. **Each pipeline mode (E) is exercised at least once** (its own scenario entry), since modes
    produce different artifacts/gates (`plan_unit`→unit_approval + roadmap; `vocabulary_batch`→
    cluster manifest; `diagnose_then_generate`→diagnostic).

@@ -1,13 +1,11 @@
 """Test that render_quality stores per-artifact reports in quality_scores when gate passes."""
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
 
-from common.contracts.artifact_workflow import ArtifactWorkflowState
 from common.contracts.quality import ArtifactQualityReport
 from packages.agents.teaching_pack.quality_runtime import render_quality
 
@@ -61,6 +59,24 @@ async def test_quality_scores_includes_reports_when_gate_passes() -> None:
 
 
 @pytest.mark.asyncio
+async def test_slide_deck_quality_uses_existing_gate_path() -> None:
+    artifact = _make_artifact("slide-deck-001", "slide_deck")
+    report = _make_passing_report("slide-deck-001", "slide_deck")
+
+    mock_gate = AsyncMock()
+    mock_gate.evaluate.return_value = report
+
+    state = {"run_id": "run-slide-quality", "artifacts": [artifact]}
+    result = await render_quality(state, quality_gate=mock_gate)
+
+    mock_gate.evaluate.assert_awaited_once()
+    scores = result.get("quality_scores")
+    assert isinstance(scores, dict)
+    assert scores["passed"] is True
+    assert scores["reports"][0]["artifact_type"] == "slide_deck"
+
+
+@pytest.mark.asyncio
 async def test_quality_scores_has_no_reports_when_gate_is_none() -> None:
     """When no quality gate is injected, quality_scores.reports is absent."""
     artifact = _make_artifact("art-002", "quiz")
@@ -103,13 +119,13 @@ async def test_quality_scores_includes_reports_with_issues_when_gate_fails() -> 
     assert "rendered_snapshots" not in result or result.get("rendered_snapshots") is None
 
 
-def test_gate_body_quality_scores_passed_to_interrupt(monkeypatch) -> None:
+def test_gate_body_quality_scores_passed_to_interrupt(monkeypatch: pytest.MonkeyPatch) -> None:
     """_teacher_approval includes quality_scores (with reports) in the interrupt payload."""
     from packages.agents.teaching_pack.nodes import _teacher_approval
 
-    captured: list[dict] = []
+    captured: list[dict[str, Any]] = []
 
-    def fake_interrupt(payload: dict) -> dict:
+    def fake_interrupt(payload: dict[str, Any]) -> dict[str, str]:
         captured.append(payload)
         return {"action": "approve"}
 
@@ -130,6 +146,7 @@ def test_gate_body_quality_scores_passed_to_interrupt(monkeypatch) -> None:
 
     result = _teacher_approval(state)
 
+    assert result["teacher_approved"] is True
     assert captured, "interrupt() should have been called"
     payload = captured[0]
     assert "quality_scores" in payload

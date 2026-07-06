@@ -5,6 +5,7 @@ import { ArtifactContentSchema } from "@oh-my-class/schemas/generated/artifact.j
 import { preserveComponents, preserveStudentComponents } from "./agent-component-projection.js";
 import { runWorkerLoop } from "./agent-worker.js";
 import { render } from "./core/render.js";
+import { renderArtifact } from "./renderer.js";
 import type {
   AnswerKeyData,
   DrillData,
@@ -12,6 +13,7 @@ import type {
   LessonData,
   QuizData,
   RecapData,
+  SlideDeckData,
   WorksheetData,
 } from "./contracts/index.js";
 import type { RenderContext } from "./core/types.js";
@@ -200,6 +202,15 @@ function answerKeyData(artifact: ArtifactRecord): AnswerKeyData {
   };
 }
 
+function slideDeckData(artifact: ArtifactRecord): SlideDeckData {
+  const metadataDeck = asRecord(asRecord(artifact.metadata).slide_deck_data);
+  if (Object.keys(metadataDeck).length > 0) {
+    return metadataDeck as SlideDeckData;
+  }
+  const sectionDeck = asRecord(asRecordArray(artifact.sections)[0]?.slide_deck);
+  return sectionDeck as SlideDeckData;
+}
+
 function makeContext(audience: RenderContext["audience"], lang: string): RenderContext {
   return {
     audience,
@@ -230,6 +241,8 @@ export async function renderAgentArtifact(input: unknown): Promise<string> {
       return render({ kind: "infographic", input: infographicData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
     case "answer_key":
       return render({ kind: "answer_key", input: answerKeyData(artifact), context: makeContext("teacher", lang) }).then((r) => r.html);
+    case "slide_deck":
+      return renderArtifact("slide_deck", slideDeckData(artifact));
     default:
       return render({ kind: "lesson", input: lessonData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
   }

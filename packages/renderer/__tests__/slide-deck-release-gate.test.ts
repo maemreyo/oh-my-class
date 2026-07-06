@@ -1,0 +1,80 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+import { renderArtifact } from "../src/renderer.js";
+import type { SlideDeckData } from "../src/contracts/index.js";
+
+const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const fixtureDir = join(workspaceRoot, ".scratch/slide-deck-engine/fixtures/golden");
+
+const forbiddenStudentPatterns = [
+  /SECRET_/,
+  /Correct answer/i,
+  /correct_option_ids/,
+  /acceptable_answers/,
+  /teacher_notes/,
+  /teacher_only/,
+  /Traceback \(most recent call last\)/,
+  /provider stack/i,
+] as const;
+
+function goldenDecks(): readonly SlideDeckData[] {
+  return readdirSync(fixtureDir)
+    .filter((name) => name.endsWith(".json"))
+    .sort()
+    .map((name) => JSON.parse(readFileSync(join(fixtureDir, name), "utf-8")) as SlideDeckData);
+}
+
+function requireDeck(deckId: string): SlideDeckData {
+  const deck = goldenDecks().find((candidate) => candidate.deck_id === deckId);
+  if (!deck) throw new Error(`Missing golden deck fixture: ${deckId}`);
+  return deck;
+}
+
+describe("slide_deck release gate golden fixtures", () => {
+  it("covers all required fixture categories", () => {
+    const fixtureNames = readdirSync(fixtureDir).filter((name) => name.endsWith(".json")).sort();
+
+    expect(fixtureNames).toEqual([
+      "answer-leak-regression-deck.json",
+      "interaction-deck.json",
+      "media-heavy-deck.json",
+      "simple-lesson-deck.json",
+      "teacher-notes-deck.json",
+    ]);
+  });
+
+  it("renders student, teacher, and print output matrix for every golden deck", async () => {
+    const outputs = new Set<string>();
+
+    for (const deck of goldenDecks()) {
+      for (const surface of ["student", "teacher", "print"] as const) {
+        const html = await renderArtifact("slide_deck", { ...deck, render_surface: surface });
+
+        outputs.add(`slide_deck:${surface}`);
+        expect(html).toContain("<!DOCTYPE html>");
+        expect(html).toContain("oh-my-class");
+        expect(html).toContain(deck.title);
+        expect(html).not.toMatch(/<link\s/i);
+        expect(html).not.toMatch(/@import/i);
+        if (surface === "student") {
+          for (const pattern of forbiddenStudentPatterns) expect(html).not.toMatch(pattern);
+        }
+      }
+    }
+
+    expect([...outputs].sort()).toEqual(["slide_deck:print", "slide_deck:student", "slide_deck:teacher"]);
+  });
+
+  it("keeps online media warning and no-JS fallback visible without leaking answers", async () => {
+    const mediaHtml = await renderArtifact("slide_deck", { ...requireDeck("golden-media-heavy"), render_surface: "student" });
+    const interactionHtml = await renderArtifact("slide_deck", { ...requireDeck("golden-interaction"), render_surface: "student" });
+
+    expect(mediaHtml).toContain("Optional online media requires network access");
+    expect(mediaHtml).toContain("Use the printed folding diagram instead.");
+    expect(interactionHtml).toContain("No-JS fallback: Students hold up A, B, or C cards.");
+    expect(interactionHtml).not.toContain("2/4 simplifies to 1/2");
+  });
+});

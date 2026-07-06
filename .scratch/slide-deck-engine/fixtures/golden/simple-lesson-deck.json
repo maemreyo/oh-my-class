@@ -1,0 +1,29 @@
+{
+  "deck_id": "golden-simple-lesson",
+  "title": "Simple Equivalent Fractions Deck",
+  "locale": "en-US",
+  "theme": "default",
+  "surfaces": {
+    "student": { "mode": "presentation", "export_format": "html" },
+    "teacher": { "mode": "teacher_guide", "export_format": "html" },
+    "print": { "mode": "print", "export_format": "html" }
+  },
+  "source_refs": [
+    { "source_id": "src-fractions-standard", "title": "Grade 5 Fractions Standard", "citation": "CCSS 5.NF.A", "confidence": "verified" }
+  ],
+  "slides": [
+    {
+      "slide_id": "simple-title",
+      "title": "Equivalent Fractions",
+      "layout": "title",
+      "progression": { "step_index": 1, "reveal_policy": "all_at_once" },
+      "blocks": [
+        { "block_id": "simple-heading", "block_type": "heading", "body": "Equivalent Fractions", "source_ref_ids": ["src-fractions-standard"] },
+        { "block_id": "simple-body", "block_type": "paragraph", "body": "Different fractions can name the same amount." }
+      ],
+      "teacher_notes": { "facilitation_notes": ["Ask learners to sketch two matching bars."], "answer_key_notes": [] }
+    }
+  ],
+  "accessibility": { "reading_level": "Grade 5", "language": "en", "alt_text_required": true, "keyboard_navigation": true },
+  "media_policy": { "default_tier": "packaged", "online_optional_allowed": true, "fallback_required": true }
+}

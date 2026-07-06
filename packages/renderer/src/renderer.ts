@@ -11,6 +11,7 @@ import { eta } from "./eta-engine.js";
 import type { ArtifactDataMap, ArtifactType } from "./contracts/index.js";
 import { loadTheme } from "./theme/loader.js";
 import { sanitize } from "./sanitizer/index.js";
+import { assertStudentSlideDeckHtmlIsSafe, projectSlideDeckSurface } from "./slide-deck-projection.js";
 
 export type { ArtifactDataMap, ArtifactType } from "./contracts/index.js";
 export {
@@ -75,14 +76,17 @@ export async function renderArtifact<T extends ArtifactType>(
   const themeName = (data as { theme?: string }).theme ?? "default";
   const lang = (data as { lang?: string }).lang ?? "vi";
   const themeCSS = loadTheme(themeName);
+  const templateData = type === "slide_deck" ? projectSlideDeckSurface(data as ArtifactDataMap["slide_deck"]) : data;
 
   const html = await eta.renderAsync(`pages/${type}`, {
-    ...data,
+    ...templateData,
     themeCSS,
     lang,
   });
 
-  return sanitize(html, type);
+  const sanitized = sanitize(html, type);
+  if (type === "slide_deck") assertStudentSlideDeckHtmlIsSafe(templateData as ReturnType<typeof projectSlideDeckSurface>, sanitized);
+  return sanitized;
 }
 
 

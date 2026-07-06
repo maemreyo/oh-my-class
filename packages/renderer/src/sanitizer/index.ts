@@ -28,6 +28,7 @@ const CONFIG_MAP: Record<ArtifactType, IOptions> = {
   exit_ticket:     EXIT_TICKET_CONFIG,
   teaching_pack:   BASE_CONFIG,   // teaching_pack is a bundle — sanitize each artifact independently
   roadmap:         ROADMAP_CONFIG,
+  slide_deck:      BASE_CONFIG,
 };
 
 /**

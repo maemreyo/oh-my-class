@@ -9,6 +9,10 @@ export interface ArtifactProgressItem {
 	readonly error?: string;
 }
 
+export function labelForArtifactType(artifactType: string): string {
+	return artifactType === "slide_deck" ? "Slide deck" : artifactType.replaceAll("_", " ");
+}
+
 export interface TeachingPackArtifactProgressProps {
 	readonly artifacts: readonly ArtifactProgressItem[];
 }
@@ -44,7 +48,7 @@ export function TeachingPackArtifactProgress({ artifacts }: TeachingPackArtifact
 						>
 							<div className="flex items-start justify-between gap-3">
 								<div>
-									<p className="text-sm font-medium">{artifact.artifact_type}</p>
+									<p className="text-sm font-medium">{labelForArtifactType(artifact.artifact_type)}</p>
 									<p className="font-mono text-xs text-muted-foreground">{artifact.artifact_id}</p>
 								</div>
 								<span className={`text-sm font-medium ${config.color}`}>{config.label}</span>

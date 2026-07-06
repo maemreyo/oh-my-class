@@ -1,6 +1,6 @@
 ---
 title: Generate and export a minimal slide_deck tracer through the teaching-pack pipeline
-status: ready-for-agent
+status: done
 labels: [slide-deck-engine, pipeline, renderer, ready-for-agent]
 created: 2026-07-06
 ---
@@ -19,22 +19,28 @@ The tracer deck can use a small set of layouts and blocks, but it must use the r
 
 ## Acceptance criteria
 
-- [ ] A run contract can request `slide_deck` without clarification or unsupported-artifact failure.
-- [ ] Content Creator can return a valid `ArtifactContent` for `slide_deck` using `SlideDeckEngine` or its deterministic adapter.
-- [ ] Artifact fanout schedules `slide_deck` after its required lesson dependency and records per-artifact workflow status.
-- [ ] Renderer has a `slide_deck` artifact-kind plugin/template that emits standalone HTML with `DOCTYPE`, viewport meta, inline CSS, `oh-my-class` branding, and no external asset URLs.
-- [ ] Render quality/compliance does not need a special bypass for `slide_deck`.
-- [ ] Export finalize writes a `slide_deck` HTML artifact for approved snapshots.
-- [ ] A focused integration test proves a minimal lesson + slide_deck run reaches exported HTML.
+- [x] A run contract can request `slide_deck` without clarification or unsupported-artifact failure.
+- [x] Content Creator can return a valid `ArtifactContent` for `slide_deck` using `SlideDeckEngine` or its deterministic adapter.
+- [x] Artifact fanout schedules `slide_deck` after its required lesson dependency and records per-artifact workflow status.
+- [x] Renderer has a `slide_deck` artifact-kind plugin/template that emits standalone HTML with `DOCTYPE`, viewport meta, inline CSS, `oh-my-class` branding, and no external asset URLs.
+- [x] Render quality/compliance does not need a special bypass for `slide_deck`.
+- [x] Export finalize writes a `slide_deck` HTML artifact for approved snapshots.
+- [x] A focused integration test proves a minimal lesson + slide_deck run reaches exported HTML.
 
 ## Todo items
 
-- [ ] Wire `slide_deck` into run-contract request handling and artifact workflow scheduling.
-- [ ] Connect Content Creator to the deterministic `SlideDeckEngine` path for a minimal deck.
-- [ ] Add renderer support for a minimal standalone slide deck HTML output.
-- [ ] Ensure quality/compliance validation runs without a `slide_deck` bypass.
-- [ ] Wire export finalize to persist the generated slide deck HTML artifact.
-- [ ] Add an integration test for lesson plus `slide_deck` reaching exported HTML.
+- [x] Wire `slide_deck` into run-contract request handling and artifact workflow scheduling.
+- [x] Connect Content Creator to the deterministic `SlideDeckEngine` path for a minimal deck.
+- [x] Add renderer support for a minimal standalone slide deck HTML output.
+- [x] Ensure quality/compliance validation runs without a `slide_deck` bypass.
+- [x] Wire export finalize to persist the generated slide deck HTML artifact.
+- [x] Add an integration test for lesson plus `slide_deck` reaching exported HTML.
+
+## Completion notes
+
+- Deterministic `SlideDeckEngine` output is now used by the hierarchical content creator and the `generate_one_artifact` tracer path.
+- `slide_deck` fanout runs after `lesson`, participates in render quality workflow-state evaluation, renders through the current Eta renderer seam, and is written by the gateway export writer when its snapshot is approved.
+- Focused verification passed: `uv run pytest packages/agents/tests/teaching_pack/test_slide_deck_tracer.py packages/agents/tests/teaching_pack/test_content_approval_quality_flags.py services/gateway/tests/test_teaching_pack_export_writer.py` and `pnpm --dir packages/renderer exec vitest run __tests__/slide-deck-renderer.test.ts`.
 
 ## Blocked by
 

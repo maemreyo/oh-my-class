@@ -60,7 +60,7 @@ def _artifact_quality_issues(index: int, artifact: ArtifactContent) -> list[str]
     for section_index, section in enumerate(artifact.sections):
         if section.get("teacher_only") is True:
             continue
-        section_text = str(section)
+        section_text = str(_student_facing_section(section, artifact.artifact_type))
         if _PLACEHOLDER_PATTERN.search(section_text):
             issues.append(f"artifacts[{index}].sections[{section_index}]: placeholder_content")
         if _ANSWER_KEY_PATTERN.search(section_text):
@@ -95,6 +95,27 @@ def _pack_coherence_issues(artifacts: list[ArtifactContent]) -> list[str]:
         if quiz is not None:
             issues.extend(_vietnamese_difficulty_issues(quiz))
     return issues
+
+
+def _student_facing_section(section: JsonObject, artifact_type: str) -> JsonObject:
+    if artifact_type != "slide_deck":
+        return section
+    student_section = _without_teacher_only_values(section)
+    if isinstance(student_section, dict):
+        return student_section
+    return {}
+
+
+def _without_teacher_only_values(value: JsonValue) -> JsonValue:
+    if isinstance(value, list):
+        return [_without_teacher_only_values(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    return {
+        key: _without_teacher_only_values(item)
+        for key, item in value.items()
+        if key not in {"teacher_notes", "teacher_only"}
+    }
 
 
 def _objective_terms(lesson: ArtifactContent) -> set[str]:

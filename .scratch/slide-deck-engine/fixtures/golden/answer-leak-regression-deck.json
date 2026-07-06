@@ -1,0 +1,41 @@
+{
+  "deck_id": "golden-answer-leak-regression",
+  "title": "Answer Leak Regression Deck",
+  "locale": "en-US",
+  "theme": "default",
+  "surfaces": {
+    "student": { "mode": "presentation", "export_format": "html" },
+    "teacher": { "mode": "teacher_guide", "export_format": "html" },
+    "print": { "mode": "print", "export_format": "html" }
+  },
+  "source_refs": [
+    { "source_id": "src-regression", "title": "Regression sentinel", "citation": "Internal release gate", "confidence": "verified" }
+  ],
+  "slides": [
+    {
+      "slide_id": "leak-check",
+      "title": "Leak Check",
+      "layout": "question",
+      "progression": { "step_index": 1, "reveal_policy": "progressive" },
+      "blocks": [
+        { "block_id": "safe-question", "block_type": "interaction_prompt", "body": "Choose the equivalent fraction." }
+      ],
+      "interactions": [
+        {
+          "interaction_id": "leak-sentinel",
+          "interaction_type": "multiple_choice_single",
+          "prompt": "Choose the equivalent fraction.",
+          "answer_bearing": true,
+          "options": [
+            { "option_id": "a", "label": "1/4" },
+            { "option_id": "b", "label": "2/4" }
+          ],
+          "teacher_only": { "separation": "teacher_only_projection", "correct_option_ids": ["b"], "acceptable_answers": ["SECRET_ACCEPTABLE_ANSWER"], "rationale": "SECRET_RATIONALE: 2/4 is equivalent to 1/2." }
+        }
+      ],
+      "teacher_notes": { "facilitation_notes": ["SECRET_NOTE: listen for denominator language."], "answer_key_notes": ["SECRET_KEY: b"] }
+    }
+  ],
+  "accessibility": { "reading_level": "Grade 5", "language": "en", "alt_text_required": true, "keyboard_navigation": true },
+  "media_policy": { "default_tier": "packaged", "online_optional_allowed": true, "fallback_required": true }
+}

@@ -172,7 +172,7 @@ export function useTeachingPackStatus(runId: string | null) {
 export function snapshotPreviewUrl(
 	runId: string,
 	snapshotId: string,
-	view: "student" | "teacher",
+	view: "student" | "teacher" | "print",
 ): string {
 	return `${gatewayUrl()}/teaching-packs/runs/${runId}/snapshots/${snapshotId}/preview?view=${view}`;
 }

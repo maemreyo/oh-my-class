@@ -41,6 +41,7 @@ _CORE_ARTIFACT_TYPES = frozenset({
     "flashcard_deck",
     "answer_key",
     "roadmap",
+    "slide_deck",
 })
 
 

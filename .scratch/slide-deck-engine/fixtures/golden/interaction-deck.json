@@ -1,0 +1,44 @@
+{
+  "deck_id": "golden-interaction",
+  "title": "Interactive Fractions Deck",
+  "locale": "en-US",
+  "theme": "default",
+  "surfaces": {
+    "student": { "mode": "presentation", "export_format": "html" },
+    "teacher": { "mode": "teacher_guide", "export_format": "html" },
+    "print": { "mode": "print", "export_format": "html" }
+  },
+  "source_refs": [
+    { "source_id": "src-check", "title": "Quick formative checks", "citation": "Classroom assessment practice", "confidence": "verified" }
+  ],
+  "slides": [
+    {
+      "slide_id": "interaction-check",
+      "title": "Quick Check",
+      "layout": "question",
+      "progression": { "step_index": 1, "reveal_policy": "teacher_controlled" },
+      "blocks": [
+        { "block_id": "prompt-block", "block_type": "interaction_prompt", "body": "Which fraction equals 1/2?" }
+      ],
+      "interactions": [
+        {
+          "interaction_id": "mcq-equivalent",
+          "interaction_type": "multiple_choice_single",
+          "prompt": "Which fraction equals 1/2?",
+          "answer_bearing": true,
+          "options": [
+            { "option_id": "a", "label": "1/3" },
+            { "option_id": "b", "label": "2/4" },
+            { "option_id": "c", "label": "3/5" }
+          ],
+          "teacher_only": { "separation": "teacher_only_projection", "correct_option_ids": ["b"], "rationale": "2/4 simplifies to 1/2." },
+          "no_js_fallback": "Students hold up A, B, or C cards.",
+          "accessibility_label": "Equivalent fraction quick check"
+        }
+      ],
+      "teacher_notes": { "facilitation_notes": ["Wait for all students before revealing the answer."], "answer_key_notes": ["Correct answer: b"] }
+    }
+  ],
+  "accessibility": { "reading_level": "Grade 5", "language": "en", "alt_text_required": true, "keyboard_navigation": true },
+  "media_policy": { "default_tier": "packaged", "online_optional_allowed": true, "fallback_required": true }
+}

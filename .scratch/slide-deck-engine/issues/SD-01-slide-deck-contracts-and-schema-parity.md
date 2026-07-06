@@ -1,6 +1,6 @@
 ---
 title: Define slide_deck contracts and schema parity
-status: in-progress
+status: done
 labels: [slide-deck-engine, contracts, ready-for-agent]
 created: 2026-07-06
 ---
@@ -19,21 +19,31 @@ This slice does not build generation, rendering, or UI. It proves that the canon
 
 ## Acceptance criteria
 
-- [ ] `slide_deck` is present in all canonical Python artifact-type contracts required for run contracts and artifact workflow input.
-- [ ] A Pydantic `SlideDeckData` contract exists in the canonical contracts package and validates a representative deck with slides, blocks, interactions, source refs, teacher-only notes, and accessibility metadata.
-- [ ] The contract rejects malformed decks: no slides, duplicate slide IDs, duplicate block IDs within a slide, unsupported layout/block/interaction type, missing required media alt text, and answer-bearing interaction data without teacher-only separation metadata.
-- [ ] Generated TypeScript/Zod schemas include the new `slide_deck` contract and generated files are not hand-edited.
-- [ ] Existing contract tests for current artifact types still pass unchanged.
-- [ ] A fixture deck exists under the slide-deck issue fixtures or test fixtures for later renderer/engine slices.
+- [x] `slide_deck` is present in all canonical Python artifact-type contracts required for run contracts and artifact workflow input.
+- [x] A Pydantic `SlideDeckData` contract exists in the canonical contracts package and validates a representative deck with slides, blocks, interactions, source refs, teacher-only notes, and accessibility metadata.
+- [x] The contract rejects malformed decks: no slides, duplicate slide IDs, duplicate block IDs within a slide, unsupported layout/block/interaction type, missing required media alt text, and answer-bearing interaction data without teacher-only separation metadata.
+- [x] Generated TypeScript/Zod schemas include the new `slide_deck` contract and generated files are not hand-edited.
+- [x] Existing contract tests for current artifact types still pass unchanged.
+- [x] A fixture deck exists under the slide-deck issue fixtures or test fixtures for later renderer/engine slices.
 
 ## Todo items
 
-- [ ] Update canonical artifact-type enums and run-contract validation to include `slide_deck`.
-- [ ] Add `SlideDeckData` Pydantic models in `common/contracts` with stable IDs, surfaces, source refs, teacher-only data, media, accessibility, and interaction fields.
-- [ ] Add validation tests for valid decks and malformed deck rejection cases.
-- [ ] Regenerate TypeScript/Zod schemas through the existing generator.
-- [ ] Add a representative fixture deck for later engine, renderer, and quality issues.
-- [ ] Run contract/schema tests and record any unrelated pre-existing failures.
+- [x] Update canonical artifact-type enums and run-contract validation to include `slide_deck`.
+- [x] Add `SlideDeckData` Pydantic models in `common/contracts` with stable IDs, surfaces, source refs, teacher-only data, media, accessibility, and interaction fields.
+- [x] Add validation tests for valid decks and malformed deck rejection cases.
+- [x] Regenerate TypeScript/Zod schemas through the existing generator.
+- [x] Add a representative fixture deck for later engine, renderer, and quality issues.
+- [x] Run contract/schema tests and record any unrelated pre-existing failures.
+
+## Completion notes
+
+- Implemented in `common/contracts/slide_deck.py`, canonical artifact literals, `scripts/schema_codegen_config.py`, and generated schemas.
+- Fixture: `.scratch/slide-deck-engine/fixtures/representative-slide-deck.json`.
+- Verified: `uv run pytest common/contracts/tests/test_slide_deck.py common/contracts/tests/test_artifact_workflow.py common/contracts/tests/test_artifact.py common/contracts/tests/test_run_contract_plan_unit.py` passed with 35 tests.
+- Verified: `pnpm verify:schemas` passed and includes `SlideDeckData` parity.
+- Verified: direct TypeScript check for `common/schemas/src/generated/slide_deck.ts` passed.
+- Manual surface check: loaded the fixture through `SlideDeckData.model_validate(...)` and observed `deck-fractions-intro 2 teacher_only_projection`.
+- Unrelated existing failure: `pnpm build` in `common/schemas` fails because `src/generated/lesson_plan_types.test.ts` lacks generated `LearningObjective` fields `importance`, `assessable`, and `assessment_intent`.
 
 ## Blocked by
 

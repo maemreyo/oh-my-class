@@ -36,7 +36,7 @@ GENERATE_ONE_ARTIFACT_NODE: Final = "generate_one_artifact"
 RENDER_QUALITY_NODE: Final = "render_quality"
 _WAVES: Final[tuple[tuple[str, ...], ...]] = (
     ("lesson",),
-    ("worksheet", "quiz", "drill", "flashcard_deck", "roadmap"),
+    ("worksheet", "quiz", "drill", "flashcard_deck", "roadmap", "slide_deck"),
     ("recap", "answer_key"),
 )
 _DEPENDENCIES: Final[dict[str, tuple[str, ...]]] = {
@@ -47,6 +47,7 @@ _DEPENDENCIES: Final[dict[str, tuple[str, ...]]] = {
     "flashcard_deck": ("lesson",),
     "answer_key": ("quiz",),
     "roadmap": ("lesson",),
+    "slide_deck": ("lesson",),
 }
 
 

@@ -2,15 +2,17 @@
 
 import type { TeachingPackEventPayload, TeachingPackGateName } from "@/hooks/use-teaching-packs";
 import { ContentApprovalBody } from "@/components/teaching-packs-content-approval-body";
+import type { SlideDeckScopedFeedback } from "@/components/teaching-packs-slide-deck-preview";
 import { TeachingPackStrategyPanel, type StrategyFeedbackDraft } from "@/components/teaching-packs-strategy-panel";
 
-export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneAction, onRequestRevisionAction, onStrategyFeedbackAction }: {
+export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneAction, onRequestRevisionAction, onStrategyFeedbackAction, onSlideDeckFeedbackAction }: {
 	readonly runId: string;
 	readonly gateName: TeachingPackGateName;
 	readonly event: TeachingPackEventPayload;
 	readonly onRevertFastLaneAction?: (artifactId: string) => void;
 	readonly onRequestRevisionAction?: (artifactId: string) => void;
 	readonly onStrategyFeedbackAction?: (draft: StrategyFeedbackDraft) => void;
+	readonly onSlideDeckFeedbackAction?: (feedback: SlideDeckScopedFeedback) => void;
 }) {
 	switch (gateName) {
 		case "clarification_required":
@@ -24,7 +26,7 @@ export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneA
 		case "unit_approval":
 			return <UnitApprovalSummary event={event} />;
 		case "content_approval":
-			return <ContentApprovalBody runId={runId} event={event} onRevertFastLaneAction={onRevertFastLaneAction} onRequestRevisionAction={onRequestRevisionAction} />;
+			return <ContentApprovalBody runId={runId} event={event} onRevertFastLaneAction={onRevertFastLaneAction} onRequestRevisionAction={onRequestRevisionAction} onSlideDeckFeedbackAction={onSlideDeckFeedbackAction} />;
 		default:
 			return assertNever(gateName);
 	}

@@ -8,6 +8,7 @@ import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
 import { editableArtifactsFor, gateNameFor, labelFor, responseFor, strategyFeedbackResponse } from "@/components/teaching-packs-gate-shell-utils";
 import { TeachingPackScopedRejection, TeachingPackSectionEditor } from "@/components/teaching-packs-scoped-rejection";
 import type { ArtifactRejection, ContentSectionEdit } from "@/components/teaching-packs-scoped-rejection";
+import type { SlideDeckScopedFeedback } from "@/components/teaching-packs-slide-deck-preview";
 import type { StrategyFeedbackDraft } from "@/components/teaching-packs-strategy-panel";
 
 export interface TeachingPackGateShellProps {
@@ -74,6 +75,20 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 		onResolved?.();
 	};
 
+	const handleSlideDeckFeedback = async (draft: SlideDeckScopedFeedback) => {
+		await resume.mutateAsync({
+			gate_id: gateId,
+			gate_name: gateName,
+			action: "edit",
+			response: {
+				edit_type: "slide_deck_scoped_feedback",
+				versioning: "new_content_snapshot",
+				slide_deck_feedback: draft,
+			},
+		});
+		onResolved?.();
+	};
+
 	const rejectionSourceArtifacts = event.artifact_statuses ?? event.artifacts ?? [];
 	const showScopedRejection = gateName === "content_approval" && rejectionSourceArtifacts.length > 0;
 	const artifacts = editableArtifactsFor(event, rejectionSourceArtifacts);
@@ -98,14 +113,15 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 			</div>
 
 			<div className="mt-4 rounded-md bg-muted p-4">
-					<TeachingPackGateBody
+						<TeachingPackGateBody
 						runId={runId}
 						gateName={gateName}
 						event={event}
 						onRevertFastLaneAction={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Revert fast-lane auto-approval." })}
-						onRequestRevisionAction={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Teacher requested a post-export revision." })}
-						onStrategyFeedbackAction={handleStrategyFeedback}
-					/>
+							onRequestRevisionAction={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Teacher requested a post-export revision." })}
+							onStrategyFeedbackAction={handleStrategyFeedback}
+							onSlideDeckFeedbackAction={handleSlideDeckFeedback}
+						/>
 			</div>
 
 				{sectionEditorMode && showSectionEditor ? (

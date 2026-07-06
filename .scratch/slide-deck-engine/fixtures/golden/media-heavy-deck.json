@@ -1,0 +1,40 @@
+{
+  "deck_id": "golden-media-heavy",
+  "title": "Media-Supported Fractions Deck",
+  "locale": "en-US",
+  "theme": "default",
+  "surfaces": {
+    "student": { "mode": "presentation", "export_format": "html" },
+    "teacher": { "mode": "teacher_guide", "export_format": "html" },
+    "print": { "mode": "print", "export_format": "html" }
+  },
+  "source_refs": [
+    { "source_id": "src-visual-model", "title": "Visual Fraction Models", "citation": "NCTM Fractions Progression", "confidence": "verified" }
+  ],
+  "slides": [
+    {
+      "slide_id": "media-model",
+      "title": "Model the Same Whole",
+      "layout": "content",
+      "progression": { "step_index": 1, "reveal_policy": "progressive" },
+      "blocks": [
+        {
+          "block_id": "packaged-bars",
+          "block_type": "image",
+          "body": "Packaged fraction bars show one half and two fourths.",
+          "source_ref_ids": ["src-visual-model"],
+          "media": { "media_id": "bars-svg", "media_type": "image", "source": "packaged/fraction-bars.svg", "tier": "packaged", "alt_text": "Two bars showing one half equals two fourths.", "requires_network": false }
+        },
+        {
+          "block_id": "online-video",
+          "block_type": "image",
+          "body": "Optional classroom video shows folding paper into equal parts.",
+          "media": { "media_id": "folding-video", "media_type": "video", "source": "https://example.com/fraction-folding", "tier": "online_optional", "alt_text": "Video model of folding paper fractions.", "fallback_text": "Use the printed folding diagram instead.", "requires_network": true }
+        }
+      ],
+      "teacher_notes": { "facilitation_notes": ["Use the packaged visual first; the online video is optional."], "answer_key_notes": [] }
+    }
+  ],
+  "accessibility": { "reading_level": "Grade 5", "language": "en", "alt_text_required": true, "keyboard_navigation": true },
+  "media_policy": { "default_tier": "packaged", "online_optional_allowed": true, "fallback_required": true }
+}

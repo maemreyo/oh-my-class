@@ -6,6 +6,7 @@ from typing import Any, Literal, assert_never
 
 from common.contracts.artifact import ArtifactContent
 from common.contracts.methodology_registry import MethodologyTag, methodology_entry_by_tag
+from packages.agents.slide_deck_engine import SlideDeckEngine, SlideDeckEngineRequest
 from packages.agents.sub_agents.content_creator.hierarchical_sections import flashcards, regen_placeholder
 from packages.agents.sub_agents.content_creator.strategy_fill import (
     StrategyFillContext,
@@ -19,7 +20,7 @@ from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeS
 
 ArtifactKind = Literal[
     "lesson", "worksheet", "quiz", "drill", "recap", "infographic",
-    "flashcard_deck", "answer_key", "roadmap",
+    "flashcard_deck", "answer_key", "roadmap", "slide_deck",
 ]
 
 
@@ -64,12 +65,16 @@ def _artifact_kind(value: str) -> ArtifactKind:
             return "answer_key"
         case "roadmap":
             return "roadmap"
+        case "slide_deck":
+            return "slide_deck"
         case _:
             msg = f"unsupported artifact type: {value}"
             raise ValueError(msg)
 
 
 def _build_artifact(artifact_type: ArtifactKind, state: ContentCreatorNodeState) -> dict[str, Any]:
+    if artifact_type == "slide_deck":
+        return _build_slide_deck_artifact(state)
     lesson_plan = state["lesson_plan"]
     research_bundle = state["research_bundle"]
     outline = _outline(artifact_type, lesson_plan)
@@ -85,6 +90,34 @@ def _build_artifact(artifact_type: ArtifactKind, state: ContentCreatorNodeState)
     )
     _validate_coverage(artifact, lesson_plan)
     _validate_methodology(artifact, lesson_plan)
+    return artifact.model_dump()
+
+
+def _build_slide_deck_artifact(state: ContentCreatorNodeState) -> dict[str, Any]:
+    lesson_plan = state["lesson_plan"]
+    deck_result = SlideDeckEngine().generate(SlideDeckEngineRequest(
+        run_id=state["run_id"],
+        lesson_blueprint=lesson_plan,
+        research_brief=state["research_bundle"],
+        dependency_artifacts=state.get("artifacts") or [],
+        teacher_constraints={"locale": _locale(lesson_plan), "theme": state.get("theme", "default")},
+        revision_feedback=state.get("revision_feedback", ""),
+    ))
+    deck_data = deck_result.deck.model_dump(mode="json")
+    artifact = ArtifactContent(
+        artifact_type="slide_deck",
+        theme=state.get("theme", "default"),
+        title=deck_result.deck.title,
+        sections=[{"title": deck_result.deck.title, "slide_deck": deck_data}],
+        metadata={
+            "generation_mode": "slide_deck_engine_deterministic",
+            "artifact_type": "slide_deck",
+            "slide_deck_data": deck_data,
+            "slide_deck_scorecard": deck_result.scorecard.model_dump(mode="json"),
+            "slide_deck_trace": deck_result.trace.model_dump(mode="json"),
+        },
+        accessibility={"language": deck_result.deck.accessibility.language},
+    )
     return artifact.model_dump()
 
 
@@ -110,6 +143,8 @@ def _outline(artifact_type: ArtifactKind, lesson_plan: dict[str, Any]) -> list[S
             return [SectionOutline("cards", "Flashcards", "build active-recall cards", objectives[0] if objectives else None, "enhance_retention")]
         case "answer_key":
             return [SectionOutline("teacher_only_answers", "Teacher-only answer key", "explain correct answers", objective, "assess_performance") for objective in objectives[:5]]
+        case "slide_deck":
+            return [SectionOutline("deck", "Slide deck", "present visual sequence", objectives[0] if objectives else None, "present_content")]
         case unreachable:
             assert_never(unreachable)
 
@@ -287,3 +322,7 @@ def _topic(lesson_plan: dict[str, Any]) -> str:
 
 def _language(lesson_plan: dict[str, Any]) -> str:
     return str(lesson_plan.get("language", "en"))
+
+
+def _locale(lesson_plan: dict[str, Any]) -> str:
+    return str(lesson_plan.get("locale", lesson_plan.get("citation_locale", "en-US")))

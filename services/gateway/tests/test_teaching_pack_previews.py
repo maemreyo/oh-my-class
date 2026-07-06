@@ -6,7 +6,9 @@ from uuid import uuid4
 import anyio
 
 from services.gateway.models import RunStatus
-from services.gateway.teaching_pack_types import RunId
+from services.gateway.routers import teaching_pack_previews
+from services.gateway.teaching_pack_snapshot_schemas import ArtifactSnapshotRead
+from services.gateway.teaching_pack_types import JsonObject, RunId
 from services.gateway.tests.teaching_pack_preview_helpers import (
     approved_event_payload,
     create_run_with_snapshot,
@@ -104,6 +106,39 @@ class TestTeachingPackPreviews:
         assert "Answer Key" in response.text
         assert "Correct answer" in response.text
         anyio.run(delete_run, run_id)
+
+    def test_slide_deck_print_preview_renders_print_surface(self, monkeypatch) -> None:
+        calls: list[JsonObject] = []
+
+        async def render_print(content: JsonObject) -> str:
+            calls.append(content)
+            return "<!DOCTYPE html><html><body>oh-my-class print surface</body></html>"
+
+        monkeypatch.setattr(teaching_pack_previews, "render_artifact_content", render_print)
+        snapshot = ArtifactSnapshotRead(
+            snapshot_id="snapshot-slide",
+            run_id=RunId("run-slide"),
+            artifact_id="artifact-slide",
+            artifact_type="slide_deck",
+            content_hash="content-hash",
+            html_hash="html-hash",
+            content_json={
+                "artifact_type": "slide_deck",
+                "metadata": {"slide_deck_data": {"deck_id": "deck-1", "title": "Deck", "slides": []}},
+            },
+            rendered_html="<!DOCTYPE html><html><body>teacher surface</body></html>",
+            student_rendered_html="<!DOCTYPE html><html><body>student surface</body></html>",
+            renderer_version="renderer@test",
+            template_version="template@test",
+            theme_version="theme@test",
+            standalone_valid=True,
+            approved_at=None,
+        )
+
+        html = anyio.run(teaching_pack_previews._print_preview_html, snapshot)
+
+        assert html == "<!DOCTYPE html><html><body>oh-my-class print surface</body></html>"
+        assert calls[0]["metadata"]["slide_deck_data"]["render_surface"] == "print"
 
     def test_approve_records_exact_snapshot_ids_and_event(self, client: TestClient) -> None:
         run_id = RunId(f"test-{uuid4()}")

@@ -4,13 +4,15 @@ import { useState } from "react";
 import { snapshotPreviewUrl } from "@/hooks/use-teaching-packs";
 import type { TeachingPackEventPayload } from "@/hooks/use-teaching-packs";
 import { TeachingPackArtifactProgress } from "@/components/teaching-packs-artifact-progress";
+import { TeachingPacksSlideDeckPreview, type SlideDeckScopedFeedback, hasSlideDeckArtifact } from "@/components/teaching-packs-slide-deck-preview";
 import { TeachingPackTrustPanel } from "@/components/teaching-packs-trust-panel";
 
-export function ContentApprovalBody({ runId, event, onRevertFastLaneAction, onRequestRevisionAction }: {
+export function ContentApprovalBody({ runId, event, onRevertFastLaneAction, onRequestRevisionAction, onSlideDeckFeedbackAction }: {
 	readonly runId: string;
 	readonly event: TeachingPackEventPayload;
 	readonly onRevertFastLaneAction?: (artifactId: string) => void;
 	readonly onRequestRevisionAction?: (artifactId: string) => void;
+	readonly onSlideDeckFeedbackAction?: (feedback: SlideDeckScopedFeedback) => void | Promise<void>;
 }) {
 	const artifacts = event.artifact_statuses ?? event.artifacts ?? [];
 	return (
@@ -28,6 +30,9 @@ export function ContentApprovalBody({ runId, event, onRevertFastLaneAction, onRe
 			/>
 			{artifacts.length > 0 && <TeachingPackArtifactProgress artifacts={artifacts} />}
 			<QualityFlagsPanel qualityScores={event.quality_scores} />
+			{hasSlideDeckArtifact(event) ? (
+				<TeachingPacksSlideDeckPreview runId={runId} event={event} onSubmitFeedbackAction={onSlideDeckFeedbackAction} />
+			) : null}
 			<ContentSnapshots runId={runId} snapshotIds={event.snapshot_ids ?? []} />
 		</div>
 	);
@@ -135,19 +140,19 @@ function QualityFlagsPanel({ qualityScores }: { readonly qualityScores?: unknown
 }
 
 function ContentSnapshots({ runId, snapshotIds }: { readonly runId: string; readonly snapshotIds: readonly string[] }) {
-	const [view, setView] = useState<"student" | "teacher">("student");
+	const [view, setView] = useState<"student" | "teacher" | "print">("student");
 	if (snapshotIds.length === 0) return <p className="text-sm text-muted-foreground">Preview snapshots are not ready yet.</p>;
 	return (
 		<div className="space-y-3">
 			<div className="inline-flex rounded-md border border-border bg-background p-1" aria-label="Preview view">
-				{(["student", "teacher"] as const).map((option) => (
+				{(["student", "teacher", "print"] as const).map((option) => (
 					<button
 						key={option}
 						type="button"
 						className={option === view ? "rounded bg-primary px-3 py-1 text-sm text-primary-foreground" : "px-3 py-1 text-sm text-muted-foreground"}
 						onClick={() => setView(option)}
 					>
-						{option === "student" ? "Student view" : "Teacher view"}
+						{option === "student" ? "Student view" : option === "teacher" ? "Teacher view" : "Print view"}
 					</button>
 				))}
 			</div>

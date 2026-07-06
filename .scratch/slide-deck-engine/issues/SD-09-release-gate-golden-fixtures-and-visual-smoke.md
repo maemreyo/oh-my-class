@@ -1,7 +1,7 @@
 ---
 title: Prove slide_deck release readiness with golden fixtures and visual smoke
-status: ready-for-agent
-labels: [slide-deck-engine, testing, visual-qa, ready-for-agent]
+status: done
+labels: [slide-deck-engine, testing, visual-qa, done]
 created: 2026-07-06
 ---
 
@@ -17,22 +17,34 @@ The suite should use golden fixture decks and at least one integration scenario 
 
 ## Acceptance criteria
 
-- [ ] Golden fixture decks cover: simple lesson deck, media-heavy deck, interaction deck, teacher-notes deck, and answer-leak regression deck.
-- [ ] Contract, engine, renderer, quality, gateway/export, and frontend tests for `slide_deck` pass in the normal test commands.
-- [ ] A full pipeline integration test produces a `slide_deck` artifact, teacher approval payload, and exported HTML.
-- [ ] Student-facing HTML is checked for absence of answer keys, correct answers, teacher notes, hidden answer JSON, external assets in offline mode, and raw provider/debug traces.
-- [ ] Playwright visual smoke runs at 375, 768, 1280, and 1920 px and covers slide navigation, reveal fallback, focus visibility, no horizontal overflow, dark mode, and print surface.
-- [ ] The output matrix records `slide_deck` student, teacher, and print HTML as covered outputs.
-- [ ] Manual QA runbook documents the exact browser/API/CLI surfaces used to verify the artifact end-to-end.
+- [x] Golden fixture decks cover: simple lesson deck, media-heavy deck, interaction deck, teacher-notes deck, and answer-leak regression deck.
+- [x] Contract, engine, renderer, quality, gateway/export, and frontend tests for `slide_deck` pass in the normal test commands.
+- [x] A full pipeline integration test produces a `slide_deck` artifact, teacher approval payload, and exported HTML.
+- [x] Student-facing HTML is checked for absence of answer keys, correct answers, teacher notes, hidden answer JSON, external assets in offline mode, and raw provider/debug traces.
+- [x] Playwright visual smoke runs at 375, 768, 1280, and 1920 px and covers slide navigation, reveal fallback, focus visibility, no horizontal overflow, dark mode, and print surface.
+- [x] The output matrix records `slide_deck` student, teacher, and print HTML as covered outputs.
+- [x] Manual QA runbook documents the exact browser/API/CLI surfaces used to verify the artifact end-to-end.
 
 ## Todo items
 
-- [ ] Add golden fixtures for simple lesson, media-heavy, interaction, teacher-notes, and answer-leak regression decks.
-- [ ] Run contract, engine, renderer, quality, gateway/export, and frontend slide-deck test suites.
-- [ ] Add full pipeline integration coverage for `slide_deck` artifact, teacher approval payload, and exported HTML.
-- [ ] Add student-facing HTML leak checks for answers, teacher notes, hidden JSON, external assets, and debug traces.
-- [ ] Add Playwright visual smoke for 375, 768, 1280, and 1920 px with navigation, reveal, focus, overflow, dark mode, and print coverage.
-- [ ] Update the output matrix and manual QA runbook with slide-deck surfaces and verification steps.
+- [x] Add golden fixtures for simple lesson, media-heavy, interaction, teacher-notes, and answer-leak regression decks.
+- [x] Run contract, engine, renderer, quality, gateway/export, and frontend slide-deck test suites.
+- [x] Add full pipeline integration coverage for `slide_deck` artifact, teacher approval payload, and exported HTML.
+- [x] Add student-facing HTML leak checks for answers, teacher notes, hidden JSON, external assets, and debug traces.
+- [x] Add Playwright visual smoke for 375, 768, 1280, and 1920 px with navigation, reveal, focus, overflow, dark mode, and print coverage.
+- [x] Update the output matrix and manual QA runbook with slide-deck surfaces and verification steps.
+
+## Completion notes
+
+- Added five golden deck fixtures under `.scratch/slide-deck-engine/fixtures/golden/`: simple lesson, media-heavy, interaction, teacher-notes, and answer-leak regression.
+- Added contract fixture validation, renderer release-gate coverage for student/teacher/print output matrix, and Playwright visual smoke for 375/768/1280/1920 px.
+- Added pipeline/export release coverage proving `lesson`, `slide_deck`, and `quiz` artifacts produce quality snapshots and approved HTML/export files together.
+- Hardened `packages/agents/teaching_pack/quality.py` so slide-deck answer-key prechecks inspect student-facing slide content while ignoring canonical `teacher_notes` and `teacher_only` data that is removed by projection.
+- Updated ADR-031 and the testbook runbook with `slide_deck:student`, `slide_deck:teacher`, and `slide_deck:print` output matrix cells and the exact release-gate commands.
+- Verified with `uv run pytest common/contracts/tests/test_slide_deck_golden_fixtures.py packages/agents/tests/teaching_pack/test_slide_deck_release_gate.py services/gateway/tests/test_teaching_pack_export_writer.py -q` → `5 passed`.
+- Verified with `pnpm --dir packages/renderer exec vitest run __tests__/slide-deck-renderer.test.ts __tests__/slide-deck-release-gate.test.ts` → `10 passed`.
+- Verified browser visual smoke with `pnpm --dir apps/web exec playwright test tests/e2e/slide-deck-visual-smoke.spec.ts --reporter=list` → `12 passed` across 375, 768, 1280, and 1920 px.
+- Verified `pnpm --dir apps/web typecheck` passed and LSP diagnostics were clean on changed Python/TypeScript files. Renderer tests still emit the existing sanitizer warning for allowing `<style>` in standalone HTML sanitization.
 
 ## Blocked by
 

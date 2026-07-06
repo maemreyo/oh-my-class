@@ -1,0 +1,87 @@
+<%
+  const slides = it.slides || [];
+  let content = '<section class="slide-deck slide-deck--' + it.surface + '" aria-label="' + it.surfaceLabel + ': ' + it.title + '">';
+  content += '<p class="surface-badge">' + it.surfaceLabel + '</p>';
+  content += '<ol class="slide-list">';
+  for (let i = 0; i < slides.length; i++) {
+    const slide = slides[i];
+    content += '<li class="slide-card slide-card--' + slide.layout + '">';
+    content += '<article aria-labelledby="slide-title-' + i + '">';
+    content += '<p class="slide-kicker">Slide ' + (i + 1) + ' · ' + slide.revealPolicy.replaceAll('_', ' ') + '</p>';
+    content += '<h2 id="slide-title-' + i + '">' + slide.title + '</h2>';
+    content += '<div class="slide-blocks">';
+    for (let b = 0; b < slide.blocks.length; b++) {
+      const block = slide.blocks[b];
+      content += '<section class="slide-block slide-block--' + block.blockType + '">';
+      if (block.blockType === 'heading') {
+        content += '<h3>' + block.body + '</h3>';
+      } else if (block.mediaAltText) {
+        content += '<figure><div class="media-placeholder" role="img" aria-label="' + block.mediaAltText + '"></div><figcaption>' + block.body + '</figcaption></figure>';
+        if (block.requiresNetwork) content += '<p class="network-warning">Optional online media requires network access. Fallback: ' + block.fallbackText + '</p>';
+      } else {
+        content += '<p>' + block.body + '</p>';
+      }
+      content += '</section>';
+    }
+    content += '</div>';
+    if (slide.interactions && slide.interactions.length > 0) {
+      content += '<div class="slide-interactions">';
+      for (let j = 0; j < slide.interactions.length; j++) {
+        const interaction = slide.interactions[j];
+        content += '<section class="slide-interaction slide-interaction--' + interaction.interactionType + '" aria-label="' + interaction.accessibilityLabel + '" aria-labelledby="interaction-' + i + '-' + j + '">';
+        content += '<h3 id="interaction-' + i + '-' + j + '">' + interaction.prompt + '</h3>';
+        content += '<ul>';
+        const options = interaction.options || [];
+        for (let o = 0; o < options.length; o++) {
+          const option = options[o];
+          content += '<li><span class="option-marker">' + option.optionId.toUpperCase() + '</span>' + option.label;
+          if (it.surface === 'teacher' && option.correct) content += '<strong class="answer-marker">Correct</strong>';
+          content += '</li>';
+        }
+        content += '</ul>';
+        content += '<p class="no-js-fallback">No-JS fallback: ' + interaction.noJsFallback + '</p>';
+        if (it.surface === 'teacher' && interaction.rationale) content += '<p class="teacher-rationale">' + interaction.rationale + '</p>';
+        content += '</section>';
+      }
+      content += '</div>';
+    }
+    if (it.surface === 'teacher' && (slide.facilitationNotes.length > 0 || slide.answerKeyNotes.length > 0)) {
+      content += '<aside class="teacher-panel"><h3>Teacher guide</h3>';
+      for (let n = 0; n < slide.facilitationNotes.length; n++) content += '<p>' + slide.facilitationNotes[n] + '</p>';
+      for (let n = 0; n < slide.answerKeyNotes.length; n++) content += '<p class="answer-guidance">' + slide.answerKeyNotes[n] + '</p>';
+      content += '</aside>';
+    }
+    content += '</article></li>';
+  }
+  content += '</ol></section>';
+  const pageCSS = `
+    .slide-deck { display: grid; gap: 1rem; }
+    .surface-badge { width: fit-content; margin: 0 0 .75rem; border: 1px solid var(--color-border); border-radius: 999px; padding: .25rem .7rem; color: var(--color-text-soft); background: var(--color-bg-card); font-size: .85rem; }
+    .slide-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; }
+    .slide-card { border: 1px solid var(--color-border); border-radius: 1rem; background: linear-gradient(135deg, var(--color-bg-card), var(--color-accent-tint)); box-shadow: 0 14px 34px rgba(34,39,58,0.10); padding: 1.25rem; break-inside: avoid; }
+    .slide-kicker { margin: 0 0 .35rem; color: var(--color-text-soft); font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
+    .slide-card h2 { margin: 0 0 1rem; font-family: var(--font-heading); font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.1; }
+    .slide-blocks { display: grid; gap: .8rem; }
+    .slide-block { border-radius: .8rem; background: rgba(255,255,255,.72); border: 1px solid var(--color-border-soft); padding: .9rem; }
+    .slide-block h3, .slide-block p { margin: 0; }
+    .media-placeholder { min-height: 7rem; border-radius: .75rem; background: radial-gradient(circle at 30% 25%, var(--color-accent-tint), transparent 45%), linear-gradient(135deg, var(--color-bg-deep), var(--color-bg-card)); border: 1px dashed var(--color-border); }
+    .slide-interactions { margin-top: 1rem; display: grid; gap: .8rem; }
+    .slide-interaction { border-left: .25rem solid var(--color-accent); padding: .2rem 0 .2rem .85rem; }
+    .slide-interaction h3 { margin: 0 0 .5rem; font-size: 1rem; }
+    .slide-interaction ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .45rem; }
+    .slide-interaction li { display: flex; align-items: center; gap: .5rem; }
+    .option-marker { display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.6rem; border-radius: 999px; background: var(--color-accent); color: var(--color-bg-card); font-weight: 700; }
+    .answer-marker { margin-left: .5rem; border-radius: 999px; padding: .1rem .45rem; background: var(--color-success-bg, #e8f5e9); color: var(--color-success, #1b5e20); font-size: .75rem; }
+    .teacher-panel { margin-top: 1rem; border: 1px solid var(--color-border); border-radius: .8rem; padding: .9rem; background: var(--color-bg-card); }
+    .teacher-panel h3 { margin: 0 0 .5rem; }
+    .answer-guidance, .teacher-rationale { color: var(--color-text); font-weight: 600; }
+    .no-js-fallback, .network-warning { color: var(--color-text-soft); font-size: .9rem; margin: .5rem 0 0; }
+    .network-warning { border-left: .2rem solid var(--color-warning); padding-left: .65rem; }
+    @media print { .slide-card { box-shadow: none; page-break-after: always; page-break-inside: avoid; } .surface-badge { display: none; } }
+  `;
+%>
+<%~ include('../base.html', {
+  title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
+  lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
+  type: 'slide_deck', content: content, pageCSS: pageCSS
+}) %>

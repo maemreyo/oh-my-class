@@ -24,6 +24,7 @@ from services.gateway.routers.teaching_pack_preview_schemas import (
     SnapshotApprovalRequest,
     SnapshotApprovalResponse,
 )
+from services.gateway.renderer_adapter import render_artifact_content
 
 router = APIRouter()
 TEACHING_PACK_SESSION = Depends(get_teaching_pack_session)
@@ -63,7 +64,7 @@ async def preview_rendered_snapshot(
     snapshot_id: str,
     current_user: Annotated[User, Depends(require_teacher)],
     view: Annotated[
-        Literal["student", "teacher"],
+        Literal["student", "teacher", "print"],
         Query(),
     ] = "student",
     session: AsyncSession = TEACHING_PACK_SESSION,
@@ -73,12 +74,15 @@ async def preview_rendered_snapshot(
     snapshot = await TeachingPackSnapshotStore(session).get_snapshot(typed_run_id, snapshot_id)
     if snapshot is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="snapshot_not_found")
-    if view == "teacher" and current_user.role not in (Role.TEACHER, Role.ADMIN):
+    if view in ("teacher", "print") and current_user.role not in (Role.TEACHER, Role.ADMIN):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="teacher_preview_required",
         )
-    html = snapshot.rendered_html if view == "teacher" else snapshot.student_rendered_html
+    if view == "print":
+        html = await _print_preview_html(snapshot)
+    else:
+        html = snapshot.rendered_html if view == "teacher" else snapshot.student_rendered_html
     return HTMLResponse(content=html, headers=PREVIEW_SECURITY_HEADERS)
 
 
@@ -144,3 +148,17 @@ def _metadata_response(snapshot: ArtifactSnapshotRead) -> RenderedSnapshotMetada
         standalone_valid=snapshot.standalone_valid,
         approved_at=snapshot.approved_at,
     )
+
+
+async def _print_preview_html(snapshot: ArtifactSnapshotRead) -> str:
+    if snapshot.artifact_type != "slide_deck":
+        return snapshot.rendered_html
+    content = dict(snapshot.content_json)
+    metadata = content.get("metadata")
+    if isinstance(metadata, dict) and isinstance(metadata.get("slide_deck_data"), dict):
+        deck = dict(metadata["slide_deck_data"])
+        deck["render_surface"] = "print"
+        content["metadata"] = {**metadata, "slide_deck_data": deck}
+    else:
+        content["render_surface"] = "print"
+    return await render_artifact_content(content)
