@@ -27,6 +27,7 @@ from common.contracts.component_strategy_knowledge_models import (
 )
 from common.contracts.component_strategy_knowledge_index import (
     KnowledgeIndex,
+    KnowledgeRuntimePolicy,
     connect_read_only,
     create_schema,
     insert_bindings,
@@ -181,9 +182,9 @@ def build_knowledge_index(source_path: Path, output_path: Path) -> BuiltKnowledg
     )
 
 
-def open_knowledge_index(index_path: Path, source_path: Path) -> KnowledgeIndex:
+def open_knowledge_index(index_path: Path, source_path: Path, *, immutable: bool = False) -> KnowledgeIndex:
     source_checksum = _sha256_bytes(source_path.read_bytes())
-    connection = connect_read_only(index_path)
+    connection = connect_read_only(index_path, immutable=immutable)
     try:
         stored_checksum = connection.execute(
             "SELECT value FROM metadata WHERE key = 'source_checksum'"
@@ -192,7 +193,10 @@ def open_knowledge_index(index_path: Path, source_path: Path) -> KnowledgeIndex:
         connection.close()
     if stored_checksum is None or stored_checksum[0] != source_checksum:
         raise StaleKnowledgeIndexError("component strategy knowledge index is stale")
-    return KnowledgeIndex(index_path=str(index_path))
+    return KnowledgeIndex(
+        index_path=str(index_path),
+        runtime_policy=KnowledgeRuntimePolicy(query_only=True, immutable=immutable),
+    )
 
 
 def _require_renderable_component(component_type: str) -> None:

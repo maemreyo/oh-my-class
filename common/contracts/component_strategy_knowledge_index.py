@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from dataclasses import dataclass
 from pathlib import Path
 
 from common.contracts.component_strategy_knowledge_models import (
@@ -12,12 +13,19 @@ from common.contracts.component_strategy_knowledge_models import (
 )
 
 
+@dataclass(frozen=True, slots=True)
+class KnowledgeRuntimePolicy:
+    query_only: bool
+    immutable: bool
+
+
 class KnowledgeIndex:
-    def __init__(self, index_path: str) -> None:
+    def __init__(self, index_path: str, runtime_policy: KnowledgeRuntimePolicy | None = None) -> None:
         self.index_path = index_path
+        self.runtime_policy = runtime_policy or KnowledgeRuntimePolicy(query_only=True, immutable=False)
 
     def query_bindings(self, query: KnowledgeQuery) -> tuple[KnowledgeBindingResult, ...]:
-        connection = connect_read_only(Path(self.index_path))
+        connection = connect_read_only(Path(self.index_path), immutable=self.runtime_policy.immutable)
         try:
             rows = connection.execute(
                 "SELECT binding_json FROM component_bindings ORDER BY binding_id"
@@ -27,9 +35,21 @@ class KnowledgeIndex:
         bindings = [ComponentBindingEntry.model_validate_json(row[0]) for row in rows]
         return tuple(_to_result(binding) for binding in bindings if _matches(binding, query))
 
+    def assert_mutation_blocked(self) -> None:
+        connection = connect_read_only(Path(self.index_path), immutable=self.runtime_policy.immutable)
+        try:
+            connection.execute("CREATE TABLE mutation_probe (id TEXT)")
+        except sqlite3.DatabaseError as exc:
+            raise PermissionError("component strategy knowledge index is read-only") from exc
+        finally:
+            connection.close()
 
-def connect_read_only(path: Path) -> sqlite3.Connection:
-    return sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+
+def connect_read_only(path: Path, *, immutable: bool = False) -> sqlite3.Connection:
+    immutable_arg = "&immutable=1" if immutable else ""
+    connection = sqlite3.connect(f"file:{path}?mode=ro{immutable_arg}", uri=True)
+    connection.execute("PRAGMA query_only=ON")
+    return connection
 
 
 def create_schema(connection: sqlite3.Connection) -> None:

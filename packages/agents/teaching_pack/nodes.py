@@ -111,6 +111,7 @@ class TeachingPackState(TypedDict):
     component_strategy_summary: NotRequired[JsonObject]
     component_strategy_hypotheses: NotRequired[list[str]]
     component_strategy_research_questions: NotRequired[list[str]]
+    component_strategy_rollout: NotRequired[JsonObject]
 
 
 def make_stage_node(
@@ -397,14 +398,38 @@ async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackStat
     return {"run_id": state["run_id"], "research_brief": research_brief}
 
 def _provisional_component_strategy(state: TeachingPackState) -> TeachingPackState:
+    from packages.agents.teaching_pack.component_strategy_rollout import (
+        component_strategy_enabled_for_state,
+        component_strategy_rollout_state,
+        emit_safe_prose_fallback_event,
+    )
+
+    if not component_strategy_enabled_for_state(state):
+        rollout = component_strategy_rollout_state(state)
+        emit_safe_prose_fallback_event(state, rollout)
+        return {"run_id": state["run_id"], "component_strategy_rollout": rollout}
     from packages.agents.teaching_pack.component_strategy_stage import run_provisional_component_strategy
 
-    return TeachingPackState(**run_provisional_component_strategy(state))
+    update = TeachingPackState(**run_provisional_component_strategy(state))
+    update["component_strategy_rollout"] = component_strategy_rollout_state(state)
+    return update
 
 def _finalize_component_strategy(state: TeachingPackState) -> TeachingPackState:
+    from packages.agents.teaching_pack.component_strategy_rollout import (
+        component_strategy_enabled_for_state,
+        component_strategy_rollout_state,
+        emit_safe_prose_fallback_event,
+    )
+
+    if not component_strategy_enabled_for_state(state):
+        rollout = component_strategy_rollout_state(state)
+        emit_safe_prose_fallback_event(state, rollout)
+        return {"run_id": state["run_id"], "component_strategy_rollout": rollout}
     from packages.agents.teaching_pack.component_strategy_stage import run_final_component_strategy
 
-    return TeachingPackState(**run_final_component_strategy(state))
+    update = TeachingPackState(**run_final_component_strategy(state))
+    update["component_strategy_rollout"] = component_strategy_rollout_state(state)
+    return update
 
 def _research_bundle_with_strategy_questions(state: TeachingPackState) -> JsonObject:
     bundle = _json_object(state.get("research_brief"))
@@ -695,8 +720,11 @@ def _can_reenter_stage(state: TeachingPackState, stage: StageEnum) -> bool:
         return state.get("quality_recovery_route") in ("artifact_workflow", "planning_blueprint") or bool(_scoped_rejections(state))
     if stage.value == "render_quality" and artifact_send_fanout_v1_enabled():
         return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
-    if stage.value == "teacher_approval" and artifact_send_fanout_v1_enabled():
-        return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
+    if stage.value == "teacher_approval":
+        if state.get("component_strategy_plan") and state.get("artifacts"):
+            return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
+        if artifact_send_fanout_v1_enabled():
+            return state.get("quality_recovery_route") == "artifact_workflow" or bool(_scoped_rejections(state))
     # Allow re-entry of planning/research stages when quality gate routes back to them.
     recovery_route = state.get("quality_recovery_route", "")
     if stage.value == "planning_blueprint" and recovery_route == "planning_blueprint":

@@ -45,6 +45,9 @@ def run_final_component_strategy(state: dict[str, Any]) -> dict[str, Any]:
             raise ComponentStrategyGateError(hard_issues)
         update["component_strategy_plan"] = plan
         update["component_strategy_summary"] = _summary_from_plan(plan)
+        _emit_component_strategy_event(state, update["component_strategy_summary"], status="planned")
+    else:
+        _emit_component_strategy_event(state, {}, status=str(result.status))
     return update
 
 
@@ -130,6 +133,38 @@ def _summary_from_plan(plan: JsonObject) -> JsonObject:
             "reject_learning_move",
         ],
     }
+
+
+def _emit_component_strategy_event(state: dict[str, Any], summary: JsonObject, *, status: str) -> None:
+    from packages.agents.events import emit_run_event
+
+    contract = _object(state.get("contract"))
+    emit_run_event(
+        str(state["run_id"]),
+        "component_strategy",
+        {
+            "run_id": str(state["run_id"]),
+            "teacher_id": str(contract.get("teacher_id") or contract.get("teacher_id_hash") or "anonymous"),
+            "environment": _environment_name(),
+            "feature_variant": "internal_hidden",
+            "status": status,
+            "strategy_family_id": str(summary.get("strategy_family_id", "")),
+            "selected_component_types": _string_list(summary.get("selected_component_types")),
+            "fallback_used": bool(summary.get("fallback_note")),
+        },
+    )
+
+
+def _environment_name() -> str:
+    import os
+
+    return os.getenv("APP_ENV", "development").lower()
+
+
+def _string_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    return []
 
 
 def _assessment_intent(contract: JsonObject) -> tuple[str, ...]:

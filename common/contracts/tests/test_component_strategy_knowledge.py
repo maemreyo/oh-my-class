@@ -31,6 +31,26 @@ def test_default_knowledge_source_covers_required_strategy_families() -> None:
     }
 
 
+def test_default_knowledge_source_extracts_launch_cohort_moet_scope() -> None:
+    source = load_knowledge_source(DEFAULT_KNOWLEDGE_SOURCE_PATH)
+
+    grade_5_language_moves = [
+        move
+        for move in source.learning_moves
+        if "language" in move.subject_tags and "grade_4_6" in move.grade_bands
+    ]
+    grade_5_language_bindings = [
+        binding
+        for binding in source.component_bindings
+        if "language" in binding.subject_tags and "grade_4_6" in binding.grade_bands
+    ]
+
+    assert grade_5_language_moves
+    assert grade_5_language_bindings
+    assert {"thong_hieu", "van_dung"}.issubset({level for move in grade_5_language_moves for level in move.moet_levels})
+    assert all(binding.compliance_risk == "low" for binding in grade_5_language_bindings)
+
+
 def test_default_knowledge_manifest_declares_capability_checksums() -> None:
     source = load_knowledge_source(DEFAULT_KNOWLEDGE_SOURCE_PATH)
 
@@ -201,6 +221,27 @@ def test_read_only_runtime_query_filters_vocabulary_bindings(tmp_path: Path) -> 
         "contrastive_pairs",
         "vocab_cluster",
     }
+
+
+def test_runtime_index_connection_is_query_only_and_mutation_safe(tmp_path: Path) -> None:
+    index_path = tmp_path / "knowledge.sqlite"
+    build_knowledge_index(source_path=DEFAULT_KNOWLEDGE_SOURCE_PATH, output_path=index_path)
+    index = open_knowledge_index(index_path=index_path, source_path=DEFAULT_KNOWLEDGE_SOURCE_PATH)
+
+    assert index.runtime_policy.query_only is True
+    assert index.runtime_policy.immutable is False
+
+    with pytest.raises(PermissionError, match="read-only"):
+        index.assert_mutation_blocked()
+
+
+def test_runtime_index_can_be_opened_immutable_when_artifact_is_static(tmp_path: Path) -> None:
+    index_path = tmp_path / "knowledge.sqlite"
+    build_knowledge_index(source_path=DEFAULT_KNOWLEDGE_SOURCE_PATH, output_path=index_path)
+
+    index = open_knowledge_index(index_path=index_path, source_path=DEFAULT_KNOWLEDGE_SOURCE_PATH, immutable=True)
+
+    assert index.runtime_policy.immutable is True
 
 
 def test_runtime_fails_closed_when_yaml_source_is_stale(tmp_path: Path) -> None:
