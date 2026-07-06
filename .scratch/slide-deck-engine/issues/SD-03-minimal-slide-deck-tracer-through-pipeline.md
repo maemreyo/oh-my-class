@@ -27,6 +27,15 @@ The tracer deck can use a small set of layouts and blocks, but it must use the r
 - [ ] Export finalize writes a `slide_deck` HTML artifact for approved snapshots.
 - [ ] A focused integration test proves a minimal lesson + slide_deck run reaches exported HTML.
 
+## Todo items
+
+- [ ] Wire `slide_deck` into run-contract request handling and artifact workflow scheduling.
+- [ ] Connect Content Creator to the deterministic `SlideDeckEngine` path for a minimal deck.
+- [ ] Add renderer support for a minimal standalone slide deck HTML output.
+- [ ] Ensure quality/compliance validation runs without a `slide_deck` bypass.
+- [ ] Wire export finalize to persist the generated slide deck HTML artifact.
+- [ ] Add an integration test for lesson plus `slide_deck` reaching exported HTML.
+
 ## Blocked by
 
 - SD-01 slide deck contracts and schema parity.

@@ -26,6 +26,15 @@ Media policy should distinguish default offline packaged media from optional onl
 - [ ] Offline export rejects unmanaged external URLs and supports inline SVG/data URI/local packaged assets according to policy.
 - [ ] Optional online media carries `requires_network` metadata, teacher preview warning, and fallback instructions.
 
+## Todo items
+
+- [ ] Register v1 interactions: reveal, quick check, poll prompt, timer, discussion prompt, exit ticket, and think-pair-share.
+- [ ] Add schema, renderer, print/no-JS fallback, accessibility, and tests for each interaction.
+- [ ] Add quick-check teacher-only answer guidance without student DOM leakage.
+- [ ] Implement media block validation for alt text, media kind, source policy, and fallback fields.
+- [ ] Enforce offline export policy for inline/data/local assets and unmanaged external URL rejection.
+- [ ] Surface `requires_network` warnings and fallback instructions for optional online media.
+
 ## Blocked by
 
 - SD-04 slide surfaces and answer-leak-safe projection.

@@ -27,6 +27,15 @@ The module should include first-class registries for layouts, slide blocks, inte
 - [ ] The engine returns typed validation/healing/scorecard metadata, even if early values are minimal.
 - [ ] Package boundaries remain clean: agents do not import from services/apps, and canonical contracts remain in common/contracts.
 
+## Todo items
+
+- [ ] Define the narrow `SlideDeckEngine` request/result interface behind the Content Creator seam.
+- [ ] Create typed phase modules for input assembly, planning, layout, interactions, materialization, audit, surface readiness, and export readiness.
+- [ ] Implement initial layout, block, and interaction registries with capability metadata.
+- [ ] Add deterministic fake/fixture adapter that returns valid `SlideDeckData` without real LLM calls.
+- [ ] Add page-count and density budget policy tests.
+- [ ] Verify package import boundaries and focused engine tests.
+
 ## Blocked by
 
 - SD-01 slide deck contracts and schema parity.

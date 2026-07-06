@@ -24,6 +24,15 @@ Student presentation is for classroom display: no speaker notes, no answer keys,
 - [ ] Compliance tests fail when answer-bearing or teacher-only data appears in student-facing HTML.
 - [ ] Snapshot/export tests record which surface was rendered and include render manifests/diagnostics where the renderer supports them.
 
+## Todo items
+
+- [ ] Add explicit projection adapters for student presentation, teacher guide, and print surfaces.
+- [ ] Add student-surface stripping for teacher-only slides, blocks, notes, answer data, and hidden payloads.
+- [ ] Add teacher-surface rendering for facilitation notes, pacing, misconceptions, and answer guidance.
+- [ ] Add print-surface rendering with page breaks and reveal-expanded content.
+- [ ] Add rendered-HTML compliance tests for answer/teacher-only leakage.
+- [ ] Update snapshot/export diagnostics to record rendered surface metadata.
+
 ## Blocked by
 
 - SD-03 minimal slide_deck tracer through pipeline.

@@ -27,6 +27,15 @@ This slice must reuse the existing teacher gate lifecycle and approval actions. 
 - [ ] Online media warnings are visible in teacher preview when a deck contains `requires_network` media.
 - [ ] Browser QA covers navigation, surface toggles, notes panel, keyboard focus, and responsive layout.
 
+## Todo items
+
+- [ ] Add teacher-facing `slide_deck` labels to artifact progress/status UI.
+- [ ] Load student, teacher, and print surfaces in the existing approval preview lifecycle.
+- [ ] Add slide navigation, position, optional outline/thumbnails, notes panel, and surface toggles.
+- [ ] Add scoped feedback controls for deck, slide, block, and interaction targets.
+- [ ] Show optional online-media warnings when `requires_network` metadata is present.
+- [ ] Run browser QA for navigation, toggles, notes panel, keyboard focus, responsive behavior, and student-surface leak safety.
+
 ## Blocked by
 
 - SD-04 slide surfaces and answer-leak-safe projection.

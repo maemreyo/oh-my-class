@@ -24,6 +24,15 @@ The deterministic scorecard should cover objective coverage, pacing fit, text de
 - [ ] Trace artifacts are internal only and redact or omit student PII, raw untrusted research prose where inappropriate, answer keys from student-surface diagnostics, and provider stack traces.
 - [ ] Existing Layer 4 judge remains the qualitative gate; deterministic scorecard does not replace it.
 
+## Todo items
+
+- [ ] Define typed slide-deck validation failure codes and validator outputs.
+- [ ] Map each failure class to block, slide, plan, or deck-scoped healing strategies.
+- [ ] Implement deterministic scorecard metrics for coverage, pacing, density, variety, accessibility, interactions, separation, offline readiness, and source refs.
+- [ ] Emit internal trace artifacts for plan, validation, healing, scorecard, source refs, model/cost placeholders, and export readiness.
+- [ ] Add redaction checks so traces do not expose PII, answer keys, raw unsafe prose, or provider stack traces.
+- [ ] Add tests proving the deterministic scorecard complements, not replaces, Layer 4 judge gating.
+
 ## Blocked by
 
 - SD-02 SlideDeckEngine skeleton and typed registries.

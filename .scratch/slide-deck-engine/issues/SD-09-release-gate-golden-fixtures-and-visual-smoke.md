@@ -25,6 +25,15 @@ The suite should use golden fixture decks and at least one integration scenario 
 - [ ] The output matrix records `slide_deck` student, teacher, and print HTML as covered outputs.
 - [ ] Manual QA runbook documents the exact browser/API/CLI surfaces used to verify the artifact end-to-end.
 
+## Todo items
+
+- [ ] Add golden fixtures for simple lesson, media-heavy, interaction, teacher-notes, and answer-leak regression decks.
+- [ ] Run contract, engine, renderer, quality, gateway/export, and frontend slide-deck test suites.
+- [ ] Add full pipeline integration coverage for `slide_deck` artifact, teacher approval payload, and exported HTML.
+- [ ] Add student-facing HTML leak checks for answers, teacher notes, hidden JSON, external assets, and debug traces.
+- [ ] Add Playwright visual smoke for 375, 768, 1280, and 1920 px with navigation, reveal, focus, overflow, dark mode, and print coverage.
+- [ ] Update the output matrix and manual QA runbook with slide-deck surfaces and verification steps.
+
 ## Blocked by
 
 - SD-01 slide deck contracts and schema parity.

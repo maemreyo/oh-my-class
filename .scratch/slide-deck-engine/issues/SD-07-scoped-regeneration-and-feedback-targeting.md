@@ -24,6 +24,15 @@ This slice should integrate with the existing scoped rejection/regeneration sema
 - [ ] If a scoped repair would violate objective coverage, pacing, teacher-only separation, or density policies, the engine escalates scope predictably.
 - [ ] Tests cover rejecting slide 4 for density, rejecting an interaction for answer-leak risk, and deck-level style/tone feedback.
 
+## Todo items
+
+- [ ] Extend teacher feedback payloads with deck, slide, block, and interaction target identifiers.
+- [ ] Wire targeted feedback into existing scoped regeneration semantics for `slide_deck`.
+- [ ] Preserve accepted sibling slides and non-slide artifacts when dependencies remain valid.
+- [ ] Record repair scope and escalation rationale in engine trace metadata.
+- [ ] Add deterministic escalation when scoped repair breaks coverage, pacing, teacher-only separation, or density policy.
+- [ ] Add tests for density rejection, interaction answer-leak rejection, and deck-level style/tone feedback.
+
 ## Blocked by
 
 - SD-06 engine quality, typed healing, scorecard, and observability.

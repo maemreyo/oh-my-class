@@ -1,6 +1,6 @@
 ---
 title: Define slide_deck contracts and schema parity
-status: ready-for-agent
+status: in-progress
 labels: [slide-deck-engine, contracts, ready-for-agent]
 created: 2026-07-06
 ---
@@ -25,6 +25,15 @@ This slice does not build generation, rendering, or UI. It proves that the canon
 - [ ] Generated TypeScript/Zod schemas include the new `slide_deck` contract and generated files are not hand-edited.
 - [ ] Existing contract tests for current artifact types still pass unchanged.
 - [ ] A fixture deck exists under the slide-deck issue fixtures or test fixtures for later renderer/engine slices.
+
+## Todo items
+
+- [ ] Update canonical artifact-type enums and run-contract validation to include `slide_deck`.
+- [ ] Add `SlideDeckData` Pydantic models in `common/contracts` with stable IDs, surfaces, source refs, teacher-only data, media, accessibility, and interaction fields.
+- [ ] Add validation tests for valid decks and malformed deck rejection cases.
+- [ ] Regenerate TypeScript/Zod schemas through the existing generator.
+- [ ] Add a representative fixture deck for later engine, renderer, and quality issues.
+- [ ] Run contract/schema tests and record any unrelated pre-existing failures.
 
 ## Blocked by
 
