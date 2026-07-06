@@ -72,3 +72,18 @@ class TestGateBypassInvariant06:
         assert approval_idx < export_idx, (
             "INVARIANT-06: teacher_approval must precede export_finalize"
         )
+
+    def test_component_strategy_stages_order_approval_before_export(self) -> None:
+        from packages.agents.teaching_pack.stages import teaching_pack_stages
+
+        stage_values = [stage.value for stage in teaching_pack_stages(component_strategy_enabled=True)]
+        assert "provisional_component_strategy" in stage_values
+        assert "finalize_component_strategy" in stage_values
+        assert "teacher_approval" in stage_values, (
+            "teacher_approval must be in component-strategy stages — cannot be bypassed"
+        )
+        approval_idx = stage_values.index("teacher_approval")
+        export_idx = stage_values.index("export_finalize")
+        assert approval_idx < export_idx, (
+            "INVARIANT-06: component-strategy teacher_approval must precede export_finalize"
+        )
