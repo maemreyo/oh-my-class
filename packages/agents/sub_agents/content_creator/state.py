@@ -20,6 +20,7 @@ class ContentCreatorNodeState(TypedDict):
     force_section_failures: NotRequired[list[str]]
     disable_methodology_components: NotRequired[bool]
     component_effectiveness: NotRequired[dict[str, Any]]
+    component_strategy_plan: NotRequired[dict[str, Any]]
 
 
 class ContentCreatorState(MessagesState):

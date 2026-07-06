@@ -1,6 +1,6 @@
 ---
 title: Implement standalone deterministic selector, scorer, and diversity core
-status: ready-for-agent
+status: completed
 labels: [component-strategist, selector, testing]
 created: 2026-07-05
 ---
@@ -31,20 +31,28 @@ LLM polish/tie-break may be represented as an adapter seam, but the deterministi
 
 ## Acceptance criteria
 
-- [ ] `plan_component_strategy(request) -> ComponentStrategyResult` works without LangGraph, gateway, browser, DB server, or LLM.
-- [ ] Provisional mode emits strategy hypotheses and typed research questions/signals needed, but does not create an approved final snapshot.
-- [ ] Final mode consumes typed `ResearchSignals` and may contradict provisional hypotheses when research signals justify it.
-- [ ] Hard filters reject artifact-incompatible, grade-incompatible, duration-incompatible, compliance-unsafe, non-renderable, and unsupported component candidates.
-- [ ] Selector uses renderer capability manifest and exact contract-backed component/exercise types; it never reads renderer templates or CSS.
-- [ ] Selector uses typed `ResearchSignals`; raw research prose is not accepted by scoring functions.
-- [ ] Scoring produces inspectable score breakdowns for Bloom/MOET fit, Gagne fit, objective alignment, evidence coverage, retrieval/formative presence, UDL coverage, duration fit, diversity, teacher-memory multiplier, and penalties.
-- [ ] Learning sequence is pack-level and move-centric, with artifact/export projections derived from it; every selected move maps to at least one objective or explicit deferred/context-only status.
-- [ ] Global duration/item/cognitive-load budget is allocated before per-slot budgets; slot budgets sum to a valid pack/artifact budget.
-- [ ] Diversity/cohesion prevents accidental same-family repetition, enforces required move coverage, and avoids repetitive prose-only strategies while allowing documented repetition for retrieval, mastery, or exam consistency.
-- [ ] Deterministic fallback `evidence_balanced_basic` is used only for allowed graceful-degradation cases and records an explicit fallback reason.
-- [ ] Result uses typed `blocked` status for domain-impossible strategy and exceptions only for programmer/config corruption.
-- [ ] Unit tests cover vocabulary/language, exam-prep, concept/math-science, empty teacher memory, conflicting teacher preference, no valid rich component, and no LLM adapter.
-- [ ] A CLI smoke command can run the selector against fixture JSON and print the selected moves/components and score summary.
+- [x] `plan_component_strategy(request) -> ComponentStrategyResult` works without LangGraph, gateway, browser, DB server, or LLM.
+- [x] Provisional mode emits strategy hypotheses and typed research questions/signals needed, but does not create an approved final snapshot.
+- [x] Final mode consumes typed `ResearchSignals` and may contradict provisional hypotheses when research signals justify it.
+- [x] Hard filters reject artifact-incompatible, grade-incompatible, duration-incompatible, compliance-unsafe, non-renderable, and unsupported component candidates.
+- [x] Selector uses renderer capability manifest and exact contract-backed component/exercise types; it never reads renderer templates or CSS.
+- [x] Selector uses typed `ResearchSignals`; raw research prose is not accepted by scoring functions.
+- [x] Scoring produces inspectable score breakdowns for Bloom/MOET fit, Gagne fit, objective alignment, evidence coverage, retrieval/formative presence, UDL coverage, duration fit, diversity, teacher-memory multiplier, and penalties.
+- [x] Learning sequence is pack-level and move-centric, with artifact/export projections derived from it; every selected move maps to at least one objective or explicit deferred/context-only status.
+- [x] Global duration/item/cognitive-load budget is allocated before per-slot budgets; slot budgets sum to a valid pack/artifact budget.
+- [x] Diversity/cohesion prevents accidental same-family repetition, enforces required move coverage, and avoids repetitive prose-only strategies while allowing documented repetition for retrieval, mastery, or exam consistency.
+- [x] Deterministic fallback `evidence_balanced_basic` is used only for allowed graceful-degradation cases and records an explicit fallback reason.
+- [x] Result uses typed `blocked` status for domain-impossible strategy and exceptions only for programmer/config corruption.
+- [x] Unit tests cover vocabulary/language, exam-prep, concept/math-science, empty teacher memory, conflicting teacher preference, no valid rich component, and no LLM adapter.
+- [x] A CLI smoke command can run the selector against fixture JSON and print the selected moves/components and score summary.
+
+## Completion evidence
+
+- Added standalone selector in `common/contracts/component_strategy_selector.py` with scoring helpers in `common/contracts/component_strategy_selector_support.py`.
+- Added selector tests in `common/contracts/tests/test_component_strategy_selector.py`.
+- Added CLI smoke command `scripts/run_component_strategy_selector.py` and fixture `.scratch/component-strategist/fixtures/vocabulary_selector_request.json`.
+- Verified with `uv run pytest common/contracts/tests/test_component_strategy_contracts.py common/contracts/tests/test_component_strategy_knowledge.py common/contracts/tests/test_component_strategy_selector.py`.
+- Verified CLI surface with `uv run python scripts/run_component_strategy_selector.py .scratch/component-strategist/fixtures/vocabulary_selector_request.json`, which selected `contrastive_pairs` and `vocab_cluster` for `vocabulary_language`.
 
 ## Blocked by
 

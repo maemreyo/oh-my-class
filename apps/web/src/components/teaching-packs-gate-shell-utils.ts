@@ -1,5 +1,6 @@
 import type { TeachingPackEventPayload, TeachingPackGateName } from "@/hooks/use-teaching-packs";
 import type { EditableArtifactTarget } from "@/components/teaching-packs-scoped-rejection";
+import type { StrategyFeedbackDraft } from "@/components/teaching-packs-strategy-panel";
 
 
 export function editableArtifactsFor(
@@ -17,6 +18,17 @@ export function responseFor(gateName: TeachingPackGateName, feedback: string): R
 	if (!trimmed) return {};
 	if (gateName === "clarification_required") return { answer: trimmed };
 	return { feedback: trimmed };
+}
+
+export function strategyFeedbackResponse(draft: StrategyFeedbackDraft): Readonly<Record<string, unknown>> {
+	return {
+		component_strategy_feedback: {
+			event_type: draft.event_type,
+			source: "teacher",
+			value: draft.value,
+			rationale: draft.rationale ?? null,
+		},
+	};
 }
 
 

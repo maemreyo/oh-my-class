@@ -7,7 +7,7 @@ import pytest
 from packages.agents.teaching_pack.config import TeachingPackConfig, load_policy_file
 from packages.agents.teaching_pack.graph import build_teaching_pack_graph, teaching_pack_thread_config
 from packages.agents.teaching_pack import ports
-from packages.agents.teaching_pack.stages import StageEnum, TEACHING_PACK_STAGES, TeachingPackStage, stage_number
+from packages.agents.teaching_pack.stages import StageEnum, TEACHING_PACK_STAGES, TeachingPackStage, stage_number, teaching_pack_stages
 
 
 class TestTeachingPackStages:
@@ -33,6 +33,16 @@ class TestTeachingPackStages:
 
         assert actual == expected
         assert all(not value.startswith(("step_", "gate_")) for value in actual)
+
+    def test_component_strategy_stages_are_feature_flagged(self) -> None:
+        old_path = tuple(stage.value for stage in teaching_pack_stages(False))
+        strategy_path = tuple(stage.value for stage in teaching_pack_stages(True))
+
+        assert "provisional_component_strategy" not in old_path
+        assert "finalize_component_strategy" not in old_path
+        assert strategy_path[strategy_path.index("planning_blueprint") + 1] == "provisional_component_strategy"
+        assert strategy_path[strategy_path.index("post_blueprint_research") + 1] == "finalize_component_strategy"
+        assert strategy_path[strategy_path.index("finalize_component_strategy") + 1] == "teacher_approval"
 
     def test_stage_event_names_are_serializable(self) -> None:
         stage = TeachingPackStage.ARTIFACT_WORKFLOW
@@ -109,6 +119,19 @@ class TestTeachingPackGraph:
         node_names = set(graph.get_graph().nodes)
         for stage in TEACHING_PACK_STAGES:
             assert stage.value in node_names
+
+    def test_graph_compiles_with_component_strategy_nodes_when_flag_on(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from packages.agents.config.features import reset_features
+
+        monkeypatch.setenv("FEATURE_COMPONENT_STRATEGIST_V1", "true")
+        reset_features()
+
+        graph = build_teaching_pack_graph(checkpointer=None)
+
+        node_names = set(graph.get_graph().nodes)
+        assert "provisional_component_strategy" in node_names
+        assert "finalize_component_strategy" in node_names
+        reset_features()
 
     def test_graph_instantiation_does_not_initialize_external_clients(self) -> None:
         # Invariant: constructing the graph must not eagerly initialize the LLM client.

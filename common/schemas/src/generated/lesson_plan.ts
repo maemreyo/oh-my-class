@@ -7,7 +7,7 @@
 import { z } from "zod"
 import { InverseThinkingPackSchema } from "./inverse_thinking.js"
 
-export const LearningObjectiveSchema = z.object({ "description": z.string().min(1).max(500), "bloom_level": z.string().regex(new RegExp("^(remember|understand|apply|analyze|evaluate|create)$")).describe("Bloom's taxonomy level"), "assessment_method": z.union([z.string().max(200), z.null()]).describe("How this objective will be assessed").default(null) }).describe("A single learning objective with Bloom's taxonomy classification.")
+export const LearningObjectiveSchema = z.object({ "description": z.string().min(1).max(500), "importance": z.union([z.enum(["core","supporting","extension"]), z.null()]).default(null), "assessable": z.union([z.boolean(), z.null()]).default(null), "assessment_intent": z.union([z.enum(["none","formative","summative","exam_prep","diagnostic"]), z.null()]).default(null), "bloom_level": z.string().regex(new RegExp("^(remember|understand|apply|analyze|evaluate|create)$")).describe("Bloom's taxonomy level"), "assessment_method": z.union([z.string().max(200), z.null()]).describe("How this objective will be assessed").default(null) }).describe("A single learning objective with Bloom's taxonomy classification.")
 
 
 export const AssessmentCheckpointSchema = z.object({ "type": z.string().describe("Checkpoint type, e.g. 'exit_ticket', 'think_pair_share', 'quiz'"), "description": z.string().min(1).max(500), "trigger": z.union([z.string(), z.null()]).describe("When to trigger this checkpoint, e.g. 'after_phase_2'").default(null) }).describe("A checkpoint within the lesson for formative assessment.")

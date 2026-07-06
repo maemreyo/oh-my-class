@@ -6,6 +6,13 @@ from typing import Any, Literal, assert_never
 
 from common.contracts.artifact import ArtifactContent
 from common.contracts.methodology_registry import MethodologyTag, methodology_entry_by_tag
+from packages.agents.sub_agents.content_creator.hierarchical_sections import flashcards, regen_placeholder
+from packages.agents.sub_agents.content_creator.strategy_fill import (
+    StrategyFillContext,
+    artifact_strategy_metadata,
+    selected_strategy_components,
+    strategy_metadata,
+)
 from packages.agents.sub_agents.content_creator.nodes import validate_no_cdn, validate_no_pii
 
 from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeState
@@ -113,7 +120,7 @@ def _fill_section(
     state: ContentCreatorNodeState,
 ) -> dict[str, Any]:
     if _forced_failure(state, artifact_type, outline.section_id):
-        return _regen_placeholder(outline)
+        return regen_placeholder(outline.section_id, outline.title)
     lesson_plan = state["lesson_plan"]
     research_bundle = state["research_bundle"]
     fact = _verified_fact(research_bundle)
@@ -121,6 +128,14 @@ def _fill_section(
         {"type": "heading", "level": 2, "text": outline.title},
         {"type": "paragraph", "text": f"{outline.job}: {fact}"},
     ]
+    strategy_fill = selected_strategy_components(StrategyFillContext(
+        artifact_type=artifact_type,
+        section_id=outline.section_id,
+        lesson_plan=lesson_plan,
+        state=state,
+        fact=fact,
+    ))
+    components.extend(strategy_fill.components)
     components.extend(_methodology_components(lesson_plan, state))
     section = {
         "section_id": outline.section_id,
@@ -129,37 +144,17 @@ def _fill_section(
         "objective": outline.objective,
         "gagne_event": outline.gagne_event,
         "components": components,
-        "metadata": {"filled_independently": True, "grounded_fact": fact},
+        "metadata": {
+            "filled_independently": True,
+            "grounded_fact": fact,
+            **strategy_metadata(strategy_fill),
+        },
     }
     if artifact_type == "answer_key":
         section["teacher_only"] = True
     if artifact_type == "flashcard_deck":
-        section["cards"] = _flashcards(lesson_plan, fact)
+        section["cards"] = flashcards(lesson_plan, fact)
     return section
-
-
-def _flashcards(lesson_plan: dict[str, Any], fact: str) -> list[dict[str, str]]:
-    objectives = _objective_texts(lesson_plan) or [fact]
-    doubled_objectives = [*objectives, *objectives]
-    return [
-        {
-            "id": f"card-{index}",
-            "front": objective,
-            "back": f"Key idea: {fact}",
-            "hint": "Connect this card to the lesson objective.",
-        }
-        for index, objective in enumerate(doubled_objectives, start=1)
-    ][:8]
-
-
-def _regen_placeholder(outline: SectionOutline) -> dict[str, Any]:
-    return {
-        "section_id": outline.section_id,
-        "title": outline.title,
-        "content": "This section needs scoped regeneration before teacher approval.",
-        "needs_regen": True,
-        "metadata": {"filled_independently": True, "failure_mode": "persistent_section_failure"},
-    }
 
 
 def _metadata(
@@ -177,6 +172,7 @@ def _metadata(
         "covered_gagne_events": [event for event, _value in _phase_pairs(lesson_plan)],
         "grounding_status": "verified_subset" if _verified_fact(research_bundle) else "needs_review",
         "adaptation_context": state.get("component_effectiveness", {}),
+        "component_strategy": artifact_strategy_metadata(sections),
     }
 
 

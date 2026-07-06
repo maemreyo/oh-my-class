@@ -1,6 +1,6 @@
 ---
 title: Add provisional/final Component Strategist LangGraph passes behind feature flag
-status: ready-for-agent
+status: completed
 labels: [component-strategist, langgraph, feature-flag]
 created: 2026-07-05
 ---
@@ -17,15 +17,15 @@ When enabled, provisional strategy writes research questions/hypotheses for the 
 
 ## Acceptance criteria
 
-- [ ] `TeachingPackStage` includes `provisional_component_strategy` and `finalize_component_strategy`, and the graph routes `planning_blueprint -> provisional_component_strategy -> post_blueprint_research -> finalize_component_strategy -> teacher_approval` when `FEATURE_COMPONENT_STRATEGIST_V1=true`.
-- [ ] Feature flag off preserves the existing route and existing tests without requiring a strategy plan.
-- [ ] Stage nodes are thin adapters from `TeachingPackState` to explicit `ComponentStrategyRequest` objects and back; selector logic remains in the standalone core.
-- [ ] Provisional pass stores typed research questions/hypotheses without creating the final approved strategy snapshot.
-- [ ] Final pass consumes typed `ResearchSignals`, stores the immutable finalized strategy snapshot, and records any contradiction from provisional hypotheses as normal explainable behavior.
-- [ ] Stage nodes record strategy start/completed/failed observability events for both passes.
-- [ ] Blueprint gate payload includes recommended strategy summary, meaningful variants when present, selected learning moves, selected component types, rationale, fallback note if any, and typed feedback actions.
-- [ ] Old runs without `component_strategy_plan` can still resume/render/generate through existing compatibility path.
-- [ ] Integration tests cover flag-off compatibility, flag-on two-pass routing, provisional research guidance, final strategy insertion, and checkpoint/resume with an immutable stored plan.
+- [x] `TeachingPackStage` includes `provisional_component_strategy` and `finalize_component_strategy`, and the graph routes `planning_blueprint -> provisional_component_strategy -> post_blueprint_research -> finalize_component_strategy -> teacher_approval` when `FEATURE_COMPONENT_STRATEGIST_V1=true`.
+- [x] Feature flag off preserves the existing route and existing tests without requiring a strategy plan.
+- [x] Stage nodes are thin adapters from `TeachingPackState` to explicit `ComponentStrategyRequest` objects and back; selector logic remains in the standalone core.
+- [x] Provisional pass stores typed research questions/hypotheses without creating the final approved strategy snapshot.
+- [x] Final pass consumes typed `ResearchSignals`, stores the immutable finalized strategy snapshot, and records any contradiction from provisional hypotheses as normal explainable behavior.
+- [x] Stage nodes record strategy start/completed/failed observability events for both passes.
+- [x] Blueprint gate payload includes recommended strategy summary, meaningful variants when present, selected learning moves, selected component types, rationale, fallback note if any, and typed feedback actions.
+- [x] Old runs without `component_strategy_plan` can still resume/render/generate through existing compatibility path.
+- [x] Integration tests cover flag-off compatibility, flag-on two-pass routing, provisional research guidance, final strategy insertion, and checkpoint/resume with an immutable stored plan.
 
 ## Blocked by
 

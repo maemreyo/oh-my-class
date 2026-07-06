@@ -96,7 +96,7 @@ exports[`practice artifact plugins > renders drill standalone HTML without answe
       body { background: white; }
       .omc-footer { border-top: 1px solid #ccc; }
     }
-  </style>
+      </style>
 </head>
 <body class="artifact artifact--drill">
   <header class="omc-header">

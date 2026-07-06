@@ -14,7 +14,7 @@ from packages.agents.teaching_pack.nodes import (
 )
 from packages.agents.teaching_pack.artifact_fanout import route_after_artifact_workflow
 from packages.agents.teaching_pack.quality_routing import route_after_render_quality
-from packages.agents.teaching_pack.stages import TEACHING_PACK_STAGES, TeachingPackStage
+from packages.agents.teaching_pack.stages import TeachingPackStage, teaching_pack_stages
 
 from typing import TYPE_CHECKING
 
@@ -47,19 +47,21 @@ def build_teaching_pack_graph(
         quality_gate: Optional quality gate injected into the render_quality node.
     """
     from langgraph.graph import END, StateGraph
+    from packages.agents.config.features import features
     from packages.agents.teaching_pack.artifact_fanout import GENERATE_ONE_ARTIFACT_NODE
     from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
 
+    stages = teaching_pack_stages(features().component_strategist_v1)
     graph = StateGraph(TeachingPackState)
-    for stage in TEACHING_PACK_STAGES:
+    for stage in stages:
         graph.add_node(stage.value, make_stage_node(stage, quality_gate=quality_gate, store=store))
     graph.add_node(GENERATE_ONE_ARTIFACT_NODE, generate_one_artifact)
 
-    first_stage = TEACHING_PACK_STAGES[0]
+    first_stage = stages[0]
     graph.set_entry_point(first_stage.value)
 
     previous = first_stage
-    for stage in TEACHING_PACK_STAGES[1:]:
+    for stage in stages[1:]:
         if previous is TeachingPackStage.TRIAGE:
             graph.add_conditional_edges(
                 previous.value,

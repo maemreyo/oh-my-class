@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { strategyFeedbackResponse } from "@/components/teaching-packs-gate-shell-utils";
 
 vi.mock("@/hooks/use-teaching-packs", () => ({
 	useResumeTeachingPackRun: () => ({
@@ -19,6 +20,7 @@ vi.mock("@/lib/api-client", () => ({
 }));
 
 import { TeachingPackGateShell } from "@/components/teaching-packs-gate-shell";
+import { strategyBlueprintEvent } from "./teaching-pack-strategy-fixtures";
 
 describe("TeachingPackGateShell", () => {
 	it("shows scoped rejection when content approval only has artifact statuses", () => {
@@ -103,5 +105,40 @@ describe("TeachingPackGateShell", () => {
 		expect(html).toContain("Quiz aligns to the objectives.");
 		expect(html).toContain("Healing history");
 		expect(html).toContain("rewrite: Fixed missing rubric.");
+	});
+
+	it("shows bounded strategy feedback controls on blueprint approval", () => {
+		const html = renderToStaticMarkup(
+			<TeachingPackGateShell
+				runId="run-strategy"
+				event={{
+					gate_id: "gate-blueprint",
+					gate_name: "blueprint_approval",
+					...strategyBlueprintEvent(),
+				}}
+			/>,
+		);
+
+		expect(html).toContain("Bounded strategy feedback");
+		expect(html).toContain("More practice");
+		expect(html).toContain("Lower teacher load");
+		expect(html).toContain("Exact component placement stays engine-owned");
+	});
+
+	it("maps strategy feedback to typed resume payload", () => {
+		const response = strategyFeedbackResponse({
+			event_type: "request_more_practice",
+			value: "vocab_cluster",
+			rationale: "Need more scaffolded repetition",
+		});
+
+		expect(response).toEqual({
+			component_strategy_feedback: {
+				event_type: "request_more_practice",
+				source: "teacher",
+				value: "vocab_cluster",
+				rationale: "Need more scaffolded repetition",
+			},
+		});
 	});
 });

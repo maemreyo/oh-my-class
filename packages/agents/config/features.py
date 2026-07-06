@@ -7,6 +7,7 @@ from dataclasses import dataclass
 class FeatureFlags:
     topic_decomposition_v1: bool
     vocabulary_batch_v1: bool
+    component_strategist_v1: bool
     unit_fanout_concurrency: int  # 1 = sequential, >1 = parallel (Phase 2)
 
 def get_feature_flags() -> FeatureFlags:
@@ -14,6 +15,7 @@ def get_feature_flags() -> FeatureFlags:
     return FeatureFlags(
         topic_decomposition_v1=os.getenv("FEATURE_TOPIC_DECOMPOSITION_V1", "false").lower() == "true",
         vocabulary_batch_v1=os.getenv("FEATURE_VOCABULARY_BATCH_V1", "false").lower() == "true",
+        component_strategist_v1=os.getenv("FEATURE_COMPONENT_STRATEGIST_V1", "false").lower() == "true",
         unit_fanout_concurrency=int(os.getenv("UNIT_FANOUT_CONCURRENCY", "1")),
     )
 

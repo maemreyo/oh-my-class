@@ -96,7 +96,7 @@ exports[`missing contract artifact plugins > renders exit_ticket standalone HTML
       body { background: white; }
       .omc-footer { border-top: 1px solid #ccc; }
     }
-  </style>
+      </style>
 </head>
 <body class="artifact artifact--exit_ticket">
   <header class="omc-header">
@@ -213,7 +213,7 @@ exports[`missing contract artifact plugins > renders flashcard_deck standalone H
       body { background: white; }
       .omc-footer { border-top: 1px solid #ccc; }
     }
-  </style>
+      </style>
 </head>
 <body class="artifact artifact--flashcard_deck">
   <header class="omc-header">
@@ -330,7 +330,7 @@ exports[`missing contract artifact plugins > renders reading_passage without ans
       body { background: white; }
       .omc-footer { border-top: 1px solid #ccc; }
     }
-  </style>
+      </style>
 </head>
 <body class="artifact artifact--reading_passage">
   <header class="omc-header">

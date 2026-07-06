@@ -1,6 +1,6 @@
 ---
 title: Add cache, privacy, and observability-retention boundaries
-status: ready-for-agent
+status: completed
 labels: [component-strategist, privacy, observability, testing]
 created: 2026-07-05
 ---
@@ -15,16 +15,23 @@ Define and implement the Component Strategist's privacy-minimized request finger
 
 ## Acceptance criteria
 
-- [ ] Component strategy cache keys and request fingerprints use normalized structured inputs only: objective refs, subject/domain, grade band, duration bucket, artifact/export requirements, locale, class context tags, typed research signal digest, teacher preference version, outcome signal version, and knowledge/scoring/selector/renderer/exporter versions.
-- [ ] Raw teacher text, free-form feedback notes, full research prose, student names, emails, individual scores, and PII-bearing fields are excluded from cache keys, snapshots, and default observability events.
-- [ ] Cross-run final-plan caching is disabled in v1 unless a future feature includes full versioned fingerprints and explicit invalidation rules.
-- [ ] Allowed caching is limited to read-only knowledge/capability index loads, normalized candidate/index lookups, deterministic score primitives, localized deterministic rationale templates, and optional LLM-polished rationale keyed by structured facts + locale + model/template version.
-- [ ] Selector input contract accepts class-level/cohort-level signals only and rejects individual-student fields.
-- [ ] Teacher free-text feedback/misconception notes are stored separately with privacy handling; snapshots store only refs/metadata or typed sanitized signals.
-- [ ] Default observability events are minimized and structured: status, versions, quality summary, fallback reason, blocking issue codes, latency, and cache hit/miss.
-- [ ] Full `StrategyDecisionLedger` is written only in explicit debug mode, redacts PII before write, carries `contains_strategy_debug_data`, and expires under a diagnostic TTL separate from normal run retention.
-- [ ] Debug ledgers are admin/debug-only and never included in teacher approval payloads.
-- [ ] Tests prove PII-like fields are rejected/excluded from fingerprints/events, debug ledger TTL metadata is set, and normal events contain no raw lesson/free-text content.
+- [x] Component strategy cache keys and request fingerprints use normalized structured inputs only: objective refs, subject/domain, grade band, duration bucket, artifact/export requirements, locale, class context tags, typed research signal digest, teacher preference version, outcome signal version, and knowledge/scoring/selector/renderer/exporter versions.
+- [x] Raw teacher text, free-form feedback notes, full research prose, student names, emails, individual scores, and PII-bearing fields are excluded from cache keys, snapshots, and default observability events.
+- [x] Cross-run final-plan caching is disabled in v1 unless a future feature includes full versioned fingerprints and explicit invalidation rules.
+- [x] Allowed caching is limited to read-only knowledge/capability index loads, normalized candidate/index lookups, deterministic score primitives, localized deterministic rationale templates, and optional LLM-polished rationale keyed by structured facts + locale + model/template version.
+- [x] Selector input contract accepts class-level/cohort-level signals only and rejects individual-student fields.
+- [x] Teacher free-text feedback/misconception notes are stored separately with privacy handling; snapshots store only refs/metadata or typed sanitized signals.
+- [x] Default observability events are minimized and structured: status, versions, quality summary, fallback reason, blocking issue codes, latency, and cache hit/miss.
+- [x] Full `StrategyDecisionLedger` is written only in explicit debug mode, redacts PII before write, carries `contains_strategy_debug_data`, and expires under a diagnostic TTL separate from normal run retention.
+- [x] Debug ledgers are admin/debug-only and never included in teacher approval payloads.
+- [x] Tests prove PII-like fields are rejected/excluded from fingerprints/events, debug ledger TTL metadata is set, and normal events contain no raw lesson/free-text content.
+
+## Completion notes
+
+- Added `StrategyRequestFingerprint`, `StrategyDecisionLedger`, and `StrategyObservabilitySummary` privacy contracts.
+- Rejected individual-student selector input fields at `ComponentStrategyRequest` construction.
+- Minimized component-strategy gate observability payloads and moved debug/event detail out of normal events.
+- Split strategy quality event emission into `strategy_quality_events.py` to keep `strategy_quality.py` under the file-size ceiling.
 
 ## Blocked by
 

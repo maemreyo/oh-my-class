@@ -132,6 +132,157 @@ class TestTeachingPackPlanningResearch:
         research_brief = result.get("research_brief", {})
         assert research_brief.get("topic") == "Fractions"
 
+    @pytest.mark.anyio
+    async def test_provisional_component_strategy_stores_research_guidance_without_plan(self) -> None:
+        stage_node = make_stage_node(TeachingPackStage.PROVISIONAL_COMPONENT_STRATEGY)
+
+        result = await stage_node(TeachingPackState(
+            run_id="run-strategy-provisional",
+            contract={
+                "teacher_id_hash": "teacher-hash",
+                "topic": "Equivalent fractions",
+                "grade_band": "Grade 5",
+                "subject": "math",
+                "duration_minutes": 45,
+                "export_formats": ["html"],
+            },
+            artifact_types=["lesson", "worksheet"],
+            lesson_plan={
+                "topic": "Equivalent fractions",
+                "grade_level": "Grade 5",
+                "subject": "math",
+                "learning_objectives": [
+                    {"objective_id": "LO-1", "objective_revision": "rev-1", "description": "Compare fractions."},
+                ],
+            },
+        ))
+
+        assert result.get("component_strategy_plan") is None
+        assert result.get("component_strategy_research_questions")
+        assert result.get("component_strategy_hypotheses")
+        assert result["current_stage"] is StageEnum.PROVISIONAL_COMPONENT_STRATEGY
+
+    @pytest.mark.anyio
+    async def test_post_blueprint_research_receives_strategy_questions(self, monkeypatch) -> None:
+        from packages.agents.teaching_pack import nodes
+
+        calls = []
+
+        async def fake_researcher_node(state):
+            calls.append(state)
+            return {"research_bundle": {"topic": "Fractions", "sources": [{"title": "Source"}]}}
+
+        monkeypatch.setattr(
+            "packages.agents.sub_agents.researcher.nodes.researcher_node",
+            fake_researcher_node,
+        )
+
+        await nodes._post_blueprint_research(TeachingPackState(
+            run_id="run-research-guided",
+            contract={"research_policy": "standard"},
+            lesson_plan={"topic": "Fractions", "learning_objectives": []},
+            research_brief={"sources": []},
+            component_strategy_research_questions=["Which misconception should the first task diagnose?"],
+        ))
+
+        assert calls[0]["research_bundle"] == {
+            "sources": [],
+            "component_strategy_research_questions": ["Which misconception should the first task diagnose?"],
+        }
+
+    @pytest.mark.anyio
+    async def test_final_component_strategy_stores_plan_and_summary(self) -> None:
+        stage_node = make_stage_node(TeachingPackStage.FINALIZE_COMPONENT_STRATEGY)
+
+        result = await stage_node(TeachingPackState(
+            run_id="run-strategy-final",
+            contract={
+                "teacher_id_hash": "teacher-hash",
+                "topic": "Equivalent fractions",
+                "grade_band": "Grade 5",
+                "subject": "math",
+                "duration_minutes": 45,
+                "export_formats": ["html"],
+            },
+            artifact_types=["lesson", "worksheet"],
+            lesson_plan={
+                "topic": "Equivalent fractions",
+                "grade_level": "Grade 5",
+                "subject": "math",
+                "learning_objectives": [
+                    {"objective_id": "LO-1", "objective_revision": "rev-1", "description": "Compare fractions."},
+                ],
+            },
+            research_brief={
+                "factual_risk": "low",
+                "source_confidence": "high",
+                "prerequisite_risk": "met",
+                "evidence_tags": ["visual_models"],
+            },
+        ))
+
+        plan = result.get("component_strategy_plan", {})
+        summary = result.get("component_strategy_summary", {})
+        assert plan["strategy_schema_version"] == "component_strategy.v1"
+        assert summary["selected_component_types"]
+        assert summary["feedback_actions"] == [
+            "prefer_component_family",
+            "reject_component_family",
+            "prefer_learning_move",
+            "reject_learning_move",
+        ]
+        assert result["current_stage"] is StageEnum.FINALIZE_COMPONENT_STRATEGY
+
+    @pytest.mark.anyio
+    async def test_final_component_strategy_normalizes_objective_refs_across_reorder(self) -> None:
+        stage_node = make_stage_node(TeachingPackStage.FINALIZE_COMPONENT_STRATEGY)
+        base_state = {
+            "run_id": "run-strategy-lineage",
+            "contract": {
+                "teacher_id_hash": "teacher-hash",
+                "topic": "Vocabulary",
+                "grade_band": "Grade 5",
+                "subject": "language",
+                "duration_minutes": 45,
+                "export_formats": ["html"],
+            },
+            "artifact_types": ["lesson"],
+            "research_brief": {
+                "factual_risk": "low",
+                "source_confidence": "high",
+                "prerequisite_risk": "met",
+            },
+        }
+
+        first = await stage_node(TeachingPackState(
+            **base_state,
+            lesson_plan={
+                "topic": "Vocabulary",
+                "grade_level": "Grade 5",
+                "subject": "language",
+                "learning_objectives": [
+                    {"description": "Identify vocabulary meaning", "bloom_level": "remember"},
+                    {"description": "Use vocabulary in context", "bloom_level": "apply"},
+                ],
+            },
+        ))
+        reordered = await stage_node(TeachingPackState(
+            **base_state,
+            lesson_plan={
+                "topic": "Vocabulary",
+                "grade_level": "Grade 5",
+                "subject": "language",
+                "learning_objectives": [
+                    {"description": "Use vocabulary in context", "bloom_level": "apply"},
+                    {"description": "Identify vocabulary meaning", "bloom_level": "remember"},
+                ],
+            },
+        ))
+
+        first_refs = {ref["objective_id"] for ref in first["component_strategy_plan"]["objective_refs"]}
+        reordered_refs = {ref["objective_id"] for ref in reordered["component_strategy_plan"]["objective_refs"]}
+        assert first_refs == reordered_refs
+
 
 class TestTeachingPackApprovalExport:
     def test_compliance_pass_routes_to_teacher_approval(self) -> None:
@@ -298,6 +449,48 @@ class TestTeachingPackApprovalExport:
         assert explainable["revision_count"] == 2
         assert explainable["healing_history"] == [{"artifact_id": "quiz-1", "strategy": "rewrite"}]
         assert explainable["approval_mode"] == "manual"
+
+    def test_teacher_gate_payload_includes_component_strategy_summary(self, monkeypatch) -> None:
+        from packages.agents.teaching_pack import nodes
+
+        captured = {}
+
+        def fake_interrupt(payload):
+            captured.update(payload)
+            return {"action": "approve"}
+
+        monkeypatch.setattr("langgraph.types.interrupt", fake_interrupt)
+
+        nodes._teacher_approval(TeachingPackState(
+            run_id="run-strategy-gate",
+            component_strategy_summary={
+                "strategy_family_id": "evidence_balanced_default",
+                "selected_learning_moves": ["misconception_probe"],
+                "selected_component_types": ["multiple_choice_single"],
+                "rationale": "Diagnose misconceptions before practice.",
+                "fallback_note": "",
+                "feedback_actions": ["reject_component_family"],
+            },
+        ))
+
+        assert captured["component_strategy"] == {
+            "strategy_family_id": "evidence_balanced_default",
+            "selected_learning_moves": ["misconception_probe"],
+            "selected_component_types": ["multiple_choice_single"],
+            "rationale": "Diagnose misconceptions before practice.",
+            "fallback_note": "",
+            "feedback_actions": ["reject_component_family"],
+        }
+
+    def test_teacher_approval_routes_strategy_plan_to_artifact_generation_before_export(self) -> None:
+        state = TeachingPackState(
+            run_id="run-strategy-route",
+            teacher_approved=True,
+            component_strategy_plan={"strategy_id": "strategy-run-1"},
+            artifacts=[],
+        )
+
+        assert route_after_teacher_approval(state) == "artifact_workflow"
 
     def test_teacher_gate_payload_uses_per_artifact_revision_counts(self, monkeypatch) -> None:
         from packages.agents.teaching_pack import nodes

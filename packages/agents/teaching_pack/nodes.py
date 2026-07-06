@@ -106,6 +106,11 @@ class TeachingPackState(TypedDict):
     diagnostic_stage: NotRequired[JsonObject]
     teacher_preferences: NotRequired[JsonObject]
     component_effectiveness: NotRequired[JsonObject]
+    component_strategy_result: NotRequired[JsonObject]
+    component_strategy_plan: NotRequired[JsonObject]
+    component_strategy_summary: NotRequired[JsonObject]
+    component_strategy_hypotheses: NotRequired[list[str]]
+    component_strategy_research_questions: NotRequired[list[str]]
 
 
 def make_stage_node(
@@ -122,47 +127,61 @@ def make_stage_node(
             "stage": stage.value,
             "status": "started",
         })
-        match stage.value:
-            case "setup_contract":
-                state = await _run_entry_middleware(state)
-                update = _setup_contract(state)
-            case "triage":
-                update = await _triage(state)
-            case "unit_planning":
-                update = await _unit_planning(state)
-            case "unit_approval":
-                update = _unit_approval(state)
-            case "unit_prep":
-                update = _unit_prep(state)
-            case "preplanning_search":
-                update = _preplanning_search(state)
-            case "planning_blueprint":
-                update = await _planning_blueprint(state, store=store)
-            case "post_blueprint_research":
-                update = await _post_blueprint_research(state)
-            case "artifact_workflow":
-                update = await _artifact_workflow(state)
-            case "render_quality":
-                update = await _render_quality(state, quality_gate=quality_gate)
-            case "compliance_gate":
-                update = _compliance_gate(state)
-            case "teacher_approval":
-                update = await _teacher_approval_with_middleware(state, store=store)
-            case "export_finalize":
-                update = _export_finalize(state, store=store)
-            case unreachable:
-                assert_never(unreachable)
-        merged_state = state.copy()
-        merged_state.update(update)
-        if stage.value == "artifact_workflow" and artifact_send_fanout_v1_enabled():
-            if not merged_state.get("artifact_fanout_complete", False):
-                return merged_state
-        completed = _complete_stage(merged_state, stage)
-        emit_run_event(state["run_id"], "stage_transition", {
-            "stage": stage.value,
-            "status": "completed",
-        })
-        return completed
+        completed_successfully = False
+        try:
+            match stage.value:
+                case "setup_contract":
+                    state = await _run_entry_middleware(state)
+                    update = _setup_contract(state)
+                case "triage":
+                    update = await _triage(state)
+                case "unit_planning":
+                    update = await _unit_planning(state)
+                case "unit_approval":
+                    update = _unit_approval(state)
+                case "unit_prep":
+                    update = _unit_prep(state)
+                case "preplanning_search":
+                    update = _preplanning_search(state)
+                case "planning_blueprint":
+                    update = await _planning_blueprint(state, store=store)
+                case "provisional_component_strategy":
+                    update = _provisional_component_strategy(state)
+                case "post_blueprint_research":
+                    update = await _post_blueprint_research(state)
+                case "finalize_component_strategy":
+                    update = _finalize_component_strategy(state)
+                case "artifact_workflow":
+                    update = await _artifact_workflow(state)
+                case "render_quality":
+                    update = await _render_quality(state, quality_gate=quality_gate)
+                case "compliance_gate":
+                    update = _compliance_gate(state)
+                case "teacher_approval":
+                    update = await _teacher_approval_with_middleware(state, store=store)
+                case "export_finalize":
+                    update = _export_finalize(state, store=store)
+                case unreachable:
+                    assert_never(unreachable)
+            merged_state = state.copy()
+            merged_state.update(update)
+            if stage.value == "artifact_workflow" and artifact_send_fanout_v1_enabled():
+                if not merged_state.get("artifact_fanout_complete", False):
+                    completed_successfully = True
+                    return merged_state
+            completed = _complete_stage(merged_state, stage)
+            emit_run_event(state["run_id"], "stage_transition", {
+                "stage": stage.value,
+                "status": "completed",
+            })
+            completed_successfully = True
+            return completed
+        finally:
+            if not completed_successfully:
+                emit_run_event(state["run_id"], "stage_transition", {
+                    "stage": stage.value,
+                    "status": "failed",
+                })
 
     stage_node.__name__ = stage.value
     return stage_node
@@ -370,12 +389,29 @@ async def _post_blueprint_research(state: TeachingPackState) -> TeachingPackStat
         "research_policy": _string_field(contract, "research_policy", "standard"),
         "run_id": state["run_id"],
         "current_step": StageEnum.POST_BLUEPRINT_RESEARCH,
-        "research_bundle": state.get("research_brief", {}),
+        "research_bundle": _research_bundle_with_strategy_questions(state),
     }
     result = await researcher_node(researcher_state)
     research_brief = _json_object(result.get("research_bundle"))
     ResearcherHandoff(lesson_plan=state.get("lesson_plan", {}), research_brief=research_brief)
     return {"run_id": state["run_id"], "research_brief": research_brief}
+
+def _provisional_component_strategy(state: TeachingPackState) -> TeachingPackState:
+    from packages.agents.teaching_pack.component_strategy_stage import run_provisional_component_strategy
+
+    return TeachingPackState(**run_provisional_component_strategy(state))
+
+def _finalize_component_strategy(state: TeachingPackState) -> TeachingPackState:
+    from packages.agents.teaching_pack.component_strategy_stage import run_final_component_strategy
+
+    return TeachingPackState(**run_final_component_strategy(state))
+
+def _research_bundle_with_strategy_questions(state: TeachingPackState) -> JsonObject:
+    bundle = _json_object(state.get("research_brief"))
+    questions = state.get("component_strategy_research_questions", [])
+    if questions:
+        return {**bundle, "component_strategy_research_questions": [*questions]}
+    return bundle
 
 
 async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
@@ -424,6 +460,7 @@ async def _rollback_artifact_workflow(state: TeachingPackState) -> TeachingPackS
         "revision_feedback": mediated_state.get("revision_feedback", ""),
         "use_hierarchical_creator": True,
         "component_effectiveness": _json_object(mediated_state.get("component_effectiveness")),
+        "component_strategy_plan": _json_object(mediated_state.get("component_strategy_plan")),
     }
     result = await content_creator_node(creator_state)
     generated = normalize_generated_artifacts(result.get("artifacts", []), artifact_types)
@@ -476,6 +513,9 @@ def _teacher_approval(
         "run_id": state["run_id"],
         "artifact_explanations": artifact_explanations_for_teacher(state, "manual"),
     }
+    strategy_summary = _component_strategy_gate_summary(state)
+    if strategy_summary:
+        gate_payload["component_strategy"] = strategy_summary
     if state.get("escalate") is True:
         gate_payload["escalated"] = True
         gate_payload["needs_review"] = True
@@ -614,6 +654,8 @@ def _export_finalize(
 
 
 def route_after_teacher_approval(state: TeachingPackState) -> str:
+    if state.get("teacher_approved", False) and state.get("component_strategy_plan") and not state.get("artifacts"):
+        return "artifact_workflow"
     if state.get("teacher_approved", False):
         return "export_finalize"
     if is_scoped_teacher_action(state.get("gate_payload", {})):
@@ -731,3 +773,9 @@ def _string_field(data: JsonObject, key: str, default: str) -> str:
     if isinstance(value, str) and value:
         return value
     return default
+
+def _component_strategy_gate_summary(state: TeachingPackState) -> JsonObject:
+    summary = state.get("component_strategy_summary")
+    if isinstance(summary, dict):
+        return summary
+    return {}

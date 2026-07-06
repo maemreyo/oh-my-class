@@ -1,0 +1,26 @@
+{
+  "mode": "final",
+  "run_id": "cs08-exam-prep",
+  "teacher_id_hash": "teacher-hash",
+  "locale": "vi",
+  "subject": "math",
+  "grade_level": "Grade 5",
+  "duration_minutes": 45,
+  "artifact_types": ["quiz"],
+  "export_formats": ["html"],
+  "objective_refs": [
+    { "objective_id": "LO-exam-1", "objective_revision": "rev-1" }
+  ],
+  "delivery_context": {
+    "blueprint_revision_id": "bp-exam-1",
+    "delivery_mode": "independent_practice"
+  },
+  "assessment_intent": ["exam_prep", "moet_bloom_alignment"],
+  "research_signals": {
+    "factual_risk": "low",
+    "source_confidence": "high",
+    "prerequisite_risk": "met",
+    "misconception_refs": ["answer_without_reasoning"],
+    "evidence_tags": ["retrieval_practice", "question_reasoning", "answer_key_separation"]
+  }
+}

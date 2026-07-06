@@ -96,7 +96,7 @@ exports[`summary and visual artifact plugins > renders infographic standalone HT
       body { background: white; }
       .omc-footer { border-top: 1px solid #ccc; }
     }
-  </style>
+      </style>
 </head>
 <body class="artifact artifact--infographic">
   <header class="omc-header">
@@ -213,7 +213,7 @@ exports[`summary and visual artifact plugins > renders recap standalone HTML wit
       body { background: white; }
       .omc-footer { border-top: 1px solid #ccc; }
     }
-  </style>
+      </style>
 </head>
 <body class="artifact artifact--recap">
   <header class="omc-header">

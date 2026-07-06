@@ -16,7 +16,9 @@ class StageEnum(StrEnum):
     UNIT_PREP = "unit_prep"
     PREPLANNING_SEARCH = "preplanning_search"
     PLANNING_BLUEPRINT = "planning_blueprint"
+    PROVISIONAL_COMPONENT_STRATEGY = "provisional_component_strategy"
     POST_BLUEPRINT_RESEARCH = "post_blueprint_research"
+    FINALIZE_COMPONENT_STRATEGY = "finalize_component_strategy"
     ARTIFACT_WORKFLOW = "artifact_workflow"
     RENDER_QUALITY = "render_quality"
     COMPLIANCE_GATE = "compliance_gate"
@@ -50,6 +52,27 @@ TEACHING_PACK_STAGES: Final[tuple[StageEnum, ...]] = (
     StageEnum.EXPORT_FINALIZE,
 )
 
+TEACHING_PACK_STAGES_WITH_COMPONENT_STRATEGY: Final[tuple[StageEnum, ...]] = (
+    StageEnum.SETUP_CONTRACT,
+    StageEnum.TRIAGE,
+    StageEnum.PREPLANNING_SEARCH,
+    StageEnum.PLANNING_BLUEPRINT,
+    StageEnum.PROVISIONAL_COMPONENT_STRATEGY,
+    StageEnum.POST_BLUEPRINT_RESEARCH,
+    StageEnum.FINALIZE_COMPONENT_STRATEGY,
+    StageEnum.TEACHER_APPROVAL,
+    StageEnum.ARTIFACT_WORKFLOW,
+    StageEnum.RENDER_QUALITY,
+    StageEnum.COMPLIANCE_GATE,
+    StageEnum.EXPORT_FINALIZE,
+)
+
+
+def teaching_pack_stages(component_strategy_enabled: bool = False) -> tuple[StageEnum, ...]:
+    if component_strategy_enabled:
+        return TEACHING_PACK_STAGES_WITH_COMPONENT_STRATEGY
+    return TEACHING_PACK_STAGES
+
 
 def stage_number(stage: StageEnum) -> int:
     for index, candidate in enumerate(TEACHING_PACK_STAGES, start=1):
@@ -74,8 +97,12 @@ def _event_name(stage: StageEnum, suffix: str) -> str:
             value = "preplanning_search"
         case StageEnum.PLANNING_BLUEPRINT:
             value = "planning_blueprint"
+        case StageEnum.PROVISIONAL_COMPONENT_STRATEGY:
+            value = "provisional_component_strategy"
         case StageEnum.POST_BLUEPRINT_RESEARCH:
             value = "post_blueprint_research"
+        case StageEnum.FINALIZE_COMPONENT_STRATEGY:
+            value = "finalize_component_strategy"
         case StageEnum.ARTIFACT_WORKFLOW:
             value = "artifact_workflow"
         case StageEnum.RENDER_QUALITY:

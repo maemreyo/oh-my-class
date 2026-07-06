@@ -1,6 +1,6 @@
 ---
 title: Define Component Strategist contracts and immutable snapshots
-status: ready-for-agent
+status: completed
 labels: [component-strategist, contracts, testing]
 created: 2026-07-05
 ---
@@ -38,17 +38,25 @@ Every snapshot must include schema/version fields required by ADR-036: `strategy
 
 ## Acceptance criteria
 
-- [ ] Pydantic contracts exist in `common/contracts` for request, result, plan, learning sequence, strategy slot, artifact projection, export projection status, variant, score breakdown, fallback metadata, research signals, typed teacher feedback events, strategy revision, and strategy quality score.
-- [ ] Generated TypeScript/Zod counterparts exist through the existing schema generation path; generated files are not hand-edited.
-- [ ] Contracts explicitly distinguish teacher-facing rationale from developer/audit score ledger data.
-- [ ] Contracts encode bounded teacher feedback events, not free-form preference blobs.
-- [ ] Contracts distinguish canonical move-centric sequence from artifact/export projections, and every canonical move has explicit projection status.
-- [ ] Contracts include `mode: provisional | final`; provisional results can carry research questions/hypotheses, while final results carry immutable approved snapshot fields.
-- [ ] Contracts model typed `ResearchSignals`; selector request does not accept raw research markdown/prose.
-- [ ] Contracts model typed result states (`planned`, `planned_with_fallback`, `blocked`) for domain outcomes instead of nullable ad hoc plans.
-- [ ] Contracts support append-only strategy revisions with parent lineage and `teacher_reapproval_required` metadata.
-- [ ] Old-run compatibility is represented: missing `component_strategy_plan` remains valid in existing teaching-pack state until the feature flag is enabled.
-- [ ] Contract tests cover valid snapshots, invalid unsupported feedback values, missing version fields, and immutability expectations.
+- [x] Pydantic contracts exist in `common/contracts` for request, result, plan, learning sequence, strategy slot, artifact projection, export projection status, variant, score breakdown, fallback metadata, research signals, typed teacher feedback events, strategy revision, and strategy quality score.
+- [x] Generated TypeScript/Zod counterparts exist through the existing schema generation path; generated files are not hand-edited.
+- [x] Contracts explicitly distinguish teacher-facing rationale from developer/audit score ledger data.
+- [x] Contracts encode bounded teacher feedback events, not free-form preference blobs.
+- [x] Contracts distinguish canonical move-centric sequence from artifact/export projections, and every canonical move has explicit projection status.
+- [x] Contracts include `mode: provisional | final`; provisional results can carry research questions/hypotheses, while final results carry immutable approved snapshot fields.
+- [x] Contracts model typed `ResearchSignals`; selector request does not accept raw research markdown/prose.
+- [x] Contracts model typed result states (`planned`, `planned_with_fallback`, `blocked`) for domain outcomes instead of nullable ad hoc plans.
+- [x] Contracts support append-only strategy revisions with parent lineage and `teacher_reapproval_required` metadata.
+- [x] Old-run compatibility is represented: missing `component_strategy_plan` remains valid in existing teaching-pack state until the feature flag is enabled.
+- [x] Contract tests cover valid snapshots, invalid unsupported feedback values, missing version fields, and immutability expectations.
+
+## Completion evidence
+
+- Added frozen Pydantic contracts in `common/contracts/component_strategy.py`.
+- Exported the contract surface from `common/contracts/__init__.py`.
+- Registered schema generation in `scripts/schema_codegen_config.py` and generated `common/schemas/src/generated/component_strategy.ts` plus index exports.
+- Added contract tests in `common/contracts/tests/test_component_strategy_contracts.py`.
+- Verified with `uv run pytest common/contracts/tests/test_component_strategy_contracts.py` and `uv run python scripts/generate_zod_schemas.py`.
 
 ## Blocked by
 

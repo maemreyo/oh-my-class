@@ -1,0 +1,287 @@
+manifest:
+  knowledge_db_version: "2026.07.05"
+  manifest_checksum: "manifest-v1:2026.07.05"
+  source_checksum: "computed-at-build"
+  sqlite_checksum: "computed-at-build"
+  renderer_capability_checksum: "714ee7a05098bf671e7a98d3b456fd7c470b3344a57a499dfc98b1904611ca15"
+  exporter_capability_checksum: "3d263ccab11dcf4c8131e0c4743b3589deec97020815a9b7c0420230d86b4930"
+  compatible_strategy_schema_versions: ["component_strategy.v1"]
+  compatible_selector_versions: ["selector.v1"]
+  supported_locales: ["en", "vi"]
+
+evidence_sources:
+  - evidence_id: retrieval_practice
+    citation: "Roediger, H. L., & Karpicke, J. D. (2006). Test-enhanced learning."
+  - evidence_id: contrastive_examples
+    citation: "Schwartz, D. L., & Bransford, J. D. (1998). A time for telling."
+  - evidence_id: worked_examples
+    citation: "Sweller, J. (1988). Cognitive load during problem solving."
+
+learning_moves:
+  - move_id: semantic_discrimination
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    labels:
+      en: "Semantic discrimination"
+      vi: "Phân biệt nghĩa"
+    subject_tags: [language]
+    grade_bands: [grade_4_6, grade_7_9]
+    bloom_levels: [understand, apply]
+    moet_levels: [thong_hieu, van_dung]
+    gagne_events: [present_content, elicit_performance]
+    udl_tags: [representation, action_expression]
+    evidence_ids: [contrastive_examples, retrieval_practice]
+    fill_validation_policy: declarative_contrastive_examples
+  - move_id: exam_error_probe
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    labels:
+      en: "Exam error probe"
+      vi: "Dò lỗi dạng đề"
+    subject_tags: [exam_prep, math, science]
+    grade_bands: [grade_4_6, grade_7_9, grade_10_12]
+    bloom_levels: [remember, understand, apply]
+    moet_levels: [nhan_biet, thong_hieu, van_dung]
+    gagne_events: [stimulate_recall, elicit_performance]
+    udl_tags: [action_expression]
+    evidence_ids: [retrieval_practice]
+    fill_validation_policy: declarative_item_key_separation
+  - move_id: concept_model_build
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    labels:
+      en: "Concept model build"
+      vi: "Xây mô hình khái niệm"
+    subject_tags: [math, science, concept]
+    grade_bands: [grade_4_6, grade_7_9]
+    bloom_levels: [understand, analyze]
+    moet_levels: [thong_hieu, van_dung]
+    gagne_events: [present_content, provide_guidance]
+    udl_tags: [representation]
+    evidence_ids: [worked_examples]
+    fill_validation_policy: declarative_concept_relations
+
+component_bindings:
+  - binding_id: vocab_cluster.semantic_discrimination.v1
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    component_type: vocab_cluster
+    learning_move_id: semantic_discrimination
+    strategy_family_ids: [vocabulary_language]
+    artifact_types: [lesson, worksheet, drill]
+    subject_tags: [language]
+    grade_bands: [grade_4_6, grade_7_9]
+    bloom_levels: [understand]
+    moet_levels: [thong_hieu]
+    gagne_events: [present_content]
+    udl_tags: [representation]
+    duration_min_minutes: 5
+    duration_max_minutes: 12
+    compliance_risk: low
+    evidence_ids: [contrastive_examples]
+    fallback_policy_id: text_table_fallback
+    labels:
+      en: "Vocabulary cluster"
+      vi: "Cụm từ vựng"
+    rationale_template:
+      en: "Groups close meanings before practice."
+      vi: "Nhóm các nghĩa gần nhau trước khi luyện tập."
+  - binding_id: contrastive_pairs.semantic_discrimination.v1
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    component_type: contrastive_pairs
+    learning_move_id: semantic_discrimination
+    strategy_family_ids: [vocabulary_language]
+    artifact_types: [lesson, worksheet]
+    subject_tags: [language]
+    grade_bands: [grade_4_6, grade_7_9]
+    bloom_levels: [understand]
+    moet_levels: [thong_hieu]
+    gagne_events: [present_content]
+    udl_tags: [representation]
+    duration_min_minutes: 4
+    duration_max_minutes: 10
+    compliance_risk: low
+    evidence_ids: [contrastive_examples]
+    fallback_policy_id: text_table_fallback
+    labels:
+      en: "Contrastive pairs"
+      vi: "Cặp đối chiếu"
+    rationale_template:
+      en: "Makes confusing distinctions visible."
+      vi: "Làm rõ các khác biệt dễ nhầm."
+  - binding_id: question_list.exam_error_probe.v1
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    component_type: question_list
+    learning_move_id: exam_error_probe
+    strategy_family_ids: [exam_assessment_prep]
+    artifact_types: [quiz, drill, worksheet]
+    subject_tags: [exam_prep, math, science]
+    grade_bands: [grade_4_6, grade_7_9, grade_10_12]
+    bloom_levels: [remember, understand, apply]
+    moet_levels: [nhan_biet, thong_hieu, van_dung]
+    gagne_events: [elicit_performance]
+    udl_tags: [action_expression]
+    duration_min_minutes: 8
+    duration_max_minutes: 20
+    compliance_risk: low
+    evidence_ids: [retrieval_practice]
+    fallback_policy_id: question_card_fallback
+    labels:
+      en: "Question set"
+      vi: "Bộ câu hỏi"
+    rationale_template:
+      en: "Surfaces exam-form errors with grouped practice."
+      vi: "Làm lộ lỗi dạng đề qua luyện tập theo nhóm."
+  - binding_id: flow_step.concept_model_build.v1
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    component_type: flow_step
+    learning_move_id: concept_model_build
+    strategy_family_ids: [concept_math_science]
+    artifact_types: [lesson, worksheet]
+    subject_tags: [math, science, concept]
+    grade_bands: [grade_4_6, grade_7_9]
+    bloom_levels: [apply, analyze]
+    moet_levels: [van_dung]
+    gagne_events: [provide_guidance, elicit_performance]
+    udl_tags: [action_expression]
+    duration_min_minutes: 5
+    duration_max_minutes: 15
+    compliance_risk: low
+    evidence_ids: [worked_examples]
+    fallback_policy_id: flow_step_fallback
+    labels:
+      en: "Flow steps"
+      vi: "Các bước quy trình"
+    rationale_template:
+      en: "Turns a concept into ordered actions."
+      vi: "Chuyển khái niệm thành các bước hành động."
+
+strategy_families:
+  - family_id: vocabulary_language
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    labels:
+      en: "Vocabulary and language"
+      vi: "Từ vựng và ngôn ngữ"
+    subject_tags: [language]
+    required_learning_move_ids: [semantic_discrimination]
+    scoring_profile_id: evidence_balanced_default
+  - family_id: exam_assessment_prep
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    labels:
+      en: "Exam and assessment prep"
+      vi: "Ôn thi và kiểm tra"
+    subject_tags: [exam_prep, math, science]
+    required_learning_move_ids: [exam_error_probe]
+    scoring_profile_id: evidence_balanced_default
+  - family_id: concept_math_science
+    version: "1.0.0"
+    lifecycle: production
+    production_selectable: true
+    labels:
+      en: "Concept math and science"
+      vi: "Khái niệm toán và khoa học"
+    subject_tags: [math, science, concept]
+    required_learning_move_ids: [concept_model_build]
+    scoring_profile_id: evidence_balanced_default
+
+scoring_profiles:
+  - scoring_profile_id: evidence_balanced_default
+    version: "1.0.0"
+    fallback_only: false
+    weights:
+      objective_alignment: 0.4
+      evidence_signal_coverage: 0.3
+      component_diversity: 0.2
+      compliance_safety: 0.1
+  - scoring_profile_id: evidence_balanced_basic
+    version: "1.0.0"
+    fallback_only: true
+    weights:
+      objective_alignment: 0.5
+      evidence_signal_coverage: 0.3
+      component_diversity: 0.1
+      compliance_safety: 0.1
+
+fallback_policies:
+  - policy_id: text_table_fallback
+    version: "1.0.0"
+    lifecycle: production
+    fallback_policy: required
+    from_component_type: contrastive_pairs
+    to_component_type: table
+    preserved_affordances: [representation, print_safe]
+    lost_affordances: [side_by_side_discrimination]
+    fallback_quality: 0.72
+    reason_code: compact_print_layout
+    teacher_message: "Use a compact table when contrastive pair layout cannot be safely filled or rendered."
+    severity: warning
+    teacher_options: [accept_table_fallback, revise_component_feedback]
+  - policy_id: vocab_cluster_table_fallback
+    version: "1.0.0"
+    lifecycle: production
+    fallback_policy: required
+    from_component_type: vocab_cluster
+    to_component_type: table
+    preserved_affordances: [representation, grouping]
+    lost_affordances: [concept_map_visual_shape]
+    fallback_quality: 0.68
+    reason_code: compact_print_layout
+    teacher_message: "Use a grouped table when the vocabulary cluster component is unavailable."
+    severity: warning
+    teacher_options: [accept_table_fallback, revise_component_feedback]
+  - policy_id: flow_step_fallback
+    version: "1.0.0"
+    lifecycle: production
+    fallback_policy: required
+    from_component_type: flow_step
+    to_component_type: table
+    preserved_affordances: [ordered_steps, print_safe]
+    lost_affordances: [guided_flow_visual]
+    fallback_quality: 0.7
+    reason_code: low_visual_space
+    teacher_message: "Use an ordered table when the flow-step component cannot fit the delivery/export constraints."
+    severity: warning
+    teacher_options: [accept_table_fallback, revise_component_feedback]
+  - policy_id: question_card_fallback
+    version: "1.0.0"
+    lifecycle: production
+    fallback_policy: required
+    from_component_type: question_list
+    to_component_type: question_card
+    preserved_affordances: [retrieval_practice, answer_key_separation]
+    lost_affordances: [grouped_item_set]
+    fallback_quality: 0.8
+    reason_code: small_item_count
+    teacher_message: "Use question cards when a full question list would overrun the approved item budget."
+    severity: info
+    teacher_options: [accept_question_card_fallback, revise_item_budget]
+
+contraindications:
+  - rule_id: avoid_high_duration_for_short_lessons
+    version: "1.0.0"
+    lifecycle: production
+    priority: 10
+    component_type: question_list
+    condition: duration_under_20_minutes
+    override_allowed: true
+
+rationale_templates:
+  - template_id: default_teacher_rationale
+    version: "1.0.0"
+    labels:
+      en: "Chosen because it fits the objective, evidence, and artifact format."
+      vi: "Được chọn vì phù hợp mục tiêu, bằng chứng và định dạng học liệu."

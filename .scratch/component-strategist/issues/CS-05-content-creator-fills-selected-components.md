@@ -1,6 +1,6 @@
 ---
 title: Make Content Creator fill selected strategy components
-status: ready-for-agent
+status: completed
 labels: [component-strategist, content-creator, integration]
 created: 2026-07-05
 ---
@@ -17,16 +17,16 @@ The implementation must preserve planless compatibility while the feature flag r
 
 ## Acceptance criteria
 
-- [ ] Content Creator state accepts optional `component_strategy_plan` and maps relevant moves/components into artifact generation prompts or deterministic fill paths.
-- [ ] Content Creator receives artifact projection, ordered slots, fill requirements, forbidden fill patterns, budgets, audience policy, quality expectations, and compact pack context; it does not receive full debug/search ledger.
-- [ ] Generated `ArtifactContent.sections[].components` include selected component types from the strategy plan for supported slices.
-- [ ] Generated artifacts include strategy slot lineage in metadata for selected slots and supporting micro-components.
-- [ ] Content Creator may request typed fill failure/fallback with slot ID, original move ID, failure reason, and attempted component; fallback reason is recorded and gate-visible.
-- [ ] Content Creator may not silently replace selected components with `paragraph`-only sections when a richer selected component exists.
-- [ ] Content Creator may not reorder selected learning moves, alter objective mapping, exceed hard slot budgets, or add arbitrary components outside explicit expansion policy.
-- [ ] Supporting micro-components are allowed only when slot expansion policy permits them and must include parent-slot lineage.
-- [ ] Student-facing outputs do not include teacher-only fields such as answer keys, rationales, coaching notes, or wrong-reason explanations where policy forbids them.
-- [ ] Tests cover vocabulary/language, exam-prep, concept/math-science, fallback, planless compatibility, slot lineage, expansion policy, and no silent prose downgrade.
+- [x] Content Creator state accepts optional `component_strategy_plan` and maps relevant moves/components into artifact generation prompts or deterministic fill paths.
+- [x] Content Creator receives artifact projection, ordered slots, fill requirements, forbidden fill patterns, budgets, audience policy, quality expectations, and compact pack context; it does not receive full debug/search ledger.
+- [x] Generated `ArtifactContent.sections[].components` include selected component types from the strategy plan for supported slices.
+- [x] Generated artifacts include strategy slot lineage in metadata for selected slots and supporting micro-components.
+- [x] Content Creator may request typed fill failure/fallback with slot ID, original move ID, failure reason, and attempted component; fallback reason is recorded and gate-visible.
+- [x] Content Creator may not silently replace selected components with `paragraph`-only sections when a richer selected component exists.
+- [x] Content Creator may not reorder selected learning moves, alter objective mapping, exceed hard slot budgets, or add arbitrary components outside explicit expansion policy.
+- [x] Supporting micro-components are allowed only when slot expansion policy permits them and must include parent-slot lineage.
+- [x] Student-facing outputs do not include teacher-only fields such as answer keys, rationales, coaching notes, or wrong-reason explanations where policy forbids them.
+- [x] Tests cover vocabulary/language, exam-prep, concept/math-science, fallback, planless compatibility, slot lineage, expansion policy, and no silent prose downgrade.
 
 ## Blocked by
 

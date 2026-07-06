@@ -1,0 +1,37 @@
+{
+  "exporters": [
+    {
+      "export_format": "html",
+      "known_limitations": [],
+      "supported_artifact_types": [
+        "lesson",
+        "worksheet",
+        "quiz",
+        "drill",
+        "recap",
+        "infographic"
+      ]
+    },
+    {
+      "export_format": "gift",
+      "known_limitations": [
+        "assessment-only export"
+      ],
+      "supported_artifact_types": [
+        "quiz"
+      ]
+    },
+    {
+      "export_format": "h5p",
+      "known_limitations": [
+        "interactive package export only"
+      ],
+      "supported_artifact_types": [
+        "quiz",
+        "drill"
+      ]
+    }
+  ],
+  "generated_from": "packages.exporters",
+  "manifest_version": "exporter-capabilities.v1"
+}

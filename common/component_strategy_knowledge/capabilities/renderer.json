@@ -1,0 +1,142 @@
+{
+  "components": [
+    {
+      "accessibility_requirements": [
+        "side_by_side_labels",
+        "print_safe"
+      ],
+      "cognitive_load": "medium",
+      "component_type": "contrastive_pairs",
+      "item_limit": 6,
+      "known_limitations": [
+        "dense rows should fall back to table"
+      ],
+      "print_risk": "low",
+      "required_fields": [
+        "rows"
+      ],
+      "supported_artifact_types": [
+        "lesson",
+        "worksheet"
+      ],
+      "template": "contrastive_pairs.html"
+    },
+    {
+      "accessibility_requirements": [
+        "ordered_steps"
+      ],
+      "cognitive_load": "medium",
+      "component_type": "flow_step",
+      "item_limit": 8,
+      "known_limitations": [
+        "long procedures should fall back to table"
+      ],
+      "print_risk": "low",
+      "required_fields": [
+        "steps"
+      ],
+      "supported_artifact_types": [
+        "lesson",
+        "worksheet"
+      ],
+      "template": "flow_step.html"
+    },
+    {
+      "accessibility_requirements": [
+        "answer_key_separation"
+      ],
+      "cognitive_load": "low",
+      "component_type": "question_card",
+      "item_limit": 1,
+      "known_limitations": [
+        "single-item fallback only"
+      ],
+      "print_risk": "low",
+      "required_fields": [
+        "id",
+        "text",
+        "options",
+        "answer",
+        "explain"
+      ],
+      "supported_artifact_types": [
+        "drill",
+        "lesson",
+        "quiz",
+        "recap",
+        "worksheet"
+      ],
+      "template": "question_card.html"
+    },
+    {
+      "accessibility_requirements": [
+        "answer_key_separation"
+      ],
+      "cognitive_load": "medium",
+      "component_type": "question_list",
+      "item_limit": 12,
+      "known_limitations": [
+        "small item counts may prefer question_card"
+      ],
+      "print_risk": "medium",
+      "required_fields": [
+        "questions"
+      ],
+      "supported_artifact_types": [
+        "drill",
+        "lesson",
+        "quiz",
+        "worksheet"
+      ],
+      "template": "question_list.html"
+    },
+    {
+      "accessibility_requirements": [
+        "headers"
+      ],
+      "cognitive_load": "low",
+      "component_type": "table",
+      "item_limit": 20,
+      "known_limitations": [
+        "not suitable for rich concept maps"
+      ],
+      "print_risk": "low",
+      "required_fields": [
+        "columns",
+        "rows"
+      ],
+      "supported_artifact_types": [
+        "drill",
+        "infographic",
+        "lesson",
+        "quiz",
+        "recap",
+        "worksheet"
+      ],
+      "template": "table.html"
+    },
+    {
+      "accessibility_requirements": [
+        "semantic_group_labels"
+      ],
+      "cognitive_load": "medium",
+      "component_type": "vocab_cluster",
+      "item_limit": 8,
+      "known_limitations": [
+        "large clusters should fall back to table"
+      ],
+      "print_risk": "low",
+      "required_fields": [
+        "title"
+      ],
+      "supported_artifact_types": [
+        "drill",
+        "lesson",
+        "worksheet"
+      ],
+      "template": "vocab_concept_box.html"
+    }
+  ],
+  "generated_from": "common.contracts.components.registry",
+  "manifest_version": "renderer-capabilities.v1"
+}

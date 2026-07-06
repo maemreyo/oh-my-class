@@ -7,6 +7,8 @@ export { LessonPlanSchema, LearningObjectiveSchema, AssessmentCheckpointSchema, 
 export type { LessonPlan, LearningObjective, AssessmentCheckpoint, MethodologyPayloads, MethodologyMetadata } from "./lesson_plan.js";
 export { ArtifactContentSchema, TeachingPackSchema } from "./artifact.js";
 export type { ArtifactContent, TeachingPack } from "./artifact.js";
+export { ComponentStrategyResultSchema, ComponentStrategyPlanSchema, StrategyVariantSchema, StrategySlotSchema, StrategySlotBudgetSchema, ArtifactStrategyProjectionSchema, ExportProjectionStatusSchema, FallbackMetadataSchema, StrategyQualityScoreSchema, StrategyBlockingIssueSchema, StrategyWarningSchema, StrategyRevisionSchema, ComponentStrategyRequestSchema, ObjectiveRefSchema, ResearchSignalsSchema, TeacherPreferenceSignalsSchema, StrategyFeedbackEventSchema } from "./component_strategy.js";
+export type { ComponentStrategyResult, ComponentStrategyPlan, StrategyVariant, StrategySlot, StrategySlotBudget, ArtifactStrategyProjection, ExportProjectionStatus, FallbackMetadata, StrategyQualityScore, StrategyBlockingIssue, StrategyWarning, StrategyRevision, ComponentStrategyRequest, ObjectiveRef, ResearchSignals, TeacherPreferenceSignals, StrategyFeedbackEvent } from "./component_strategy.js";
 export { JudgeOutputSchema, LayerScoreSchema } from "./judge_output.js";
 export type { JudgeOutput, LayerScore } from "./judge_output.js";
 export { RunContractSchema, ContractRevisionMetaSchema, DecompositionIntentSchema, ContractRevisionSchema } from "./run_contract.js";

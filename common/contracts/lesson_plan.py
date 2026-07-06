@@ -6,7 +6,7 @@ Bloom's taxonomy levels, and assessment checkpoints.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -29,6 +29,9 @@ class LearningObjective(BaseModel):
     """A single learning objective with Bloom's taxonomy classification."""
 
     description: str = Field(..., min_length=1, max_length=500)
+    importance: Literal["core", "supporting", "extension"] | None = None
+    assessable: bool | None = None
+    assessment_intent: Literal["none", "formative", "summative", "exam_prep", "diagnostic"] | None = None
     bloom_level: str = Field(
         ...,
         pattern=r"^(remember|understand|apply|analyze|evaluate|create)$",

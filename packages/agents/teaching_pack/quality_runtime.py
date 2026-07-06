@@ -11,6 +11,10 @@ from packages.agents.teaching_pack.quality_routing import (
     pack_coherence_issues,
     render_quality_failure,
 )
+from packages.agents.teaching_pack.strategy_quality import (
+    emit_strategy_quality_events,
+    post_generation_strategy_issues,
+)
 
 _log = logging.getLogger(__name__)
 from packages.agents.teaching_pack.scoped_repair import scoped_repair_plans
@@ -57,6 +61,20 @@ async def render_quality(
                 "quality_scores": _with_scoped_repair(_json_object(failure.get("quality_scores")), issues),
             })
         raise TeachingPackQualityGateError(issues)
+    strategy_plan = _json_object(state.get("component_strategy_plan"))
+    if strategy_plan:
+        strategy_issues = post_generation_strategy_issues(strategy_plan, artifacts)
+        emit_strategy_quality_events(str(state["run_id"]), strategy_issues, phase="post_generation")
+        hard_strategy_issues = [issue for issue in strategy_issues if issue.severity == "hard"]
+        if hard_strategy_issues:
+            issue_codes = [f"component_strategy.{issue.code}: {issue.location}" for issue in hard_strategy_issues]
+            failure = render_quality_failure(str(state["run_id"]), issue_codes)
+            return _state_update({
+                "run_id": state["run_id"],
+                "quality_issues": issue_codes,
+                "quality_recovery_route": _string_field(failure, "quality_recovery_route", "artifact_workflow"),
+                "quality_scores": _with_scoped_repair(_json_object(failure.get("quality_scores")), issue_codes),
+            })
     passing_reports: list[ArtifactQualityReport] = []
     layer4_metadata: list[JsonObject] = []
     if quality_gate is None:
@@ -158,7 +176,7 @@ def _json_objects(value: TeachingPackQualityValue | None) -> list[JsonObject]:
     return [item for item in value if isinstance(item, dict)]
 
 
-def _json_object(value: JsonValue | None) -> JsonObject:
+def _json_object(value: JsonValue | list[str] | None) -> JsonObject:
     if isinstance(value, dict):
         return value
     return {}

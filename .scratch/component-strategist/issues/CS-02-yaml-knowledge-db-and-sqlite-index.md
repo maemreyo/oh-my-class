@@ -1,6 +1,6 @@
 ---
 title: Build PR-reviewed YAML knowledge DB and generated SQLite index
-status: ready-for-agent
+status: completed
 labels: [component-strategist, knowledge-db, testing]
 created: 2026-07-05
 ---
@@ -23,16 +23,24 @@ Initial entries must reuse existing renderable components where possible: `vocab
 
 ## Acceptance criteria
 
-- [ ] YAML schema exists for component knowledge, learning moves, strategy families, scoring profiles, evidence sources, contraindications, fallback components, and rationale templates.
-- [ ] YAML entries validate that every referenced component type exists in `ContentComponent` and is renderable through dispatcher/plugin support.
-- [ ] Knowledge manifest includes global `knowledge_db_version`, checksum, compatible strategy schema/selector versions, generated SQLite checksum, and supported locales.
-- [ ] Entries include stable ID, per-entry semantic version, lifecycle status, production-selectability metadata, and complete supported-locale labels/templates for production entries.
-- [ ] SQLite index generation is deterministic from YAML/manifests; generated index is reproducible in tests and loaded read-only at runtime.
-- [ ] Query interface supports filtering by artifact type, subject tags, grade band, Bloom/MOET level, Gagne event, UDL tags, duration bounds, compliance risk, and strategy family.
-- [ ] CI/test command fails on unknown component IDs, unknown evidence IDs, circular fallback paths, missing citations, non-renderable components, stale generated SQLite, missing production locale copy, conflicting rules without explicit priority/override, and insufficient component coverage for a supported strategy family.
-- [ ] Production-selectable bindings declare fallback policy and production learning moves declare at least declarative fill-validation policy.
-- [ ] Draft entries are excluded from production generation; deprecated entries are replay-resolvable by exact ID/version but not selectable for new runs/revisions.
-- [ ] Tests include fixture queries for vocabulary, exam-prep, and concept/math-science contexts.
+- [x] YAML schema exists for component knowledge, learning moves, strategy families, scoring profiles, evidence sources, contraindications, fallback components, and rationale templates.
+- [x] YAML entries validate that every referenced component type exists in `ContentComponent` and is renderable through dispatcher/plugin support.
+- [x] Knowledge manifest includes global `knowledge_db_version`, checksum, compatible strategy schema/selector versions, generated SQLite checksum, and supported locales.
+- [x] Entries include stable ID, per-entry semantic version, lifecycle status, production-selectability metadata, and complete supported-locale labels/templates for production entries.
+- [x] SQLite index generation is deterministic from YAML/manifests; generated index is reproducible in tests and loaded read-only at runtime.
+- [x] Query interface supports filtering by artifact type, subject tags, grade band, Bloom/MOET level, Gagne event, UDL tags, duration bounds, compliance risk, and strategy family.
+- [x] CI/test command fails on unknown component IDs, unknown evidence IDs, circular fallback paths, missing citations, non-renderable components, stale generated SQLite, missing production locale copy, conflicting rules without explicit priority/override, and insufficient component coverage for a supported strategy family.
+- [x] Production-selectable bindings declare fallback policy and production learning moves declare at least declarative fill-validation policy.
+- [x] Draft entries are excluded from production generation; deprecated entries are replay-resolvable by exact ID/version but not selectable for new runs/revisions.
+- [x] Tests include fixture queries for vocabulary, exam-prep, and concept/math-science contexts.
+
+## Completion evidence
+
+- Added source-of-truth YAML at `common/component_strategy_knowledge/knowledge.yaml`.
+- Added frozen knowledge models in `common/contracts/component_strategy_knowledge_models.py`.
+- Added validation, deterministic SQLite build, read-only runtime loading, stale-index checks, and query filters in `common/contracts/component_strategy_knowledge.py`.
+- Added CLI wrapper `scripts/build_component_strategy_index.py` and generated `common/component_strategy_knowledge/knowledge.sqlite` from YAML.
+- Verified with `uv run pytest common/contracts/tests/test_component_strategy_knowledge.py common/contracts/tests/test_component_strategy_contracts.py` and `uv run python scripts/build_component_strategy_index.py`.
 
 ## Blocked by
 

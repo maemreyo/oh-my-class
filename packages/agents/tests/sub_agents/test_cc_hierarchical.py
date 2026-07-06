@@ -69,6 +69,141 @@ def test_hierarchical_creator_enforces_guards_and_verified_facts() -> None:
     assert "Fractions always have different values" not in content
     assert artifact["metadata"]["grounding_status"] == "verified_subset"
 
+def test_hierarchical_creator_fills_selected_vocabulary_strategy_components() -> None:
+    result = build_hierarchical_artifacts({
+        "lesson_plan": _lesson_plan(),
+        "research_bundle": _research_bundle(),
+        "artifact_types": ["lesson"],
+        "theme": "default",
+        "run_id": "run-cc-strategy-vocab",
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
+        "artifacts": None,
+        "component_strategy_plan": _strategy_plan("lesson", [
+            _strategy_slot("slot-vocab", "vocab_cluster", "vocabulary_cluster", ["introduce target terms"]),
+            _strategy_slot("slot-contrast", "contrastive_pairs", "contrastive_compare", ["separate confusable terms"]),
+        ]),
+    })
+
+    artifact = result["artifacts"][0]
+    components = _strategy_components(artifact)
+
+    assert [component["type"] for component in components] == ["vocab_cluster", "contrastive_pairs"]
+    assert artifact["metadata"]["component_strategy"]["slot_ids"] == ["slot-vocab", "slot-contrast"]
+    assert all(component["strategy_slot_id"] in {"slot-vocab", "slot-contrast"} for component in components)
+
+def test_hierarchical_creator_fills_selected_exam_strategy_components() -> None:
+    result = build_hierarchical_artifacts({
+        "lesson_plan": _lesson_plan(),
+        "research_bundle": _research_bundle(),
+        "artifact_types": ["quiz"],
+        "theme": "default",
+        "run_id": "run-cc-strategy-exam",
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
+        "artifacts": None,
+        "component_strategy_plan": _strategy_plan("quiz", [
+            _strategy_slot("slot-questions", "question_list", "exam_rehearsal", ["include four options"], max_items=2),
+        ]),
+    })
+
+    artifact = result["artifacts"][0]
+    components = _strategy_components(artifact)
+    question_list = components[0]
+
+    assert question_list["type"] == "question_list"
+    assert question_list["strategy_slot_id"] == "slot-questions"
+    questions = question_list["questions"]
+    assert isinstance(questions, list)
+    assert len(questions) == 2
+    assert artifact["metadata"]["component_strategy"]["slot_ids"] == ["slot-questions"]
+
+def test_hierarchical_creator_fills_selected_concept_strategy_components() -> None:
+    result = build_hierarchical_artifacts({
+        "lesson_plan": _lesson_plan(),
+        "research_bundle": _research_bundle(),
+        "artifact_types": ["lesson"],
+        "theme": "default",
+        "run_id": "run-cc-strategy-concept",
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
+        "artifacts": None,
+        "component_strategy_plan": _strategy_plan("lesson", [
+            _strategy_slot("slot-flow", "flow_step", "concept_model_build", ["show ordered model steps"]),
+        ]),
+    })
+
+    components = _strategy_components(result["artifacts"][0])
+
+    assert components[0]["type"] == "flow_step"
+    assert components[0]["strategy_slot_id"] == "slot-flow"
+    assert components[0]["steps"]
+
+def test_hierarchical_creator_records_typed_fallback_for_unsupported_strategy_component() -> None:
+    result = build_hierarchical_artifacts({
+        "lesson_plan": _lesson_plan(),
+        "research_bundle": _research_bundle(),
+        "artifact_types": ["lesson"],
+        "theme": "default",
+        "run_id": "run-cc-strategy-fallback",
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
+        "artifacts": None,
+        "component_strategy_plan": _strategy_plan("lesson", [
+            _strategy_slot("slot-unsupported", "unsupported_component", "unsupported_move", ["must fallback"]),
+        ]),
+    })
+
+    artifact = result["artifacts"][0]
+    fallback = artifact["metadata"]["component_strategy"]["fallbacks"][0]
+
+    assert fallback == {
+        "slot_id": "slot-unsupported",
+        "original_move_id": "unsupported_move",
+        "attempted_component": "unsupported_component",
+        "reason": "unsupported_component_type",
+    }
+    assert _strategy_components(artifact)[0]["type"] == "callout"
+
+def test_hierarchical_creator_does_not_silently_downgrade_selected_component_to_prose() -> None:
+    result = build_hierarchical_artifacts({
+        "lesson_plan": _lesson_plan(),
+        "research_bundle": _research_bundle(),
+        "artifact_types": ["lesson"],
+        "theme": "default",
+        "run_id": "run-cc-no-prose-downgrade",
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
+        "artifacts": None,
+        "component_strategy_plan": _strategy_plan("lesson", [
+            _strategy_slot("slot-vocab", "vocab_cluster", "vocabulary_cluster", ["introduce target terms"]),
+        ]),
+    })
+
+    selected_components = _strategy_components(result["artifacts"][0])
+
+    assert selected_components
+    assert all(component["type"] != "paragraph" for component in selected_components)
+
+
+def test_hierarchical_creator_preserves_supporting_micro_component_lineage() -> None:
+    result = build_hierarchical_artifacts({
+        "lesson_plan": _lesson_plan(),
+        "research_bundle": _research_bundle(),
+        "artifact_types": ["lesson"],
+        "theme": "default",
+        "run_id": "run-cc-micro-lineage",
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
+        "artifacts": None,
+        "component_strategy_plan": _strategy_plan("lesson", [
+            _strategy_slot("slot-parent", "vocab_cluster", "vocabulary_cluster", ["introduce target terms"]),
+            {
+                **_strategy_slot("slot-micro", "active_recall_prompt", "retrieval_check", ["quick self-check"]),
+                "parent_slot_id": "slot-parent",
+            },
+        ]),
+    })
+
+    components = _strategy_components(result["artifacts"][0])
+    micro = next(component for component in components if component["strategy_slot_id"] == "slot-micro")
+
+    assert micro["strategy_parent_slot_id"] == "slot-parent"
+
 
 def test_hierarchical_creator_fails_hard_on_missing_methodology_component() -> None:
     with pytest.raises(ValueError, match="methodology component"):
@@ -120,4 +255,56 @@ def _research_bundle() -> dict[str, object]:
         "topic": "Fractions",
         "key_findings": ["Fraction equivalence uses equal value representations"],
         "sources": [{"title": "Source", "verification_status": "VERIFIED"}],
+    }
+
+def _strategy_components(artifact: dict[str, object]) -> list[dict[str, object]]:
+    sections = artifact["sections"]
+    assert isinstance(sections, list)
+    components: list[dict[str, object]] = []
+    for section in sections:
+        assert isinstance(section, dict)
+        for component in section.get("components", []):
+            if isinstance(component, dict) and "strategy_slot_id" in component:
+                components.append(component)
+    return components
+
+def _strategy_plan(artifact_type: str, slots: list[dict[str, object]]) -> dict[str, object]:
+    return {
+        "strategy_id": "strategy-run-test",
+        "strategy_schema_version": "component_strategy.v1",
+        "recommended": {
+            "learning_sequence": slots,
+            "artifact_strategies": [{
+                "artifact_type": artifact_type,
+                "ordered_slot_ids": [str(slot["slot_id"]) for slot in slots],
+                "notes_for_creator": ["Use typed selected components."],
+            }],
+        },
+    }
+
+def _strategy_slot(
+    slot_id: str,
+    component_type: str,
+    learning_move_id: str,
+    fill_requirements: list[str],
+    *,
+    max_items: int = 3,
+) -> dict[str, object]:
+    return {
+        "slot_id": slot_id,
+        "sequence_id": "seq-1",
+        "phase": "guided_practice",
+        "learning_move_id": learning_move_id,
+        "component_type": component_type,
+        "component_binding_id": f"{component_type}@1.0.0",
+        "objective_refs": [{"objective_id": "LO-1", "objective_revision": "rev-1"}],
+        "target_artifacts": ["lesson", "quiz"],
+        "fill_requirements": fill_requirements,
+        "forbidden_fill_patterns": ["paragraph_only_downgrade"],
+        "budget": {
+            "ideal_time_minutes": 5,
+            "max_time_minutes": 7,
+            "ideal_item_count": 1,
+            "max_item_count": max_items,
+        },
     }

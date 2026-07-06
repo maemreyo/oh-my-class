@@ -2,13 +2,15 @@
 
 import type { TeachingPackEventPayload, TeachingPackGateName } from "@/hooks/use-teaching-packs";
 import { ContentApprovalBody } from "@/components/teaching-packs-content-approval-body";
+import { TeachingPackStrategyPanel, type StrategyFeedbackDraft } from "@/components/teaching-packs-strategy-panel";
 
-export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneAction, onRequestRevisionAction }: {
+export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneAction, onRequestRevisionAction, onStrategyFeedbackAction }: {
 	readonly runId: string;
 	readonly gateName: TeachingPackGateName;
 	readonly event: TeachingPackEventPayload;
 	readonly onRevertFastLaneAction?: (artifactId: string) => void;
 	readonly onRequestRevisionAction?: (artifactId: string) => void;
+	readonly onStrategyFeedbackAction?: (draft: StrategyFeedbackDraft) => void;
 }) {
 	switch (gateName) {
 		case "clarification_required":
@@ -18,7 +20,7 @@ export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneA
 		case "search_plan_confirmation":
 			return <SearchPlanSummary event={event} />;
 		case "blueprint_approval":
-			return <BlueprintSummary event={event} />;
+			return <BlueprintSummary event={event} onStrategyFeedbackAction={onStrategyFeedbackAction} />;
 		case "unit_approval":
 			return <UnitApprovalSummary event={event} />;
 		case "content_approval":
@@ -81,13 +83,14 @@ function SearchPlanSummary({ event }: { readonly event: TeachingPackEventPayload
 	);
 }
 
-function BlueprintSummary({ event }: { readonly event: TeachingPackEventPayload }) {
+function BlueprintSummary({ event, onStrategyFeedbackAction }: { readonly event: TeachingPackEventPayload; readonly onStrategyFeedbackAction?: (draft: StrategyFeedbackDraft) => void }) {
 	const blueprint = recordAt(event, "blueprint") ?? recordAt(event, "lesson_plan") ?? event;
 	const objectives = arrayAt(blueprint, "learning_objectives");
 	const checkpoints = arrayAt(blueprint, "assessment_checkpoints");
 	return (
 		<div className="space-y-3 text-sm">
 			<p className="font-medium">Blueprint summary</p>
+			<TeachingPackStrategyPanel event={event} onFeedback={onStrategyFeedbackAction} />
 			<dl className="grid gap-3 sm:grid-cols-2">
 				<SummaryField label="Topic" value={blueprint["topic"] ?? event["topic"]} />
 				<SummaryField label="Grade" value={blueprint["grade_level"] ?? event["grade_level"]} />

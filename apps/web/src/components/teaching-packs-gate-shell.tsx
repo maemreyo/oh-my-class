@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRequestArtifactRevision, useResumeTeachingPackRun } from "@/hooks/use-teaching-packs";
-import type { TeachingPackEventPayload, TeachingPackGateAction, TeachingPackGateName } from "@/hooks/use-teaching-packs";
+import type { TeachingPackEventPayload, TeachingPackGateAction } from "@/hooks/use-teaching-packs";
 import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
-import { editableArtifactsFor, gateNameFor, labelFor, responseFor } from "@/components/teaching-packs-gate-shell-utils";
+import { editableArtifactsFor, gateNameFor, labelFor, responseFor, strategyFeedbackResponse } from "@/components/teaching-packs-gate-shell-utils";
 import { TeachingPackScopedRejection, TeachingPackSectionEditor } from "@/components/teaching-packs-scoped-rejection";
 import type { ArtifactRejection, ContentSectionEdit } from "@/components/teaching-packs-scoped-rejection";
+import type { StrategyFeedbackDraft } from "@/components/teaching-packs-strategy-panel";
 
 export interface TeachingPackGateShellProps {
 	readonly runId: string;
@@ -63,6 +64,16 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 		onResolved?.();
 	};
 
+	const handleStrategyFeedback = async (draft: StrategyFeedbackDraft) => {
+		await resume.mutateAsync({
+			gate_id: gateId,
+			gate_name: gateName,
+			action: "edit",
+			response: strategyFeedbackResponse(draft),
+		});
+		onResolved?.();
+	};
+
 	const rejectionSourceArtifacts = event.artifact_statuses ?? event.artifacts ?? [];
 	const showScopedRejection = gateName === "content_approval" && rejectionSourceArtifacts.length > 0;
 	const artifacts = editableArtifactsFor(event, rejectionSourceArtifacts);
@@ -93,6 +104,7 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 						event={event}
 						onRevertFastLaneAction={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Revert fast-lane auto-approval." })}
 						onRequestRevisionAction={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Teacher requested a post-export revision." })}
+						onStrategyFeedbackAction={handleStrategyFeedback}
 					/>
 			</div>
 
