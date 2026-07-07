@@ -25,6 +25,12 @@ Post-lesson analytics should produce teacher-confirmed recommendations, not auto
 - [ ] Generated follow-up content uses existing teaching-pack generation/quality pathways rather than a separate auto-generation silo.
 - [ ] Evidence records delivery mode, retention mode, and recommendation decisions.
 
+## Amendment (2026-07-07 — design interview decisions)
+
+- [ ] v1 implements the `live` delivery mode only. `homework`/`review`/`flipped`/`catch-up` are explicitly out of v1 implementation scope (they are async-assignment shaped: no SSE, no room code, no live cockpit).
+- [ ] The `delivery_mode` field/enum is declared in the session schema for all five modes now, even though only `live` has a working implementation — so adding the async modes later is not a breaking schema change.
+- [ ] Post-lesson sharing with parents/guardians, if built, is **teacher-mediated only**: the teacher generates and shares a non-identifiable aggregate "class recap" (see TSP-09) — direct parent access to individual student data is out of scope, since it would require reopening the anonymous-first identity model (TSP-01/02) for a new third party and deserves its own ADR if pursued.
+
 ## Blocked by
 
 - TSP-01-session-lifecycle-privacy-retention.md

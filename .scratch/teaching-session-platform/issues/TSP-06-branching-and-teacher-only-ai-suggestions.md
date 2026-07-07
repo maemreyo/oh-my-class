@@ -23,6 +23,11 @@ Design live-session branching so teachers can respond to class understanding wit
 - [ ] Teacher approval and safety/quality gating are required before generated branch content becomes student-visible.
 - [ ] Branch selection is recorded as a session event for evidence/post-lesson reflection.
 
+## Amendment (2026-07-07 — design interview decisions)
+
+- [ ] "On-the-fly AI" (line 21 above) concretely means: the teacher-triggered "generate a new suggestion" action reuses ADR-047's AI-rewrite pipeline (same preset/freeform input, same generic before/after confirmation modal) rather than a separate live-generation system — this is what makes teacher approval before student visibility a mechanical guarantee, not just a policy statement.
+- [ ] Precomputed branches remain the zero-latency default the cockpit surfaces first; the on-demand AI path is the fallback for cases a precomputed branch doesn't fit, not the primary flow.
+
 ## Blocked by
 
 - TSP-03-event-log-sync-and-recovery.md

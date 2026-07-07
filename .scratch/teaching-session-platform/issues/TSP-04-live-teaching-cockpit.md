@@ -25,6 +25,11 @@ This slice should define the cockpit information architecture and UX states for 
 - [ ] Post-lesson analytics are treated as a separate deeper view.
 - [ ] The design is usable under classroom pressure with minimal reading and clear next actions.
 
+## Amendment (2026-07-07 — design interview decisions)
+
+- [ ] Live annotation/whiteboard overlay is **ephemeral only** in v1 — drawings clear on slide change/session end, with no save/persist path and no retention-tier interaction.
+- [ ] A pacing nudge (comparing elapsed time to SDTF-02's `planned_duration_minutes`) is available but **opt-in per teacher preference**, stored via the existing per-teacher/class memory pattern (`priority-upgrades/002`) — not a default-on alert.
+
 ## Blocked by
 
 - TSP-02-join-and-role-token-model.md

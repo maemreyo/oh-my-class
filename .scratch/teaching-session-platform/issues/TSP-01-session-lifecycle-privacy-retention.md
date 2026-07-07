@@ -25,6 +25,13 @@ This slice should design the model and boundaries; it does not need to implement
 - [ ] Session data categories are separated: events, aggregates, raw responses, teacher reflections, AI suggestions, and exports.
 - [ ] Future deletion/export requirements are documented without implementing a full privacy portal in this slice.
 
+## Amendment (2026-07-07 — design interview decisions)
+
+- [ ] Retention/purge is implemented now as a session-scoped `is_prunable()`-style predicate (fail-closed default-deny, scheduled-sweeper cadence), deliberately mirroring `OPS-07-data-lifecycle-retention.md`'s shape without depending on it or waiting for it (that epic is `Status: TODO` in an unscheduled track).
+- [ ] A TSP-specific FERPA/COPPA/Vietnam Decree-13 (PDPD) compliance addendum is authored now, scoped to data collected directly from student devices during a session — a different consent/data-flow story than `PRIV-01`'s teacher-submitted `student_evidence` — written to merge into `PRIV-01`'s eventual compliance doc rather than diverge permanently.
+- [ ] Retention tier (none/aggregate/pseudonymous/identifiable) is chosen once at session creation, cannot silently escalate mid-session, and choosing `identifiable` requires an explicit on-screen acknowledgment persisted to the data-access audit trail.
+- [ ] `pseudonymous`/`identifiable` tiers are only selectable when the session is bound to a real, org-scoped `class_id` — never for an anonymous open-join room.
+
 ## Blocked by
 
 None - can start immediately

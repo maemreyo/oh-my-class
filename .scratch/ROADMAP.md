@@ -1,9 +1,10 @@
-# Architecture & Feature Roadmap — Session 2026-06-30
+# Architecture & Feature Roadmap — Session 2026-06-30 (condensed 2026-07-07)
 
 Index of roadmap ADRs and epics, with the dependency-ordered execution plan and later placement notes for newly added priorities. See `docs/system/ARCHITECTURE.md` (as-built) and `docs/system/TESTING.md` (how to test).
 
 > Issue format: each `.scratch/<epic>/NNN-*.md` has **What to build / Acceptance criteria / Detailed test suite / Blocked by**.
 > Testing policy (all epics): **real DB + real LLM** via 9router `:20228`, model `4omc` — no mocks/fakes. Deterministic logic tested without LLM; LLM-touching tests tiered per `hardening/003`.
+> **2026-07-07 condensing pass**: fully-DONE, audit-confirmed-REAL epics were collapsed to one-line issue lists (implementation detail lives in git history / PR descriptions, not here). Nothing NOT-done was cut. The verbose per-wave "Verified N passed / test file names" narrative (formerly ~120 lines) was removed — it duplicated the compact wave table below and the per-epic checkmarks, and some of its ✅ marks contradicted the audit table (see footnote at execution plan). Audit table is unchanged and remains the sole ground truth where anything conflicts.
 
 ---
 
@@ -48,272 +49,177 @@ A full code-verified audit (6 parallel auditors, checked against source, not che
 | **020** | `docs/adr/020-langgraph-send-artifact-fanout.md` | LangGraph-native, wave-based `Send` fan-out for single-run artifact generation; reducer fan-in, per-artifact workflow states, scoped-regeneration parity, concurrency caps, and teacher-facing partial status |
 | **021** | `docs/adr/021-vocabulary-batch-pipeline-mode.md` | Production `vocabulary_batch` mode inside Teaching Pack runtime; clusters as child workflow units; reusable agent capabilities; per-cluster status/evidence/export policy |
 | **022** | `docs/adr/022-semantic-anchor-domain-model.md` | Semantic Anchor / Neo Tư Duy domain model; `SemanticAnchorCluster`, separate `PracticeSet`, teacher/student projections, structured edits, lexical memory |
+| **040–042** | `docs/adr/04{0,1,2}-*.md` | Slide deck as first-class artifact: engine/phases (040), typed layout/block/interaction registry (041), one canonical model projected to 3 surfaces + quality gates (042) |
+| **043–046** | `docs/adr/04{3,4,5,6}-*.md` | Slide deck display preferences (043), real-LLM acceptance harness (044), teaching-session foundation — stable IDs/pedagogical roles/snapshots (045), TeachingSession platform (046) |
+| **047** | `docs/adr/047-slide-deck-editor-and-ai-assisted-revision.md` | Slide Deck in-browser editor + AI-assisted revision; amends SDTF-06's editing deferral |
+
+> **Note (2026-07-07):** ADRs 040–046 and the 28 SDH/SDTF/TSP issues under `.scratch/{slide-deck-production-hardening,slide-deck-teaching-foundation,teaching-session-platform}/` were previously **absent from this roadmap** — no epic, no wave, no critical-path entry. See the new **Slide Deck track** section below, placed independently of the `td-*` critical path (no shared dependency found).
 
 ---
 
 ## Epics
 
-### `runtime-parity/` (6) — close capability cliffs, then decommission *(prerequisite)* — **ALL DONE 2026-07-01**
-✅ All 6 runtime-parity issues confirmed done (code verified + trackers closed 2026-07-01):
-- ✅ `001` Wire 6-layer quality — **DONE** (`GatewayTeachingPackQualityGate` injected in `lifespan`; rollout-flagged `OMC_ENABLE_SIX_LAYER_QUALITY` default on; real Layer-2 metrics; manifest `quality_gate_injected=true`).
-- ✅ `002` Healing → stage recovery — **DONE** (`healing_runtime`/`quality_routing` wired; full 5-strategy escalation bounded by `max_healing_attempts`; G-Eval gate triggers healing).
-- ✅ `003` Event-bus consolidation — **DONE** (`teaching_pack_event_bus` is the single run/stage/SSE substrate; `events.py` retained as LLM/node event substrate only).
-- ✅ `004` Decommission legacy 18-node graph — **DONE** (graph removed; legacy `/run` + `/run/approve` return 410).
-- ✅ `005` Multi-format export — **DONE** (`ExporterRegistry` supports html/gift/h5p/qti; fail-closed; manifest `export_formats.supported` machine-verified; google_forms explicitly unsupported).
-- ✅ `006` Collapse sub-agent StateGraph wrappers — **DONE** (no `make_*_agent`/`*_graph_node` wrappers remain; sub-agents are direct node functions).
+> **Ground truth is the audit table above.** The ✅ marks below reflect per-issue test status at the time each issue was closed, not necessarily current feature-level reality — check the audit table first for any epic/issue named there.
+
+### `runtime-parity/` (6) — **ALL DONE 2026-07-01**, audit-confirmed REAL *(prerequisite)*
+`001` 6-layer quality gate *(⚠️ audit: PARTIAL, fed empty data)* · `002` healing→stage recovery · `003` event-bus consolidation *(⚠️ audit: legacy SSE still on old bus)* · `004` decommission legacy 18-node graph · `005` multi-format export *(⚠️ audit: hardcoded path strings)* · `006` collapse sub-agent wrappers.
 
 ### `topic-decomposition/` (21) — multi-session unit feature (ADR-017)
-> ❌ **AUDIT 2026-07-01: POTEMKIN as a feature** — leaf modules built, but no runtime creates a `UNIT_PARENT` row so the whole fan-out is dark. Only `td-001/002/003` are REAL. The ✅ marks below are superseded by the audit banner. Parked pending resurrection (after vocabulary-batch).
-- ✅ `001` Contracts + Zod codegen — **DONE 2026-06-30** · ✅ `005` Curriculum grounding source — **DONE 2026-06-30** *(no blockers)*
-- ✅ `002` Unit persistence + migration — **DONE 2026-06-30** *(←001)* · `003` SequenceConsistencyValidator + networkx *(←001)* · `004` Triage stage + `plan_unit` mode *(←001)*
-- `013` ClassProfile + persona *(←001,002)* · `006` `unit_planner` agent *(←001,003,005)*
-- `021` `sequence_critic` *(←006)* · `008` Constrained expand + drift guard *(←001,006)* · `007` Stage wiring + UNIT_APPROVAL *(←002,006)* · `014` Decomposition memory *(←006,007)*
-- `009` UnitContext (theme/research/persona) *(←007,008,013)* · `015` ClassKnowledgeGraph *(←003,006,013)* · `020` Legacy approvals compat *(←007)*
+> ❌ **AUDIT: POTEMKIN as a feature** — no runtime creates a `UNIT_PARENT` row; fan-out is dark end-to-end. Only `td-001/002/003` are REAL. Parked pending resurrection (after vocabulary-batch). Full dependency chain kept below for whoever resumes this.
+- `001`✅ Contracts+Zod codegen · `005`✅ Curriculum grounding source *(no blockers)*
+- `002`✅ Unit persistence+migration *(←001)* · `003` SequenceConsistencyValidator+networkx *(←001)* · `004` Triage stage+`plan_unit` mode *(←001)*
+- `013` ClassProfile+persona *(←001,002)* · `006` `unit_planner` agent *(←001,003,005 — currently deterministic Python, not the specced LLM agent)*
+- `021` `sequence_critic` *(←006, deterministic not LLM)* · `008` Constrained expand+drift guard *(←001,006)* · `007` Stage wiring+UNIT_APPROVAL *(←002,006)* · `014` Decomposition memory *(←006,007)*
+- `009` UnitContext *(←007,008,013)* · `015` ClassKnowledgeGraph *(←003,006,013)* · `020` Legacy approvals compat *(←007)*
 - `010` UnitOrchestrator *(←002,007,009)*
-- `011` Unit read API + SSE *(←001,010)* · `016` Coherence lint *(←010,011)* · `017` UnitPackager *(←010,011,parity-005)* · `018` Observability + eval *(←006,010)*
+- `011` Unit read API+SSE *(←001,010)* · `016` Coherence lint *(←010,011)* · `017` UnitPackager *(←010,011,parity-005)* · `018` Observability+eval *(←006,010)*
 - `012` Frontend unit workspace *(←011)*
-- `019` Staged rollout + E2E *(←012,016,017,018,parity-001,parity-002)* — **release gate**
+- `019` Staged rollout+E2E *(←012,016,017,018,parity-001,parity-002)* — release gate; audit: calls `decide()`, never runs end-to-end.
 
 ### `scaling-resilience/` (3) — throughput & reliability
-- ✅ `001` Worker pool + intra-worker concurrency + **lease-heartbeat** — **DONE 2026-06-30** (fixes latent double-execution)
-- ✅ `002` Long-lived render worker pool + version pin + concurrency cap — **DONE 2026-06-30**
-- `003` Provider-exhaustion requeue + budget degradation + circuit breaker *(←001)*
+`001`✅ Worker pool+lease-heartbeat · `002`✅ Long-lived render worker pool — both DONE 2026-06-30.
+- `003` Provider-exhaustion requeue+budget degradation+circuit breaker *(←001; audit: POTEMKIN, zero callers)*
 
-### `hardening/` (3) — security & contract DX *(all independent, start anytime)*
-- ✅ `001` Fail-closed production secrets validation — **DONE 2026-06-30**
-- ✅ `002` Tenant-isolation audit + ownership-scoping enforcement — **DONE 2026-06-30**
-- ✅ `003` Systemic schema-parity coverage for cross-boundary types — **DONE 2026-06-30**
+### `hardening/` (3) — **ALL DONE 2026-06-30**, audit-confirmed REAL *(independent, start anytime)*
+`001` Fail-closed secrets validation · `002` Tenant-isolation+ownership-scoping audit · `003` Systemic schema-parity coverage.
 
 ### `ops-observability/` (5) — production operability
-- ✅ `001` App-level SLOs + alerting — **DONE 2026-06-30** (reuse Langfuse + job-store; no new vendor)
-- ✅ `002` Disaster recovery — backup/restore + LangGraph checkpoint-recovery drill — **DONE 2026-06-30**
-- `003` Runbooks per failure mode *(←001)*
-- `004` Per-teacher rolling cost cap + transparency *(←scaling-003)*
-- ✅ `005` Webhook inbound security (mandatory signature + idempotent + rate-limit) + dispatch — **DONE 2026-06-30**
+`001`✅ SLOs+alerting *(⚠️ audit: `dispatch_slo_alerts` dead)* · `002`✅ Disaster recovery *(❌ audit: POTEMKIN, row-count only, no pg_dump/restore)* · `005`✅ Webhook inbound security *(⚠️ audit: outbound dispatch TODO)* — all DONE 2026-06-30.
+- `003` Runbooks per failure mode *(←001)* · `004` Per-teacher rolling cost cap+transparency *(←scaling-003)*
 
 ### `trust-lifecycle/` (4) — accessibility, model trust, teacher lifecycle, recall
-- ✅ `001` Accessibility WCAG 2.1 AA (axe-core; critical → hard-block; dyslexia/high-contrast theme) — **DONE 2026-06-30**
-- `002` Model pinning + drift detection + canary/rollback (extends ADR-013 to models) *(←testing-005)*
-- `003` Teacher content lifecycle — library + fork/re-edit + data portability *(←td-002)*
-- `004` Post-delivery content recall + incident *(←effectiveness-loop-001)*
+`001`✅ Accessibility WCAG 2.1 AA — DONE 2026-06-30, audit-confirmed real.
+- `002` Model pinning+drift detection+canary/rollback *(←testing-005; audit: POTEMKIN, zero callers)* · `003` Teacher content lifecycle — library+fork/re-edit+data portability *(←td-002)* · `004` Post-delivery content recall+incident *(←effectiveness-loop-001)*
 
 ### `effectiveness-loop/` (7) — does it actually teach? (ADR-019) *(after topic-decomp KC contracts + scaling-005)*
-> ❌ **AUDIT 2026-07-01: el-004/005 POTEMKIN** — `el-004` now honestly reports `local_bayesian_ema_used` and no longer stamps fake `pybkt_used`, but the specced pyBKT engine remains unbuilt; dashboard shows literal `"74%"`; mastery never reaches the planner. `el-003` (capture) honestly not-done, so the loop runs on synthetic air. To be made real in a later phase (real `el-003` capture → genuine pyBKT). The ✅ marks below are superseded by the audit banner.
-- `001` Outcome data model + question `kc_ids` + privacy/consent foundation *(←td-001)*
-- ✅ `002` De-stub pedagogical metrics (real proxies / explicit `unmeasured`) — **DONE 2026-06-30** *(no blockers — silent-pass fix, do early)*
-- `003` Google Forms delivery + response capture (auto, no manual entry) *(←001, scaling-005)*
-- `004` pyBKT knowledge-tracing engine (cold-start, batch, degrade) *(←003)*
-- `005` Loop closure — mastery→planner + MoET sổ theo dõi export + dashboard *(←004)*
+> ❌ **AUDIT: el-004/005 POTEMKIN** — `el-004` honestly reports a local Bayesian EMA model (no more fake pyBKT stamp), but pyBKT itself is unbuilt; `el-005` dashboard shows literal `"74%"`; mastery never reaches the planner. `el-003` (capture) honestly not-done, so the loop runs on synthetic air.
+- `001` Outcome data model+`kc_ids`+privacy foundation *(←td-001)*
+- `002`✅ De-stub pedagogical metrics — DONE 2026-06-30 *(no blockers)*
+- `003` Google Forms delivery+response capture *(←001, scaling-005)*
+- `004` pyBKT knowledge-tracing engine *(←003; audit: not built, EMA fallback only)*
+- `005` Loop closure — mastery→planner+MoET export+dashboard *(←004; audit: dashboard hardcoded)*
 - `006` Contrastive concept-alignment verifier (KT4EQG) *(←001)*
-- `007` RISE template-effectiveness signal + 3-layer HITL *(←004,005, td-014)*
+- `007` RISE template-effectiveness signal+3-layer HITL *(←004,005,td-014)*
 
-### `technical-debt/` (6) — close the verified as-built gaps (audit 2026-06-30) — **ALL DONE 2026-07-01**
-- `001` Consolidate LLM access onto `llm_client` (single path; remove legacy transport) *(no blockers)*
-- `002` Wire safety/quality **middleware** into the deterministic pipeline (call-level runner in `llm_client`; G1 run-entry, G2 per-call + 4 new guards, G3 generation-context, G4→quality-gate, G5 gate, G6 parked) *(←001)*
-- `003` De-stub Layer-2 quality (pedagogical + fact_check + age_check) — supersedes `effectiveness-loop/002` *(no blockers)*
-- `004` Remove/park dead **Lead Agent** + clean dangling prod-compose `9router` dep *(←002)*
-- `005` Config hygiene — LLM endpoint port (`:20228`) + model alias *(no blockers)*
-- `006` **Architecture drift-guard** — manifest generator + CI sync test so `ARCHITECTURE.md` can't silently drift *(no blockers)*
+### `technical-debt/` (6) — **ALL DONE 2026-07-01** (audit-corrected: 002,003,004 PARTIAL — see audit table)
+`001` Consolidate onto `llm_client` · `002` Wire safety/quality middleware *(⚠️ audit: `stream()` skips `after_call`)* · `003` De-stub Layer-2 quality *(⚠️ audit: PARTIAL, same as rp-001)* · `004` Remove Lead Agent *(⚠️ audit: dangling prod-compose dep)* · `005` Config hygiene · `006` Architecture drift-guard.
 
-**All 6 technical-debt issues are DONE 2026-07-01.** The previously-noted "Also reopen" items (`runtime-parity/001, 003, 002, 005`) have been completed (see runtime-parity section above).
+### `agent-upgrades/` (7) — per-agent bespoke intelligence (none started)
+- `001` **researcher** — FACT triangulation, credibility heuristics, fail-closed grounding *(←td-002)*
+- `002` **planner** — staged backward-design+grounding+validator+differentiation *(←td-002,003,005)*
+- `003` **content_creator** — hierarchical outline→fill + resilient degrade *(←component-002, agent-001, td-002)*
+- `004` **reviewer** — revive as live Layer-4 judge, ≥2-judge robustness *(←parity-001, agent-001)*
+- `005` **diagnostician** — wire into `diagnose_then_generate` *(Phase 3; ←effectiveness-004, agent-002)*
+- `006` **roadmap agent** — macro milestone→unit compose+personalization *(Phase 3; ←agent-005, effectiveness-004)*
+- `007` **repair+edit loop** — scoped issue-precise repair+versioned update+teacher section-editor *(←agent-003, agent-004)*
 
-### `agent-upgrades/` (7) — per-agent bespoke intelligence (from the agent evaluation)
-- `001` **researcher** — real FACT triangulation, heuristic credibility, targeted+criticality claims, fail-closed grounding, research-memory cache *(←td-002)*
-- `002` **planner** — staged backward-design + grounding + validator + lesson_critic + 3-source-adaptive + differentiation + smart-retry + feedback-memory + cold/seed duality *(←td-002, td-003, td-005)*
-- `003` **content_creator** — hierarchical outline→fill-per-section + resilient degrade + parallel/isolated + enforce-guards + grounding-enforcement + harden seam + adaptive *(←component-002, agent-001, td-002)*
-- `004` **reviewer** — revive as live Layer-4 judge + per-dimension/diverse-lens + ≥2-judge robustness + calibrate-vs-teacher/effectiveness + criteria-referenced/evidence-cited + adversarial *(←parity-001, agent-001)*
-- `005` **diagnostician** — wire into `diagnose_then_generate` + shared knowledge-state with KT + per-dimension D&C + misconception-grounding *(Phase 3; ←effectiveness-004, agent-002)*
-- `006` **roadmap** — macro layer (milestone→unit compose) + implement personalization + gaps→focus link + KT-adaptive *(Phase 3; ←agent-005, effectiveness-004)*
-- `007` **repair+edit loop** (cross-agent) — scoped issue-precise repair + immutable-versioned content update + transparency/diff + teacher section-editor + 3-layer authority *(←agent-003, agent-004)*
+> Cross-cutting: **divide-and-conquer everywhere** — no single long master prompt; every agent decomposes into focused sub-steps.
 
-> Cross-cutting principle for ALL agents: **divide-and-conquer — no single long master prompt.** Every agent decomposes into focused sub-steps (planner staged phases · content_creator outline→fill-per-section · researcher per-claim · reviewer per-dimension judges · diagnostician per-gap · roadmap per-milestone · unit_planner Curricular-CoT phases).
+### `agent-interaction/` (7) — how agents coordinate (native LangGraph)
+⚠️ As-built: agents are **imperative calls inside stage nodes** (not graph nodes); `Command`/`Send` not used by the live runtime except via `artifact-send-fanout/`. Decision: **stage = agent's graph identity**; graph-node promotion only for narrow worker nodes like `generate_one_artifact`.
+- `000`✅ Order-stable index-keyed reducer — DONE 2026-06-30
+- `001`✅ Typed seam-contract layer — DONE 2026-06-30 *(⚠️ audit: `ArtifactWorkflowHandoff` only fires on the legacy rollback path, not the default Send path — PARTIAL)*
+- `002a`✅ `BaseStore` substrate — DONE 2026-06-30
+- `002b` `BaseStore` semantic index *(←002a + embedding-provider decision; gated/parked — LiteLLM has no embeddings route yet)*
+- `003` Bounded upstream revision protocol *(←001)*
+- `004a` Interaction observability — trace every handoff/revision *(←001,002a)*
+- `004b` Parallel fan-out (`Send`) — artifact path superseded by `artifact-send-fanout/`; reviewer per-dimension fan-out still pending *(←000,003, agent-upgrades/004)*
 
-### `agent-interaction/` (7) — how agents coordinate (native LangGraph) — **reconciled with as-built audit + design grilling 2026-06-30**
-⚠️ As-built reality reshaped the original 4 issues: agents are **imperative calls inside stage nodes** (not graph nodes), and `Command`/`Send` are **not used by the live runtime** today. `BaseStore` substrate and the order-stable `artifact_chunks` reducer now exist, but artifact fan-out is still scaffold-only until ADR-020's `artifact-send-fanout/` epic wires real `Send` nodes. Decision: **stage = agent's graph identity**; graph-node promotion happens only for narrow worker nodes such as `generate_one_artifact`, not for whole sub-agents.
-- ✅ `000` **Order-stable index-keyed reducer** — `stable_merge_artifacts` (sort by type+id; dedup by artifact_id); `artifact_chunks: Annotated[..., stable_merge_artifacts]` on `TeachingPackState` (parallel accumulator for 004b); scoped-regen sequential path untouched — **DONE 2026-06-30**
-- ✅ `001` **Typed seam-contract layer** — `PlannerHandoff` / `ResearcherHandoff` / `ArtifactWorkflowHandoff` in `common/contracts/seam_contracts.py`; called fail-closed in `_planning_blueprint` / `_post_blueprint_research` / `_artifact_workflow`; seam name in error messages — **DONE 2026-06-30**
-- ✅ `002a` **BaseStore substrate** — `open_teaching_pack_store` + `get_development_store` + `sync_connection_string` in `packages/agents/teaching_pack/store.py`; 6 namespace factories + TTL conventions in `store_namespaces.py`; `build_teaching_pack_graph(store=)` wired; gateway `lifespan` uses `ExitStack` to manage store lifecycle — **DONE 2026-06-30**
-- `002b` **BaseStore semantic index** — vectors for grounding retrieval only; **embedding must route via `llm_client`/LiteLLM** (no egress — K-12 privacy, single-path, cost-attribution); LiteLLM has no embeddings route yet *(←002a + embedding-provider decision; gated/parked if unavailable)*
-- `003` **Bounded upstream revision protocol** — `RevisionRequest` + **state-flag + conditional-edge router** (NOT `Command(goto)` from nodes); **one shared `upstream_cycle_count`** bounding agent-revision + the existing quality-reroute; exhaustion escalates via the existing `interrupt()` gate *(←001)*
-- `004a` **Interaction observability** — trace every handoff/revision/Store-access → Langfuse/RunEvent; reconstructable interaction graph (feeds testing-trajectory + reviewer-calibration) *(←001,002a)*
-- `004b` **Parallel fan-out (`Send`)** — historical placeholder for sub-agent fan-out; artifact generation fan-out is now promoted to ADR-020 and `.scratch/artifact-send-fanout/`; reviewer per-dimension fan-out remains here pending `agent-upgrades/004` *(artifact path ← artifact-send-fanout; reviewer path ←000,003, agent-upgrades/004)*
+> Intra-epic waves: ✅ A (done) `000`·`001`·`002a` → B `003`·`004a` → C (gated) `002b`·`004b`.
 
-> Interaction is **native LangGraph**, deterministic (no Lead-Agent/ReAct): **stage = agent graph-identity** · `BaseStore` = cross-run memory · **state-flag + conditional-edge** = bounded upstream-signal (not node-emitted `Command`) · `Send` = sub-agent parallel fan-out · `interrupt` = gates. Thin additions: typed seam contracts, RevisionRequest schema, single shared revision budget, namespace conventions, order-stable reducer.
-> **Intra-epic waves:** ✅ A *(done 2026-06-30)* `000`·`001`·`002a` → B `003`·`004a` → C *(gated/deferred)* `002b`·`004b`.
-
-### `artifact-send-fanout/` (8) — LangGraph-native artifact generation parallelism (ADR-020)
-
-New epic from the 2026-07-01 `Send` research + grilling. Issue files: `.scratch/artifact-send-fanout/`. This supersedes the narrow artifact-generation part of `agent-interaction/004b` and keeps unit fan-out separate per ADR-017.
-
-- ✅ `001` **State + reducer foundation** — **DONE** (generation metadata, reducer-backed `artifact_workflow_states`, deterministic merge, current-generation filtering; verified `27 passed`).
-- ✅ `002` **`generate_one_artifact` node** — **DONE** (minimal-payload worker, content-creator delegation for one artifact, local validation, branch-only outputs; verified `20 passed`).
-- ✅ `003` **Wave router + fan-in** — **DONE** (`generate_one_artifact` registered as graph node; wave-by-wave `Send`; fan-in materializes canonical `artifacts`; dependency failures skip dependents; verified `38 passed`).
-- ✅ `004` **Scoped regeneration parity** — **DONE** (teacher scoped rejection and quality healing start fresh Send cycles; type-scoped regeneration metadata preserved; accepted artifacts retained; stale chunks ignored; verified `55 passed`).
-- ✅ `005` **Concurrency + budget wiring** — **DONE** (`teaching_pack_thread_config` emits top-level `max_concurrency`; Send router respects `TEACHING_PACK_DEFAULT_ARTIFACT_PARALLELISM`; worker/budget independence covered; verified `24 passed`).
-- ✅ `006` **Teacher partial-status UX** — **DONE** (teacher-safe per-artifact status projection in content approval gate, run API, SSE-derived dashboard state, frontend status panel, and fail-closed export blocking; verified backend + web focused suites).
-- ✅ `007` **Rollout + E2E evidence** — **DONE** (flag-on graph happy path, failure recovery, checkpoint/resume duplicate prevention, scoped regeneration, and release-evidence receipts; verified `20 passed` + DB-free evidence receipt test).
-- ✅ `008` **Cleanup old imperative path** — **DONE** (Send is default; legacy batch path narrowed to explicit `OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1`; node-local `_merge_regenerated_artifacts` removed; architecture manifest tracks Send worker/reducer/default/rollback status).
-
-> Dependency order: `001 → 002 → 003 → 004 → 005 → 006 → 007 → 008`. Start after `agent-interaction/000` ✅; it does **not** wait for unit fan-out because this is intra-run artifact fan-out.
+### `artifact-send-fanout/` (8) — LangGraph-native artifact generation parallelism (ADR-020) — **ALL DONE**, audit-confirmed REAL
+`001` state+reducer foundation · `002` `generate_one_artifact` node · `003` wave router+fan-in · `004` scoped-regen parity · `005` concurrency+budget wiring · `006` teacher partial-status UX · `007` rollout+E2E evidence · `008` cleanup legacy imperative path.
+> Order: `001→002→003→004→005→006→007→008`. Starts after `agent-interaction/000`✅; independent of unit fan-out (this is intra-run artifact fan-out).
 
 ### `vocabulary-batch/` (12) — Semantic Anchoring / Neo Tư Duy batch generator (ADR-021, ADR-022)
-> ❌ **AUDIT 2026-07-01: POTEMKIN as a feature** — orchestrator stops at `status="queued"`; grounding→synthesis→practice→gate→export is never chained. Only `vb-001/002` REAL; the capabilities (`vb-004/005/006/008/010`) are real but zero-caller. **This is Phase 2 — the first flagship to be made real** (smallest gap, bricks exist). The ✅ marks below are superseded by the audit banner.
+> ❌ **AUDIT: POTEMKIN as a feature** — orchestrator stops at `status="queued"`; grounding→synthesis→practice→gate→export never chained. Only `vb-001/002` REAL. **This is Phase 2 — the first flagship to be made real** (smallest gap, bricks exist).
+- `001` Contracts+methodology mode *(no blockers)* · `002` Cluster workflow persistence *(←001)* · `003` InputNormalizer+ambiguity report *(←001)*
+- `004` Researcher lexical grounding profile *(←001,003)* · `005` SemanticAnchorCluster synthesis *(←001,002,004)* · `006` PracticeGenerator capability *(←001,002)*
+- `007` Vocabulary batch orchestrator *(←002,003,004,005,006 — audit: stops at queued)* · `008` Quality gate *(←005,006)*
+- `009` Projections+structured editor *(←005,006,008)* · `010` Batch export package *(←007,008,009)* · `011` Teacher preferences+lexical memory *(←002,004,009)* · `012` Rollout+E2E evidence *(←010,011 — audit: E2E asserts pipeline stops at queued)*
+> Order: Wave0 `001` → W1 `002,003` → W2 `004,006` → W3 `005` → W4 `007,008` → W5 `009,011` → W6 `010` → W7 `012`.
 
-New epic from the 2026-07-01 Semantic Anchoring research + grilling. Issue files: `.scratch/vocabulary-batch/`. This adds a production-ready `vocabulary_batch` mode inside the existing Teaching Pack runtime: teacher free-form cluster input → normalized clusters → lexical grounding → SemanticAnchorCluster RCM synthesis → PracticeSet generation → quality/review → standalone teacher/student exports.
+### `priority-upgrades/` (5) — **ALL DONE 2026-07-01**, audit-confirmed REAL *(independent, run parallel to any wave)*
+`001` Quality flags in approval UI · `002` Per-teacher/class memory · `003` Anki-apkg/flashcard-tsv export · `004` Model tiering per task · `005` Adaptive gate fast-lane.
 
-- ✅ `001` **Contracts + methodology mode** — **DONE** (`vocabulary_batch` PipelineMode, `semantic_anchoring` methodology registry metadata, Pydantic batch/cluster/practice/projection contracts, generated Zod parity; verified `14 passed` + schema parity).
-- ✅ `002` **Cluster workflow persistence** — **DONE** (`VocabularyClusterWorkflow` lifecycle contract, ordered evidence ledger, deterministic cluster snapshot hash, gateway SQLAlchemy model/store, Alembic migration, generated Zod parity; verified `7 passed`, DB-backed tests skip cleanly when local Postgres is unavailable).
-- ✅ `003` **InputNormalizer + ambiguity report** — **DONE** (deterministic free-form parser for slash/comma/space-separated clusters, Vietnamese title hints, attached notes, duplicate/overlap ambiguity flags, structured `InputNormalizationReport`, generated Zod parity, and ready/ambiguous preview UI; verified Python + web focused suites).
-- ✅ `004` **Researcher lexical grounding profile** — **DONE** (expanded lexical grounding request/response contracts, reusable Researcher `lexical_grounding` profile, teacher-only source notes, needs-review uncertainty for thin evidence, deterministic cluster/term cache keys, generated Zod parity; verified `11 passed` + schema parity) *(←vb-001,003)*
-- ✅ `005` **SemanticAnchorCluster synthesis** — **DONE** (reusable ContentCreator `semantic_anchor_synthesis` profile produces validated `SemanticAnchorCluster` RCM data from lexical grounding, retries invalid schema with feedback, fails closed, and exposes student-safe projection without teacher scripts/source notes; verified `4 passed`) *(←vb-001,002,004)*
-- ✅ `006` **PracticeGenerator capability** — **DONE** (new reusable `practice_generator` capability with semantic-anchor profile, typed `PracticeGenerationRequest`, four-intent `PracticeSet` validation, independent retry/fail-closed behavior, and student projection excluding answers/rationales; verified `3 passed` + schema parity) *(←vb-001,002)*
-- ✅ `007` **Vocabulary batch orchestrator** — **DONE** (`vocabulary_batch` mode branches from `_artifact_workflow` into a deterministic vocabulary orchestrator, initializes per-cluster workflows/progress/events, provides configurable async concurrency helper, and maps typed failures to retry/review/fail/skip actions; verified `10 passed`) *(←vb-002,003,004,005,006)*
-- ✅ `008` **Semantic anchoring quality gate** — **DONE** (new `SemanticAnchoringQualityGate` returns passed/needs_review/failed with layer/severity/evidence/action issues, hard-fails student leakage and external assets, marks lexical uncertainty as teacher review, and emits quality-result evidence entries; verified `4 passed`) *(←vb-005,006)*
-- ✅ `009` **Projections + structured editor** — **DONE** (renderer emits separate teacher/student teaching/practice HTML from `SemanticAnchorCluster` + `PracticeSet`; teacher projections include scripts/source notes/edge cases/review flags/rationales; student projections exclude teacher-only evidence, answer keys, rationales, and confidence details; review UI provides cluster statuses, withheld student export for `needs_review`, field-level validated edits, approve/regenerate/skip actions, and teacher preference events; verified renderer + web focused suites) *(←vb-005,006,008)*
-- ✅ `010` **Batch export package** — **DONE** (status-aware vocabulary batch ZIP packager with offline `index.html`, `manifest.json`, per-cluster folders, passed/needs_review/failed export policy, diagnostics-only failed clusters, and optional student-safe GIFT/H5P practice exports; verified exporter tests/build/manual ZIP smoke) *(←vb-007,008,009)*
-- ✅ `011` **Teacher preferences + lexical memory** — **DONE** (vocabulary-specific BaseStore namespaces; teacher tone/depth/example-style/anchor-intensity preferences; correction history; class/run audience/CEFR/exam/topic context; reusable teacher/shared term distinctions; reviewed-only shared promotion; exact cluster snapshots; absent-safe defaults; verified focused memory suites and manual InMemoryStore smoke) *(←vb-002,004,009; priority-upgrades/002 ✅)*
-- ✅ `012` **Rollout + E2E evidence** — **DONE** (`FEATURE_VOCABULARY_BATCH_V1` runtime guard, medium-batch dashboard status navigation, vocabulary rollout receipt rendering, status-aware export/review policy evidence, and `docs/reports/vocabulary-batch-rollout-evidence.md`; deterministic suites verified; live DB+LLM E2E remains environment-gated) *(←vb-010,011; testing harness)*
+### `component-system/` (2) — content-component registry+smart selection (not started)
+- `001` `ComponentRegistry` single source of truth *(no blockers)* · `002` Filter-then-generate *(←001)*
 
-> Dependency order: Wave 0 `001` → Wave 1 `002,003` → Wave 2 `004,006` → Wave 3 `005` → Wave 4 `007,008` → Wave 5 `009,011` → Wave 6 `010` → Wave 7 `012`. Cross-epic reuse: `priority-upgrades/001` quality flags UI, `priority-upgrades/002` teacher/class memory ✅, ADR-020 artifact fan-out patterns, `testing/001` ✅ and `testing/008` canonical flow harness.
-
-### `priority-upgrades/` (5) — smart, modern, powerful (architectural assessment 2026-07-01) — **ALL DONE 2026-07-01**
-
-New priorities identified from a gap analysis on 2026-07-01. These are independent of the main wave plan and can run in parallel with Wave 2+. Issue files: `.scratch/priority-upgrades/`.
-
-- ✅ `001` **Quality flags in approval UI** — **DONE** (`ArtifactQualityReport` surfaced in `content_approval`; frontend renders absent-safe quality flags; verified backend + web tests).
-- ✅ `002` **Per-teacher/class memory** — **DONE** (BaseStore approval history + vocabulary context writes; planning reads class vocabulary context; TTL-backed namespaces; absent-safe reads).
-- ✅ `003` **Anki-apkg / flashcard-tsv wiring** — **DONE** (`ExportFormat` + `ExporterRegistry` include `anki_apkg`/`flashcard_tsv`; manifest supported formats updated; tests verified).
-- ✅ `004` **Model tiering per task** — **DONE** (`MODEL_FAST_DEFAULT` / `MODEL_STRONG_DEFAULT` fallbacks; per-task override precedence; single-model default unchanged).
-- ✅ `005` **Adaptive gate fast-lane** — **DONE** (trust score stored in BaseStore; threshold-gated auto-approval skips interrupt; teacher-visible auto-approval event emitted before completion).
-
-> **Verified 2026-07-01:** priority-upgrades focused suites passed: model tiering/gate config (`61 passed`), Anki/TSV + architecture sync (`17 passed`), quality flags backend/web (`4 passed` + web `162 passed`), teacher memory + fast-lane + completion recorder (`49 passed`).
-
-### `component-system/` (2) — content-component registry + smart selection
-- `001` **ComponentRegistry** single source of truth (metadata; derive prompt-catalog; union+dispatcher drift-guard; mirrors question registry) *(no blockers)*
-- `002` **Filter-then-generate** — query registry by artifact/methodology/subject → focused catalog into content_creator *(←001)*
-
-### `testing/` (8) — system-wide test harness *(framework verdict, see below)*
-- ✅ `001` Harness & tiering foundation — **DONE 2026-06-30** (real DB + real LLM via 9router `:20228`/`4omc`, `@pytest.mark.real_llm`, DeepEval offline config, no fake-LLM)
-- `002` Three-layer pyramid — per-agent (real-LLM) + seam/handoff + E2E *(←001)*
-- `003` Deterministic trajectory + control-flow + health gates (per-commit, no LLM) *(←001)*
-- `004` DeepEval quality metrics → Layers 2/4/6 *(←001, parity-001)*
-- `005` Golden dataset + nightly regression *(←004)*
-- `006` Promptfoo security/red-team — K-12 safety + INVARIANT-05/06 *(←001)*
-- `007` Chaos/fault-injection (healing) + production-trace feedback *(←001, parity-002, scaling-003)*
-- `008` **Canonical flow harness** — shared scenarios + per-agent/per-stage/full-flow layers + real-graph conformance + one `make e2e` *(←001)*
+### `testing/` (8) — system-wide test harness
+`001`✅ Harness&tiering foundation — DONE 2026-06-30, audit-confirmed real (real DB+LLM, `@pytest.mark.real_llm`, no fake-LLM).
+- `002` Three-layer pyramid *(←001; ⚠️ audit: PARTIAL, per-agent tests are skip-scaffolds)*
+- `003` Deterministic trajectory+control-flow gates *(←001; audit: REAL)*
+- `004` DeepEval quality metrics→Layers 2/4/6 *(←001,parity-001; ❌ audit: POTEMKIN, never `.measure()`'d)*
+- `005` Golden dataset+nightly regression *(←004)*
+- `006` Promptfoo security/red-team *(←001; ❌ audit: POTEMKIN, yaml never invoked)*
+- `007` Chaos/fault-injection *(←001,parity-002,scaling-003)*
+- `008` **Canonical flow harness** — shared scenarios, real-graph conformance, `make e2e` *(←001 — this is the fix for the whole false-green pattern above)*
 
 ---
 
-## Execution plan (dependency-ordered waves)
+## Slide Deck track (added 2026-07-07, filled in same day after a 50-question design interview — independent of the `td-*` critical path)
 
-Original topological order of **56 issues** across 8 epics, plus placement notes for newly added `priority-upgrades/` and `artifact-send-fanout/` issues. Run everything in a wave in parallel; a wave starts when all its blockers (earlier waves) are done. Earliest-wave = `1 + max(blocker waves)`; blocker-free = Wave 0.
+48 issues across 5 sub-tracks, each parented to an ADR, currently `status: ready-for-agent`/Proposed, **zero implemented**:
 
-> ✅ **`runtime-parity/` (all 6) — DONE 2026-07-01** (rp-001…006). Authoritative stage runtime owns the single-lesson path; all parity cross-gates satisfied (6-layer gate injected, middleware runner active, export formats wired, event-bus consolidated, legacy decommissioned, sub-agent wrappers collapsed). Not listed in the waves below (complete).
+- **`slide-deck-production-hardening/` (SDH-01..12, ADR-043/044)** — display preferences, student-safe chrome, print fidelity, density guards, real-LLM harness, backward-compat, observability, sanitizer hardening.
+- **`slide-deck-teaching-foundation/` (SDTF-01..08, ADR-045)** — stable IDs, pedagogical roles/pacing, related-artifact refs, student companion view, differentiation, immutable snapshots/remix lineage, component-registry alignment. SDTF-03 carries a forward note for a future (not-yet-filed) worksheet-companion feature.
+- **`teaching-session-platform/` (TSP-01..09, ADR-046)** — session lifecycle/privacy/retention (TSP-01), join+role tokens/room-code/roster (TSP-02), event log/Redis-SSE/recovery/offline-degradation (TSP-03), live cockpit incl. ephemeral annotation + opt-in pacing nudge (TSP-04), response collection incl. non-competitive gamification + capture-only analytics (TSP-05), precomputed-first branching + AI-rewrite-pipeline reuse (TSP-06), delivery modes — v1 `live`-only, schema reserves all 5 (TSP-07), harness (TSP-08), **new:** teacher-mediated class recap (TSP-09). All TSP-01..07 amended 2026-07-07 with concrete mechanics from the design interview; ADR-046 itself amended with the same decisions (see its "Amendment" section).
+- **`slide-deck-editor/` (SDE-01..11, ADR-047 — new)** — real schema-bound LLM call in `ContentMaterializer` (SDE-01), full 21-layout/block/interaction registry contract (SDE-02), structured-visual block editor — no freeform WYSIWYG (SDE-03), dual-path edit API + snapshot versioning + optimistic locking (SDE-04), linear version history + restore (SDE-05), versioned exports + staleness indicator (SDE-06), editor route + local-draft-then-commit save (SDE-07), block-scoped AI-rewrite with teacher confirmation (SDE-08), real-LLM harness extension (SDE-09), feature flags + AI-rewrite rate limit (SDE-10), lightweight success observability (SDE-11). Amends ADR-045/SDTF-06's editing deferral.
+- **`slide-deck-features/` (SDX-01..06, various parents)** — bilingual EN↔VI translation (SDX-01, parent ADR-047) · teacher-scoped media asset library (SDX-02, interim scope ahead of future `trust-lifecycle/003`) · system template presets (SDX-03, parent ADR-047) · AI-generated alt-text (SDX-04, parent ADR-047 + `trust-lifecycle/001`) · PPTX export only, no import (SDX-05, parent ADR-042) · runs-list search/filter (SDX-06, **no slide-deck parent** — general app UX, filed here because SDX-02/03 make the gap acute sooner).
+
+**Slide Deck track dependency order:** `SDH-01/02/06` and `SDTF-01` are the unblocked entry points most other slide-deck issues cite as `blocked by`. `SDE-01→02→03→04→{05,06}→07→08→{09,10,11}` is the editor's internal chain; `SDE-03` additionally needs `SDTF-01` (stable block IDs) — this is the track's one real cross-sub-track dependency, matching the "merge at SDTF-01" decision from the design interview. `SDX-02` needs `SDE-03`; `SDX-04` needs `SDE-01`+`SDX-02`; `SDX-01`/`SDX-03`/`SDX-05` only need `SDE-01`/`SDE-02`. `TSP-09` needs `TSP-01`+`TSP-05`+`TSP-07`. `SDX-06` is unblocked.
+
+**Explicitly not blocked on (by design, mirror-shape-now-consolidate-later per the interview):** `OPS-07` (data lifecycle/retention — TSP-01 builds its own session-scoped predicate now), `PRIV-01` (K-12 compliance mapping — TSP-01 writes its own addendum now), `organization_id` schema gap (SDE-04 inherits the fix automatically when it lands, needs no slide-deck code), `ops-observability/004` (cost cap — SDE-10 ships a self-contained rate limit instead), `effectiveness-loop` (TSP-05 ships real capture only, no dashboard), `trust-lifecycle/003` (SDX-02 ships a minimal version now, shaped to be absorbed later).
+
+> No shared dependency found between this track and `td-*`/`vb-*`/`el-*` — runs fully in parallel.
+
+---
+
+## Execution plan (dependency-ordered waves) — `td-*` / `priority-upgrades` / `artifact-send-fanout` / `vocabulary-batch` track only
+
+Original topological order of **56 `td`-prefixed-epic issues** across 8 epics, plus `priority-upgrades/` (5) and `artifact-send-fanout/` (8) = **81 tracked issues total** for this track. Run everything in a wave in parallel; a wave starts when all its blockers (earlier waves) are done.
+
+> **Wave ✅ marks below are per-issue test status only — several were corrected by the audit table above** (this pass removed stale ✅ marks for `te-002`, `te-004`, `te-006` that contradicted the audit's PARTIAL/POTEMKIN verdicts for those exact IDs; everything else left as originally recorded). If a wave/epic disagree, the audit table wins.
 
 **Epic prefixes:** `td`=topic-decomposition · `sr`=scaling-resilience · `hd`=hardening · `te`=testing · `el`=effectiveness-loop · `ops`=ops-observability · `tl`=trust-lifecycle · `rp`=runtime-parity (done) · `pu`=priority-upgrades · `asf`=artifact-send-fanout.
 
-| Wave | Issues (count) | Theme |
-|------|----------------|-------|
-| **0 — blocker-free (13)** | ✅ `td-001` ✅ `td-005` · ✅ `sr-001` ✅ `sr-002` · ✅ `hd-001` ✅ `hd-002` ✅ `hd-003` · ✅ `te-001` · ✅ `el-002` · ✅ `ops-001` ✅ `ops-002` ✅ `ops-005` · ✅ `tl-001` | Contracts+grounding · render/worker pool · secrets/authz/schema-parity · test harness · de-stub pedagogical · SLO/DR/webhook · a11y |
-| **1 (10)** | ✅ `td-002` ✅ `td-003` ✅ `td-004` · ✅ `sr-003` · ✅ `te-002` ✅ `te-003` ✅ `te-004` ✅ `te-006` · ✅ `el-001` · ✅ `ops-003` | Persistence/validator/triage · provider-resilience · pyramid/trajectory/quality-metrics/security · outcome-model · runbooks |
-| **2 (9)** | `td-006` `td-013` · `te-005` `te-007` · `el-003` `el-006` · `ops-004` · `tl-003` `tl-004` | unit_planner · persona · golden-dataset/chaos · Forms-capture/concept-verifier · cost-cap · content-lifecycle · recall |
-| **3 (6)** | ✅ `td-007` ✅ `td-008` ✅ `td-015` ✅ `td-021` · ✅ `el-004` · ✅ `tl-002` | stage-wiring/gate · expand+drift · knowledge-graph · sequence-critic · BKT engine · model-drift |
-| **4 (4)** | ✅ `td-009` ✅ `td-014` ✅ `td-020` · ✅ `el-005` | UnitContext · decomposition-memory · approvals-compat · loop-closure+MoET |
-| **5 (2)** | ✅ `td-010` · ✅ `el-007` | UnitOrchestrator (fan-out) · RISE template-effectiveness |
-| **6 (2)** | ✅ `td-011` ✅ `td-018` | Unit read API/SSE · observability+eval |
-| **7 (3)** | ✅ `td-012` ✅ `td-016` ✅ `td-017` | Frontend workspace · coherence lint · UnitPackager |
-| **8 (1)** | ✅ `td-019` | Staged rollout + E2E (release gate) |
+| Wave | Issues (count) | Theme | Status |
+|------|----------------|-------|--------|
+| **0 (13)** | `td-001,005` · `sr-001,002` · `hd-001,002,003` · `te-001` · `el-002` · `ops-001,002,005` · `tl-001` | Contracts+grounding · render/worker pool · secrets/authz/schema-parity · harness · de-stub pedagogical · SLO/DR/webhook · a11y | ✅ done 2026-06-30 |
+| **1 (10)** | `td-002,003,004` · `sr-003` · `te-002,003,004,006` · `el-001` · `ops-003` | Persistence/validator/triage · provider-resilience · pyramid/trajectory/quality-metrics/security · outcome-model · runbooks | done, but `te-002` PARTIAL / `te-004,006` POTEMKIN per audit |
+| **2 (9)** | `td-006,013` · `te-005,007` · `el-003,006` · `ops-004` · `tl-003,004` | unit_planner · persona · golden-dataset/chaos · Forms-capture/concept-verifier · cost-cap · content-lifecycle · recall | pending |
+| **3 (6)** | `td-007,008,015,021` · `el-004` · `tl-002` | stage-wiring/gate · expand+drift · knowledge-graph · sequence-critic · BKT engine · model-drift | done, `el-004` POTEMKIN per audit |
+| **4 (4)** | `td-009,014,020` · `el-005` | UnitContext · decomposition-memory · approvals-compat · loop-closure+MoET | done, `el-005` POTEMKIN per audit |
+| **5 (2)** | `td-010` · `el-007` | UnitOrchestrator (fan-out) · RISE template-effectiveness | done |
+| **6 (2)** | `td-011,018` | Unit read API/SSE · observability+eval | done |
+| **7 (3)** | `td-012,016,017` | Frontend workspace · coherence lint · UnitPackager | done |
+| **8 (1)** | `td-019` | Staged rollout+E2E (release gate) | done per-issue, but ❌ POTEMKIN feature-level per audit — **not actually release-ready** |
 
-Original wave table total: 13+10+9+6+4+2+2+3+1 = **50 listed issues** + 6 `rp` done = **56**. Plus 5 `priority-upgrades/` issues, 8 `artifact-send-fanout/` issues, and 12 `vocabulary-batch/` issues = **81 tracked roadmap issues**.
+**`artifact-send-fanout/`** placement: `asf-001` W1-level → `asf-002` W2 → `asf-003` W3 → `asf-004`+`asf-005` W4 → `asf-006` W5 → `asf-007` W6 → `asf-008` W7 cleanup. All done, audit-confirmed real.
 
-**`artifact-send-fanout/` placement in waves:**
-- ✅ `asf-001`: Wave 1-level (after `agent-interaction/000` ✅)
-- ✅ `asf-002`: Wave 2-level
-- ✅ `asf-003`: Wave 3-level
-- ✅ `asf-004` + ✅ `asf-005`: Wave 4-level
-- ✅ `asf-006`: Wave 5-level
-- ✅ `asf-007`: Wave 6-level
-- ✅ `asf-008`: Wave 7-level cleanup after rollout evidence
+**`priority-upgrades/`** placement: `pu-004` W0 (no blockers) → `pu-001,002,003` W1 → `pu-005` W2. All done, audit-confirmed real.
 
-**`priority-upgrades/` placement in waves:**
-- ✅ `pu-004` model-tiering: Wave 0 (no blockers)
-- ✅ `pu-001` quality-flags-UI: Wave 1 (←parity-001 ✅)
-- ✅ `pu-002` teacher-memory: Wave 1 (←ai-002a ✅)
-- ✅ `pu-003` anki-tsv-wiring: Wave 1 (←parity-005 ✅)
-- ✅ `pu-005` adaptive-gates: Wave 2 (←pu-002 ✅)
+**`vocabulary-batch/`** placement: `vb-001` W0 → `vb-002,003` W1 → `vb-004,006` W2 → `vb-005` W3 → `vb-007,008` W4 → `vb-009,011` W5 → `vb-010` W6 → `vb-012` W7. All marked done per-issue, but ❌ POTEMKIN feature-level per audit — orchestrator stops at `queued`.
 
-**`vocabulary-batch/` placement in waves:**
-- ✅ `vb-001`: Wave 0 (no blockers)
-- ✅ `vb-002` + ✅ `vb-003`: Wave 1-level (←vb-001)
-- ✅ `vb-004` + ✅ `vb-006`: Wave 2-level (←vb-001,003 / ←vb-001,002)
-- ✅ `vb-005`: Wave 3-level (←vb-001,002,004)
-- ✅ `vb-007` + ✅ `vb-008`: Wave 4-level (←cluster workflow, normalizer, grounding, synthesis, practice)
-- ✅ `vb-009` + ✅ `vb-011`: Wave 5-level (←quality/projections; `vb-011` also reuses `priority-upgrades/002` ✅)
-- ✅ `vb-010`: Wave 6-level (←orchestrator, quality, projections)
-- ✅ `vb-012`: Wave 7-level release gate (←export + memory + testing harness)
-
-### Wave 0 — start here (no blockers, fully parallel) — **ALL DONE 2026-06-30**
-✅ `td-001` contracts+codegen · ✅ `td-005` grounding source · ✅ `sr-001` worker-pool+lease-heartbeat · ✅ `sr-002` render worker-pool · ✅ `hd-001` secrets fail-closed · ✅ `hd-002` tenant-isolation · ✅ `hd-003` schema-parity · ✅ `te-001` harness/tiering · ✅ `el-002` de-stub pedagogical · ✅ `ops-001` SLO+alerting · ✅ `ops-002` DR/backup · ✅ `ops-005` webhook security · ✅ `tl-001` accessibility.
-
-**Verified 2026-06-30:** 367 tests passed across all 13 Wave 0 issues. Issue files updated with correct status/checkboxes. Test isolation fixed in `test_lease_heartbeat.py` and `test_slo_metrics.py` (try/finally cleanup guards added). Wave 1 is unblocked.
-
-### Wave 1 — **ALL DONE 2026-07-01**
-✅ `td-002` unit persistence · ✅ `td-003` sequence validator · ✅ `td-004` triage/plan_unit confirmation · ✅ `sr-003` provider/budget resilience · ✅ `te-002` test pyramid · ✅ `te-003` deterministic trajectory/health gates · ✅ `te-004` DeepEval quality metrics harness · ✅ `te-006` Promptfoo security red-team · ✅ `el-001` outcome model/privacy foundation · ✅ `ops-003` runbooks.
-
-**Verified 2026-07-01:** focused Wave 1 completion suite passed (`22 passed`): triage heuristic+LLM fallback, contract-confirmation decomposition persistence seam, intra-stage validator/healing trajectory, completion recorder, and DeepEval config/majority/hallucination harness. `services/gateway/tests/test_delivery_record_hook.py` is included and skips cleanly when local Postgres is unavailable; it exercises the real delivery-record hook against a migrated DB.
-
-### Wave 3 — **AUDIT-CORRECTED: PARTIAL 2026-07-01**
-✅ `td-007` stage wiring/unit gate · ✅ `td-008` planner seed expand + drift guard · ✅ `td-015` ClassKnowledgeGraph · ✅ `td-021` sequence critic · ❌ `el-004` specced pyBKT engine not built (runtime uses honest local Bayesian EMA only) · ✅ `tl-002` model snapshot drift/canary rollback seam.
-
-**Verified 2026-07-01:** focused Wave 3 suite passed in the combined Wave 3/4 run (`26 passed`), but the audit supersedes `el-004`: KT cold-start and bounded params are covered for the local Bayesian EMA fallback, not for pyBKT. LSP diagnostics clean on changed Wave 3 Python files.
-
-### Wave 4 — **ALL DONE 2026-07-01**
-✅ `td-009` UnitContext theme/research/persona propagation · ✅ `td-014` decomposition-memory feedback/template/preference store + soft priors · ✅ `td-020` legacy approval compatibility by keeping `/run` approvals decommissioned and unit gates on teaching-pack resume registry · ✅ `el-005` mastery-to-planning decisions, MoET tracking export, and effectiveness dashboard.
-
-**Verified 2026-07-01:** focused Wave 4 backend suite included in `26 passed`; web effectiveness dashboard suite passed (`140 passed`) with aggregate/advisory framing and no forbidden formula/vendor-stat copy. LSP diagnostics clean on changed Wave 4 Python/TS files.
-
-### Wave 5 — **ALL DONE 2026-07-01**
-✅ `td-010` UnitOrchestrator — stateless pure `decide()` + async `react()` + `reconcile_units()` sweep wired into gateway sweeper (60s cadence); networkx DAG; concurrency cap; `OrchestratorAction` enum. · ✅ `el-007` RISE template-effectiveness signal — `TemplateEffectivenessStore` with rolling-average upsert, L1/L2/L3 HITL layers, migration `018_template_effectiveness`.
-
-**Verified 2026-07-01:** `test_unit_orchestrator_decide.py`, `test_unit_orchestrator_failure.py`, `test_unit_orchestrator_idempotency.py`, `test_unit_orchestrator_reconcile.py`, `test_unit_orchestrator_concurrency.py`, `test_template_effectiveness.py`.
-
-### Wave 6 — **ALL DONE 2026-07-01**
-✅ `td-011` Unit read API + SSE — `GET /units/{id}` (UnitView), `GET /units/{id}/status` (SSE with cursor reconciliation), `POST /units/{id}/approve-all`, `POST /units/{id}/sessions/{sid}/spawn-anyway`, `POST /units/{id}/export`; router wired into gateway at `/teaching-packs`. · ✅ `td-018` Observability + eval harness — `UnitObservabilityEvent` dataclass + emit helpers + `unit_attribution_tags`; golden topics eval (`tests/eval/test_decomposition_quality.py`) with 9 invariants × 3 topics.
-
-**Verified 2026-07-01:** `test_unit_read_api.py`, `test_unit_actions.py`, `test_unit_stream.py`, `test_unit_observability.py`, `tests/eval/test_decomposition_quality.py`.
-
-### Wave 7 — **ALL DONE 2026-07-01**
-✅ `td-012` Frontend unit workspace — Next.js App Router page at `/units/[parentRunId]`, `useUnit` hook (TanStack Query + SSE cursor reconciliation), `UnitSessionCard` component; progress banner, grounding/coherence warning banners, approve-all/export buttons. · ✅ `td-016` Cross-session coherence lint — advisory-only `run_coherence_lint()` with 4 check types (terminology drift, non-monotonic difficulty, redundant coverage, unresolved back-references); `coherence_judge` sub-agent package. · ✅ `td-017` UnitPackager — `UnitPackager.build_html_bundle()` + `build_assessment_zip()` + `build_bundle()`; orthogonal bundling over existing ExportFormat with no new enum values.
-
-**Verified 2026-07-01:** `apps/web/tests/use-unit.test.ts`, `apps/web/tests/unit-dashboard.test.tsx`, `packages/agents/tests/test_unit_coherence.py`, `packages/exporters/tests/test_unit_packager_html.py`, `test_unit_packager_assessment.py`, `test_unit_packager_partial.py`, `test_unit_packager_lazy.py`.
-
-### Wave 8 — **ALL DONE 2026-07-01**
-✅ `td-019` Staged rollout + E2E — `FeatureFlags` dataclass (`FEATURE_TOPIC_DECOMPOSITION_V1` + `UNIT_FANOUT_CONCURRENCY` env vars); `features()` singleton + `reset_features()` for testing; E2E happy-path flow test + failure-recovery test; no-silent-downgrade test; feature-flag on/off tests.
-
-**Verified 2026-07-01:** `tests/e2e/test_unit_flow.py` (happy path, feature flag, no-silent-downgrade), `tests/e2e/test_unit_failure_recovery.py` (failure isolation, retry no-duplicate, sibling completion). All 8 waves complete — unit decomposition surface is **release-ready** behind `FEATURE_TOPIC_DECOMPOSITION_V1`.
-
-### Cross-epic gates (all parity gates ✅ satisfied — parity done)
-- ✅ `td-019` ← `rp-001`+`rp-002` (quality+healing) · ✅ `td-017` ← `rp-005` (export wiring) · ✅ `td-010/011` ← `rp-003` (event bus).
-- `te-004` ← `rp-001` ✅ · `te-007` ← `rp-002` ✅ + `sr-003`.
-- `el-003` ← `el-001` + `rp-005` ✅ · `el-007` ← `el-004`,`el-005`,`td-014`.
-- `tl-002` ← `te-005` · `tl-003` ← `td-002` · `tl-004` ← `el-001` · `ops-004` ← `sr-003`.
+### Cross-epic gates
+`td-019` ← `rp-001`+`rp-002` · `td-017` ← `rp-005` · `td-010/011` ← `rp-003` · `te-004` ← `rp-001` · `te-007` ← `rp-002`+`sr-003` · `el-003` ← `el-001`+`rp-005` · `el-007` ← `el-004,005,td-014` · `tl-002` ← `te-005` · `tl-003` ← `td-002` · `tl-004` ← `el-001` · `ops-004` ← `sr-003`.
 
 ### Critical path (longest chain → release)
-`td-001 → td-002 → td-007 → td-009 → td-010 → td-011 → {td-016, td-017} → td-012 → td-019` (8 waves). The effectiveness-loop's longest chain `td-001 → el-001 → el-003 → el-004 → el-005 → el-007` (5 waves) runs in parallel and does not gate the unit release.
+`td-001 → td-002 → td-007 → td-009 → td-010 → td-011 → {td-016, td-017} → td-012 → td-019` (8 waves) — **per-issue complete, but audit shows the feature itself is dark (POTEMKIN)**, so this critical path is not actually cleared for release. The effectiveness-loop's longest chain `td-001 → el-001 → el-003 → el-004 → el-005 → el-007` (5 waves) runs in parallel and does not gate the unit release.
 
 ### Production-readiness gate (must land before real-classroom exposure)
-`hd-001` secrets · `tl-001` a11y · `ops-001` SLO/alerting · `ops-002` DR · `ops-005` webhook security · `tl-004` recall — all are Wave 0–2, so production-readiness can be reached early, independent of the topic-decomposition critical path.
+`hd-001` secrets · `tl-001` a11y · `ops-001` SLO/alerting · `ops-002` DR *(❌ audit: POTEMKIN)* · `ops-005` webhook security · `tl-004` recall — all Wave 0–2, so nominally early, but `ops-002` needs real work per audit before this gate is actually satisfied.
 
 ---
 
 ## Testing stack — verdict (from the AI-agent-testing framework research)
 
-**Adopt:** DeepEval (pytest metrics, **9router-backed `4omc`, offline/no-egress**) · **Langfuse** (already self-hosted — tracing/eval/dataset/annotation/trace-feedback) · Promptfoo (K-12 red-team + INVARIANT-05/06). **Reject:** LangSmith (proprietary, no self-host, K-12 data egress — Langfuse covers it) · fake-LLM (`FakeListLLM`/`GenericFakeChatModel` — violates real-test policy) · Lead-Agent-delegation trajectory (not in the authoritative stage runtime) · agentverify (built for Lead-Agent tool-call cassettes — N/A here).
+**Adopt:** DeepEval (pytest metrics, **9router-backed `4omc`, offline/no-egress**) · **Langfuse** (self-hosted — tracing/eval/dataset/annotation/trace-feedback) · Promptfoo (K-12 red-team + INVARIANT-05/06). **Reject:** LangSmith (proprietary, no self-host, K-12 data egress) · fake-LLM (violates real-test policy) · Lead-Agent-delegation trajectory (not in the authoritative stage runtime) · agentverify (N/A here).
 
-Patterns kept: three-layer pyramid, golden dataset, semantic/trajectory-over-exact-match, health gates, chaos/fault-injection, production-trace feedback. The `testing/` epic is the **harness layer**; per-feature epics' suites run on it (topic-decomposition `018` is a specific eval instance generalized by `testing/005`).
+Patterns kept: three-layer pyramid, golden dataset, semantic/trajectory-over-exact-match, health gates, chaos/fault-injection, production-trace feedback. `testing/` is the **harness layer**; per-feature epics' suites run on it.
 
 ## Principles baked into every issue
-- **Divide-and-conquer everywhere; no single long master prompt** — every agent decomposes into focused sub-steps (staged/hierarchical/per-item), enabling scoped retry/repair + per-step grounding.
+- **Divide-and-conquer everywhere; no single long master prompt** — every agent decomposes into focused sub-steps.
 - **New stage runtime only** (`teaching_pack/graph.py`); legacy `build_oh_my_class_graph` frozen, not extended.
 - **Reuse existing ports/adapters** (`QualityGate`, `render()`, `ExporterRegistry`, gate registry, JobStore, `eligible_at` requeue, idempotency keys).
 - **Fail-closed**, never silent downgrade. **Computed-not-materialized** unit state; `RunStatus` unchanged.

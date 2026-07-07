@@ -22,6 +22,10 @@ Let slide decks safely reference related teaching-pack artifacts without copying
 - [ ] Missing related artifacts degrade gracefully without breaking standalone deck export.
 - [ ] Real-LLM evidence or fixture replay proves references do not create student-facing answer leakage.
 
+## Amendment (2026-07-07 — design interview note)
+
+A concrete downstream consumer of this reference model was proposed during a design interview: an "auto-generate companion worksheet from this deck's quiz/practice blocks" feature. It is deliberately **not** an issue yet — building it before this foundation lands risks a crude structural dump that would need full rework once the real reference/curation model exists here. Once SDTF-03 ships, that feature should be filed as a new issue citing this one as `Parent`.
+
 ## Blocked by
 
 - SDTF-01-session-ready-ids-and-interaction-contract.md
