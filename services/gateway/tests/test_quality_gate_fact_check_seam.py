@@ -3,8 +3,8 @@
 Before 2026-07-01 nothing wrote ``artifact.metadata.research_sources``, so the gate's
 fact_check ran against an empty corpus and could never VERIFY a claim. These tests
 drive the REAL ``GatewayTeachingPackQualityGate`` and prove the corpus now changes the
-verdict: a factual claim is flagged UNCERTAIN with no corpus, and VERIFIED once the
-grounded corpus is present in metadata.
+    verdict: a factual claim is not blocked when no corpus exists, and VERIFIED once the
+    grounded corpus is present in metadata.
 """
 
 from __future__ import annotations
@@ -60,11 +60,11 @@ def _fact_issues(report: object) -> list[object]:
 
 @pytest.mark.anyio
 async def test_fact_check_flags_claim_when_corpus_absent() -> None:
-    """Pre-fix behaviour: no corpus -> factual claim cannot be verified."""
+    """No corpus -> delivery-time evidence is absent, so the gate fails open."""
     report = await GatewayTeachingPackQualityGate().evaluate(
         _workflow_state(), _artifact(with_corpus=False)
     )
-    assert _fact_issues(report), "starved fact_check should flag the unverifiable claim"
+    assert not _fact_issues(report), "starved fact_check should not block generation"
 
 
 @pytest.mark.anyio

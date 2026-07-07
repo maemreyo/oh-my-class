@@ -1,66 +1,144 @@
 <%
   const slides = it.slides || [];
-  let content = '<section class="slide-deck slide-deck--' + it.surface + '" aria-label="' + it.surfaceLabel + ': ' + it.title + '">';
-  content += '<p class="surface-badge">' + it.surfaceLabel + '</p>';
-  content += '<ol class="slide-list">';
-  for (let i = 0; i < slides.length; i++) {
-    const slide = slides[i];
-    content += '<li class="slide-card slide-card--' + slide.layout + '">';
-    content += '<article aria-labelledby="slide-title-' + i + '">';
-    content += '<p class="slide-kicker">Slide ' + (i + 1) + ' · ' + slide.revealPolicy.replaceAll('_', ' ') + '</p>';
-    content += '<h2 id="slide-title-' + i + '">' + slide.title + '</h2>';
-    content += '<div class="slide-blocks">';
-    for (let b = 0; b < slide.blocks.length; b++) {
-      const block = slide.blocks[b];
-      content += '<section class="slide-block slide-block--' + block.blockType + '">';
-      if (block.blockType === 'heading') {
-        content += '<h3>' + block.body + '</h3>';
-      } else if (block.mediaAltText) {
-        content += '<figure><div class="media-placeholder" role="img" aria-label="' + block.mediaAltText + '"></div><figcaption>' + block.body + '</figcaption></figure>';
-        if (block.requiresNetwork) content += '<p class="network-warning">Optional online media requires network access. Fallback: ' + block.fallbackText + '</p>';
-      } else {
-        content += '<p>' + block.body + '</p>';
-      }
-      content += '</section>';
+  const isStudent = it.surface === 'student';
+  const isTeacher = it.surface === 'teacher';
+  const isPrint = it.surface === 'print';
+
+  function slideBlock(block) {
+    let html = '<section class="slide-block slide-block--' + block.blockType + '">';
+    if (block.blockType === 'heading') {
+      html += '<h3>' + block.body + '</h3>';
+    } else if (block.mediaAltText) {
+      html += '<figure><div class="media-placeholder" role="img" aria-label="' + block.mediaAltText + '"></div><figcaption>' + block.body + '</figcaption></figure>';
+      if (block.requiresNetwork) html += '<p class="network-warning">Optional online media requires network access. Fallback: ' + block.fallbackText + '</p>';
+    } else {
+      html += '<p>' + block.body + '</p>';
     }
-    content += '</div>';
-    if (slide.interactions && slide.interactions.length > 0) {
-      content += '<div class="slide-interactions">';
-      for (let j = 0; j < slide.interactions.length; j++) {
-        const interaction = slide.interactions[j];
-        content += '<section class="slide-interaction slide-interaction--' + interaction.interactionType + '" aria-label="' + interaction.accessibilityLabel + '" aria-labelledby="interaction-' + i + '-' + j + '">';
-        content += '<h3 id="interaction-' + i + '-' + j + '">' + interaction.prompt + '</h3>';
-        content += '<ul>';
-        const options = interaction.options || [];
-        for (let o = 0; o < options.length; o++) {
-          const option = options[o];
-          content += '<li><span class="option-marker">' + option.optionId.toUpperCase() + '</span>' + option.label;
-          if (it.surface === 'teacher' && option.correct) content += '<strong class="answer-marker">Correct</strong>';
-          content += '</li>';
-        }
-        content += '</ul>';
-        content += '<p class="no-js-fallback">No-JS fallback: ' + interaction.noJsFallback + '</p>';
-        if (it.surface === 'teacher' && interaction.rationale) content += '<p class="teacher-rationale">' + interaction.rationale + '</p>';
-        content += '</section>';
-      }
-      content += '</div>';
-    }
-    if (it.surface === 'teacher' && (slide.facilitationNotes.length > 0 || slide.answerKeyNotes.length > 0)) {
-      content += '<aside class="teacher-panel"><h3>Teacher guide</h3>';
-      for (let n = 0; n < slide.facilitationNotes.length; n++) content += '<p>' + slide.facilitationNotes[n] + '</p>';
-      for (let n = 0; n < slide.answerKeyNotes.length; n++) content += '<p class="answer-guidance">' + slide.answerKeyNotes[n] + '</p>';
-      content += '</aside>';
-    }
-    content += '</article></li>';
+    return html + '</section>';
   }
-  content += '</ol></section>';
+
+  function slideInteraction(interaction, slideIndex, interactionIndex) {
+    let html = '<section class="slide-interaction slide-interaction--' + interaction.interactionType + '" aria-label="' + interaction.accessibilityLabel + '" aria-labelledby="interaction-' + slideIndex + '-' + interactionIndex + '">';
+    html += '<h3 id="interaction-' + slideIndex + '-' + interactionIndex + '">' + interaction.prompt + '</h3>';
+    html += '<ul>';
+    const options = interaction.options || [];
+    for (let o = 0; o < options.length; o++) {
+      const option = options[o];
+      html += '<li><span class="option-marker">' + option.optionId.toUpperCase() + '</span>' + option.label;
+      if (isTeacher && option.correct) html += '<strong class="answer-marker">Correct</strong>';
+      html += '</li>';
+    }
+    html += '</ul>';
+    html += '<p class="no-js-fallback">No-JS fallback: ' + interaction.noJsFallback + '</p>';
+    if (isTeacher && interaction.rationale) html += '<p class="teacher-rationale">' + interaction.rationale + '</p>';
+    return html + '</section>';
+  }
+
+  function slideArticle(slide, index) {
+    let html = '<article class="slide-card slide-card--' + slide.layout + '" aria-labelledby="slide-title-' + index + '">';
+    html += '<p class="slide-kicker">Slide ' + (index + 1) + ' · ' + slide.revealPolicy.replaceAll('_', ' ') + '</p>';
+    html += '<h2 id="slide-title-' + index + '">' + slide.title + '</h2>';
+    html += '<div class="slide-blocks">';
+    for (let b = 0; b < slide.blocks.length; b++) html += slideBlock(slide.blocks[b]);
+    html += '</div>';
+    if (slide.interactions && slide.interactions.length > 0) {
+      html += '<div class="slide-interactions">';
+      for (let j = 0; j < slide.interactions.length; j++) html += slideInteraction(slide.interactions[j], index, j);
+      html += '</div>';
+    }
+    if (isTeacher && (slide.facilitationNotes.length > 0 || slide.answerKeyNotes.length > 0)) {
+      html += '<aside class="teacher-panel"><h3>Teacher guide</h3>';
+      for (let n = 0; n < slide.facilitationNotes.length; n++) html += '<p>' + slide.facilitationNotes[n] + '</p>';
+      for (let n = 0; n < slide.answerKeyNotes.length; n++) html += '<p class="answer-guidance">' + slide.answerKeyNotes[n] + '</p>';
+      html += '</aside>';
+    }
+    return html + '</article>';
+  }
+
+  function printDeck() {
+    let html = '<section class="slide-deck slide-deck--' + it.surface + '" aria-label="' + it.surfaceLabel + ': ' + it.title + '">';
+    html += '<p class="surface-badge">' + it.surfaceLabel + '</p><ol class="slide-list">';
+    for (let i = 0; i < slides.length; i++) html += '<li>' + slideArticle(slides[i], i) + '</li>';
+    return html + '</ol></section>';
+  }
+
+  function presentationDeck() {
+    let html = '<section class="slide-deck slide-deck--presentation slide-deck--' + it.surface + '" data-slide-deck data-surface="' + it.surface + '" aria-label="' + it.surfaceLabel + ': ' + it.title + '">';
+    html += '<header class="slide-toolbar no-print"><p class="surface-badge">' + it.surfaceLabel + '</p><p class="slide-progress" data-slide-progress aria-live="polite">Slide 1 / ' + slides.length + '</p><button class="slide-print" type="button" data-slide-print>Print</button></header>';
+    html += '<div class="slide-viewport">';
+    for (let i = 0; i < slides.length; i++) {
+      html += '<section class="slide-frame" data-slide data-slide-index="' + i + '" aria-hidden="' + (i === 0 ? 'false' : 'true') + '">' + slideArticle(slides[i], i) + '</section>';
+    }
+    html += '</div><nav class="slide-controls no-print" aria-label="Slide navigation"><button class="slide-nav-button" type="button" data-slide-prev>Previous</button><button class="slide-nav-button slide-nav-button--primary" type="button" data-slide-next>Next</button></nav>';
+    return html + '</section>';
+  }
+
+  const content = isPrint ? printDeck() : presentationDeck();
+  const pageJS = isPrint ? '' : `
+(() => {
+  function initializeSlideDecks() {
+  const decks = document.querySelectorAll('[data-slide-deck]');
+  decks.forEach((deck) => {
+    const slides = Array.from(deck.querySelectorAll('[data-slide]'));
+    const progress = deck.querySelector('[data-slide-progress]');
+    const previous = deck.querySelector('[data-slide-prev]');
+    const next = deck.querySelector('[data-slide-next]');
+    const print = deck.querySelector('[data-slide-print]');
+    let current = 0;
+
+    function show(index) {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+      slides.forEach((slide, slideIndex) => {
+        const active = slideIndex === current;
+        slide.setAttribute('aria-hidden', String(!active));
+      });
+      if (progress) progress.textContent = 'Slide ' + (current + 1) + ' / ' + slides.length;
+      if (previous) previous.disabled = current === 0;
+      if (next) next.disabled = current === slides.length - 1;
+    }
+
+    previous?.addEventListener('click', () => show(current - 1));
+    next?.addEventListener('click', () => show(current + 1));
+    print?.addEventListener('click', () => window.print());
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight' || event.key === ' ') show(current + 1);
+      if (event.key === 'ArrowLeft') show(current - 1);
+      if (event.key === 'Home') show(0);
+      if (event.key === 'End') show(slides.length - 1);
+    });
+    deck.classList.add('slide-deck--js-ready');
+    show(0);
+  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSlideDecks, { once: true });
+  } else {
+    initializeSlideDecks();
+  }
+})();`;
   const pageCSS = `
+    main { max-width: 1100px; }
     .slide-deck { display: grid; gap: 1rem; }
-    .surface-badge { width: fit-content; margin: 0 0 .75rem; border: 1px solid var(--color-border); border-radius: 999px; padding: .25rem .7rem; color: var(--color-text-soft); background: var(--color-bg-card); font-size: .85rem; }
+    .slide-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .surface-badge, .slide-progress { width: fit-content; margin: 0; border: 1px solid var(--color-border); border-radius: 999px; padding: .25rem .7rem; color: var(--color-text-soft); background: var(--color-bg-card); font-size: .85rem; }
+    .slide-progress { font-variant-numeric: tabular-nums; }
+    .slide-print, .slide-nav-button { min-height: 2.5rem; border: 1px solid var(--color-border); border-radius: .5rem; padding: .45rem .9rem; background: var(--color-bg-card); color: var(--color-text); font: inherit; cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out; }
+    .slide-print:hover, .slide-nav-button:hover { background: var(--color-accent-tint); }
+    .slide-print:active, .slide-nav-button:active { transform: translateY(1px); }
+    .slide-print:focus-visible, .slide-nav-button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+    .slide-nav-button:disabled { cursor: not-allowed; opacity: .45; transform: none; }
+    .slide-nav-button--primary { background: var(--color-accent); color: var(--color-bg-card); border-color: var(--color-accent); }
+    .slide-nav-button--primary:hover { background: var(--color-accent-deep); color: var(--color-bg-card); }
+    .slide-viewport { min-height: min(68vh, 42rem); display: grid; align-items: stretch; }
+    .slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: none; }
+    .slide-frame { display: grid; }
     .slide-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; }
-    .slide-card { border: 1px solid var(--color-border); border-radius: 1rem; background: linear-gradient(135deg, var(--color-bg-card), var(--color-accent-tint)); box-shadow: 0 14px 34px rgba(34,39,58,0.10); padding: 1.25rem; break-inside: avoid; }
+    .slide-list > li { list-style: none; }
+    .slide-card { border: 1px solid var(--color-border); border-radius: 1rem; background: linear-gradient(135deg, var(--color-bg-card), var(--color-accent-tint)); padding: clamp(1rem, 3vw, 2rem); break-inside: avoid; min-height: min(68vh, 42rem); display: grid; align-content: center; }
+    .slide-deck--print .slide-card, .slide-deck--teacher .slide-card { min-height: auto; align-content: start; }
     .slide-kicker { margin: 0 0 .35rem; color: var(--color-text-soft); font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
-    .slide-card h2 { margin: 0 0 1rem; font-family: var(--font-heading); font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.1; }
+    .slide-card h2 { margin: 0 0 1rem; font-family: var(--font-heading); font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.1; }
     .slide-blocks { display: grid; gap: .8rem; }
     .slide-block { border-radius: .8rem; background: rgba(255,255,255,.72); border: 1px solid var(--color-border-soft); padding: .9rem; }
     .slide-block h3, .slide-block p { margin: 0; }
@@ -71,17 +149,20 @@
     .slide-interaction ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .45rem; }
     .slide-interaction li { display: flex; align-items: center; gap: .5rem; }
     .option-marker { display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.6rem; border-radius: 999px; background: var(--color-accent); color: var(--color-bg-card); font-weight: 700; }
-    .answer-marker { margin-left: .5rem; border-radius: 999px; padding: .1rem .45rem; background: var(--color-success-bg, #e8f5e9); color: var(--color-success, #1b5e20); font-size: .75rem; }
+    .answer-marker { margin-left: .5rem; border-radius: 999px; padding: .1rem .45rem; background: var(--color-bg-card); color: var(--color-success); border: 1px solid var(--color-border-soft); font-size: .75rem; }
     .teacher-panel { margin-top: 1rem; border: 1px solid var(--color-border); border-radius: .8rem; padding: .9rem; background: var(--color-bg-card); }
     .teacher-panel h3 { margin: 0 0 .5rem; }
     .answer-guidance, .teacher-rationale { color: var(--color-text); font-weight: 600; }
     .no-js-fallback, .network-warning { color: var(--color-text-soft); font-size: .9rem; margin: .5rem 0 0; }
     .network-warning { border-left: .2rem solid var(--color-warning); padding-left: .65rem; }
-    @media print { .slide-card { box-shadow: none; page-break-after: always; page-break-inside: avoid; } .surface-badge { display: none; } }
+    .slide-controls { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }
+    @media (max-width: 640px) { main { padding-inline: 1rem; } .slide-toolbar, .slide-controls { align-items: stretch; flex-direction: column; } .slide-nav-button, .slide-print { width: 100%; } }
+    @media (prefers-reduced-motion: reduce) { .slide-print, .slide-nav-button { transition: none; } }
+    @media print { main { max-width: none; } .slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: block; } .slide-frame { display: block; } .slide-viewport { min-height: 0; display: grid; gap: 1rem; } .slide-card { min-height: auto; box-shadow: none; page-break-after: always; page-break-inside: avoid; } .surface-badge { display: none; } }
   `;
 %>
 <%~ include('../base.html', {
   title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
   lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
-  type: 'slide_deck', content: content, pageCSS: pageCSS
+  type: 'slide_deck', content: content, pageCSS: pageCSS, pageJS: pageJS
 }) %>

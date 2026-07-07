@@ -165,14 +165,17 @@ def _generation_id(state: JsonObject, revision: int) -> str:
 
 
 def _current_wave_index(state: JsonObject) -> int:
+    requested_types = _requested_types(state)
     if _needs_new_generation_cycle(state):
-        requested_types = _requested_types(state)
         for index, _wave in enumerate(_WAVES):
             if _wave_at(requested_types, index):
                 return index
     value = state.get("artifact_wave_index")
     if isinstance(value, int) and value >= 0:
         return value
+    for index, _wave in enumerate(_WAVES):
+        if _wave_at(requested_types, index):
+            return index
     return 0
 
 

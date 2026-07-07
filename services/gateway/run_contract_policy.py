@@ -17,6 +17,7 @@ SUPPORTED_ARTIFACTS = {
     "flashcard_deck",
     "answer_key",
     "roadmap",
+    "slide_deck",
 }
 SUPPORTED_EXPORTS = {"html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "google_forms"}
 CONFIG_VERSION = "teaching-packs-contract-setup@1"

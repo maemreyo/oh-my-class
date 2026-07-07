@@ -41,6 +41,21 @@ class TestTeachingPackExportFormatWiring:
 
         assert result.get("exported_files") == ["exports/run-export/snap-lesson.html"]
 
+    def test_export_uses_approval_gate_snapshots_after_resume(self) -> None:
+        state = _approved_state(["html"])
+        state["approval_gate"] = {"rendered_snapshots": state["rendered_snapshots"]}
+        state["rendered_snapshots"] = None
+        state["quality_recovery_route"] = "teacher_approval"
+        state["quality_issues"] = ["fact_check: uncertain"]
+        state["escalate"] = True
+
+        result = _export_finalize(state)
+
+        assert result.get("exported_files") == ["exports/run-export/snap-lesson.html"]
+        assert result.get("quality_recovery_route") == ""
+        assert result.get("quality_issues") == []
+        assert result.get("escalate") is False
+
     def test_registry_fails_closed_for_unsupported_google_forms(self) -> None:
         with pytest.raises(UnsupportedExportFormatError, match="google_forms"):
             _export_finalize(_approved_state(["google_forms"]))

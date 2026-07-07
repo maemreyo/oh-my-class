@@ -70,6 +70,7 @@
     }
     <% if (it.pageCSS) { %><%~ it.pageCSS %><% } %>
   </style>
+  <% if (it.pageJS) { %><script><%~ it.pageJS %></script><% } %>
 </head>
 <body class="artifact artifact--<%= it.type || 'unknown' %>">
   <header class="omc-header">

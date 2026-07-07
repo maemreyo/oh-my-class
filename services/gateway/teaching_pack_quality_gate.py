@@ -49,6 +49,8 @@ def _content_view(artifact: JsonObject) -> JsonObject:
     so they must not be scanned as claims or PII, nor let content self-match its own
     objectives.
     """
+    if artifact.get("artifact_type") == "slide_deck":
+        return _slide_deck_student_view(artifact)
     metadata = artifact.get("metadata")
     if not isinstance(metadata, dict) or not any(key in metadata for key in _GATE_CONTEXT_KEYS):
         return artifact
@@ -56,11 +58,56 @@ def _content_view(artifact: JsonObject) -> JsonObject:
     return {**artifact, "metadata": scrubbed}
 
 
+def _slide_deck_student_view(artifact: JsonObject) -> JsonObject:
+    metadata = artifact.get("metadata")
+    safe_metadata = _safe_metadata(metadata) if isinstance(metadata, dict) else {}
+    return {
+        "artifact_type": "slide_deck",
+        "title": artifact.get("title", ""),
+        "sections": [_without_teacher_only_values(section) for section in _sections(artifact)],
+        "metadata": safe_metadata,
+        "accessibility": artifact.get("accessibility", {}),
+    }
+
+
+def _safe_metadata(metadata: dict[str, JsonValue]) -> JsonObject:
+    return {
+        key: value
+        for key, value in metadata.items()
+        if key in {"covered_bloom_levels", "covered_objectives", "generation_mode"}
+    }
+
+
+def _sections(artifact: JsonObject) -> list[JsonValue]:
+    sections = artifact.get("sections")
+    if isinstance(sections, list):
+        return sections
+    return []
+
+
+def _without_teacher_only_values(value: JsonValue) -> JsonValue:
+    if isinstance(value, list):
+        return [_without_teacher_only_values(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    return {
+        key: _without_teacher_only_values(item)
+        for key, item in value.items()
+        if key not in {"teacher_notes", "teacher_only", "deck_id", "slide_id", "block_id", "interaction_id", "option_id", "source_ref_ids"}
+    }
+
+
 def _pedagogy_context(artifact: JsonObject) -> dict[str, JsonValue] | None:
     metadata = artifact.get("metadata")
     if isinstance(metadata, dict):
         context = metadata.get("pedagogy_context")
         if isinstance(context, dict):
+            if artifact.get("artifact_type") == "slide_deck":
+                return {
+                    key: value
+                    for key, value in context.items()
+                    if key not in {"grade", "grade_level"}
+                }
             return context
     return None
 

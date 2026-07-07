@@ -62,6 +62,32 @@ class TestTeachingPackContractSetup:
         assert result.contract.export_formats == ["html"]
         assert len(result.contract.config_hash) == 64
 
+    def test_slide_deck_request_creates_slide_deck_contract(self) -> None:
+        result = resolve_contract_setup(ContractSetupInput(
+            run_id=RunId("run-slide-deck"),
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Generate a slide deck for Grade 5 English ESL food vocabulary.",
+            class_info={"grade": 5, "subject": "English"},
+        ))
+
+        assert isinstance(result, ContractSetupGate)
+        assert result.gate_name == "contract_confirmation"
+        assert result.contract is not None
+        assert result.contract.topic == "Grade 5 English ESL food vocabulary"
+        assert result.contract.artifact_types == ["slide_deck"]
+        assert result.payload["inferred_fields"] == [
+            {
+                "field": "topic",
+                "value": "Grade 5 English ESL food vocabulary",
+                "reason": "inferred_from_request",
+            },
+            {
+                "field": "curriculum",
+                "value": "English ESL",
+                "reason": "locale_default",
+            },
+        ]
+
     def test_all_renderable_artifact_types_are_requestable(self) -> None:
         result = resolve_contract_setup(ContractSetupInput(
             run_id=RunId("run-full-artifacts"),
@@ -81,6 +107,7 @@ class TestTeachingPackContractSetup:
                     "flashcard_deck",
                     "answer_key",
                     "roadmap",
+                    "slide_deck",
                 ],
             },
         ))
@@ -96,6 +123,7 @@ class TestTeachingPackContractSetup:
             "flashcard_deck",
             "answer_key",
             "roadmap",
+            "slide_deck",
         ]
 
     def test_risky_inferred_topic_opens_contract_confirmation(self) -> None:

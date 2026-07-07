@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from common.contracts.quality import ArtifactQualityReport
+from packages.agents.teaching_pack.compliance import evaluate_compliance
 from packages.agents.teaching_pack.quality_runtime import render_quality
 
 
@@ -152,3 +153,58 @@ def test_gate_body_quality_scores_passed_to_interrupt(monkeypatch: pytest.Monkey
     assert "quality_scores" in payload
     assert payload["quality_scores"]["passed"] is True
     assert "reports" in payload["quality_scores"]
+
+
+def test_gate_body_handles_escalated_state_without_snapshots(monkeypatch: pytest.MonkeyPatch) -> None:
+    from packages.agents.teaching_pack.nodes import _teacher_approval
+
+    captured: list[dict[str, Any]] = []
+
+    def fake_interrupt(payload: dict[str, Any]) -> dict[str, str]:
+        captured.append(payload)
+        return {"action": "reject", "feedback": "Needs repair"}
+
+    monkeypatch.setattr("langgraph.types.interrupt", fake_interrupt)
+
+    state = {
+        "run_id": "run-escalated-no-snapshots",
+        "artifacts": [_make_artifact("art-escalated")],
+        "rendered_snapshots": None,
+        "quality_scores": {"overall": 4.0, "passed": False},
+        "escalate": True,
+        "escalate_reason": "Quality checks did not pass.",
+        "healing_strategy": "escalate",
+        "fail_count": 4,
+    }
+
+    result = _teacher_approval(state)
+
+    assert result["teacher_approved"] is False
+    assert captured[0]["snapshot_ids"]
+    assert captured[0]["rendered_snapshots"][0]["artifact_id"] == "art-escalated"
+    assert captured[0]["escalated"] is True
+
+
+def test_compliance_allows_trusted_research_source_urls_in_metadata() -> None:
+    artifact = _make_artifact("art-cited")
+    artifact["metadata"] = {
+        "research_sources": [{
+            "title": "ESL food vocabulary",
+            "content": "Food vocabulary is common ESL content.",
+            "url": "https://example.org/esl-food-vocabulary",
+        }],
+    }
+
+    result = evaluate_compliance({"run_id": "run-cited", "artifacts": [artifact]})
+
+    assert result.passed is True
+
+
+def test_compliance_blocks_visible_student_url_content() -> None:
+    artifact = _make_artifact("art-visible-url")
+    artifact["sections"][0]["text"] = "Student should visit https://example.org/private-workspace."
+
+    result = evaluate_compliance({"run_id": "run-visible-url", "artifacts": [artifact]})
+
+    assert result.passed is False
+    assert result.violations[0].code == "pii_leakage"

@@ -5,9 +5,8 @@ from dataclasses import dataclass
 from typing import Any, Literal, assert_never
 
 from common.contracts.artifact import ArtifactContent
-from common.contracts.methodology_registry import MethodologyTag, methodology_entry_by_tag
-from packages.agents.slide_deck_engine import SlideDeckEngine, SlideDeckEngineRequest
 from packages.agents.sub_agents.content_creator.hierarchical_sections import flashcards, regen_placeholder
+from packages.agents.sub_agents.content_creator.methodology_helpers import methodology_components, validate_methodology
 from packages.agents.sub_agents.content_creator.strategy_fill import (
     StrategyFillContext,
     artifact_strategy_metadata,
@@ -15,6 +14,7 @@ from packages.agents.sub_agents.content_creator.strategy_fill import (
     strategy_metadata,
 )
 from packages.agents.sub_agents.content_creator.nodes import validate_no_cdn, validate_no_pii
+from packages.agents.sub_agents.content_creator.slide_deck_artifact import build_slide_deck_artifact
 
 from packages.agents.sub_agents.content_creator.state import ContentCreatorNodeState
 
@@ -74,7 +74,7 @@ def _artifact_kind(value: str) -> ArtifactKind:
 
 def _build_artifact(artifact_type: ArtifactKind, state: ContentCreatorNodeState) -> dict[str, Any]:
     if artifact_type == "slide_deck":
-        return _build_slide_deck_artifact(state)
+        return build_slide_deck_artifact(state)
     lesson_plan = state["lesson_plan"]
     research_bundle = state["research_bundle"]
     outline = _outline(artifact_type, lesson_plan)
@@ -89,37 +89,8 @@ def _build_artifact(artifact_type: ArtifactKind, state: ContentCreatorNodeState)
         accessibility={"language": _language(lesson_plan)},
     )
     _validate_coverage(artifact, lesson_plan)
-    _validate_methodology(artifact, lesson_plan)
+    validate_methodology(artifact, lesson_plan)
     return artifact.model_dump()
-
-
-def _build_slide_deck_artifact(state: ContentCreatorNodeState) -> dict[str, Any]:
-    lesson_plan = state["lesson_plan"]
-    deck_result = SlideDeckEngine().generate(SlideDeckEngineRequest(
-        run_id=state["run_id"],
-        lesson_blueprint=lesson_plan,
-        research_brief=state["research_bundle"],
-        dependency_artifacts=state.get("artifacts") or [],
-        teacher_constraints={"locale": _locale(lesson_plan), "theme": state.get("theme", "default")},
-        revision_feedback=state.get("revision_feedback", ""),
-    ))
-    deck_data = deck_result.deck.model_dump(mode="json")
-    artifact = ArtifactContent(
-        artifact_type="slide_deck",
-        theme=state.get("theme", "default"),
-        title=deck_result.deck.title,
-        sections=[{"title": deck_result.deck.title, "slide_deck": deck_data}],
-        metadata={
-            "generation_mode": "slide_deck_engine_deterministic",
-            "artifact_type": "slide_deck",
-            "slide_deck_data": deck_data,
-            "slide_deck_scorecard": deck_result.scorecard.model_dump(mode="json"),
-            "slide_deck_trace": deck_result.trace.model_dump(mode="json"),
-        },
-        accessibility={"language": deck_result.deck.accessibility.language},
-    )
-    return artifact.model_dump()
-
 
 def _outline(artifact_type: ArtifactKind, lesson_plan: dict[str, Any]) -> list[SectionOutline]:
     objectives = _objective_texts(lesson_plan)
@@ -171,7 +142,7 @@ def _fill_section(
         fact=fact,
     ))
     components.extend(strategy_fill.components)
-    components.extend(_methodology_components(lesson_plan, state))
+    components.extend(methodology_components(lesson_plan, state))
     section = {
         "section_id": outline.section_id,
         "title": outline.title,
@@ -204,6 +175,7 @@ def _metadata(
         "generation_status": "needs_regen" if any(section.get("needs_regen") for section in sections) else "complete",
         "artifact_type": artifact_type,
         "covered_objectives": _objective_texts(lesson_plan),
+        "covered_bloom_levels": _bloom_levels(lesson_plan),
         "covered_gagne_events": [event for event, _value in _phase_pairs(lesson_plan)],
         "grounding_status": "verified_subset" if _verified_fact(research_bundle) else "needs_review",
         "adaptation_context": state.get("component_effectiveness", {}),
@@ -223,68 +195,25 @@ def _validate_coverage(artifact: ArtifactContent, lesson_plan: dict[str, Any]) -
         raise ValueError(msg)
 
 
-def _validate_methodology(artifact: ArtifactContent, lesson_plan: dict[str, Any]) -> None:
-    content = json.dumps(artifact.model_dump(), ensure_ascii=False).casefold()
-    for tag in _methodology_tags(lesson_plan):
-        entry = methodology_entry_by_tag(tag)
-        missing = [component for component in entry.required_components if component.casefold() not in content]
-        if missing:
-            msg = "methodology component missing: " + missing[0]
-            raise ValueError(msg)
-
-
-def _methodology_components(lesson_plan: dict[str, Any], state: ContentCreatorNodeState) -> list[dict[str, str]]:
-    if state.get("disable_methodology_components") is True:
-        return []
-    components: list[dict[str, str]] = []
-    for tag in _methodology_tags(lesson_plan):
-        for component in methodology_entry_by_tag(tag).required_components:
-            components.append({"type": "paragraph", "text": f"methodology component: {component}"})
-    return components
-
-
-def _methodology_tags(lesson_plan: dict[str, Any]) -> list[MethodologyTag]:
-    methodology = lesson_plan.get("methodology")
-    if not isinstance(methodology, dict):
-        return []
-    tags = methodology.get("tags")
-    if not isinstance(tags, list):
-        return []
-    return [_methodology_tag(str(tag)) for tag in tags]
-
-
-def _methodology_tag(value: str) -> MethodologyTag:
-    match value:
-        case "concept_map":
-            return "concept_map"
-        case "contrastive_pairs":
-            return "contrastive_pairs"
-        case "film_based":
-            return "film_based"
-        case "shy_student_1on1":
-            return "shy_student_1on1"
-        case "active_recall":
-            return "active_recall"
-        case "why_wrong_reasoning":
-            return "why_wrong_reasoning"
-        case "timed_quiz":
-            return "timed_quiz"
-        case "roleplay_script":
-            return "roleplay_script"
-        case "inverse_thinking":
-            return "inverse_thinking"
-        case "semantic_anchoring":
-            return "semantic_anchoring"
-        case _:
-            msg = f"unknown methodology tag: {value}"
-            raise ValueError(msg)
-
-
 def _objective_texts(lesson_plan: dict[str, Any]) -> list[str]:
     objectives = lesson_plan.get("learning_objectives")
     if not isinstance(objectives, list):
         return []
     return [str(item.get("description")) for item in objectives if isinstance(item, dict) and item.get("description")]
+
+
+def _bloom_levels(lesson_plan: dict[str, Any]) -> list[str]:
+    objectives = lesson_plan.get("learning_objectives")
+    if not isinstance(objectives, list):
+        return []
+    levels: list[str] = []
+    for item in objectives:
+        if not isinstance(item, dict):
+            continue
+        level = item.get("bloom_level")
+        if isinstance(level, str) and level not in levels:
+            levels.append(level)
+    return levels
 
 
 def _phase_pairs(lesson_plan: dict[str, Any]) -> list[tuple[str, Any]]:
@@ -322,7 +251,3 @@ def _topic(lesson_plan: dict[str, Any]) -> str:
 
 def _language(lesson_plan: dict[str, Any]) -> str:
     return str(lesson_plan.get("language", "en"))
-
-
-def _locale(lesson_plan: dict[str, Any]) -> str:
-    return str(lesson_plan.get("locale", lesson_plan.get("citation_locale", "en-US")))

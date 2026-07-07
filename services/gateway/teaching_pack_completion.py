@@ -119,7 +119,7 @@ class TeachingPackCompletionRecorder:
 
     async def _persist_content_gate(self, run_id: RunId, gate_payload: JsonObject) -> None:
         for snapshot in _rendered_snapshots(gate_payload):
-            content_json = _json_object(snapshot.get("content_json"))
+            content_json = _snapshot_content(snapshot)
             rendered_html = await self._renderer.render(content_json)
             await self._store.create_snapshot(ArtifactSnapshotCreate(
                 snapshot_id=str(snapshot["snapshot_id"]),
@@ -249,6 +249,16 @@ def _rendered_snapshots(gate_payload: JsonObject) -> list[JsonObject]:
     if not isinstance(values, list):
         return []
     return [_json_object(value) for value in values if isinstance(value, dict)]
+
+
+def _snapshot_content(snapshot: JsonObject) -> JsonObject:
+    content = _json_object(snapshot.get("content_json"))
+    if "artifact_type" in content:
+        return content
+    artifact_type = snapshot.get("artifact_type")
+    if not isinstance(artifact_type, str) or not artifact_type:
+        return content
+    return {**content, "artifact_type": artifact_type}
 
 
 def _json_object(value: object) -> JsonObject:

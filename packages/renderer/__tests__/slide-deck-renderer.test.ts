@@ -98,6 +98,25 @@ describe("slide_deck renderer", () => {
     expect(html).not.toMatch(/@import/i);
   });
 
+  it("renders student decks as an offline presentation with navigation controls", async () => {
+    const html = await renderArtifact("slide_deck", deck);
+
+    expect(html).toContain('data-slide-deck');
+    expect(html).toContain('data-surface="student"');
+    expect(html).toContain('data-slide-progress');
+    expect(html).toContain('data-slide-prev');
+    expect(html).toContain('data-slide-next');
+    expect(html).toContain('data-slide-print');
+    expect(html).toContain('aria-live="polite"');
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain("slide-deck--js-ready");
+    expect(html).toContain('.slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: none; }');
+    expect(html).toContain('.slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: block; }');
+    expect(html).toContain("DOMContentLoaded");
+    expect(html).toContain("event.key === 'ArrowRight'");
+    expect(html).toContain("event.key === 'ArrowLeft'");
+  });
+
   it("does not expose teacher-only answers or notes in student HTML", async () => {
     const html = await renderArtifact("slide_deck", deck);
 
@@ -121,6 +140,7 @@ describe("slide_deck renderer", () => {
     expect(html).toContain("Print handout");
     expect(html).toContain("page-break-after: always");
     expect(html).toContain("all at once");
+    expect(html).not.toContain('data-slide-next');
     expect(html).not.toContain("SECRET_TEACHER_NOTE");
   });
 

@@ -518,9 +518,10 @@ def _teacher_approval(
 ) -> TeachingPackState:
     from langgraph.types import interrupt
 
-    snapshot_ids = [str(snapshot["snapshot_id"]) for snapshot in state.get("rendered_snapshots", [])]
+    rendered_snapshots = state.get("rendered_snapshots") or _preview_snapshots_from_artifacts(state)
+    snapshot_ids = [str(snapshot["snapshot_id"]) for snapshot in rendered_snapshots]
     artifact_statuses = artifact_statuses_for_teacher(state)
-    artifacts = artifact_statuses or state.get("artifacts", [])
+    artifacts = artifact_statuses or state.get("artifacts") or []
     artifact_types = [
         str(a.get("artifact_type", ""))
         for a in artifacts
@@ -530,7 +531,7 @@ def _teacher_approval(
         "gate": "content_approval",
         "gate_name": "content_approval",
         "snapshot_ids": [*snapshot_ids],
-        "rendered_snapshots": [*(state.get("rendered_snapshots") or [])],
+        "rendered_snapshots": [*rendered_snapshots],
         "artifacts": [*artifacts],
         "artifact_statuses": [*artifact_statuses],
         "content_artifacts": [*(state.get("artifacts") or [])],
@@ -598,6 +599,15 @@ def _teacher_approval(
     }
 
 
+def _preview_snapshots_from_artifacts(state: TeachingPackState) -> list[JsonObject]:
+    artifacts = state.get("artifacts") or []
+    if not artifacts:
+        return []
+    from packages.agents.teaching_pack.snapshots import build_snapshot
+
+    return [build_snapshot(state["run_id"], artifact) for artifact in artifacts]
+
+
 def _healing_history(state: TeachingPackState) -> list[JsonValue]:
     context = state.get("healing_context")
     if isinstance(context, dict):
@@ -661,7 +671,7 @@ def _export_finalize(
             )
     snapshot_ids = state.get("approved_snapshot_ids", [])
     approved_snapshots = [
-        snapshot for snapshot in state.get("rendered_snapshots", [])
+        snapshot for snapshot in _rendered_snapshots_for_export(state)
         if str(snapshot.get("snapshot_id")) in snapshot_ids
     ]
     registry = ExporterRegistry.default()
@@ -675,7 +685,25 @@ def _export_finalize(
             contract=state.get("contract", {}),
         ))
     ]
-    return {"run_id": state["run_id"], "exported_files": exported_files}
+    return {
+        "run_id": state["run_id"],
+        "exported_files": exported_files,
+        "quality_recovery_route": "",
+        "quality_issues": [],
+        "escalate": False,
+    }
+
+
+def _rendered_snapshots_for_export(state: TeachingPackState) -> list[JsonObject]:
+    snapshots = state.get("rendered_snapshots")
+    if isinstance(snapshots, list):
+        return [snapshot for snapshot in snapshots if isinstance(snapshot, dict)]
+    approval_gate = state.get("approval_gate")
+    if isinstance(approval_gate, dict):
+        gate_snapshots = approval_gate.get("rendered_snapshots")
+        if isinstance(gate_snapshots, list):
+            return [snapshot for snapshot in gate_snapshots if isinstance(snapshot, dict)]
+    return []
 
 
 def route_after_teacher_approval(state: TeachingPackState) -> str:

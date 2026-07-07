@@ -153,7 +153,7 @@ def _metadata_response(snapshot: ArtifactSnapshotRead) -> RenderedSnapshotMetada
 async def _print_preview_html(snapshot: ArtifactSnapshotRead) -> str:
     if snapshot.artifact_type != "slide_deck":
         return snapshot.rendered_html
-    content = dict(snapshot.content_json)
+    content = {**snapshot.content_json, "artifact_type": snapshot.artifact_type}
     metadata = content.get("metadata")
     if isinstance(metadata, dict) and isinstance(metadata.get("slide_deck_data"), dict):
         deck = dict(metadata["slide_deck_data"])

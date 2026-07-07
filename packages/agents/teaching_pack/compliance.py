@@ -80,11 +80,19 @@ def _artifact_violations(index: int, artifact: JsonObject) -> list[ComplianceVio
         ComplianceViolation("answer_key_leakage", reason, f"artifacts[{index}]")
         for reason in answer_result["teacher_reasons"]
     )
-    pii = detect_pii(artifact)
+    pii = detect_pii(_artifact_pii_surface(artifact))
     for category, count in pii.redaction_counts.items():
         if count > 0:
             violations.append(ComplianceViolation("pii_leakage", f"Student/private {category} data was detected and must be removed.", f"artifacts[{index}]"))
     return violations
+
+
+def _artifact_pii_surface(artifact: JsonObject) -> JsonObject:
+    metadata = artifact.get("metadata")
+    if not isinstance(metadata, dict) or "research_sources" not in metadata:
+        return artifact
+    safe_metadata = {key: value for key, value in metadata.items() if key != "research_sources"}
+    return {**artifact, "metadata": safe_metadata}
 
 
 def _snapshot_violations(index: int, snapshot: JsonObject) -> list[ComplianceViolation]:

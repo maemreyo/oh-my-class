@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, cast
 
@@ -26,6 +27,14 @@ if TYPE_CHECKING:
 
 SetupGateName = Literal["clarification_required", "contract_confirmation"]
 MAX_TOPIC_LENGTH = 200
+_DECK_REQUEST_RE = re.compile(
+    r"\b(?:generate|create|make|build)\s+(?:a\s+)?(?:slide\s+deck|slidedeck|presentation\s+deck)\s+for\s+",
+    re.IGNORECASE,
+)
+_TRAILING_INSTRUCTION_RE = re.compile(
+    r"\s+(?:include|with|and include|please include)\b.*$",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -136,10 +145,7 @@ def _build_contract(
         instruction_language=language,
         curriculum=_curriculum_for(locale, str(class_info["subject"]), class_info),
         citation_locale=_text(class_info, "citation_locale") or locale,
-        artifact_types=cast("list[ArtifactType]", _string_list(
-            class_info.get("artifact_types"),
-            DEFAULT_POLICY["artifact_types"],
-        )),
+        artifact_types=cast("list[ArtifactType]", _artifact_types_for(raw_request, class_info)),
         export_formats=cast("list[ExportFormat]", _string_list(
             class_info.get("export_formats"),
             DEFAULT_POLICY["export_formats"],
@@ -194,11 +200,25 @@ def _questions_for(missing: list[str], unsupported: list[dict[str, str]]) -> lis
 
 
 def _topic_from(raw_request: str) -> str | None:
-    words = raw_request.strip().split()
+    request = raw_request.strip()
+    deck_request = _deck_topic_from(request)
+    if deck_request is not None:
+        return _cap_topic(deck_request)
+    words = request.split()
     if len(words) >= 2:
-        topic = " ".join(words[1:]) if words[0].lower() in {"teach", "dạy"} else raw_request
+        topic = " ".join(words[1:]) if words[0].lower() in {"teach", "dạy"} else request
         return _cap_topic(topic)
     return None
+
+
+def _deck_topic_from(raw_request: str) -> str | None:
+    request_match = _DECK_REQUEST_RE.search(raw_request)
+    if request_match is None:
+        return None
+    topic = raw_request[request_match.end():]
+    topic = _TRAILING_INSTRUCTION_RE.sub("", topic)
+    topic = topic.split(".", maxsplit=1)[0].strip()
+    return topic or None
 
 
 def _topic_text(class_info: JsonObject, raw_request: str) -> str:
@@ -263,6 +283,20 @@ def _string_list(value: object, default: object) -> list[str]:
     if isinstance(default, list):
         return [str(item) for item in default]
     return []
+
+
+def _artifact_types_for(raw_request: str, class_info: JsonObject) -> list[str]:
+    explicit = class_info.get("artifact_types")
+    if isinstance(explicit, list):
+        return [str(item) for item in explicit]
+    if _requests_slide_deck(raw_request):
+        return ["slide_deck"]
+    return _string_list(None, DEFAULT_POLICY["artifact_types"])
+
+
+def _requests_slide_deck(raw_request: str) -> bool:
+    normalized = raw_request.lower().replace("-", "_")
+    return any(marker in normalized for marker in ("slide_deck", "slide deck", "slidedeck", "presentation deck"))
 
 
 def _text(payload: JsonObject, key: str) -> str | None:

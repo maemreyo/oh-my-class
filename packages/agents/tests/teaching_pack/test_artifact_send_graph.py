@@ -67,6 +67,20 @@ def test_router_issues_only_current_dependency_wave(monkeypatch: pytest.MonkeyPa
     assert [send.arg["artifact_type"] for send in route] == ["worksheet", "quiz", "drill"]
 
 
+def test_slide_deck_only_request_starts_on_slide_deck_wave(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1", raising=False)
+    state = _base_state(["slide_deck"])
+
+    update = coordinate_artifact_fanout(state)
+    route = route_after_artifact_workflow({**state, **update})
+
+    assert update["artifact_wave_index"] == 1
+    assert update["artifact_fanout_complete"] is False
+    assert not isinstance(route, str)
+    assert [send.node for send in route] == ["generate_one_artifact"]
+    assert [send.arg["artifact_type"] for send in route] == ["slide_deck"]
+
+
 def test_fanin_advances_waves_after_current_wave_passes() -> None:
     state = {
         **_base_state(),
@@ -204,3 +218,44 @@ async def test_compiled_graph_runs_waves_before_render_quality_by_default(
     assert calls == ["lesson", "quiz", "recap"]
     assert result["artifact_fanout_complete"] is True
     assert [artifact["artifact_type"] for artifact in result["artifacts"]] == ["lesson", "quiz", "recap"]
+
+
+@pytest.mark.anyio
+async def test_compiled_graph_runs_slide_deck_only_before_render_quality(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    async def fake_content_creator_node(state: dict[str, object]) -> dict[str, object]:
+        artifact_types = state["artifact_types"]
+        assert isinstance(artifact_types, list)
+        artifact_type = str(artifact_types[0])
+        calls.append(artifact_type)
+        return {"artifacts": [_artifact(artifact_type)]}
+
+    monkeypatch.delenv("OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1", raising=False)
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
+        fake_content_creator_node,
+    )
+
+    graph = build_teaching_pack_graph(interrupt_before=["render_quality"])
+    result = await graph.ainvoke({
+        **_base_state(["slide_deck"]),
+        "contract": {
+            "topic": "Food vocabulary",
+            "theme": "default",
+            "artifact_types": ["slide_deck"],
+        },
+        "completed_stages": [
+            "setup_contract",
+            "triage",
+            "preplanning_search",
+            "planning_blueprint",
+            "post_blueprint_research",
+        ],
+    })
+
+    assert calls == ["slide_deck"]
+    assert result["artifact_fanout_complete"] is True
+    assert [artifact["artifact_type"] for artifact in result["artifacts"]] == ["slide_deck"]

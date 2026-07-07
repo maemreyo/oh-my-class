@@ -190,7 +190,7 @@ def _scan_placeholder(artifact: ArtifactContent) -> list[QualityIssue]:
 
 def _scan_student_answer_keys(artifact: ArtifactContent) -> list[QualityIssue]:
     issues: list[QualityIssue] = []
-    for index, section in enumerate(artifact.sections):
+    for index, section in enumerate(_student_sections(artifact)):
         if section.get("teacher_only") is True:
             continue
         if _ANSWER_KEY_PATTERN.search(str(section)):
@@ -224,9 +224,34 @@ def _scan_accessibility(artifact: ArtifactContent) -> list[QualityIssue]:
 
 def _artifact_strings(artifact: ArtifactContent) -> list[tuple[str, str]]:
     values = [("title", artifact.title)]
-    for index, section in enumerate(artifact.sections):
+    for index, section in enumerate(_student_sections(artifact)):
         values.append((f"sections[{index}]", str(section)))
     return values
+
+
+def _student_sections(artifact: ArtifactContent) -> list[dict[str, object]]:
+    if artifact.artifact_type != "slide_deck":
+        return artifact.sections
+    return [_without_teacher_only_section(section) for section in artifact.sections]
+
+
+def _without_teacher_only_section(section: dict[str, object]) -> dict[str, object]:
+    stripped = _without_teacher_only_values(section)
+    if isinstance(stripped, dict):
+        return stripped
+    return {}
+
+
+def _without_teacher_only_values(value: object) -> object:
+    if isinstance(value, list):
+        return [_without_teacher_only_values(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    return {
+        key: _without_teacher_only_values(item)
+        for key, item in value.items()
+        if key not in {"teacher_notes", "teacher_only"}
+    }
 
 
 def _decision(

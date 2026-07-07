@@ -21,6 +21,7 @@ export const BASE_CONFIG: IOptions = {
     "img", "figure", "figcaption",
     // semantic
     "blockquote", "pre", "code", "abbr", "mark", "time", "cite", "q",
+    "button",
     // layout
     "div", "br", "hr",
     // meta (for base.html <head>)
@@ -31,9 +32,10 @@ export const BASE_CONFIG: IOptions = {
       "class", "id", "lang", "dir",
       "aria-label", "aria-labelledby", "aria-describedby", "aria-hidden",
       "aria-expanded", "aria-controls", "aria-live", "aria-checked",
-      "role", "tabindex", "data-*",
+      "role", "tabindex", "data-*", "hidden",
     ],
     "a": ["href"],
+    "button": ["type", "disabled", "aria-disabled"],
     "img": ["src", "alt", "loading", "decoding", "width", "height"],
     "meta": ["charset", "name", "content", "http-equiv"],
     "link": ["rel", "type"],

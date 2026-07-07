@@ -9,7 +9,7 @@ from packages.agents.slide_deck_engine.policies import DensityBudgetPolicy, Page
 def audit_density_and_accessibility(deck: SlideDeckData) -> list[SlideDeckValidationReport]:
     alt_text_report = _check_alt_text(deck)
     return [
-        PageCountPolicy(min_slides=1, max_slides=12).evaluate(deck),
+        PageCountPolicy(min_slides=6, max_slides=12).evaluate(deck),
         DensityBudgetPolicy(max_blocks_per_slide=4, max_interactions_per_slide=2).evaluate(deck),
         alt_text_report,
     ]

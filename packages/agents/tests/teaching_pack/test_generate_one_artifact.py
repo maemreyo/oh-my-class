@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import pytest
 
+from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
 from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
+from packages.agents.teaching_pack.stages import StageEnum
+from packages.quality.layer2_content.pedagogical import check_pedagogical_metrics
 
 
 def _payload(artifact_type: str = "lesson") -> dict[str, object]:
@@ -15,6 +18,21 @@ def _payload(artifact_type: str = "lesson") -> dict[str, object]:
         "theme": "default",
         "revision_feedback": "",
         "dependency_artifacts": [],
+    }
+
+
+def _lesson_plan_with_bloom() -> dict[str, object]:
+    return {
+        "topic": "Fractions",
+        "grade_level": "Grade 6",
+        "learning_objectives": [
+            {"description": "Students understand fractions", "bloom_level": "understand"},
+            {"description": "Students apply fractions", "bloom_level": "apply"},
+        ],
+        "learning_plan": {
+            "present_content": "Model equivalent fractions.",
+            "elicit_performance": "Practice with feedback.",
+        },
     }
 
 
@@ -32,7 +50,10 @@ def _artifact(artifact_type: str = "lesson") -> dict[str, object]:
 
 @pytest.mark.anyio
 async def test_success_returns_chunk_and_passed_workflow_state(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured_state: dict[str, object] = {}
+
     async def fake_content_creator_node(state: dict[str, object]) -> dict[str, object]:
+        captured_state.update(state)
         assert state["artifact_types"] == ["lesson"]
         return {"artifacts": [_artifact("lesson")]}
 
@@ -43,6 +64,7 @@ async def test_success_returns_chunk_and_passed_workflow_state(monkeypatch: pyte
 
     result = await generate_one_artifact(_payload("lesson"))
 
+    assert captured_state["use_hierarchical_creator"] is True
     assert set(result) == {"artifact_chunks", "artifact_workflow_states"}
     assert result["artifact_chunks"] == [{**_artifact("lesson"), "artifact_generation_id": "gen-1"}]
     assert result["artifact_workflow_states"] == [{
@@ -52,6 +74,24 @@ async def test_success_returns_chunk_and_passed_workflow_state(monkeypatch: pyte
         "artifact_type": "lesson",
         "status": "passed",
     }]
+
+
+def test_hierarchical_artifact_carries_bloom_evidence_for_pedagogical_gate() -> None:
+    result = build_hierarchical_artifacts({
+        "lesson_plan": _lesson_plan_with_bloom(),
+        "research_bundle": {"key_findings": ["Fractions represent equal parts of a whole."], "sources": []},
+        "artifact_types": ["lesson"],
+        "theme": "default",
+        "run_id": "run-1",
+        "current_step": StageEnum.ARTIFACT_WORKFLOW,
+        "artifacts": [],
+    })
+
+    artifact = result["artifacts"][0]
+    pedagogical = check_pedagogical_metrics(artifact, lesson_plan=_lesson_plan_with_bloom())
+
+    assert artifact["metadata"]["covered_bloom_levels"] == ["understand", "apply"]
+    assert pedagogical.metrics["bloom_coverage"] == "passed"
 
 
 @pytest.mark.anyio

@@ -51,16 +51,68 @@ def _request_with_feedback(feedback: dict[str, str]) -> SlideDeckEngineRequest:
 
 def test_slide_deck_engine_returns_valid_deterministic_deck_without_llm() -> None:
     result = SlideDeckEngine().generate(_request())
+    slide_titles = [slide.title for slide in result.deck.slides]
 
     assert isinstance(result.deck, SlideDeckData)
     assert result.deck.deck_id == "slide-deck-run-slide-engine"
-    assert len(result.deck.slides) == 2
-    assert result.deck.slides[1].interactions[0].teacher_only is not None
+    assert slide_titles == ["Equivalent fractions", "Learning Goal", "Key Vocabulary", "Worked Example", "Guided Practice", "Exit Ticket"]
+    assert len(result.deck.slides) == 6
+    assert result.deck.slides[4].interactions[0].teacher_only is not None
     assert result.scorecard.overall_score == 1.0
     assert result.trace.llm_calls == 0
     assert result.trace.internal_only is True
     assert result.trace.model_cost_metadata == {"llm_calls": 0, "estimated_cost_usd": 0.0, "provider": "none"}
     assert result.trace.export_readiness_manifest["format"] == "html"
+    assert result.trace.export_readiness_manifest["slide_count"] == 6
+
+
+def test_slide_deck_engine_caps_deck_title_for_long_inferred_topics() -> None:
+    request = _request().model_copy(update={
+        "lesson_blueprint": {
+            "topic": "A" * 200,
+            "grade_level": "Grade 5",
+        "learning_objectives": [{"description": "Use the long topic in a slide deck."}],
+        },
+    })
+
+    result = SlideDeckEngine().generate(request)
+
+    assert len(result.deck.title) == 200
+    assert result.deck.title.endswith(" Slide Deck")
+    assert result.deck.slides[0].title == "A" * 200
+    assert result.deck.slides[1].title == "Learning Goal"
+
+
+def test_slide_deck_engine_cleans_teacher_request_before_materializing_student_slides() -> None:
+    raw_request = (
+        "LIVE_4OMC_SLIDE_DECK_SMOKE 49e877da-e109-42ac-849c-2a3d6fff3027: "
+        "Generate a slide deck for Grade 5 English ESL food vocabulary. "
+        "Include teachable slide titles, student-safe interactions, and teacher-only answers."
+    )
+    request = _request().model_copy(update={
+        "lesson_blueprint": {
+            "topic": raw_request,
+            "grade_level": "Grade 5",
+            "learning_objectives": [{"description": "Use food vocabulary in short ESL speaking exchanges."}],
+        },
+    })
+
+    result = SlideDeckEngine().generate(request)
+    student_surface = " ".join([
+        result.deck.title,
+        *[slide.title for slide in result.deck.slides],
+        *[block.body for slide in result.deck.slides for block in slide.blocks],
+        *[interaction.prompt for slide in result.deck.slides for interaction in (slide.interactions or [])],
+    ]).lower()
+
+    assert result.deck.title == "Grade 5 English ESL food vocabulary Slide Deck"
+    assert result.deck.slides[0].title == "Grade 5 English ESL food vocabulary"
+    assert len(result.deck.slides) >= 6
+    assert "food vocabulary" in student_surface
+    assert "live_4omc_slide_deck_smoke" not in student_surface
+    assert "49e877da-e109-42ac-849c-2a3d6fff3027" not in student_surface
+    assert "generate a slide deck" not in student_surface
+    assert "teacher-only answers" not in student_surface
 
 
 def test_slide_deck_engine_scorecard_complements_existing_layer4_judge_gate() -> None:
@@ -77,7 +129,7 @@ def test_slide_deck_engine_healing_maps_failures_to_scoped_repairs() -> None:
     crowded_slide = deck.slides[0].model_copy(
         update={"blocks": [*deck.slides[0].blocks, *deck.slides[0].blocks]},
     )
-    crowded_deck = deck.model_copy(update={"slides": [crowded_slide, deck.slides[1]]})
+    crowded_deck = deck.model_copy(update={"slides": [crowded_slide, *deck.slides[1:]]})
     validation = DensityBudgetPolicy(max_blocks_per_slide=2, max_interactions_per_slide=1).evaluate(crowded_deck)
 
     healing = build_healing_reports([validation])
@@ -94,13 +146,13 @@ def test_slide_deck_engine_healing_maps_failures_to_scoped_repairs() -> None:
 def test_slide_deck_engine_validators_report_pacing_and_source_failures() -> None:
     deck = SlideDeckEngine().generate(_request()).deck
     shifted_slide = deck.slides[1].model_copy(
-        update={"progression": deck.slides[1].progression.model_copy(update={"step_index": 5})},
+        update={"progression": deck.slides[1].progression.model_copy(update={"step_index": 7})},
     )
     missing_source_block = deck.slides[0].blocks[0].model_copy(update={"source_ref_ids": ["missing-source"]})
     missing_source_slide = deck.slides[0].model_copy(update={"blocks": [missing_source_block, deck.slides[0].blocks[1]]})
 
-    pacing = validate_pacing(deck.model_copy(update={"slides": [deck.slides[0], shifted_slide]}))
-    source_refs = validate_source_references(deck.model_copy(update={"slides": [missing_source_slide, deck.slides[1]]}))
+    pacing = validate_pacing(deck.model_copy(update={"slides": [deck.slides[0], shifted_slide, *deck.slides[2:]]}))
+    source_refs = validate_source_references(deck.model_copy(update={"slides": [missing_source_slide, *deck.slides[1:]]}))
 
     assert pacing.passed is False
     assert pacing.code == "pacing_mismatch"
@@ -131,7 +183,7 @@ def test_slide_deck_engine_trace_redacts_internal_artifacts() -> None:
 def test_slide_deck_engine_scoped_slide_density_feedback_preserves_siblings() -> None:
     result = SlideDeckEngine().generate(_request_with_feedback({
         "scope": "slide",
-        "slide_id": "slide-check",
+        "slide_id": "slide-practice",
         "reason": "Slide 4 is too dense; reduce the amount of classroom prompt text.",
     }))
 
@@ -139,8 +191,8 @@ def test_slide_deck_engine_scoped_slide_density_feedback_preserves_siblings() ->
 
     assert repair["requested_scope"] == "slide"
     assert repair["applied_scope"] == "slide"
-    assert repair["target_id"] == "slide-check"
-    assert repair["preserved_slide_ids"] == ["slide-title"]
+    assert repair["target_id"] == "slide-practice"
+    assert repair["preserved_slide_ids"] == ["slide-title", "slide-goal", "slide-vocabulary", "slide-example", "slide-exit"]
     assert result.deck.slides[0].title == "Equivalent fractions"
     assert result.scorecard.density_score == 1.0
 
@@ -153,13 +205,13 @@ def test_slide_deck_engine_scoped_interaction_answer_leak_feedback_preserves_sli
         "reason": "Answer leak risk: keep the answer out of the student surface.",
     }))
 
-    interaction = result.deck.slides[1].interactions[0]
+    interaction = result.deck.slides[4].interactions[0]
     repair = result.trace.scoped_regeneration_artifact
 
     assert repair["requested_scope"] == "interaction"
     assert repair["applied_scope"] == "block"
     assert repair["target_id"] == "interaction-check"
-    assert repair["preserved_slide_ids"] == ["slide-title"]
+    assert repair["preserved_slide_ids"] == ["slide-title", "slide-goal", "slide-vocabulary", "slide-example", "slide-exit"]
     assert interaction.teacher_only is not None
     assert interaction.teacher_only.rationale == "Answer remains in teacher-only projection after scoped feedback."
     assert result.scorecard.teacher_only_separation_score == 1.0
@@ -179,7 +231,7 @@ def test_slide_deck_engine_deck_level_style_feedback_preserves_artifacts_and_sli
     assert repair["requested_scope"] == "deck"
     assert repair["applied_scope"] == "deck"
     assert repair["preserved_non_slide_artifacts"] is True
-    assert repair["preserved_slide_ids"] == ["slide-title", "slide-check"]
+    assert repair["preserved_slide_ids"] == ["slide-title", "slide-goal", "slide-vocabulary", "slide-example", "slide-practice", "slide-exit"]
 
 
 def test_slide_deck_engine_escalates_scoped_feedback_when_plan_dependencies_change() -> None:
@@ -225,7 +277,7 @@ def test_slide_deck_interaction_registry_exposes_v1_modules() -> None:
 
 
 def test_page_count_policy_accepts_fixture_size_and_rejects_overflow() -> None:
-    policy = PageCountPolicy(min_slides=1, max_slides=2)
+    policy = PageCountPolicy(min_slides=6, max_slides=6)
     deck = SlideDeckEngine().generate(_request()).deck
 
     accepted = policy.evaluate(deck)

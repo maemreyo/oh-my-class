@@ -58,7 +58,7 @@ class FileSystemTeachingPackExportWriter:
             if snapshot_id not in approved_ids:
                 continue
             approved_snapshots.append(snapshot)
-            rendered_html = await self.renderer.render(_json_object(snapshot.get("content_json")))
+            rendered_html = await self.renderer.render(_snapshot_content(snapshot))
             export_path = export_dir / f"{snapshot_id}.html"
             export_path.write_text(rendered_html, encoding="utf-8")
             exported_files.append(str(export_path))
@@ -82,8 +82,21 @@ def _approved_snapshot_ids(state: JsonObject) -> set[str]:
 def _rendered_snapshots(state: JsonObject) -> list[JsonObject]:
     values = state.get("rendered_snapshots")
     if not isinstance(values, list):
+        approval_gate = _json_object(state.get("approval_gate"))
+        values = approval_gate.get("rendered_snapshots")
+    if not isinstance(values, list):
         return []
     return [_json_object(value) for value in values if isinstance(value, dict)]
+
+
+def _snapshot_content(snapshot: JsonObject) -> JsonObject:
+    content = _json_object(snapshot.get("content_json"))
+    if "artifact_type" in content:
+        return content
+    artifact_type = snapshot.get("artifact_type")
+    if not isinstance(artifact_type, str) or not artifact_type:
+        return content
+    return {**content, "artifact_type": artifact_type}
 
 
 _INLINE_ASSESSMENT_FORMATS: frozenset[str] = frozenset({"gift", "h5p", "qti"})

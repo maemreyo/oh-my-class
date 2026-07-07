@@ -1,0 +1,44 @@
+{
+  "base_url": "http://localhost:20228/v1",
+  "model": "4omc",
+  "gateway_url": "http://127.0.0.1:8103",
+  "mocking": "disabled",
+  "generate_pack": {
+    "result": "failed_live_artifact_output_smoke",
+    "runs": [
+      {
+        "name": "esl",
+        "run_id": "c2710607-e7a5-42c4-8cc8-122db5c378d6",
+        "status": "AWAITING_APPROVAL",
+        "job": "job-ce27e03b-fd4a-41aa-a0d7-4dd6099883b6",
+        "job_status": "running",
+        "evidence": "contract_confirmation responded; search plan skipped; no artifact snapshots/workflows/events beyond setup/search at inspection time; worker lease kept extending, indicating a stuck long-running start job."
+      },
+      {
+        "name": "science",
+        "run_id": "35788960-98af-41dc-b455-3878e3fd5325",
+        "status": "AWAITING_APPROVAL",
+        "job_status": "completed",
+        "real_llm_events": [
+          "researcher llm_call_started model=4omc transport=streaming",
+          "researcher llm_call_completed duration_s=47.5 response_chars=5340",
+          "content_creator attempts 1..3 model=4omc transport=streaming"
+        ],
+        "failure": "content_approval opened with snapshot_ids=[] because lesson generation failed after 3 JSONDecodeError attempts; worksheet and quiz skipped_due_dependency; approval API rejected empty snapshot_ids with 422."
+      }
+    ]
+  },
+  "plan_unit": {
+    "result": "contract_gate_only",
+    "run_id": "1f8e08f7-305b-4b4f-983d-5955a49271ab",
+    "status": "AWAITING_APPROVAL",
+    "gate": "contract_confirmation",
+    "contract_mode": "plan_unit",
+    "finding": "plan_unit is accepted and preserved in the contract, but no unit-planning runtime was driven before approval; AGENTS.md still describes plan_unit as proposed/not yet implemented."
+  },
+  "blockers": [
+    "Full generate_pack artifact-output smoke did not pass with live 4omc: no successful previews/exports were produced.",
+    "Gateway startup required explicit JWT_SECRET; without it /auth/login returned 500 before LLM execution.",
+    "Existing live probe script uses PEP 723 with no dependencies, so uv treated it as isolated and needed explicit --with sqlalchemy --with psycopg[binary]."
+  ]
+}
