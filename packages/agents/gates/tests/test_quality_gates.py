@@ -444,7 +444,12 @@ class TestAnswerKeyGuard:
         result = check_answer_key_leakage(artifact)
         assert result["passed"] is True
 
-    def test_nested_quiz_component_answer_fails(self):
+    def test_nested_quiz_component_answer_field_passes(self):
+        # A question_card's dedicated "answer" field is the sanctioned safe location
+        # for correct answers per prompt_contract.py ("Put answers/explanations in
+        # teacher_only sections or answer fields only") — it is excluded from student
+        # rendering by the renderer, not by this structural gate. Flagging it here
+        # would fail every real quiz/drill artifact.
         from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
         artifact = {
             "artifact_type": "quiz",
@@ -461,9 +466,10 @@ class TestAnswerKeyGuard:
             ],
         }
         result = check_answer_key_leakage(artifact)
-        assert result["passed"] is False
+        assert result["passed"] is True
 
-    def test_nested_question_list_answer_fails(self):
+    def test_nested_question_list_answer_field_passes(self):
+        # Same sanctioned pattern as above, via question_list's nested question_cards.
         from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage
         artifact = {
             "artifact_type": "drill",
@@ -481,7 +487,7 @@ class TestAnswerKeyGuard:
             ],
         }
         result = check_answer_key_leakage(artifact)
-        assert result["passed"] is False
+        assert result["passed"] is True
 
     def test_recap_student_type_with_answer_key_fails(self):
         from packages.agents.gates.presentation.answer_key_guard import check_answer_key_leakage

@@ -40,7 +40,7 @@
     ],
     "fast_lane_threshold_default": null
   },
-  "migration_count": 19,
+  "migration_count": 20,
   "models": {
     "assignments": {
       "blueprint_design": "4omc",
@@ -50,7 +50,6 @@
       "diagnostician": "4omc",
       "fact_verification": "4omc",
       "fast_default": "4omc",
-      "lead_agent": "4omc",
       "llm_judge": "4omc",
       "planner": "4omc",
       "quality_gate": "4omc",
@@ -166,6 +165,7 @@
       "post_blueprint_research",
       "artifact_workflow",
       "render_quality",
+      "compliance_gate",
       "teacher_approval",
       "export_finalize"
     ],
@@ -177,9 +177,12 @@
       "unit_prep",
       "preplanning_search",
       "planning_blueprint",
+      "provisional_component_strategy",
       "post_blueprint_research",
+      "finalize_component_strategy",
       "artifact_workflow",
       "render_quality",
+      "compliance_gate",
       "teacher_approval",
       "export_finalize"
     ]

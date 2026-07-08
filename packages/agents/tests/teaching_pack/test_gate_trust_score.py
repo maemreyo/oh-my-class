@@ -249,6 +249,7 @@ class TestTeacherApprovalFastLane:
         return {
             "run_id": "run-001",
             "contract": {"teacher_id": teacher_id},
+            "compliance_passed": True,
             "rendered_snapshots": [{"snapshot_id": "snap-1"}],
             "artifacts": [{"artifact_type": "lesson", "content": "hi"}],
             "quality_scores": {},
@@ -256,6 +257,9 @@ class TestTeacherApprovalFastLane:
 
     def test_auto_approves_when_trust_meets_threshold(self, monkeypatch):
         monkeypatch.setenv("GATE_FAST_LANE_THRESHOLD", "0.8")
+        # Fast lane still opens a visible gate (interrupt always fires so the
+        # graph can checkpoint/resume) — the UI auto-resumes on auto_approved.
+        monkeypatch.setattr("langgraph.types.interrupt", lambda payload: {})
         from packages.agents.teaching_pack.nodes import _teacher_approval
         events = [{"action": "approve", "artifact_types": []}] * 10
         store = _store_with_events("t1", "content_approval", events)
@@ -266,6 +270,7 @@ class TestTeacherApprovalFastLane:
 
     def test_auto_approve_records_event(self, monkeypatch):
         monkeypatch.setenv("GATE_FAST_LANE_THRESHOLD", "0.8")
+        monkeypatch.setattr("langgraph.types.interrupt", lambda payload: {})
         from packages.agents.teaching_pack.gate_trust import compute_trust_score
         from packages.agents.teaching_pack.nodes import _teacher_approval
         events = [{"action": "approve", "artifact_types": []}] * 10

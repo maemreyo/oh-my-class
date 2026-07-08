@@ -146,12 +146,10 @@ def _check_misconception_coverage(content: dict[str, Any]) -> PedagogicalMetric:
     question_cards = [item for item in components if item.get("type") == "question_card"]
     if not question_cards:
         return _passed("misconception_coverage")
-    # wrong_reasons=None means not provided (optional field — allowed by schema).
-    # Only fail when it's explicitly an empty dict {}, indicating the LLM attempted but omitted all reasons.
     missing = [
         str(item.get("id", "unknown"))
         for item in question_cards
-        if item.get("wrong_reasons") is not None and not item.get("wrong_reasons")
+        if not item.get("wrong_reasons")
     ]
     if not missing:
         return _passed("misconception_coverage")

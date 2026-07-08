@@ -18,6 +18,7 @@ def test_single_lesson_stage_order():
         "post_blueprint_research",
         "artifact_workflow",
         "render_quality",
+        "compliance_gate",
         "teacher_approval",
         "export_finalize",
     ]
@@ -39,8 +40,8 @@ def test_no_duplicate_stages():
 
 
 def test_stage_count():
-    """Exactly 9 stages in the single-lesson pipeline (includes TRIAGE)."""
-    assert len(TEACHING_PACK_STAGES) == 9
+    """Exactly 10 stages in the single-lesson pipeline (includes TRIAGE, COMPLIANCE_GATE)."""
+    assert len(TEACHING_PACK_STAGES) == 10
 
 
 def test_stage_event_names_are_consistent():

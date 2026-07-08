@@ -40,7 +40,11 @@ async def test_strategy_plan_reaches_artifact_workflow_selected_components(stub_
     assert [component["type"] for component in selected] == ["contrastive_pairs", "vocab_cluster"]
 
 
-async def test_final_strategy_stage_creates_blueprint_payload_then_routes_to_artifacts() -> None:
+async def test_final_strategy_stage_creates_blueprint_payload_then_routes_to_artifacts(monkeypatch) -> None:
+    from packages.agents.config.features import reset_features
+
+    monkeypatch.setenv("FEATURE_COMPONENT_STRATEGIST_V1", "true")
+    reset_features()
     stage_node = make_stage_node(TeachingPackStage.FINALIZE_COMPONENT_STRATEGY)
     result = await stage_node(TeachingPackState(
         run_id="cs08-stage-flow",
@@ -70,6 +74,7 @@ async def test_final_strategy_stage_creates_blueprint_payload_then_routes_to_art
         component_strategy_plan=result["component_strategy_plan"],
         artifacts=[],
     )) == "artifact_workflow"
+    reset_features()
 
 
 async def test_flag_off_and_old_planless_runs_still_generate_artifacts(stub_section_prose) -> None:

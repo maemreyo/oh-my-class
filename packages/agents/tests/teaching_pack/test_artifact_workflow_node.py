@@ -86,6 +86,7 @@ class TestTeachingPackArtifactWorkflow:
             "revision_feedback": "",
             "use_hierarchical_creator": True,
             "component_effectiveness": {},
+            "component_strategy_plan": {},
         }]
         assert _artifacts(result)[0].get("title") == "Generated Lesson"
         assert _artifacts(result)[0].get("status") == "ready"

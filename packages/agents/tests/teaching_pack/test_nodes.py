@@ -133,7 +133,11 @@ class TestTeachingPackPlanningResearch:
         assert research_brief.get("topic") == "Fractions"
 
     @pytest.mark.anyio
-    async def test_provisional_component_strategy_stores_research_guidance_without_plan(self) -> None:
+    async def test_provisional_component_strategy_stores_research_guidance_without_plan(self, monkeypatch) -> None:
+        from packages.agents.config.features import reset_features
+
+        monkeypatch.setenv("FEATURE_COMPONENT_STRATEGIST_V1", "true")
+        reset_features()
         stage_node = make_stage_node(TeachingPackStage.PROVISIONAL_COMPONENT_STRATEGY)
 
         result = await stage_node(TeachingPackState(
@@ -161,6 +165,7 @@ class TestTeachingPackPlanningResearch:
         assert result.get("component_strategy_research_questions")
         assert result.get("component_strategy_hypotheses")
         assert result["current_stage"] is StageEnum.PROVISIONAL_COMPONENT_STRATEGY
+        reset_features()
 
     @pytest.mark.anyio
     async def test_post_blueprint_research_receives_strategy_questions(self, monkeypatch) -> None:
@@ -191,7 +196,11 @@ class TestTeachingPackPlanningResearch:
         }
 
     @pytest.mark.anyio
-    async def test_final_component_strategy_stores_plan_and_summary(self) -> None:
+    async def test_final_component_strategy_stores_plan_and_summary(self, monkeypatch) -> None:
+        from packages.agents.config.features import reset_features
+
+        monkeypatch.setenv("FEATURE_COMPONENT_STRATEGIST_V1", "true")
+        reset_features()
         stage_node = make_stage_node(TeachingPackStage.FINALIZE_COMPONENT_STRATEGY)
 
         result = await stage_node(TeachingPackState(
@@ -232,9 +241,14 @@ class TestTeachingPackPlanningResearch:
             "reject_learning_move",
         ]
         assert result["current_stage"] is StageEnum.FINALIZE_COMPONENT_STRATEGY
+        reset_features()
 
     @pytest.mark.anyio
-    async def test_final_component_strategy_normalizes_objective_refs_across_reorder(self) -> None:
+    async def test_final_component_strategy_normalizes_objective_refs_across_reorder(self, monkeypatch) -> None:
+        from packages.agents.config.features import reset_features
+
+        monkeypatch.setenv("FEATURE_COMPONENT_STRATEGIST_V1", "true")
+        reset_features()
         stage_node = make_stage_node(TeachingPackStage.FINALIZE_COMPONENT_STRATEGY)
         base_state = {
             "run_id": "run-strategy-lineage",
@@ -282,6 +296,7 @@ class TestTeachingPackPlanningResearch:
         first_refs = {ref["objective_id"] for ref in first["component_strategy_plan"]["objective_refs"]}
         reordered_refs = {ref["objective_id"] for ref in reordered["component_strategy_plan"]["objective_refs"]}
         assert first_refs == reordered_refs
+        reset_features()
 
 
 class TestTeachingPackApprovalExport:
@@ -506,8 +521,8 @@ class TestTeachingPackApprovalExport:
         nodes._teacher_approval(TeachingPackState(
             run_id="run-explain-revisions",
             artifacts=[
-                {"artifact_id": "quiz-1", "artifact_type": "quiz", "revision_count": 3},
-                {"artifact_id": "worksheet-1", "artifact_type": "worksheet"},
+                {"artifact_id": "quiz-1", "artifact_type": "quiz", "title": "Quiz", "revision_count": 3},
+                {"artifact_id": "worksheet-1", "artifact_type": "worksheet", "title": "Worksheet"},
             ],
             artifact_revision_counts={"worksheet-1": 5},
             artifact_generation_revision=1,

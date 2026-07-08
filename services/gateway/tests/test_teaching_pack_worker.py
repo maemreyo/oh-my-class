@@ -140,7 +140,7 @@ class TestTeachingPackWorker:
         assert did_work is True
         assert executor.start_jobs == [TeachingPackStartJob(
             run_id=run_id,
-            initial_state={"run_id": run_id, "contract": contract},
+            initial_state={"run_id": run_id, "contract": contract, "raw_request": "Fractions"},
         )]
         await _delete_run(session, run_id)
 

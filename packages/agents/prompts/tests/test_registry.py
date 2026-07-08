@@ -477,7 +477,7 @@ class TestSeedData:
     """Tests for initial prompt module seed data."""
 
     def test_seed_count(self) -> None:
-        assert len(SEED_MODULES) == 6
+        assert len(SEED_MODULES) == 7
 
     def test_seed_ids(self) -> None:
         ids = {m.id for m in SEED_MODULES}
@@ -485,6 +485,7 @@ class TestSeedData:
             "planner_v1",
             "content_creator_mcq_v1",
             "content_creator_lesson_v1",
+            "content_creator_flashcard_v1",
             "researcher_v1",
             "judge_v1",
             "repair_v1",

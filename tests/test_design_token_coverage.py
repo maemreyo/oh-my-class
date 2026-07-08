@@ -35,7 +35,10 @@ def _used_tokens() -> set[str]:
     for root in SCANNED_ROOTS:
         for file_path in _source_files(root):
             source = file_path.read_text(encoding="utf-8")
-            source = re.sub(r"var\(\s*--c-<%=[^)]+\)", "", source)
+            # EJS placeholders like var(--art-<%= s.cat %>) interpolate the token
+            # name at render time; strip them so the raw "--art-" fragment isn't
+            # mistaken for a literal, undeclared token.
+            source = re.sub(r"var\(\s*--(?:c|art)-<%=[^)]+\)", "", source)
             tokens.update(USED_TOKEN_PATTERN.findall(source))
     return tokens
 
@@ -51,9 +54,37 @@ def _declared_tokens() -> set[str]:
         tokens.update(DECLARED_TOKEN_PATTERN.findall(file_path.read_text(encoding="utf-8")))
     for theme_path in Path("packages/renderer/src/theme/themes").glob("*.json"):
         tokens.update(_renderer_tokens_from_theme(json.loads(theme_path.read_text(encoding="utf-8"))))
+    tokens.update(_artifact_ui_declared_tokens())
     tokens.update(_inverse_thinking_local_tokens())
     tokens.update(_renderer_static_tokens())
+    tokens.update(_artifact_ui_component_hook_tokens())
     return tokens
+
+
+def _artifact_ui_declared_tokens() -> set[str]:
+    """--art-*/--nt-*/--if-*/--tr-* tokens declared by the artifact-ui design system."""
+    tokens: set[str] = set()
+    artifact_ui = Path("packages/renderer/src/artifact-ui")
+    for sub_dir in ("tokens", "families"):
+        for file_path in (artifact_ui / sub_dir).glob("*.css"):
+            tokens.update(DECLARED_TOKEN_PATTERN.findall(file_path.read_text(encoding="utf-8")))
+    tokens.update(DECLARED_TOKEN_PATTERN.findall((artifact_ui / "primitives.css").read_text(encoding="utf-8")))
+    return tokens
+
+
+def _artifact_ui_component_hook_tokens() -> set[str]:
+    # ponytail: component-level override hooks (see DESIGN.md's PRIMITIVES ->
+    # SEMANTIC -> COMPONENT chain). They're only ever consumed as
+    # var(--hook, var(--art-fallback)), so callers may set them inline per
+    # instance; there's no base declaration to point at. Extend this set if a
+    # new optional per-instance accent hook is added.
+    return {
+        "--card-accent",
+        "--chain-accent",
+        "--phase-color",
+        "--quote-accent",
+        "--stub-accent",
+    }
 
 
 def _source_files(root: Path) -> list[Path]:

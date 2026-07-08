@@ -47,7 +47,7 @@ async def test_hierarchical_content_creator_returns_slide_deck_artifact() -> Non
 
     assert artifact["artifact_type"] == "slide_deck"
     assert artifact["metadata"]["slide_deck_data"]["deck_id"] == "slide-deck-run-slide-tracer"
-    assert artifact["sections"][0]["slide_deck"]["slides"][1]["interactions"][0]["teacher_only"]["separation"] == "teacher_only_projection"
+    assert artifact["sections"][0]["slide_deck"]["slides"][4]["interactions"][0]["teacher_only"]["separation"] == "teacher_only_projection"
 
 
 @pytest.mark.anyio

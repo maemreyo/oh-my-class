@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import get_args
+
 import pytest
 
 from packages.exporters.unit_packager import SessionExportResult, UnitBundleResult, UnitPackager
@@ -39,7 +41,9 @@ class TestExportFormatEnumUnchanged:
         try:
             from services.gateway.teaching_pack_export_writer import ExportFormat
             known_values = {"html", "gift", "h5p", "qti", "google_forms", "anki_apkg", "flashcard_tsv"}
-            actual_values = {e.value for e in ExportFormat}
+            # ExportFormat is a PEP 695 `type` alias (Literal[...]), not an Enum —
+            # use get_args instead of iterating it directly.
+            actual_values = set(get_args(ExportFormat))
             new_values = actual_values - known_values
             assert not new_values, (
                 f"ExportFormat gained unexpected new values: {new_values}. "

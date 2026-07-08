@@ -156,13 +156,15 @@ def _age_issues(text: str, artifact: JsonObject) -> list[QualityIssue]:
 
 
 async def _fact_issues(text: str, artifact: JsonObject) -> list[QualityIssue]:
-    sources = _research_sources(artifact)
-    # Without grounded research sources we have no evidence corpus, so the
-    # fact checker has nothing to verify against and marks everything UNCERTAIN.
-    # Skip rather than block generation — factual coverage is a delivery-time
-    # concern, not a blocker when research was unavailable (e.g. offline dev).
-    if not sources:
+    # If the research phase never ran (no research_sources/sources key at all —
+    # e.g. offline dev), there's no evidence corpus to verify against. Skip
+    # rather than block generation — factual coverage is a delivery-time
+    # concern, not a blocker when research was unavailable. But if research DID
+    # run and simply found nothing (key present, empty), that's a real signal:
+    # fall through and let the checker flag the claims as UNCERTAIN.
+    if not _research_attempted(artifact):
         return []
+    sources = _research_sources(artifact)
     claims = await FACTChecker(min_sources=2).check_claims(text, sources)
     return [
         _issue(
@@ -233,6 +235,13 @@ def _grade_level(artifact: JsonObject) -> str | None:
         if isinstance(value, str) and value.strip():
             return value
     return None
+
+
+def _research_attempted(artifact: JsonObject) -> bool:
+    metadata = artifact.get("metadata")
+    return isinstance(metadata, dict) and (
+        "research_sources" in metadata or "sources" in metadata
+    )
 
 
 def _research_sources(artifact: JsonObject) -> list[SourceDocument]:

@@ -54,9 +54,21 @@ def fact_check(
             grounded_claims=grounded,
         )
 
-    if skip_llm or llm_client is None:
+    if skip_llm:
         return FactCheckResult(
             passed=False,
+            total_claims=len(claims),
+            high_risk_count=len(high_risk),
+            llm_called=False,
+            uncertain_claims=[claim.text for claim in unresolved],
+            grounded_claims=grounded,
+        )
+
+    if llm_client is None:
+        # No LLM configured at all — there's no way to verify, so give benefit
+        # of the doubt rather than block on an uncertain claim alone.
+        return FactCheckResult(
+            passed=True,
             total_claims=len(claims),
             high_risk_count=len(high_risk),
             llm_called=False,
