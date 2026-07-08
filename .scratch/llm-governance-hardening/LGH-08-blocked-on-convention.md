@@ -1,6 +1,6 @@
 ---
 title: "BLOCKED-ON marker convention + listing script; apply to ownership.py's organization_id gap"
-status: ready-for-agent
+status: done
 labels: [governance, process, auth]
 created: 2026-07-08
 priority: p2
@@ -19,10 +19,19 @@ sequence: 8
 
 ## Acceptance criteria
 
-- [ ] `# BLOCKED-ON:` convention documented.
-- [ ] Listing script implemented and run once to confirm it finds the marker added in step 3.
-- [ ] `ownership.py` carries the marker with a working reference to the tracking issue.
-- [ ] `.scratch/multi-tenancy/organization-id-migration.md` exists with `status: ready` (not `ready-for-agent` — needs product/data-model scoping first) and cross-references ADR-047 Decision #9 and this issue.
+- [x] `# BLOCKED-ON:` convention documented.
+- [x] Listing script implemented and run once to confirm it finds the marker added in step 3.
+- [x] `ownership.py` carries the marker with a working reference to the tracking issue.
+- [x] `.scratch/multi-tenancy/organization-id-migration.md` exists with `status: ready` (not `ready-for-agent` — needs product/data-model scoping first) and cross-references ADR-047 Decision #9 and this issue.
+
+> Done (2026-07-08): convention documented in `tests/test_no_dark_runtime_modules.py`'s
+> module docstring, next to `KNOWN_DARK` (no separate shared conventions doc existed
+> to reuse — `.scratch/README.md` only covers the issue `status` field). Added
+> `scripts/list_blocked_on_markers.py` (informational, always exits 0) and confirmed
+> it finds the one marker now in the tree: `services/gateway/auth/ownership.py:42`
+> above `_check_same_organization`. `.scratch/multi-tenancy/organization-id-migration.md`
+> already existed from a prior pass and matches (status: ready, cross-references
+> ADR-047 Decision #9 and this issue).
 
 ## Blocked by
 

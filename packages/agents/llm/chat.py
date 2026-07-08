@@ -3,17 +3,16 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING, Final
 
-from openai import OpenAIError
-
 from packages.agents.llm.chat_context import CallContext, TransportResult, build_call_context
 from packages.agents.llm.error_summary import safe_error_summary
 from packages.agents.observability import trace_llm_call
 from packages.llm_client.client import ChatMessage, LLMClient
+from packages.llm_client.errors import OpenAIError
 
 if TYPE_CHECKING:
     import logging
 
-    from openai.types.chat import (
+    from packages.llm_client.client import (
         ChatCompletionMessageParam,
         ChatCompletionSystemMessageParam,
         ChatCompletionUserMessageParam,

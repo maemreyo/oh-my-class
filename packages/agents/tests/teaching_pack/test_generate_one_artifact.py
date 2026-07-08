@@ -76,8 +76,8 @@ async def test_success_returns_chunk_and_passed_workflow_state(monkeypatch: pyte
     }]
 
 
-def test_hierarchical_artifact_carries_bloom_evidence_for_pedagogical_gate() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_artifact_carries_bloom_evidence_for_pedagogical_gate(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan_with_bloom(),
         "research_bundle": {"key_findings": ["Fractions represent equal parts of a whole."], "sources": []},
         "artifact_types": ["lesson"],

@@ -9,7 +9,26 @@ from packages.agents.sub_agents.planner.lesson_consistency_validator import (
 )
 from packages.agents.sub_agents.planner.lesson_critic import CritiqueSeverity, critique_lesson
 from packages.agents.sub_agents.planner.nodes import planner_node
+from packages.agents.sub_agents.planner.staged_engine import has_curriculum_coverage
 from packages.agents.teaching_pack.stages import StageEnum
+
+
+def test_has_curriculum_coverage_true_for_parseable_grade() -> None:
+    """LIC-04: a request with a parseable grade gets at least partial grounding."""
+    assert has_curriculum_coverage({
+        "raw_request": "Teach equivalent fractions",
+        "class_info": {"grade_band": "Grade 5", "subject": "math", "language": "en", "topic": "Fractions"},
+    })
+
+
+def test_has_curriculum_coverage_false_for_unparseable_grade() -> None:
+    """LIC-04: the real fallback condition (ADR-048) — an unparseable grade has
+    nothing curriculum-specific to template against, so the planner should route
+    to the real LLM branch instead of a generic boilerplate staged plan."""
+    assert not has_curriculum_coverage({
+        "raw_request": "Teach something",
+        "class_info": {"grade_band": "Unknown", "subject": "general", "language": "en"},
+    })
 
 
 @pytest.mark.asyncio

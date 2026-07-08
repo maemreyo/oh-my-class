@@ -28,10 +28,18 @@ _BASE_CRITERIA: list[RubricCriterion] = [
         name="format_compliance",
         weight=0.15,
         levels=[
-            RubricLevel(score=0, description="Missing required structure elements"),
-            RubricLevel(score=5, description="Partial structure, some elements missing"),
-            RubricLevel(score=10, description="All required structural elements present"),
+            RubricLevel(score=0, description="Missing required pedagogical structure (no title, no sections, no objective coverage)"),
+            RubricLevel(score=5, description="Partial structure, some sections/objectives missing"),
+            RubricLevel(score=10, description="All required sections/objectives present"),
         ],
+        descriptors={
+            "scope_note": (
+                "Judge JSON content structure only (title, sections, objective coverage). "
+                "This artifact is pre-render — HTML/DOCTYPE, brand string, external assets, "
+                "and native-input compliance are validated separately by deterministic gates "
+                "downstream and are OUT OF SCOPE here; do not penalize their absence."
+            ),
+        },
     ),
     RubricCriterion(
         name="content_quality",
@@ -132,6 +140,7 @@ def _build_criteria_for_type(
                 name=base.name,
                 weight=weights.get(base.name, base.weight),
                 levels=list(base.levels),
+                descriptors=base.descriptors,
             )
         )
 

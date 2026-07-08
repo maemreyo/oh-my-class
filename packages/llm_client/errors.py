@@ -5,6 +5,8 @@ PermanentProviderError  → non-retryable (bad prompt, schema validation, budget
 """
 from __future__ import annotations
 
+from openai import OpenAIError as OpenAIError  # re-exported for callers outside llm_client
+
 
 class LLMProviderError(Exception):
     """Base for all LLM transport errors."""

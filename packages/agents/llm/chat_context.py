@@ -16,7 +16,7 @@ from packages.agents.llm.transport_policy import (
 )
 
 if TYPE_CHECKING:
-    from openai.types.chat import ChatCompletionMessageParam
+    from packages.llm_client.client import ChatCompletionMessageParam
 
 _AGENT_MAX_TOKENS: dict[str, int] = {
     "planner": MAX_TOKENS.planner,

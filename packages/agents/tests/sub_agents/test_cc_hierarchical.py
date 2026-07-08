@@ -6,8 +6,8 @@ from packages.agents.sub_agents.content_creator.hierarchical import build_hierar
 from packages.agents.teaching_pack.stages import StageEnum
 
 
-def test_hierarchical_creator_outlines_then_fills_sections() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_outlines_then_fills_sections(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["lesson"],
@@ -25,8 +25,8 @@ def test_hierarchical_creator_outlines_then_fills_sections() -> None:
     assert all(section["metadata"]["filled_independently"] for section in artifact["sections"])
 
 
-def test_hierarchical_creator_marks_failed_section_needs_regen() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_marks_failed_section_needs_regen(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["lesson", "quiz"],
@@ -46,8 +46,8 @@ def test_hierarchical_creator_marks_failed_section_needs_regen() -> None:
     assert lesson["metadata"]["generation_status"] == "needs_regen"
 
 
-def test_hierarchical_creator_enforces_guards_and_verified_facts() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_enforces_guards_and_verified_facts(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": {
             "topic": "Fractions",
@@ -69,8 +69,8 @@ def test_hierarchical_creator_enforces_guards_and_verified_facts() -> None:
     assert "Fractions always have different values" not in content
     assert artifact["metadata"]["grounding_status"] == "verified_subset"
 
-def test_hierarchical_creator_fills_selected_vocabulary_strategy_components() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_fills_selected_vocabulary_strategy_components(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["lesson"],
@@ -91,8 +91,8 @@ def test_hierarchical_creator_fills_selected_vocabulary_strategy_components() ->
     assert artifact["metadata"]["component_strategy"]["slot_ids"] == ["slot-vocab", "slot-contrast"]
     assert all(component["strategy_slot_id"] in {"slot-vocab", "slot-contrast"} for component in components)
 
-def test_hierarchical_creator_fills_selected_exam_strategy_components() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_fills_selected_exam_strategy_components(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["quiz"],
@@ -116,8 +116,8 @@ def test_hierarchical_creator_fills_selected_exam_strategy_components() -> None:
     assert len(questions) == 2
     assert artifact["metadata"]["component_strategy"]["slot_ids"] == ["slot-questions"]
 
-def test_hierarchical_creator_fills_selected_concept_strategy_components() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_fills_selected_concept_strategy_components(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["lesson"],
@@ -136,8 +136,8 @@ def test_hierarchical_creator_fills_selected_concept_strategy_components() -> No
     assert components[0]["strategy_slot_id"] == "slot-flow"
     assert components[0]["steps"]
 
-def test_hierarchical_creator_records_typed_fallback_for_unsupported_strategy_component() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_records_typed_fallback_for_unsupported_strategy_component(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["lesson"],
@@ -161,8 +161,8 @@ def test_hierarchical_creator_records_typed_fallback_for_unsupported_strategy_co
     }
     assert _strategy_components(artifact)[0]["type"] == "callout"
 
-def test_hierarchical_creator_does_not_silently_downgrade_selected_component_to_prose() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_does_not_silently_downgrade_selected_component_to_prose(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["lesson"],
@@ -181,8 +181,8 @@ def test_hierarchical_creator_does_not_silently_downgrade_selected_component_to_
     assert all(component["type"] != "paragraph" for component in selected_components)
 
 
-def test_hierarchical_creator_preserves_supporting_micro_component_lineage() -> None:
-    result = build_hierarchical_artifacts({
+async def test_hierarchical_creator_preserves_supporting_micro_component_lineage(stub_section_prose) -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["lesson"],
@@ -205,9 +205,9 @@ def test_hierarchical_creator_preserves_supporting_micro_component_lineage() -> 
     assert micro["strategy_parent_slot_id"] == "slot-parent"
 
 
-def test_hierarchical_creator_fails_hard_on_missing_methodology_component() -> None:
+async def test_hierarchical_creator_fails_hard_on_missing_methodology_component(stub_section_prose) -> None:
     with pytest.raises(ValueError, match="methodology component"):
-        build_hierarchical_artifacts({
+        await build_hierarchical_artifacts({
             "lesson_plan": {
                 **_lesson_plan(),
                 "methodology": {"tags": ["inverse_thinking"]},

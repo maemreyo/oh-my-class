@@ -1,9 +1,23 @@
 from __future__ import annotations
 
+from unittest.mock import AsyncMock
+
 import pytest
 
+from common.contracts.quality import ArtifactQualityReport
 from packages.agents.teaching_pack.nodes import JsonObject, TeachingPackState, _render_quality
 from packages.agents.teaching_pack.stages import StageEnum
+
+
+def _passing_gate() -> AsyncMock:
+    """These tests exercise artifact_workflow wiring (delegation, stable IDs,
+    answer-key marking), not reviewer content quality (LIC-01) — stub the gate
+    so they stay fast/deterministic instead of depending on a live LLM judge."""
+    gate = AsyncMock()
+    gate.evaluate.return_value = ArtifactQualityReport(
+        artifact_id="stub", artifact_type="lesson", passed=True, issues=[],
+    )
+    return gate
 
 
 def _artifacts(result: TeachingPackState) -> list[JsonObject]:
@@ -107,7 +121,7 @@ class TestTeachingPackArtifactWorkflow:
         render_result = await _render_quality(TeachingPackState(
             run_id="run-normalize",
             artifacts=_artifacts(result),
-        ))
+        ), quality_gate=_passing_gate())
 
         assert _artifacts(result)[0].get("artifact_id") == "lesson-1"
         snapshots = render_result.get("rendered_snapshots", [])
@@ -149,7 +163,7 @@ class TestTeachingPackArtifactWorkflow:
         render_result = await _render_quality(TeachingPackState(
             run_id="run-answer-key",
             artifacts=_artifacts(result),
-        ))
+        ), quality_gate=_passing_gate())
 
         sections = _json_list(_artifacts(result)[0], "sections")
         assert sections[1].get("teacher_only") is True
@@ -191,7 +205,7 @@ class TestTeachingPackArtifactWorkflow:
         render_result = await _render_quality(TeachingPackState(
             run_id="run-correct-answer",
             artifacts=_artifacts(result),
-        ))
+        ), quality_gate=_passing_gate())
 
         sections = _json_list(_artifacts(result)[0], "sections")
         assert sections[1].get("teacher_only") is True

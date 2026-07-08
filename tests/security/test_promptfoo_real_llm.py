@@ -16,20 +16,20 @@ only asserted the command-line args were constructed correctly — it never
 ran Promptfoo for real, matching the 2026-07-01 audit's exact finding
 ("promptfoo.yaml never invoked... comment only, no CI step").
 
-Scope of this test, after 9 live runs of evidence (2026-07-08): it proves
-the suite genuinely executes against 9Router (zero provider/runner errors,
-zero mocks) — it does NOT gate on individual red-team pass/fail. Every one
-of the 5 scenarios in promptfoo.yaml has been observed to fail at least once
-across those runs, on a DIFFERENT scenario each time — single-sample
-LLM-output assertions are not a reliable hard gate at this model's current
-sampling behavior, even at temperature=0. A per-case allow-list was tried
-and abandoned (whack-a-mole: a case not yet on the list just fails next
-time). Per-test-case findings are printed in full for human review on every
-run; hardening individual scenarios is tracked separately (see
-.scratch/content-safety/CS-01-sensitive-topic-system-prompt-hardening.md for
-the first one). Making red-team results a real pass/fail gate would need
-N-sample majority voting per case — a real design task of its own, not
-something to bolt on reactively here.
+Scope of `test_promptfoo_security_suite_runs_against_live_9router`, after 9 live
+runs of evidence (2026-07-08): it proves the suite genuinely executes against
+9Router (zero provider/runner errors, zero mocks) — it does NOT gate on
+individual red-team pass/fail. Every one of the 5 scenarios in promptfoo.yaml
+has been observed to fail at least once across those runs, on a DIFFERENT
+scenario each time — single-sample LLM-output assertions are not a reliable
+hard gate at this model's current sampling behavior, even at temperature=0.
+
+`test_promptfoo_security_suite_majority_vote_gate` (LIC-09, added 2026-07-08)
+is the real hard gate: uses promptfoo's own native `--repeat` flag (not a
+custom Python retry loop) to run every scenario N times, then requires a
+strict majority to pass per scenario via `majority_vote_by_scenario`. This
+replaces the "report only" approach for CI/release-gate purposes; the
+report-only test above stays as a cheap "did it even run" smoke check.
 """
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.security.promptfoo_runner import run_promptfoo_security_suite
+from tests.security.promptfoo_runner import majority_vote_by_scenario, run_promptfoo_security_suite
 
 CONFIG_PATH = Path("tests/security/promptfoo.yaml")
 
@@ -80,3 +80,24 @@ def test_promptfoo_security_suite_runs_against_live_9router(tmp_path) -> None:
             f"{stats['successes'] + stats['failures']}) — for human review, "
             f"not a test failure (see module docstring):\n" + "\n".join(findings)
         )
+
+
+@pytest.mark.real_llm
+def test_promptfoo_security_suite_majority_vote_gate(tmp_path) -> None:
+    """LIC-09: the real hard gate — each scenario must win a strict majority
+    across N repeats (promptfoo's native --repeat), not a single sample."""
+    output_path = tmp_path / "promptfoo_result.json"
+    result = run_promptfoo_security_suite(CONFIG_PATH, output_path=output_path, repeat=3)
+
+    report = json.loads(output_path.read_text(encoding="utf-8")) if output_path.exists() else None
+    assert report is not None, (
+        f"promptfoo produced no readable output:\nstdout={result.stdout}\nstderr={result.stderr}"
+    )
+
+    verdicts = majority_vote_by_scenario(report)
+    failed_scenarios = [description for description, passed in verdicts.items() if not passed]
+
+    assert not failed_scenarios, (
+        f"these scenarios failed a majority vote across 3 repeats: {failed_scenarios}\n"
+        f"(a single bad sample no longer fails this gate — a majority must fail)"
+    )

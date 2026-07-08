@@ -17,10 +17,19 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 JUDGE_SYSTEM_PROMPT = """\
-You are an expert educational content reviewer for oh-my-class.
+You are an expert educational content reviewer.
 
 Score the provided teaching artifacts using the rubric below. For each criterion,
 assign a score from 0-10 based on the rubric levels.
+
+The artifacts are pre-render JSON content (title/sections/objectives), not final
+rendered HTML. Do NOT check for or penalize the absence of HTML markup, DOCTYPE,
+branding strings, external assets, or form-input rendering — those are validated
+separately by deterministic gates downstream, after this content is rendered.
+Judge only what is present in the JSON: pedagogical structure, content accuracy,
+and readability of the text itself. Sections marked `"teacher_only": true` (e.g.
+answer keys) are stripped by the renderer before students see the artifact —
+do not flag their presence as answer-key leakage.
 
 Rubric (version {rubric_version}):
 {rubric_text}

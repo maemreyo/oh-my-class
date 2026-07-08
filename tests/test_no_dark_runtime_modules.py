@@ -18,6 +18,22 @@ Two ledgers, kept honest against the source tree:
 
 A "caller" = a reference to the symbol in a non-test runtime ``.py`` file **other than
 the symbol's own defining module**. ``__init__.py`` re-exports do NOT count as wiring.
+
+Adjacent but distinct convention — ``# BLOCKED-ON:`` markers
+--------------------------------------------------------------
+``KNOWN_DARK`` is for code with zero callers at all. Some code, though, has a caller
+and is correctly implemented, but one specific branch is permanently unreachable
+pending external work (a migration, another team's deliverable, etc.) — not dark,
+just fail-closed until that dependency lands. Mark that branch with a comment:
+
+    # BLOCKED-ON: <short description> (see <.scratch path or issue id>)
+
+placed directly above the blocked code. This is distinct from ``TODO`` (implies "not
+yet written") and from dead code (implies "should be removed") — the code here is
+finished and correct, just inert until the referenced work ships. See
+``services/gateway/auth/ownership.py``'s ``_check_same_organization`` for a live
+example, and ``scripts/list_blocked_on_markers.py`` for a standing report of every
+marker in the tree.
 """
 
 from __future__ import annotations
@@ -53,6 +69,22 @@ REQUIRE_WIRED: tuple[tuple[str, str], ...] = (
     # guard against the module regressing to genuinely dark/unwired.
     ("trace_llm_call", "packages/agents/observability/tracing.py"),
     ("get_langfuse_client", "packages/agents/observability/langfuse_client.py"),
+    # LIC-01 (2026-07-08 grill session): AdaptiveJudge's G-Eval judge, wired
+    # into quality_runtime.render_quality as the real content/pedagogy/
+    # presentation gate, replacing the LiveReviewerQualityGate heuristic as
+    # the sole arbiter (heuristic stays on as a cheap format/PII pre-filter).
+    ("reviewer_node", "packages/agents/sub_agents/reviewer/nodes.py"),
+    # LIC-06 (2026-07-08 grill session): advisory cross-session coherence lint,
+    # wired into unit_planner_node's output (non-blocking — see the module's
+    # own docstring: warnings never affect exportability).
+    ("run_coherence_lint", "packages/agents/quality/unit_coherence.py"),
+    # LIC-08 (2026-07-08 grill session): the real gap behind vocabulary_batch's
+    # "stuck at queued" verdict wasn't the orchestrator (already real) or a
+    # missing route (contract.mode="vocabulary_batch" already worked via the
+    # existing freeform class_info.mode passthrough) — it was that nothing ever
+    # called this to populate input_normalization_report before the orchestrator
+    # read it. Now wired into _artifact_workflow.
+    ("normalize_vocabulary_input", "packages/agents/teaching_pack/vocabulary_input_normalizer.py"),
 )
 
 # (symbol, defining_file) — audit-confirmed dark. Promote to REQUIRE_WIRED when wired.
@@ -62,7 +94,23 @@ REQUIRE_WIRED: tuple[tuple[str, str], ...] = (
 KNOWN_DARK: tuple[tuple[str, str], ...] = (
     # --- topic-decomposition (units) — parked ---
     ("create_parent_run", "services/gateway/unit_run_store.py"),
-    ("run_coherence_lint", "packages/agents/quality/unit_coherence.py"),
+    # LIC-06 (2026-07-08 grill session): real, tested (test_concept_alignment.py),
+    # but genuinely has no integration point yet — verify_concept_alignment_with_
+    # majority needs a question tagged with an assigned KC id/description + sibling
+    # KCs; no question/practice generator in the codebase produces that shape today
+    # (practice_generator/semantic_anchor.py's items carry no KC association at all;
+    # unit_planner assigns KCs at the session level, not per-question). Wiring this
+    # in now would mean fabricating fake KC data just to make the call — worse than
+    # leaving it documented-dark until a real KC-tagged question generator exists.
+    ("verify_concept_alignment_with_majority", "packages/agents/concept_alignment.py"),
+    # LIC-07 (2026-07-08 grill session): real LLM branch, zero callers, AND zero
+    # references anywhere in services/gateway or docs/ to RoadmapContent/roadmap_node
+    # (checked via repo-wide grep) — no route, UI, or documented plan expects this
+    # diagnosis-driven personalized roadmap as a distinct feature. content_creator's
+    # generic artifact_type="roadmap" already covers the "roadmap" concept for the
+    # product surfaces that exist today. Left dark rather than building a new route
+    # for a feature nothing currently asks for — a product decision, not a wiring gap.
+    ("roadmap_node", "packages/agents/sub_agents/roadmap_agent/nodes.py"),
     # --- resilience / governance / ops — later phases ---
     ("evaluate_model_drift", "packages/agents/config/model_drift.py"),
     ("dispatch_slo_alerts", "services/gateway/slo_alerting.py"),

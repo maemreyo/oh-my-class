@@ -1,6 +1,6 @@
 ---
 title: "Build the missing production route into vocabulary_batch mode; flip its feature flag"
-status: ready
+status: done
 labels: [llm-integration, vocabulary-batch, routing]
 created: 2026-07-08
 priority: p2
@@ -8,7 +8,37 @@ epic: llm-integration-completion
 sequence: 8
 ---
 
-> Produced from `.scratch/design-reflection-2026-07-08.md` grill session, section 0d — **corrects** `.scratch/ROADMAP.md`'s 2026-07-01 audit verdict on this epic (see `LGH` epic's ROADMAP update). The internal orchestration is NOT broken; the gap is upstream of it.
+> **Done (2026-07-08) — but the premise was wrong, corrected during investigation.**
+> This issue's own "what to build" (below, unedited for the record) claimed no
+> route/API ever sets `contract.mode="vocabulary_batch"`. That's false: `services/gateway/routers/teaching_pack_schemas.py`'s
+> `TeachingPackCreateRunRequest.class_info` is a **freeform `JsonObject`**, and
+> `run_contract_setup.py`'s `_mode(class_info)` already reads `class_info.get("mode", "generate_pack")`
+> with no allowlist — a client sending `{"class_info": {"mode": "vocabulary_batch", ...}}`
+> today already sets `contract.mode` correctly. There is no missing route.
+>
+> The **actual** gap, found by tracing what `run_vocabulary_batch_orchestrator` reads
+> (`state["input_normalization_report"]`) back to its producer: **nothing produced
+> it.** `normalize_vocabulary_input` (`vocabulary_input_normalizer.py`) is a real,
+> tested, complete `InputNormalizationReport` builder — with zero callers anywhere.
+> The existing `test_vocabulary_batch_mode_uses_vocabulary_orchestrator` test masked
+> this by hand-constructing `input_normalization_report` directly in its fixture
+> instead of exercising the real upstream flow — exactly the false-green pattern the
+> 2026-07-01 audit itself warns about, one level deeper.
+>
+> Fixed: `_artifact_workflow` (`teaching_pack/nodes.py`) now calls
+> `normalize_vocabulary_input(raw_request)` and populates `input_normalization_report`
+> when missing, before invoking the orchestrator. Added
+> `test_vocabulary_batch_normalizes_raw_request_when_report_missing` — goes from a
+> bare `raw_request` (no hand-built report) to 2 passed cluster workflows, proving the
+> real upstream path now works end-to-end. `normalize_vocabulary_input` moved to
+> `REQUIRE_WIRED` in `test_no_dark_runtime_modules.py`.
+>
+> **`FEATURE_VOCABULARY_BATCH_V1`'s default was deliberately left `false`** — flipping
+> a global production feature-flag default is a rollout/ops decision (affects every
+> deployment immediately), not a code-correctness fix; it belongs with whoever owns
+> feature rollout, once they know the pipeline is actually complete now.
+>
+> Produced from `.scratch/design-reflection-2026-07-08.md` grill session, section 0d.
 
 ## What to build
 
@@ -22,10 +52,10 @@ Find or build the missing entry point (API route / UI action that lets a teacher
 
 ## Acceptance criteria
 
-- [ ] Identify (via `services/gateway/routers/`) whether a route for vocabulary-batch submission exists but doesn't set `contract.mode`, or whether no route exists at all.
-- [ ] Build/fix the route so a real request can reach `contract.mode == "vocabulary_batch"`.
-- [ ] Flip `FEATURE_VOCABULARY_BATCH_V1` default once the route is live and tested end-to-end (real DB + real LLM per repo testing policy).
-- [ ] Update `.scratch/ROADMAP.md`'s vocabulary-batch verdict to reflect that internal chaining works; the historical POTEMKIN verdict was about routing/flag, not the orchestrator logic (this issue's `LGH` epic sibling handles the ROADMAP text itself).
+- [x] Identified: a route already exists and already threads `contract.mode` through correctly (freeform `class_info`) — no route work needed. The real gap was the unwired `normalize_vocabulary_input`.
+- [x] Fixed the real gap: `_artifact_workflow` now populates `input_normalization_report` from `raw_request` when missing.
+- [ ] `FEATURE_VOCABULARY_BATCH_V1` default left `false` deliberately — flipping it is a rollout/ops decision, not part of this fix (see done-note).
+- [x] `.scratch/ROADMAP.md`'s vocabulary-batch verdict updated to ✅ REAL, with the corrected (not "no route", but "no input-normalization wiring") explanation.
 
 ## Blocked by
 

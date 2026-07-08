@@ -33,9 +33,9 @@ class SectionOutline:
     gagne_event: str | None
 
 
-def build_hierarchical_artifacts(state: ContentCreatorNodeState) -> dict[str, list[dict[str, Any]]]:
+async def build_hierarchical_artifacts(state: ContentCreatorNodeState) -> dict[str, list[dict[str, Any]]]:
     artifacts = [
-        _build_artifact(_artifact_kind(artifact_type), state)
+        await _build_artifact(_artifact_kind(artifact_type), state)
         for artifact_type in state.get("artifact_types", ["lesson"])
     ]
     issues = [*validate_no_cdn(artifacts), *validate_no_pii(artifacts)]
@@ -72,13 +72,14 @@ def _artifact_kind(value: str) -> ArtifactKind:
             raise ValueError(msg)
 
 
-def _build_artifact(artifact_type: ArtifactKind, state: ContentCreatorNodeState) -> dict[str, Any]:
+async def _build_artifact(artifact_type: ArtifactKind, state: ContentCreatorNodeState) -> dict[str, Any]:
     if artifact_type == "slide_deck":
         return build_slide_deck_artifact(state)
     lesson_plan = state["lesson_plan"]
     research_bundle = state["research_bundle"]
     outline = _outline(artifact_type, lesson_plan)
-    sections = [_fill_section(artifact_type, section, state) for section in outline]
+    prose_by_section = await _generate_section_prose(artifact_type, outline, lesson_plan, research_bundle, state)
+    sections = [_fill_section(artifact_type, section, state, prose_by_section) for section in outline]
     metadata = _metadata(artifact_type, sections, lesson_plan, research_bundle, state)
     artifact = ArtifactContent(
         artifact_type=artifact_type,
@@ -124,15 +125,17 @@ def _fill_section(
     artifact_type: ArtifactKind,
     outline: SectionOutline,
     state: ContentCreatorNodeState,
+    prose_by_section: dict[str, str],
 ) -> dict[str, Any]:
     if _forced_failure(state, artifact_type, outline.section_id):
         return regen_placeholder(outline.section_id, outline.title)
     lesson_plan = state["lesson_plan"]
     research_bundle = state["research_bundle"]
     fact = _verified_fact(research_bundle)
+    prose = prose_by_section.get(outline.section_id) or f"{outline.job}: {fact}"
     components = [
         {"type": "heading", "level": 2, "text": outline.title},
-        {"type": "paragraph", "text": f"{outline.job}: {fact}"},
+        {"type": "paragraph", "text": prose},
     ]
     strategy_fill = selected_strategy_components(StrategyFillContext(
         artifact_type=artifact_type,
@@ -146,7 +149,7 @@ def _fill_section(
     section = {
         "section_id": outline.section_id,
         "title": outline.title,
-        "content": f"{outline.job}: {fact}",
+        "content": prose,
         "objective": outline.objective,
         "gagne_event": outline.gagne_event,
         "components": components,
@@ -161,6 +164,75 @@ def _fill_section(
     if artifact_type == "flashcard_deck":
         section["cards"] = flashcards(lesson_plan, fact)
     return section
+
+
+async def _generate_section_prose(
+    artifact_type: ArtifactKind,
+    outline: list[SectionOutline],
+    lesson_plan: dict[str, Any],
+    research_bundle: dict[str, Any],
+    state: ContentCreatorNodeState,
+) -> dict[str, str]:
+    """One LLM call per artifact: writes grounded prose for every section at once."""
+    if not outline:
+        return {}
+    fact = _verified_fact(research_bundle)
+    sections_brief = [
+        {
+            "section_id": section.section_id,
+            "title": section.title,
+            "job": section.job,
+            "objective": section.objective,
+            "gagne_event": section.gagne_event,
+        }
+        for section in outline
+    ]
+
+    from packages.agents.config.models import MODELS
+    from packages.agents.llm import extract_json_text
+    from packages.agents.runtime import AgentRuntime, AgentRuntimeConfig
+    from packages.agents.teaching_pack.stages import StageEnum, stage_number
+
+    system_prompt = (
+        "You are an expert K-12 teaching content writer. Write one short, clear, "
+        "age-appropriate paragraph per section of a teaching artifact, grounded "
+        "ONLY in the given fact — do not invent new facts or numbers.\n\n"
+        'Respond ONLY with a JSON object: {"<section_id>": "<paragraph>", ...}, '
+        "one entry per section given. No prose, no explanation, no markdown fences."
+    )
+    user_prompt = (
+        f"Artifact type: {artifact_type}\nTopic: {_topic(lesson_plan)}\n"
+        f"Grounded fact: {fact}\n\n"
+        f"Sections:\n{json.dumps(sections_brief, ensure_ascii=False, indent=2)}"
+    )
+    run_id = str(state.get("run_id", ""))
+    current_step = state.get("current_step", StageEnum.ARTIFACT_WORKFLOW)
+    runtime = AgentRuntime(AgentRuntimeConfig(
+        agent="content_creator",
+        run_id=run_id,
+        step=stage_number(current_step),
+        step_label=getattr(current_step, "value", str(current_step)),
+        model=MODELS.content_creator,
+        base_temperature=0.4,
+        retry_temperature=0.2,
+    ))
+    messages = runtime.messages(system_prompt, user_prompt)
+
+    def parse(content: str) -> dict[str, str]:
+        data = json.loads(extract_json_text(content))
+        if not isinstance(data, dict):
+            raise ValueError("expected a JSON object mapping section_id to prose")
+        return {str(key): str(value) for key, value in data.items()}
+
+    return await runtime.complete_json_with_retries(
+        messages=messages,
+        parse=parse,
+        retry_messages=lambda _err, _content: runtime.messages(
+            system_prompt,
+            "Invalid response. Return ONLY the JSON object mapping section_id to prose.",
+        ),
+        extra_tags=(f"artifact:{artifact_type}",),
+    )
 
 
 def _metadata(

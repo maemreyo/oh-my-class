@@ -299,6 +299,7 @@ async def _planning_blueprint(
     if diagnostic_update:
         state = TeachingPackState(**{**state, **diagnostic_update})
     from packages.agents.sub_agents.planner.nodes import planner_node
+    from packages.agents.sub_agents.planner.staged_engine import has_curriculum_coverage
     from common.contracts.seam_contracts import PlannerHandoff
 
     class_info = _class_info(contract)
@@ -324,11 +325,12 @@ async def _planning_blueprint(
         "run_id": state["run_id"],
         "current_step": StageEnum.PLANNING_BLUEPRINT,
         "lesson_plan": None,
-        "use_staged_planner": True,
+        "use_staged_planner": False,
         "persona_snapshot": _json_object(state.get("persona_snapshot")),
         "kt_mastery": _json_object(state.get("kt_mastery")),
         "teacher_preferences": _json_object(state.get("teacher_preferences")),
     }
+    planner_state["use_staged_planner"] = has_curriculum_coverage(planner_state)
     result = await planner_node(planner_state)
     lesson_plan = _json_object(result.get("lesson_plan"))
     PlannerHandoff(lesson_plan=lesson_plan)  # fail-closed seam contract
@@ -450,6 +452,15 @@ async def _artifact_workflow(state: TeachingPackState) -> TeachingPackState:
         if not features().vocabulary_batch_v1:
             msg = "vocabulary_batch mode requires FEATURE_VOCABULARY_BATCH_V1=true"
             raise RuntimeError(msg)
+        if not state.get("input_normalization_report"):
+            from packages.agents.teaching_pack.vocabulary_input_normalizer import normalize_vocabulary_input
+
+            contract = state.get("contract", {})
+            raw_input = _string_field(contract, "raw_request", "")
+            state = TeachingPackState(**{
+                **state,
+                "input_normalization_report": normalize_vocabulary_input(raw_input).model_dump(mode="json"),
+            })
         return TeachingPackState(**await run_vocabulary_batch_orchestrator(state))
     if artifact_send_fanout_v1_enabled():
         return TeachingPackState(**coordinate_artifact_fanout(state))

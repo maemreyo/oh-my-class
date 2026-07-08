@@ -8,9 +8,8 @@ from typing import TYPE_CHECKING, Protocol
 from packages.agents.llm import chat_messages, log_llm_failure, log_llm_start, log_llm_success
 
 if TYPE_CHECKING:
-    from openai.types.chat import ChatCompletionMessageParam
-
     from packages.agents.prompts.compiler import CompiledPrompt
+    from packages.llm_client.client import ChatCompletionMessageParam
 
 
 class AgentCall(Protocol):

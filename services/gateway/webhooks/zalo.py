@@ -1,11 +1,11 @@
 """Zalo webhook shared secret verification."""
 
-import os
+from services.gateway.webhooks.config import webhook_config
 
 
 def get_zalo_secret() -> str | None:
     """Get Zalo webhook secret from environment."""
-    return os.environ.get("ZALO_WEBHOOK_SECRET")
+    return webhook_config().zalo_webhook_secret
 
 
 def verify_zalo_signature(provided_secret: str | None) -> bool:

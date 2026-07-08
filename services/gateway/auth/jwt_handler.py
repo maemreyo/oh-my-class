@@ -1,16 +1,16 @@
 """JWT token creation and verification."""
 
-import os
 import time
 
 import jwt
 
+from .config import jwt_config
 from .models import Token, TokenPayload, User
 
 
 def get_jwt_secret() -> str:
     """Get JWT secret from environment."""
-    secret = os.environ.get("JWT_SECRET", "")
+    secret = jwt_config().secret
     if not secret:
         raise RuntimeError(
             "JWT_SECRET environment variable is required. "
@@ -20,11 +20,11 @@ def get_jwt_secret() -> str:
 
 
 def get_jwt_algorithm() -> str:
-    return os.environ.get("JWT_ALGORITHM", "HS256")
+    return jwt_config().algorithm
 
 
 def get_jwt_expiry_hours() -> int:
-    return int(os.environ.get("JWT_EXPIRY_HOURS", "24"))
+    return jwt_config().expiry_hours
 
 
 def create_access_token(user: User) -> Token:

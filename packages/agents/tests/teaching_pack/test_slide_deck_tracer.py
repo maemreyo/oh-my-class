@@ -31,8 +31,9 @@ def _research_brief() -> dict[str, object]:
     }
 
 
-def test_hierarchical_content_creator_returns_slide_deck_artifact() -> None:
-    result = build_hierarchical_artifacts({
+@pytest.mark.anyio
+async def test_hierarchical_content_creator_returns_slide_deck_artifact() -> None:
+    result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_brief(),
         "artifact_types": ["slide_deck"],

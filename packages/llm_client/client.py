@@ -26,7 +26,19 @@ from packages.llm_client.tags import build_tags
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-    from openai.types.chat import ChatCompletionMessageParam, completion_create_params
+    # AsyncOpenAI/ChatCompletionSystemMessageParam/ChatCompletionUserMessageParam are
+    # unused here but re-exported so callers outside llm_client don't import openai directly.
+    from openai import AsyncOpenAI as AsyncOpenAI
+    from openai.types.chat import (
+        ChatCompletionMessageParam,
+        completion_create_params,
+    )
+    from openai.types.chat import (
+        ChatCompletionSystemMessageParam as ChatCompletionSystemMessageParam,
+    )
+    from openai.types.chat import (
+        ChatCompletionUserMessageParam as ChatCompletionUserMessageParam,
+    )
 
 _OMIT: Omit = Omit()
 

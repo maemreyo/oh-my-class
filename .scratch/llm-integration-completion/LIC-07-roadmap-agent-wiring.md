@@ -1,6 +1,6 @@
 ---
 title: "Investigate and wire roadmap_agent's real entry point"
-status: ready
+status: done
 labels: [llm-integration, dark-code, roadmap]
 created: 2026-07-08
 priority: p3
@@ -8,7 +8,23 @@ epic: llm-integration-completion
 sequence: 7
 ---
 
-> Produced from `.scratch/design-reflection-2026-07-08.md` grill session, section 0c. Needs investigation before it can move to `ready-for-agent` — see "What to build" below.
+> **Investigated, resolved as "leave dark" (2026-07-08).** Repo-wide grep for
+> `RoadmapContent`/`roadmap_node`/`roadmap_agent` across `services/gateway/` and
+> `docs/` found **zero references** anywhere outside the sub-agent module and its
+> own test — no route, no UI mention, no product doc expects this specific
+> diagnosis-driven personalized-roadmap feature to exist. This is neither AC
+> branch as originally framed: not "wire it" (nothing calls for it), and not
+> literally "superseded by content_creator's roadmap" (they're conceptually
+> different — diagnosis-driven vs lesson-driven — so marking it `superseded`
+> would misrepresent it as replaced when it's actually just unbuilt-for). Landed
+> as a third outcome: moved to `KNOWN_DARK` in `tests/test_no_dark_runtime_modules.py`
+> with the investigation finding recorded, so the next person who wants this
+> feature has the wiring point ready and doesn't have to re-derive "does anything
+> need this" from scratch. Building a new route for a feature nothing currently
+> asks for is a product decision, not something to speculatively build in a
+> code-hardening pass.
+>
+> Produced from `.scratch/design-reflection-2026-07-08.md` grill session, section 0c.
 
 ## What to build
 
@@ -20,9 +36,9 @@ Before wiring: confirm there is (or should be) a product surface that calls this
 
 ## Acceptance criteria
 
-- [ ] Confirm via `common/contracts/roadmap.py` and any product docs whether a "personalized roadmap" feature is expected to exist as a user-facing surface.
-- [ ] If yes: wire `roadmap_node` into the pipeline (likely after `_diagnostic_preplanning` in `teaching_pack/nodes.py`, in `diagnose_then_generate` mode) and build/confirm the missing route.
-- [ ] If the feature turns out to be superseded by `content_creator`'s `roadmap` artifact type: mark `roadmap_agent` `status: superseded` per the retirement-ritual convention (`LGH-04`) instead of wiring it, and delete or archive the module.
+- [x] Confirmed via repo-wide grep (`common/contracts/roadmap.py`, `services/gateway/`, `docs/`) that no product surface expects a "personalized roadmap" feature today.
+- [ ] Not applicable — nothing calls for wiring it in yet. Revisit if/when a product ask for a diagnosis-driven personalized roadmap surfaces.
+- [x] Not superseded (conceptually distinct from `content_creator`'s roadmap, see done-note) — left `KNOWN_DARK` with the investigation reason recorded instead of mislabeling it `superseded`.
 
 ## Blocked by
 

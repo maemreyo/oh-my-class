@@ -39,6 +39,7 @@ async def check_run_owner(run_id: str, user: User, db: AsyncSession) -> bool:
     return run.teacher_id == user.user_id
 
 
+# BLOCKED-ON: users.organization_id migration (see .scratch/multi-tenancy/organization-id-migration.md)
 async def _check_same_organization(
     run_teacher_id: str,
     user: User,

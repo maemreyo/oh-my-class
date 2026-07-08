@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 import hashlib
-import os
 from typing import Any, Protocol
 
 import httpx2
@@ -14,6 +13,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from ..logging_config import bind_context, get_logger
+from ..webhooks.config import webhook_config
 from ..webhooks.telegram import verify_telegram_signature
 from ..webhooks.zalo import verify_zalo_signature
 
@@ -198,7 +198,7 @@ def _dispatch_payload(event: WebhookDispatch) -> dict[str, Any]:
 
 
 def _outbound_webhook_urls() -> tuple[str, ...]:
-    raw = os.environ.get("WEBHOOK_OUTBOUND_URLS", "")
+    raw = webhook_config().webhook_outbound_urls
     return tuple(url.strip() for url in raw.split(",") if url.strip())
 
 
@@ -232,16 +232,16 @@ def _event_id(payload: dict[str, Any], body: bytes | None = None) -> str:
 
 
 def _verify_notify_secret(secret: str | None) -> bool:
-    expected = os.environ.get("WEBHOOK_NOTIFY_SECRET")
+    expected = webhook_config().webhook_notify_secret
     return bool(expected and secret and secret == expected)
 
 
 def _rate_limit_count() -> int:
-    return int(os.environ.get("WEBHOOK_RATE_LIMIT_COUNT", "60"))
+    return webhook_config().webhook_rate_limit_count
 
 
 def _rate_window_seconds() -> int:
-    return int(os.environ.get("WEBHOOK_RATE_LIMIT_WINDOW_SECONDS", "60"))
+    return webhook_config().webhook_rate_limit_window_seconds
 
 
 class FrontendErrorReport(BaseModel):

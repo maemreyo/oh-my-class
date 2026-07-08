@@ -29,6 +29,18 @@ make hollow verification impossible. This ADR sets the CI/testing contract; deta
 4. **No defined-but-unemitted signals.** A meta-test asserts every `ObservabilityEventType` in the
    Literal has a live emitter (prevents the round-2/3 recurrence).
 
+## Design principle: safe-by-default transport/client seams
+
+A constructor's pluggable transport/client seam, when it has a default (i.e. the seam is
+optional), must have a default that is itself safe — routed through `LLMClient`/equivalent
+governance, not a raw SDK call. "Nobody overrode it" must never mean "nobody validated it."
+Concrete instance: `AdaptiveJudge`'s `llm_transport` used to default to a bare
+`litellm.acompletion` call, bypassing budget/circuit-breaker/observability governance whenever
+no caller injected an override — a false-green pattern per this ADR's decision above. Fixed in
+`packages/quality/layer4_judge/judge_transport.py`'s `default_litellm_transport`, which now
+routes through `LLMClient`. `tests/test_safe_default_transports.py` is the non-blocking warning
+lint that surfaces new instances of this pattern for review.
+
 ## Consequences
 
 - Regressions that drop a live path, an emitter, or a safety case surface at CI, not in prod.

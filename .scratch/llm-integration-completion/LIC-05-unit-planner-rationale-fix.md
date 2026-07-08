@@ -1,12 +1,16 @@
 ---
 title: "Fix unit_planner's misleading rationale string (no LLM step actually runs)"
-status: ready-for-agent
+status: done
 labels: [correctness, unit-planner]
 created: 2026-07-08
 priority: p1
 epic: llm-integration-completion
 sequence: 5
 ---
+
+> Done (2026-07-08): `rationale` now reads `"deterministic template seam; no LLM
+> reasoning step (see ADR-050, td-006/td-021)."`. No test asserted the old string
+> (verified via repo-wide grep); all 4 `test_unit_planner.py` tests pass unchanged.
 
 > Companion implementation task for ADR-050. Small, standalone, safe to do immediately.
 
@@ -18,9 +22,9 @@ Replace it with an accurate description, e.g. `"deterministic template seam; no 
 
 ## Acceptance criteria
 
-- [ ] `rationale` text accurately describes the current deterministic implementation.
-- [ ] No behavior change beyond the string — this is a correctness/documentation fix, not a scope change (the actual td-006/td-021 LLM upgrade is separate, larger work).
-- [ ] Check for other consumers of `rationale` (UI display, logging, tests asserting exact string) and update them if the exact string is asserted anywhere.
+- [x] `rationale` text accurately describes the current deterministic implementation.
+- [x] No behavior change beyond the string — this is a correctness/documentation fix, not a scope change (the actual td-006/td-021 LLM upgrade is separate, larger work).
+- [x] Checked for other consumers of `rationale` (UI display, logging, tests asserting exact string) — none found; nothing else to update.
 
 ## Blocked by
 

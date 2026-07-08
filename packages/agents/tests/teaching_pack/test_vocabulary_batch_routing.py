@@ -104,3 +104,28 @@ def test_generate_pack_is_not_vocabulary_batch_mode() -> None:
 
     assert is_vocabulary_batch_mode({"contract": {"mode": "generate_pack"}}) is False
     assert is_vocabulary_batch_mode({"contract": {"mode": "vocabulary_batch"}}) is True
+
+
+@pytest.mark.anyio
+async def test_vocabulary_batch_normalizes_raw_request_when_report_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+    """LIC-08: from a bare raw_request (no hand-constructed input_normalization_report)
+    all the way to a passed cluster — proves normalize_vocabulary_input is now wired
+    into _artifact_workflow instead of requiring a caller to pre-build the report."""
+    from packages.agents.config.features import reset_features
+
+    monkeypatch.setenv("FEATURE_VOCABULARY_BATCH_V1", "true")
+    reset_features()
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.vocabulary_batch_orchestrator.default_stages",
+        _passing_stages,
+    )
+    from packages.agents.teaching_pack.nodes import _artifact_workflow
+
+    state = await _artifact_workflow({
+        "run_id": "run-vocab-e2e",
+        "contract": {"mode": "vocabulary_batch", "raw_request": "fare / ticket\nbus stop / bus station"},
+    })
+
+    assert state["vocabulary_batch_progress"]["total_clusters"] == 2
+    assert all(workflow["status"] == "passed" for workflow in state["vocabulary_cluster_workflows"])
+    reset_features()

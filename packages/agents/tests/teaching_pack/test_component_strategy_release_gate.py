@@ -20,12 +20,12 @@ def test_feature_flagged_path_inserts_strategy_before_research_and_approval() ->
     assert path[path.index("finalize_component_strategy") + 1] == "teacher_approval"
 
 
-async def test_strategy_plan_reaches_artifact_workflow_selected_components() -> None:
+async def test_strategy_plan_reaches_artifact_workflow_selected_components(stub_section_prose) -> None:
     request = _request("cs08_vocabulary_language_request.json")
     result = plan_component_strategy(request)
     assert result.plan is not None
 
-    artifacts = build_hierarchical_artifacts({
+    artifacts = (await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_bundle(),
         "artifact_types": ["lesson"],
@@ -34,7 +34,7 @@ async def test_strategy_plan_reaches_artifact_workflow_selected_components() -> 
         "current_step": StageEnum.ARTIFACT_WORKFLOW,
         "artifacts": None,
         "component_strategy_plan": result.plan.model_dump(mode="json"),
-    })["artifacts"]
+    }))["artifacts"]
 
     selected = _strategy_components(artifacts[0])
     assert [component["type"] for component in selected] == ["contrastive_pairs", "vocab_cluster"]
@@ -72,11 +72,11 @@ async def test_final_strategy_stage_creates_blueprint_payload_then_routes_to_art
     )) == "artifact_workflow"
 
 
-def test_flag_off_and_old_planless_runs_still_generate_artifacts() -> None:
+async def test_flag_off_and_old_planless_runs_still_generate_artifacts(stub_section_prose) -> None:
     assert "provisional_component_strategy" not in {stage.value for stage in teaching_pack_stages(False)}
     fixture = _old_run_state()
 
-    result = build_hierarchical_artifacts(fixture)
+    result = await build_hierarchical_artifacts(fixture)
 
     assert result["artifacts"][0]["artifact_type"] == "lesson"
     assert result["artifacts"][0]["sections"]

@@ -78,8 +78,19 @@ async def test_slide_deck_quality_uses_existing_gate_path() -> None:
 
 
 @pytest.mark.asyncio
-async def test_quality_scores_has_no_reports_when_gate_is_none() -> None:
+async def test_quality_scores_has_no_reports_when_gate_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
     """When no quality gate is injected, quality_scores.reports is absent."""
+    from common.contracts.judge_output import JudgeOutput
+    from packages.agents import llm
+
+    async def fake_complete_json_chat(*, model: str, messages: list, temperature: float, tags: list[str]) -> str:
+        return JudgeOutput(
+            overall_score=8.0, layer_scores=[], critical_issues=[], passed=True,
+            rationale="ok", teacher_facing_summary="ok",
+        ).model_dump_json()
+
+    monkeypatch.setattr(llm, "complete_json_chat", fake_complete_json_chat)
+
     artifact = _make_artifact("art-002", "quiz")
     state = {"run_id": "run-test-002", "artifacts": [artifact]}
     result = await render_quality(state, quality_gate=None)

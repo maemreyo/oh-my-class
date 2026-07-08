@@ -38,7 +38,16 @@ async def unit_planner_node(state: UnitPlannerNodeState) -> dict[str, Any]:
     sequence = _build_sequence(topic, class_profile, grounding_status)
     sequence = _apply_soft_priors(sequence, state)
     repaired = _repair_sequence(sequence)
-    return {"lesson_sequence": repaired.model_dump(mode="json")}
+
+    from dataclasses import asdict
+
+    from packages.agents.quality.unit_coherence import run_coherence_lint
+
+    coherence_warnings = await run_coherence_lint(repaired.sessions)
+    return {
+        "lesson_sequence": repaired.model_dump(mode="json"),
+        "coherence_warnings": [asdict(warning) for warning in coherence_warnings],
+    }
 
 
 def _class_profile(state: UnitPlannerNodeState) -> ClassProfile:
@@ -103,7 +112,7 @@ def _build_sequence(
         confidence=_confidence(grounding_status, profile),
         open_questions=_open_questions(grounding_status),
         low_confidence_decisions=_low_confidence_decisions(grounding_status, profile),
-        rationale="retrieve grounding → Curricular-CoT adapt → validate; deterministic seam for unit planning.",
+        rationale="deterministic template seam; no LLM reasoning step (see ADR-050, td-006/td-021).",
     )
 
 

@@ -79,14 +79,15 @@ async def render_quality(
     passing_reports: list[ArtifactQualityReport] = []
     layer4_metadata: list[JsonObject] = []
     if quality_gate is None:
+        # Cheap format/PII pre-filter first (LIC-01): fail fast before spending
+        # an LLM call on an artifact that's already structurally broken.
         reviewer_gate = LiveReviewerQualityGate()
+        core_artifacts = [artifact for artifact in artifacts if _supports_workflow_state(artifact)]
         evaluated = [
             await reviewer_gate.evaluate_with_metadata(_workflow_state(str(state["run_id"]), artifact, index), artifact)
-            for index, artifact in enumerate(artifacts)
-            if _supports_workflow_state(artifact)
+            for index, artifact in enumerate(core_artifacts)
         ]
         reports = [report for report, _metadata in evaluated]
-        layer4_metadata = [_json_object(metadata) for _report, metadata in evaluated]
         failed_issues = _failed_report_issues(reports)
         if failed_issues:
             failure = render_quality_failure(str(state["run_id"]), failed_issues)
@@ -94,11 +95,26 @@ async def render_quality(
                 "run_id": state["run_id"],
                 "quality_issues": failed_issues,
                 "quality_recovery_route": _string_field(failure, "quality_recovery_route", "repair"),
-                "quality_scores": _with_scoped_repair(
-                    _with_layer4(_json_object(failure.get("quality_scores")), layer4_metadata),
-                    failed_issues,
-                ),
+                "quality_scores": _with_scoped_repair(_json_object(failure.get("quality_scores")), failed_issues),
             })
+        # Real content/pedagogy/presentation judgment (LIC-01): AdaptiveJudge
+        # via reviewer_node, replacing the old threshold+1.0/-3.0 heuristic.
+        if core_artifacts:
+            judge_passed, judge_issues, judge_scores = await _evaluate_with_adaptive_judge(
+                str(state["run_id"]), _json_object(state.get("lesson_plan")), core_artifacts,
+            )
+            layer4_metadata = [judge_scores]
+            if not judge_passed:
+                failure = render_quality_failure(str(state["run_id"]), judge_issues)
+                return _state_update({
+                    "run_id": state["run_id"],
+                    "quality_issues": judge_issues,
+                    "quality_recovery_route": _string_field(failure, "quality_recovery_route", "repair"),
+                    "quality_scores": _with_scoped_repair(
+                        _with_layer4(_json_object(failure.get("quality_scores")), layer4_metadata),
+                        judge_issues,
+                    ),
+                })
     else:
         reports = [
             await quality_gate.evaluate(_workflow_state(str(state["run_id"]), artifact, index), artifact)
@@ -134,6 +150,25 @@ async def render_quality(
         "quality_scores": quality_scores,
         "quality_recovery_route": None,
     })
+
+
+async def _evaluate_with_adaptive_judge(
+    run_id: str, lesson_plan: JsonObject, artifacts: list[JsonObject],
+) -> tuple[bool, list[str], JsonObject]:
+    from packages.agents.sub_agents.reviewer.nodes import reviewer_node
+    from packages.agents.teaching_pack.stages import StageEnum
+
+    result = await reviewer_node({
+        "artifacts": artifacts,
+        "lesson_plan": lesson_plan,
+        "run_id": run_id,
+        "current_step": StageEnum.RENDER_QUALITY,
+    })
+    quality_scores = _json_object(result.get("quality_scores"))
+    passed = bool(result.get("quality_passed"))
+    violations = quality_scores.get("hard_block_violations") or quality_scores.get("critical_issues") or []
+    issues = [str(issue) for issue in violations] if isinstance(violations, list) else []
+    return passed, issues, quality_scores
 
 
 def _state_update(value: TeachingPackQualityState) -> TeachingPackQualityState:

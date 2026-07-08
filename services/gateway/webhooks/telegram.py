@@ -2,12 +2,13 @@
 
 import hashlib
 import hmac
-import os
+
+from services.gateway.webhooks.config import webhook_config
 
 
 def get_telegram_secret() -> str | None:
     """Get Telegram webhook secret from environment."""
-    return os.environ.get("TELEGRAM_WEBHOOK_SECRET")
+    return webhook_config().telegram_webhook_secret
 
 
 def verify_telegram_signature(body: bytes, signature: str) -> bool:

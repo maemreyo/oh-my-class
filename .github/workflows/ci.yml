@@ -29,6 +29,17 @@ jobs:
       - run: pip install import-linter
       - run: lint-imports
 
+  lint-no-raw-gateway-calls:
+    name: "No Raw Gateway Calls"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: uv run python scripts/check_no_raw_gateway_calls.py
+
   lint-deps-typescript:
     name: "TypeScript Dependency Cruise"
     runs-on: ubuntu-latest
@@ -68,6 +79,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e packages/agents -e packages/quality -e common/contracts -e services/gateway
+      - run: python scripts/check_env_drift.py
       - run: python scripts/verify_registry_drift.py
       - run: python scripts/verify_new_component_tests.py
       - run: pytest tests/test_parked_status_ttl.py --tb=short

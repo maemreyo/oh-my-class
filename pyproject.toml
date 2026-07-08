@@ -86,6 +86,7 @@ root_packages = [
     "common",
     "services",
 ]
+include_external_packages = true
 
 [[tool.importlinter.contracts]]
 name = "packages-no-import-services"
@@ -98,6 +99,21 @@ name = "common-is-the-floor"
 type = "forbidden"
 source_modules = ["common.contracts"]
 forbidden_modules = ["packages.agents", "packages.quality", "services.gateway"]
+
+[[tool.importlinter.contracts]]
+name = "no-direct-llm-sdk-imports"
+type = "forbidden"
+source_modules = [
+    "packages.agents",
+    "packages.methodologies",
+    "packages.notifications",
+    "packages.quality",
+    "packages.renderer",
+    "services",
+    "common",
+]
+forbidden_modules = ["openai", "litellm"]
+allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
 name = "layered-architecture"

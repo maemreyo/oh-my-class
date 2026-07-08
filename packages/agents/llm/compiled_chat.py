@@ -34,9 +34,8 @@ from typing import TYPE_CHECKING
 from packages.agents.llm.chat import complete_json_chat
 
 if TYPE_CHECKING:
-    from openai.types.chat import ChatCompletionMessageParam
-
     from packages.agents.prompts.compiler import CompiledPrompt
+    from packages.llm_client.client import ChatCompletionMessageParam
 
 # Length of the hash prefix included in tags for traceability without bloat.
 _HASH_PREFIX_LEN: int = 16

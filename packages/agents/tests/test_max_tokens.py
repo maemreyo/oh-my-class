@@ -13,7 +13,7 @@ from packages.agents.llm import complete_json_chat
 from packages.agents.llm.chat_context import _AGENT_MAX_TOKENS, _DEFAULT_MAX_TOKENS
 
 if TYPE_CHECKING:
-    from openai.types.chat import ChatCompletionMessageParam
+    from packages.llm_client.client import ChatCompletionMessageParam
 
 
 def test_agent_max_tokens_has_all_five_agents():

@@ -88,6 +88,25 @@ def _planning_context(state: PlannerNodeState, topic_override: str | None = None
     )
 
 
+def has_curriculum_coverage(state: PlannerNodeState) -> bool:
+    """Whether the staged engine has real curriculum grounding for this request.
+
+    ADR-048: production routes here (deterministic Gagné/UbD template) only when
+    grounding is not fully "ungrounded" — an unrecognized topic on an unparseable
+    grade gets nothing curriculum-specific to template against, so it's better
+    served by the real LLM branch than a generic boilerplate plan.
+
+    Deliberately builds the profile from ``class_info`` directly (not via
+    ``_class_profile``/``persona_snapshot``) — coverage is about the grade/subject
+    the request actually specifies, not a persona override that may target a
+    different, unrelated grade/subject.
+    """
+    profile = class_profile_from_class_info(dict(state.get("class_info", {})))
+    topic = _topic(state)
+    grounding = retrieve_grounding(topic, profile.grade, profile.subject_focus, profile.language)
+    return grounding.grounding_status != "ungrounded"
+
+
 def _class_profile(state: PlannerNodeState) -> ClassProfile:
     persona = state.get("persona_snapshot")
     if isinstance(persona, dict):

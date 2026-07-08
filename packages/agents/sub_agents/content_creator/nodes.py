@@ -47,7 +47,7 @@ async def content_creator_node(state: ContentCreatorNodeState) -> dict[str, Any]
     if state.get("use_hierarchical_creator", False):
         from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
 
-        return build_hierarchical_artifacts(state)
+        return await build_hierarchical_artifacts(state)
 
     lesson_plan = state.get("lesson_plan") or {}
     research_bundle = state.get("research_bundle") or {}
