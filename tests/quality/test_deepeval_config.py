@@ -1,23 +1,22 @@
-"""DeepEval quality metric configuration tests.
+"""DeepEval quality metric configuration tests — logic/scaffold only, no real LLM.
 
-Marked real_llm — run nightly with:
-    uv run pytest -m real_llm tests/quality/
-
-All metrics use the 9router judge (base_url from OMC_TEST_9ROUTER_BASE_URL,
-model from OMC_TEST_9ROUTER_MODEL). Telemetry is disabled via
-CONFIDENT_AI_DISABLE_TRACKING=true (set in conftest.py deepeval_harness_config).
+None of these tests call 9router: they exercise DeepEval's own plumbing with
+hand-rolled fakes, or are explicit scaffolds ("Full wiring deferred to te-004").
+That is a legitimate, honest use of fakes per the testing pyramid — deterministic
+logic does not need a real LLM. A genuine real-9router-backed test belongs in
+test_deepeval_real_llm.py, not here (2026-07-08 split: this file previously
+carried a file-level real-LLM pytest marker while several of its tests
+mocked litellm — see tests/test_no_fake_llm.py for the guard that now
+catches that contradiction).
 """
 from __future__ import annotations
 
-import sys
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any
 
 import pytest
 
-pytestmark = pytest.mark.real_llm
 
-
-def _judge_response(*, passed: bool, score: float, issue: str | None = None) -> MagicMock:
+def _judge_response_json(*, passed: bool, score: float, issue: str | None = None) -> str:
     from common.contracts.judge_output import JudgeOutput, LayerScore
 
     output = JudgeOutput(
@@ -32,10 +31,20 @@ def _judge_response(*, passed: bool, score: float, issue: str | None = None) -> 
         rationale="test judge rationale",
         teacher_facing_summary="Teacher summary",
     )
-    response = MagicMock()
-    response.choices = [MagicMock()]
-    response.choices[0].message.content = output.model_dump_json()
-    return response
+    return output.model_dump_json()
+
+
+def _fake_transport(response_json: str, *, captured_calls: list[dict[str, Any]] | None = None):
+    """A controlled llm_transport double — injected via AdaptiveJudge's own
+    dependency-inversion seam (not by mocking sys.modules) so it stays fast
+    and offline regardless of what the real default transport does."""
+
+    async def transport(*, model: str, messages: list[dict[str, str]], temperature: float, extra_body: dict[str, Any]) -> str:
+        if captured_calls is not None:
+            captured_calls.append({"model": model, "messages": messages, "extra_body": extra_body})
+        return response_json
+
+    return transport
 
 
 def test_deepeval_can_import():
@@ -87,24 +96,6 @@ def test_hallucination_metric_measure_is_invoked() -> None:
     assert metric.score == 0.0
 
 
-@pytest.mark.anyio
-async def test_deepeval_uses_9router_not_openai(deepeval_harness_config):
-    """DeepEval judge must route through 9router, not OpenAI directly."""
-    from packages.quality.layer4_judge.judge_interface import AdaptiveJudge
-
-    litellm = MagicMock()
-    litellm.acompletion = AsyncMock(return_value=_judge_response(passed=True, score=8.0))
-    with patch.dict(sys.modules, {"litellm": litellm}):
-        judge = AdaptiveJudge(model=deepeval_harness_config.judge_model, num_judges=1)
-        await judge.judge(
-            artifacts=[{"artifact_type": "lesson", "title": "Fractions"}],
-            artifact_type="lesson",
-        )
-
-    assert litellm.acompletion.call_args.kwargs["model"] == deepeval_harness_config.judge_model
-    assert deepeval_harness_config.judge_base_url.endswith(":20228")
-
-
 def test_no_telemetry_egress(deepeval_harness_config):
     """DeepEval must run in offline mode (no Confident AI telemetry).
 
@@ -128,8 +119,7 @@ async def test_hallucination_metric_flags_injected_factual_error():
     """
     from packages.quality.layer4_judge.judge_interface import AdaptiveJudge
 
-    litellm = MagicMock()
-    litellm.acompletion = AsyncMock(return_value=_judge_response(
+    transport = _fake_transport(_judge_response_json(
         passed=False,
         score=3.0,
         issue="hallucinated_claim",
@@ -139,11 +129,10 @@ async def test_hallucination_metric_flags_injected_factual_error():
         "title": "Space facts",
         "sections": [{"content": "The Moon is made of green cheese."}],
     }
-    with patch.dict(sys.modules, {"litellm": litellm}):
-        result = await AdaptiveJudge(model="4omc", num_judges=1).judge(
-            artifacts=[artifact],
-            artifact_type="lesson",
-        )
+    result = await AdaptiveJudge(model="4omc", num_judges=1, llm_transport=transport).judge(
+        artifacts=[artifact],
+        artifact_type="lesson",
+    )
 
     assert result.judge_output.passed is False
     assert "hallucinated_claim" in result.judge_output.critical_issues
@@ -157,20 +146,22 @@ async def test_faithfulness_metric_uses_research_context(deepeval_harness_config
     """
     from packages.quality.layer4_judge.judge_interface import AdaptiveJudge
 
-    litellm = MagicMock()
-    litellm.acompletion = AsyncMock(return_value=_judge_response(passed=True, score=8.0))
+    captured_calls: list[dict[str, Any]] = []
+    transport = _fake_transport(
+        _judge_response_json(passed=True, score=8.0),
+        captured_calls=captured_calls,
+    )
     lesson_plan = {
         "topic": "Fractions",
         "sources": [{"title": "Curriculum", "summary": "Equivalent fractions"}],
     }
-    with patch.dict(sys.modules, {"litellm": litellm}):
-        await AdaptiveJudge(model="4omc", num_judges=1).judge(
-            artifacts=[{"artifact_type": "lesson", "title": "Equivalent fractions"}],
-            artifact_type="lesson",
-            lesson_plan=lesson_plan,
-        )
+    await AdaptiveJudge(model="4omc", num_judges=1, llm_transport=transport).judge(
+        artifacts=[{"artifact_type": "lesson", "title": "Equivalent fractions"}],
+        artifact_type="lesson",
+        lesson_plan=lesson_plan,
+    )
 
-    prompt = litellm.acompletion.call_args.kwargs["messages"][1]["content"]
+    prompt = captured_calls[0]["messages"][1]["content"]
     assert "Lesson Plan for alignment" in prompt
     assert "Curriculum" in prompt
     assert deepeval_harness_config.judge_model == "4omc"

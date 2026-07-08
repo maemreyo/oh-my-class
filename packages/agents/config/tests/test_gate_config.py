@@ -111,10 +111,10 @@ class TestGateConfigPipelineDefaults:
 
 class TestModelConfig:
     def test_llm_base_url_uses_local_9router_port(self):
-        from packages.agents.config.models import LLMConfig
-        assert LLMConfig().base_url == "http://localhost:20228/v1"
+        from packages.llm_client.config import LLMClientConfig
+        assert LLMClientConfig().base_url == "http://localhost:20228/v1"
 
-    def test_llm_judge_is_f_pro(self):
+    def test_llm_judge_default_model(self):
         from packages.agents.config.models import MODELS
         assert MODELS.llm_judge == "4omc"
 

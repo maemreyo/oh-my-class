@@ -53,17 +53,12 @@ def triage_heuristic(raw_request: str, duration_minutes: int | None) -> tuple[st
 
 async def triage_with_llm(raw_request: str) -> tuple[str, int, str]:
     """
-    Call real LLM via 9router when heuristics are ambiguous.
+    Call real LLM via the governed LLMClient when heuristics are ambiguous.
     Returns (suggested_mode, target_sessions, rationale).
     """
-    import os
-    from openai import AsyncOpenAI
+    import json
 
-    base_url = os.environ.get("LLM_BASE_URL", "http://localhost:20228/v1")
-    api_key = os.environ.get("LLM_API_KEY", "sk-none")
-    model = os.environ.get("LLM_MODEL_ALIAS", "4omc")
-
-    client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+    from packages.llm_client.client import ChatMessage, LLMClient
 
     prompt = f"""Analyze this teaching request and decide: is this a SINGLE LESSON or a MULTI-SESSION UNIT?
 
@@ -77,15 +72,17 @@ Rules:
 - "plan_unit": multi-session, needs decomposition into multiple lessons
 - target_sessions: 1 for single, 2-8 for multi (based on content scope)"""
 
-    import json
-    response = await client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
+    client = LLMClient()
+    response = await client.chat(
+        model="4omc",
+        messages=[ChatMessage(role="user", content=prompt)],
+        agent="triage",
+        task="triage",
         max_tokens=200,
         temperature=0.0,
     )
 
-    content = response.choices[0].message.content or ""
+    content = response.content
     # Strip markdown code fences if present
     content = re.sub(r"```(?:json)?\n?(.*?)```", r"\1", content, flags=re.DOTALL).strip()
 

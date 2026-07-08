@@ -1,0 +1,38 @@
+name: Real-LLM Release Gate
+
+# Runs the @pytest.mark.real_llm suite against a live 9router instance
+# (port 20228, model 4omc) — the "release gate" tier from ADR-032/ROADMAP's
+# testing policy (merge gate = fast/every PR in ci.yml; release gate = real
+# LLM, run before a release or a large merge).
+#
+# TODO (tracked, not yet done): 9Router currently runs unconfigured/manual on
+# a personal machine, not containerized. This workflow is manual-dispatch-only
+# on a self-hosted runner for that reason — a self-hosted runner only executes
+# when its host machine is online, so a `schedule:` cron trigger would silently
+# miss runs. Once 9Router is containerized (service container, GitHub-hosted
+# runner, provider credentials in repo secrets), add a `schedule:` cron trigger
+# here so this becomes a true unattended nightly gate instead of manual-only.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  real-llm-tests:
+    name: "Real-LLM Test Suite (9router :20228, model 4omc)"
+    runs-on: self-hosted
+    env:
+      OMC_RUN_REAL_LLM_TESTS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e packages/agents -e packages/quality -e common/contracts -e services/gateway
+      - name: Verify 9router is reachable before running the suite
+        run: |
+          curl -sf http://127.0.0.1:20228/v1/models > /dev/null || {
+            echo "::error::9router not reachable at http://127.0.0.1:20228 — start it before dispatching this workflow.";
+            exit 1;
+          }
+      - run: pytest -m real_llm --tb=short

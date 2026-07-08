@@ -153,8 +153,12 @@ async def _complete_transport(
     client = LLMClient()
     llm_messages = [_chat_message(message) for message in messages]
     if context.decision.transport == "streaming":
-        chunks: list[str] = []
-        async for chunk in client.stream(
+        # This caller only ever consumes the fully-accumulated text (never
+        # individual chunks), so it must get the same before_call/after_call
+        # safety pipeline as chat() — chat_via_streaming_transport() runs that
+        # pipeline around a streaming HTTP transport. Plain stream() skips
+        # after_call by design (see its docstring) and must not be used here.
+        result = await client.chat_via_streaming_transport(
             context.request_model,
             llm_messages,
             agent=context.agent_name,
@@ -162,10 +166,15 @@ async def _complete_transport(
             run_id=context.run_id,
             step=context.step,
             max_tokens=context.max_tokens,
-        ):
-            chunks.append(chunk)
-        content = "".join(chunks)
-        return TransportResult(content, None, 1, "stream", context.request_model)
+            temperature=temperature,
+        )
+        return TransportResult(
+            result.content,
+            {"prompt_tokens": result.input_tokens, "completion_tokens": result.output_tokens},
+            1,
+            "stream",
+            result.model,
+        )
     result = await client.chat(
         context.request_model,
         llm_messages,

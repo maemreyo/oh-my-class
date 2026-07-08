@@ -102,15 +102,17 @@ async def _litellm_transport(
     messages: list[dict[str, str]],
     temperature: float,
 ) -> str:
-    import litellm
+    from packages.llm_client.client import ChatMessage, LLMClient
 
-    response = await litellm.acompletion(
+    client = LLMClient()
+    response = await client.chat(
         model=model,
-        messages=messages,
+        messages=[ChatMessage(role=m["role"], content=m["content"]) for m in messages],
+        agent="reviewer",
+        task="concept_alignment",
         temperature=temperature,
-        extra_body={"metadata": {"tags": ["agent:reviewer", "metric:concept_alignment", "pipeline:oh-my-class"]}},
     )
-    return str(response.choices[0].message.content)
+    return response.content
 
 
 def _judge_messages(request: ConceptAlignmentRequest) -> list[dict[str, str]]:

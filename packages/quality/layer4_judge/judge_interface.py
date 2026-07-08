@@ -132,7 +132,7 @@ class AdaptiveJudge:
         *,
         rubric_selector: RubricSelector | None = None,
         llm_transport: LLMTransport | None = None,
-        model: str = "content-fusion",
+        model: str = "4omc",
         num_judges: int = 3,
         pass_threshold: float = 7.0,
         unavailable_strategy: UnavailableStrategy = UnavailableStrategy.FAIL_CLOSED,

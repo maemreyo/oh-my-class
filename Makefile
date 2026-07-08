@@ -62,13 +62,6 @@ dev-web: ## Start teacher dashboard locally on port 3100
 
 dev-all: dev ## Alias for make dev
 
-# ── Production ──────────────────────────────────────────────────────────────
-prod-up: ## Start full production stack (LiteLLM + Postgres + Redis + app)
-	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
-prod-down: ## Stop production stack
-	docker compose -f docker-compose.yml -f docker-compose.prod.yml down
-
 # ── Default target ──
 .DEFAULT_GOAL := help
 

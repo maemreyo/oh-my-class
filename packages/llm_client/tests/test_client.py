@@ -8,6 +8,7 @@ import pytest
 from packages.llm_client.circuit_breaker import breaker_for
 from packages.llm_client.client import ChatMessage, LLMClient, ProviderCircuitOpenError
 from packages.llm_client.config import LLMClientConfig
+from packages.llm_client.errors import LLMProviderError
 
 
 class SharedStore:
@@ -56,21 +57,21 @@ async def test_chat_records_provider_failure_and_skips_open_circuit() -> None:
     client = LLMClient()
     client._client = _FailingOpenAIClient()
 
-    with pytest.raises(openai.OpenAIError):
+    with pytest.raises(LLMProviderError):
         await client.chat(
             "flaky-provider",
             [ChatMessage(role="user", content="hello")],
             agent="planner",
             task="content_generation",
         )
-    with pytest.raises(openai.OpenAIError):
+    with pytest.raises(LLMProviderError):
         await client.chat(
             "flaky-provider",
             [ChatMessage(role="user", content="hello")],
             agent="planner",
             task="content_generation",
         )
-    with pytest.raises(openai.OpenAIError):
+    with pytest.raises(LLMProviderError):
         await client.chat(
             "flaky-provider",
             [ChatMessage(role="user", content="hello")],
@@ -87,6 +88,28 @@ async def test_chat_records_provider_failure_and_skips_open_circuit() -> None:
             task="content_generation",
         )
     assert client._client.calls == 3
+
+
+@pytest.mark.anyio
+async def test_chat_classifies_rate_limit_as_transient_provider_error() -> None:
+    """LLMClient.chat must classify real provider errors, not bare-reraise
+    openai.OpenAIError — a rate-limit/timeout/connection failure must come
+    out as a TransientProviderError so services/gateway/teaching_pack_worker.py
+    can requeue it instead of failing the run outright."""
+    from packages.llm_client.circuit_breaker import _breakers
+    from packages.llm_client.errors import TransientProviderError
+
+    _breakers.clear()
+    client = LLMClient()
+    client._client = _RateLimitedOpenAIClient()
+
+    with pytest.raises(TransientProviderError):
+        await client.chat(
+            "rate-limited-provider",
+            [ChatMessage(role="user", content="hello")],
+            agent="planner",
+            task="content_generation",
+        )
 
 
 @pytest.mark.anyio
@@ -115,6 +138,27 @@ async def test_stream_success_closes_half_open_provider_circuit() -> None:
 
     assert chunks == ["ok"]
     assert breaker_for("recovering-provider").is_open() is False
+
+
+@pytest.mark.anyio
+async def test_chat_via_streaming_transport_runs_after_call_on_joined_content() -> None:
+    """A PII pattern split across two chunks must still be scrubbed.
+
+    Proves after_call runs on the fully-accumulated text (not per-chunk,
+    which would miss patterns spanning a chunk boundary — the exact bug
+    plain stream() has by design, see its docstring).
+    """
+    client = LLMClient()
+    client._client = _PiiSplitAcrossChunksClient()
+
+    result = await client.chat_via_streaming_transport(
+        "test-model",
+        [ChatMessage(role="user", content="hello")],
+        agent="planner",
+        task="content_generation",
+    )
+
+    assert result.content == "Contact [redacted-pii] for help"
 
 
 def test_provider_breaker_state_is_shared_through_store() -> None:
@@ -163,3 +207,43 @@ class _StreamingCompletions:
 class _StreamingOpenAIClient:
     def __init__(self) -> None:
         self.chat = SimpleNamespace(completions=_StreamingCompletions())
+
+
+class _PiiSplitAcrossChunksCompletions:
+    async def create(self, **_kwargs):
+        async def stream():
+            yield SimpleNamespace(
+                model="test-model",
+                choices=[SimpleNamespace(delta=SimpleNamespace(content="Contact john@ex"))],
+                usage=None,
+            )
+            yield SimpleNamespace(
+                model="test-model",
+                choices=[SimpleNamespace(delta=SimpleNamespace(content="ample.com for help"))],
+                usage=None,
+            )
+            yield SimpleNamespace(
+                model="test-model",
+                choices=[],
+                usage=SimpleNamespace(prompt_tokens=5, completion_tokens=7),
+            )
+
+        return stream()
+
+
+class _PiiSplitAcrossChunksClient:
+    def __init__(self) -> None:
+        self.chat = SimpleNamespace(completions=_PiiSplitAcrossChunksCompletions())
+
+
+class _RateLimitedCompletions:
+    async def create(self, **_kwargs):
+        import httpx
+
+        response = httpx.Response(429, request=httpx.Request("POST", "http://test/v1/chat/completions"))
+        raise openai.RateLimitError("rate limited", response=response, body=None)
+
+
+class _RateLimitedOpenAIClient:
+    def __init__(self) -> None:
+        self.chat = SimpleNamespace(completions=_RateLimitedCompletions())

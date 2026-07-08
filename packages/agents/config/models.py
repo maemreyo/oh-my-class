@@ -3,23 +3,11 @@ from __future__ import annotations
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
-class LLMConfig(BaseSettings):
-    """LLM connection config. Env prefix: LLM_"""
-
-    model_config = SettingsConfigDict(
-        env_prefix="LLM_",
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
-    )
-
-    base_url: str = "http://localhost:20228/v1"
-    api_key: str = ""
-    timeout: float = 300.0
-    max_retries: int = 0
-
+# LLM connection config (base_url/api_key/timeout/max_retries) lives solely in
+# packages.llm_client.config.LLMClientConfig — that is what LLMClient actually
+# uses to open real connections. Do not redefine it here (a duplicate,
+# zero-real-caller LLMConfig previously lived in this file and drifted out of
+# sync with LLMClientConfig's field names/env vars).
 
 # ── Model tier table ──────────────────────────────────────────────────────────
 #
@@ -159,7 +147,6 @@ class NinerouterConfig(BaseSettings):
     content_truncate: int = 4000
 
 
-LLM = LLMConfig()
 MODELS = ModelAssignments()
 MAX_TOKENS = MaxTokensConfig()
 NINEROUTER = NinerouterConfig()

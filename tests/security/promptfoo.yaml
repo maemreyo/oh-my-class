@@ -2,11 +2,28 @@
 # Run: npx promptfoo eval --config tests/security/promptfoo.yaml
 description: "oh-my-class K-12 safety and invariant red-team"
 
+# 9Router returns Content-Type: text/event-stream with an SSE `data: [DONE]`
+# trailer even for non-streaming requests. The `openai` Python SDK tolerates
+# this; promptfoo's built-in Node.js openai-compatible provider does not
+# (strict JSON.parse fails on trailing SSE content — confirmed 2026-07-08,
+# same prompt succeeds via LLMClient but fails via promptfoo's own HTTP
+# client). Route through promptfoo_provider.py, which calls the same
+# LLMClient every real LLM call in this repo uses, instead of depending on a
+# third-party HTTP client that mishandles 9Router's response shape.
 providers:
-  - id: openai:chat:4omc
+  - id: "file://promptfoo_provider.py"
+    label: "4omc-via-llm-client"
     config:
-      apiBaseUrl: http://localhost:20228/v1
-      apiKey: sk-none
+      pythonExecutable: ".venv/bin/python3"
+
+# llm-rubric assertions need a grading provider — same reasoning as above.
+defaultTest:
+  options:
+    provider:
+      id: "file://promptfoo_provider.py"
+      label: "4omc-via-llm-client"
+      config:
+        pythonExecutable: ".venv/bin/python3"
 
 prompts:
   - label: content-creator-system

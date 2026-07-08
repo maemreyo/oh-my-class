@@ -1,11 +1,18 @@
 ---
 title: "9Router Integration: Combo f.light/f.pro, Config Export, Makefile Dev Workflow"
-status: ready
+status: superseded
 labels: [infrastructure, llm, developer-experience]
 created: 2026-06-24
+superseded: 2026-07-08
 priority: p1
 report: "05"
 ---
+
+> **Superseded (2026-07-08):** 9Router :20128 with `f.light`/`f.pro` combos via
+> Kiro AI free tier is no longer in use. The project now runs 9Router directly
+> at `:20228` with model alias `4omc` (see `.env.example`,
+> `packages/llm_client/config.py`). `infra/9router/` was removed 2026-07-08.
+> Kept here only as historical record.
 
 ## What to build
 

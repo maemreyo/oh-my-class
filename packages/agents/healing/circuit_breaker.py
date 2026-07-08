@@ -215,4 +215,21 @@ class CircuitBreaker:
 def _default_store() -> BreakerStore:
     from packages.agents.healing.redis_breaker_store import RedisBreakerStore
 
-    return RedisBreakerStore.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379/0"))
+    return RedisBreakerStore.from_url(_resolve_redis_url())
+
+
+def _resolve_redis_url() -> str:
+    """Read REDIS_URL, falling back safely if it's an unexpanded ${VAR} placeholder.
+
+    .env's REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT} relies on shell-style
+    interpolation that docker-compose performs but plain Python env-var
+    reading does not — any pure-Python process (a script, a promptfoo
+    provider subprocess, etc.) that reads .env directly without a shell in
+    between sees the literal, un-substituted string and must not treat it as
+    a real URL.
+    """
+    default = "redis://localhost:6379/0"
+    url = os.environ.get("REDIS_URL", default)
+    if "${" in url:
+        return default
+    return url

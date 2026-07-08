@@ -14,6 +14,7 @@ from openai import Omit
 from packages.llm_client.budget.manager import TokenBudgetManager
 from packages.llm_client.circuit_breaker import breaker_for
 from packages.llm_client.config import LLMClientConfig
+from packages.llm_client.errors import classify_openai_error
 from packages.llm_client.middleware import (
     CallMiddlewareRunner,
     MiddlewareCallContext,
@@ -126,9 +127,9 @@ class LLMClient:
                 max_tokens=effective_max_tokens,
                 response_format=response_format,
             )
-        except openai.OpenAIError:
+        except openai.OpenAIError as exc:
             breaker.record_failure()
-            raise
+            raise classify_openai_error(exc) from exc
         breaker.record_success()
         choice = resp.choices[0]
         usage = resp.usage
@@ -160,7 +161,18 @@ class LLMClient:
         locale: str | None = None,
         max_tokens: int | None = None,
     ) -> AsyncIterator[str]:
-        """Stream chat response token by token."""
+        """Stream chat response token by token.
+
+        Deliberately does NOT run after_call (PII scrub/unsafe-output
+        block/JSON repair/locale check) — that transform needs the whole
+        document, not a partial token, and running it per-chunk would be
+        wrong (patterns can span chunk boundaries). Only use this for a
+        caller that genuinely displays/consumes tokens incrementally. If a
+        caller just accumulates every chunk into one string before doing
+        anything with it, use chat_via_streaming_transport() instead — same
+        streaming HTTP transport, but with the full chat()-parity safety
+        pipeline applied to the accumulated result.
+        """
         breaker = breaker_for(model)
         if breaker.is_open():
             raise ProviderCircuitOpenError(model)
@@ -195,7 +207,87 @@ class LLMClient:
                 delta = chunk.choices[0].delta.content
                 if delta:
                     yield delta
-        except openai.OpenAIError:
+        except openai.OpenAIError as exc:
             breaker.record_failure()
-            raise
+            raise classify_openai_error(exc) from exc
         breaker.record_success()
+
+    async def chat_via_streaming_transport(
+        self,
+        model: str,
+        messages: list[ChatMessage],
+        agent: str = "unknown",
+        task: str = "unknown",
+        run_id: str | None = None,
+        step: int | None = None,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        locale: str | None = None,
+    ) -> ChatResponse:
+        """Full-response chat that uses the streaming HTTP transport internally.
+
+        For callers who pick a streaming network transport (e.g. to avoid
+        provider response-size limits) but only ever consume the fully
+        accumulated text — same safety guarantees as chat(): before_call AND
+        after_call (PII scrub, unsafe-output block, JSON repair, locale check)
+        both run, on the complete content. Use plain stream() only when a
+        caller genuinely needs raw token-by-token output; that path does not
+        run after_call, since after_call transforms the whole document.
+        """
+        breaker = breaker_for(model)
+        if breaker.is_open():
+            raise ProviderCircuitOpenError(model)
+
+        context = MiddlewareCallContext(
+            agent=agent, task=task, run_id=run_id, step=step, locale=locale,
+        )
+        prepared_messages = [
+            ChatMessage(role=message.role, content=message.content)
+            for message in self._middleware.before_call(
+                [MiddlewareMessage(role=message.role, content=message.content) for message in messages],
+                context,
+            )
+        ]
+        extra = build_tags(agent, task, run_id, step)
+        effective_max_tokens = max_tokens if max_tokens is not None else _budget.get_hard_limit(task)
+        typed_messages = cast(
+            "list[ChatCompletionMessageParam]",
+            [{"role": m.role, "content": m.content} for m in prepared_messages],
+        )
+        try:
+            stream = await self._client.chat.completions.create(
+                model=model,
+                messages=typed_messages,
+                temperature=temperature if temperature is not None else self._config.temperature,
+                extra_body=extra,
+                max_tokens=effective_max_tokens,
+                stream=True,
+                stream_options={"include_usage": True},
+            )
+            chunks: list[str] = []
+            response_model = model
+            input_tokens = 0
+            output_tokens = 0
+            async for chunk in stream:
+                response_model = getattr(chunk, "model", None) or response_model
+                if getattr(chunk, "choices", None):
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        chunks.append(delta)
+                usage = getattr(chunk, "usage", None)
+                if usage:
+                    input_tokens = usage.prompt_tokens
+                    output_tokens = usage.completion_tokens
+        except openai.OpenAIError as exc:
+            breaker.record_failure()
+            raise classify_openai_error(exc) from exc
+        breaker.record_success()
+
+        _budget.record_usage(task, output_tokens)
+        result = self._middleware.after_call("".join(chunks), context)
+        return ChatResponse(
+            content=result.content,
+            model=response_model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )

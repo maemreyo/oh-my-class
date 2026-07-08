@@ -70,7 +70,8 @@ class ArchitectureManifest(TypedDict):
 def build_manifest() -> ArchitectureManifest:
     from common.contracts.run_contract import ExportFormat
     from packages.agents.config.gate_config import GateConfig
-    from packages.agents.config.models import LLMConfig, ModelAssignments
+    from packages.agents.config.models import ModelAssignments
+    from packages.llm_client.config import LLMClientConfig
     from packages.agents.teaching_pack.exporters import ExporterRegistry
     from packages.agents.teaching_pack.gate_trust import (
         _FAST_LANE_ELIGIBLE_GATES,
@@ -106,7 +107,7 @@ def build_manifest() -> ArchitectureManifest:
             ],
         },
         "models": {
-            "llm_base_url": LLMConfig().base_url,
+            "llm_base_url": LLMClientConfig().base_url,
             "assignments": {
                 name: getattr(ModelAssignments(), name)
                 for name in sorted(ModelAssignments.model_fields)

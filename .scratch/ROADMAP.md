@@ -218,6 +218,8 @@ Original topological order of **56 `td`-prefixed-epic issues** across 8 epics, p
 
 Patterns kept: three-layer pyramid, golden dataset, semantic/trajectory-over-exact-match, health gates, chaos/fault-injection, production-trace feedback. `testing/` is the **harness layer**; per-feature epics' suites run on it.
 
+**Real-LLM release gate (added 2026-07-08, from the real-LLM-integration design interview):** `.github/workflows/real-llm-release-gate.yml` runs `@pytest.mark.real_llm` against live 9router (`:20228`, `4omc`) on a **self-hosted runner, `workflow_dispatch`-only** — 9Router currently runs unconfigured/manual on a personal machine, not containerized, so a self-hosted runner is the only way CI can reach `localhost:20228` today, and `workflow_dispatch` (not `schedule:` cron) is used because a self-hosted runner only fires when its host machine happens to be online. **TODO — not yet done:** containerize 9Router (service container + provider credentials in repo secrets) so this can run on a normal GitHub-hosted runner with a true unattended nightly `schedule:` trigger, instead of manual-dispatch-only on a personal machine.
+
 ## Principles baked into every issue
 - **Divide-and-conquer everywhere; no single long master prompt** — every agent decomposes into focused sub-steps.
 - **New stage runtime only** (`teaching_pack/graph.py`); legacy `build_oh_my_class_graph` frozen, not extended.

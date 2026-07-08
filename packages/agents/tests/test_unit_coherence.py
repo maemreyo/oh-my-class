@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
-
 from common.contracts.lesson_sequence import (
     KnowledgeComponent,
     SessionPlan,
@@ -225,9 +223,14 @@ class TestRunCoherenceLint:
         drift_warnings = [w for w in warnings if w.warning_type == CoherenceWarningType.TERMINOLOGY_DRIFT]
         assert not drift_warnings
 
-    @pytest.mark.real_llm
     async def test_terminology_warning_same_concept_diff_terms(self) -> None:
-        """Mock LLM returns a known response → CoherenceWarning naming both sessions."""
+        """Given a controlled LLM response, CoherenceWarning names both sessions.
+
+        This is a parsing/logic test (not real_llm): it fixes the LLM's response
+        and asserts the lint's warning-extraction behavior, not real-9router
+        wording variance. See tests/test_no_fake_llm.py for why real_llm and a
+        fake LLM double cannot coexist in the same file.
+        """
 
         class MockLLMClient:
             async def acomplete(self, prompt: str) -> str:

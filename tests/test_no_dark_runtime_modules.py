@@ -41,6 +41,18 @@ REQUIRE_WIRED: tuple[tuple[str, str], ...] = (
     ("synthesize_semantic_anchor_cluster", "packages/agents/sub_agents/content_creator/semantic_anchor_synthesis.py"),
     ("generate_semantic_anchor_practice", "packages/agents/sub_agents/practice_generator/semantic_anchor.py"),
     ("SemanticAnchoringQualityGate", "packages/quality/semantic_anchoring/gate.py"),
+    # --- real-LLM-integration design interview, 2026-07-08: wired LLMClient.chat/
+    # stream/chat_via_streaming_transport to classify provider errors on failure,
+    # instead of bare-reraising openai.OpenAIError (see packages/llm_client/client.py).
+    ("classify_openai_error", "packages/llm_client/errors.py"),
+    # Observability (gap #10 of the same interview): confirms trace_llm_call
+    # and its underlying client constructor are genuinely called from the
+    # real LLM call path (packages/agents/llm/chat.py), not just defined.
+    # This is a live-path-proof in place of a real-Langfuse-server test —
+    # no Langfuse instance runs in this dev environment, so this is the cheap
+    # guard against the module regressing to genuinely dark/unwired.
+    ("trace_llm_call", "packages/agents/observability/tracing.py"),
+    ("get_langfuse_client", "packages/agents/observability/langfuse_client.py"),
 )
 
 # (symbol, defining_file) — audit-confirmed dark. Promote to REQUIRE_WIRED when wired.
@@ -53,7 +65,6 @@ KNOWN_DARK: tuple[tuple[str, str], ...] = (
     ("run_coherence_lint", "packages/agents/quality/unit_coherence.py"),
     # --- resilience / governance / ops — later phases ---
     ("evaluate_model_drift", "packages/agents/config/model_drift.py"),
-    ("classify_openai_error", "packages/llm_client/errors.py"),
     ("dispatch_slo_alerts", "services/gateway/slo_alerting.py"),
 )
 

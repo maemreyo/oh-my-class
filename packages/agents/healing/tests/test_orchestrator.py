@@ -62,10 +62,10 @@ class TestHealingOrchestrator:
 
     def test_reroute_on_second_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
-        state = make_state(fail_count=1, fail_type="validation", generation_model="f.light")
+        state = make_state(fail_count=1, fail_type="validation", generation_model="4omc")
         result = HealingOrchestrator().heal(cast("TeachingPackState", state))
         assert result["healing_strategy"] == "reroute"
-        assert result["generation_model"] == "4omc"
+        assert result["generation_model"] == "4omc"  # single-model deployment: holds steady
 
     def test_replan_on_third_fail(self):
         from packages.agents.healing.orchestrator import HealingOrchestrator
@@ -181,20 +181,33 @@ class TestRewriteStrategy:
 
 
 class TestRerouteStrategy:
-    def test_upgrades_light_to_pro(self):
-        from packages.agents.healing.strategies.reroute import apply
-        result = apply({"generation_model": "f.light"}, 2)
-        assert result["generation_model"] == "4omc"
-
-    def test_downgrades_pro_to_light(self):
+    def test_holds_steady_in_single_model_deployment(self):
         from packages.agents.healing.strategies.reroute import apply
         result = apply({"generation_model": "4omc"}, 2)
-        assert result["generation_model"] == "f.light"
+        assert result["generation_model"] == "4omc"
+        assert "holding steady" in result["healing_note"]
 
-    def test_defaults_to_light_when_no_model(self):
+    def test_escalates_to_strong_default_when_configured(self, monkeypatch):
+        monkeypatch.setenv("MODEL_STRONG_DEFAULT", "4omc-pro")
+        from importlib import reload
+
+        from packages.agents.config import models
+        reload(models)
+        from packages.agents.healing.strategies import reroute
+        reload(reroute)
+
+        result = reroute.apply({"generation_model": "4omc"}, 2)
+        assert result["generation_model"] == "4omc-pro"
+        assert "4omc → 4omc-pro" in result["healing_note"]
+
+        monkeypatch.delenv("MODEL_STRONG_DEFAULT", raising=False)
+        reload(models)
+        reload(reroute)
+
+    def test_defaults_to_4omc_when_no_model(self):
         from packages.agents.healing.strategies.reroute import apply
         result = apply({}, 2)
-        assert result["generation_model"] in ("f.light", "4omc")
+        assert result["generation_model"] == "4omc"
 
     def test_clears_artifacts(self):
         from packages.agents.healing.strategies.reroute import apply

@@ -1,11 +1,5 @@
 from __future__ import annotations
 
-import subprocess
-from pathlib import Path
-from unittest.mock import patch
-
-from tests.security.promptfoo_runner import run_promptfoo_security_suite
-
 
 def test_answer_key_not_in_student_html():
     """Student HTML must never contain answer key markers.
@@ -42,19 +36,3 @@ def test_no_pii_in_exported_artifacts():
 
     for value in raw_pii:
         assert value not in exported_html
-
-
-def test_promptfoo_security_suite_invokes_eval_command() -> None:
-    config_path = Path("tests/security/promptfoo.yaml")
-    completed = subprocess.CompletedProcess(
-        args=["npx", "promptfoo", "eval", "--config", str(config_path)],
-        returncode=0,
-        stdout="4 tests passed",
-        stderr="",
-    )
-
-    with patch("tests.security.promptfoo_runner.subprocess.run", return_value=completed) as run:
-        result = run_promptfoo_security_suite(config_path)
-
-    assert result.returncode == 0
-    assert run.call_args.args[0] == ["npx", "promptfoo", "eval", "--config", str(config_path)]

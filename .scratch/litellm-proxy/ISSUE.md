@@ -1,11 +1,20 @@
 ---
 title: "LiteLLM Proxy: P2+FB3+DC2 — 2-Layer Gateway, f.light/f.pro, Compose Override"
-status: deferred
+status: superseded
 labels: [infrastructure, llm, deployment]
 created: 2026-06-24
+superseded: 2026-07-08
 priority: p2
 report: "04"
 ---
+
+> **Superseded (2026-07-08):** This plan (9Router :20128, `f.light`/`f.pro` combos,
+> LiteLLM-fronted production via `docker-compose.prod.yml`) is no longer in use.
+> The project now runs 9Router directly at `:20228` with model alias `4omc`
+> (see `.env.example`, `packages/llm_client/config.py`). `infra/9router/`,
+> `infra/litellm/`, `services/proxy/`, `services/router/`, and the root
+> `docker-compose.yml`/`docker-compose.prod.yml` pair implementing this plan
+> were removed 2026-07-08. Kept here only as historical record.
 
 > **Deferred (p2):** Not needed for local dev. User calls 9Router directly
 > (`LLM_CLIENT_BASE_URL=http://localhost:20128`). Implement only when preparing

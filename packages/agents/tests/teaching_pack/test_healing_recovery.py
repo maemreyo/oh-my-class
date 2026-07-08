@@ -60,7 +60,9 @@ class TestTeachingPackHealingRecovery:
         )
 
         assert result.get("healing_strategy") == "reroute"
-        assert result.get("generation_model") == "f.light"
+        # Single-model deployment (no MODEL_STRONG_DEFAULT configured): reroute
+        # holds the model steady rather than swapping to a fabricated name.
+        assert result.get("generation_model") == "4omc"
         assert result.get("quality_recovery_route") == "artifact_workflow"
         assert result.get("fail_count") == 2
 
