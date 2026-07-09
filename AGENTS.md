@@ -1028,11 +1028,11 @@ The following minor corrections were applied during the grill-session docs sync:
 
 ### Issue tracker
 
-GitHub Issues on `github.com/maemreyo/oh-my-class` (uses `gh` CLI). No external PRs. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `github.com/maemreyo/oh-my-class` (uses `gh` CLI). No external PRs. Supports Wayfinder map/child/blocking operations. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Three labels: `needs-info` → `ready-for-agent` → `done`. See `docs/agents/triage-labels.md`.
+Five standard labels: `needs-triage` → `needs-info` → `ready-for-agent` / `ready-for-human` / `wontfix`. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
