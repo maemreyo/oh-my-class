@@ -1,8 +1,0 @@
-
-> @oh-my-class/web@0.1.0 dev /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web
-> next dev --turbopack -- -p 3100
-
-Invalid project directory provided, no such directory: /Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web/-p
-/Users/trung.ngo/Documents/zaob-dev/oh-my-class/apps/web:
- ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @oh-my-class/web@0.1.0 dev: `next dev --turbopack -- -p 3100`
-Exit status 1
