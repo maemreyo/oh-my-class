@@ -1028,15 +1028,15 @@ The following minor corrections were applied during the grill-session docs sync:
 
 ### Issue tracker
 
-Local markdown under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `github.com/maemreyo/oh-my-class` (uses `gh` CLI). No external PRs. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Two labels: `needs-info` and `ready-for-agent`. See `docs/agents/triage-labels.md`.
+Three labels: `needs-info` → `ready-for-agent` → `done`. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context: one `CONTEXT.md` at repo root + `docs/adr/` for ADRs. See `docs/agents/domain.md`.
+Single-context: `CONTEXT.md` at repo root + `docs/adr/` for ADRs. See `docs/agents/domain.md`.
 
 ---
 

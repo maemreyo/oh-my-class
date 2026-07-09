@@ -1,30 +1,26 @@
-# Issue Tracker
+# Issue tracker: GitHub
 
-Issues live as markdown files under `.scratch/<feature>/` in this repo.
+Issues and PRDs for this repo live as GitHub issues on `github.com/maemreyo/oh-my-class`. Use the `gh` CLI for all operations.
 
-## Structure
+## Conventions
 
-```
-.scratch/
-  <feature-slug>/
-    ISSUE.md          # The issue body
-    research/         # Optional: research notes
-    artifacts/        # Optional: generated artifacts
-```
+- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
+- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
+- **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
+- **Comment on an issue**: `gh issue comment <number> --body "..."`
+- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
+- **Close**: `gh issue close <number> --comment "..."`
 
-## ISSUE.md Format
+Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
 
-```yaml
----
-title: Short description
-status: needs-info | ready-for-agent
-labels: []
-created: YYYY-MM-DD
----
-```
+## Pull requests as a triage surface
 
-## Workflow
+**PRs as a request surface: no.** This is a solo project with no external contributors.
 
-1. Create `.scratch/<feature>/ISSUE.md` with frontmatter
-2. Triage skill updates `status` field
-3. Agent skills read from this directory
+## When a skill says "publish to the issue tracker"
+
+Create a GitHub issue.
+
+## When a skill says "fetch the relevant ticket"
+
+Run `gh issue view <number> --comments`.

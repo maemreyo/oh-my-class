@@ -1,16 +1,35 @@
 # Domain Docs
 
-Single-context layout.
+How the engineering skills should consume this repo's domain documentation when exploring the codebase.
 
-## CONTEXT.md
+## Before exploring, read these
 
-Place at repo root. Contains:
-- Project overview and goals
-- Domain language / glossary
-- Architecture overview
-- Key design decisions
+- **`CONTEXT.md`** at the repo root — domain glossary and architecture overview.
+- **`docs/adr/`** — read ADRs that touch the area you're about to work in.
 
-## ADRs
+If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront.
 
-Location: `docs/adr/`
-Format: `NNN-title.md` (e.g., `001-reverse-proxy.md`)
+## File structure
+
+Single-context repo:
+
+```
+/
+├── CONTEXT.md
+├── docs/adr/
+│   ├── 001-reverse-proxy.md
+│   └── ...  (050 ADRs total)
+└── packages/ apps/ services/ ...
+```
+
+## Use the glossary's vocabulary
+
+When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
+
+If the concept you need isn't in the glossary yet, that's a signal — either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
+
+## Flag ADR conflicts
+
+If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
+
+> _Contradicts ADR-013 (prompt-template-rubric-governance) — but worth reopening because…_
