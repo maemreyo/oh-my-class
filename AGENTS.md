@@ -1036,7 +1036,7 @@ Five standard labels: `needs-triage` → `needs-info` → `ready-for-agent` / `r
 
 ### Domain docs
 
-Single-context: `CONTEXT.md` at repo root + `docs/adr/` for ADRs. See `docs/agents/domain.md`.
+Single-context: `CONTEXT.md` at repo root + `docs/adr/` for ADRs. See `docs/agents/domain.md`. Use the `/anatomy` skill (located in `.agents/skills/anatomy`) to update or generate architecture documentation dynamically from the codebase.
 
 ---
 
