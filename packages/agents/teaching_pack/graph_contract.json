@@ -1,0 +1,71 @@
+{
+  "version": "1.0",
+  "stages": [
+    "setup_contract",
+    "triage",
+    "preplanning_search",
+    "planning_blueprint",
+    "post_blueprint_research",
+    "artifact_workflow",
+    "render_quality",
+    "compliance_gate",
+    "teacher_approval",
+    "export_finalize"
+  ],
+  "stages_with_component_strategy": [
+    "setup_contract",
+    "triage",
+    "preplanning_search",
+    "planning_blueprint",
+    "provisional_component_strategy",
+    "post_blueprint_research",
+    "finalize_component_strategy",
+    "teacher_approval",
+    "artifact_workflow",
+    "render_quality",
+    "compliance_gate",
+    "export_finalize"
+  ],
+  "node_names": [
+    "artifact_workflow",
+    "compliance_gate",
+    "export_finalize",
+    "generate_one_artifact",
+    "planning_blueprint",
+    "post_blueprint_research",
+    "preplanning_search",
+    "render_quality",
+    "setup_contract",
+    "teacher_approval",
+    "triage",
+    "unit_approval",
+    "unit_planning",
+    "unit_prep"
+  ],
+  "conditional_edges": [
+    {
+      "source": "triage",
+      "targets": ["preplanning_search", "unit_planning"]
+    },
+    {
+      "source": "unit_approval",
+      "targets": ["unit_prep", "unit_planning"]
+    },
+    {
+      "source": "artifact_workflow",
+      "targets": ["render_quality", "generate_one_artifact"]
+    },
+    {
+      "source": "render_quality",
+      "targets": ["planning_blueprint", "post_blueprint_research", "artifact_workflow", "compliance_gate", "teacher_approval"]
+    },
+    {
+      "source": "compliance_gate",
+      "targets": ["artifact_workflow", "teacher_approval"]
+    },
+    {
+      "source": "teacher_approval",
+      "targets": ["artifact_workflow", "export_finalize"]
+    }
+  ]
+}

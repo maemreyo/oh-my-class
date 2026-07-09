@@ -17,12 +17,15 @@ from packages.agents.teaching_pack.middleware_runtime import (
     run_entry_middleware as _run_entry_middleware,
     run_gate_middleware as _run_gate_middleware,
     run_generation_context_middleware as _run_generation_context_middleware,
+    run_quality_consolidated_middleware as _run_quality_middleware,
 )
 from packages.agents.teaching_pack.quality_runtime import render_quality
 from packages.agents.teaching_pack.reducers import stable_merge_artifacts, stable_merge_workflow_states
 from packages.agents.teaching_pack.scoped_regeneration import (
     apply_scoped_section_edit,
+    apply_scoped_slide_deck_block_edit_on_artifacts,
     has_scoped_section_edit,
+    has_scoped_slide_deck_block_edit,
     rejected_artifact_types,
     scoped_rejections,
 )
@@ -483,6 +486,18 @@ async def _rollback_artifact_workflow(state: TeachingPackState) -> TeachingPackS
                 mediated_state.get("gate_payload", {}),
             ),
         })
+    # SDE-04: slide_deck artifacts are `slides[].blocks[]`, not a flat `sections`
+    # list, so `apply_scoped_section_edit` above silently no-ops on them (its
+    # `sections = artifact.get("sections")` check fails closed). This branch is
+    # the slide-deck-scoped equivalent, same gate-resume wiring.
+    if has_scoped_slide_deck_block_edit(mediated_state.get("gate_payload", {})):
+        return TeachingPackState(**{
+            "run_id": mediated_state["run_id"],
+            **apply_scoped_slide_deck_block_edit_on_artifacts(
+                mediated_state.get("artifacts", []),
+                mediated_state.get("gate_payload", {}),
+            ),
+        })
     contract = mediated_state.get("contract", {})
     artifact_types = _artifact_types_for_generation(mediated_state, contract)
     creator_state: ContentCreatorNodeState = {
@@ -513,7 +528,16 @@ async def _render_quality(
     state: TeachingPackState,
     quality_gate: QualityGate | None = None,
 ) -> TeachingPackState:
-    return TeachingPackState(**await render_quality(state, quality_gate))
+    mediated = await _run_quality_middleware(state)
+    result = TeachingPackState(**await render_quality(mediated, quality_gate))
+    # render_quality overwrites quality_scores entirely — re-inject middleware
+    # warnings so downstream consumers (teacher_approval) can read them.
+    mw_warnings = mediated.get("quality_scores", {}).get("middleware_warnings", {})
+    if mw_warnings:
+        quality_scores = dict(result.get("quality_scores", {}))
+        quality_scores["middleware_warnings"] = mw_warnings
+        result["quality_scores"] = quality_scores
+    return result
 
 
 def _compliance_gate(state: TeachingPackState) -> TeachingPackState:
@@ -550,6 +574,9 @@ def _teacher_approval(
         "run_id": state["run_id"],
         "artifact_explanations": artifact_explanations_for_teacher(state, "manual"),
     }
+    mw_warnings = state.get("quality_scores", {}).get("middleware_warnings", {})
+    if mw_warnings:
+        gate_payload["middleware_warnings"] = mw_warnings
     strategy_summary = _component_strategy_gate_summary(state)
     if strategy_summary:
         gate_payload["component_strategy"] = strategy_summary

@@ -12,7 +12,8 @@ ArtifactType = Literal[
     "lesson", "worksheet", "quiz", "drill", "recap", "infographic",
     "flashcard_deck", "answer_key", "roadmap", "slide_deck",
 ]
-ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "google_forms"]
+ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx"]
+PublishTarget = Literal["google_forms"]
 ResearchPolicy = Literal["basic", "standard", "rigorous"]
 ContractActor = Literal["system", "teacher", "admin"]
 ContractSource = Literal["code_defaults", "policy", "env", "request", "teacher", "admin"]
@@ -49,6 +50,7 @@ class RunContract(BaseModel):
     citation_locale: str = Field(min_length=2, max_length=16)
     artifact_types: list[ArtifactType] = Field(min_length=1)
     export_formats: list[ExportFormat] = Field(min_length=1)
+    publish_targets: list[PublishTarget] = Field(default_factory=list)
     research_policy: ResearchPolicy = "standard"
     config_version: str = Field(min_length=1, max_length=64)
     config_hash: str = Field(min_length=64, max_length=64)

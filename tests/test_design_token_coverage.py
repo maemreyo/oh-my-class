@@ -47,9 +47,6 @@ def _declared_tokens() -> set[str]:
     tokens = set(DOC_TOKEN_PATTERN.findall(Path("DESIGN.md").read_text(encoding="utf-8")))
     for file_path in (
         Path("apps/web/src/app/globals.css"),
-        Path("common/branding/kits/default/theme_default.css"),
-        Path("common/branding/kits/ocean/theme_ocean.css"),
-        Path("common/branding/kits/forest/theme_forest.css"),
     ):
         tokens.update(DECLARED_TOKEN_PATTERN.findall(file_path.read_text(encoding="utf-8")))
     for theme_path in Path("packages/renderer/src/theme/themes").glob("*.json"):

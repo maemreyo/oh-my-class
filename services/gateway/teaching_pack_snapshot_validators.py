@@ -8,9 +8,12 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from common.contracts.slide_deck import resolve_slide_deck_display_preferences
+
 if TYPE_CHECKING:
     from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot
     from services.gateway.teaching_pack_snapshot_schemas import ArtifactSnapshotCreate
+    from services.gateway.teaching_pack_types import JsonObject
 
 
 def _contains_answer_key_patterns(text: str) -> bool:
@@ -85,6 +88,41 @@ def remove_answer_keys_from_html(rendered_html: str) -> str:
     )
 
     return html
+
+
+def bake_effective_slide_deck_display_preferences(
+    artifact_type: str,
+    content_json: JsonObject,
+) -> JsonObject:
+    """Freeze resolved ADR-043 display preferences into a slide-deck snapshot.
+
+    `TeachingPackSnapshotStore.create_snapshot` is the single boundary every
+    snapshot-persistence path (production export, content-approval gate,
+    teacher-triggered re-export) routes through. Resolving preferences once
+    here -- instead of leaving `display_preferences` missing/partial in the
+    stored `content_json` -- means a later replay of *this exact snapshot*
+    reproduces the surface/layout/chrome that was actually in effect at
+    export time, even if the deck predates ADR-043 or a future release
+    changes the resolver's defaults.
+
+    No-op (returns `content_json` unchanged) for non-slide-deck artifacts or
+    a slide deck with no recognizable `metadata.slide_deck_data` payload.
+    """
+    if artifact_type != "slide_deck":
+        return content_json
+    metadata = content_json.get("metadata")
+    if not isinstance(metadata, dict):
+        return content_json
+    deck = metadata.get("slide_deck_data")
+    if not isinstance(deck, dict):
+        return content_json
+    raw_preferences = deck.get("display_preferences")
+    effective = resolve_slide_deck_display_preferences(
+        raw_preferences if isinstance(raw_preferences, dict) else None,
+    )
+    updated_deck = {**deck, "display_preferences": effective.model_dump()}
+    updated_metadata = {**metadata, "slide_deck_data": updated_deck}
+    return {**content_json, "metadata": updated_metadata}
 
 
 def _validate_snapshot_versions(

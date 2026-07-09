@@ -39,6 +39,10 @@ omc_checkpoints.db
 # 9Router
 9router-data/
 
+# SDX-02 local media-asset storage (MEDIA_STORAGE_ROOT default)
+/data/media-assets/
+services/gateway/data/media-assets/
+
 # Turborepo
 .turbo
 **/tsconfig.tsbuildinfo
@@ -46,3 +50,4 @@ omc_checkpoints.db
 .playwright-mcp/
 .omo/ulw-research/
 .scratch/teacher-scenarios/
+.omo/notepads/

@@ -13,6 +13,11 @@ vi.mock("@/hooks/use-teaching-packs", () => ({
 		isPending: false,
 		error: null,
 	}),
+	useTranslateSlideDeck: () => ({
+		mutateAsync: vi.fn(),
+		isPending: false,
+		error: null,
+	}),
 }));
 
 vi.mock("@/lib/api-client", () => ({

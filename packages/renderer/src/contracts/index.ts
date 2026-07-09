@@ -56,6 +56,7 @@ export type {
   SlideDeckBlock,
   SlideDeckInteraction,
   SlideDeckInteractionOption,
+  SlideDeckRelatedArtifactRef,
   SlideDeckSlide,
   SlideDeckTeacherOnly,
 } from "./slide_deck.js";

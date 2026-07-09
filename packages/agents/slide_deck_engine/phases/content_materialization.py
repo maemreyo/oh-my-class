@@ -2,21 +2,61 @@ from __future__ import annotations
 
 from typing import Final
 
+from pydantic import ValidationError
+
 from common.contracts.slide_deck import SlideDeckData
 
 from packages.agents.slide_deck_engine.models import AssembledSlideDeckInput, PedagogicalPlan
+from packages.agents.slide_deck_engine.phases.content_materialization_llm import (
+    SlideDeckWordingResponse,
+    generate_slide_deck_wording,
+)
 
 _TITLE_SUFFIX = " Slide Deck"
 _TITLE_MAX_LENGTH = 200
 _FOOD_VOCABULARY_MARKERS: Final = ("food vocabulary", "food", "eat", "drink")
 
 
-def materialize_deck(assembled: AssembledSlideDeckInput, plan: PedagogicalPlan) -> SlideDeckData:
+async def materialize_deck(
+    assembled: AssembledSlideDeckInput,
+    plan: PedagogicalPlan,
+) -> tuple[SlideDeckData, int]:
+    """Build the deck, authoring wording/examples/activity text via a real LLM call.
+
+    Returns ``(deck, llm_calls)`` — ``llm_calls`` is 1 only when the LLM produced a
+    schema-valid response that was actually used; 0 whenever the call failed
+    (timeout, invalid schema) or its output couldn't be assembled into a valid
+    deck, in which case the deck falls back to the engine's existing deterministic
+    per-topic wording (real curated content, not a placeholder).
+    """
+    topic = assembled.topic
+    wording = await generate_slide_deck_wording(
+        run_id=assembled.run_id,
+        topic=topic,
+        grade_level=assembled.grade_level,
+        locale=assembled.locale,
+        learning_goal=plan.learning_goal,
+    )
+    try:
+        deck_payload = _deck_payload(assembled, plan, topic, wording)
+        return SlideDeckData.model_validate(deck_payload), (1 if wording is not None else 0)
+    except ValidationError:
+        # ponytail: all-or-nothing fallback — one invalid/oversized LLM field discards
+        # the whole response rather than salvaging the other fields; upgrade to
+        # per-field validation if this proves too lossy in practice.
+        return SlideDeckData.model_validate(_deck_payload(assembled, plan, topic, None)), 0
+
+
+def _deck_payload(
+    assembled: AssembledSlideDeckInput,
+    plan: PedagogicalPlan,
+    topic: str,
+    wording: SlideDeckWordingResponse | None,
+) -> dict[str, object]:
     source_id = str(assembled.source.get("id", "src-generated"))
     source_title = str(assembled.source.get("title", "Teacher supplied lesson context"))
     source_citation = str(assembled.source.get("citation", "Teacher supplied lesson context"))
-    topic = assembled.topic
-    return SlideDeckData.model_validate({
+    return {
         "deck_id": f"slide-deck-{assembled.run_id}",
         "title": _deck_title(topic),
         "locale": assembled.locale,
@@ -33,12 +73,12 @@ def materialize_deck(assembled: AssembledSlideDeckInput, plan: PedagogicalPlan) 
             "confidence": "verified",
         }],
         "slides": [
-            _title_slide(topic, source_id, plan),
+            _title_slide(topic, source_id, plan, wording),
             _goal_slide(topic, source_id, plan),
-            _vocabulary_slide(topic, source_id),
-            _example_slide(topic, source_id),
-            _practice_slide(topic, source_id, plan),
-            _exit_slide(topic, source_id),
+            _vocabulary_slide(topic, source_id, wording),
+            _example_slide(topic, source_id, wording),
+            _practice_slide(topic, source_id, plan, wording),
+            _exit_slide(topic, source_id, wording),
         ],
         "accessibility": {
             "reading_level": assembled.grade_level,
@@ -51,10 +91,23 @@ def materialize_deck(assembled: AssembledSlideDeckInput, plan: PedagogicalPlan) 
             "online_optional_allowed": True,
             "fallback_required": True,
         },
-    })
+    }
 
 
-def _title_slide(topic: str, source_id: str, plan: PedagogicalPlan) -> dict[str, object]:
+def _wording_field(wording: SlideDeckWordingResponse | None, field_name: str, fallback: str) -> str:
+    if wording is None:
+        return fallback
+    value = getattr(wording, field_name)
+    return value if value else fallback
+
+
+def _title_slide(
+    topic: str,
+    source_id: str,
+    plan: PedagogicalPlan,
+    wording: SlideDeckWordingResponse | None,
+) -> dict[str, object]:
+    alt_text = _wording_field(wording, "image_alt_text", f"Visual model for {topic}.")
     return {
         "slide_id": "slide-title",
         "title": topic,
@@ -71,7 +124,7 @@ def _title_slide(topic: str, source_id: str, plan: PedagogicalPlan) -> dict[str,
                     "media_type": "image",
                     "source": "packaged/slide-deck-default-model.svg",
                     "tier": "packaged",
-                    "alt_text": f"Visual model for {topic}.",
+                    "alt_text": alt_text,
                     "fallback_text": f"Teacher sketches a visual model for {topic}.",
                 },
             },
@@ -102,9 +155,13 @@ def _goal_slide(topic: str, source_id: str, plan: PedagogicalPlan) -> dict[str, 
     }
 
 
-def _vocabulary_slide(topic: str, source_id: str) -> dict[str, object]:
-    vocabulary_body = _vocabulary_body(topic)
-    practice_body = _vocabulary_practice_body(topic)
+def _vocabulary_slide(
+    topic: str,
+    source_id: str,
+    wording: SlideDeckWordingResponse | None,
+) -> dict[str, object]:
+    vocabulary_body = _wording_field(wording, "vocabulary_body", _vocabulary_body(topic))
+    practice_body = _wording_field(wording, "vocabulary_practice_body", _vocabulary_practice_body(topic))
     return {
         "slide_id": "slide-vocabulary",
         "title": "Key Vocabulary",
@@ -128,9 +185,13 @@ def _vocabulary_slide(topic: str, source_id: str) -> dict[str, object]:
     }
 
 
-def _example_slide(topic: str, source_id: str) -> dict[str, object]:
-    example_body = _example_body(topic)
-    sentence_stem = _sentence_stem(topic)
+def _example_slide(
+    topic: str,
+    source_id: str,
+    wording: SlideDeckWordingResponse | None,
+) -> dict[str, object]:
+    example_body = _wording_field(wording, "example_body", _example_body(topic))
+    sentence_stem = _wording_field(wording, "sentence_stem", _sentence_stem(topic))
     return {
         "slide_id": "slide-example",
         "title": "Worked Example",
@@ -154,10 +215,18 @@ def _example_slide(topic: str, source_id: str) -> dict[str, object]:
     }
 
 
-def _practice_slide(topic: str, source_id: str, plan: PedagogicalPlan) -> dict[str, object]:
-    check_prompt = _check_prompt(topic, plan)
+def _practice_slide(
+    topic: str,
+    source_id: str,
+    plan: PedagogicalPlan,
+    wording: SlideDeckWordingResponse | None,
+) -> dict[str, object]:
+    check_prompt = _wording_field(wording, "check_prompt", _check_prompt(topic, plan))
     option_labels = _practice_option_labels(topic)
-    rationale = _teacher_rationale(topic)
+    distractor_a = _wording_field(wording, "practice_distractor_a", option_labels[0])
+    correct_option = _wording_field(wording, "practice_correct_option", option_labels[1])
+    distractor_b = _wording_field(wording, "practice_distractor_b", option_labels[2])
+    rationale = _wording_field(wording, "teacher_rationale", _teacher_rationale(topic))
     return {
         "slide_id": "slide-practice",
         "title": "Guided Practice",
@@ -172,9 +241,9 @@ def _practice_slide(topic: str, source_id: str, plan: PedagogicalPlan) -> dict[s
             "no_js_fallback": "Students answer on paper or by hand signal; no response is stored.",
             "accessibility_label": "Quick check question",
             "options": [
-                {"option_id": "a", "label": option_labels[0]},
-                {"option_id": "b", "label": option_labels[1]},
-                {"option_id": "c", "label": option_labels[2]},
+                {"option_id": "a", "label": distractor_a},
+                {"option_id": "b", "label": correct_option},
+                {"option_id": "c", "label": distractor_b},
             ],
             "teacher_only": {
                 "separation": "teacher_only_projection",
@@ -186,8 +255,12 @@ def _practice_slide(topic: str, source_id: str, plan: PedagogicalPlan) -> dict[s
     }
 
 
-def _exit_slide(topic: str, source_id: str) -> dict[str, object]:
-    exit_prompt = _exit_prompt(topic)
+def _exit_slide(
+    topic: str,
+    source_id: str,
+    wording: SlideDeckWordingResponse | None,
+) -> dict[str, object]:
+    exit_prompt = _wording_field(wording, "exit_prompt", _exit_prompt(topic))
     return {
         "slide_id": "slide-exit",
         "title": "Exit Ticket",

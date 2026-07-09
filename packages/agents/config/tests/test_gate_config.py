@@ -13,7 +13,7 @@ class TestGateConfigDefaults:
 
     def test_judge_n_default(self):
         from packages.agents.config.gate_config import GateConfig
-        assert GateConfig().judge_n == 1
+        assert GateConfig().judge_n == 3
 
     def test_max_retries_default(self):
         from packages.agents.config.gate_config import GateConfig
@@ -56,9 +56,9 @@ class TestGateConfigEnvOverride:
         assert GateConfig().max_retries == 5
 
     def test_env_override_judge_n(self, monkeypatch):
-        monkeypatch.setenv("GATE_JUDGE_N", "3")
+        monkeypatch.setenv("GATE_JUDGE_N", "5")
         from packages.agents.config.gate_config import GateConfig
-        assert GateConfig().judge_n == 3
+        assert GateConfig().judge_n == 5
 
     def test_env_override_responsive_check(self, monkeypatch):
         monkeypatch.setenv("GATE_RESPONSIVE_CHECK_ENABLED", "true")
@@ -188,3 +188,81 @@ class TestNinerouterConfigDefaults:
         monkeypatch.setenv("NINEROUTER_SEARCH_RESULTS", "10")
         from packages.agents.config.models import NinerouterConfig
         assert NinerouterConfig().search_results == 10
+
+
+# ── AdaptiveJudge wiring ─────────────────────────────────────────────────────
+
+class TestAdaptiveJudgeWiring:
+    def test_reviewer_node_passes_num_judges_from_config(self, monkeypatch):
+        """Given default GateConfig, AdaptiveJudge receives num_judges=3."""
+        from unittest.mock import AsyncMock, patch, MagicMock
+        from packages.agents.teaching_pack.stages import StageEnum
+
+        mock_judge_instance = MagicMock()
+        mock_judge_instance.judge = AsyncMock(return_value=MagicMock(
+            judge_output=MagicMock(
+                passed=True,
+                model_dump=lambda: {"overall_score": 8.0},
+            ),
+            rubric_version="rubric-v1",
+            rubric_description="test",
+            deterministic_blocked=False,
+            hard_block_violations=[],
+        ))
+
+        with patch(
+            "packages.quality.layer4_judge.judge_interface.AdaptiveJudge",
+            return_value=mock_judge_instance,
+        ) as mock_cls:
+            import asyncio
+            from packages.agents.sub_agents.reviewer.nodes import reviewer_node
+
+            state = {
+                "artifacts": [{"artifact_type": "lesson"}],
+                "lesson_plan": None,
+                "run_id": "test-run-1",
+                "current_step": StageEnum.RENDER_QUALITY,
+            }
+            asyncio.run(reviewer_node(state))
+
+            mock_cls.assert_called_once()
+            _, kwargs = mock_cls.call_args
+            assert kwargs["num_judges"] == 3
+
+    def test_reviewer_node_wiring_env_override(self, monkeypatch):
+        """Given GATE_JUDGE_N=1, AdaptiveJudge receives num_judges=1."""
+        from unittest.mock import AsyncMock, patch, MagicMock
+        from packages.agents.teaching_pack.stages import StageEnum
+
+        monkeypatch.setenv("GATE_JUDGE_N", "1")
+
+        mock_judge_instance = MagicMock()
+        mock_judge_instance.judge = AsyncMock(return_value=MagicMock(
+            judge_output=MagicMock(
+                passed=True,
+                model_dump=lambda: {"overall_score": 8.0},
+            ),
+            rubric_version="rubric-v1",
+            rubric_description="test",
+            deterministic_blocked=False,
+            hard_block_violations=[],
+        ))
+
+        with patch(
+            "packages.quality.layer4_judge.judge_interface.AdaptiveJudge",
+            return_value=mock_judge_instance,
+        ) as mock_cls:
+            import asyncio
+            from packages.agents.sub_agents.reviewer.nodes import reviewer_node
+
+            state = {
+                "artifacts": [{"artifact_type": "lesson"}],
+                "lesson_plan": None,
+                "run_id": "test-run-2",
+                "current_step": StageEnum.RENDER_QUALITY,
+            }
+            asyncio.run(reviewer_node(state))
+
+            mock_cls.assert_called_once()
+            _, kwargs = mock_cls.call_args
+            assert kwargs["num_judges"] == 1

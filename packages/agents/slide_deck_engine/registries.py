@@ -38,6 +38,30 @@ class Registry(BaseModel):
 
 ALL_SURFACES: list[SurfaceName] = ["presentation", "teacher_guide", "print"]
 
+# ADR-041 target layout vocabulary (SDE-02) beyond the 5 production layouts
+# below. These are declared now so `SlideLayout` and the registry are honest
+# about the full contract immediately; renderer template support ships
+# incrementally. Every one of them degrades to the generic content layout
+# for registry/healing purposes, but the renderer's own supported-layout
+# allowlist fails closed rather than silently using that fallback.
+_ADR_041_DECLARED_LAYOUTS: tuple[str, ...] = (
+    "cover", "agenda", "objective", "hook", "concept", "definition",
+    "comparison", "timeline", "process", "diagram", "worked_example",
+    "guided_practice", "independent_practice", "discussion", "poll",
+    "quiz_check", "reflection", "exit_ticket", "homework", "appendix",
+)
+
+
+def _declared_layout(key: str) -> RegistryEntry:
+    return RegistryEntry(
+        key=key,
+        supported_surfaces=ALL_SURFACES,
+        density_units=2,
+        print_behavior="print_as_body_sections",
+        fallback_behavior="content_layout",
+    )
+
+
 LAYOUT_REGISTRY = Registry(entries={
     "title": RegistryEntry(
         key="title",
@@ -55,6 +79,37 @@ LAYOUT_REGISTRY = Registry(entries={
         teacher_only_behavior="teacher_only_projection",
         fallback_behavior="content_layout",
     ),
+    # Bug fix (SDE-02): the deterministic v1 generator has always emitted
+    # these three layouts (goal/vocabulary -> content, worked example ->
+    # activity, exit ticket -> summary) but they were missing from this
+    # registry, so `validate_registry_membership` silently failed on every
+    # generated deck. `build_scorecard` never wires `invalid_layout` into a
+    # scored dimension, so nothing surfaced the failure.
+    "content": RegistryEntry(
+        key="content",
+        supported_surfaces=ALL_SURFACES,
+        density_units=2,
+        print_behavior="print_as_body_sections",
+        teacher_only_behavior="teacher_notes",
+        fallback_behavior="reduce_to_single_paragraph",
+    ),
+    "activity": RegistryEntry(
+        key="activity",
+        supported_surfaces=ALL_SURFACES,
+        density_units=2,
+        print_behavior="print_activity_steps",
+        teacher_only_behavior="teacher_notes",
+        fallback_behavior="content_layout",
+    ),
+    "summary": RegistryEntry(
+        key="summary",
+        supported_surfaces=ALL_SURFACES,
+        density_units=1,
+        print_behavior="print_summary_recap",
+        teacher_only_behavior="teacher_notes",
+        fallback_behavior="content_layout",
+    ),
+    **{key: _declared_layout(key) for key in _ADR_041_DECLARED_LAYOUTS},
 })
 
 BLOCK_REGISTRY = Registry(entries={
@@ -79,6 +134,31 @@ BLOCK_REGISTRY = Registry(entries={
         density_units=1,
         print_behavior="print_prompt",
         fallback_behavior="paragraph",
+    ),
+    # Bug fix (SDE-02): the deterministic v1 generator has always emitted
+    # these three block types but they were missing from this registry —
+    # same silent `validate_registry_membership` gap as the layouts above.
+    "paragraph": RegistryEntry(
+        key="paragraph",
+        supported_surfaces=ALL_SURFACES,
+        density_units=1,
+        print_behavior="print_text",
+        fallback_behavior="heading",
+    ),
+    "callout": RegistryEntry(
+        key="callout",
+        supported_surfaces=ALL_SURFACES,
+        density_units=1,
+        print_behavior="print_callout_box",
+        fallback_behavior="paragraph",
+    ),
+    "diagram": RegistryEntry(
+        key="diagram",
+        supported_surfaces=ALL_SURFACES,
+        density_units=2,
+        requires_alt_text=True,
+        print_behavior="print_diagram_with_caption",
+        fallback_behavior="alt_text_callout",
     ),
 })
 
@@ -146,6 +226,18 @@ INTERACTION_REGISTRY = Registry(entries={
         schema_kind="free_response",
         no_js_fallback="Use as a whole-class discussion prompt.",
         accessibility_requirement="Prompt must not rely on color or timing alone.",
+    ),
+    "short_answer": RegistryEntry(
+        key="short_answer",
+        supported_surfaces=ALL_SURFACES,
+        density_units=2,
+        answer_bearing=True,
+        print_behavior="print_short_answer_prompt",
+        teacher_only_behavior="teacher_only_projection",
+        fallback_behavior="paper_short_answer",
+        schema_kind="free_response",
+        no_js_fallback="Students write or say a short answer; no response is stored.",
+        accessibility_requirement="Prompt must support a short written or spoken response with teacher-only acceptable answers.",
     ),
     "exit_ticket": RegistryEntry(
         key="exit_ticket",

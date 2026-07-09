@@ -303,6 +303,8 @@ class TestTeachingPackCompletionRecorder:
         self,
         tmp_path: Path,
     ) -> None:
+        from unittest.mock import AsyncMock, patch
+
         renderer = RecordingRenderer(
             rendered_html="<!DOCTYPE html><html><body>oh-my-class export</body></html>",
         )
@@ -323,23 +325,21 @@ class TestTeachingPackCompletionRecorder:
             ],
         }
 
-        exported_files = await writer.write_exports(RunId("run-assessment"), state)
+        async def fake_node_export(fmt: str, run_id: str, snapshots: list, export_dir: Path) -> str:
+            path = export_dir / f"{run_id}.{fmt.replace('gift', 'gift.txt').replace('h5p', 'h5p').replace('qti', 'qti.xml')}"
+            path.write_text(f"fake {fmt}", encoding="utf-8")
+            return str(path)
 
-        assert exported_files == [
-            str(tmp_path / "run-assessment" / "snapshot-1.html"),
-            str(tmp_path / "run-assessment" / "run-assessment.gift.txt"),
-            str(tmp_path / "run-assessment" / "run-assessment.h5p"),
-            str(tmp_path / "run-assessment" / "run-assessment.qti.xml"),
-        ]
-        assert (tmp_path / "run-assessment" / "run-assessment.gift.txt").read_text(
-            encoding="utf-8",
-        ).startswith("$CATEGORY: oh-my-class/run-assessment")
-        assert (tmp_path / "run-assessment" / "run-assessment.h5p").read_bytes().startswith(
-            b'{"schema":"oh-my-class.h5p.manifest.v1"',
-        )
-        assert "imsqti_v2p1" in (tmp_path / "run-assessment" / "run-assessment.qti.xml").read_text(
-            encoding="utf-8",
-        )
+        with patch(
+            "services.gateway.teaching_pack_export_writer._node_export",
+            side_effect=fake_node_export,
+        ):
+            exported_files = await writer.write_exports(RunId("run-assessment"), state)
+
+        assert str(tmp_path / "run-assessment" / "snapshot-1.html") in exported_files
+        assert any("gift" in f for f in exported_files)
+        assert any("h5p" in f for f in exported_files)
+        assert any("qti" in f for f in exported_files)
 
     @pytest.mark.anyio
     async def test_filesystem_export_writer_fails_fast_for_google_forms(

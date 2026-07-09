@@ -180,6 +180,24 @@ def test_slide_deck_rejects_duplicate_block_ids_within_slide() -> None:
         SlideDeckData.model_validate(payload)
 
 
+def test_slide_deck_rejects_duplicate_block_ids_across_slides() -> None:
+    # ADR-045: block IDs are future teaching-session join points, so they must
+    # be unique deck-wide even when the collision spans two different slides.
+    payload = _valid_deck()
+    payload["slides"][1]["blocks"][0]["block_id"] = "block-title"
+
+    with pytest.raises(ValidationError, match="duplicate block_id across slide deck"):
+        SlideDeckData.model_validate(payload)
+
+
+def test_slide_deck_rejects_duplicate_interaction_ids_across_slides() -> None:
+    payload = _valid_deck()
+    payload["slides"][0]["interactions"] = [dict(payload["slides"][1]["interactions"][0])]
+
+    with pytest.raises(ValidationError, match="duplicate interaction_id across slide deck"):
+        SlideDeckData.model_validate(payload)
+
+
 def test_slide_deck_rejects_unsupported_layout_block_and_interaction_types() -> None:
     invalid_layout = _valid_deck()
     invalid_layout["slides"][0]["layout"] = "open_slide_runtime"
@@ -229,6 +247,37 @@ def test_slide_deck_accepts_registered_v1_interactions() -> None:
     assert {interaction.interaction_type for interaction in deck.slides[1].interactions} == {
         "reveal", "poll_prompt", "timer", "discussion_prompt", "exit_ticket", "think_pair_share",
     }
+
+
+def test_slide_deck_accepts_short_answer_interaction_with_teacher_only_acceptable_answers() -> None:
+    # ADR-045: short-answer is one of the four required response intents
+    # (quick check, discussion prompt, exit ticket, short answer). It is
+    # answer-bearing, so it must carry teacher-only acceptable answers rather
+    # than option-based correctness.
+    payload = _valid_deck()
+    payload["slides"][1]["interactions"] = [
+        {
+            "interaction_id": "interaction-short-answer",
+            "interaction_type": "short_answer",
+            "prompt": "Write one fraction that is equivalent to 1/2.",
+            "answer_bearing": True,
+            "no_js_fallback": "Students write their answer on paper; no response is stored.",
+            "accessibility_label": "Short answer prompt",
+            "teacher_only": {
+                "separation": "teacher_only_projection",
+                "acceptable_answers": ["2/4", "3/6", "4/8"],
+                "rationale": "Any fraction that simplifies to 1/2 is acceptable.",
+            },
+        },
+    ]
+
+    deck = SlideDeckData.model_validate(payload)
+
+    interaction = deck.slides[1].interactions[0]
+    assert interaction.interaction_type == "short_answer"
+    assert interaction.answer_bearing is True
+    assert interaction.teacher_only is not None
+    assert interaction.teacher_only.acceptable_answers == ["2/4", "3/6", "4/8"]
 
 
 def test_slide_deck_rejects_packaged_media_with_external_url() -> None:

@@ -9,12 +9,23 @@ from packages.agents.slide_deck_engine.quality import (
     build_scorecard,
     trace_artifacts,
     validate_pacing,
+    validate_registry_membership,
     validate_source_references,
 )
 from packages.agents.slide_deck_engine.registries import (
     BLOCK_REGISTRY,
     INTERACTION_REGISTRY,
     LAYOUT_REGISTRY,
+)
+
+# ADR-041's full target layout vocabulary (verbatim from SDE-02's acceptance
+# criteria), independent of how registries.py happens to be organized.
+_ADR_041_TARGET_LAYOUTS = (
+    "cover", "agenda", "objective", "hook", "concept", "definition",
+    "comparison", "timeline", "process", "diagram", "worked_example",
+    "guided_practice", "independent_practice", "discussion", "poll",
+    "quiz_check", "reflection", "summary", "exit_ticket", "homework",
+    "appendix",
 )
 
 
@@ -49,8 +60,14 @@ def _request_with_feedback(feedback: dict[str, str]) -> SlideDeckEngineRequest:
     return request.model_copy(update={"teacher_constraints": constraints})
 
 
-def test_slide_deck_engine_returns_valid_deterministic_deck_without_llm() -> None:
-    result = SlideDeckEngine().generate(_request())
+async def test_slide_deck_engine_falls_back_to_deterministic_wording_when_llm_returns_nothing() -> None:
+    """SDE-01: the stubbed LLM call succeeds but returns no usable fields (see
+    `_stub_slide_deck_wording_llm` autouse fixture), so every slide falls back to
+    the engine's deterministic per-topic wording — content is unchanged from the
+    pre-SDE-01 fully-deterministic behavior, but `llm_calls` now reflects the real
+    (successful) call that was made, not a hardcoded 0.
+    """
+    result = await SlideDeckEngine().generate(_request())
     slide_titles = [slide.title for slide in result.deck.slides]
 
     assert isinstance(result.deck, SlideDeckData)
@@ -59,14 +76,14 @@ def test_slide_deck_engine_returns_valid_deterministic_deck_without_llm() -> Non
     assert len(result.deck.slides) == 6
     assert result.deck.slides[4].interactions[0].teacher_only is not None
     assert result.scorecard.overall_score == 1.0
-    assert result.trace.llm_calls == 0
+    assert result.trace.llm_calls == 1
     assert result.trace.internal_only is True
-    assert result.trace.model_cost_metadata == {"llm_calls": 0, "estimated_cost_usd": 0.0, "provider": "none"}
+    assert result.trace.model_cost_metadata == {"llm_calls": 1, "estimated_cost_usd": 0.0, "provider": "llm_client"}
     assert result.trace.export_readiness_manifest["format"] == "html"
     assert result.trace.export_readiness_manifest["slide_count"] == 6
 
 
-def test_slide_deck_engine_caps_deck_title_for_long_inferred_topics() -> None:
+async def test_slide_deck_engine_caps_deck_title_for_long_inferred_topics() -> None:
     request = _request().model_copy(update={
         "lesson_blueprint": {
             "topic": "A" * 200,
@@ -75,7 +92,7 @@ def test_slide_deck_engine_caps_deck_title_for_long_inferred_topics() -> None:
         },
     })
 
-    result = SlideDeckEngine().generate(request)
+    result = await SlideDeckEngine().generate(request)
 
     assert len(result.deck.title) == 200
     assert result.deck.title.endswith(" Slide Deck")
@@ -83,7 +100,7 @@ def test_slide_deck_engine_caps_deck_title_for_long_inferred_topics() -> None:
     assert result.deck.slides[1].title == "Learning Goal"
 
 
-def test_slide_deck_engine_cleans_teacher_request_before_materializing_student_slides() -> None:
+async def test_slide_deck_engine_cleans_teacher_request_before_materializing_student_slides() -> None:
     raw_request = (
         "LIVE_4OMC_SLIDE_DECK_SMOKE 49e877da-e109-42ac-849c-2a3d6fff3027: "
         "Generate a slide deck for Grade 5 English ESL food vocabulary. "
@@ -97,7 +114,7 @@ def test_slide_deck_engine_cleans_teacher_request_before_materializing_student_s
         },
     })
 
-    result = SlideDeckEngine().generate(request)
+    result = await SlideDeckEngine().generate(request)
     student_surface = " ".join([
         result.deck.title,
         *[slide.title for slide in result.deck.slides],
@@ -115,8 +132,8 @@ def test_slide_deck_engine_cleans_teacher_request_before_materializing_student_s
     assert "teacher-only answers" not in student_surface
 
 
-def test_slide_deck_engine_scorecard_complements_existing_layer4_judge_gate() -> None:
-    result = SlideDeckEngine().generate(_request())
+async def test_slide_deck_engine_scorecard_complements_existing_layer4_judge_gate() -> None:
+    result = await SlideDeckEngine().generate(_request())
 
     assert result.scorecard.objective_coverage_score == 1.0
     assert result.scorecard.pacing_fit_score == 1.0
@@ -124,8 +141,8 @@ def test_slide_deck_engine_scorecard_complements_existing_layer4_judge_gate() ->
     assert "layer4_judge_passed" not in result.trace.scorecard_artifact
 
 
-def test_slide_deck_engine_healing_maps_failures_to_scoped_repairs() -> None:
-    deck = SlideDeckEngine().generate(_request()).deck
+async def test_slide_deck_engine_healing_maps_failures_to_scoped_repairs() -> None:
+    deck = (await SlideDeckEngine().generate(_request())).deck
     crowded_slide = deck.slides[0].model_copy(
         update={"blocks": [*deck.slides[0].blocks, *deck.slides[0].blocks]},
     )
@@ -143,8 +160,8 @@ def test_slide_deck_engine_healing_maps_failures_to_scoped_repairs() -> None:
     assert scorecard.density_score == 0.0
 
 
-def test_slide_deck_engine_validators_report_pacing_and_source_failures() -> None:
-    deck = SlideDeckEngine().generate(_request()).deck
+async def test_slide_deck_engine_validators_report_pacing_and_source_failures() -> None:
+    deck = (await SlideDeckEngine().generate(_request())).deck
     shifted_slide = deck.slides[1].model_copy(
         update={"progression": deck.slides[1].progression.model_copy(update={"step_index": 7})},
     )
@@ -162,8 +179,8 @@ def test_slide_deck_engine_validators_report_pacing_and_source_failures() -> Non
     assert source_refs.scope == "block"
 
 
-def test_slide_deck_engine_trace_redacts_internal_artifacts() -> None:
-    result = SlideDeckEngine().generate(_request())
+async def test_slide_deck_engine_trace_redacts_internal_artifacts() -> None:
+    result = await SlideDeckEngine().generate(_request())
     deck = result.deck.model_copy(update={"title": "Student alice@example.com Traceback (most recent call last) correct answer"})
 
     artifacts = trace_artifacts(
@@ -180,8 +197,8 @@ def test_slide_deck_engine_trace_redacts_internal_artifacts() -> None:
     assert "correct answer" not in str(artifacts).lower()
 
 
-def test_slide_deck_engine_scoped_slide_density_feedback_preserves_siblings() -> None:
-    result = SlideDeckEngine().generate(_request_with_feedback({
+async def test_slide_deck_engine_scoped_slide_density_feedback_preserves_siblings() -> None:
+    result = await SlideDeckEngine().generate(_request_with_feedback({
         "scope": "slide",
         "slide_id": "slide-practice",
         "reason": "Slide 4 is too dense; reduce the amount of classroom prompt text.",
@@ -197,8 +214,8 @@ def test_slide_deck_engine_scoped_slide_density_feedback_preserves_siblings() ->
     assert result.scorecard.density_score == 1.0
 
 
-def test_slide_deck_engine_scoped_interaction_answer_leak_feedback_preserves_slide_content() -> None:
-    result = SlideDeckEngine().generate(_request_with_feedback({
+async def test_slide_deck_engine_scoped_interaction_answer_leak_feedback_preserves_slide_content() -> None:
+    result = await SlideDeckEngine().generate(_request_with_feedback({
         "scope": "interaction",
         "slide_id": "slide-check",
         "interaction_id": "interaction-check",
@@ -217,8 +234,8 @@ def test_slide_deck_engine_scoped_interaction_answer_leak_feedback_preserves_sli
     assert result.scorecard.teacher_only_separation_score == 1.0
 
 
-def test_slide_deck_engine_deck_level_style_feedback_preserves_artifacts_and_slides() -> None:
-    result = SlideDeckEngine().generate(_request_with_feedback({
+async def test_slide_deck_engine_deck_level_style_feedback_preserves_artifacts_and_slides() -> None:
+    result = await SlideDeckEngine().generate(_request_with_feedback({
         "scope": "deck",
         "deck_id": "slide-deck-run-slide-engine",
         "theme": "forest",
@@ -234,8 +251,8 @@ def test_slide_deck_engine_deck_level_style_feedback_preserves_artifacts_and_sli
     assert repair["preserved_slide_ids"] == ["slide-title", "slide-goal", "slide-vocabulary", "slide-example", "slide-practice", "slide-exit"]
 
 
-def test_slide_deck_engine_escalates_scoped_feedback_when_plan_dependencies_change() -> None:
-    result = SlideDeckEngine().generate(_request_with_feedback({
+async def test_slide_deck_engine_escalates_scoped_feedback_when_plan_dependencies_change() -> None:
+    result = await SlideDeckEngine().generate(_request_with_feedback({
         "scope": "slide",
         "slide_id": "slide-check",
         "reason": "Change the learning objective and pacing sequence for this slide.",
@@ -260,6 +277,37 @@ def test_slide_deck_registries_expose_complete_fixture_path() -> None:
     assert interaction.teacher_only_behavior == "teacher_only_projection"
 
 
+async def test_default_generator_deck_passes_registry_membership_validation() -> None:
+    """SDE-02 regression test for the confirmed bug: `LAYOUT_REGISTRY` and
+    `BLOCK_REGISTRY` were missing the `content`/`activity`/`summary` layouts
+    and `paragraph`/`callout`/`diagram` blocks that the deterministic v1
+    generator has always emitted, so `validate_registry_membership` silently
+    failed on every generated deck (invisible because `build_scorecard` never
+    wired `invalid_layout`/`invalid_block` into a scored dimension). This
+    must now pass cleanly with zero registry-gap failures.
+    """
+    deck = (await SlideDeckEngine().generate(_request())).deck
+
+    reports = validate_registry_membership(deck)
+
+    assert len(reports) == 1
+    assert reports[0].passed is True
+    assert reports[0].code == "registry_membership_ok"
+    assert not any(report.code in {"invalid_layout", "invalid_block", "invalid_interaction"} for report in reports)
+
+
+def test_layout_registry_declares_the_full_adr_041_target_vocabulary() -> None:
+    assert set(_ADR_041_TARGET_LAYOUTS).issubset(LAYOUT_REGISTRY.entries)
+    # Existing production layouts (SDE-01) must still resolve too.
+    for layout in ("title", "content", "question", "activity", "summary"):
+        assert layout in LAYOUT_REGISTRY.entries
+
+
+def test_block_registry_covers_every_block_type_the_default_generator_emits() -> None:
+    for block_type in ("heading", "image", "interaction_prompt", "paragraph", "callout", "diagram"):
+        assert block_type in BLOCK_REGISTRY.entries
+
+
 def test_slide_deck_interaction_registry_exposes_v1_modules() -> None:
     expected = {
         "reveal",
@@ -276,9 +324,9 @@ def test_slide_deck_interaction_registry_exposes_v1_modules() -> None:
     assert INTERACTION_REGISTRY.get("quick_check").teacher_only_behavior == "teacher_only_projection"
 
 
-def test_page_count_policy_accepts_fixture_size_and_rejects_overflow() -> None:
+async def test_page_count_policy_accepts_fixture_size_and_rejects_overflow() -> None:
     policy = PageCountPolicy(min_slides=6, max_slides=6)
-    deck = SlideDeckEngine().generate(_request()).deck
+    deck = (await SlideDeckEngine().generate(_request())).deck
 
     accepted = policy.evaluate(deck)
     overflow = policy.evaluate(deck.model_copy(update={"slides": [*deck.slides, deck.slides[0]]}))
@@ -288,8 +336,8 @@ def test_page_count_policy_accepts_fixture_size_and_rejects_overflow() -> None:
     assert overflow.code == "page_count_exceeded"
 
 
-def test_density_budget_policy_rejects_too_many_blocks_on_one_slide() -> None:
-    deck = SlideDeckEngine().generate(_request()).deck
+async def test_density_budget_policy_rejects_too_many_blocks_on_one_slide() -> None:
+    deck = (await SlideDeckEngine().generate(_request())).deck
     crowded_slide = deck.slides[0].model_copy(
         update={"blocks": [*deck.slides[0].blocks, *deck.slides[0].blocks]},
     )

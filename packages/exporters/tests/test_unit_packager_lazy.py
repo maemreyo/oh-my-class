@@ -40,7 +40,7 @@ class TestExportFormatEnumUnchanged:
         """ExportFormat must not gain new values from the UnitPackager feature."""
         try:
             from services.gateway.teaching_pack_export_writer import ExportFormat
-            known_values = {"html", "gift", "h5p", "qti", "google_forms", "anki_apkg", "flashcard_tsv"}
+            known_values = {"html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv"}
             # ExportFormat is a PEP 695 `type` alias (Literal[...]), not an Enum —
             # use get_args instead of iterating it directly.
             actual_values = set(get_args(ExportFormat))

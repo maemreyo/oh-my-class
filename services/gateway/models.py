@@ -209,6 +209,32 @@ class Artifact(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class MediaAssetModel(Base):
+    """A teacher-owned image/diagram, reusable across all of that teacher's
+    decks (SDX-02). ``storage_key`` is a flat, teacher-scoped object-storage
+    key (``teacher-media/{teacher_id}/{asset_id}.{ext}``) — not run-scoped —
+    so a future ``trust-lifecycle/003`` general content library can absorb
+    this table's rows without re-keying them.
+    """
+    __tablename__ = "media_assets"
+    __table_args__ = (
+        Index("ix_media_assets_teacher_id", "teacher_id"),
+        {"schema": "public"},
+    )
+
+    asset_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    storage_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    tags: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    # SDX-04 integration point: None until AI-authored alt text (or a teacher
+    # edit) fills it in. Never defaulted to "" — a block copying this asset's
+    # alt_text must still fail the block-level "alt text required" check.
+    alt_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class CostLog(Base):
     """LLM cost tracking per call."""
     __tablename__ = "cost_logs"

@@ -217,3 +217,58 @@ describe("slide_deck renderer", () => {
     expect(html).not.toContain("correct_option_ids");
   });
 });
+
+// SDE-02 (ADR-041/ADR-047 decision 2): `SlideDeckSlide["layout"]` now
+// declares the full 21-value ADR-041 target vocabulary, but only 5 layouts
+// have a real renderer template today. Every other declared layout must
+// fail closed with an explicit error rather than silently rendering.
+const ADR_041_UNSUPPORTED_LAYOUTS = [
+  "cover", "agenda", "objective", "hook", "concept", "definition",
+  "comparison", "timeline", "process", "diagram", "worked_example",
+  "guided_practice", "independent_practice", "discussion", "poll",
+  "quiz_check", "reflection", "exit_ticket", "homework", "appendix",
+] as const;
+
+describe("slide_deck renderer fails closed for undelivered ADR-041 layouts", () => {
+  it.each(ADR_041_UNSUPPORTED_LAYOUTS)("rejects layout %s with an explicit not-yet-supported error", async (layout) => {
+    const unsupportedDeck: SlideDeckData = {
+      ...deck,
+      slides: [{ ...deck.slides[0], layout }],
+    };
+
+    await expect(renderArtifact("slide_deck", unsupportedDeck)).rejects.toThrow(
+      `uses layout "${layout}", which has no renderer template yet`,
+    );
+  });
+
+  it("never silently falls back to a different layout's template", async () => {
+    const unsupportedDeck: SlideDeckData = {
+      ...deck,
+      slides: [{ ...deck.slides[0], layout: "cover" }],
+    };
+
+    let caught: unknown;
+    try {
+      await renderArtifact("slide_deck", unsupportedDeck);
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).name).toBe("SlideDeckUnsupportedLayoutError");
+  });
+
+  it.each(["title", "content", "question", "activity", "summary"] as const)(
+    "still renders the production-supported layout %s",
+    async (layout) => {
+      const supportedDeck: SlideDeckData = {
+        ...deck,
+        slides: [{ ...deck.slides[0], layout }],
+      };
+
+      const html = await renderArtifact("slide_deck", supportedDeck);
+
+      expect(html).toContain("<!DOCTYPE html>");
+    },
+  );
+});

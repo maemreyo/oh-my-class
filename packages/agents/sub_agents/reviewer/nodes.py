@@ -57,7 +57,8 @@ async def reviewer_node(state: ReviewerState) -> dict[str, Any]:
         )
 
     artifact_type = str(artifacts[0].get("artifact_type", "lesson")) if artifacts else "lesson"
-    judge = AdaptiveJudge(model=MODELS.reviewer, llm_transport=runtime_transport)
+    from packages.agents.config.gate_config import GateConfig
+    judge = AdaptiveJudge(model=MODELS.reviewer, llm_transport=runtime_transport, num_judges=GateConfig().judge_n)
     result = await judge.judge(
         artifacts=artifacts,
         artifact_type=artifact_type,

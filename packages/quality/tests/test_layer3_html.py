@@ -1,5 +1,11 @@
 """Tests for layer3_html — HTML presentation validation and responsive check."""
 
+from __future__ import annotations
+
+import sys
+import types
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from packages.quality.layer3_html.html_validator import HTMLValidationResult, HTMLValidator
@@ -243,32 +249,145 @@ class TestResponsiveCheck:
     @pytest.mark.asyncio
     async def test_dev_returns_empty_viewport_results(self):
         result = await check_responsive("<html></html>", environment="development")
-        # In dev, skipped — no viewport results populated
         assert result.viewport_results == {}
 
     @pytest.mark.asyncio
-    async def test_staging_returns_viewport_results(self):
+    async def test_returns_error_when_playwright_missing(self, monkeypatch):
+        monkeypatch.delitem(sys.modules, "playwright", raising=False)
+        monkeypatch.delitem(sys.modules, "playwright.async_api", raising=False)
         result = await check_responsive("<html></html>", environment="staging")
+        assert result.passed is False
+        assert any("playwright" in i.lower() for i in result.issues)
+
+    @pytest.mark.asyncio
+    async def test_staging_returns_all_default_viewports(self, monkeypatch):
+        _install_mock_playwright(monkeypatch, evaluate_result={"overflow": False, "clipping": False})
+        result = await check_responsive(VALID_HTML, environment="staging")
         assert 375 in result.viewport_results
         assert 768 in result.viewport_results
         assert 1280 in result.viewport_results
         assert 1920 in result.viewport_results
 
     @pytest.mark.asyncio
-    async def test_staging_passes_all_viewports(self):
-        result = await check_responsive("<html></html>", environment="staging")
+    async def test_staging_passes_all_viewports(self, monkeypatch):
+        _install_mock_playwright(monkeypatch, evaluate_result={"overflow": False, "clipping": False})
+        result = await check_responsive(VALID_HTML, environment="staging")
         assert result.passed is True
         assert all(result.viewport_results.values())
 
     @pytest.mark.asyncio
-    async def test_custom_viewports(self):
-        result = await check_responsive("<html></html>", viewports=[480, 1024], environment="staging")  # noqa: E501
+    async def test_custom_viewports(self, monkeypatch):
+        _install_mock_playwright(monkeypatch, evaluate_result={"overflow": False, "clipping": False})
+        result = await check_responsive(VALID_HTML, viewports=[480, 1024], environment="staging")
         assert 480 in result.viewport_results
         assert 1024 in result.viewport_results
         assert 375 not in result.viewport_results
 
     @pytest.mark.asyncio
-    async def test_prod_environment_runs(self):
-        result = await check_responsive("<html></html>", environment="production")
+    async def test_prod_environment_runs(self, monkeypatch):
+        _install_mock_playwright(monkeypatch, evaluate_result={"overflow": False, "clipping": False})
+        result = await check_responsive(VALID_HTML, environment="production")
         assert result.passed is True
         assert 375 in result.viewport_results
+
+    # ── Playwright viewport tests (mocked) ──────────────────────────────────
+
+    @pytest.mark.asyncio
+    async def test_horizontal_overflow_detected(self, monkeypatch):
+        _install_mock_playwright(monkeypatch, evaluate_result={"overflow": True, "clipping": False})
+        wide_html = (
+            '<!DOCTYPE html><html lang="en">'
+            '<head><meta name="viewport" content="width=device-width"></head>'
+            '<body>oh-my-class'
+            '<div style="width:2000px;height:100px;">wide content</div>'
+            '</body></html>'
+        )
+        result = await check_responsive(wide_html, viewports=[375], environment="staging")
+        assert result.viewport_results[375] is False
+        assert result.passed is False
+        assert any("overflow" in issue.lower() for issue in result.issues)
+
+    @pytest.mark.asyncio
+    async def test_text_clipping_detected(self, monkeypatch):
+        _install_mock_playwright(monkeypatch, evaluate_result={"overflow": False, "clipping": True})
+        tall_html = (
+            '<!DOCTYPE html><html lang="en">'
+            '<head><meta name="viewport" content="width=device-width"></head>'
+            '<body style="overflow:hidden;">oh-my-class'
+            '<div style="height:5000px;">very tall content</div>'
+            '</body></html>'
+        )
+        result = await check_responsive(tall_html, viewports=[375], environment="staging")
+        assert result.viewport_results[375] is False
+        assert result.passed is False
+        assert any("clipping" in issue.lower() for issue in result.issues)
+
+    @pytest.mark.asyncio
+    async def test_no_issues_for_clean_html(self, monkeypatch):
+        _install_mock_playwright(monkeypatch, evaluate_result={"overflow": False, "clipping": False})
+        result = await check_responsive(VALID_HTML, viewports=[375, 768], environment="staging")
+        assert result.passed is True
+        assert len(result.issues) == 0
+
+    @pytest.mark.asyncio
+    async def test_each_viewport_independently_reported(self, monkeypatch):
+        _install_mock_playwright(monkeypatch, evaluate_result={"overflow": False, "clipping": False})
+        result = await check_responsive(VALID_HTML, viewports=[375, 768, 1280], environment="staging")
+        assert set(result.viewport_results.keys()) == {375, 768, 1280}
+        for vp, passed in result.viewport_results.items():
+            assert passed is True, f"Viewport {vp} should pass"
+
+    @pytest.mark.asyncio
+    async def test_mixed_viewport_results(self, monkeypatch):
+        """Different evaluate results per viewport: first fails, second passes."""
+        call_count = 0
+
+        async def _eval(_js):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return {"overflow": True, "clipping": False}
+            return {"overflow": False, "clipping": False}
+
+        _install_mock_playwright(monkeypatch, evaluate_side_effect=_eval)
+        result = await check_responsive(VALID_HTML, viewports=[375, 768], environment="staging")
+        assert result.viewport_results[375] is False
+        assert result.viewport_results[768] is True
+        assert result.passed is False
+
+
+def _install_mock_playwright(
+    monkeypatch,
+    *,
+    evaluate_result: dict[str, bool] | None = None,
+    evaluate_side_effect=None,
+):
+    """Inject a mock playwright module into sys.modules for testing."""
+    mock_page = AsyncMock()
+    if evaluate_side_effect:
+        mock_page.evaluate = evaluate_side_effect
+    else:
+        mock_page.evaluate.return_value = evaluate_result or {"overflow": False, "clipping": False}
+
+    mock_browser = AsyncMock()
+    mock_browser.new_page.return_value = mock_page
+
+    mock_chromium = AsyncMock()
+    mock_chromium.launch.return_value = mock_browser
+
+    mock_pw_instance = MagicMock()
+    mock_pw_instance.chromium = mock_chromium
+
+    mock_pw_cm = AsyncMock(
+        __aenter__=AsyncMock(return_value=mock_pw_instance),
+        __aexit__=AsyncMock(return_value=None),
+    )
+
+    async_playwright_mock = MagicMock(return_value=mock_pw_cm)
+
+    pw_module = types.ModuleType("playwright")
+    async_api_module = types.ModuleType("playwright.async_api")
+    setattr(async_api_module, "async_playwright", async_playwright_mock)
+
+    monkeypatch.setitem(sys.modules, "playwright", pw_module)
+    monkeypatch.setitem(sys.modules, "playwright.async_api", async_api_module)

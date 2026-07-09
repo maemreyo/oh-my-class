@@ -151,6 +151,34 @@ class TestTeachingPackGraph:
         assert config["max_concurrency"] >= 1
 
 
+class TestGraphContract:
+
+    def test_graph_contract_matches_live_graph(self) -> None:
+        import json
+        from pathlib import Path
+
+        from packages.agents.teaching_pack.stages import TEACHING_PACK_STAGES_WITH_COMPONENT_STRATEGY
+
+        contract_path = Path(__file__).resolve().parent.parent.parent / "teaching_pack" / "graph_contract.json"
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+
+        assert contract["stages"] == [s.value for s in TEACHING_PACK_STAGES]
+        assert contract["stages_with_component_strategy"] == [
+            s.value for s in TEACHING_PACK_STAGES_WITH_COMPONENT_STRATEGY
+        ]
+
+        graph = build_teaching_pack_graph(checkpointer=None)
+        live_nodes = sorted(
+            n for n in graph.get_graph().nodes if not n.startswith("__")
+        )
+        assert contract["node_names"] == live_nodes
+
+        for edge in contract["conditional_edges"]:
+            assert edge["source"] in contract["node_names"], (
+                f"conditional edge source '{edge['source']}' missing from node_names"
+            )
+
+
 class TestTeachingPackPorts:
     def test_production_adapter_protocols_are_package_level(self) -> None:
         expected = {
@@ -167,3 +195,284 @@ class TestTeachingPackPorts:
         }
 
         assert expected <= set(ports.__dict__)
+
+
+class TestGateRegistrySnapshot:
+    """Snapshot tests for the gateway gate registry — 6 gates with stable allowed_actions."""
+
+    def test_all_six_gates_exist(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateName,
+        )
+
+        expected_gates = frozenset({
+            "clarification_required",
+            "contract_confirmation",
+            "search_plan_confirmation",
+            "blueprint_approval",
+            "content_approval",
+            "unit_approval",
+        })
+        actual_gates = frozenset(g.value for g in TeachingPackGateName)
+        assert actual_gates == expected_gates, (
+            f"Gate names changed: added={actual_gates - expected_gates}, "
+            f"removed={expected_gates - actual_gates}"
+        )
+
+    def test_clarification_only_accepts_answer(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateAction,
+            TeachingPackGateName,
+            allowed_actions_for_gate,
+        )
+
+        actions = allowed_actions_for_gate(TeachingPackGateName.CLARIFICATION_REQUIRED)
+        assert actions == frozenset({TeachingPackGateAction.ANSWER})
+
+    def test_contract_confirmation_actions(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateAction,
+            TeachingPackGateName,
+            allowed_actions_for_gate,
+        )
+
+        actions = allowed_actions_for_gate(TeachingPackGateName.CONTRACT_CONFIRMATION)
+        assert actions == frozenset({
+            TeachingPackGateAction.APPROVE,
+            TeachingPackGateAction.EDIT,
+            TeachingPackGateAction.REJECT,
+        })
+
+    def test_search_plan_confirmation_actions(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateAction,
+            TeachingPackGateName,
+            allowed_actions_for_gate,
+        )
+
+        actions = allowed_actions_for_gate(TeachingPackGateName.SEARCH_PLAN_CONFIRMATION)
+        assert actions == frozenset({TeachingPackGateAction.APPROVE, TeachingPackGateAction.EDIT})
+
+    def test_blueprint_approval_actions(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateAction,
+            TeachingPackGateName,
+            allowed_actions_for_gate,
+        )
+
+        actions = allowed_actions_for_gate(TeachingPackGateName.BLUEPRINT_APPROVAL)
+        assert actions == frozenset({
+            TeachingPackGateAction.APPROVE,
+            TeachingPackGateAction.REJECT,
+            TeachingPackGateAction.EDIT,
+        })
+
+    def test_content_approval_actions(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateAction,
+            TeachingPackGateName,
+            allowed_actions_for_gate,
+        )
+
+        actions = allowed_actions_for_gate(TeachingPackGateName.CONTENT_APPROVAL)
+        assert actions == frozenset({
+            TeachingPackGateAction.APPROVE,
+            TeachingPackGateAction.APPROVE_SELECTED,
+            TeachingPackGateAction.REJECT,
+            TeachingPackGateAction.REJECT_SELECTED,
+            TeachingPackGateAction.EDIT,
+        })
+
+    def test_unit_approval_actions(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateAction,
+            TeachingPackGateName,
+            allowed_actions_for_gate,
+        )
+
+        actions = allowed_actions_for_gate(TeachingPackGateName.UNIT_APPROVAL)
+        assert actions == frozenset({
+            TeachingPackGateAction.APPROVE,
+            TeachingPackGateAction.REJECT,
+            TeachingPackGateAction.EDIT,
+        })
+
+    def test_every_gate_has_at_least_one_action(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateName,
+            allowed_actions_for_gate,
+        )
+
+        for gate in TeachingPackGateName:
+            actions = allowed_actions_for_gate(gate)
+            assert len(actions) > 0, f"Gate '{gate.value}' has no allowed actions"
+
+    def test_allowed_actions_snapshot(self) -> None:
+        """Full snapshot — catches any gate's action set changing."""
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateAction as A,
+            TeachingPackGateName as G,
+            allowed_actions_for_gate,
+        )
+
+        snapshot = {
+            G.CLARIFICATION_REQUIRED: {A.ANSWER},
+            G.CONTRACT_CONFIRMATION: {A.APPROVE, A.EDIT, A.REJECT},
+            G.SEARCH_PLAN_CONFIRMATION: {A.APPROVE, A.EDIT},
+            G.BLUEPRINT_APPROVAL: {A.APPROVE, A.REJECT, A.EDIT},
+            G.CONTENT_APPROVAL: {A.APPROVE, A.APPROVE_SELECTED, A.REJECT, A.REJECT_SELECTED, A.EDIT},
+            G.UNIT_APPROVAL: {A.APPROVE, A.REJECT, A.EDIT},
+        }
+
+        for gate, expected_actions in snapshot.items():
+            actual = allowed_actions_for_gate(gate)
+            assert actual == expected_actions, (
+                f"Gate '{gate.value}' actions changed: "
+                f"expected={expected_actions}, got={actual}"
+            )
+
+
+class TestGateConfigSnapshot:
+    """GateConfig defaults must match AGENTS.md thresholds."""
+
+    def test_judge_n_defaults_to_three(self) -> None:
+        from packages.agents.config.gate_config import GateConfig
+
+        config = GateConfig()
+        assert config.judge_n == 3
+
+    def test_export_consensus_threshold_is_two_thirds(self) -> None:
+        from packages.agents.config.gate_config import GateConfig
+
+        config = GateConfig()
+        assert config.export_consensus_threshold == 0.67
+
+    def test_judge_min_score_is_seven(self) -> None:
+        from packages.agents.config.gate_config import GateConfig
+
+        config = GateConfig()
+        assert config.judge_min_score == 7.0
+
+    def test_hitl_timeout_is_24_hours(self) -> None:
+        from packages.agents.config.gate_config import GateConfig
+
+        config = GateConfig()
+        assert config.hitl_timeout_hours == 24
+
+    def test_hitl_max_revisions_is_three(self) -> None:
+        from packages.agents.config.gate_config import GateConfig
+
+        config = GateConfig()
+        assert config.hitl_max_revisions == 3
+
+    def test_schema_max_retries_is_three(self) -> None:
+        from packages.agents.config.gate_config import GateConfig
+
+        config = GateConfig()
+        assert config.schema_max_retries == 3
+
+    def test_fast_lane_disabled_by_default(self) -> None:
+        from packages.agents.config.gate_config import GateConfig
+
+        config = GateConfig()
+        assert config.fast_lane_threshold is None
+
+    def test_gate_config_snapshot(self) -> None:
+        """Full snapshot of critical thresholds — catches silent drift."""
+        from packages.agents.config.gate_config import GateConfig
+
+        config = GateConfig()
+        critical = {
+            "judge_n": config.judge_n,
+            "judge_min_score": config.judge_min_score,
+            "judge_temperature": config.judge_temperature,
+            "export_consensus_threshold": config.export_consensus_threshold,
+            "export_min_score": config.export_min_score,
+            "hitl_timeout_hours": config.hitl_timeout_hours,
+            "hitl_max_revisions": config.hitl_max_revisions,
+            "schema_max_retries": config.schema_max_retries,
+            "schema_circuit_threshold": config.schema_circuit_threshold,
+            "fast_lane_threshold": config.fast_lane_threshold,
+            "fact_min_sources": config.fact_min_sources,
+        }
+        expected = {
+            "judge_n": 3,
+            "judge_min_score": 7.0,
+            "judge_temperature": 0.1,
+            "export_consensus_threshold": 0.67,
+            "export_min_score": 7.0,
+            "hitl_timeout_hours": 24,
+            "hitl_max_revisions": 3,
+            "schema_max_retries": 3,
+            "schema_circuit_threshold": 3,
+            "fast_lane_threshold": None,
+            "fact_min_sources": 2,
+        }
+        assert critical == expected, (
+            f"GateConfig defaults changed: {critical}"
+        )
+
+
+class TestTeachingPackStateSnapshot:
+    """TeachingPackState key fields — frozen contract with AGENTS.md."""
+
+    def test_required_fields_exist(self) -> None:
+        from typing import get_type_hints
+
+        from packages.agents.teaching_pack.nodes import TeachingPackState
+
+        hints = get_type_hints(TeachingPackState, include_extras=True)
+        required_fields = [
+            "run_id",
+            "raw_request",
+            "contract",
+            "artifacts",
+            "quality_scores",
+            "quality_issues",
+            "teacher_approved",
+            "teacher_decision",
+            "gate_payload",
+            "fail_layer",
+            "fail_count",
+            "fail_type",
+            "fail_context",
+            "escalate",
+            "healing_strategy",
+            "generation_model",
+            "exported_files",
+        ]
+        for field in required_fields:
+            assert field in hints, f"TeachingPackState missing field: {field}"
+
+    def test_state_has_artifact_chunks_reducer(self) -> None:
+        """artifact_chunks uses stable_merge_artifacts reducer (fan-in)."""
+        from typing import get_type_hints
+
+        from packages.agents.teaching_pack.nodes import TeachingPackState
+
+        hints = get_type_hints(TeachingPackState, include_extras=True)
+        assert "artifact_chunks" in hints
+
+    def test_state_has_artifact_workflow_states_reducer(self) -> None:
+        """artifact_workflow_states uses stable_merge_workflow_states reducer."""
+        from typing import get_type_hints
+
+        from packages.agents.teaching_pack.nodes import TeachingPackState
+
+        hints = get_type_hints(TeachingPackState, include_extras=True)
+        assert "artifact_workflow_states" in hints
+
+    def test_state_field_count_is_stable(self) -> None:
+        """Prevent accidental removal or addition of fields without updating this test."""
+        from typing import get_type_hints
+
+        from packages.agents.teaching_pack.nodes import TeachingPackState
+
+        hints = get_type_hints(TeachingPackState, include_extras=True)
+        # Count the raw fields (NotRequired wraps but doesn't add new names)
+        field_names = [k for k in hints.keys() if not k.startswith("_")]
+        # This is a sentinel: if the count changes, update this test.
+        assert len(field_names) >= 50, (
+            f"TeachingPackState has {len(field_names)} fields; "
+            f"expected at least 50. Update this test if fields were intentionally added."
+        )

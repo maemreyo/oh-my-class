@@ -70,26 +70,24 @@ def test_requested_export_formats_unknown_raises() -> None:
 # ── Export writer — subprocess routing ───────────────────────────────────────
 
 
-def test_subprocess_formats_extracted(tmp_path: Path) -> None:
+def test_subprocess_formats_extracted() -> None:
     from services.gateway.teaching_pack_export_writer import _subprocess_formats
 
     state = {
         "contract": {"export_formats": ["html", "anki_apkg", "flashcard_tsv", "gift"]},
     }
     formats = _subprocess_formats(state)
-    assert set(formats) == {"anki_apkg", "flashcard_tsv"}
+    assert set(formats) == {"anki_apkg", "flashcard_tsv", "gift"}
 
 
-def test_assessment_formats_excludes_new(tmp_path: Path) -> None:
-    from services.gateway.teaching_pack_export_writer import _assessment_formats
+def test_gift_h5p_qti_routed_to_subprocess() -> None:
+    from services.gateway.teaching_pack_export_writer import _subprocess_formats
 
     state = {
-        "contract": {"export_formats": ["html", "anki_apkg", "flashcard_tsv", "gift", "h5p"]},
+        "contract": {"export_formats": ["html", "anki_apkg", "flashcard_tsv", "gift", "h5p", "qti"]},
     }
-    formats = _assessment_formats(state)
-    assert "anki_apkg" not in formats
-    assert "flashcard_tsv" not in formats
-    assert set(formats) == {"gift", "h5p"}
+    formats = _subprocess_formats(state)
+    assert set(formats) == {"anki_apkg", "flashcard_tsv", "gift", "h5p", "qti"}
 
 
 # ── Fail-closed: CLI not built ────────────────────────────────────────────────

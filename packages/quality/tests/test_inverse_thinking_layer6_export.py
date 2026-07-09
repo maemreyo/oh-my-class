@@ -1,8 +1,27 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from packages.quality.layer6_export.export_validator import ExportValidator
+
+
+async def _passing_transport(*, model: str, messages: list[dict[str, str]], temperature: float, extra_body: dict[str, Any]) -> str:
+    from common.contracts.judge_output import JudgeOutput, LayerScore
+    output = JudgeOutput(
+        overall_score=8.0,
+        layer_scores=[
+            LayerScore(layer="format_compliance", score=8.0, weight=0.15, issues=[]),
+            LayerScore(layer="content_quality", score=8.0, weight=0.55, issues=[]),
+            LayerScore(layer="presentation", score=8.0, weight=0.30, issues=[]),
+        ],
+        critical_issues=[],
+        passed=True,
+        rationale="Test",
+        teacher_facing_summary="Test",
+    )
+    return output.model_dump_json()
 
 
 @pytest.mark.asyncio
@@ -25,7 +44,7 @@ async def test_inverse_thinking_h5p_readiness_fails_closed_when_semantics_are_lo
 
 @pytest.mark.asyncio
 async def test_inverse_thinking_supported_formats_pass_readiness() -> None:
-    validator = ExportValidator()
+    validator = ExportValidator(llm_transport=_passing_transport)
 
     result = await validator.validate(
         artifacts=[

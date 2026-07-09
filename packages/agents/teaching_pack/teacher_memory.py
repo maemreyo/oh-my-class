@@ -142,6 +142,62 @@ def read_gate_approval_history(
     }
 
 
+# ── gamification opt-in (TSP-05 amendment #1) ────────────────────────────────
+
+def write_gamification_preference(
+    store: BaseStore,
+    teacher_id: str,
+    *,
+    enabled: bool,
+    mode: str,
+) -> None:
+    """Teacher's opt-in preference for TeachingSession gamification.
+
+    Reuses this module's existing `teacher_preferences_ns` namespace and TTL
+    convention (same as `write_gate_approval` above) rather than a new
+    preference store. `mode` is one of
+    `teaching_session.responses.GamificationMode`'s values -- kept as a
+    plain string here so this module has no dependency on that package.
+    """
+    ns = teacher_preferences_ns(teacher_id)
+    store.put(ns, "gamification", {"enabled": enabled, "mode": mode}, ttl=TEACHER_PREFS_TTL_MINUTES)
+
+
+def read_gamification_preference(store: BaseStore, teacher_id: str) -> JsonObject:
+    """Returns `{"enabled": False, "mode": "disabled"}` when never set."""
+    ns = teacher_preferences_ns(teacher_id)
+    result = store.get(ns, "gamification")
+    if result is None or not isinstance(result.value, dict):
+        return {"enabled": False, "mode": "disabled"}
+    return {
+        "enabled": bool(result.value.get("enabled", False)),
+        "mode": str(result.value.get("mode", "disabled")),
+    }
+
+
+# ── pacing nudge opt-in (TSP-04 amendment #2) ────────────────────────────────
+
+def write_pacing_nudge_preference(store: BaseStore, teacher_id: str, *, enabled: bool) -> None:
+    """Teacher's opt-in preference for the live-cockpit pacing nudge.
+
+    Same namespace/TTL convention as `write_gamification_preference` above --
+    not a default-on alert (TSP-04 amendment #2), so the cockpit must read
+    this before ever comparing elapsed time to a slide's
+    `planned_duration_minutes`.
+    """
+    ns = teacher_preferences_ns(teacher_id)
+    store.put(ns, "pacing_nudge", {"enabled": enabled}, ttl=TEACHER_PREFS_TTL_MINUTES)
+
+
+def read_pacing_nudge_preference(store: BaseStore, teacher_id: str) -> JsonObject:
+    """Returns `{"enabled": False}` when never set (opt-in, not opt-out)."""
+    ns = teacher_preferences_ns(teacher_id)
+    result = store.get(ns, "pacing_nudge")
+    if result is None or not isinstance(result.value, dict):
+        return {"enabled": False}
+    return {"enabled": bool(result.value.get("enabled", False))}
+
+
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _str_list(value: object) -> list[str]:

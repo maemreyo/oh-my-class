@@ -3,6 +3,7 @@
 import { InverseThinkingEditor } from "@/components/inverse-thinking-editor";
 import { MethodologyInspectorPanel, MethodologyModePicker, MethodologyPreviewShell } from "@/components/methodology/mode-surfaces";
 import { TEMPLATE_REFERENCE_MODES, renderTemplateReferencePreview } from "@/components/methodology/template-reference-modes";
+import { StructurePresetPicker } from "@/components/slide-deck/structure-preset-picker";
 import { ExportFormatChooser, StandardGatePreview, StandardPackPreviewShell } from "@/components/standard-pack/standard-pack-baseline";
 
 const previewHtml = `<!DOCTYPE html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{font-family:system-ui;padding:24px}article{border:1px solid currentColor;border-radius:16px;padding:16px}@media print{body{padding:0}}</style></head><body><article><p>oh-my-class</p><h1>Student preview</h1><p>A student writes: I have visited Da Nang yesterday.</p></article></body></html>`;
@@ -19,6 +20,7 @@ export default function NewRunPage() {
 				</p>
 			</div>
 			<StandardGatePreview gate="content_approval" state="export_ready" completeness={92} qualityStatus="pass" exportReady />
+			<StructurePresetPicker selectedPresetId={null} />
 			<StandardPackPreviewShell artifact="lesson" theme="default" html={previewHtml} viewport="desktop" />
 			<ExportFormatChooser selectedArtifacts={["lesson", "quiz"]} selectedFormats={["html"]} />
 				<MethodologyModePicker selectedTag="inverse_thinking" disabledTags={TEMPLATE_REFERENCE_MODES.map((mode) => mode.tag)} />

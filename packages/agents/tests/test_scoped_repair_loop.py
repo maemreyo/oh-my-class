@@ -6,7 +6,10 @@ from packages.agents.teaching_pack.scoped_repair import (
     scoped_repair_plan,
     scoped_repair_update,
 )
-from packages.agents.teaching_pack.scoped_regeneration import apply_scoped_section_edit
+from packages.agents.teaching_pack.scoped_regeneration import (
+    apply_scoped_section_edit,
+    apply_scoped_slide_deck_block_edit_on_artifacts,
+)
 
 
 def test_scoped_repair_replaces_only_target_section_and_versions_lineage() -> None:
@@ -89,6 +92,101 @@ def test_teacher_section_edit_updates_only_target_section_with_event() -> None:
     event = update["content_update_event"]
     assert isinstance(event, dict)
     assert event["event_name"] == "teaching_pack.content_version.created"
+
+
+def test_slide_deck_block_edit_updates_only_target_block_with_event() -> None:
+    """SDE-04: `apply_scoped_section_edit` above no-ops on slide_deck artifacts
+    (its `sections` list check fails closed -- they're `slides[].blocks[]`,
+    not flat sections), so this is the gate-resume wiring's slide-deck-scoped
+    equivalent, mirroring the test above one-for-one."""
+    artifact = _slide_deck_artifact()
+
+    update = apply_scoped_slide_deck_block_edit_on_artifacts([artifact], {
+        "edit_type": "scoped_slide_deck_block",
+        "slide_deck_block_edit": {
+            "artifact_id": "deck-artifact-1",
+            "block_id": "block-1",
+            "new_content": "Teacher-revised heading.",
+            "rationale": "Clarify the hook.",
+        },
+    })
+
+    artifacts = update["artifacts"]
+    assert isinstance(artifacts, list)
+    edited = artifacts[0]
+    assert isinstance(edited, dict)
+    updated_deck = edited["metadata"]["slide_deck_data"]
+    assert updated_deck["slides"][0]["blocks"][0]["body"] == "Teacher-revised heading."
+    # Both embedding spots (metadata.slide_deck_data and sections[0].slide_deck)
+    # must stay in sync, or a downstream reader of either sees stale content.
+    assert edited["sections"][0]["slide_deck"]["slides"][0]["blocks"][0]["body"] == "Teacher-revised heading."
+    event = update["content_update_event"]
+    assert isinstance(event, dict)
+    assert event["event_name"] == "teaching_pack.content_version.created"
+    assert event["payload"]["authority"] == "teacher_edit"
+
+
+def test_slide_deck_block_edit_no_ops_when_edit_type_mismatched() -> None:
+    artifact = _slide_deck_artifact()
+
+    update = apply_scoped_slide_deck_block_edit_on_artifacts([artifact], {"edit_type": "scoped_section"})
+
+    assert update["artifacts"][0] == artifact
+    assert "content_update_event" not in update
+
+
+def test_slide_deck_block_edit_no_ops_for_unknown_block_id() -> None:
+    """An invalid edit (bad block_id, or a body failing SDE-02's registry
+    bounds) is rejected -- the gate-resume flow degrades gracefully, same
+    convention as `apply_scoped_section_edit`'s no-op-on-invalid-input."""
+    artifact = _slide_deck_artifact()
+
+    update = apply_scoped_slide_deck_block_edit_on_artifacts([artifact], {
+        "edit_type": "scoped_slide_deck_block",
+        "slide_deck_block_edit": {
+            "artifact_id": "deck-artifact-1",
+            "block_id": "block-does-not-exist",
+            "new_content": "New body.",
+        },
+    })
+
+    assert update["artifacts"][0] == artifact
+    assert "content_update_event" not in update
+
+
+def _slide_deck_artifact() -> JsonObject:
+    deck: JsonObject = {
+        "deck_id": "deck-1",
+        "title": "Fractions Deck",
+        "locale": "en-US",
+        "theme": "default",
+        "surfaces": {
+            "student": {"mode": "presentation", "export_format": "html"},
+            "teacher": {"mode": "teacher_guide", "export_format": "html"},
+            "print": {"mode": "print", "export_format": "html"},
+        },
+        "slides": [
+            {
+                "slide_id": "slide-1",
+                "title": "Intro",
+                "layout": "title",
+                "progression": {"step_index": 1, "reveal_policy": "all_at_once"},
+                "blocks": [
+                    {"block_id": "block-1", "block_type": "heading", "body": "Original heading."},
+                ],
+            },
+        ],
+        "accessibility": {"reading_level": "grade_5", "language": "en"},
+        "media_policy": {"default_tier": "packaged", "online_optional_allowed": False, "fallback_required": True},
+    }
+    return {
+        "artifact_id": "deck-artifact-1",
+        "artifact_type": "slide_deck",
+        "title": "Fractions Deck",
+        "sections": [{"title": "Fractions Deck", "slide_deck": deck}],
+        "metadata": {"slide_deck_data": deck},
+        "accessibility": {"language": "en"},
+    }
 
 
 def _artifact() -> JsonObject:

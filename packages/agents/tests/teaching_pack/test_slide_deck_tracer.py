@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
@@ -32,7 +34,10 @@ def _research_brief() -> dict[str, object]:
 
 
 @pytest.mark.anyio
-async def test_hierarchical_content_creator_returns_slide_deck_artifact() -> None:
+async def test_hierarchical_content_creator_returns_slide_deck_artifact(stub_section_prose) -> None:
+    # SDE-01: slide_deck now makes a real llm_client call (ContentMaterializer
+    # wording) too, so this needs the same stub as the other artifact types to
+    # stay fast/hermetic instead of hitting a live 9router.
     result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_brief(),
@@ -51,7 +56,7 @@ async def test_hierarchical_content_creator_returns_slide_deck_artifact() -> Non
 
 
 @pytest.mark.anyio
-async def test_generate_one_artifact_returns_slide_deck_chunk_without_llm() -> None:
+async def test_generate_one_artifact_returns_slide_deck_chunk_without_llm(stub_section_prose) -> None:
     result = await generate_one_artifact({
         "run_id": "run-slide-one",
         "artifact_generation_id": "run-slide-one:artifact:1",
@@ -70,6 +75,56 @@ async def test_generate_one_artifact_returns_slide_deck_chunk_without_llm() -> N
     assert chunk["metadata"]["slide_deck_data"]["deck_id"] == "slide-deck-run-slide-one"
     assert workflow["artifact_type"] == "slide_deck"
     assert workflow["status"] == "passed"
+
+
+@pytest.mark.anyio
+async def test_generate_one_artifact_reaches_content_materialization_llm_call(monkeypatch: pytest.MonkeyPatch) -> None:
+    """ADR-032 live-path proof for SDE-01: the LLM call inside ContentMaterializer
+    is reachable from the real production entrypoint (`generate_one_artifact`, the
+    actual teaching-pack graph node), not just from a fixture that hand-constructs
+    the phase's `AssembledSlideDeckInput`/`PedagogicalPlan` and calls
+    `materialize_deck` directly. Overrides the shared llm stub with real,
+    distinguishing content and confirms it surfaces in the artifact produced by
+    the full generate_one_artifact -> content_creator_node ->
+    build_hierarchical_artifacts -> build_slide_deck_artifact ->
+    SlideDeckEngine.generate -> materialize_deck chain.
+    """
+    from packages.agents import llm
+
+    marker_wording = {
+        "vocabulary_body": "LIVE_PATH_PROOF_MARKER vocabulary body",
+        "vocabulary_practice_body": "LIVE_PATH_PROOF_MARKER vocabulary practice",
+        "example_body": "LIVE_PATH_PROOF_MARKER example body",
+        "sentence_stem": "LIVE_PATH_PROOF_MARKER sentence stem",
+        "check_prompt": "LIVE_PATH_PROOF_MARKER check prompt",
+        "practice_correct_option": "LIVE_PATH_PROOF_MARKER correct option",
+        "practice_distractor_a": "LIVE_PATH_PROOF_MARKER distractor a",
+        "practice_distractor_b": "LIVE_PATH_PROOF_MARKER distractor b",
+        "teacher_rationale": "LIVE_PATH_PROOF_MARKER rationale",
+        "exit_prompt": "LIVE_PATH_PROOF_MARKER exit prompt",
+    }
+
+    async def fake_complete_json_chat(*, model: str, messages: list, temperature: float, tags: list[str]) -> str:
+        return json.dumps(marker_wording)
+
+    monkeypatch.setattr(llm, "complete_json_chat", fake_complete_json_chat)
+
+    result = await generate_one_artifact({
+        "run_id": "run-slide-live-path",
+        "artifact_generation_id": "run-slide-live-path:artifact:1",
+        "artifact_type": "slide_deck",
+        "lesson_plan": _lesson_plan(),
+        "research_brief": _research_brief(),
+        "theme": "default",
+        "revision_feedback": "",
+        "dependency_artifacts": [],
+    })
+
+    chunk = result["artifact_chunks"][0]
+    slide_deck_json = json.dumps(chunk["metadata"]["slide_deck_data"])
+
+    assert "LIVE_PATH_PROOF_MARKER" in slide_deck_json
+    assert chunk["metadata"]["slide_deck_trace"]["llm_calls"] == 1
 
 
 def test_slide_deck_fanout_runs_after_lesson_dependency(monkeypatch: pytest.MonkeyPatch) -> None:

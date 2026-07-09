@@ -20,9 +20,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from services.gateway import teaching_pack_models  # noqa: F401, E402
-from services.gateway import outcome_models  # noqa: F401, E402
+from services.gateway import (  # noqa: E402
+    outcome_models,  # noqa: F401
+    teaching_pack_models,  # noqa: F401
+)
 from services.gateway.models import Base  # noqa: E402
+from services.gateway.teaching_session import models as teaching_session_models  # noqa: F401, E402
 
 config = context.config
 

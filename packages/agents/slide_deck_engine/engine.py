@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from packages.agents.slide_deck_engine.deck_shape import annotate_pedagogical_pacing
 from packages.agents.slide_deck_engine.models import (
     SlideDeckEngineRequest,
     SlideDeckEngineResult,
@@ -29,17 +30,18 @@ from packages.agents.slide_deck_engine.scoped_regeneration import apply_scoped_f
 
 
 class SlideDeckEngine:
-    def generate(self, request: SlideDeckEngineRequest) -> SlideDeckEngineResult:
+    async def generate(self, request: SlideDeckEngineRequest) -> SlideDeckEngineResult:
         assembled = assemble_input(request)
         pedagogy = plan_pedagogy(assembled)
         architecture = plan_slide_architecture(assembled)
         compose_layouts(architecture)
         plan_interactions()
-        deck = materialize_deck(assembled, pedagogy)
+        deck, llm_calls = await materialize_deck(assembled, pedagogy)
         deck, scoped_repair = apply_scoped_feedback(deck, feedback_target_from_request(request))
+        deck = annotate_pedagogical_pacing(deck, assembled.effective_teacher_constraints)
         validations = [
             *validate_registry_membership(deck),
-            *audit_density_and_accessibility(deck),
+            *audit_density_and_accessibility(deck, assembled.effective_teacher_constraints, assembled.grade_level),
             validate_pacing(deck),
             validate_source_references(deck),
             validate_objective_coverage(deck, pedagogy),
@@ -60,7 +62,7 @@ class SlideDeckEngine:
             model_cost_metadata,
             export_readiness_manifest,
             scoped_regeneration_artifact,
-        ) = trace_artifacts(deck, architecture, validations, healing_reports, scorecard, scoped_repair)
+        ) = trace_artifacts(deck, architecture, validations, healing_reports, scorecard, scoped_repair, llm_calls=llm_calls)
         return SlideDeckEngineResult(
             deck=deck,
             validation_reports=validations,
@@ -79,7 +81,7 @@ class SlideDeckEngine:
                     "surface_readiness",
                     "export_readiness",
                 ],
-                llm_calls=0,
+                llm_calls=llm_calls,
                 plan_artifact=plan_artifact,
                 data_artifact=data_artifact,
                 validation_artifact=validation_artifact,

@@ -30,123 +30,91 @@
 
 **oh-my-class** is an AI-powered **teaching pack generator** for K-12 education. A teacher describes a lesson; the system produces a complete, print-and-use HTML teaching pack — lesson, worksheet, quiz, drill, recap, infographic — tailored to their students.
 
-### Core Stack
-
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| Orchestration | LangGraph 1.x | Sequential pipeline + native `interrupt()` for teacher gates |
-| Backend | FastAPI (Python 3.12) | Async, type-safe, OpenAPI auto-docs |
-| Frontend | Next.js 15 (TypeScript) | SSR + App Router; teacher dashboard |
-| Template Engine | Eta (JS/TS) | 3.5 KB, TypeScript-native, standalone HTML output |
-| LLM Gateway L1 | LiteLLM Proxy (port 4000) | Virtual keys, budget control, cost tracking, fallback chains |
-| LLM Gateway L2 | 9Router sidecar (port 20128) | RTK token compression (20–40%), free-tier aggregation, fusion routing |
-| Cache | Redis 7 | LiteLLM exact-match cache; LangGraph shared state |
-| Persistence | PostgreSQL 16 | LangGraph checkpoints; cost logs; artifact metadata |
-| Validation | Pydantic v2 (Python) + Zod v4 (TS) | Bi-directional schema enforcement |
-| Testing | pytest + Vitest | Python agents + TypeScript template renderer |
-
-### Design Principles (non-negotiable)
-
-- **SoC** — Each stage/sub-agent has one responsibility. The stage graph orchestrates; content generation stays inside content-creator nodes.
-- **Modular** — Every layer (middleware, gate, template, agent) is a standalone unit, independently testable.
-- **Standalone HTML** — All output is self-contained: no CDN, no external assets, works offline.
-- **Config-driven** — Behavior controlled via YAML/JSON; no magic in code.
-- **Fail closed** — Any gate failure blocks export. No silent passes.
-- **Typed end-to-end** — Python: Pydantic v2. TypeScript: strict mode, Zod schemas.
-
----
-
-## 2. Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Teacher (Browser)                         │
-│              Next.js 15 Dashboard                           │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ REST / WebSocket (SSE)
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│               FastAPI Gateway  :8001                         │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │         LangGraph Runtime (Embedded)                 │    │
-│  │  ┌──────────────────────────────────────────┐    │    │
-│  │  │        Teaching-Pack Stage Graph          │    │    │
-│  │  │ setup_contract → planning → artifacts     │    │    │
-│  │  │ → render_quality → teacher_approval       │    │    │
-│  │  └──────────────────────────────────────────┘    │    │
-│  │       │                                              │    │
-│  │  ┌────┴────────────────────────────────────┐        │    │
-│  │  ▼           ▼             ▼            ▼           │    │
-│  │  Planner  Researcher  ContentCreator  Reviewer      │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                                                              │
-│  LiteLLM Proxy :4000 ──► 9Router sidecar :20128            │
-│  PostgreSQL :5432 │ Redis :6379                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Stage Interaction Pattern
-
-```
-Teaching-Pack Stage Graph
-  ├─► planning_blueprint        → Planner node → LessonPlan JSON
-  ├─► post_blueprint_research   → Researcher node → ResearchBundle JSON
-  ├─► artifact_workflow         → ContentCreator node → ArtifactContent JSON
-  └─► render_quality            → Reviewer/quality gate → JudgeOutput / quality reports
-```
-
-The decommissioned Lead Agent and `task()` delegation stub are not runtime surfaces.
-
 ---
 
 ## 3. Pipeline Graphs
 
 The authoritative LangGraph runtime is the teaching-pack stage graph (`packages/agents/teaching_pack/graph.py`). Legacy graph/Lead-Agent surfaces are decommissioned and guarded by deletion tests.
 
-### 3.1 Teaching-Pack Stage Graph — 9 Stages (`build_teaching_pack_graph`)
+### 3.1 Teaching-Pack Stage Graph — 10 Stages Default (`build_teaching_pack_graph`)
 
-**Status**: Authoritative runtime. Single-lesson runs use this path.
+**Status**: Authoritative runtime. Two modes: `generate_pack` (children, default) and `plan_unit` (units).
+
+**Default sequence (`generate_pack` mode, 10 stages):**
 
 ```
-setup_contract → preplanning_search → planning_blueprint → post_blueprint_research
+setup_contract → triage → preplanning_search → planning_blueprint → post_blueprint_research
   → artifact_workflow → render_quality → compliance_gate → teacher_approval → export_finalize → END
 ```
 
-**Conditional seams** (3):
-- After `render_quality`: routes to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `compliance_gate`
-- After `compliance_gate`: routes to `teacher_approval` on pass or `artifact_workflow` on fail-closed hard blocks
-- After `teacher_approval`: routes to `export_finalize` (approve) or `artifact_workflow` (reject with scoped feedback)
+**Unit mode (`plan_unit` with `FEATURE_COMPONENT_STRATEGIST_V1`, 12 stages):**
 
-**ADR-017 extension** (proposed, not yet implemented):
-- `mode="plan_unit"` → `TRIAGE → UNIT_PLANNING → UNIT_APPROVAL → UNIT_PREP → END`
-- `mode="generate_pack"` → existing stage sequence above (children take this path)
+```
+setup_contract → triage → preplanning_search → planning_blueprint → post_blueprint_research
+  → unit_planning → unit_approval → artifact_workflow → render_quality → compliance_gate
+  → teacher_approval → export_finalize → END
+```
+
+The component-strategist variant reorders `unit_approval` before `artifact_workflow`. This is a structurally different pipeline, not just a longer one.
+
+**Conditional edges** (6):
+1. After `triage`: routes to `plan_unit` or `generate_pack` path based on request type
+2. After `unit_approval` (plan_unit only): routes to `artifact_workflow` on approve, back to `unit_planning` on reject
+3. After `artifact_workflow`: fan-out to render_quality based on artifact types
+4. After `render_quality`: routes to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `compliance_gate` based on quality recovery output
+5. After `compliance_gate`: routes to `teacher_approval` on pass, or `artifact_workflow` on fail-closed hard blocks
+6. After `teacher_approval`: routes to `export_finalize` on approve, or `artifact_workflow` on reject with scoped feedback
 
 ### Gate Nodes (LangGraph `interrupt()`)
 
-| Gate | Graph | Teacher Action | On Reject |
-|------|-------|---------------|-----------|
-| `teacher_approval` | Teaching-pack | approve / edit / reject / audited fast-lane auto-approve with visible revert window | Loop back to `artifact_workflow` |
+| Gate | Graph | Pipeline | Teacher Action | On Reject |
+|------|-------|----------|---------------|-----------|
+| `unit_approval` | Teaching-pack | `plan_unit` only | approve / reject | Loop back to `unit_planning` |
+| `teacher_approval` | Teaching-pack | Both modes | approve / edit / reject / audited fast-lane auto-approve with visible revert window | Loop back to `artifact_workflow` |
 
-Gates time out after **24 hours** and auto-escalate to admin.
+Both gates time out after **24 hours** and auto-escalate to admin.
+
+### Gateway Gate Registry
+
+The gateway exposes 6 named gates via `teaching_pack_gate_registry.py`, each with its own allowed actions. These are distinct from the graph-level stage nodes above:
+
+| Gate Name | Allowed Actions |
+|-----------|----------------|
+| `CLARIFICATION` | respond |
+| `CONTRACT_CONFIRMATION` | confirm / edit |
+| `SEARCH_PLAN_CONFIRMATION` | approve / edit |
+| `BLUEPRINT_APPROVAL` | approve / edit / reject |
+| `CONTENT_APPROVAL` | approve / edit / reject |
+| `UNIT_APPROVAL` | approve / reject |
+
+Changes to the gate registry must update docs, API contract, and tests in the same PR.
 
 ### Conditional Routing
 
+- After `triage`: route to unit-planning or generate-pack path based on request classification.
+- After `unit_approval` (plan_unit only): route to `artifact_workflow` on approve; back to `unit_planning` on scoped rejection.
 - After `render_quality`: route to `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, or `compliance_gate` based on quality recovery output.
 - After `compliance_gate`: route to `teacher_approval` only when deterministic hard-block checks pass; otherwise return to `artifact_workflow`.
 - After `teacher_approval`: route to `export_finalize` on approval or back to `artifact_workflow` on scoped rejection.
+
+### Sync Rule
+
+Every change to `graph.py`, `stages.py`, routing functions, or feature-flag stage variants must update AGENTS.md in the same PR. A snapshot test (`docs/runtime/teaching-pack-graph-contract.json`) enforces stage tuples and conditional routes against runtime code.
 
 ---
 
 ## 4. Agent Definitions
 
+**Model source of truth:** `packages/agents/config/models.py`. All agents default to `"4omc"`. Per-task overrides via `MODEL_STRONG_DEFAULT`, `MODEL_FAST_DEFAULT`, `MODEL_<TASK>` env vars. Model assignment changes require docs update.
+
 ### 4.1 Planner Agent
 
 ```
-Model:   deepseek-v4-flash  (via LiteLLM)
+Model:   4omc  (override: MODEL_FAST_DEFAULT)
 Tools:   web_search, read_file
 Role:    Backward design (UbD) lesson planning.
          Output: LessonPlan JSON (see §5).
-Turns:   max 80
+Config:  max_retries=3, MaxTokensConfig per agent
 Schema:  LessonPlan (Pydantic v2)
 ```
 
@@ -166,11 +134,11 @@ class LessonPlan(BaseModel):
 ### 4.2 Researcher Agent
 
 ```
-Model:   deepseek-v4-flash  (via LiteLLM)
+Model:   4omc  (override: MODEL_FAST_DEFAULT)
 Tools:   web_search, web_fetch, read_file
 Role:    Gather, cross-reference, synthesize sources.
          Verify every factual claim against ≥2 sources (FACT protocol).
-Turns:   max 80
+Config:  max_retries=3, MaxTokensConfig per agent
 Schema:  ResearchBundle (Pydantic v2)
 ```
 
@@ -187,11 +155,11 @@ Default policy: `standard`.
 ### 4.3 Content Creator Agent
 
 ```
-Model:   deepseek-v4-flash  (via LiteLLM, fallback: deepseek-compressed)
+Model:   4omc  (override: MODEL_STRONG_DEFAULT)
 Tools:   read_file, write_file
 Role:    Generate structured JSON content for each artifact type.
          Output rendered via Eta templates — never raw HTML directly.
-Turns:   max 120
+Config:  max_retries=3, MaxTokensConfig per agent
 Schema:  ArtifactContent (Pydantic v2)
 ```
 
@@ -212,20 +180,23 @@ class ArtifactContent(BaseModel):
 - No student PII (name, email, score) in output
 - Answer keys must be absent from student-facing output; deterministic compliance fails closed on English/Vietnamese answer-key leakage markers.
 
-### 4.4 Reviewer Agent
+### 4.4 Reviewer Agent (AdaptiveJudge)
 
 ```
-Model:   gpt-5.4  (via LiteLLM; different model from generator = bias mitigation)
+Model:   4omc  (different model from generator = bias mitigation)
 Tools:   read_file
-Role:    LLM-as-Judge. 3-layer G-Eval scoring.
-Turns:   max 40
+Role:    LLM-as-Judge. Constructs AdaptiveJudge with num_judges=3 (wired from GateConfig.judge_n).
+         3-layer G-Eval scoring per judge; majority vote determines pass/fail.
+Config:  max_retries=3, GateConfig.judge_n=3
 Schema:  JudgeOutput (Pydantic v2)
 ```
 
-**Scoring weights:**
+The reviewer never calls an LLM directly. It constructs `AdaptiveJudge(num_judges=gate_config.judge_n)` and delegates transport back through the same `AgentRuntime`, adding multi-judge dispatch and deterministic hard-block override on top.
 
-| Layer | Weight | Criteria |
-|-------|--------|---------|
+**Layer 4 rubric weights** (internal to each judge):
+
+| Criterion | Weight | What it checks |
+|-----------|--------|---------------|
 | Format compliance | 15% | DOCTYPE, no CDN, brand strings, responsive |
 | Content quality | 55% | Accuracy, completeness, relevance, reasoning |
 | Presentation | 30% | Readability, engagement, accessibility |
@@ -234,9 +205,19 @@ Schema:  JudgeOutput (Pydantic v2)
 
 **Bias mitigations:**
 - Rationale written before score (think-before-score)
-- 3 independent judge calls → majority vote
+- 3 independent judge calls → majority vote (`GateConfig.judge_n=3`)
 - Generator model ≠ judge model
 - Explicit guard: "Do not rate longer answers higher"
+
+### 4.5 Additional Agents
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `unit_planner` | 4omc (`MODELS.blueprint_design` alias) | Unit-level lesson sequencing |
+| `practice_generator` | 4omc | Drill/practice set generation |
+| `coherence_judge` | 4omc | Cross-artifact coherence check |
+| `roadmap_agent` | 4omc (`MODELS.blueprint_design` alias) | Curriculum roadmap generation |
+| `diagnostician` | 4omc | Student performance diagnostics |
 
 ---
 
@@ -347,7 +328,7 @@ def merge_artifacts(prev: list, new: list) -> list:
 
 ## 6. LLM Routing
 
-All agents call **LiteLLM Proxy** at `http://litellm:4000`. LiteLLM routes to providers or to 9Router.
+Default dev/staging path: **Agent → 9Router** (`LLM_BASE_URL=http://localhost:20228/v1`). LiteLLM proxy (`http://litellm:4000`) is optional, production-only, for budget control and fallback chains. The model source of truth is `packages/agents/config/models.py` (see §4).
 
 ### 6.1 Model Assignment per Agent
 
@@ -378,13 +359,17 @@ All agents call **LiteLLM Proxy** at `http://litellm:4000`. LiteLLM routes to pr
 
 ```
 Agent
-  └─► LiteLLM :4000      (budget control, cost tracking, fallback chains, Redis cache)
+  └─► 9Router :20128      (RTK compression, free tiers, fusion combo)
+        ├─► Kiro AI   (Claude 4.5 free tier)
+        ├─► OpenCode  (free tier)
+        └─► Vertex AI ($300 credits)
+
+  └─► LiteLLM :4000      [OPTIONAL, prod-only] (budget control, cost tracking, fallback chains)
         ├─► Direct        (DeepSeek API, OpenAI API, Anthropic API)
-        └─► 9Router :20128  (RTK compression, free tiers, fusion combo)
-              ├─► Kiro AI   (Claude 4.5 free tier)
-              ├─► OpenCode  (free tier)
-              └─► Vertex AI ($300 credits)
+        └─► 9Router :20128  (same sidecar as above)
 ```
+
+In dev/staging, agents hit 9Router directly. LiteLLM adds a budget-control layer only when `LITELLM_PROXY_URL` is set in production compose profiles.
 
 ### 6.3 9Router Combos
 
@@ -444,7 +429,7 @@ Gates run sequentially. Any `CRITICAL` failure at any layer blocks progress.
 - **FACT Hallucination Protocol**: Find → Assess → Cross-reference → Tag (`VERIFIED`/`MODIFIED`/`REMOVED`/`UNCERTAIN`)
 - **Minimum verification**: 2 independent sources for every HIGH-risk claim
 - **Age-appropriateness**: Flesch-Kincaid grade level check; forbidden content per age band
-- **Binary pedagogical metrics** (all 7 must pass): prompt_alignment, factual_correctness, clarity, contextual_relevance, engagement, harmful_content_avoidance, solution_accuracy
+- **Binary pedagogical metrics** (10 defined, 5 active): prompt_alignment, factual_correctness, clarity, contextual_relevance, engagement, harmful_content_avoidance, solution_accuracy. Remaining 5 deferred to post-delivery loop.
 
 ### Layer 3 — Presentation Contract
 
@@ -458,9 +443,10 @@ Gates run sequentially. Any `CRITICAL` failure at any layer blocks progress.
 ### Layer 4 — LLM-as-Judge (G-Eval)
 
 ```
-Score = Layer1×0.15 + Layer2×0.55 + Layer3×0.30
+Layer 4 uses internal rubric weights (not a cross-layer weighted score):
+  Format compliance (15%) + Content quality (55%) + Presentation (30%)
 Pass if score ≥ 7.0 AND no critical issues
-Majority vote: 3 independent judge calls
+3 independent judges (AdaptiveJudge, num_judges=3 from GateConfig); majority vote
 ```
 
 Self-heal strategies on failure:
@@ -490,7 +476,7 @@ response = interrupt({
 
 ### Layer 6 — Export Readiness
 
-- 3 independent judges (different models) — 2/3 must pass
+- 3 independent judges (different models) — 2/3 must pass (`export_consensus_threshold=0.67`)
 - Format-specific required artifacts check (`html` requires `lesson`, `gift` requires `quiz`)
 - Skip threshold: if ≥20% items fail → stop + ask teacher
 
@@ -511,7 +497,7 @@ ArtifactContent JSON
    Eta Template Engine (TypeScript)
         │  templates/pages/{artifact_type}.html
         │  templates/components/*.html
-        │  templates/branding/theme_{name}.css  (auto-generated from theme.json)
+        │  branding/themes/*.json → runtime CSS generation
         ▼
    Standalone HTML
    (all CSS inlined, no CDN, works offline)
@@ -522,13 +508,20 @@ ArtifactContent JSON
 ```
 templates/
 ├── base.html                  # Shell: DOCTYPE, head, header, footer, inline JS
-├── pages/
+├── pages/                     # 13 page templates (6 original + 7 extensions)
 │   ├── lesson.html
 │   ├── worksheet.html
 │   ├── quiz.html
 │   ├── drill.html
 │   ├── recap.html
-│   └── infographic.html
+│   ├── infographic.html
+│   ├── teaching_pack.html
+│   ├── slide_deck.html
+│   ├── reading_passage.html
+│   ├── exit_ticket.html
+│   ├── answer_key.html
+│   ├── roadmap.html
+│   └── flashcard_deck.html
 ├── components/
 │   ├── question_mc.html       # Multiple choice
 │   ├── question_fill.html     # Fill-in-blank
@@ -540,9 +533,10 @@ templates/
 │   ├── math_block.html        # LaTeX via KaTeX (inlined)
 │   └── data_chart.html
 └── branding/
-    ├── theme_default.css      # Auto-generated — do not edit manually
-    ├── theme_ocean.css
-    └── theme_forest.css
+    └── themes/                # Canonical: ThemeTokens JSON files
+        ├── default.json
+        ├── ocean.json
+        └── forest.json
 ```
 
 ### 8.3 Three-Tier CSS Token System
@@ -555,7 +549,9 @@ PRIMITIVES         →  SEMANTIC TOKENS   →  COMPONENT TOKENS
 --space-4             --space-md
 ```
 
-Theme is driven by `common/branding/kits/{name}/theme.json` — single source of truth.
+**Canonical source:** `packages/renderer/src/theme/themes/*.json` (ThemeTokens, 3-tier).
+Legacy flat `common/branding/kits/*/theme.json` is deprecated and will be deleted after migration.
+CSS is generated at runtime by the renderer, not from pre-built CSS files.
 
 ### 8.4 Standalone HTML Invariants
 
@@ -633,6 +629,7 @@ All formats generated from the same `ArtifactContent` JSON — format-agnostic i
 - Supports: MCQ, TF, short answer, matching, numerical, essay, missing word
 - Partial credit via `%50%` syntax
 - Category: `$CATEGORY: oh-my-class/{subject}/{topic}`
+- Coverage note: real TS `gift-impl` covers all listed types except `numerical`.
 
 ### H5P (`.h5p` ZIP)
 
@@ -642,25 +639,31 @@ All formats generated from the same `ArtifactContent` JSON — format-agnostic i
 
 ### QTI 2.1 (XML ZIP)
 
-- Most interoperable standard (1EdTech). Export-only (not import).
-- Structure: `imsmanifest.xml` + `assessments/test.xml` + `items/*.xml`
-- Use for LMS integrations beyond Moodle.
+- **Currently unsupported.** QTI skeleton exists but no real implementation.
+- Full QTI support is a separate workstream.
 
-### Google Forms (REST API)
+### Google Forms
 
-- OAuth 2.0 (`forms.body` scope). Two-step: create → `batchUpdate`.
-- Auto-gradable types: radio, checkbox, dropdown, short answer (exact match).
-- Limitation: no partial credit, no math/LaTeX.
+- Live OAuth + REST client, but **not an offline export format**.
+- Split into external `PublishTarget` contract (not `ExportFormat`).
+- Requires separate implementation for pipeline integration.
 
 ### Format Selection Guide
 
 ```
 Teacher wants to use Moodle?         → GIFT + H5P
 Teacher wants interactive homework?  → H5P
-Teacher wants to share a Google Form? → Google Forms API
+Teacher wants to share a Google Form? → PublishTarget (separate pipeline)
 Teacher just wants printable files?  → Standalone HTML
-Maximum portability?                 → QTI 2.1
+Maximum portability?                 → QTI 2.1 (not yet available)
 ```
+
+### Export Subprocess Bridging
+
+GIFT and H5P formats are bridged from the gateway to the TS CLI via subprocess
+(same pattern as Anki/TSV). The Python skeletons in the gateway are replaced
+by real TS exporter output at request time. QTI returns an explicit unsupported
+error rather than fake XML.
 
 ---
 
@@ -672,8 +675,8 @@ oh-my-class/
 │   ├── agents/                  # LangGraph multi-agent pipeline (Python)
 │   │   ├── sub_agents/          # planner, researcher, content_creator, reviewer, diagnostician, roadmap_agent
 │   │   ├── teaching_pack/       # Authoritative stage graph (ADR-017 runtime)
-│   │   │   ├── graph.py         # build_teaching_pack_graph — 8-stage StateGraph
-│   │   │   ├── stages.py        # TeachingPackStage StrEnum (8 values)
+│   │   │   ├── graph.py         # build_teaching_pack_graph — 10-stage StateGraph
+│   │   │   ├── stages.py        # TeachingPackStage StrEnum (10 values)
 │   │   │   ├── nodes.py         # Stage node implementations + routing
 │   │   │   ├── ports.py         # Port/interface contracts
 │   │   │   ├── quality.py       # Quality gate wiring
@@ -691,11 +694,11 @@ oh-my-class/
 │   │   │   ├── safety/          # Safety middleware
 │   │   │   └── terminal/        # Terminal middleware
 │   │   ├── tools/
-│   │   ├── gates.py             # interrupt() gate node implementations
-│   │   ├── healing.py           # Self-heal orchestrator
+│   │   ├── gates/               # interrupt() gate node implementations
+│   │   ├── healing/             # Self-heal orchestrator
 │   │   ├── events.py            # In-memory event bus (SSE/observability only)
 │   │   ├── checkpointer.py      # get_checkpointer factory
-│   │   └── observability.py     # Langfuse tracing
+│   │   └── observability/       # Langfuse tracing
 │   ├── quality/                 # 6-layer quality gate system (Python)
 │   │   ├── layer1_schema/
 │   │   ├── layer2_content/
@@ -723,19 +726,19 @@ oh-my-class/
 │   │       ├── exercise-types/  # One file per exercise type
 │   │       ├── questions.ts
 │   │       └── generated/       # Auto-generated from Pydantic — do not edit
-│   └── branding/
+│   └── branding/                # DEPRECATED — migrate to packages/renderer/src/theme/ then delete
 │       └── kits/
-│           ├── default/theme.json  # Single source of truth for all themes
+│           ├── default/theme.json
 │           ├── ocean/
 │           └── forest/
 ├── services/
 │   ├── gateway/                 # FastAPI + embedded agent runtime :8001
 │   │   ├── main.py
 │   │   ├── routers/
-│   │   │   ├── teaching_packs.py   # Teaching-pack endpoints
+│   │   │   ├── teaching_pack_runs.py  # Teaching-pack endpoints
 │   │   │   └── health.py
 │   │   ├── teaching_pack_models.py # TeachingPack SQLAlchemy models
-│   │   ├── teaching_pack_store.py  # TeachingPackJobStore
+│   │   ├── teaching_pack_job_store.py  # TeachingPackJobStore
 │   │   ├── recovery_sweeper.py     # Stuck job + gate escalation sweeper
 │   │   ├── middleware/
 │   │   ├── auth/
@@ -743,18 +746,10 @@ oh-my-class/
 │   │   ├── observability/
 │   │   ├── models.py            # Run, RunStatus, RunEvent SQLAlchemy models
 │   │   └── alembic/
-│   ├── proxy/                   # LiteLLM proxy :4000
-│   │   └── config.yaml
-│   └── router/                  # 9Router sidecar :20128
-│       └── config.yaml
 ├── apps/
-│   └── web/                     # Next.js 15 teacher dashboard :3000
+│   └── web/                     # 
 │       └── src/app/
-├── skills/                      # Markdown skills injected into agent prompts
-│   ├── blueprint-designer/SKILL.md
-│   ├── pack-generator/SKILL.md
-│   ├── artifact-reviewer/SKILL.md
-│   └── export-assistant/SKILL.md
+├── skills/                      # Empty (4 dead dirs deleted per grill session G3)
 ├── infra/
 │   └── compose/docker-compose.yml
 ├── scripts/                     # Utility scripts (generate_zod_schemas, typecheck, etc.)
@@ -773,6 +768,17 @@ common/contracts    →  MUST NOT import from  packages/* or services/* or apps/
 services/*          →  MAY import from       packages/* and common/*
 apps/*              →  MAY import from       packages/* and common/* and services/*
 ```
+
+### Port Configuration (gateway)
+
+The gateway runs on **different ports in local dev vs Docker — this is INTENTIONAL, not a bug.** There is no reverse proxy mapping `8101 → 8001`.
+
+| Environment | Gateway port | Source |
+|-------------|-------------|--------|
+| Local dev (`make dev`) | `:8101` | `Makefile:39` `LOCAL_GATEWAY_PORT := 8101` |
+| Docker (`compose up`) | `:8001` | `infra/compose/docker-compose.yml:40` `8001:8001` |
+
+The web client targets the gateway via `NEXT_PUBLIC_GATEWAY_URL` — defaults to `http://localhost:8101` in local dev (`apps/web/src/lib/api-client.ts:7`), overridden to `:8001` for the Docker web service. Keep both ports as-is and document any change.
 
 ---
 
@@ -828,6 +834,8 @@ class BaseMiddleware:
 ```
 
 Middleware execution order is fixed. **Clarification (23) must always be last.**
+
+**6 quality middlewares** (`QUALITY_GATE_CONSOLIDATED_MIDDLEWARE` group: curriculum, readability, pedagogical, bias, artifact coherence, LO alignment) run as advisory signals in `render_quality` (warning-only, not hard-block). `SkillActivationMiddleware` uses `SkillLoader` from `packages/agents/skills/registry.py` as its path resolution source.
 
 ### Parked-status TTL policy
 
@@ -983,15 +991,36 @@ INVARIANT-07  All LLM calls MUST include metadata.tags with agent and run_id.
 INVARIANT-08  Clarification middleware is always the last active middleware (order=23).
               All other active middleware order values must be 1–22.
 
-INVARIANT-09  theme.json is the single source of truth for all brand tokens.
-              theme_*.css files are auto-generated — never edit them manually.
+INVARIANT-09  ThemeTokens (3-tier JSON in packages/renderer/src/theme/) is the
+              single source of truth for all brand tokens. Legacy flat
+              common/branding/kits/*/theme.json is deprecated.
 
 INVARIANT-10  Every Pydantic model that validates agent output MUST be in
               common/contracts, not in packages/agents or services/gateway/*.
               Contracts are the canonical schema — code references them, not the reverse.
 ```
 
----
+### Small Docs Fixes (W19)
+
+The following minor corrections were applied during the grill-session docs sync:
+
+| Ref | Section | Fix |
+|-----|---------|-----|
+| 3.1 | Pipeline Graphs | Stage count corrected from "9" / "8" to **10** default, **12** with component strategist |
+| 4.1 | Agent Definitions | Model names updated from stale `deepseek-v4-flash` / `gpt-5.4` to `"4omc"` (source: `models.py`) |
+| 4.1 | Agent Definitions | Removed fabricated `max_turns` config; documented actual `max_retries` + `MaxTokensConfig` |
+| 4.4 | Reviewer | Updated description from "direct LLM judge call" to AdaptiveJudge + multi-judge dispatch |
+| 6.2 | LLM Routing | Topology inverted: 9Router direct is default; LiteLLM proxy is optional/prod-only |
+| 6.4 | LLM Routing | Fallback chains documented as LiteLLM-only, not primary path |
+| 8.2 | Template System | Template count updated from 6 to **13** pages (added teaching_pack, slide_deck, reading_passage, exit_ticket, answer_key, roadmap, flashcard_deck) |
+| 8.2 | Template System | Removed `inlineCss()` reference; CSS inlined natively via `<%~ it.themeCSS %>` |
+| 8.3 | Template System | Canonical source updated to `packages/renderer/src/theme/themes/*.json` (ThemeTokens) |
+| 8.2 | Template System | `branding/theme_*.css` files replaced with `branding/themes/*.json` ThemeTokens |
+| 9.1–9.3 | Project Structure | Gateway file names corrected: `teaching_packs.py` → `teaching_pack_runs.py`, `teaching_pack_store.py` → `teaching_pack_job_store.py` |
+| 10.3–10.4 | Project Structure | Removed `services/proxy/` and `services/router/` (9Router is external sidecar); `skills/` marked empty |
+| 7.4 | Export Formats | GIFT coverage note added: `numerical` type not supported by TS `gift-impl` |
+| 5.1 | Quality Gates | Removed misleading cross-layer weighted score formula; 15/55/30 = Layer 4 internal rubric only |
+| 5.2 | Quality Gates | Pedagogical metrics corrected from "7" to "10 defined, 5 active" |
 
 ---
 
@@ -1015,3 +1044,14 @@ Single-context: one `CONTEXT.md` at repo root + `docs/adr/` for ADRs. See `docs/
 > **Maintained by**: Core team. PRs that violate any Hard Invariant will be rejected.
 > **Source docs**: Technical Reports 01–07 (multi-agent blueprint, quality gates,
 >   template system, LLM proxy, 9Router integration, exercise catalog, content research)
+
+<!-- CODEGRAPH_START -->
+## CodeGraph
+
+In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
+
+- **MCP tool** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them, including dynamic-dispatch hops grep can't follow. Name a file or symbol in the query to read its current line-numbered source. If it's listed but deferred, load it by name via tool search.
+- **Shell** (always works): `codegraph explore "<symbol names or question>"` prints the same output.
+
+If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
+<!-- CODEGRAPH_END -->

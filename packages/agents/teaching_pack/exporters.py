@@ -3,12 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, assert_never
 
-type ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "google_forms"]
+type ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx"]
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
 
-_SUPPORTED_FORMATS = frozenset({"html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv"})
-_UNSUPPORTED_FORMATS = frozenset({"google_forms"})
+_SUPPORTED_FORMATS = frozenset({"html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx"})
+_PUBLISH_TARGETS = frozenset({"google_forms"})
 
 
 class UnsupportedExportFormatError(RuntimeError):
@@ -34,7 +34,7 @@ class ExporterRegistry:
         return export_format in _SUPPORTED_FORMATS
 
     def is_explicitly_unsupported(self, export_format: str) -> bool:
-        return export_format in _UNSUPPORTED_FORMATS
+        return export_format in _PUBLISH_TARGETS
 
     def export(self, request: ExportRequest) -> list[str]:
         match request.format:
@@ -50,8 +50,8 @@ class ExporterRegistry:
                 return [f"exports/{request.run_id}/{request.run_id}.apkg"]
             case "flashcard_tsv":
                 return [f"exports/{request.run_id}/{request.run_id}.tsv"]
-            case "google_forms":
-                raise UnsupportedExportFormatError(request.format)
+            case "pptx":
+                return _pptx_exports(request.run_id, request.snapshots)
             case unreachable:
                 assert_never(unreachable)
 
@@ -83,14 +83,25 @@ def _export_format(value: str) -> ExportFormat:
             return "anki_apkg"
         case "flashcard_tsv":
             return "flashcard_tsv"
-        case "google_forms":
-            return "google_forms"
+        case "pptx":
+            return "pptx"
         case _:
             raise UnsupportedExportFormatError(value)
 
 
 def _html_exports(run_id: str, snapshots: list[JsonObject]) -> list[str]:
     return [f"exports/{run_id}/{snapshot_id}.html" for snapshot_id in _snapshot_ids(snapshots)]
+
+
+def _pptx_exports(run_id: str, snapshots: list[JsonObject]) -> list[str]:
+    # pptx conversion only makes sense for slide_deck content (SDX-05) —
+    # unlike html, this does not fan out over every snapshot regardless of type.
+    slide_deck_ids = [
+        str(snapshot["snapshot_id"])
+        for snapshot in snapshots
+        if snapshot.get("artifact_type") == "slide_deck"
+    ]
+    return [f"exports/{run_id}/{snapshot_id}.pptx" for snapshot_id in slide_deck_ids]
 
 
 def _snapshot_ids(snapshots: list[JsonObject]) -> list[str]:

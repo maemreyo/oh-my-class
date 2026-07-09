@@ -222,7 +222,7 @@ function metadata(): BaselineMetadata {
       "packages/renderer/src/semantic-anchor-projections.ts",
       "packages/renderer/src/inverse-thinking-renderer.ts",
       "packages/renderer/templates/**",
-      "common/branding/kits/**/theme.json",
+      "packages/renderer/src/theme/themes/*.json",
     ],
     note: "Phase 0 current-renderer baselines for ADR-025. These snapshots intentionally predate the plugin-registry rewrite.",
   };

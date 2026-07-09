@@ -88,6 +88,26 @@ class APIClient {
 	put<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
 		return this.request<T>("PUT", path, body, options);
 	}
+
+	/** POST a `FormData` body (file upload) — no JSON `Content-Type` header,
+	 * so the browser sets the multipart boundary itself. */
+	async postForm<T>(path: string, form: FormData): Promise<T> {
+		const token = this.getToken();
+		const headers: Record<string, string> = {};
+		if (token) headers.Authorization = `Bearer ${token}`;
+
+		const response = await fetch(`${this.baseUrl}${path}`, {
+			method: "POST",
+			headers,
+			body: form,
+		});
+
+		if (!response.ok) {
+			const error = await response.json().catch(() => ({ detail: "Unknown error" }));
+			throw new Error(error.detail || `HTTP ${response.status}`);
+		}
+		return response.json() as Promise<T>;
+	}
 }
 
 export const apiClient = new APIClient(GATEWAY_URL);

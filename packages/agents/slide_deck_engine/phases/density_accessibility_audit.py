@@ -1,16 +1,24 @@
 from __future__ import annotations
 
+from common.contracts.run_contract import JsonObject
 from common.contracts.slide_deck import SlideDeckData
 
+from packages.agents.slide_deck_engine.deck_shape import evaluate_deck_shape, evaluate_purpose_density
 from packages.agents.slide_deck_engine.models import SlideDeckValidationReport
 from packages.agents.slide_deck_engine.policies import DensityBudgetPolicy, PageCountPolicy
 
 
-def audit_density_and_accessibility(deck: SlideDeckData) -> list[SlideDeckValidationReport]:
+def audit_density_and_accessibility(
+    deck: SlideDeckData,
+    teacher_constraints: JsonObject,
+    grade_level: str,
+) -> list[SlideDeckValidationReport]:
     alt_text_report = _check_alt_text(deck)
     return [
         PageCountPolicy(min_slides=6, max_slides=12).evaluate(deck),
         DensityBudgetPolicy(max_blocks_per_slide=4, max_interactions_per_slide=2).evaluate(deck),
+        evaluate_deck_shape(deck, teacher_constraints, grade_level),
+        evaluate_purpose_density(deck),
         alt_text_report,
     ]
 

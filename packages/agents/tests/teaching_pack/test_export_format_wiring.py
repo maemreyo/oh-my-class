@@ -67,4 +67,33 @@ class TestTeachingPackExportFormatWiring:
         assert registry.supports("gift")
         assert registry.supports("h5p")
         assert registry.supports("qti")
+        assert registry.supports("pptx")
         assert registry.is_explicitly_unsupported("google_forms")
+
+    def test_export_finalize_emits_requested_pptx_file_for_slide_deck_snapshot(self) -> None:
+        state = TeachingPackState(
+            run_id="run-export",
+            teacher_approved=True,
+            approved_snapshot_ids=["snap-deck"],
+            contract={"export_formats": ["html", "pptx"], "topic": "Fractions", "subject": "math"},
+            rendered_snapshots=[{
+                "snapshot_id": "snap-deck",
+                "artifact_id": "deck-1",
+                "artifact_type": "slide_deck",
+                "content_json": {"artifact_id": "deck-1", "artifact_type": "slide_deck", "title": "Fractions Deck"},
+            }],
+        )
+
+        result = _export_finalize(state)
+
+        assert result.get("exported_files") == [
+            "exports/run-export/snap-deck.html",
+            "exports/run-export/snap-deck.pptx",
+        ]
+
+    def test_pptx_export_skips_non_slide_deck_snapshots(self) -> None:
+        result = _export_finalize(_approved_state(["pptx"]))
+
+        # _approved_state's fixture snapshot is artifact_type "lesson" — pptx
+        # only converts slide_deck content, so no pptx file is produced for it.
+        assert result.get("exported_files") == ["exports/run-export/snap-lesson.html"]

@@ -11,12 +11,13 @@ from datetime import datetime
 from hashlib import sha256
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from services.gateway.teaching_pack_snapshot_errors import (
     AnswerKeyLeakageError,
     NonStandaloneSnapshotApprovalError,
+    SnapshotBaseVersionConflictError,
     SnapshotPersistenceError,
     SnapshotVersionMismatchError,
 )
@@ -31,6 +32,7 @@ from services.gateway.teaching_pack_snapshot_schemas import (
 )
 from services.gateway.teaching_pack_snapshot_validators import (
     _validate_snapshot_versions,
+    bake_effective_slide_deck_display_preferences,
     remove_answer_keys_from_html,
     validate_answer_key_isolation,
 )
@@ -50,6 +52,7 @@ __all__ = [
     "SnapshotPersistenceError",
     "NonStandaloneSnapshotApprovalError",
     "SnapshotVersionMismatchError",
+    "SnapshotBaseVersionConflictError",
     "snapshot_content_hash",
     "render_student_preview_html",
     "remove_answer_keys_from_html",
@@ -75,6 +78,12 @@ class TeachingPackSnapshotStore:
         return result.scalar_one_or_none() is not None
 
     async def create_snapshot(self, payload: ArtifactSnapshotCreate) -> ArtifactSnapshotRead:
+        # ADR-043/SDH-09: bake resolved display preferences into the stored
+        # content before hashing/persisting, so export replay reproduces the
+        # exact surface/layout/chrome regardless of future default changes.
+        content_json = bake_effective_slide_deck_display_preferences(
+            payload.artifact_type, payload.content_json,
+        )
         student_html = payload.student_rendered_html or payload.rendered_html
         student_html_safe = remove_answer_keys_from_html(student_html)
 
@@ -82,7 +91,7 @@ class TeachingPackSnapshotStore:
         if isolation_issues:
             raise AnswerKeyLeakageError(payload.snapshot_id, isolation_issues)
 
-        content_hash = snapshot_content_hash(payload.content_json, payload.rendered_html)
+        content_hash = snapshot_content_hash(content_json, payload.rendered_html)
         html_hash = sha256(payload.rendered_html.encode()).hexdigest()
         standalone_valid = is_standalone_html(payload.rendered_html)
         statement = (
@@ -94,7 +103,7 @@ class TeachingPackSnapshotStore:
                 artifact_type=payload.artifact_type,
                 content_hash=content_hash,
                 html_hash=html_hash,
-                content_json=payload.content_json,
+                content_json=content_json,
                 rendered_html=payload.rendered_html,
                 student_rendered_html=student_html_safe,
                 renderer_version=payload.renderer_version,
@@ -152,6 +161,52 @@ class TeachingPackSnapshotStore:
         statement = select(ArtifactSnapshot).where(ArtifactSnapshot.run_id == run_id)
         result = await self._session.execute(statement)
         return [_read_snapshot(snapshot) for snapshot in result.scalars().all()]
+
+    async def get_latest_snapshot(self, run_id: RunId, artifact_id: str) -> ArtifactSnapshotRead | None:
+        """Return the most recently created snapshot for one artifact in a run.
+
+        SDE-04: every edit creates a brand-new row (no in-place mutation, no
+        version column), so the "current head" of an artifact's version
+        lineage is simply its newest row by `created_at`.
+        """
+        statement = (
+            select(ArtifactSnapshot)
+            .where(ArtifactSnapshot.run_id == run_id, ArtifactSnapshot.artifact_id == artifact_id)
+            .order_by(ArtifactSnapshot.created_at.desc())
+            .limit(1)
+        )
+        result = await self._session.execute(statement)
+        snapshot = result.scalar_one_or_none()
+        return _read_snapshot(snapshot) if snapshot is not None else None
+
+    async def create_scoped_edit_snapshot(
+        self,
+        *,
+        run_id: RunId,
+        artifact_id: str,
+        base_snapshot_id: str,
+        new_snapshot: ArtifactSnapshotCreate,
+    ) -> ArtifactSnapshotRead:
+        """Create a new snapshot version iff `base_snapshot_id` is still the head.
+
+        Optimistic locking, no pessimistic row locks: acquires a
+        transaction-scoped Postgres advisory lock keyed on `artifact_id`
+        (mirrors `TeachingPackRunStore._next_sequence`'s existing pattern for
+        the same async read-check-write race) so two concurrent edits against
+        the same artifact serialize on this narrow critical section -- the
+        first to commit wins; the second re-reads the now-advanced head and
+        raises `SnapshotBaseVersionConflictError` instead of overwriting.
+        Releases automatically at the caller's commit/rollback.
+        """
+        await self._session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:artifact_id))"),
+            {"artifact_id": artifact_id},
+        )
+        head = await self.get_latest_snapshot(run_id, artifact_id)
+        current_head_id = head.snapshot_id if head is not None else None
+        if current_head_id != base_snapshot_id:
+            raise SnapshotBaseVersionConflictError(base_snapshot_id, current_head_id)
+        return await self.create_snapshot(new_snapshot)
 
     async def approve_snapshots(self, run_id: RunId, snapshot_ids: list[str]) -> int:
         statement = (

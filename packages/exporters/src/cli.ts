@@ -9,11 +9,13 @@
  */
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import type { ExportFormat } from './index.js'
+import type { BaseQuestion } from '@oh-my-class/renderer/contracts/questions/base.js'
 
 type ArtifactEntry = { artifact_type: string; content: Record<string, unknown> }
 
 interface CliInput {
-  format: 'anki_apkg' | 'flashcard_tsv'
+  format: Extract<ExportFormat, 'anki_apkg' | 'flashcard_tsv' | 'gift' | 'h5p' | 'qti'>
   run_id: string
   artifacts: ArtifactEntry[]
   output_dir: string
@@ -32,6 +34,25 @@ interface QuizQuestionShape {
   answer: string
 }
 
+export function extractQuestions(artifacts: ArtifactEntry[]): BaseQuestion[] {
+  const questions: BaseQuestion[] = []
+  for (const artifact of artifacts) {
+    const sections = artifact.content.sections
+    if (!Array.isArray(sections)) continue
+    for (const section of sections) {
+      const sec = section as Record<string, unknown>
+      const qs = sec.questions
+      if (!Array.isArray(qs)) continue
+      for (const q of qs) {
+        if (typeof q === 'object' && q !== null && 'id' in q && 'type' in q) {
+          questions.push(q as BaseQuestion)
+        }
+      }
+    }
+  }
+  return questions
+}
+
 async function run(): Promise<void> {
   const chunks: Buffer[] = []
   for await (const chunk of process.stdin) chunks.push(chunk as Buffer)
@@ -39,6 +60,42 @@ async function run(): Promise<void> {
 
   const { format, run_id, artifacts, output_dir } = input
   await mkdir(output_dir, { recursive: true })
+
+  if (format === 'gift') {
+    const { GIFTExporter } = await import('./gift-impl/index.js')
+    const exporter = new GIFTExporter()
+    const questions = extractQuestions(artifacts)
+    const gift = exporter.export(questions, run_id)
+    const outPath = join(output_dir, `${run_id}.gift.txt`)
+    await writeFile(outPath, gift, 'utf-8')
+    process.stdout.write(JSON.stringify({ path: outPath }))
+    return
+  }
+
+  if (format === 'h5p') {
+    const { H5PExporter } = await import('./h5p-impl/index.js')
+    const exporter = new H5PExporter()
+    const questions = extractQuestions(artifacts)
+    let outPath = ''
+    for (const q of questions) {
+      const pkg = await exporter.exportQuestion(q)
+      if (pkg) {
+        outPath = join(output_dir, `${run_id}.h5p`)
+        await writeFile(outPath, pkg)
+        break
+      }
+    }
+    if (!outPath) {
+      throw new Error('No supported question type found for H5P export')
+    }
+    process.stdout.write(JSON.stringify({ path: outPath }))
+    return
+  }
+
+  if (format === 'qti') {
+    const { UnsupportedFormatError } = await import('./qti/qti.js')
+    throw new UnsupportedFormatError('qti', 'QTI export via CLI bridge is not yet implemented')
+  }
 
   const deck = buildDeck(run_id, artifacts)
 

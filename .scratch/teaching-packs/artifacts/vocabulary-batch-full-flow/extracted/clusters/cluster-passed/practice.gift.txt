@@ -1,5 +1,0 @@
-$CATEGORY: oh-my-class/cluster-passed
-
-::item-1::[html]Explain why business trip is natural.{
-  =business trip
-}

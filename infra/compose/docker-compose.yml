@@ -43,15 +43,12 @@ services:
     environment:
       DATABASE_URL: postgresql://omc_dev:omc_dev@db:5432/oh_my_class
       REDIS_URL: redis://:${REDIS_AUTH:-omc_redis_secret}@redis:6379
-      LITELLM_PROXY_URL: http://proxy:4000
       LANGFUSE_BASE_URL: http://langfuse-web:3000
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-      proxy:
-        condition: service_started
       langfuse-web:
         condition: service_started
 
@@ -161,19 +158,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 1s
-
-  # ── LiteLLM Proxy (optional) ────────────────────────────────────────
-  proxy:
-    build:
-      context: ../..
-      dockerfile: infra/docker/Dockerfile.proxy
-    ports:
-      - "4000:4000"
-    env_file:
-      - ../../.env
-    depends_on:
-      redis:
-        condition: service_healthy
 
   # ── Next.js Web Dashboard ──────────────────────────────────────────
   web:

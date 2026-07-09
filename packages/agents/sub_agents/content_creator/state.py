@@ -21,6 +21,7 @@ class ContentCreatorNodeState(TypedDict):
     disable_methodology_components: NotRequired[bool]
     component_effectiveness: NotRequired[dict[str, Any]]
     component_strategy_plan: NotRequired[dict[str, Any]]
+    structure_preset: NotRequired[str | None]
 
 
 class ContentCreatorState(MessagesState):

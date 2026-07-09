@@ -66,6 +66,29 @@ export {
 	type VocabularyClusterWorkflow,
 } from "./generated/vocabulary_cluster_workflow.js";
 export { LessonPlanSchema as LessonPlanSchemaLegacy } from "./lesson_plan.js";
+// Slide deck contract (SDE-02/SDE-03): types mirror the Python contract for
+// the app editor (apps/web); the schemas back drift-check tests that keep
+// hardcoded field bounds (Turbopack can't bundle a value-import of this
+// package's TS source for the browser — see apps/web's block-constraints.ts)
+// honest against common/contracts/slide_deck.py's pydantic Field(...) constraints.
+export {
+	type SlideDeckData,
+	SlideDeckDataSchema,
+	type SlideDeckSlide,
+	SlideDeckSlideSchema,
+	type SlideDeckBlock,
+	SlideDeckBlockSchema,
+	type SlideDeckMedia,
+	SlideDeckMediaSchema,
+	type SlideDeckInteraction,
+	SlideDeckInteractionSchema,
+	type SlideDeckInteractionOption,
+	SlideDeckInteractionOptionSchema,
+	type SlideDeckInteractionTeacherOnly,
+	SlideDeckInteractionTeacherOnlySchema,
+	type SlideDeckTeacherOnly,
+	SlideDeckTeacherOnlySchema,
+} from "./generated/slide_deck.js";
 // Log context schemas
 export {
 	type LogContext,

@@ -27,7 +27,6 @@ from packages.quality.layer6_export.export_validator import (
 )
 from services.gateway.teaching_pack_export_writer import (
     ExportAdapterError,
-    _assessment_formats,
     _node_export,
     _subprocess_formats,
 )
@@ -172,19 +171,17 @@ class TestFlashcardFormatRequirements:
 
 
 class TestExportFinalizeRouting:
-    def test_subprocess_formats_extracts_anki_and_tsv(self) -> None:
+    def test_subprocess_formats_extracts_anki_tsv_and_gift(self) -> None:
         state = {"contract": {"export_formats": ["html", "anki_apkg", "flashcard_tsv", "gift"]}}
         formats = _subprocess_formats(state)
-        assert set(formats) == {"anki_apkg", "flashcard_tsv"}
+        assert set(formats) == {"anki_apkg", "flashcard_tsv", "gift"}
 
-    def test_assessment_formats_excludes_flashcard_formats(self) -> None:
+    def test_gift_h5p_qti_all_routed_to_subprocess(self) -> None:
         state = {
-            "contract": {"export_formats": ["html", "anki_apkg", "flashcard_tsv", "gift", "qti"]},
+            "contract": {"export_formats": ["html", "anki_apkg", "flashcard_tsv", "gift", "h5p", "qti"]},
         }
-        formats = _assessment_formats(state)
-        assert "anki_apkg" not in formats
-        assert "flashcard_tsv" not in formats
-        assert set(formats) == {"gift", "qti"}
+        formats = _subprocess_formats(state)
+        assert set(formats) == {"anki_apkg", "flashcard_tsv", "gift", "h5p", "qti"}
 
     def test_exporter_registry_returns_apkg_path(self) -> None:
         registry = ExporterRegistry.default()

@@ -19,7 +19,13 @@ class JWTMiddleware(BaseHTTPMiddleware):
     """
 
     PUBLIC_PATHS = {"/health", "/auth/login", "/docs", "/openapi.json", "/redoc"}
-    PUBLIC_PREFIXES = ("/webhook/",)
+    # Webhooks verify an HMAC signature themselves; teaching-session live-sync
+    # routes verify a session-role token themselves (`teaching_session.
+    # session_auth`, a completely different JWT claim shape/secret usage than
+    # this middleware's account-JWT `verify_token` -- see session_auth.py's
+    # docstring). Both are "public" from this middleware's point of view
+    # because neither carries an account JWT at all (TSP-03).
+    PUBLIC_PREFIXES = ("/webhook/", "/teaching-sessions/")
 
     async def dispatch(self, request: Request, call_next):
         if request.method == "OPTIONS":

@@ -9,9 +9,7 @@ DESIGN_DOC = Path("DESIGN.md")
 def test_design_system_documents_theme_sources() -> None:
     text = DESIGN_DOC.read_text(encoding="utf-8")
 
-    assert "common/branding/kits/default/theme.json" in text
-    assert "common/branding/kits/ocean/theme.json" in text
-    assert "common/branding/kits/forest/theme.json" in text
+    assert "packages/renderer/src/theme/themes" in text
 
 
 def test_design_system_documents_accessibility_baseline() -> None:

@@ -21,10 +21,10 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "dompurify": "^3.0.0",
     "eta": "^3.0.0",
     "express": "^5.2.1",
     "fflate": "^0.8.3",
+    "pptxgenjs": "^4.0.1",
     "sanitize-html": "^2.17.5",
     "zod": "^3.23.0"
   },

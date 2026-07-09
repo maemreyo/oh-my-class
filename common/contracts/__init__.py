@@ -107,6 +107,7 @@ from common.contracts.run_contract import (
     ContractRevision,
     ContractRevisionMeta,
     DecompositionIntent,
+    PublishTarget,
     RunContract,
 )
 from common.contracts.slide_deck import (
@@ -244,6 +245,7 @@ __all__ = [
     "PrePlanningSearchBrief",
     "PracticeItem",
     "PracticeSet",
+    "PublishTarget",
     "QualityFailureClass",
     "QualityIssue",
     "ResearchRiskLevel",

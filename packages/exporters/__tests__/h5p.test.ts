@@ -3,6 +3,8 @@ import { unzipSync, strFromU8 } from 'fflate'
 import { H5PExporter } from '../src/h5p-impl/index.js'
 import { buildH5PPackage } from '../src/h5p-impl/packager.js'
 import type { MultipleChoiceSingle, TrueFalse4Item } from '@oh-my-class/renderer/contracts/questions/types/choice.js'
+import type { Cloze } from '@oh-my-class/renderer/contracts/questions/types/text-entry.js'
+import type { ClozeMixed, FillBlankWordBank } from '@oh-my-class/renderer/contracts/questions/types/fill-gap.js'
 import type { FlashcardDeckData } from '@oh-my-class/renderer/contracts/flashcard_deck.js'
 import type { RecapData } from '@oh-my-class/renderer/contracts/recap.js'
 
@@ -42,6 +44,39 @@ const tf4: TrueFalse4Item = {
     { id: 'c', text: 'Dogs bark',        isTrue: true  },
     { id: 'd', text: 'Fish breathe air', isTrue: false },
   ],
+}
+
+const clozeBasic: Cloze = {
+  ...baseMeta,
+  id: 'cloze-h5p-001',
+  type: 'cloze',
+  clozeType: 'grammar',
+  passage: 'She ___ to school every day.',
+  blanks: [{ id: 1, correctAnswer: 'goes' }],
+  caseSensitive: false,
+}
+
+const clozeMixed: ClozeMixed = {
+  ...baseMeta,
+  id: 'cloze-mixed-h5p-001',
+  type: 'cloze_mixed',
+  clozeSubtype: 'grammar',
+  passage: 'They ___ English and ___ math.',
+  blanks: [
+    { id: 1, correctAnswer: 'study', type: 'grammar' },
+    { id: 2, correctAnswer: 'practice', type: 'vocabulary' },
+  ],
+}
+
+const fillBlank: FillBlankWordBank = {
+  ...baseMeta,
+  id: 'fill-blank-h5p-001',
+  type: 'fill_blank_wordbank',
+  context: 'The cat sat on the ___.',
+  blanks: [{ id: 1, correctAnswer: 'mat' }],
+  wordBank: ['mat', 'hat', 'bat'],
+  distractors: ['hat', 'bat'],
+  shuffleWordBank: true,
 }
 
 const deck: FlashcardDeckData = {
@@ -103,6 +138,30 @@ describe('H5PExporter', () => {
     expect(pkg).toBeInstanceOf(Uint8Array)
     const { h5pJson } = readZip(pkg!)
     expect(h5pJson.mainLibrary).toBe('H5P.TrueFalse')
+  })
+
+  it('exports cloze as H5P.Blanks ZIP', async () => {
+    const pkg = await exporter.exportQuestion(clozeBasic)
+    expect(pkg).toBeInstanceOf(Uint8Array)
+    const { h5pJson, contentJson } = readZip(pkg!)
+    expect(h5pJson.mainLibrary).toBe('H5P.Blanks')
+    expect((contentJson as { text?: string }).text).toBe('<p>She *goes* to school every day.</p>')
+  })
+
+  it('exports cloze_mixed as H5P.Blanks ZIP', async () => {
+    const pkg = await exporter.exportQuestion(clozeMixed)
+    expect(pkg).toBeInstanceOf(Uint8Array)
+    const { h5pJson, contentJson } = readZip(pkg!)
+    expect(h5pJson.mainLibrary).toBe('H5P.Blanks')
+    expect((contentJson as { text?: string }).text).toBe('<p>They *study* English and *practice* math.</p>')
+  })
+
+  it('exports fill_blank_wordbank as H5P.Blanks ZIP', async () => {
+    const pkg = await exporter.exportQuestion(fillBlank)
+    expect(pkg).toBeInstanceOf(Uint8Array)
+    const { h5pJson, contentJson } = readZip(pkg!)
+    expect(h5pJson.mainLibrary).toBe('H5P.Blanks')
+    expect((contentJson as { text?: string }).text).toBe('<p>The cat sat on the *mat*.</p>')
   })
 
   it('returns null for unsupported question types', async () => {

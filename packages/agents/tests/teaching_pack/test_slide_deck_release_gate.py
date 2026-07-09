@@ -41,7 +41,7 @@ def _research_brief() -> dict[str, object]:
 
 
 @pytest.mark.anyio
-async def test_slide_deck_release_gate_pipeline_produces_approval_snapshots() -> None:
+async def test_slide_deck_release_gate_pipeline_produces_approval_snapshots(stub_section_prose) -> None:
     slide_result = await generate_one_artifact({
         "run_id": "run-slide-release",
         "artifact_generation_id": "run-slide-release:artifact:1",

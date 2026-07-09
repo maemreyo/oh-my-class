@@ -2,10 +2,10 @@
 
 import type { TeachingPackEventPayload, TeachingPackGateName } from "@/hooks/use-teaching-packs";
 import { ContentApprovalBody } from "@/components/teaching-packs-content-approval-body";
-import type { SlideDeckScopedFeedback } from "@/components/teaching-packs-slide-deck-preview";
+import type { SlideDeckScopedFeedback, SlideDeckTranslateRequest } from "@/components/teaching-packs-slide-deck-preview";
 import { TeachingPackStrategyPanel, type StrategyFeedbackDraft } from "@/components/teaching-packs-strategy-panel";
 
-export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneAction, onRequestRevisionAction, onStrategyFeedbackAction, onSlideDeckFeedbackAction }: {
+export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneAction, onRequestRevisionAction, onStrategyFeedbackAction, onSlideDeckFeedbackAction, onTranslateDeckAction }: {
 	readonly runId: string;
 	readonly gateName: TeachingPackGateName;
 	readonly event: TeachingPackEventPayload;
@@ -13,6 +13,7 @@ export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneA
 	readonly onRequestRevisionAction?: (artifactId: string) => void;
 	readonly onStrategyFeedbackAction?: (draft: StrategyFeedbackDraft) => void;
 	readonly onSlideDeckFeedbackAction?: (feedback: SlideDeckScopedFeedback) => void;
+	readonly onTranslateDeckAction?: (request: SlideDeckTranslateRequest) => void;
 }) {
 	switch (gateName) {
 		case "clarification_required":
@@ -26,7 +27,7 @@ export function TeachingPackGateBody({ runId, gateName, event, onRevertFastLaneA
 		case "unit_approval":
 			return <UnitApprovalSummary event={event} />;
 		case "content_approval":
-			return <ContentApprovalBody runId={runId} event={event} onRevertFastLaneAction={onRevertFastLaneAction} onRequestRevisionAction={onRequestRevisionAction} onSlideDeckFeedbackAction={onSlideDeckFeedbackAction} />;
+			return <ContentApprovalBody runId={runId} event={event} onRevertFastLaneAction={onRevertFastLaneAction} onRequestRevisionAction={onRequestRevisionAction} onSlideDeckFeedbackAction={onSlideDeckFeedbackAction} onTranslateDeckAction={onTranslateDeckAction} />;
 		default:
 			return assertNever(gateName);
 	}

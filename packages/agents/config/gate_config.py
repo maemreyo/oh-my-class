@@ -36,7 +36,7 @@ class GateConfig(BaseSettings):
     # Layer 4: LLM Judge
     judge_model: str = "4omc"
     judge_min_score: float = 7.0
-    judge_n: int = 1                       # K4: 1 judge MVP, bump to 3 later
+    judge_n: int = 3
     judge_temperature: float = 0.1
 
     # Layer 5: HITL

@@ -4,7 +4,7 @@ import asyncio
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Protocol, assert_never
+from typing import Literal, Protocol
 
 from services.gateway.teaching_pack_types import JsonObject, RunId
 
@@ -62,10 +62,6 @@ class FileSystemTeachingPackExportWriter:
             export_path = export_dir / f"{snapshot_id}.html"
             export_path.write_text(rendered_html, encoding="utf-8")
             exported_files.append(str(export_path))
-        for export_format in _assessment_formats(state):
-            export_path = export_dir / _assessment_filename(run_id, export_format)
-            export_path.write_bytes(_assessment_payload(run_id, export_format, approved_snapshots))
-            exported_files.append(str(export_path))
         for export_format in _subprocess_formats(state):
             out_path = await _node_export(export_format, run_id, approved_snapshots, export_dir)
             exported_files.append(out_path)
@@ -99,21 +95,8 @@ def _snapshot_content(snapshot: JsonObject) -> JsonObject:
     return {**content, "artifact_type": artifact_type}
 
 
-_INLINE_ASSESSMENT_FORMATS: frozenset[str] = frozenset({"gift", "h5p", "qti"})
-_SUBPROCESS_EXPORT_FORMATS: frozenset[str] = frozenset({"anki_apkg", "flashcard_tsv"})
+_SUBPROCESS_EXPORT_FORMATS: frozenset[str] = frozenset({"gift", "h5p", "qti", "anki_apkg", "flashcard_tsv"})
 _UNSUPPORTED_GATEWAY_FORMATS: frozenset[str] = frozenset({"google_forms"})
-
-
-def _assessment_formats(state: JsonObject) -> list[ExportFormat]:
-    contract = _json_object(state.get("contract"))
-    values = contract.get("export_formats")
-    if not isinstance(values, list):
-        return []
-    return [
-        export_format
-        for value in values
-        if (export_format := _export_format(str(value))) in _INLINE_ASSESSMENT_FORMATS
-    ]
 
 
 def _subprocess_formats(state: JsonObject) -> list[ExportFormat]:
@@ -150,39 +133,8 @@ def _export_format(value: str) -> ExportFormat:
             return "anki_apkg"
         case "flashcard_tsv":
             return "flashcard_tsv"
-        case "google_forms":
-            return "google_forms"
         case _:
             raise ExportAdapterError(f"Unsupported export format: {value}")
-
-
-def _assessment_filename(run_id: RunId, export_format: ExportFormat) -> str:
-    match export_format:
-        case "gift":
-            return f"{run_id}.gift.txt"
-        case "h5p":
-            return f"{run_id}.h5p"
-        case "qti":
-            return f"{run_id}.qti.xml"
-        case "html" | "google_forms" | "anki_apkg" | "flashcard_tsv":
-            raise ValueError(f"Inline assessment export not supported for {export_format}")
-        case unreachable:
-            assert_never(unreachable)
-
-
-def _assessment_payload(run_id: RunId, export_format: ExportFormat, snapshots: list[JsonObject]) -> bytes:
-    artifacts = [_json_object(snapshot.get("content_json")) for snapshot in snapshots]
-    match export_format:
-        case "gift":
-            return _gift_payload(run_id, artifacts).encode("utf-8")
-        case "h5p":
-            return _h5p_payload(run_id, artifacts)
-        case "qti":
-            return _qti_payload(run_id, artifacts).encode("utf-8")
-        case "html" | "google_forms" | "anki_apkg" | "flashcard_tsv":
-            raise ValueError(f"Inline assessment export not supported for {export_format}")
-        case unreachable:
-            assert_never(unreachable)
 
 
 async def _node_export(
@@ -262,40 +214,6 @@ async def _node_export(
         raise ExportAdapterError(f"Export CLI error: {result['error']}")
 
     return str(result["path"])
-
-
-def _gift_payload(run_id: RunId, artifacts: list[JsonObject]) -> str:
-    lines = [f"$CATEGORY: oh-my-class/{run_id}"]
-    for index, artifact in enumerate(artifacts, start=1):
-        title = str(artifact.get("title", f"Artifact {index}"))
-        lines.append(f"::{_safe_identifier(title, index)}::{title} {{}}")
-    return "\n".join(lines) + "\n"
-
-
-def _h5p_payload(run_id: RunId, artifacts: list[JsonObject]) -> bytes:
-    payload: JsonObject = {
-        "schema": "oh-my-class.h5p.manifest.v1",
-        "run_id": str(run_id),
-        "artifacts": artifacts,
-    }
-    return json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-
-
-def _qti_payload(run_id: RunId, artifacts: list[JsonObject]) -> str:
-    items = "".join(
-        f'<assessmentItem identifier="{_safe_identifier(str(artifact.get("title", "artifact")), index)}" title="{_xml_text(str(artifact.get("title", f"Artifact {index}")))}" />'
-        for index, artifact in enumerate(artifacts, start=1)
-    )
-    return f'<?xml version="1.0" encoding="UTF-8"?><assessmentTest xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="{_xml_text(str(run_id))}">{items}</assessmentTest>'
-
-
-def _safe_identifier(value: str, fallback_index: int) -> str:
-    identifier = "-".join(part for part in value.lower().split() if part)
-    return identifier or f"artifact-{fallback_index}"
-
-
-def _xml_text(value: str) -> str:
-    return value.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def _json_object(value: object) -> JsonObject:

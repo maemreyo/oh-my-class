@@ -1,12 +1,30 @@
 """Responsive check — Playwright-based viewport testing.
 
-Runs screenshots at 4 viewports (375/768/1280/1920px) for staging/prod.
+Runs viewport tests at 375/768/1280/1920px for staging/prod.
 Skipped in development mode.
 """
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
+
+VIEWPORT_HEIGHT = 800
+
+_CHECK_VIEWPORT_JS = """() => {
+    const body = document.body;
+    const html = document.documentElement;
+    const scrollWidth = Math.max(body.scrollWidth, html.scrollWidth);
+    const clientWidth = html.clientWidth;
+    const overflow = scrollWidth > clientWidth;
+
+    const clipping = body.scrollHeight > html.clientHeight
+        && getComputedStyle(body).overflow === 'hidden';
+
+    return { overflow, clipping };
+}"""
 
 
 @dataclass
@@ -37,22 +55,50 @@ async def check_responsive(
     if viewports is None:
         viewports = [375, 768, 1280, 1920]
 
-    # Skip Playwright in development — avoids requiring a browser in dev/CI
     if environment == "development":
         return ResponsiveCheckResult(passed=True)
 
-    # TODO: Implement with Playwright
-    # from playwright.async_api import async_playwright
-    # async with async_playwright() as p:
-    #     browser = await p.chromium.launch()
-    #     page = await browser.new_page()
-    #     for vp in viewports:
-    #         await page.set_viewport_size({"width": vp, "height": 800})
-    #         await page.set_content(html)
-    #         # Check for layout issues, horizontal overflow, etc.
-    #     await browser.close()
+    try:
+        from playwright.async_api import async_playwright  # type: ignore[import-untyped]
+    except ImportError:
+        logger.warning("playwright not installed — responsive check skipped")
+        return ResponsiveCheckResult(
+            passed=False,
+            issues=["playwright not installed — cannot run responsive viewport checks"],
+        )
+
+    viewport_results: dict[int, bool] = {}
+    issues: list[str] = []
+    all_passed = True
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        try:
+            for vp in viewports:
+                page = await browser.new_page(viewport={"width": vp, "height": VIEWPORT_HEIGHT})
+                try:
+                    await page.set_content(html, wait_until="networkidle")
+                    result = await page.evaluate(_CHECK_VIEWPORT_JS)
+
+                    vp_passed = True
+                    if result["overflow"]:
+                        vp_passed = False
+                        all_passed = False
+                        issues.append(f"viewport_{vp}: horizontal overflow (scrollWidth > clientWidth)")
+
+                    if result["clipping"]:
+                        vp_passed = False
+                        all_passed = False
+                        issues.append(f"viewport_{vp}: text clipping (overflow:hidden with content exceeding viewport)")
+
+                    viewport_results[vp] = vp_passed
+                finally:
+                    await page.close()
+        finally:
+            await browser.close()
 
     return ResponsiveCheckResult(
-        passed=True,
-        viewport_results={vp: True for vp in viewports},
+        passed=all_passed,
+        viewport_results=viewport_results,
+        issues=issues,
     )

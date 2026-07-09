@@ -18,7 +18,8 @@
       "catB": "#7A4B00",
       "catC": "#006B3A",
       "catD": "#005A5A",
-      "catE": "#5A235A"
+      "catE": "#5A235A",
+      "focusRing": "#000000"
     },
     "spacing": {
       "1": "6px",

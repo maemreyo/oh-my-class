@@ -1,7 +1,7 @@
 {
   "packageName": "@oh-my-class/renderer",
   "packageVersion": "0.1.0",
-  "capturedGitCommit": "cb081004e1a14cfaa7d84557f1be2d2e028a58dc",
+  "capturedGitCommit": "dab82d10d618cd12465ee2fa8643a3546a347e6c",
   "updateCommand": "UPDATE_CURRENT_RENDERER_BASELINES=1 pnpm --filter @oh-my-class/renderer exec vitest run __tests__/current-renderer-baselines.test.ts",
   "baselineIds": [
     "agent-lesson",
@@ -29,7 +29,7 @@
     "packages/renderer/src/semantic-anchor-projections.ts",
     "packages/renderer/src/inverse-thinking-renderer.ts",
     "packages/renderer/templates/**",
-    "common/branding/kits/**/theme.json"
+    "packages/renderer/src/theme/themes/*.json"
   ],
   "note": "Phase 0 current-renderer baselines for ADR-025. These snapshots intentionally predate the plugin-registry rewrite."
 }

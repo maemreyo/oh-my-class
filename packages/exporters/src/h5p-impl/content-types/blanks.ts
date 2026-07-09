@@ -1,3 +1,4 @@
+import type { Cloze } from '@oh-my-class/renderer/contracts/questions/types/text-entry.js'
 import type { ClozeMixed, FillBlankWordBank } from '@oh-my-class/renderer/contracts/questions/types/fill-gap.js'
 
 export interface H5PBlanksContent {
@@ -26,6 +27,18 @@ export function clozeToH5PBlanks(q: ClozeMixed): H5PBlanksContent {
       enableRetry:           true,
       enableSolutionsButton: true,
       caseSensitive:         false,
+    },
+    l10n: { checkAnswer: 'Check', showSolution: 'Show solution', tryAgain: 'Retry' },
+  }
+}
+
+export function clozeBasicToH5PBlanks(q: Cloze): H5PBlanksContent {
+  return {
+    text: buildBlanksText(q.passage, q.blanks),
+    behaviour: {
+      enableRetry: true,
+      enableSolutionsButton: true,
+      caseSensitive: q.caseSensitive,
     },
     l10n: { checkAnswer: 'Check', showSolution: 'Show solution', tryAgain: 'Retry' },
   }

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+import anyio
 import pytest
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -11,11 +12,16 @@ from services.gateway.models import Base, Run
 from services.gateway.teaching_pack_snapshot_store import (
     AnswerKeyLeakageError,
     NonStandaloneSnapshotApprovalError,
+    SnapshotBaseVersionConflictError,
     SnapshotPersistenceError,
     SnapshotVersionMismatchError,
+    TeachingPackSnapshotStore,
     is_standalone_html,
     remove_answer_keys_from_html,
     snapshot_content_hash,
+)
+from services.gateway.teaching_pack_snapshot_validators import (
+    bake_effective_slide_deck_display_preferences,
 )
 from services.gateway.teaching_pack_store import (
     ArtifactSnapshotCreate,
@@ -64,6 +70,70 @@ def test_standalone_html_rejects_external_link_references() -> None:
     )
 
     assert not is_standalone_html(html)
+
+
+def _slide_deck_content(display_preferences: object = "__unset__") -> dict:
+    deck: dict[str, object] = {"deck_id": "deck-1", "title": "Deck", "slides": []}
+    if display_preferences != "__unset__":
+        deck["display_preferences"] = display_preferences
+    return {
+        "artifact_type": "slide_deck",
+        "title": "Deck",
+        "metadata": {"slide_deck_data": deck},
+    }
+
+
+def test_bake_effective_display_preferences_is_noop_for_non_slide_deck_artifacts() -> None:
+    content = {"title": "Clouds"}
+
+    assert bake_effective_slide_deck_display_preferences("lesson", content) is content
+
+
+def test_bake_effective_display_preferences_defaults_a_legacy_deck() -> None:
+    # No `display_preferences` key at all -- predates ADR-043 entirely.
+    content = _slide_deck_content()
+
+    baked = bake_effective_slide_deck_display_preferences("slide_deck", content)
+
+    assert baked["metadata"]["slide_deck_data"]["display_preferences"] == {
+        "surface": "presentation",
+        "print_layout": "paged",
+        "slides_per_page": 1,
+        "chrome": "hidden",
+    }
+    # Original payload is untouched -- the boundary returns a new dict.
+    assert "display_preferences" not in content["metadata"]["slide_deck_data"]
+
+
+def test_bake_effective_display_preferences_preserves_valid_partial_fields() -> None:
+    content = _slide_deck_content({"surface": "teacher"})
+
+    baked = bake_effective_slide_deck_display_preferences("slide_deck", content)
+
+    assert baked["metadata"]["slide_deck_data"]["display_preferences"] == {
+        "surface": "teacher",
+        "print_layout": "paged",
+        "slides_per_page": 1,
+        "chrome": "hidden",
+    }
+
+
+def test_bake_effective_display_preferences_falls_back_on_invalid_values() -> None:
+    content = _slide_deck_content({
+        "surface": "teacher",
+        "print_layout": "continuous",
+        "slides_per_page": 4,
+        "chrome": "very_loud",
+    })
+
+    baked = bake_effective_slide_deck_display_preferences("slide_deck", content)
+
+    assert baked["metadata"]["slide_deck_data"]["display_preferences"] == {
+        "surface": "teacher",
+        "print_layout": "continuous",
+        "slides_per_page": 4,
+        "chrome": "hidden",
+    }
 
 
 @pytest.fixture
@@ -381,6 +451,131 @@ async def test_snapshot_answer_keys_not_in_main_rendered_html(
     assert "Student Question" in retrieved_snapshot.rendered_html
     assert "Answer: 4" in retrieved_snapshot.rendered_html
     assert "Answer: 4" not in retrieved_snapshot.student_rendered_html
-    
+
     await session.execute(delete(Run).where(Run.run_id == run_id))
     await session.commit()
+
+
+async def test_slide_deck_snapshot_records_effective_preferences_for_export_replay(
+    session: AsyncSession,
+) -> None:
+    """SDH-09: a persisted slide-deck snapshot bakes in resolved ADR-043
+    display preferences, so a later replay of this exact snapshot reproduces
+    the surface/layout/chrome that was actually in effect at export time --
+    even for a deck generated before display preferences existed.
+    """
+    from services.gateway.teaching_pack_snapshot_store import TeachingPackSnapshotStore
+
+    run_id = RunId(f"test-{uuid4()}")
+    store = TeachingPackRunStore(session)
+    await store.create_run(TeachingPackRunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-a"),
+        raw_request="Teach fractions with slides",
+        class_info={"grade": 5},
+    ))
+
+    snapshot_id = f"snap-{uuid4()}"
+    await TeachingPackSnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=snapshot_id,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="slide_deck",
+        # No `display_preferences` field at all -- a legacy pre-ADR-043 deck.
+        content_json=_slide_deck_content(),
+        rendered_html="<!DOCTYPE html><html><body>oh-my-class</body></html>",
+        renderer_version="test-renderer@1",
+    ))
+
+    replayed = await TeachingPackSnapshotStore(session).get_snapshot(run_id, snapshot_id)
+
+    assert replayed is not None
+    assert replayed.content_json is not None
+    assert replayed.content_json["metadata"]["slide_deck_data"]["display_preferences"] == {
+        "surface": "presentation",
+        "print_layout": "paged",
+        "slides_per_page": 1,
+        "chrome": "hidden",
+    }
+
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
+
+
+async def test_concurrent_scoped_edits_against_same_base_snapshot_id_only_one_wins() -> None:
+    """SDE-04's concurrency-correctness requirement: two teacher edits racing
+    against the same `base_snapshot_id` must not both succeed (no silent
+    last-write-wins) and must not both simply block until serialized (no
+    pessimistic lock either -- the loser gets a real conflict, not a delayed
+    success). Uses two independent sessions/connections, exactly like
+    `TestTeachingPackStore.test_concurrent_event_writes_remain_monotonic`'s
+    existing real-concurrency pattern for `_next_sequence`'s advisory lock.
+    """
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    run_id = RunId(f"test-{uuid4()}")
+    artifact_id = "artifact-race"
+    base_snapshot_id = f"snap-{uuid4()}"
+
+    async with session_factory() as setup_session:
+        await TeachingPackRunStore(setup_session).create_run(TeachingPackRunCreate(
+            run_id=run_id,
+            teacher_id=TeacherId("teacher-race"),
+            raw_request="Teach a slide deck",
+            class_info={"grade": 5},
+        ))
+        await TeachingPackSnapshotStore(setup_session).create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=base_snapshot_id,
+            run_id=run_id,
+            artifact_id=artifact_id,
+            artifact_type="slide_deck",
+            content_json={"title": "Base"},
+            rendered_html="<!DOCTYPE html><html><body>oh-my-class base</body></html>",
+            renderer_version="test-renderer@1",
+        ))
+        await setup_session.commit()
+
+    outcomes: dict[str, str] = {}
+
+    async def race(label: str) -> None:
+        async with session_factory() as write_session:
+            store = TeachingPackSnapshotStore(write_session)
+            try:
+                await store.create_scoped_edit_snapshot(
+                    run_id=run_id,
+                    artifact_id=artifact_id,
+                    base_snapshot_id=base_snapshot_id,
+                    new_snapshot=ArtifactSnapshotCreate(
+                        snapshot_id=f"snap-{label}-{uuid4()}",
+                        run_id=run_id,
+                        artifact_id=artifact_id,
+                        artifact_type="slide_deck",
+                        content_json={"title": f"Edited by {label}"},
+                        rendered_html=f"<!DOCTYPE html><html><body>oh-my-class edit {label}</body></html>",
+                        renderer_version="test-renderer@1",
+                    ),
+                )
+            except SnapshotBaseVersionConflictError:
+                await write_session.rollback()
+                outcomes[label] = "conflict"
+                return
+            await write_session.commit()
+            outcomes[label] = "won"
+
+    async with anyio.create_task_group() as task_group:
+        task_group.start_soon(race, "a")
+        task_group.start_soon(race, "b")
+
+    assert sorted(outcomes.values()) == ["conflict", "won"]
+
+    async with session_factory() as check_session:
+        store = TeachingPackSnapshotStore(check_session)
+        all_snapshots = await store.list_run_snapshots(run_id)
+        # Base + exactly one winner -- the loser's edit was never persisted.
+        assert len(all_snapshots) == 2
+        head = await store.get_latest_snapshot(run_id, artifact_id)
+        assert head is not None
+        assert head.snapshot_id != base_snapshot_id
+        await check_session.execute(delete(Run).where(Run.run_id == run_id))
+        await check_session.commit()
+    await engine.dispose()

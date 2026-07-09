@@ -119,6 +119,28 @@ export function useRequestArtifactRevision(runId: string) {
 	});
 }
 
+export interface TranslateSlideDeckResponse {
+	readonly run_id: string;
+	readonly source_snapshot_id: string;
+	readonly snapshot_id: string;
+	readonly deck_id: string;
+}
+
+export function useTranslateSlideDeck(runId: string) {
+	const queryClient = useQueryClient();
+	return useMutation<TranslateSlideDeckResponse, Error, { readonly snapshot_id: string; readonly target_language: "en" | "vi" }>({
+		mutationFn: (request) =>
+			apiClient.post<TranslateSlideDeckResponse>(
+				`/teaching-packs/runs/${runId}/snapshots/${request.snapshot_id}/translate`,
+				{ target_language: request.target_language },
+				{ headers: { "Idempotency-Key": idempotencyKey(`translate:${runId}:${request.snapshot_id}`) } },
+			),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["teaching-pack", "run", runId] });
+		},
+	});
+}
+
 export function useTeachingPackRun(runId: string | null) {
 	return {
 		queryKey: ["teaching-pack", "run", runId] as const,
@@ -175,6 +197,51 @@ export function snapshotPreviewUrl(
 	view: "student" | "teacher" | "print",
 ): string {
 	return `${gatewayUrl()}/teaching-packs/runs/${runId}/snapshots/${snapshotId}/preview?view=${view}`;
+}
+
+// ADR-043 (SDH-01/SDH-04): slide-deck-specific display preferences, hand-
+// mirrored here the same way SDH-01 mirrored the Python contract into
+// `packages/renderer/src/contracts/slide_deck.ts` -- apps/web has no wired
+// import path into that package's build output, so the shape is duplicated
+// at this boundary instead of imported across the workspace.
+export type SlideDeckDisplaySurface = "presentation" | "student" | "teacher" | "print" | "review";
+export type SlideDeckPrintLayout = "paged" | "continuous";
+export type SlideDeckSlidesPerPage = 1 | 2 | 4 | 6;
+export type SlideDeckChromeVisibility = "hidden" | "minimal" | "branded";
+
+export type SlideDeckDisplayPreferences = Readonly<{
+	surface: SlideDeckDisplaySurface;
+	print_layout: SlideDeckPrintLayout;
+	slides_per_page: SlideDeckSlidesPerPage;
+	chrome: SlideDeckChromeVisibility;
+}>;
+
+export const SLIDE_DECK_DISPLAY_PREFERENCE_DEFAULTS: SlideDeckDisplayPreferences = {
+	surface: "presentation",
+	print_layout: "paged",
+	slides_per_page: 1,
+	chrome: "hidden",
+};
+
+/**
+ * Build the slide-deck preview/export request from the typed preferences
+ * shape (surface/print_layout/slides_per_page/chrome) instead of an
+ * ad-hoc query string -- the gateway's `/preview` route resolves this
+ * exact shape through `resolve_slide_deck_display_preferences` (see
+ * `services/gateway/routers/teaching_pack_previews.py`).
+ */
+export function slideDeckPreviewUrl(
+	runId: string,
+	snapshotId: string,
+	preferences: SlideDeckDisplayPreferences,
+): string {
+	const params = new URLSearchParams({
+		surface: preferences.surface,
+		print_layout: preferences.print_layout,
+		slides_per_page: String(preferences.slides_per_page),
+		chrome: preferences.chrome,
+	});
+	return `${gatewayUrl()}/teaching-packs/runs/${runId}/snapshots/${snapshotId}/preview?${params.toString()}`;
 }
 
 function parsePayload(data: string): TeachingPackEventPayload {

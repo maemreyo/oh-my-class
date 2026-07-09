@@ -10,13 +10,6 @@ BLOCKED_FOR_K12 = [
     r"\b(?:drug|alcohol|substance\s+abuse)\b",
 ]
 
-GRADE_LEVEL_COMPLEX_THRESHOLD = {
-    range(1, 4): 6,    # Grades 1-3: max 6-letter avg words
-    range(4, 7): 9,    # Grades 4-6
-    range(7, 10): 12,  # Grades 7-9
-    range(10, 13): 15, # Grades 10-12
-}
-
 
 def check_age_appropriateness(text: str, grade: int | None = None) -> dict[str, Any]:
     """Check if text is age-appropriate for the given grade level.

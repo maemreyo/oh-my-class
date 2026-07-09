@@ -6,9 +6,9 @@ Embeds LangGraph runtime. Exposes REST + WebSocket (SSE) for the teacher dashboa
 Port: 8001
 """
 
+import os
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-import os
 from typing import TYPE_CHECKING
 
 import anyio
@@ -24,13 +24,15 @@ from .routers import (
     approvals,
     artifacts,
     auth_router,
+    media_assets,
     notifications,
     ops,
-    teaching_pack_previews,
-    teaching_pack_runs,
     release_evidence,
     runs,
     snapshots,
+    teaching_pack_previews,
+    teaching_pack_runs,
+    teaching_session_live,
     unit_runs,
     webhooks,
 )
@@ -81,12 +83,12 @@ async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
 
 
 async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None:
+    from .outcome_delivery import SqlAlchemyOutcomeDeliverySink
+    from .teaching_pack_completion import TeachingPackCompletionRecorder
     from .teaching_pack_executor import (
         TeachingPackExecutor,
         TeachingPackFailureRecorder,
     )
-    from .outcome_delivery import SqlAlchemyOutcomeDeliverySink
-    from .teaching_pack_completion import TeachingPackCompletionRecorder
     from .teaching_pack_executor_types import InAppTeachingPackNotificationSink
     from .teaching_pack_store import TeachingPackRunStore
     from .teaching_pack_worker import TeachingPackWorkerConfig, run_worker_batch
@@ -227,6 +229,10 @@ app.include_router(notifications.router, prefix="/notifications", tags=["notific
 app.include_router(ops.router)
 app.include_router(release_evidence.router, prefix="/teaching-packs", tags=["release-evidence"])
 app.include_router(unit_runs.router, prefix="/teaching-packs", tags=["units"])
+app.include_router(media_assets.router)
+app.include_router(
+    teaching_session_live.router, prefix="/teaching-sessions", tags=["teaching-session"],
+)
 
 
 @app.get("/health")  # pyright: ignore[reportUntypedFunctionDecorator]

@@ -4,15 +4,16 @@ import { useState } from "react";
 import { snapshotPreviewUrl } from "@/hooks/use-teaching-packs";
 import type { TeachingPackEventPayload } from "@/hooks/use-teaching-packs";
 import { TeachingPackArtifactProgress } from "@/components/teaching-packs-artifact-progress";
-import { TeachingPacksSlideDeckPreview, type SlideDeckScopedFeedback, hasSlideDeckArtifact } from "@/components/teaching-packs-slide-deck-preview";
+import { TeachingPacksSlideDeckPreview, type SlideDeckScopedFeedback, type SlideDeckTranslateRequest, hasSlideDeckArtifact } from "@/components/teaching-packs-slide-deck-preview";
 import { TeachingPackTrustPanel } from "@/components/teaching-packs-trust-panel";
 
-export function ContentApprovalBody({ runId, event, onRevertFastLaneAction, onRequestRevisionAction, onSlideDeckFeedbackAction }: {
+export function ContentApprovalBody({ runId, event, onRevertFastLaneAction, onRequestRevisionAction, onSlideDeckFeedbackAction, onTranslateDeckAction }: {
 	readonly runId: string;
 	readonly event: TeachingPackEventPayload;
 	readonly onRevertFastLaneAction?: (artifactId: string) => void;
 	readonly onRequestRevisionAction?: (artifactId: string) => void;
 	readonly onSlideDeckFeedbackAction?: (feedback: SlideDeckScopedFeedback) => void | Promise<void>;
+	readonly onTranslateDeckAction?: (request: SlideDeckTranslateRequest) => void | Promise<void>;
 }) {
 	const artifacts = event.artifact_statuses ?? event.artifacts ?? [];
 	return (
@@ -31,7 +32,7 @@ export function ContentApprovalBody({ runId, event, onRevertFastLaneAction, onRe
 			{artifacts.length > 0 && <TeachingPackArtifactProgress artifacts={artifacts} />}
 			<QualityFlagsPanel qualityScores={event.quality_scores} />
 			{hasSlideDeckArtifact(event) ? (
-				<TeachingPacksSlideDeckPreview runId={runId} event={event} onSubmitFeedbackAction={onSlideDeckFeedbackAction} />
+				<TeachingPacksSlideDeckPreview runId={runId} event={event} onSubmitFeedbackAction={onSlideDeckFeedbackAction} onTranslateDeckAction={onTranslateDeckAction} />
 			) : null}
 			<ContentSnapshots runId={runId} snapshotIds={event.snapshot_ids ?? []} />
 		</div>

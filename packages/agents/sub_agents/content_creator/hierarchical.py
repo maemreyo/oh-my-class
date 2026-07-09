@@ -74,7 +74,7 @@ def _artifact_kind(value: str) -> ArtifactKind:
 
 async def _build_artifact(artifact_type: ArtifactKind, state: ContentCreatorNodeState) -> dict[str, Any]:
     if artifact_type == "slide_deck":
-        return build_slide_deck_artifact(state)
+        return await build_slide_deck_artifact(state)
     lesson_plan = state["lesson_plan"]
     research_bundle = state["research_bundle"]
     outline = _outline(artifact_type, lesson_plan)

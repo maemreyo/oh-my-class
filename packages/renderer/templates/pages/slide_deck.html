@@ -1,8 +1,22 @@
 <%
   const slides = it.slides || [];
-  const isStudent = it.surface === 'student';
-  const isTeacher = it.surface === 'teacher';
+  // SDH-02 (ADR-043): "presentation" is a safe-share surface like "student"
+  // (clean screen teaching, no teacher-only content); "review" is an
+  // internal deterministic surface with the same full visibility as
+  // "teacher" (quality/compliance scanning, never a student-facing view).
+  const isStudent = it.surface === 'student' || it.surface === 'presentation';
+  const isTeacher = it.surface === 'teacher' || it.surface === 'review';
   const isPrint = it.surface === 'print';
+
+  function relatedRefsList(relatedRefs) {
+    if (!relatedRefs || relatedRefs.length === 0) return '';
+    let html = '<ul class="related-refs">';
+    for (let r = 0; r < relatedRefs.length; r++) {
+      const ref = relatedRefs[r];
+      html += '<li>' + ref.label + (ref.context ? ' <span class="related-ref-context">(' + ref.context + ')</span>' : '') + '</li>';
+    }
+    return html + '</ul>';
+  }
 
   function slideBlock(block) {
     let html = '<section class="slide-block slide-block--' + block.blockType + '">';
@@ -14,6 +28,7 @@
     } else {
       html += '<p>' + block.body + '</p>';
     }
+    html += relatedRefsList(block.relatedRefs);
     return html + '</section>';
   }
 
@@ -25,12 +40,12 @@
     for (let o = 0; o < options.length; o++) {
       const option = options[o];
       html += '<li><span class="option-marker">' + option.optionId.toUpperCase() + '</span>' + option.label;
-      if (isTeacher && option.correct) html += '<strong class="answer-marker">Correct</strong>';
+      if (isTeacher && option.correct) html += '<strong class="answer-marker" data-teacher-only>Correct</strong>';
       html += '</li>';
     }
     html += '</ul>';
     html += '<p class="no-js-fallback">No-JS fallback: ' + interaction.noJsFallback + '</p>';
-    if (isTeacher && interaction.rationale) html += '<p class="teacher-rationale">' + interaction.rationale + '</p>';
+    if (isTeacher && interaction.rationale) html += '<p class="teacher-rationale" data-teacher-only>' + interaction.rationale + '</p>';
     return html + '</section>';
   }
 
@@ -41,30 +56,97 @@
     html += '<div class="slide-blocks">';
     for (let b = 0; b < slide.blocks.length; b++) html += slideBlock(slide.blocks[b]);
     html += '</div>';
+    html += relatedRefsList(slide.relatedRefs);
     if (slide.interactions && slide.interactions.length > 0) {
       html += '<div class="slide-interactions">';
       for (let j = 0; j < slide.interactions.length; j++) html += slideInteraction(slide.interactions[j], index, j);
       html += '</div>';
     }
-    if (isTeacher && (slide.facilitationNotes.length > 0 || slide.answerKeyNotes.length > 0)) {
-      html += '<aside class="teacher-panel"><h3>Teacher guide</h3>';
+    if (isTeacher && (slide.facilitationNotes.length > 0 || slide.answerKeyNotes.length > 0 || slide.differentiationGuidance.length > 0)) {
+      html += '<aside class="teacher-panel" data-teacher-only><h3>Teacher guide</h3>';
       for (let n = 0; n < slide.facilitationNotes.length; n++) html += '<p>' + slide.facilitationNotes[n] + '</p>';
       for (let n = 0; n < slide.answerKeyNotes.length; n++) html += '<p class="answer-guidance">' + slide.answerKeyNotes[n] + '</p>';
+      if (slide.differentiationGuidance.length > 0) {
+        html += '<div class="differentiation-guidance"><h4>Differentiation guidance</h4><ul>';
+        for (let n = 0; n < slide.differentiationGuidance.length; n++) {
+          const note = slide.differentiationGuidance[n];
+          html += '<li><strong class="differentiation-level">' + note.level + ':</strong> ' + note.guidance + '</li>';
+        }
+        html += '</ul></div>';
+      }
       html += '</aside>';
     }
     return html + '</article>';
   }
 
+  function lessonFlowSummary() {
+    if (!isTeacher || !it.lessonFlow || it.lessonFlow.length === 0) return '';
+    let html = '<aside class="lesson-flow-summary no-print" data-teacher-only><h3>Lesson flow &amp; pacing</h3><ol class="lesson-flow-list">';
+    for (let i = 0; i < it.lessonFlow.length; i++) {
+      const entry = it.lessonFlow[i];
+      html += '<li><span class="lesson-flow-role">' + entry.pedagogicalRole.replaceAll('_', ' ') + '</span> ' + entry.title;
+      if (entry.plannedMinutes != null) html += ' <span class="lesson-flow-minutes">' + entry.plannedMinutes + ' min</span>';
+      html += '</li>';
+    }
+    html += '</ol>';
+    if (it.totalPlannedMinutes != null) html += '<p class="lesson-flow-total">Total planned time: ' + it.totalPlannedMinutes + ' min</p>';
+    return html + '</aside>';
+  }
+
   function printDeck() {
-    let html = '<section class="slide-deck slide-deck--' + it.surface + '" aria-label="' + it.surfaceLabel + ': ' + it.title + '">';
+    // SDH-05: the dedicated print surface has no JS/toolbar, so it must
+    // carry the server-resolved `printModeClass` on its own root (the
+    // interactive presentation player carries the same class -- see
+    // `presentationDeck` below) so the shared `@media print` paged-grid/
+    // continuous rules in pageCSS apply to this surface too.
+    let html = '<section class="slide-deck slide-deck--' + it.surface + ' ' + it.printModeClass + '" aria-label="' + it.surfaceLabel + ': ' + it.title + '">';
     html += '<p class="surface-badge">' + it.surfaceLabel + '</p><ol class="slide-list">';
     for (let i = 0; i < slides.length; i++) html += '<li>' + slideArticle(slides[i], i) + '</li>';
     return html + '</ol></section>';
   }
 
+  // SDH-03: the sanitizer's BASE_CONFIG (shared by every artifact type,
+  // including slide_deck) never allowlists <select>/<option>/<input>/
+  // <label> -- this codebase's established pattern for every interactive
+  // control is a plain <button> (see data-slide-prev/-next/-print above).
+  // The print-mode picker is therefore a WAI-ARIA radiogroup of buttons
+  // (role="radio"/aria-checked), not a native <select>; its value order is
+  // the single source of truth shared with the client script's
+  // VALID_PRINT_MODES list below -- keep both in sync if a mode changes.
+  function printModeOption(value, label, ariaLabel) {
+    const active = value === it.printModeClass;
+    return '<button type="button" role="radio" aria-checked="' + active + '" aria-label="' + ariaLabel + '" data-slide-print-mode data-print-mode-value="' + value + '" class="slide-print-mode-option' + (active ? ' slide-print-mode-option--active' : '') + '">' + label + '</button>';
+  }
+
+  // Same sanitizer constraint as above: a checkbox becomes a button styled
+  // as a WAI-ARIA switch (role="switch"/aria-checked) instead of <input>.
+  function toggleButton(dataAttr, label, checked) {
+    return '<button type="button" role="switch" aria-checked="' + checked + '" ' + dataAttr + ' class="slide-toggle-button">' + label + '</button>';
+  }
+
   function presentationDeck() {
-    let html = '<section class="slide-deck slide-deck--presentation slide-deck--' + it.surface + '" data-slide-deck data-surface="' + it.surface + '" aria-label="' + it.surfaceLabel + ': ' + it.title + '">';
-    html += '<header class="slide-toolbar no-print"><p class="surface-badge">' + it.surfaceLabel + '</p><p class="slide-progress" data-slide-progress aria-live="polite">Slide 1 / ' + slides.length + '</p><button class="slide-print" type="button" data-slide-print>Print</button></header>';
+    let html = '<section class="slide-deck slide-deck--presentation slide-deck--' + it.surface + ' ' + it.printModeClass + '" data-slide-deck data-deck-id="' + it.deckId + '" data-surface="' + it.surface + '" aria-label="' + it.surfaceLabel + ': ' + it.title + '">';
+    html += '<header class="slide-toolbar no-print"><p class="surface-badge">' + it.surfaceLabel + '</p><p class="slide-progress" data-slide-progress aria-live="polite">Slide 1 / ' + slides.length + '</p>';
+    html += '<div class="slide-print-mode" role="radiogroup" aria-label="Print layout: slides per page or continuous"><span class="slide-print-mode-caption">Print</span>';
+    html += printModeOption('print-mode--paged-1', '1', '1 slide per page');
+    html += printModeOption('print-mode--paged-2', '2', '2 slides per page');
+    html += printModeOption('print-mode--paged-4', '4', '4 slides per page');
+    html += printModeOption('print-mode--paged-6', '6', '6 slides per page');
+    html += printModeOption('print-mode--continuous', String.fromCharCode(8734), 'Continuous, no page breaks');
+    html += '</div>';
+    html += '<button class="slide-print" type="button" data-slide-print>Print</button>';
+    // ADR-043/SDH-02: these two controls only make sense on a render that
+    // already carries teacher-only data (chrome always shows on
+    // teacher/review regardless of preference; the student-preview toggle
+    // hides content that student/presentation exports never receive in the
+    // first place) -- template-time omission, so they never exist in a
+    // student-clean export's DOM at all, not just CSS-hidden.
+    if (isTeacher) {
+      html += toggleButton('data-slide-chrome-toggle', 'Footer in print', it.displayPreferences.chrome !== 'hidden');
+      html += toggleButton('data-slide-teacher-preview', 'Preview as student', false);
+    }
+    html += '</header>';
+    html += lessonFlowSummary();
     html += '<div class="slide-viewport">';
     for (let i = 0; i < slides.length; i++) {
       html += '<section class="slide-frame" data-slide data-slide-index="' + i + '" aria-hidden="' + (i === 0 ? 'false' : 'true') + '">' + slideArticle(slides[i], i) + '</section>';
@@ -76,15 +158,120 @@
   const content = isPrint ? printDeck() : presentationDeck();
   const pageJS = isPrint ? '' : `
 (() => {
+  const VALID_PRINT_MODES = ['print-mode--paged-1', 'print-mode--paged-2', 'print-mode--paged-4', 'print-mode--paged-6', 'print-mode--continuous'];
+
+  function isValidPrintMode(value) {
+    return VALID_PRINT_MODES.indexOf(value) !== -1;
+  }
+
+  function printModeFromLayout(layout, perPage) {
+    if (layout === 'continuous') return 'print-mode--continuous';
+    const allowed = [1, 2, 4, 6];
+    const n = allowed.indexOf(perPage) !== -1 ? perPage : 1;
+    return 'print-mode--paged-' + n;
+  }
+
+  // SDH-03: '?print=paged&slidesPerPage=4' or '#surface=student' -- read
+  // from both query and hash so either style of link works, and never throw
+  // on a malformed value (falls through to the server-resolved default).
+  function readLocationOverrides() {
+    const overrides = {};
+    try {
+      const query = new URLSearchParams(window.location.search);
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const printParam = query.get('print') || hash.get('print');
+      const perPageParam = query.get('slidesPerPage') || hash.get('slidesPerPage');
+      if (printParam === 'paged' || printParam === 'continuous') {
+        overrides.printMode = printModeFromLayout(printParam, perPageParam ? parseInt(perPageParam, 10) : 1);
+      }
+      const surfaceParam = query.get('surface') || hash.get('surface');
+      if (surfaceParam === 'student' || surfaceParam === 'teacher') overrides.surfacePreview = surfaceParam;
+    } catch (locationError) {
+      // ponytail: a malformed hash/query degrades to the server-resolved default, never throws.
+    }
+    return overrides;
+  }
+
+  function storageKey(deckId) {
+    return 'omc:slide-deck:' + deckId + ':prefs';
+  }
+
+  function readStoredPrefs(deckId) {
+    try {
+      const raw = window.localStorage.getItem(storageKey(deckId));
+      return raw ? JSON.parse(raw) : null;
+    } catch (storageError) {
+      return null; // file://, private mode, or storage disabled -- degrade gracefully.
+    }
+  }
+
+  function writeStoredPrefs(deckId, prefs) {
+    try {
+      window.localStorage.setItem(storageKey(deckId), JSON.stringify(prefs));
+    } catch (storageError) {
+      // ponytail: storage unavailable -- in-memory state still works for this page view.
+    }
+  }
+
   function initializeSlideDecks() {
   const decks = document.querySelectorAll('[data-slide-deck]');
+  const locationOverrides = readLocationOverrides();
   decks.forEach((deck) => {
+    const deckId = deck.getAttribute('data-deck-id') || 'unknown-deck';
+    const isTeacherDeck = deck.dataset.surface === 'teacher' || deck.dataset.surface === 'review';
     const slides = Array.from(deck.querySelectorAll('[data-slide]'));
     const progress = deck.querySelector('[data-slide-progress]');
     const previous = deck.querySelector('[data-slide-prev]');
     const next = deck.querySelector('[data-slide-next]');
     const print = deck.querySelector('[data-slide-print]');
+    const printModeButtons = Array.from(deck.querySelectorAll('[data-slide-print-mode]'));
+    const chromeToggle = deck.querySelector('[data-slide-chrome-toggle]');
+    const previewToggle = deck.querySelector('[data-slide-teacher-preview]');
     let current = 0;
+    // ponytail: only a teacher/review render ever reads/writes localStorage
+    // -- a student-clean export's persisted state must never exist (SDH-03).
+    const stored = isTeacherDeck ? readStoredPrefs(deckId) : null;
+
+    function persist() {
+      if (!isTeacherDeck) return;
+      writeStoredPrefs(deckId, {
+        printMode: VALID_PRINT_MODES.filter((cls) => deck.classList.contains(cls))[0] || 'print-mode--paged-1',
+        studentPreview: deck.classList.contains('slide-deck--student-preview'),
+        chromeVisible: !document.body.classList.contains('omc-hide-footer-print'),
+      });
+    }
+
+    function applyPrintMode(mode) {
+      VALID_PRINT_MODES.forEach((cls) => deck.classList.remove(cls));
+      deck.classList.add(mode);
+      printModeButtons.forEach((button) => {
+        const active = button.getAttribute('data-print-mode-value') === mode;
+        button.setAttribute('aria-checked', String(active));
+        button.classList.toggle('slide-print-mode-option--active', active);
+      });
+    }
+
+    function applyStudentPreview(active) {
+      deck.classList.toggle('slide-deck--student-preview', active);
+      if (previewToggle) previewToggle.setAttribute('aria-checked', String(active));
+    }
+
+    function applyChromeVisible(visible) {
+      document.body.classList.toggle('omc-hide-footer-print', !visible);
+      if (chromeToggle) chromeToggle.setAttribute('aria-checked', String(visible));
+    }
+
+    const initialPrintMode = locationOverrides.printMode
+      || (stored && isValidPrintMode(stored.printMode) ? stored.printMode : null);
+    if (initialPrintMode) applyPrintMode(initialPrintMode);
+
+    if (isTeacherDeck) {
+      const initialPreview = locationOverrides.surfacePreview
+        ? locationOverrides.surfacePreview === 'student'
+        : !!(stored && stored.studentPreview);
+      applyStudentPreview(initialPreview);
+      applyChromeVisible(!(stored && stored.chromeVisible === false));
+    }
 
     function show(index) {
       current = Math.max(0, Math.min(index, slides.length - 1));
@@ -100,7 +287,28 @@
     previous?.addEventListener('click', () => show(current - 1));
     next?.addEventListener('click', () => show(current + 1));
     print?.addEventListener('click', () => window.print());
+    printModeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const mode = button.getAttribute('data-print-mode-value');
+        if (isValidPrintMode(mode)) { applyPrintMode(mode); persist(); }
+      });
+    });
+    previewToggle?.addEventListener('click', () => {
+      applyStudentPreview(previewToggle.getAttribute('aria-checked') !== 'true');
+      persist();
+    });
+    chromeToggle?.addEventListener('click', () => {
+      applyChromeVisible(chromeToggle.getAttribute('aria-checked') !== 'true');
+      persist();
+    });
+
+    // Arrow/space/home/end drive slide navigation, but not while a toolbar
+    // button (print-mode radio, chrome/preview switch, prev/next/print
+    // itself) has focus -- otherwise Space on a focused toggle button would
+    // also flip slides underneath it, and this deck's own nav buttons would
+    // double-fire on every click.
     document.addEventListener('keydown', (event) => {
+      if (event.target instanceof Element && event.target.closest('.slide-toolbar')) return;
       if (event.key === 'ArrowRight' || event.key === ' ') show(current + 1);
       if (event.key === 'ArrowLeft') show(current - 1);
       if (event.key === 'Home') show(0);
@@ -120,16 +328,21 @@
   const pageCSS = `
     main { max-width: 1100px; }
     .slide-deck { display: grid; gap: 1rem; }
-    .slide-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .slide-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; margin-bottom: 1rem; }
     .surface-badge, .slide-progress { width: fit-content; margin: 0; border: 1px solid var(--color-border); border-radius: 999px; padding: .25rem .7rem; color: var(--color-text-soft); background: var(--color-bg-card); font-size: .85rem; }
     .slide-progress { font-variant-numeric: tabular-nums; }
     .slide-print, .slide-nav-button { min-height: 2.5rem; border: 1px solid var(--color-border); border-radius: .5rem; padding: .45rem .9rem; background: var(--color-bg-card); color: var(--color-text); font: inherit; cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out; }
     .slide-print:hover, .slide-nav-button:hover { background: var(--color-accent-tint); }
     .slide-print:active, .slide-nav-button:active { transform: translateY(1px); }
-    .slide-print:focus-visible, .slide-nav-button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+    .slide-print:focus-visible, .slide-nav-button:focus-visible, .slide-print-mode-option:focus-visible, .slide-toggle-button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
     .slide-nav-button:disabled { cursor: not-allowed; opacity: .45; transform: none; }
     .slide-nav-button--primary { background: var(--color-accent); color: var(--color-bg-card); border-color: var(--color-accent); }
     .slide-nav-button--primary:hover { background: var(--color-accent-deep); color: var(--color-bg-card); }
+    .slide-print-mode { display: inline-flex; align-items: center; gap: .35rem; font-size: .85rem; color: var(--color-text-soft); }
+    .slide-print-mode-caption { margin-right: .1rem; }
+    .slide-print-mode-option, .slide-toggle-button { min-height: 2.5rem; min-width: 2.5rem; border: 1px solid var(--color-border); border-radius: .5rem; padding: .35rem .6rem; background: var(--color-bg-card); color: var(--color-text); font: inherit; cursor: pointer; }
+    .slide-print-mode-option--active, .slide-toggle-button[aria-checked="true"] { background: var(--color-accent); color: var(--color-bg-card); border-color: var(--color-accent); }
+    .slide-toggle-button { font-size: .85rem; }
     .slide-viewport { min-height: min(68vh, 42rem); display: grid; align-items: stretch; }
     .slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: none; }
     .slide-frame { display: grid; }
@@ -153,16 +366,96 @@
     .teacher-panel { margin-top: 1rem; border: 1px solid var(--color-border); border-radius: .8rem; padding: .9rem; background: var(--color-bg-card); }
     .teacher-panel h3 { margin: 0 0 .5rem; }
     .answer-guidance, .teacher-rationale { color: var(--color-text); font-weight: 600; }
+    .differentiation-guidance { margin-top: .6rem; }
+    .differentiation-guidance h4 { margin: 0 0 .35rem; font-size: .9rem; }
+    .differentiation-guidance ul { margin: 0; padding: 0 0 0 1.1rem; display: grid; gap: .3rem; font-size: .9rem; }
+    .differentiation-level { text-transform: capitalize; }
+    .related-refs { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .25rem; font-size: .85rem; color: var(--color-text-soft); }
+    .related-ref-context { font-family: var(--font-mono, monospace); }
+    .lesson-flow-summary { margin-bottom: 1rem; border: 1px solid var(--color-border); border-radius: .8rem; padding: .9rem 1rem; background: var(--color-bg-card); }
+    .lesson-flow-summary h3 { margin: 0 0 .5rem; }
+    .lesson-flow-list { margin: 0; padding: 0 0 0 1.2rem; display: grid; gap: .25rem; font-size: .9rem; }
+    .lesson-flow-role { text-transform: capitalize; color: var(--color-text-soft); }
+    .lesson-flow-minutes { font-variant-numeric: tabular-nums; color: var(--color-text-soft); }
+    .lesson-flow-total { margin: .6rem 0 0; font-weight: 600; }
     .no-js-fallback, .network-warning { color: var(--color-text-soft); font-size: .9rem; margin: .5rem 0 0; }
     .network-warning { border-left: .2rem solid var(--color-warning); padding-left: .65rem; }
     .slide-controls { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }
-    @media (max-width: 640px) { main { padding-inline: 1rem; } .slide-toolbar, .slide-controls { align-items: stretch; flex-direction: column; } .slide-nav-button, .slide-print { width: 100%; } }
+    /* SDH-03: "preview as student" hides teacher-only panels on-screen AND in
+       print while active -- so a teacher can rehearse or hand-print a clean
+       copy from their own teacher-guide file without a separate export. */
+    .slide-deck--student-preview [data-teacher-only] { display: none !important; }
+    @media (max-width: 640px) {
+      main { padding-inline: 1rem; }
+      .slide-toolbar, .slide-controls { align-items: stretch; flex-direction: column; }
+      .slide-nav-button, .slide-print, .slide-print-mode, .slide-toggle-button { width: 100%; justify-content: center; }
+    }
     @media (prefers-reduced-motion: reduce) { .slide-print, .slide-nav-button { transition: none; } }
-    @media print { main { max-width: none; } .slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: block; } .slide-frame { display: block; } .slide-viewport { min-height: 0; display: grid; gap: 1rem; } .slide-card { min-height: auto; box-shadow: none; page-break-after: always; page-break-inside: avoid; } .surface-badge { display: none; } }
+    @media print {
+      main { max-width: none; }
+      .no-print, .slide-toolbar, .slide-controls { display: none !important; }
+      /* SDH-05: defeat the screen-only "one active slide at a time" rule --
+         every slide renders in print regardless of which one is active on
+         screen. Same selector/specificity as the screen rule (main pageCSS
+         block above), so source order (this rule is later) decides the tie
+         in print's favor; `.slide-frame { display: block; }` below is a
+         lower-specificity belt-and-suspenders backstop. */
+      .slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: block; }
+      .slide-frame { display: block; }
+      .slide-viewport { min-height: 0; display: grid; gap: .5rem; grid-template-columns: 1fr; }
+      .slide-list { grid-template-columns: 1fr; }
+      /* SDH-05: real 16:9 layout sizing (aspect-ratio), not transform-based
+         scaling -- and a single border owner (`.slide-card` alone) with a
+         solid crisp border/radius and no shadow/filter/transform, which used
+         to blur print corners. `overflow: hidden` keeps content from
+         spilling past the rounded corners it now strictly owns. */
+      .slide-card {
+        min-height: auto;
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        box-shadow: none;
+        filter: none;
+        transform: none;
+        border: 1px solid var(--color-border);
+        border-radius: .5rem;
+        background: var(--color-bg-card);
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .surface-badge { display: none; }
+      /* SDH-03/05: print-mode classes (set server-side from
+         displayPreferences and client-side from the toolbar radiogroup)
+         choose 1/2/4/6-up paged layout or a continuous, unpaginated flow.
+         Mirrored per-selector (not comma-joined) for both the interactive
+         presentation player's `.slide-viewport`/`.slide-frame` markup and
+         the dedicated print surface's `.slide-list`/`<li>` markup, which
+         share the same grid mechanics but different container/item tags. */
+      .print-mode--paged-1 .slide-card { page-break-after: always; page-break-inside: avoid; }
+      .print-mode--paged-2 .slide-viewport { grid-template-columns: repeat(2, 1fr); }
+      .print-mode--paged-2 .slide-list { grid-template-columns: repeat(2, 1fr); }
+      .print-mode--paged-4 .slide-viewport { grid-template-columns: repeat(2, 1fr); }
+      .print-mode--paged-4 .slide-list { grid-template-columns: repeat(2, 1fr); }
+      .print-mode--paged-6 .slide-viewport { grid-template-columns: repeat(3, 1fr); }
+      .print-mode--paged-6 .slide-list { grid-template-columns: repeat(3, 1fr); }
+      .print-mode--paged-2 .slide-frame:nth-of-type(2n) .slide-card,
+      .print-mode--paged-2 .slide-list > li:nth-of-type(2n) .slide-card,
+      .print-mode--paged-4 .slide-frame:nth-of-type(4n) .slide-card,
+      .print-mode--paged-4 .slide-list > li:nth-of-type(4n) .slide-card,
+      .print-mode--paged-6 .slide-frame:nth-of-type(6n) .slide-card,
+      .print-mode--paged-6 .slide-list > li:nth-of-type(6n) .slide-card { page-break-after: always; }
+      .print-mode--paged-2 .slide-card, .print-mode--paged-4 .slide-card, .print-mode--paged-6 .slide-card { font-size: .85em; }
+      .print-mode--continuous .slide-card { page-break-after: auto; }
+      .print-mode--continuous .slide-viewport, .print-mode--continuous .slide-list { grid-template-columns: 1fr; }
+      /* SDH-03: "footer in print" checkbox (teacher/review only) toggles the
+         branding footer for the printed page only -- on-screen visibility is
+         untouched, since teacher/review always show it live regardless. */
+      .omc-hide-footer-print .omc-footer { display: none; }
+    }
   `;
 %>
 <%~ include('../base.html', {
   title: it.title, subject: it.subject, gradeLevel: it.gradeLevel,
   lang: it.lang, theme: it.theme, themeCSS: it.themeCSS,
-  type: 'slide_deck', content: content, pageCSS: pageCSS, pageJS: pageJS
+  type: 'slide_deck', content: content, pageCSS: pageCSS, pageJS: pageJS,
+  showProvenance: it.showProvenance
 }) %>

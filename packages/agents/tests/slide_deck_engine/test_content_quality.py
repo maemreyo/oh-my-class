@@ -3,7 +3,7 @@ from __future__ import annotations
 from packages.agents.slide_deck_engine import SlideDeckEngine, SlideDeckEngineRequest
 
 
-def test_esl_food_vocabulary_deck_uses_concrete_teachable_content() -> None:
+async def test_esl_food_vocabulary_deck_uses_concrete_teachable_content() -> None:
     request = SlideDeckEngineRequest(
         run_id="run-food-vocab-quality",
         lesson_blueprint={
@@ -27,7 +27,7 @@ def test_esl_food_vocabulary_deck_uses_concrete_teachable_content() -> None:
         revision_feedback="",
     )
 
-    result = SlideDeckEngine().generate(request)
+    result = await SlideDeckEngine().generate(request)
     student_surface = " ".join([
         *[block.body for slide in result.deck.slides for block in slide.blocks],
         *[interaction.prompt for slide in result.deck.slides for interaction in (slide.interactions or [])],

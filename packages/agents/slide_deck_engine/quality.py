@@ -96,11 +96,14 @@ def build_healing_reports(validations: list[SlideDeckValidationReport]) -> list[
 
 
 def build_scorecard(validations: list[SlideDeckValidationReport], deck: SlideDeckData) -> SlideDeckScorecard:
-    density = _score(validations, {"density_budget_ok", "density_budget_exceeded"})
+    density = _score(validations, {"density_budget_ok", "density_budget_exceeded", "density_purpose_ok", "density_purpose_gap"})
     accessibility = _score(validations, {"accessibility_ok", "missing_alt_text"})
     surface = _score(validations, {"surfaces_ready", "teacher_only_separation_ok", "teacher_only_leak_risk"})
     objective = _score(validations, {"objective_coverage_ok", "objective_coverage_gap"})
-    pacing = _score(validations, {"pacing_ok", "pacing_mismatch", "page_count_ok", "page_count_too_short", "page_count_exceeded"})
+    pacing = _score(validations, {
+        "pacing_ok", "pacing_mismatch", "page_count_ok", "page_count_too_short", "page_count_exceeded",
+        "deck_shape_ok", "deck_shape_incomplete", "deck_shape_unjustified_slide",
+    })
     interaction = _score(validations, {"invalid_interaction", "teacher_only_separation_ok", "teacher_only_leak_risk"})
     source = _score(validations, {"source_refs_ok", "missing_source_refs"})
     offline = _offline_score(deck)
@@ -128,6 +131,7 @@ def trace_artifacts(
     healing_reports: list[SlideDeckHealingReport],
     scorecard: SlideDeckScorecard,
     scoped_repair: SlideDeckScopedRepairReport,
+    llm_calls: int = 0,
 ) -> tuple[dict[str, str | int | list[str]], dict[str, str | int], dict[str, list[dict[str, str | bool]]], dict[str, list[dict[str, str | bool | None]]], dict[str, float], dict[str, str], dict[str, str | int | float], dict[str, str | bool | int], dict[str, str | bool | list[str]]]:
     plan_artifact = {
         "slide_count": len(architecture.slide_titles),
@@ -139,7 +143,11 @@ def trace_artifacts(
     healing_artifact = {"reports": [{"attempted": report.attempted, "failure_code": report.failure_code, "scope": report.scope, "strategy": report.strategy, "outcome": report.outcome, "final_status": report.final_status} for report in healing_reports]}
     scorecard_artifact = scorecard.model_dump(mode="json")
     source_ref_map = {source.source_id: _redact_text(source.citation) for source in deck.source_refs}
-    model_cost_metadata = {"llm_calls": 0, "estimated_cost_usd": 0.0, "provider": "none"}
+    # ponytail: estimated_cost_usd stays 0.0 here — real per-call cost/token usage
+    # already flows through the cost_accrued observability event emitted by
+    # llm.complete_json_chat; aggregating it into this artifact too is unrequested
+    # scope, add if a consumer needs cost on the trace artifact itself.
+    model_cost_metadata = {"llm_calls": llm_calls, "estimated_cost_usd": 0.0, "provider": "llm_client" if llm_calls else "none"}
     export_readiness_manifest = {"format": "html", "student": True, "teacher": True, "print": True, "slide_count": len(deck.slides)}
     scoped_regeneration_artifact = scoped_repair.model_dump(mode="json")
     return (
@@ -157,16 +165,16 @@ def trace_artifacts(
 
 def _healing_for(report: SlideDeckValidationReport) -> SlideDeckHealingReport:
     match report.code:
-        case "density_budget_exceeded" | "missing_alt_text" | "invalid_block" | "missing_source_refs" | "teacher_only_leak_risk" | "unsupported_media":
+        case "density_budget_exceeded" | "missing_alt_text" | "invalid_block" | "missing_source_refs" | "teacher_only_leak_risk" | "unsupported_media" | "density_purpose_gap" | "component_coverage_gap":
             strategy = "rewrite"
             scope = report.scope
         case "invalid_layout" | "invalid_interaction" | "pacing_mismatch" | "objective_coverage_gap":
             strategy = "replan"
             scope = report.scope
-        case "page_count_too_short" | "page_count_exceeded" | "html_exports_incomplete":
+        case "page_count_too_short" | "page_count_exceeded" | "html_exports_incomplete" | "deck_shape_incomplete" | "deck_shape_unjustified_slide":
             strategy = "replan"
             scope = "deck"
-        case "accessibility_ok" | "density_budget_ok" | "html_exports_ready" | "objective_coverage_ok" | "pacing_ok" | "page_count_ok" | "registry_membership_ok" | "source_refs_ok" | "surfaces_ready" | "teacher_only_separation_ok":
+        case "accessibility_ok" | "density_budget_ok" | "html_exports_ready" | "objective_coverage_ok" | "pacing_ok" | "page_count_ok" | "registry_membership_ok" | "source_refs_ok" | "surfaces_ready" | "teacher_only_separation_ok" | "deck_shape_ok" | "density_purpose_ok" | "component_coverage_ok":
             strategy = "none"
             scope = "none"
         case "surfaces_incomplete":

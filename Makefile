@@ -51,8 +51,8 @@ clean-ports: ## Stop local dev servers on local dev ports
 infra: ## Start local infrastructure only (db, redis)
 	$(COMPOSE) up -d db redis
 
-infra-full: ## Start optional infrastructure (db, redis, proxy, langfuse)
-	$(COMPOSE) up -d db redis proxy langfuse
+infra-full: ## Start optional infrastructure (db, redis, langfuse)
+	$(COMPOSE) up -d db redis langfuse
 
 dev-gateway: ## Start Python gateway locally on port 8101
 	uv run uvicorn services.gateway.main:app --reload --port $(LOCAL_GATEWAY_PORT)
@@ -72,7 +72,6 @@ docker: ## Start full Docker dev stack
 	@echo "Services started:"
 	@echo "   Gateway:    http://localhost:8001"
 	@echo "   Dashboard:  http://localhost:3000"
-	@echo "   LiteLLM:    http://localhost:4000"
 	@echo "   Langfuse:   http://localhost:3001"
 
 up: docker ## Alias for make docker

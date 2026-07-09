@@ -17,6 +17,9 @@ class SlideDeckEngineRequest(BaseModel):
     dependency_artifacts: list[JsonObject] = Field(default_factory=list)
     teacher_constraints: JsonObject = Field(default_factory=dict)
     revision_feedback: str = ""
+    # SDX-03: optional key into SLIDE_DECK_STRUCTURE_PRESETS. None (default)
+    # leaves generation exactly as before this field existed.
+    structure_preset: str | None = None
 
 
 type SlideDeckValidationCode = Literal[
@@ -44,6 +47,13 @@ type SlideDeckValidationCode = Literal[
     "objective_coverage_gap",
     "html_exports_ready",
     "html_exports_incomplete",
+    "deck_shape_ok",
+    "deck_shape_incomplete",
+    "deck_shape_unjustified_slide",
+    "density_purpose_ok",
+    "density_purpose_gap",
+    "component_coverage_ok",
+    "component_coverage_gap",
 ]
 type SlideDeckHealingScope = Literal["none", "block", "slide", "plan", "deck"]
 type SlideDeckHealingStrategy = Literal["none", "retry", "rewrite", "reroute", "replan", "escalate"]
@@ -152,6 +162,10 @@ class AssembledSlideDeckInput(BaseModel):
     locale: str
     theme: str
     source: JsonObject
+    # SDX-03: resolved structure-preset configuration. Both default to the
+    # exact pre-SDX-03 behavior (no emphasis, raw teacher_constraints).
+    pedagogical_emphasis: str = ""
+    effective_teacher_constraints: JsonObject = Field(default_factory=dict)
 
 
 class PedagogicalPlan(BaseModel):

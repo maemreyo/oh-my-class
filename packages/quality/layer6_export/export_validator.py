@@ -1,7 +1,14 @@
 from __future__ import annotations
 
+import logging
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from typing import Any
+
+logger = logging.getLogger(__name__)
+
+# LLM transport protocol — injectable for testability.
+LLMTransport = Callable[..., Coroutine[Any, Any, str]]
 
 # Required artifacts per export format
 FORMAT_REQUIREMENTS: dict[str, list[str]] = {
@@ -74,28 +81,71 @@ class ExportValidator:
         *,
         required_pass_rate: float = 0.67,
         skip_threshold: float = 0.20,
+        llm_transport: LLMTransport | None = None,
     ) -> None:
         self.required_pass_rate = required_pass_rate
         self.skip_threshold = skip_threshold
+        self._llm_transport = llm_transport
 
     async def validate(
         self,
         artifacts: list[dict[str, Any]],
         export_formats: list[str],
     ) -> ExportValidationResult:
-        """Validate export readiness.
+        det_result = check_export_readiness(artifacts, export_formats)
+        if not det_result.passed:
+            return det_result
 
-        Args:
-            artifacts: Generated artifacts to validate.
-            export_formats: Requested export formats.
+        return await self._run_judge_consensus(artifacts, det_result)
 
-        Returns:
-            ExportValidationResult with pass/fail and issues.
-        """
-        # Deterministic format-requirement checks are real (shared with the sync path).
-        # The 3-judge majority pass remains unimplemented and is tracked with
-        # reviewer-004; until then validate() reflects only the deterministic verdict.
-        return check_export_readiness(artifacts, export_formats)
+    async def _run_judge_consensus(
+        self,
+        artifacts: list[dict[str, Any]],
+        det_result: ExportValidationResult,
+    ) -> ExportValidationResult:
+        from packages.agents.config.gate_config import GateConfig
+        from packages.quality.layer4_judge.judge_interface import (
+            AdaptiveJudge,
+            JudgeUnavailableError,
+            UnavailableStrategy,
+        )
+
+        config = GateConfig()
+        transport = self._llm_transport
+        strategy = UnavailableStrategy.FAIL_CLOSED
+        if transport is None:
+            from packages.quality.layer4_judge.judge_transport import (
+                default_litellm_transport,
+            )
+            transport = default_litellm_transport
+
+        judge = AdaptiveJudge(
+            llm_transport=transport,
+            num_judges=3,
+            pass_threshold=config.export_min_score,
+            unavailable_strategy=strategy,
+        )
+
+        artifact_type = _primary_artifact_type(artifacts)
+
+        try:
+            result = await judge.judge(
+                artifacts=artifacts,
+                artifact_type=artifact_type,
+            )
+        except JudgeUnavailableError:
+            logger.warning("Layer-6 judge unavailable; failing closed")
+            return ExportValidationResult(
+                passed=False,
+                issues=["Layer-6 judge unavailable; export blocked"],
+            )
+
+        return ExportValidationResult(
+            passed=result.judge_output.passed,
+            judge_results=[result.judge_output.model_dump()],
+            issues=list(result.judge_output.critical_issues),
+            format_issues=det_result.format_issues,
+        )
 
 
 def _contains_inverse_thinking(artifacts: list[dict[str, Any]]) -> bool:
@@ -107,3 +157,11 @@ def _contains_inverse_thinking(artifacts: list[dict[str, Any]]) -> bool:
         if isinstance(metadata, dict) and metadata.get("methodology") == "inverse_thinking":
             return True
     return False
+
+
+def _primary_artifact_type(artifacts: list[dict[str, Any]]) -> str:
+    for artifact in artifacts:
+        artifact_type = artifact.get("artifact_type")
+        if isinstance(artifact_type, str) and artifact_type:
+            return artifact_type
+    return "lesson"

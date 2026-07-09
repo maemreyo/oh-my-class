@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useRequestArtifactRevision, useResumeTeachingPackRun } from "@/hooks/use-teaching-packs";
+import { useRequestArtifactRevision, useResumeTeachingPackRun, useTranslateSlideDeck } from "@/hooks/use-teaching-packs";
 import type { TeachingPackEventPayload, TeachingPackGateAction } from "@/hooks/use-teaching-packs";
 import { TeachingPackGateBody } from "@/components/teaching-packs-gate-bodies";
 import { editableArtifactsFor, gateNameFor, labelFor, responseFor, strategyFeedbackResponse } from "@/components/teaching-packs-gate-shell-utils";
 import { TeachingPackScopedRejection, TeachingPackSectionEditor } from "@/components/teaching-packs-scoped-rejection";
 import type { ArtifactRejection, ContentSectionEdit } from "@/components/teaching-packs-scoped-rejection";
-import type { SlideDeckScopedFeedback } from "@/components/teaching-packs-slide-deck-preview";
+import type { SlideDeckScopedFeedback, SlideDeckTranslateRequest } from "@/components/teaching-packs-slide-deck-preview";
 import type { StrategyFeedbackDraft } from "@/components/teaching-packs-strategy-panel";
 
 export interface TeachingPackGateShellProps {
@@ -25,6 +25,7 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 	const [sectionEditorMode, setSectionEditorMode] = useState(false);
 	const resume = useResumeTeachingPackRun(runId);
 	const revision = useRequestArtifactRevision(runId);
+	const translateDeck = useTranslateSlideDeck(runId);
 
 	if (!gateName || !gateId) return null;
 
@@ -89,6 +90,10 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 		onResolved?.();
 	};
 
+	const handleTranslateDeck = async (request: SlideDeckTranslateRequest) => {
+		await translateDeck.mutateAsync(request);
+	};
+
 	const rejectionSourceArtifacts = event.artifact_statuses ?? event.artifacts ?? [];
 	const showScopedRejection = gateName === "content_approval" && rejectionSourceArtifacts.length > 0;
 	const artifacts = editableArtifactsFor(event, rejectionSourceArtifacts);
@@ -121,6 +126,7 @@ export function TeachingPackGateShell({ runId, event, onResolved }: TeachingPack
 							onRequestRevisionAction={(artifactId) => revision.mutate({ artifact_id: artifactId, feedback: "Teacher requested a post-export revision." })}
 							onStrategyFeedbackAction={handleStrategyFeedback}
 							onSlideDeckFeedbackAction={handleSlideDeckFeedback}
+							onTranslateDeckAction={handleTranslateDeck}
 						/>
 			</div>
 
