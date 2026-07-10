@@ -387,6 +387,69 @@ async def test_regenerate_writes_a_real_h5p_package_for_a_quiz_artifact(
     await session.commit()
 
 
+async def test_regenerate_writes_a_real_qti_xml_for_a_quiz_artifact(
+    session: AsyncSession, tmp_path: Path,
+) -> None:
+    """#456: qti now has a real writer -- exercise it end to end through the
+    node CLI bridge (packages/renderer's QTIExporter, reachable via the new
+    "./*" export map entry on @oh-my-class/renderer)."""
+    run_id = RunId(f"export-svc-{uuid4()}")
+    session.add(Run(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-export-svc"),
+        status=RunStatus.COMPLETED,
+        current_step=1,
+        raw_request="Test qti export",
+        class_info={"grade": 5},
+    ))
+    await session.flush()
+    quiz_content = {
+        "sections": [{
+            "questions": [{
+                "id": "q1",
+                "type": "multiple_choice_single",
+                "stem": "2 + 2 = ?",
+                "options": [
+                    {"id": "a", "text": "3", "isCorrect": False},
+                    {"id": "b", "text": "4", "isCorrect": True},
+                ],
+            }],
+        }],
+    }
+    snapshot_store = TeachingPackSnapshotStore(session)
+    await snapshot_store.create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=f"snap-{uuid4()}",
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        content_json=quiz_content,
+        rendered_html="<!DOCTYPE html><html><body>quiz</body></html>",
+        renderer_version="1.0",
+    ))
+    head = await snapshot_store.get_latest_snapshot(run_id, "artifact-1")
+    assert head is not None
+
+    result = await regenerate_stale_exports(
+        session,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        head=head,
+        formats=["qti"],
+        base_dir=tmp_path,
+    )
+
+    assert result.regenerated == ["qti"]
+    export_store = TeachingPackExportStore(session)
+    latest = await export_store.get_latest_export_for_format(run_id, "artifact-1", "qti")
+    assert latest is not None
+    written = Path(latest.storage_path).read_text(encoding="utf-8")
+    assert "assessmentTest" in written
+    assert "2 + 2" in written
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
+
+
 async def _make_flashcard_run_and_snapshot(session: AsyncSession) -> tuple[RunId, ArtifactSnapshotRead]:
     run_id = RunId(f"export-svc-{uuid4()}")
     session.add(Run(

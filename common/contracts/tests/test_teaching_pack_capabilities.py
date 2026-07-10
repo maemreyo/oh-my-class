@@ -49,7 +49,7 @@ def test_manifest_makes_current_pipeline_gaps_explicit() -> None:
     assert capabilities["slide_deck"].status is CapabilityStatus.DEGRADED
     assert capabilities["slide_deck"].specialist_adapter == "slide_deck_engine"
     assert capabilities["quiz"].requires_answer_set is True
-    assert exports["qti"].status is CapabilityStatus.REJECTED
+    assert exports["qti"].status is CapabilityStatus.SUPPORTED
     assert exports["pptx"].supported_artifact_types == ("slide_deck",)
 
 

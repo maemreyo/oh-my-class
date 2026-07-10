@@ -9,7 +9,8 @@
     ".": {
       "types": "./dist/renderer.d.ts",
       "import": "./dist/renderer.js"
-    }
+    },
+    "./*": "./dist/*"
   },
   "bin": {
     "omc-render": "./dist/agent-renderer.js"

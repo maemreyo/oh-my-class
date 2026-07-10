@@ -93,8 +93,14 @@ async function run(): Promise<void> {
   }
 
   if (format === 'qti') {
-    const { UnsupportedFormatError } = await import('./qti/qti.js')
-    throw new UnsupportedFormatError('qti', 'QTI export via CLI bridge is not yet implemented')
+    const { QTIExporter } = await import('@oh-my-class/renderer/exporters/qti/index.js')
+    const exporter = new QTIExporter()
+    const questions = extractQuestions(artifacts)
+    const xml = exporter.export(questions)
+    const outPath = join(output_dir, `${run_id}.qti.xml`)
+    await writeFile(outPath, xml, 'utf-8')
+    process.stdout.write(JSON.stringify({ path: outPath }))
+    return
   }
 
   const deck = buildDeck(run_id, artifacts)

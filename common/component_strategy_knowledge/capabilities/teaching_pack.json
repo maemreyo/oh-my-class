@@ -219,12 +219,10 @@
     },
     {
       "export_format": "qti",
-      "status": "rejected",
-      "supported_artifact_types": [],
+      "status": "supported",
+      "supported_artifact_types": ["quiz", "drill"],
       "requires_answer_set": true,
-      "file_validation": "QTI import smoke test",
-      "rejection_reason": "QTI has no real implementation",
-      "alternative": "use Moodle GIFT or standalone HTML"
+      "file_validation": "QTI import smoke test"
     },
     {
       "export_format": "anki_apkg",
