@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from starlette.testclient import TestClient
 
+from packages.agents.config.features import reset_features
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import Role, User
 from services.gateway.models import Base
@@ -19,6 +20,19 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
 
     from sqlalchemy.ext.asyncio import AsyncSession
+
+
+@pytest.fixture(autouse=True)
+def _slide_deck_flags_on(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """SDE-10: this module's existing tests exercise manual edit and AI
+    rewrite as already-enabled features -- default both flags on here, and
+    let the small number of gating-specific tests disable one explicitly.
+    """
+    monkeypatch.setenv("FEATURE_SLIDE_DECK_EDITOR_V1", "true")
+    monkeypatch.setenv("FEATURE_SLIDE_DECK_AI_REWRITE_V1", "true")
+    reset_features()
+    yield
+    reset_features()
 
 
 @pytest.fixture

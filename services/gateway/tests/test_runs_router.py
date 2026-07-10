@@ -361,12 +361,12 @@ class TestListRuns:
 
 class TestProgressStream:
     def test_emit_run_event_stores_events(self):
-        emit_run_event("run-1", "run_created", {"status": "running"})
-        emit_run_event("run-1", "step_completed", {"status": "done"})
+        emit_run_event("run-1", "stage_transition", {"status": "running"})
+        emit_run_event("run-1", "gate_decision", {"status": "done"})
         events = get_run_events("run-1")
         assert len(events) == 2
-        assert events[0]["event_type"] == "run_created"
-        assert events[1]["event_type"] == "step_completed"
+        assert events[0]["event_type"] == "stage_transition"
+        assert events[1]["event_type"] == "gate_decision"
 
     def test_event_store_returns_events_in_order(self):
         for i in range(5):
@@ -379,13 +379,13 @@ class TestProgressStream:
         assert get_run_events("nonexistent") == []
 
     def test_emit_run_event_includes_timestamp(self):
-        emit_run_event("run-ts", "run_created", {})
+        emit_run_event("run-ts", "stage_transition", {})
         events = get_run_events("run-ts")
         assert "timestamp" in events[0]
         assert "T" in events[0]["timestamp"]
 
     def test_emit_run_event_includes_run_id(self):
-        emit_run_event("run-rid", "run_created", {})
+        emit_run_event("run-rid", "stage_transition", {})
         events = get_run_events("run-rid")
         assert events[0]["run_id"] == "run-rid"
 
@@ -395,11 +395,11 @@ class TestProgressStream:
         queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
         _event_subscribers["run-sub"].append(queue)
         try:
-            emit_run_event("run-sub", "run_created", {"status": "running"})
+            emit_run_event("run-sub", "stage_transition", {"status": "running"})
             assert not queue.empty()
             event = queue.get_nowait()
             assert event is not None
-            assert event["event_type"] == "run_created"
+            assert event["event_type"] == "stage_transition"
             assert event["run_id"] == "run-sub"
         finally:
             _event_subscribers["run-sub"].remove(queue)

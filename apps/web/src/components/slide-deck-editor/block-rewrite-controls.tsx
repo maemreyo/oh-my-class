@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { SlideDeckBlock } from "@oh-my-class/schemas";
 import { Button } from "@/components/ui/button";
-import { apiClient } from "@/lib/api-client";
+import { ApiError, apiClient } from "@/lib/api-client";
+import { getSlideDeckFailureCopy } from "./failure-copy";
 import { AiBlockRewriteConfirmModal } from "./ai-block-rewrite-confirm-modal";
 
 /**
@@ -36,6 +37,21 @@ export function resolveRewriteSuggestionPayload(
 ): { readonly preset: string } | { readonly instruction: string } {
 	const trimmedFreeform = freeform.trim();
 	return trimmedFreeform ? { instruction: trimmedFreeform } : { preset };
+}
+
+/** SDE-10: never surfaces the raw `ApiError` message (backend `detail` +
+ * request-id) to a teacher -- a 403 (feature flag off) or 429 (per-teacher
+ * AI-rewrite rate limit) maps to pre-written copy via `failure-copy.ts`'s
+ * shared table, same as SDH-11's failure-banner pattern elsewhere in the
+ * editor. Any other error keeps the existing generic fallback. */
+export function rewriteSuggestionErrorMessage(err: unknown): string {
+	if (err instanceof ApiError && err.status === 403) {
+		return getSlideDeckFailureCopy("slide_deck_ai_rewrite_disabled").message;
+	}
+	if (err instanceof ApiError && err.status === 429) {
+		return getSlideDeckFailureCopy("ai_rewrite_rate_limited").message;
+	}
+	return "Could not generate a rewrite suggestion.";
 }
 
 export function BlockRewriteControls({
@@ -74,7 +90,7 @@ export function BlockRewriteControls({
 			);
 			setCandidate(result);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Could not generate a rewrite suggestion.");
+			setError(rewriteSuggestionErrorMessage(err));
 		} finally {
 			setLoading(false);
 		}
@@ -128,7 +144,17 @@ export function BlockRewriteControls({
 						setOpen(false);
 						setFreeform("");
 					}}
-					onCancel={() => setCandidate(null)}
+					onCancel={() => {
+						setCandidate(null);
+						// SDE-11: observability-only ping -- rejecting a suggestion never
+						// touches the deck, so this is the only backend call on Cancel.
+						// Fire-and-forget: never block/interrupt the teacher on this.
+						if (snapshotId) {
+							void apiClient
+								.post(`/teaching-packs/runs/${runId}/snapshots/${snapshotId}/blocks/${block.block_id}/rewrite-suggestion/cancelled`)
+								.catch(() => {});
+						}
+					}}
 				/>
 			) : null}
 		</div>

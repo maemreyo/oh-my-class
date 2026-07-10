@@ -57,22 +57,25 @@
 - 14 routers registered with prefixes
 
 ### routers/ (23 files)
-| Router | Prefix | Key Routes |
-|--------|--------|-----------|
-| `teaching_pack_runs` | `/teaching-packs` | CRUD: create, resume, request-revision, get, list |
-| `teaching_pack_stream` | `/teaching-packs` | SSE: `/runs/{id}/status` |
-| `teaching_pack_lifecycle` | `/teaching-packs` | cancel, soft-delete, restore |
-| `teaching_pack_previews` | `/teaching-packs` | snapshot preview, block edit, AI rewrite, translate, version history |
-| `unit_runs` | `/teaching-packs` | get unit view, approve-all, spawn-anyway, export |
-| `exports` | `/teaching-packs` | export records, staleness check |
-| `release_evidence` | `/teaching-packs` | release evidence audit |
-| `teaching_session_live` | `/teaching-sessions` | SSE, slide advance, branch selection, student responses |
-| `auth_router` | `/auth` | login (JWT), /me |
-| `notifications` | `/notifications` | teacher notifications + admin recovery |
-| `webhooks` | `/webhook` | Telegram, Zalo, notify, frontend error |
-| `media_assets` | `/media-assets` | upload, list, retrieve, AI alt text |
-| `ops` | `/ops` | SLO metrics snapshot |
-| `runs` | `/run` | Legacy (decommissioned: POST returns 410) |
+| Router | Prefix | Key Routes | Notes |
+|--------|--------|-----------|-------|
+| `teaching_pack_runs` | `/teaching-packs` | CRUD: create, resume, request-revision, get, list | Includes `stream_router` and `lifecycle_router` as sub-routers (lines 59-64) |
+| `teaching_pack_stream` | `/teaching-packs` | SSE: `/runs/{id}/status` | Included by teaching_pack_runs |
+| `teaching_pack_lifecycle` | `/teaching-packs` | cancel, soft-delete, restore | Included by teaching_pack_runs |
+| `teaching_pack_previews` | `/teaching-packs` | snapshot preview, block edit, AI rewrite, translate, version history | |
+| `unit_runs` | `/teaching-packs` | get unit view, approve-all, spawn-anyway, export | |
+| `exports` | `/teaching-packs` | export records, staleness check | |
+| `release_evidence` | `/teaching-packs` | release evidence audit | |
+| `teaching_session_live` | `/teaching-sessions` | SSE, slide advance, branch selection, student responses | |
+| `auth_router` | `/auth` | login (JWT), /me | |
+| `notifications` | `/notifications` | teacher notifications + admin recovery | |
+| `webhooks` | `/webhook` | Telegram, Zalo, notify, frontend error | |
+| `media_assets` | `/media-assets` | upload, list, retrieve, AI alt text | |
+| `ops` | `/ops` | SLO metrics snapshot | |
+| `runs` | `/run` | Legacy (decommissioned: POST returns 410) | |
+| `artifacts` | `/run` | Legacy artifact retrieval | |
+| `snapshots` | `/run` | Legacy snapshot creation (`POST /{run_id}/snapshots`) | |
+| `approvals` | `/run` | Legacy approval gates (decommissioned, returns 410) | |
 
 ### auth/ (6 files)
 - JWT-based via PyJWT: `JWTMiddleware` validates Bearer token, `get_current_user`/`require_teacher`/`require_admin` FastAPI DI

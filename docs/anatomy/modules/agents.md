@@ -19,17 +19,17 @@
 
 ### teaching_pack/ (42 files) — The Authoritative Pipeline
 
-- `graph.py` — `build_teaching_pack_graph()`: wires 10+ stage nodes with conditional edges (triage, artifact fan-out, quality routing, compliance gate, teacher approval)
-- `stages.py` — `TeachingPackStage` (StrEnum, 15 values): `SETUP_CONTRACT`, `TRIAGE`, `PREPLANNING_SEARCH`, `PLANNING_BLUEPRINT`, `POST_BLUEPRINT_RESEARCH`, `ARTIFACT_WORKFLOW`, `RENDER_QUALITY`, `COMPLIANCE_GATE`, `TEACHER_APPROVAL`, `EXPORT_FINALIZE` (plus unit-mode stages)
-- `nodes.py` — `make_stage_node()` factory dispatching to 10+ handler functions; all routing functions for conditional edges
+- `graph.py` — `build_teaching_pack_graph()`: wires stage nodes with conditional edges. Feature-flagged: 10 stages default, 12 with component strategist. Conditional routes: `route_after_triage` → `unit_planning` or `preplanning_search`; `route_after_teacher_approval` → `artifact_workflow` or `export_finalize` (with scoped rejection logic); `route_after_compliance_gate` → `teacher_approval` or `artifact_workflow`; `route_after_render_quality` → `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, `teacher_approval`, or `compliance_gate`
+- `stages.py` — `StageEnum` (StrEnum, 15 values): `SETUP_CONTRACT`, `TRIAGE`, `UNIT_PLANNING`, `UNIT_APPROVAL`, `UNIT_PREP`, `PREPLANNING_SEARCH`, `PLANNING_BLUEPRINT`, `PROVISIONAL_COMPONENT_STRATEGY`, `POST_BLUEPRINT_RESEARCH`, `FINALIZE_COMPONENT_STRATEGY`, `ARTIFACT_WORKFLOW`, `RENDER_QUALITY`, `COMPLIANCE_GATE`, `TEACHER_APPROVAL`, `EXPORT_FINALIZE`. Two presets: `TEACHING_PACK_STAGES` (10 default) and `TEACHING_PACK_STAGES_WITH_COMPONENT_STRATEGY` (12, adds `PROVISIONAL_COMPONENT_STRATEGY` and `FINALIZE_COMPONENT_STRATEGY`). Note: `UNIT_PLANNING`/`UNIT_APPROVAL`/`UNIT_PREP` are NOT in either preset tuple — they are added conditionally by `build_teaching_pack_graph()` based on triage routing.
+- `nodes.py` — `make_stage_node()` factory dispatching to handler functions; `TeachingPackState` TypedDict (~55 fields); all routing functions for conditional edges including `_unit_approval()`, `route_after_triage()`, `route_after_teacher_approval()` (checks `component_strategy_plan`, `is_scoped_teacher_action`, `has_scoped_section_edit`, `_scoped_reactions`), `route_after_compliance_gate()`
 - `ports.py` — 8 Protocol interfaces (`RunStore`, `QualityGate`, `ArtifactRenderer`, `LLMTransport`, etc.) decoupling the graph from infrastructure
 - `config.py` — `TeachingPackConfig` (pydantic-settings): parallelism, timeouts, max attempts
 - `triage.py` — Heuristic + LLM single-lesson vs multi-session unit routing
 - `compliance.py` — `compliance_gate_state()`: deterministic hard-block checks (answer-key, PII, HTML)
 - `quality.py` — `quality_issues()`: schema validation, placeholder detection, answer-key separation, pack coherence
-- `quality_routing.py` — Recovery routing based on issue type (factual → research, alignment → replan)
+- `quality_routing.py` — `route_after_render_quality()`: routes by issue type; `quality_recovery_route()` maps `factual_uncertainty` → `post_blueprint_research`, `not_aligned_with_objectives`/`vietnamese_difficulty` → `planning_blueprint`, default → `artifact_workflow`
 - `quality_runtime.py` — `render_quality()`: orchestrates Layer 1-4 quality checks
-- `artifact_fanout.py` — Parallel artifact generation via LangGraph `Send` (3 waves)
+- `artifact_fanout.py` — Parallel artifact generation via LangGraph `Send` with wave-based dependency ordering (`_DEPENDENCIES`, `_WAVES`)
 - `exporters.py` — `ExporterRegistry`: HTML/GIFT/H5P/QTI/Anki/PPTX dispatch
 - `snapshots.py` — `build_snapshot()`: renders artifacts to standalone HTML (teacher + student views)
 - `store.py` — PostgresStore factory for cross-run memory with TTL

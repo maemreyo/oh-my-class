@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from common.contracts.lesson_sequence import LessonSequence
+from common.contracts.artifact_document import ArtifactDocument
 
 
 GENERATED_DIR = Path("common/schemas/src/generated")
@@ -27,3 +28,14 @@ def test_generated_zod_schemas_include_topic_decomposition_contracts() -> None:
     # ordering, so adding a future mode does not re-break this stale-prone assertion.
     for mode in ("generate_pack", "diagnose_then_generate", "plan_unit", "vocabulary_batch"):
         assert f'"{mode}"' in run_contract
+
+
+def test_generated_zod_schemas_include_artifact_document_contracts() -> None:
+    artifact_document = GENERATED_DIR.joinpath("artifact_document.ts").read_text()
+    answer_set = GENERATED_DIR.joinpath("answer_set.ts").read_text()
+
+    for field_name in ArtifactDocument.model_json_schema()["properties"]:
+        assert f'"{field_name}"' in artifact_document
+
+    assert "ArtifactDocumentSchema" in artifact_document
+    assert "AnswerSetSchema" in answer_set

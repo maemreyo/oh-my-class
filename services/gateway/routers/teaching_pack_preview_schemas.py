@@ -76,6 +76,13 @@ class SlideDeckBlockRewriteSuggestionRequest(BaseModel):
     instruction: str | None = Field(default=None, max_length=500)
 
 
+class SlideDeckBlockRewriteCancelledResponse(BaseModel):
+    """SDE-11: ack for the observability-only "rewrite suggestion cancelled"
+    ping -- SDE-08's confirmation modal has no other backend call on Cancel."""
+
+    acknowledged: bool = True
+
+
 class SlideDeckBlockRewriteSuggestionResponse(BaseModel):
     block_id: str
     before: str

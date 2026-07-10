@@ -27,18 +27,25 @@ type ObservabilityEventType = Literal[
     "hard_block_violation",
     "escalate",
     "cost_accrued",
-    "run_created",
     "run_failed",
     "interrupt",
     "step",
-    "step_started",
-    "step_completed",
-    "step_failed",
     "llm_call_started",
     "llm_call_completed",
     "llm_call_failed",
     "breaker_tripped",
     "component_strategy",
+    # SDE-11: lightweight editor success observability (ADR-047 decision 15).
+    # No dashboard reads these -- they're persisted the same way as any other
+    # observability event (`TeachingPackRunStore.write_observability_event`,
+    # called directly from the gateway's slide-deck-editor request handlers,
+    # not via the in-memory `publish_event`/drain path those handlers never
+    # run through) for a manual query 4-6 weeks post-launch.
+    "slide_deck_edited_within_24h",
+    "slide_deck_ai_rewrite_suggested",
+    "slide_deck_ai_rewrite_accepted",
+    "slide_deck_ai_rewrite_cancelled",
+    "slide_deck_editor_return_usage",
 ]
 
 
@@ -65,7 +72,7 @@ class ObservabilityEvent(BaseModel):
 _event_store: dict[str, list[JsonObject]] = defaultdict(list)
 _event_subscribers: dict[str, list[asyncio.Queue[JsonObject | None]]] = defaultdict(list)
 
-_TERMINAL_EVENTS = {"step_completed", "run_failed", "interrupt", "step_failed"}
+_TERMINAL_EVENTS = {"run_failed", "interrupt"}
 _OBSERVABILITY_FIELDS = {"event_id", "event_type", "run_id", "timestamp", "teacher_id", "sequence"}
 
 

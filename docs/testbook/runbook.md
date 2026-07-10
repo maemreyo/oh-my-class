@@ -348,11 +348,158 @@ Run real_llm tests explicitly: `uv run pytest -m real_llm`. They are **never** r
 
 ---
 
+## Slide Deck Production Hardening — Acceptance & Release Evidence (SDH-08)
+
+> Governing decisions: `docs/adr/043-slide-deck-display-preferences-and-projections.md` (display preferences,
+> surfaces, print/chrome boundaries) and `docs/adr/044-slide-deck-real-llm-acceptance-harness.md` (real-LLM
+> acceptance standard). Full SDH issue set: `gh issue list --search "[SDH-"` (#84–#95 at time of writing).
+
+### Guards vs. acceptance — read this first
+
+Every deterministic/fixture/mock test in this repo (Tiers 1–3 above, the native slide deck release gate,
+renderer/vitest/Playwright visual-smoke) is a **technical guard**. Guards catch regressions fast and run in
+CI. Per ADR-044, guards are **not acceptance evidence** — a fixture pass can never be reported as proof the
+slide-deck feature is done. The only acceptance evidence is a real run of the harness below, against a real
+gateway, real Postgres, and a real 9router LLM, with real run/snapshot IDs to show for it.
+
+### Official real-LLM acceptance command
+
+```bash
+# Preferred: standalone script (same exit-code contract, forwards pytest's own)
+uv run python scripts/slide_deck_acceptance_harness.py
+
+# Equivalent direct invocation
+uv run pytest -q services/gateway/tests/test_slide_deck_acceptance_harness.py -k "not test_harness_script"
+```
+
+Marked `@pytest.mark.real_llm` — excluded from `make test` and per-commit CI, same tier as the other
+real-LLM suites above.
+
+**Required environment (all optional, sane dev-stack defaults shown):**
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `SDH07_DATABASE_URL` | `postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class` | Async Postgres URL the harness drives the real app/worker against |
+| `OMC_9ROUTER_BASE_URL` | `http://127.0.0.1:20228` | Real LLM gateway base URL |
+| `OMC_9ROUTER_MODEL` | `4omc` | Model under test; recorded in the evidence bundle's `endpoint_metadata` |
+| `SDH07_TEACHER_USERNAME` | `teacher1` | Login identity driven through the real `/auth/login` route (no separate JWT env — the harness logs in for real and never persists the resulting token to disk) |
+| `SDH07_RUN_TIMEOUT_SECONDS` | `900` | Max wall-clock time per scenario run before it's classified `infra_fail` |
+| `SDH07_EVIDENCE_DIR` | `.scratch/slide-deck-acceptance/artifacts` | Where the evidence bundle and per-scenario exported HTML land |
+
+**Prerequisites:** Postgres reachable and migrated to head (`cd services/gateway && uv run alembic upgrade
+head`), a live 9router at `OMC_9ROUTER_BASE_URL` serving `4omc`. If either is unreachable the harness
+**skips** (does not silently pass) via its `client` fixture. Browser QA additionally shells out to the real
+Playwright install at `apps/web` (`playwright.acceptance.config.ts`); if browsers aren't installed there,
+that is recorded honestly as an `infra_fail`-classified `browser_qa` entry, not faked as a pass.
+
+### The three acceptance scenarios
+
+| Scenario | Prompt shape | Locale/subject probe |
+|---|---|---|
+| `grade5_esl_vocabulary` | Grade 5 ESL food-vocabulary deck with a market-ordering practice activity | English, `food\|fruit\|vegetable\|market\|order` must appear |
+| `grade5_math_worked_example` | Grade 5 equivalent-fractions deck, one worked example + independent practice | English, `fraction` must appear |
+| `vietnamese_classroom_deck` | Vietnamese-language water-cycle deck with an example and short practice | Vietnamese, `nước\|tuần hoàn\|mưa\|water\|cycle` must appear |
+
+Each scenario is driven end to end through the real gateway HTTP surface (`/teaching-packs/run`, gate
+`resume`, snapshot fetch) — not a fixture. **"Passing" means, for a single scenario:**
+
+1. The run reaches `completed` (not `failed`/timed-out) within `SDH07_RUN_TIMEOUT_SECONDS`.
+2. A `slide_deck` snapshot is persisted; run ID and snapshot ID are recorded.
+3. Deck shape passes: ≥6 slides, required pedagogical spine present (SDH-06's `evaluate_deck_shape`),
+   purpose/density check passes, and the scenario's content-probe regex matches somewhere in the deck (proves
+   the content is actually about the prompt, not generic filler).
+4. Quality/leak-safety passes: `standalone_valid`, no external asset URLs, no answer-key language and no raw
+   prompt fragments in `student_rendered_html` (SDH-02's `validate_teacher_only_separation`).
+5. Standalone HTML is exported to `SDH07_EVIDENCE_DIR/exports/`, then browser-QA'd for real (Playwright):
+   next/prev navigation, no horizontal overflow at 375px, print-media shows all slides, print-mode DOM state
+   reflects the selected print settings.
+6. A structured-recovery pass (one scenario reused) exercises the real `/request-revision` route and asserts
+   the resulting snapshot's content hash actually changed — proving scoped repair, not a blind full retry.
+
+Failures are classified into exactly one of the 7 ADR-044 categories: `generation_sparse`, `quality_fail`,
+`leakage`, `export_render_fail`, `browser_nav_fail`, `print_fail`, `infra_fail`.
+
+### Evidence bundle
+
+Written once per full run to `SDH07_EVIDENCE_DIR/sdh-07-evidence.json` (default
+`.scratch/slide-deck-acceptance/artifacts/sdh-07-evidence.json`), schema
+`oh-my-class.slide_deck_acceptance.evidence.v1`. Contains `endpoint_metadata` (gateway mode, LLM base URL,
+model, DB host — never a credential or JWT; the harness itself asserts `"eyJ" not in serialized` before
+writing), and one `scenarios[]` entry per scenario with `run_id`, `snapshot_id`, `final_status`,
+`gates_driven`, `checks` (the deck-shape/quality/leak booleans above), `export_path`, `browser_qa`, and
+`outcome`/`failure_category`/`failure_reason` when failed. Exported student HTML lives alongside it under
+`exports/`. As of 2026-07-10 this schema does not yet carry effective display-preferences/projection-surface
+lineage or structured-recovery-attempt detail — SDH-10 (open, not yet implemented) extends the schema with
+that; treat the fields above as current, not final.
+
+### Release-evidence citation format
+
+A release/implementation report may **not** claim the slide-deck feature done from guard tests alone. For
+each of the 3 real scenarios it must cite, inline (not paste the raw bundle):
+
+- run ID
+- snapshot ID
+- export path
+- quality/pass result (deck-shape + leak-safety + browser QA outcome)
+- evidence bundle path (`.scratch/slide-deck-acceptance/artifacts/sdh-07-evidence.json` or wherever
+  `SDH07_EVIDENCE_DIR` points)
+
+If the harness is unavailable, skipped, or any scenario fails, the report must say so plainly and must not
+be represented as release-ready. **Current state:** the evidence bundle on disk as of 2026-07-10 shows all 3
+scenarios failing (`quality_fail` on the ESL run's terminal status, `browser_nav_fail`/`infra_fail` on the
+other two's browser QA step) — SDH-07 (#90) is deliberately left open pending one more clean run; do not cite
+that bundle as a passing release gate until a clean 3-for-3 run replaces it.
+
+### Release checklist
+
+Beyond the real-LLM acceptance run above, a slide-deck release additionally needs:
+
+- [ ] **Student-safe projection** — student/presentation HTML has no teacher notes, answer keys, hidden
+      answer JSON, or scrapeable teacher-only fields (SDH-02 `validate_teacher_only_separation`; also
+      asserted live by the acceptance harness).
+- [ ] **Chrome policy** — no persistent "Generated by oh-my-class" branding on student/presentation surfaces;
+      teacher/review surfaces may show provenance (ADR-043 decision 6).
+- [ ] **Print layout** — paged grid (`slidesPerPage: 1\|2\|4\|6`) and continuous layouts both show the full
+      deck, not just the active slide; print stays independent of on-screen navigation state (ADR-043
+      decisions 1, 7).
+- [ ] **Border fidelity** — print mode avoids transform scaling, opacity-only borders, filters, shadows, and
+      nested rounded-border owners that blur corners (ADR-043 decisions 8–9; SDH-05).
+- [ ] **Accessibility** — semantic headings, labeled controls, visible focus, full keyboard navigation, no
+      focus traps, `prefers-reduced-motion` respected, no color-only meaning (ADR-043 decision 12).
+- [ ] **Real browser QA** — actual exported HTML opened in a real browser: slide navigation, mobile
+      readability at 375px (no overflow), print-media rendering — this is the harness's own browser_qa step
+      above, not a substitute manual pass.
+
+The existing native slide-deck release gate ("Native slide deck release gate" above) is a fast guard covering
+most of this deterministically; treat it as a pre-check, not a replacement for the real-LLM run.
+
+### Scope note: what is *not* v1 (and a correction to ADR-043)
+
+- **Native PDF export is not in v1.** No PDF exporter exists in `ExporterRegistry`
+  (`packages/agents/teaching_pack/exporters.py`) or the renderer's export pool. Browser print-to-PDF of the
+  `print` surface is the only PDF path, and it is a projection, not a first-class export format.
+- **Teacher-notes print is not in v1.** Print projection (ADR-043 decision 7) covers paged/continuous student
+  slide layouts only; printing teacher notes/speaker notes onto the physical print surface is explicitly
+  listed as future work (ADR-043 decision 7 note, decision 10).
+- **Correction:** ADR-043 (written 2026-07-07, still status `Proposed`) lists "native PDF, and PPTX" together
+  as deferred future work (decision 7 and the Consequences section). That line is **stale** for PPTX: SDX-05
+  (#65, closed 2026-07-09) shipped real `.pptx` export via `ExporterRegistry`
+  (`packages/agents/teaching_pack/exporters.py`, `packages/renderer/src/exporters/pptx/index.ts`), verified by
+  `packages/renderer/__tests__/exporters/pptx.test.ts` and the architecture-manifest sync test. **PPTX export
+  is shipped and in v1; only native PDF export and teacher-notes print remain deferred.** Do not restate
+  ADR-043's PPTX line verbatim in future docs — it should be corrected there too, but that edit is out of
+  scope for this docs-only slice (ADR text is a historical decision record; this runbook is the place that
+  must reflect current shipped reality).
+
+---
+
 ## Related Documents
 
 - `docs/system/TESTING.md` — concept-level: test layers A/B/C, per-agent contracts
 - `docs/system/testing-harness.md` — tiers policy, fixture rules, fake-LLM policy
 - `docs/adr/031-full-output-test-matrix.md` — full output test matrix ADR
+- `docs/adr/043-slide-deck-display-preferences-and-projections.md` — display preferences, surfaces, print/chrome ADR
+- `docs/adr/044-slide-deck-real-llm-acceptance-harness.md` — real-LLM acceptance standard ADR
 - `docs/plans/full-system-test-plan-2026-06-25.md` — test plan
 
 ---

@@ -5,7 +5,18 @@ rather than defining their own. This is the single source of truth for data shap
 """
 
 from common.contracts.answer_key import AnswerKeyContent, AnswerKeyMetadata, AnswerKeySection
+from common.contracts.answer_set import AnswerEntry, AnswerSet
 from common.contracts.artifact import ArtifactContent, Flashcard, FlashcardDeckData, TeachingPack
+from common.contracts.artifact_document import (
+    ArtifactDocument,
+    AssessmentDocument,
+    AssessmentOption,
+    AssessmentQuestion,
+    BlockDocument,
+    DocumentSection,
+    HeadingBlock,
+    ParagraphBlock,
+)
 from common.contracts.artifact_workflow import ArtifactGenerationInput, ArtifactWorkflowState
 from common.contracts.auth import Role, Token, User
 from common.contracts.class_profile import ClassProfile, LearningPreferences
@@ -167,6 +178,14 @@ from common.contracts.vocabulary_cluster_workflow import (
 
 __all__ = [
     "ArtifactContent",
+    "ArtifactDocument",
+    "AssessmentDocument",
+    "AssessmentOption",
+    "AssessmentQuestion",
+    "AnswerEntry",
+    "AnswerSet",
+    "BlockDocument",
+    "DocumentSection",
     "Flashcard",
     "FlashcardDeckData",
     "ArtifactGenerationInput",
@@ -212,6 +231,7 @@ __all__ = [
     "FeedbackEventType",
     "FeedbackSource",
     "HealingDecision",
+    "HeadingBlock",
     "HealingStrategy",
     "InverseThinkingCase",
     "InverseThinkingPack",
@@ -312,5 +332,6 @@ __all__ = [
     "VocabularyClusterWorkflow",
     "ArtifactWorkflowHandoff",
     "PlannerHandoff",
+    "ParagraphBlock",
     "ResearcherHandoff",
 ]

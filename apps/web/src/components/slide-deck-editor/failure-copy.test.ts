@@ -52,6 +52,21 @@ describe("getSlideDeckFailureCopy — recovery scope distinguishes scoped repair
 	});
 });
 
+describe("getSlideDeckFailureCopy — SDE-10 editor availability (feature gate + rate limit)", () => {
+	it("a disabled AI-rewrite flag maps to a scoped, teacher-safe message", () => {
+		const copy = getSlideDeckFailureCopy("slide_deck_ai_rewrite_disabled");
+		expect(copy.category).toBe("editor_availability");
+		expect(copy.recoveryScope).toBe("scoped");
+	});
+
+	it("an exceeded rate limit maps to try_again_later, not a raw 429", () => {
+		const copy = getSlideDeckFailureCopy("ai_rewrite_rate_limited");
+		expect(copy.category).toBe("editor_availability");
+		expect(copy.nextAction).toBe("try_again_later");
+		expect(copy.message).not.toContain("429");
+	});
+});
+
 describe("getSlideDeckFailureCopy — unrecognized codes never leak raw text", () => {
 	it("falls back to a generic safe message for an unknown code", () => {
 		const copy = getSlideDeckFailureCopy("some_future_code_nobody_mapped_yet");
@@ -113,6 +128,9 @@ describe("getSlideDeckFailureCopy — full failure table never leaks raw technic
 		"tool_unavailable",
 		"breaker_tripped",
 		"infrastructure_error",
+		"slide_deck_ai_rewrite_disabled",
+		"slide_deck_editor_disabled",
+		"ai_rewrite_rate_limited",
 	];
 
 	it.each(allCodes)("%s message contains no raw technical markers", (code) => {

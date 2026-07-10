@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market, Slide Deck — oh-my-class</title>
+  <style>
+    :root {
+      --color-bg: #FBF4F0;
+      --color-bg-card: #FFFFFF;
+      --color-bg-deep: #F3E2D9;
+      --color-text: #22273A;
+      --color-text-soft: #5C6275;
+      --color-text-faint: #8B8FA0;
+      --color-border: #E8D8CD;
+      --color-border-soft: #EFE3DA;
+      --color-accent: #B23A2E;
+      --color-accent-deep: #8C2C22;
+      --color-accent-tint: rgba(178,58,46,0.07);
+      --color-success: #2E6F4E;
+      --color-warning: #A8782E;
+      --color-error: #B23A2E;
+      --color-category-a: #33508F;
+      --color-category-a-tint: rgba(51,80,143,0.08);
+      --color-category-b: #B9762A;
+      --color-category-b-tint: rgba(185,118,42,0.09);
+      --color-category-c: #3C7A4E;
+      --color-category-c-tint: rgba(60,122,78,0.08);
+      --color-category-d: #1F7A8C;
+      --color-category-d-tint: rgba(31,122,140,0.08);
+      --color-category-e: #8A4F7E;
+      --color-category-e-tint: rgba(138,79,126,0.08);
+      --font-heading: 'Spectral', Georgia, 'Times New Roman', serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace;    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+      margin: 0;
+      padding: 0;
+      background: var(--color-bg, #fafafa);
+      color: var(--color-text, #1a1a2e);
+      line-height: 1.65;
+    }
+
+    .omc-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 2px solid var(--color-border, #e2e8f0);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    .omc-header .brand { font-weight: 700; color: var(--color-accent, #b23a2e); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .omc-header .title { font-size: 1.35rem; font-weight: 600; margin: 0; flex: 1; }
+    .omc-header .meta { color: var(--color-text-soft, #5c6275); font-size: 0.875rem; white-space: nowrap; }
+
+    main { padding: 0 1.5rem 2rem; max-width: 900px; margin: 0 auto; }
+
+    .timed-quiz-summary {
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-bg-card, #fff);
+      color: var(--color-text, #1a1a2e);
+    }
+    .time-badge {
+      display: inline-block;
+      margin: 0.5rem 0;
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.875rem;
+      color: var(--color-text-soft, #5c6275);
+      background: var(--color-bg, #fafafa);
+    }
+
+    .omc-footer {
+      margin-top: 2rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--color-border, #e2e8f0);
+      color: var(--color-text-faint, #8b8fa0);
+      font-size: 0.8rem;
+    }
+
+    /* WCAG 2.2 AA — ensure focused/targeted elements are not obscured by sticky header */
+    :target, :focus { scroll-margin-top: 4rem; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+      .omc-footer { border-top: 1px solid #ccc; }
+    }
+    
+    main { max-width: 1100px; }
+    .slide-deck { display: grid; gap: 1rem; }
+    .slide-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; margin-bottom: 1rem; }
+    .surface-badge, .slide-progress { width: fit-content; margin: 0; border: 1px solid var(--color-border); border-radius: 999px; padding: .25rem .7rem; color: var(--color-text-soft); background: var(--color-bg-card); font-size: .85rem; }
+    .slide-progress { font-variant-numeric: tabular-nums; }
+    .slide-print, .slide-nav-button { min-height: 2.5rem; border: 1px solid var(--color-border); border-radius: .5rem; padding: .45rem .9rem; background: var(--color-bg-card); color: var(--color-text); font: inherit; cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out; }
+    .slide-print:hover, .slide-nav-button:hover { background: var(--color-accent-tint); }
+    .slide-print:active, .slide-nav-button:active { transform: translateY(1px); }
+    .slide-print:focus-visible, .slide-nav-button:focus-visible, .slide-print-mode-option:focus-visible, .slide-toggle-button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+    .slide-nav-button:disabled { cursor: not-allowed; opacity: .45; transform: none; }
+    .slide-nav-button--primary { background: var(--color-accent); color: var(--color-bg-card); border-color: var(--color-accent); }
+    .slide-nav-button--primary:hover { background: var(--color-accent-deep); color: var(--color-bg-card); }
+    .slide-print-mode { display: inline-flex; align-items: center; gap: .35rem; font-size: .85rem; color: var(--color-text-soft); }
+    .slide-print-mode-caption { margin-right: .1rem; }
+    .slide-print-mode-option, .slide-toggle-button { min-height: 2.5rem; min-width: 2.5rem; border: 1px solid var(--color-border); border-radius: .5rem; padding: .35rem .6rem; background: var(--color-bg-card); color: var(--color-text); font: inherit; cursor: pointer; }
+    .slide-print-mode-option--active, .slide-toggle-button[aria-checked="true"] { background: var(--color-accent); color: var(--color-bg-card); border-color: var(--color-accent); }
+    .slide-toggle-button { font-size: .85rem; }
+    .slide-viewport { min-height: min(68vh, 42rem); display: grid; align-items: stretch; }
+    .slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: none; }
+    .slide-frame { display: grid; }
+    .slide-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; }
+    .slide-list > li { list-style: none; }
+    .slide-card { border: 1px solid var(--color-border); border-radius: 1rem; background: linear-gradient(135deg, var(--color-bg-card), var(--color-accent-tint)); padding: clamp(1rem, 3vw, 2rem); break-inside: avoid; min-height: min(68vh, 42rem); display: grid; align-content: center; }
+    .slide-deck--print .slide-card, .slide-deck--teacher .slide-card { min-height: auto; align-content: start; }
+    .slide-kicker { margin: 0 0 .35rem; color: var(--color-text-soft); font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
+    .slide-card h2 { margin: 0 0 1rem; font-family: var(--font-heading); font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.1; }
+    .slide-blocks { display: grid; gap: .8rem; }
+    .slide-block { border-radius: .8rem; background: rgba(255,255,255,.72); border: 1px solid var(--color-border-soft); padding: .9rem; }
+    .slide-block h3, .slide-block p { margin: 0; }
+    .media-placeholder { min-height: 7rem; border-radius: .75rem; background: radial-gradient(circle at 30% 25%, var(--color-accent-tint), transparent 45%), linear-gradient(135deg, var(--color-bg-deep), var(--color-bg-card)); border: 1px dashed var(--color-border); }
+    .slide-interactions { margin-top: 1rem; display: grid; gap: .8rem; }
+    .slide-interaction { border-left: .25rem solid var(--color-accent); padding: .2rem 0 .2rem .85rem; }
+    .slide-interaction h3 { margin: 0 0 .5rem; font-size: 1rem; }
+    .slide-interaction ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .45rem; }
+    .slide-interaction li { display: flex; align-items: center; gap: .5rem; }
+    .option-marker { display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.6rem; border-radius: 999px; background: var(--color-accent); color: var(--color-bg-card); font-weight: 700; }
+    .answer-marker { margin-left: .5rem; border-radius: 999px; padding: .1rem .45rem; background: var(--color-bg-card); color: var(--color-success); border: 1px solid var(--color-border-soft); font-size: .75rem; }
+    .teacher-panel { margin-top: 1rem; border: 1px solid var(--color-border); border-radius: .8rem; padding: .9rem; background: var(--color-bg-card); }
+    .teacher-panel h3 { margin: 0 0 .5rem; }
+    .answer-guidance, .teacher-rationale { color: var(--color-text); font-weight: 600; }
+    .differentiation-guidance { margin-top: .6rem; }
+    .differentiation-guidance h4 { margin: 0 0 .35rem; font-size: .9rem; }
+    .differentiation-guidance ul { margin: 0; padding: 0 0 0 1.1rem; display: grid; gap: .3rem; font-size: .9rem; }
+    .differentiation-level { text-transform: capitalize; }
+    .related-refs { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .25rem; font-size: .85rem; color: var(--color-text-soft); }
+    .related-ref-context { font-family: var(--font-mono, monospace); }
+    .lesson-flow-summary { margin-bottom: 1rem; border: 1px solid var(--color-border); border-radius: .8rem; padding: .9rem 1rem; background: var(--color-bg-card); }
+    .lesson-flow-summary h3 { margin: 0 0 .5rem; }
+    .lesson-flow-list { margin: 0; padding: 0 0 0 1.2rem; display: grid; gap: .25rem; font-size: .9rem; }
+    .lesson-flow-role { text-transform: capitalize; color: var(--color-text-soft); }
+    .lesson-flow-minutes { font-variant-numeric: tabular-nums; color: var(--color-text-soft); }
+    .lesson-flow-total { margin: .6rem 0 0; font-weight: 600; }
+    .no-js-fallback, .network-warning { color: var(--color-text-soft); font-size: .9rem; margin: .5rem 0 0; }
+    .network-warning { border-left: .2rem solid var(--color-warning); padding-left: .65rem; }
+    .slide-controls { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }
+    /* SDH-03: "preview as student" hides teacher-only panels on-screen AND in
+       print while active -- so a teacher can rehearse or hand-print a clean
+       copy from their own teacher-guide file without a separate export. */
+    .slide-deck--student-preview [data-teacher-only] { display: none !important; }
+    @media (max-width: 640px) {
+      main { padding-inline: 1rem; }
+      .slide-toolbar, .slide-controls { align-items: stretch; flex-direction: column; }
+      .slide-nav-button, .slide-print, .slide-print-mode, .slide-toggle-button { width: 100%; justify-content: center; }
+    }
+    @media (prefers-reduced-motion: reduce) { .slide-print, .slide-nav-button { transition: none; } }
+    @media print {
+      main { max-width: none; }
+      .no-print, .slide-toolbar, .slide-controls { display: none !important; }
+      /* SDH-05: defeat the screen-only "one active slide at a time" rule --
+         every slide renders in print regardless of which one is active on
+         screen. Same selector/specificity as the screen rule (main pageCSS
+         block above), so source order (this rule is later) decides the tie
+         in print's favor; the plain .slide-frame rule below is a
+         lower-specificity belt-and-suspenders backstop. */
+      .slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: block; }
+      .slide-frame { display: block; }
+      .slide-viewport { min-height: 0; display: grid; gap: .5rem; grid-template-columns: 1fr; }
+      .slide-list { grid-template-columns: 1fr; }
+      /* SDH-05: real 16:9 layout sizing (aspect-ratio), not transform-based
+         scaling -- and a single border owner (.slide-card alone) with a
+         solid crisp border/radius and no shadow/filter/transform, which used
+         to blur print corners. overflow: hidden keeps content from
+         spilling past the rounded corners it now strictly owns. */
+      .slide-card {
+        min-height: auto;
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        box-shadow: none;
+        filter: none;
+        transform: none;
+        border: 1px solid var(--color-border);
+        border-radius: .5rem;
+        background: var(--color-bg-card);
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .surface-badge { display: none; }
+      /* SDH-03/05: print-mode classes (set server-side from
+         displayPreferences and client-side from the toolbar radiogroup)
+         choose 1/2/4/6-up paged layout or a continuous, unpaginated flow.
+         Mirrored per-selector (not comma-joined) for both the interactive
+         presentation player's .slide-viewport/.slide-frame markup and
+         the dedicated print surface's .slide-list/li markup, which
+         share the same grid mechanics but different container/item tags. */
+      .print-mode--paged-1 .slide-card { page-break-after: always; page-break-inside: avoid; }
+      .print-mode--paged-2 .slide-viewport { grid-template-columns: repeat(2, 1fr); }
+      .print-mode--paged-2 .slide-list { grid-template-columns: repeat(2, 1fr); }
+      .print-mode--paged-4 .slide-viewport { grid-template-columns: repeat(2, 1fr); }
+      .print-mode--paged-4 .slide-list { grid-template-columns: repeat(2, 1fr); }
+      .print-mode--paged-6 .slide-viewport { grid-template-columns: repeat(3, 1fr); }
+      .print-mode--paged-6 .slide-list { grid-template-columns: repeat(3, 1fr); }
+      .print-mode--paged-2 .slide-frame:nth-of-type(2n) .slide-card,
+      .print-mode--paged-2 .slide-list > li:nth-of-type(2n) .slide-card,
+      .print-mode--paged-4 .slide-frame:nth-of-type(4n) .slide-card,
+      .print-mode--paged-4 .slide-list > li:nth-of-type(4n) .slide-card,
+      .print-mode--paged-6 .slide-frame:nth-of-type(6n) .slide-card,
+      .print-mode--paged-6 .slide-list > li:nth-of-type(6n) .slide-card { page-break-after: always; }
+      .print-mode--paged-2 .slide-card, .print-mode--paged-4 .slide-card, .print-mode--paged-6 .slide-card { font-size: .85em; }
+      .print-mode--continuous .slide-card { page-break-after: auto; }
+      .print-mode--continuous .slide-viewport, .print-mode--continuous .slide-list { grid-template-columns: 1fr; }
+      /* SDH-03: "footer in print" checkbox (teacher/review only) toggles the
+         branding footer for the printed page only -- on-screen visibility is
+         untouched, since teacher/review always show it live regardless. */
+      .omc-hide-footer-print .omc-footer { display: none; }
+    }
+    </style>
+  <script>
+(() => {
+  const VALID_PRINT_MODES = ['print-mode--paged-1', 'print-mode--paged-2', 'print-mode--paged-4', 'print-mode--paged-6', 'print-mode--continuous'];
+
+  function isValidPrintMode(value) {
+    return VALID_PRINT_MODES.indexOf(value) !== -1;
+  }
+
+  function printModeFromLayout(layout, perPage) {
+    if (layout === 'continuous') return 'print-mode--continuous';
+    const allowed = [1, 2, 4, 6];
+    const n = allowed.indexOf(perPage) !== -1 ? perPage : 1;
+    return 'print-mode--paged-' + n;
+  }
+
+  // SDH-03: '?print=paged&slidesPerPage=4' or '#surface=student' -- read
+  // from both query and hash so either style of link works, and never throw
+  // on a malformed value (falls through to the server-resolved default).
+  function readLocationOverrides() {
+    const overrides = {};
+    try {
+      const query = new URLSearchParams(window.location.search);
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const printParam = query.get('print') || hash.get('print');
+      const perPageParam = query.get('slidesPerPage') || hash.get('slidesPerPage');
+      if (printParam === 'paged' || printParam === 'continuous') {
+        overrides.printMode = printModeFromLayout(printParam, perPageParam ? parseInt(perPageParam, 10) : 1);
+      }
+      const surfaceParam = query.get('surface') || hash.get('surface');
+      if (surfaceParam === 'student' || surfaceParam === 'teacher') overrides.surfacePreview = surfaceParam;
+    } catch (locationError) {
+      // ponytail: a malformed hash/query degrades to the server-resolved default, never throws.
+    }
+    return overrides;
+  }
+
+  function storageKey(deckId) {
+    return 'omc:slide-deck:' + deckId + ':prefs';
+  }
+
+  function readStoredPrefs(deckId) {
+    try {
+      const raw = window.localStorage.getItem(storageKey(deckId));
+      return raw ? JSON.parse(raw) : null;
+    } catch (storageError) {
+      return null; // file://, private mode, or storage disabled -- degrade gracefully.
+    }
+  }
+
+  function writeStoredPrefs(deckId, prefs) {
+    try {
+      window.localStorage.setItem(storageKey(deckId), JSON.stringify(prefs));
+    } catch (storageError) {
+      // ponytail: storage unavailable -- in-memory state still works for this page view.
+    }
+  }
+
+  function initializeSlideDecks() {
+  const decks = document.querySelectorAll('[data-slide-deck]');
+  const locationOverrides = readLocationOverrides();
+  decks.forEach((deck) => {
+    const deckId = deck.getAttribute('data-deck-id') || 'unknown-deck';
+    const isTeacherDeck = deck.dataset.surface === 'teacher' || deck.dataset.surface === 'review';
+    const slides = Array.from(deck.querySelectorAll('[data-slide]'));
+    const progress = deck.querySelector('[data-slide-progress]');
+    const previous = deck.querySelector('[data-slide-prev]');
+    const next = deck.querySelector('[data-slide-next]');
+    const print = deck.querySelector('[data-slide-print]');
+    const printModeButtons = Array.from(deck.querySelectorAll('[data-slide-print-mode]'));
+    const chromeToggle = deck.querySelector('[data-slide-chrome-toggle]');
+    const previewToggle = deck.querySelector('[data-slide-teacher-preview]');
+    let current = 0;
+    // ponytail: only a teacher/review render ever reads/writes localStorage
+    // -- a student-clean export's persisted state must never exist (SDH-03).
+    const stored = isTeacherDeck ? readStoredPrefs(deckId) : null;
+
+    function persist() {
+      if (!isTeacherDeck) return;
+      writeStoredPrefs(deckId, {
+        printMode: VALID_PRINT_MODES.filter((cls) => deck.classList.contains(cls))[0] || 'print-mode--paged-1',
+        studentPreview: deck.classList.contains('slide-deck--student-preview'),
+        chromeVisible: !document.body.classList.contains('omc-hide-footer-print'),
+      });
+    }
+
+    function applyPrintMode(mode) {
+      VALID_PRINT_MODES.forEach((cls) => deck.classList.remove(cls));
+      deck.classList.add(mode);
+      printModeButtons.forEach((button) => {
+        const active = button.getAttribute('data-print-mode-value') === mode;
+        button.setAttribute('aria-checked', String(active));
+        button.classList.toggle('slide-print-mode-option--active', active);
+      });
+    }
+
+    function applyStudentPreview(active) {
+      deck.classList.toggle('slide-deck--student-preview', active);
+      if (previewToggle) previewToggle.setAttribute('aria-checked', String(active));
+    }
+
+    function applyChromeVisible(visible) {
+      document.body.classList.toggle('omc-hide-footer-print', !visible);
+      if (chromeToggle) chromeToggle.setAttribute('aria-checked', String(visible));
+    }
+
+    const initialPrintMode = locationOverrides.printMode
+      || (stored && isValidPrintMode(stored.printMode) ? stored.printMode : null);
+    if (initialPrintMode) applyPrintMode(initialPrintMode);
+
+    if (isTeacherDeck) {
+      const initialPreview = locationOverrides.surfacePreview
+        ? locationOverrides.surfacePreview === 'student'
+        : !!(stored && stored.studentPreview);
+      applyStudentPreview(initialPreview);
+      applyChromeVisible(!(stored && stored.chromeVisible === false));
+    }
+
+    function show(index) {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+      slides.forEach((slide, slideIndex) => {
+        const active = slideIndex === current;
+        slide.setAttribute('aria-hidden', String(!active));
+      });
+      if (progress) progress.textContent = 'Slide ' + (current + 1) + ' / ' + slides.length;
+      if (previous) previous.disabled = current === 0;
+      if (next) next.disabled = current === slides.length - 1;
+    }
+
+    previous?.addEventListener('click', () => show(current - 1));
+    next?.addEventListener('click', () => show(current + 1));
+    print?.addEventListener('click', () => window.print());
+    printModeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const mode = button.getAttribute('data-print-mode-value');
+        if (isValidPrintMode(mode)) { applyPrintMode(mode); persist(); }
+      });
+    });
+    previewToggle?.addEventListener('click', () => {
+      applyStudentPreview(previewToggle.getAttribute('aria-checked') !== 'true');
+      persist();
+    });
+    chromeToggle?.addEventListener('click', () => {
+      applyChromeVisible(chromeToggle.getAttribute('aria-checked') !== 'true');
+      persist();
+    });
+
+    // Arrow/space/home/end drive slide navigation, but not while a toolbar
+    // button (print-mode radio, chrome/preview switch, prev/next/print
+    // itself) has focus -- otherwise Space on a focused toggle button would
+    // also flip slides underneath it, and this deck's own nav buttons would
+    // double-fire on every click.
+    document.addEventListener('keydown', (event) => {
+      if (event.target instanceof Element && event.target.closest('.slide-toolbar')) return;
+      if (event.key === 'ArrowRight' || event.key === ' ') show(current + 1);
+      if (event.key === 'ArrowLeft') show(current - 1);
+      if (event.key === 'Home') show(0);
+      if (event.key === 'End') show(slides.length - 1);
+    });
+    deck.classList.add('slide-deck--js-ready');
+    show(0);
+  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSlideDecks, { once: true });
+  } else {
+    initializeSlideDecks();
+  }
+})();</script></head>
+<body class="artifact artifact--slide_deck">
+  <header class="omc-header">
+            <h1 class="title">Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market, Slide Deck</h1>
+      </header>
+
+  <main id="main-content">
+    <section class="slide-deck slide-deck--presentation slide-deck--student print-mode--paged-1" data-slide-deck data-deck-id="slide-deck-69333d7c-027a-4f53-a31f-0f5ab4249153" data-surface="student" aria-label="Student presentation: Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market, Slide Deck"><header class="slide-toolbar no-print"><p class="surface-badge">Student presentation</p><p class="slide-progress" data-slide-progress aria-live="polite">Slide 1 / 6</p><div class="slide-print-mode" role="radiogroup" aria-label="Print layout: slides per page or continuous"><span class="slide-print-mode-caption">Print</span><button type="button" role="radio" aria-checked="true" aria-label="1 slide per page" data-slide-print-mode data-print-mode-value="print-mode--paged-1" class="slide-print-mode-option slide-print-mode-option--active">1</button><button type="button" role="radio" aria-checked="false" aria-label="2 slides per page" data-slide-print-mode data-print-mode-value="print-mode--paged-2" class="slide-print-mode-option">2</button><button type="button" role="radio" aria-checked="false" aria-label="4 slides per page" data-slide-print-mode data-print-mode-value="print-mode--paged-4" class="slide-print-mode-option">4</button><button type="button" role="radio" aria-checked="false" aria-label="6 slides per page" data-slide-print-mode data-print-mode-value="print-mode--paged-6" class="slide-print-mode-option">6</button><button type="button" role="radio" aria-checked="false" aria-label="Continuous, no page breaks" data-slide-print-mode data-print-mode-value="print-mode--continuous" class="slide-print-mode-option">∞</button></div><button class="slide-print" type="button" data-slide-print>Print</button></header><div class="slide-viewport"><section class="slide-frame" data-slide data-slide-index="0" aria-hidden="false"><article class="slide-card slide-card--title" aria-labelledby="slide-title-0"><p class="slide-kicker">Slide 1 · all at once</p><h2 id="slide-title-0">Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market,</h2><div class="slide-blocks"><section class="slide-block slide-block--heading"><h3>Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market,</h3></section><section class="slide-block slide-block--image"><figure><div class="media-placeholder" role="img" aria-label="A colorful market stall with a variety of fresh fruits, such as apples and bananas, and vegetables, like carrots and tomatoes, displayed in baskets, with a vendor handing a basket to a student."></div><figcaption>Explain Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market, with a visual model.</figcaption></figure></section></div></article></section><section class="slide-frame" data-slide data-slide-index="1" aria-hidden="true"><article class="slide-card slide-card--content" aria-labelledby="slide-title-1"><p class="slide-kicker">Slide 2 · progressive</p><h2 id="slide-title-1">Learning Goal</h2><div class="slide-blocks"><section class="slide-block slide-block--callout"><p>Explain Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market, with a visual model.</p></section><section class="slide-block slide-block--paragraph"><p>By the end, students can explain and use Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market, in a short classroom response.</p></section></div></article></section><section class="slide-frame" data-slide data-slide-index="2" aria-hidden="true"><article class="slide-card slide-card--content" aria-labelledby="slide-title-2"><p class="slide-kicker">Slide 3 · progressive</p><h2 id="slide-title-2">Key Vocabulary</h2><div class="slide-blocks"><section class="slide-block slide-block--paragraph"><p>Fruits: apple, banana, orange, strawberry. Vegetables: carrot, tomato, broccoli, potato.</p></section><section class="slide-block slide-block--callout"><p>Practice saying the words with your teacher: apple, banana, carrot, tomato. Look at the pictures and repeat.</p></section></div></article></section><section class="slide-frame" data-slide data-slide-index="3" aria-hidden="true"><article class="slide-card slide-card--activity" aria-labelledby="slide-title-3"><p class="slide-kicker">Slide 4 · teacher controlled</p><h2 id="slide-title-3">Worked Example</h2><div class="slide-blocks"><section class="slide-block slide-block--paragraph"><p>Example sentences for ordering at a market: 'I would like an apple, please.' and 'Can I have a carrot?'</p></section><section class="slide-block slide-block--callout"><p>Use this sentence when ordering: 'I would like ______, please.' or 'Can I have ______?'</p></section></div></article></section><section class="slide-frame" data-slide data-slide-index="4" aria-hidden="true"><article class="slide-card slide-card--question" aria-labelledby="slide-title-4"><p class="slide-kicker">Slide 5 · progressive</p><h2 id="slide-title-4">Guided Practice</h2><div class="slide-blocks"><section class="slide-block slide-block--interaction_prompt"><p>What do you say when you want to buy a vegetable at the market? Write a sentence using the sentence stem.</p></section></div><div class="slide-interactions"><section class="slide-interaction slide-interaction--quick_check" aria-label="Quick check question" aria-labelledby="interaction-4-0"><h3 id="interaction-4-0">What do you say when you want to buy a vegetable at the market? Write a sentence using the sentence stem.</h3><ul><li><span class="option-marker">A</span>apple</li><li><span class="option-marker">B</span>carrot</li><li><span class="option-marker">C</span>banana</li></ul><p class="no-js-fallback">No-JS fallback: Students answer on paper or by hand signal; no response is stored.</p></section></div></article></section><section class="slide-frame" data-slide data-slide-index="5" aria-hidden="true"><article class="slide-card slide-card--summary" aria-labelledby="slide-title-5"><p class="slide-kicker">Slide 6 · all at once</p><h2 id="slide-title-5">Exit Ticket</h2><div class="slide-blocks"><section class="slide-block slide-block--interaction_prompt"><p>Write one sentence using a fruit or vegetable word you learned today, like 'I like apples.'</p></section><section class="slide-block slide-block--paragraph"><p>Teacher collects responses to decide whether to review, practice, or extend next lesson.</p></section></div></article></section></div><nav class="slide-controls no-print" aria-label="Slide navigation"><button class="slide-nav-button" type="button" data-slide-prev>Previous</button><button class="slide-nav-button slide-nav-button--primary" type="button" data-slide-next>Next</button></nav></section>  </main>
+
+  </body>
+</html>

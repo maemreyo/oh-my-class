@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
@@ -14,6 +14,8 @@ from common.contracts.slide_deck import (
     SlideDeckDisplayPreferences,
     resolve_slide_deck_display_preferences,
 )
+from packages.agents.events import ObservabilityEvent, ObservabilityEventType
+from packages.agents.config.features import features
 from packages.agents.slide_deck_engine import UnsupportedTranslationLanguageError, translate_slide_deck
 from packages.agents.slide_deck_engine.phases.block_rewrite_llm import (
     BlockRewriteInstructionError,
@@ -30,6 +32,10 @@ from services.gateway.artifact_snapshot_service import produce_artifact_snapshot
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import Role, User  # noqa: TC001
 from services.gateway.models import RunStatus
+from services.gateway.slide_deck_ai_rewrite_rate_limit import (
+    SlideDeckAiRewriteRateLimitState,
+    allow_ai_rewrite_attempt,
+)
 from services.gateway.teaching_pack_db import get_teaching_pack_session
 from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_snapshot_store import (
@@ -50,6 +56,7 @@ from services.gateway.routers.teaching_pack_preview_schemas import (
     RestoreArtifactVersionResponse,
     SlideDeckBlockEditRequest,
     SlideDeckBlockEditResponse,
+    SlideDeckBlockRewriteCancelledResponse,
     SlideDeckBlockRewriteSuggestionRequest,
     SlideDeckBlockRewriteSuggestionResponse,
     SnapshotApprovalRequest,
@@ -286,6 +293,16 @@ async def edit_slide_deck_snapshot_block(
     (resolved fresh via `get_latest_snapshot`), never to a stale copy of the
     URL's own snapshot.
     """
+    # SDE-10: manual editing (SDE-03/04) needs only the editor flag. Applying
+    # an AI rewrite reuses this same endpoint with authority="ai_assisted_edit"
+    # (see `suggest_slide_deck_block_rewrite`'s docstring) -- that path is
+    # additionally gated on the AI-rewrite flag, since you can't apply an
+    # AI rewrite if AI rewrite itself is disabled, even with the editor on.
+    if not features().slide_deck_editor_v1:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="slide_deck_editor_disabled")
+    if payload.authority == "ai_assisted_edit" and not features().slide_deck_ai_rewrite_v1:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="slide_deck_ai_rewrite_disabled")
+
     typed_run_id = RunId(run_id)
     await _require_run_access(session, typed_run_id, current_user)
     snapshot_store = TeachingPackSnapshotStore(session)
@@ -344,6 +361,54 @@ async def edit_slide_deck_snapshot_block(
         visibility=TeachingPackEventVisibility.TEACHER,
         payload=edit_event_payload if isinstance(edit_event_payload, dict) else {},
     ))
+
+    # SDE-11: `head` (fetched above) is the artifact's state *before* this
+    # edit, so comparing it against the earliest snapshot answers both
+    # "was this edited within 24h of generation" (the earliest snapshot's
+    # own `created_at` IS the generation timestamp) and "has this teacher
+    # returned to an already-edited deck" (a prior edit already moved the
+    # head away from that first snapshot) without any new table.
+    earliest_snapshot_id = await snapshot_store.get_earliest_snapshot_id(typed_run_id, head.artifact_id)
+    if earliest_snapshot_id is not None:
+        generation_snapshot = await snapshot_store.get_snapshot(typed_run_id, earliest_snapshot_id)
+        if generation_snapshot is not None:
+            # `created_at` round-trips through Postgres as naive UTC (same
+            # assumption `create_scoped_edit_snapshot`'s `approved_at` makes
+            # just above) -- build "now" to match: UTC, then stripped back
+            # to naive if the stored value has no tzinfo.
+            generated_at = generation_snapshot.created_at
+            now = datetime.now(UTC) if generated_at.tzinfo is not None else datetime.now(UTC).replace(tzinfo=None)
+            if now - generated_at <= _SLIDE_DECK_EDITED_WITHIN_WINDOW:
+                await _emit_slide_deck_observability_event(
+                    session,
+                    run_id=typed_run_id,
+                    teacher_id=current_user.user_id,
+                    event_type="slide_deck_edited_within_24h",
+                    payload={"artifact_id": head.artifact_id, "block_id": block_id},
+                )
+            # ponytail: "return usage" measured as "this save lands on top of
+            # an edit that already existed" rather than a separate route-open
+            # ping -- the editor's only DB-backed load-time signal today is
+            # this same endpoint's own history; add a dedicated open-time
+            # ping if product wants opens-without-edits counted too.
+            if earliest_snapshot_id != head.snapshot_id:
+                await _emit_slide_deck_observability_event(
+                    session,
+                    run_id=typed_run_id,
+                    teacher_id=current_user.user_id,
+                    event_type="slide_deck_editor_return_usage",
+                    payload={"artifact_id": head.artifact_id},
+                )
+
+    if payload.authority == "ai_assisted_edit":
+        await _emit_slide_deck_observability_event(
+            session,
+            run_id=typed_run_id,
+            teacher_id=current_user.user_id,
+            event_type="slide_deck_ai_rewrite_accepted",
+            payload={"artifact_id": head.artifact_id, "block_id": block_id},
+        )
+
     await session.commit()
     return SlideDeckBlockEditResponse(
         run_id=run_id,
@@ -368,6 +433,7 @@ async def suggest_slide_deck_block_rewrite(
     block_id: str,
     payload: SlideDeckBlockRewriteSuggestionRequest,
     current_user: Annotated[User, Depends(require_teacher)],
+    request: Request,
     session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> SlideDeckBlockRewriteSuggestionResponse:
     """SDE-08: AI-assisted rewrite CANDIDATE for one block -- returns a
@@ -380,7 +446,19 @@ async def suggest_slide_deck_block_rewrite(
     does (`get_latest_snapshot`, not the URL's own possibly-stale
     `snapshot_id`), so the candidate is always generated against the latest
     body, not a stale copy.
+
+    SDE-10: gated behind BOTH the editor and AI-rewrite flags (this is the
+    live-LLM-call path, so it's additionally rate-limited per teacher --
+    a call-count cap, not a dollar-cost cap; see `ops-observability/004` for
+    that separate, out-of-scope concern).
     """
+    if not (features().slide_deck_editor_v1 and features().slide_deck_ai_rewrite_v1):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="slide_deck_ai_rewrite_disabled")
+    if not allow_ai_rewrite_attempt(
+        _ai_rewrite_rate_limit_state(request), teacher_id=current_user.user_id, now=datetime.now(UTC),
+    ):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="ai_rewrite_rate_limited")
+
     typed_run_id = RunId(run_id)
     await _require_run_access(session, typed_run_id, current_user)
     snapshot_store = TeachingPackSnapshotStore(session)
@@ -420,7 +498,54 @@ async def suggest_slide_deck_block_rewrite(
     if rewritten is None:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="rewrite_unavailable")
 
+    await _emit_slide_deck_observability_event(
+        session,
+        run_id=typed_run_id,
+        teacher_id=current_user.user_id,
+        event_type="slide_deck_ai_rewrite_suggested",
+        payload={"artifact_id": head.artifact_id, "block_id": block_id},
+    )
+    await session.commit()
+
     return SlideDeckBlockRewriteSuggestionResponse(block_id=block_id, before=current_body, after=rewritten)
+
+
+@router.post(
+    "/run/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}/rewrite-suggestion/cancelled",
+    response_model=SlideDeckBlockRewriteCancelledResponse,
+)
+@router.post(
+    "/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}/rewrite-suggestion/cancelled",
+    response_model=SlideDeckBlockRewriteCancelledResponse,
+)
+async def cancel_slide_deck_block_rewrite_suggestion(
+    run_id: str,
+    snapshot_id: str,
+    block_id: str,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> SlideDeckBlockRewriteCancelledResponse:
+    """SDE-11: observability-only ping for the "Cancel" button in SDE-08's
+    `AiBlockRewriteConfirmModal` -- there was no backend call on that path
+    before this (rejecting a suggestion never touched the deck), so this is
+    the only real, reachable emitter for `slide_deck_ai_rewrite_cancelled`.
+    Persists nothing about the deck itself, no request body.
+    """
+    typed_run_id = RunId(run_id)
+    await _require_run_access(session, typed_run_id, current_user)
+    snapshot = await TeachingPackSnapshotStore(session).get_snapshot(typed_run_id, snapshot_id)
+    if snapshot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="snapshot_not_found")
+
+    await _emit_slide_deck_observability_event(
+        session,
+        run_id=typed_run_id,
+        teacher_id=current_user.user_id,
+        event_type="slide_deck_ai_rewrite_cancelled",
+        payload={"artifact_id": snapshot.artifact_id, "block_id": block_id},
+    )
+    await session.commit()
+    return SlideDeckBlockRewriteCancelledResponse()
 
 
 _CONTENT_VERSION_EVENT_NAME = "teaching_pack.content_version.created"
@@ -691,6 +816,46 @@ def _translated_artifact_content(deck: SlideDeckData) -> JsonObject:
 async def _require_run_access(session: AsyncSession, run_id: RunId, user: User) -> RunStatus:
     run = await get_run_with_ownership(run_id, user, session)
     return run.status
+
+
+_SLIDE_DECK_EDITED_WITHIN_WINDOW = timedelta(hours=24)
+
+
+async def _emit_slide_deck_observability_event(
+    session: AsyncSession,
+    *,
+    run_id: RunId,
+    teacher_id: str,
+    event_type: ObservabilityEventType,
+    payload: JsonObject,
+) -> None:
+    """SDE-11: persists straight into the durable event log via the same
+    `write_observability_event` call the worker uses to drain pipeline events
+    (`teaching_pack_worker.py::_persist_observability_events`) -- these
+    editor-triggered events fire long after that drain has already run for
+    this run_id, so going through the in-memory `publish_event`/`emit_run_event`
+    store instead would never get persisted or queried. No student PII: only
+    artifact/block ids, the teacher id, and counts/timestamps.
+    """
+    await TeachingPackRunStore(session).write_observability_event(
+        ObservabilityEvent(
+            run_id=str(run_id),
+            event_type=event_type,
+            teacher_id=teacher_id,
+            payload=payload,
+        ),
+        visibility=TeachingPackEventVisibility.INTERNAL,
+    )
+
+
+def _ai_rewrite_rate_limit_state(request: Request) -> SlideDeckAiRewriteRateLimitState:
+    """One process-wide rate-limit state, mirrors `webhooks.py::_processing_state`."""
+    state = getattr(request.app.state, "slide_deck_ai_rewrite_rate_limit_state", None)
+    if isinstance(state, SlideDeckAiRewriteRateLimitState):
+        return state
+    state = SlideDeckAiRewriteRateLimitState()
+    request.app.state.slide_deck_ai_rewrite_rate_limit_state = state
+    return state
 
 
 def _metadata_response(snapshot: ArtifactSnapshotRead) -> RenderedSnapshotMetadataResponse:

@@ -5,33 +5,9 @@
     "llm_gateway_base_url": "http://127.0.0.1:20228",
     "model": "4omc"
   },
-  "generated_at": "2026-07-10T05:51:51.006814+00:00",
+  "generated_at": "2026-07-10T10:19:46.760870+00:00",
   "scenarios": [
     {
-      "failure_category": "quality_fail",
-      "failure_reason": "[grade5_esl_vocabulary] infra_fail or quality_fail: run ended in failed, not completed\nassert 'failed' == 'completed'\n  \n  - completed\n  + failed",
-      "final_status": "failed",
-      "gates_driven": [
-        {
-          "action": "approve",
-          "gate_name": "contract_confirmation"
-        }
-      ],
-      "name": "grade5_esl_vocabulary",
-      "outcome": "failed",
-      "raw_request": "Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market, with a quick practice activity at the end.",
-      "run_id": "71dd357c-63d9-4fe4-8659-244108aa026c"
-    },
-    {
-      "browser_qa": {
-        "failure_category": "browser_nav_fail",
-        "html_path": ".scratch/slide-deck-acceptance/artifacts/exports/grade5_math_worked_example.snap-2a2d8ad9fe53988f73b3aff0.student.html",
-        "passed": false,
-        "returncode": 1,
-        "scenario": "grade5_math_worked_example",
-        "stderr_tail": "",
-        "stdout_tail": "             \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-07-10T05:42:30.141Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"skipped\"\n                }\n              ],\n              \"id\": \"a1711169ef4d12893fdd-677f95037aa691a7caa3\",\n              \"file\": \"slide-deck-acceptance-harness.spec.ts\",\n              \"line\": 54,\n              \"column\": 3\n            },\n            {\n              \"title\": \"print settings apply: the deck's print-mode selection is reflected in the DOM\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"mobile\",\n                  \"projectName\": \"mobile\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": -1,\n                      \"parallelIndex\": -1,\n                      \"status\": \"skipped\",\n                      \"duration\": 0,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-07-10T05:42:30.141Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"skipped\"\n                }\n              ],\n              \"id\": \"a1711169ef4d12893fdd-c1120d009ab5a182d69e\",\n              \"file\": \"slide-deck-acceptance-harness.spec.ts\",\n              \"line\": 68,\n              \"column\": 3\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"errors\": [],\n  \"stats\": {\n    \"startTime\": \"2026-07-10T05:42:29.837Z\",\n    \"duration\": 316.267,\n    \"expected\": 0,\n    \"skipped\": 6,\n    \"unexpected\": 2,\n    \"flaky\": 0\n  }\n}\n"
-      },
       "checks": {
         "deck_shape_passed": true,
         "no_answer_key_leakage_in_student_html": true,
@@ -43,9 +19,15 @@
         "standalone_valid": true,
         "teacher_only_separation_passed": true
       },
-      "export_path": ".scratch/slide-deck-acceptance/artifacts/exports/grade5_math_worked_example.snap-2a2d8ad9fe53988f73b3aff0.student.html",
-      "failure_category": "infra_fail",
-      "failure_reason": "[grade5_math_worked_example] browser_nav_fail: browser QA failed\nassert False",
+      "display_preferences": {
+        "chrome": "hidden",
+        "print_layout": "paged",
+        "slides_per_page": 1,
+        "surface": "presentation"
+      },
+      "endpoint": "http://127.0.0.1:20228",
+      "failure_category": "export_render",
+      "failure_reason": "[grade5_esl_vocabulary] export_render: exported HTML is missing a lang=\"en\" chrome attribute\nassert None\n +  where None = <built-in method search of re.Pattern object at 0x118a6bac0>('<!DOCTYPE html>\\n<html lang=\"vi\">\\n<head>\\n  <meta charset=\"UTF-8\">\\n  <meta name=\"viewport\" content=\"width=device-wi...lide-nav-button--primary\" type=\"button\" data-slide-next>Next</button></nav></section>  </main>\\n\\n  </body>\\n</html>\\n')\n +    where <built-in method search of re.Pattern object at 0x118a6bac0> = re.compile('lang\\\\s*=\\\\s*\"en', re.IGNORECASE).search",
       "final_status": "completed",
       "gates_driven": [
         {
@@ -57,37 +39,42 @@
           "gate_name": "content_approval"
         }
       ],
+      "kind": "scenario_run",
+      "model": "4omc",
+      "name": "grade5_esl_vocabulary",
+      "outcome": "failed",
+      "projection_surface": "presentation",
+      "raw_request": "Put together a slide deck to teach my Grade 5 ESL class new food vocabulary -- fruits, vegetables, and simple sentences for ordering food at a market, with a quick practice activity at the end.",
+      "run_id": "1d5bb6e1-7401-4e28-91ad-89fcce66679a",
+      "snapshot_id": "snap-3d1f09a472895a5c506d810d"
+    },
+    {
+      "endpoint": "http://127.0.0.1:20228",
+      "failure_category": "quality_gate",
+      "failure_reason": "[grade5_math_worked_example] infrastructure or quality_gate: run ended in failed, not completed\nassert 'failed' == 'completed'\n  \n  - completed\n  + failed",
+      "final_status": "failed",
+      "gates_driven": [
+        {
+          "action": "approve",
+          "gate_name": "contract_confirmation"
+        },
+        {
+          "action": "approve",
+          "gate_name": "content_approval"
+        }
+      ],
+      "kind": "scenario_run",
+      "model": "4omc",
       "name": "grade5_math_worked_example",
       "outcome": "failed",
       "raw_request": "Build a Grade 5 math slide deck introducing equivalent fractions, with one fully worked example showing the steps and then a short independent practice set students can try on their own.",
-      "run_id": "a38c9d7a-d3e9-4e41-b434-29b0d5318754",
-      "snapshot_id": "snap-2a2d8ad9fe53988f73b3aff0"
+      "run_id": "d1630805-34f4-4e3a-aa39-d87935a6386b"
     },
     {
-      "browser_qa": {
-        "failure_category": "browser_nav_fail",
-        "html_path": ".scratch/slide-deck-acceptance/artifacts/exports/vietnamese_classroom_deck.snap-98ccfc1ffc5c123188ada045.student.html",
-        "passed": false,
-        "returncode": 1,
-        "scenario": "vietnamese_classroom_deck",
-        "stderr_tail": "",
-        "stdout_tail": "             \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-07-10T05:46:51.317Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"skipped\"\n                }\n              ],\n              \"id\": \"a1711169ef4d12893fdd-677f95037aa691a7caa3\",\n              \"file\": \"slide-deck-acceptance-harness.spec.ts\",\n              \"line\": 54,\n              \"column\": 3\n            },\n            {\n              \"title\": \"print settings apply: the deck's print-mode selection is reflected in the DOM\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"mobile\",\n                  \"projectName\": \"mobile\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": -1,\n                      \"parallelIndex\": -1,\n                      \"status\": \"skipped\",\n                      \"duration\": 0,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-07-10T05:46:51.317Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"skipped\"\n                }\n              ],\n              \"id\": \"a1711169ef4d12893fdd-c1120d009ab5a182d69e\",\n              \"file\": \"slide-deck-acceptance-harness.spec.ts\",\n              \"line\": 68,\n              \"column\": 3\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"errors\": [],\n  \"stats\": {\n    \"startTime\": \"2026-07-10T05:46:50.913Z\",\n    \"duration\": 423.751,\n    \"expected\": 0,\n    \"skipped\": 6,\n    \"unexpected\": 2,\n    \"flaky\": 0\n  }\n}\n"
-      },
-      "checks": {
-        "deck_shape_passed": true,
-        "no_answer_key_leakage_in_student_html": true,
-        "no_external_assets": true,
-        "no_raw_prompt_leakage": true,
-        "prompt_relevant_content_found": true,
-        "purpose_density_passed": true,
-        "slide_count": 6,
-        "standalone_valid": true,
-        "teacher_only_separation_passed": true
-      },
-      "export_path": ".scratch/slide-deck-acceptance/artifacts/exports/vietnamese_classroom_deck.snap-98ccfc1ffc5c123188ada045.student.html",
-      "failure_category": "infra_fail",
-      "failure_reason": "[vietnamese_classroom_deck] browser_nav_fail: browser QA failed\nassert False",
-      "final_status": "completed",
+      "endpoint": "http://127.0.0.1:20228",
+      "failure_category": "quality_gate",
+      "failure_reason": "[vietnamese_classroom_deck] infrastructure or quality_gate: run ended in failed, not completed\nassert 'failed' == 'completed'\n  \n  - completed\n  + failed",
+      "final_status": "failed",
       "gates_driven": [
         {
           "action": "approve",
@@ -102,11 +89,12 @@
           "gate_name": "content_approval"
         }
       ],
+      "kind": "scenario_run",
+      "model": "4omc",
       "name": "vietnamese_classroom_deck",
       "outcome": "failed",
       "raw_request": "So\u1ea1n m\u1ed9t b\u1ed9 slide b\u1eb1ng ti\u1ebfng Vi\u1ec7t cho h\u1ecdc sinh l\u1edbp 5 \u0111\u1ec3 d\u1ea1y v\u1ec1 v\u00f2ng tu\u1ea7n ho\u00e0n c\u1ee7a n\u01b0\u1edbc, c\u00f3 m\u1ed9t v\u00ed d\u1ee5 minh h\u1ecda v\u00e0 m\u1ed9t ho\u1ea1t \u0111\u1ed9ng th\u1ef1c h\u00e0nh ng\u1eafn \u1edf cu\u1ed1i b\u00e0i.",
-      "run_id": "9959fe24-9458-4e97-a8d4-3e755d0ea075",
-      "snapshot_id": "snap-98ccfc1ffc5c123188ada045"
+      "run_id": "3011386f-2100-47af-bf02-633d88db91c6"
     }
   ],
   "schema": "oh-my-class.slide_deck_acceptance.evidence.v1"

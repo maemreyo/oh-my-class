@@ -39,6 +39,35 @@ MODELS: dict[str, ModelConfig] = {
         "field_refs": {"artifacts": "ArtifactContent"},
         "external_field_refs": {},
     },
+    "common.contracts.artifact_document": {
+        "main_model": "ArtifactDocument",
+        "all_models": [
+            "ArtifactDocument",
+            "BlockDocument",
+            "DocumentSection",
+            "HeadingBlock",
+            "ParagraphBlock",
+            "AssessmentDocument",
+            "AssessmentQuestion",
+            "AssessmentOption",
+        ],
+        "output": "common/schemas/src/generated/artifact_document.ts",
+        "field_refs": {
+            "sections": "DocumentSection",
+            "blocks": "HeadingBlock",
+            "questions": "AssessmentQuestion",
+            "options": "AssessmentOption",
+            "entries": "AnswerEntry",
+        },
+        "external_field_refs": {},
+    },
+    "common.contracts.answer_set": {
+        "main_model": "AnswerSet",
+        "all_models": ["AnswerSet", "AnswerEntry"],
+        "output": "common/schemas/src/generated/answer_set.ts",
+        "field_refs": {"entries": "AnswerEntry"},
+        "external_field_refs": {},
+    },
     "common.contracts.slide_deck": {
         "main_model": "SlideDeckData",
         "all_models": [

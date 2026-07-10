@@ -36,6 +36,10 @@ export type SlideDeckFailureCategory =
 	| "export_render"
 	| "print"
 	| "infrastructure"
+	// SDE-10: AI-rewrite gated off (feature flag) or rate-limited -- neither
+	// is a content-quality problem, so it gets its own category rather than
+	// being force-fit into "infrastructure"/"quality_gate".
+	| "editor_availability"
 	| "unknown";
 
 export type SlideDeckFailureNextAction =
@@ -43,7 +47,10 @@ export type SlideDeckFailureNextAction =
 	| "revise_prompt"
 	| "inspect_teacher_notes"
 	| "retry_export"
-	| "contact_admin";
+	| "contact_admin"
+	// SDE-10: rate limit resets on its own after the configured window --
+	// distinct from "contact_admin" (nothing is broken, just wait).
+	| "try_again_later";
 
 export type SlideDeckFailureRecoveryScope = "scoped" | "full_regeneration";
 
@@ -279,6 +286,28 @@ const FAILURE_COPY: Readonly<Record<string, SlideDeckFailureCopy>> = {
 		category: "print",
 		message: "The printable handout for this deck couldn't be generated. Try exporting the print version again.",
 		nextAction: "retry_export",
+		recoveryScope: "scoped",
+	},
+
+	// -- editor availability (SDE-10: independent feature flags + per-teacher --
+	// -- AI-rewrite call-count rate limit; codes match the gateway's
+	// -- `HTTPException.detail` values in `teaching_pack_previews.py`) --
+	slide_deck_ai_rewrite_disabled: {
+		category: "editor_availability",
+		message: "AI rewrite isn't turned on for your account yet. You can still edit this block by hand.",
+		nextAction: "contact_admin",
+		recoveryScope: "scoped",
+	},
+	slide_deck_editor_disabled: {
+		category: "editor_availability",
+		message: "Editing isn't turned on for your account yet. Contact your administrator if you need it enabled.",
+		nextAction: "contact_admin",
+		recoveryScope: "scoped",
+	},
+	ai_rewrite_rate_limited: {
+		category: "editor_availability",
+		message: "You've reached the limit for AI rewrites in this period. Try again later, or edit this block by hand.",
+		nextAction: "try_again_later",
 		recoveryScope: "scoped",
 	},
 
