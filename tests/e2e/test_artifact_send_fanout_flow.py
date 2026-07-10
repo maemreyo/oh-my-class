@@ -4,10 +4,11 @@ import pytest
 
 from packages.agents.teaching_pack.graph import build_teaching_pack_graph
 from packages.agents.teaching_pack.nodes import TeachingPackState
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 def _artifact(artifact_type: str) -> dict[str, object]:
-    return {
+    artifact: dict[str, object] = {
         "artifact_id": f"{artifact_type}-1",
         "artifact_type": artifact_type,
         "theme": "default",
@@ -16,6 +17,19 @@ def _artifact(artifact_type: str) -> dict[str, object]:
         "metadata": {},
         "accessibility": {"language": "en"},
     }
+    if artifact_type in {"quiz", "drill"}:
+        artifact["sections"] = [{
+            "title": "Questions",
+            "components": [{
+                "type": "question_card",
+                "id": "quiz-1",
+                "text": "Which fraction equals one half?",
+                "options": {"A": "2/4", "B": "1/3"},
+                "answer": "A",
+                "explain": "Two fourths equals one half.",
+            }],
+        }]
+    return artifact
 
 
 def _start_state() -> TeachingPackState:
@@ -24,13 +38,13 @@ def _start_state() -> TeachingPackState:
         "contract": {"topic": "Fractions", "theme": "default"},
         "lesson_plan": {"topic": "Fractions"},
         "research_brief": {"sources": []},
-        "artifact_types": ["lesson", "quiz", "recap"],
+        "artifact_types": ["lesson", "worksheet", "quiz", "drill", "slide_deck"],
         "completed_stages": [
-            "setup_contract",
-            "triage",
-            "preplanning_search",
-            "planning_blueprint",
-            "post_blueprint_research",
+            StageEnum.SETUP_CONTRACT,
+            StageEnum.TRIAGE,
+            StageEnum.PREPLANNING_SEARCH,
+            StageEnum.PLANNING_BLUEPRINT,
+            StageEnum.POST_BLUEPRINT_RESEARCH,
         ],
     }
 
@@ -41,28 +55,38 @@ async def test_graph_generates_complete_pack_before_render_quality_by_default(
 ) -> None:
     calls: list[str] = []
 
-    async def fake_content_creator_node(state: dict[str, object]) -> dict[str, object]:
-        artifact_types = state["artifact_types"]
-        assert isinstance(artifact_types, list)
-        artifact_type = str(artifact_types[0])
-        calls.append(artifact_type)
-        return {"artifacts": [_artifact(artifact_type)]}
+    def fake_get_specialist(artifact_type: str):
+        def generate(_lesson_plan: dict[str, object], _research_brief: dict[str, object]) -> dict[str, object]:
+            calls.append(artifact_type)
+            return _artifact(artifact_type)
+
+        return generate
+
+    async def fake_slide_deck_artifact(payload: dict[str, object], _dependencies: list[dict[str, object]]) -> dict[str, object]:
+        calls.append(str(payload["artifact_type"]))
+        return _artifact("slide_deck")
 
     monkeypatch.delenv("OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1", raising=False)
     monkeypatch.setenv("TEACHING_PACK_DEFAULT_ARTIFACT_PARALLELISM", "3")
     monkeypatch.setattr(
-        "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
-        fake_content_creator_node,
+        "packages.agents.teaching_pack.generate_one_artifact.get_specialist",
+        fake_get_specialist,
+    )
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.generate_one_artifact._slide_deck_artifact",
+        fake_slide_deck_artifact,
     )
 
     graph = build_teaching_pack_graph(interrupt_before=["render_quality"])
     result = await graph.ainvoke(_start_state())
 
-    assert calls == ["lesson", "quiz", "recap"]
+    assert calls == ["lesson", "worksheet", "quiz", "drill", "slide_deck"]
     assert result["artifact_fanout_complete"] is True
-    assert [artifact["artifact_type"] for artifact in result["artifacts"]] == [
+    assert [reference["artifact_type"] for reference in result["artifact_references"]] == [
+        "drill",
         "lesson",
         "quiz",
-        "recap",
+        "slide_deck",
+        "worksheet",
     ]
     assert {state["status"] for state in result["artifact_workflow_states"]} == {"passed"}

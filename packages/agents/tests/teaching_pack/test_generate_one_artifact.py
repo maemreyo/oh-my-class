@@ -62,6 +62,7 @@ async def test_generation_without_store_returns_status_without_payload(monkeypat
         "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
         fake_content_creator_node,
     )
+    monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
 
     result = await generate_one_artifact(_payload("lesson"))
 
@@ -87,6 +88,7 @@ async def test_store_backed_generation_returns_reference_without_chunk(
         "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
         fake_content_creator_node,
     )
+    monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
 
     result = await generate_one_artifact(_payload("lesson"), InMemoryArtifactContentStore())
 
@@ -129,6 +131,7 @@ async def test_schema_mismatch_returns_failed_workflow_state(monkeypatch: pytest
         "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
         fake_content_creator_node,
     )
+    monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
 
     result = await generate_one_artifact(_payload("lesson"))
 
@@ -147,6 +150,7 @@ async def test_artifact_type_mismatch_returns_failed_workflow_state(monkeypatch:
         "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
         fake_content_creator_node,
     )
+    monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
 
     result = await generate_one_artifact(_payload("lesson"))
 
@@ -164,6 +168,7 @@ async def test_infrastructure_error_is_not_swallowed(monkeypatch: pytest.MonkeyP
         "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
         fake_content_creator_node,
     )
+    monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
 
     with pytest.raises(RuntimeError, match="provider unavailable"):
         await generate_one_artifact(_payload("lesson"))

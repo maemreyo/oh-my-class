@@ -13,7 +13,7 @@ REQUIRED_ARTIFACT_KEYS = {"artifact_type", "title", "sections"}
 
 _VALID_ARTIFACT_TYPES = frozenset({
     "lesson", "worksheet", "quiz", "drill", "recap", "infographic",
-    "answer_key", "roadmap",
+    "answer_key", "roadmap", "reading_passage", "exit_ticket",
 })
 
 

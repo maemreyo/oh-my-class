@@ -11,7 +11,7 @@ const quizQuestionSchema = z.object({
   id: z.string().min(1),
   prompt: z.string().min(1),
   options: z.array(quizOptionSchema).min(1),
-  answer: z.string().min(1),
+  answer: z.string().min(1).optional(),
   explain: z.string().optional(),
   timeMinutes: z.number().positive().optional(),
 });

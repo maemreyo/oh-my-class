@@ -13,6 +13,8 @@ ACTIVE_ARTIFACT_TYPES: Final[tuple[str, ...]] = (
     "flashcard_deck",
     "answer_key",
     "roadmap",
+    "reading_passage",
+    "exit_ticket",
 )
 
 COMPONENT_CONTRACT = """Use renderer component JSON only. No CSS classes, styles, raw HTML, or markdown.
@@ -42,6 +44,8 @@ ARTIFACT_RICHNESS = {
     "flashcard_deck": "Include at least 8 cards in sections[].cards with front/back/hint fields, grounded in the lesson objectives.",
     "answer_key": "Emit teacher_only answer sections only. Include keys for quiz, worksheet, and drill when available; no answers in student body text.",
     "roadmap": "Include a hero, sidebar, and at least 3 milestone sections that map the lesson sequence and practice path.",
+    "reading_passage": "Use a grounded passage, cite its source, and include comprehension questions with teacher-only answers.",
+    "exit_ticket": "Include exactly three concise objective-sampling questions with teacher-only answers.",
 }
 
 

@@ -12,7 +12,7 @@ def test_default_teaching_brief_uses_the_standard_pack_recipe() -> None:
         subject="math",
     )
 
-    assert brief.artifact_types == ["lesson", "worksheet", "quiz", "recap", "slide_deck"]
+    assert brief.artifact_types == ["lesson", "worksheet", "quiz", "drill", "slide_deck"]
     assert brief.export_formats == ["html"]
 
 

@@ -5,6 +5,7 @@ import pytest
 from packages.agents.teaching_pack.artifact_status import artifact_statuses_for_teacher
 from packages.agents.teaching_pack.graph import build_teaching_pack_graph
 from packages.agents.teaching_pack.nodes import TeachingPackState
+from packages.agents.teaching_pack.stages import StageEnum
 
 
 def _artifact(artifact_type: str) -> dict[str, object]:
@@ -27,11 +28,11 @@ def _start_state() -> TeachingPackState:
         "research_brief": {"sources": []},
         "artifact_types": ["lesson", "quiz", "recap"],
         "completed_stages": [
-            "setup_contract",
-            "triage",
-            "preplanning_search",
-            "planning_blueprint",
-            "post_blueprint_research",
+            StageEnum.SETUP_CONTRACT,
+            StageEnum.TRIAGE,
+            StageEnum.PREPLANNING_SEARCH,
+            StageEnum.PLANNING_BLUEPRINT,
+            StageEnum.POST_BLUEPRINT_RESEARCH,
         ],
     }
 
@@ -40,18 +41,18 @@ def _start_state() -> TeachingPackState:
 async def test_expected_branch_failure_becomes_safe_partial_status(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    async def fake_content_creator_node(state: dict[str, object]) -> dict[str, object]:
-        artifact_types = state["artifact_types"]
-        assert isinstance(artifact_types, list)
-        artifact_type = str(artifact_types[0])
-        if artifact_type == "quiz":
-            return {"artifacts": [{"artifact_type": "quiz", "title": "Invalid quiz"}]}
-        return {"artifacts": [_artifact(artifact_type)]}
+    def fake_get_specialist(artifact_type: str):
+        def generate(_lesson_plan: dict[str, object], _research_brief: dict[str, object]) -> dict[str, object]:
+            if artifact_type == "quiz":
+                return {"artifact_type": "quiz", "title": "Invalid quiz"}
+            return _artifact(artifact_type)
+
+        return generate
 
     monkeypatch.delenv("OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1", raising=False)
     monkeypatch.setattr(
-        "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
-        fake_content_creator_node,
+        "packages.agents.teaching_pack.generate_one_artifact.get_specialist",
+        fake_get_specialist,
     )
 
     graph = build_teaching_pack_graph(interrupt_before=["render_quality"])

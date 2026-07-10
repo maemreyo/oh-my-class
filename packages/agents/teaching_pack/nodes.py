@@ -870,7 +870,7 @@ def _artifact_types(contract: JsonObject) -> list[str]:
     values = contract.get("artifact_types")
     if isinstance(values, list) and values:
         return [str(value) for value in values]
-    return ["lesson", "worksheet", "quiz", "recap"]
+    return ["lesson", "worksheet", "quiz", "drill", "slide_deck"]
 
 
 def _artifact_types_for_generation(state: TeachingPackState, contract: JsonObject) -> list[str]:

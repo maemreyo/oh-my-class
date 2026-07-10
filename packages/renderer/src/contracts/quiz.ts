@@ -9,7 +9,7 @@ export interface MCQuestion {
   id: string;
   prompt: string;
   options: { label: string; text: string }[];
-  answer: string;
+  answer?: string;
   explain?: string;
   timeMinutes?: number;
 }

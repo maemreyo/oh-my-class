@@ -19,7 +19,7 @@ const CORE_ARTIFACTS: readonly { readonly value: TeachingBriefArtifactType; read
 	{ value: "lesson", label: "Lesson", detail: "Teacher flow and instruction." },
 	{ value: "worksheet", label: "Worksheet", detail: "Student practice." },
 	{ value: "quiz", label: "Quiz", detail: "Check for understanding." },
-	{ value: "recap", label: "Recap", detail: "End-of-class review." },
+	{ value: "drill", label: "Drill", detail: "Focused skills practice." },
 	{ value: "slide_deck", label: "Slides", detail: "Presentable teaching deck." },
 ];
 const EXPORTS: readonly TeachingBriefExportFormat[] = ["html", "gift", "h5p", "pptx"];

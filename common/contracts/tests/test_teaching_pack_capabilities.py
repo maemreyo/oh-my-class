@@ -45,7 +45,8 @@ def test_manifest_makes_current_pipeline_gaps_explicit() -> None:
     capabilities = {entry.artifact_type: entry for entry in manifest.artifacts}
     exports = {entry.export_format: entry for entry in manifest.exports}
 
-    assert capabilities["infographic"].status is CapabilityStatus.REJECTED
+    assert capabilities["infographic"].status is CapabilityStatus.DEGRADED
+    assert capabilities["slide_deck"].status is CapabilityStatus.DEGRADED
     assert capabilities["slide_deck"].specialist_adapter == "slide_deck_engine"
     assert capabilities["quiz"].requires_answer_set is True
     assert exports["qti"].status is CapabilityStatus.REJECTED

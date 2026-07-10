@@ -101,3 +101,27 @@ async def test_slide_deck_release_gate_pipeline_produces_approval_snapshots(stub
     assert snapshot_types == {"lesson", "slide_deck", "quiz"}
     assert quality["quality_scores"]["passed"] is True
     assert quality["quality_scores"]["snapshot_count"] == 3
+
+
+@pytest.mark.anyio
+async def test_slide_deck_generation_bypasses_content_creator_node(monkeypatch: pytest.MonkeyPatch, stub_section_prose) -> None:
+    _ = stub_section_prose
+
+    async def fail_if_called(_state: dict[str, object]) -> dict[str, object]:
+        raise AssertionError("slide deck must use SlideDeckEngine dispatch")
+
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
+        fail_if_called,
+    )
+    result = await generate_one_artifact({
+        "run_id": "run-slide-dispatch",
+        "artifact_generation_id": "run-slide-dispatch:artifact:1",
+        "artifact_type": "slide_deck",
+        "lesson_plan": _lesson_plan(),
+        "research_brief": _research_brief(),
+        "theme": "default",
+        "dependency_artifact_references": [],
+    }, InMemoryArtifactContentStore())
+
+    assert result["artifact_workflow_states"][0]["status"] == "passed"

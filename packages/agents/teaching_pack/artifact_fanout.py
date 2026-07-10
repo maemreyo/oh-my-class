@@ -31,7 +31,7 @@ GENERATE_ONE_ARTIFACT_NODE: Final = "generate_one_artifact"
 RENDER_QUALITY_NODE: Final = "render_quality"
 _WAVES: Final[tuple[tuple[str, ...], ...]] = (
     ("lesson",),
-    ("worksheet", "quiz", "drill", "flashcard_deck", "roadmap", "slide_deck"),
+    ("worksheet", "quiz", "drill", "flashcard_deck", "roadmap", "slide_deck", "reading_passage", "infographic", "exit_ticket"),
     ("recap", "answer_key"),
 )
 _DEPENDENCIES: Final[dict[str, tuple[str, ...]]] = {
@@ -43,6 +43,9 @@ _DEPENDENCIES: Final[dict[str, tuple[str, ...]]] = {
     "answer_key": ("quiz",),
     "roadmap": ("lesson",),
     "slide_deck": ("lesson",),
+    "reading_passage": ("lesson",),
+    "infographic": ("lesson",),
+    "exit_ticket": ("lesson",),
 }
 
 
@@ -181,7 +184,7 @@ def _requested_types(state: JsonObject) -> list[str]:
     contract_values = contract.get("artifact_types")
     if isinstance(contract_values, list) and contract_values:
         return [str(value) for value in contract_values]
-    return ["lesson", "worksheet", "quiz", "recap"]
+    return ["lesson", "worksheet", "quiz", "drill", "slide_deck"]
 
 
 def _needs_new_generation_cycle(state: JsonObject) -> bool:
@@ -229,7 +232,7 @@ def _all_requested_types(state: JsonObject) -> list[str]:
     contract_values = contract.get("artifact_types")
     if isinstance(contract_values, list) and contract_values:
         return [str(value) for value in contract_values]
-    return ["lesson", "worksheet", "quiz", "recap"]
+    return ["lesson", "worksheet", "quiz", "drill", "slide_deck"]
 
 
 def _wave_at(requested_types: list[str], wave_index: int) -> list[str]:

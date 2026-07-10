@@ -10,9 +10,12 @@ import type {
   AnswerKeyData,
   DrillData,
   InfographicData,
+  ExitTicketData,
   LessonData,
   QuizData,
+  ReadingPassageData,
   RecapData,
+  RoadmapData,
   SlideDeckData,
   WorksheetData,
 } from "./contracts/index.js";
@@ -114,7 +117,7 @@ function optionList(optionsValue: unknown): { label: string; text: string }[] {
   }));
 }
 
-function quizAnswer(section: ArtifactRecord): string {
+function drillAnswer(section: ArtifactRecord): string {
   return asString(
     section.answer,
     asString(
@@ -122,10 +125,6 @@ function quizAnswer(section: ArtifactRecord): string {
       asString(section.correctAnswer, asString(section.correct_option, asString(section.correctOption, "—"))),
     ),
   );
-}
-
-function quizExplanation(section: ArtifactRecord): string {
-  return asString(section.explain, asString(section.explanation, asString(section.rationale)));
 }
 
 function quizData(artifact: ArtifactRecord): QuizData {
@@ -143,8 +142,6 @@ function quizData(artifact: ArtifactRecord): QuizData {
       id: asString(section.id, `q${index + 1}`),
       prompt: asString(section.prompt, asString(section.content, asString(section.text, "Question"))),
       options: optionList(section.options),
-      answer: quizAnswer(section),
-      explain: quizExplanation(section),
     })),
   };
 }
@@ -157,7 +154,7 @@ function drillData(artifact: ArtifactRecord): DrillData {
     questions: sections.map((section, index) => ({
       id: asString(section.id, `d${index + 1}`),
       prompt: asString(section.prompt, asString(section.content, asString(section.text, "Practice question"))),
-      answer: quizAnswer(section),
+      answer: drillAnswer(section),
       type: asString(section.type, "fill") === "question_card" ? "mc" : "fill",
       options: optionList(section.options),
     })),
@@ -183,6 +180,74 @@ function infographicData(artifact: ArtifactRecord): InfographicData {
     sections: sections.map((section, index) => ({
       title: asString(section.title, `Visual ${index + 1}`),
       content: asString(section.content, asString(section.summary, "")),
+    })),
+  };
+}
+
+function roadmapData(artifact: ArtifactRecord): RoadmapData {
+  const metadata = asRecord(artifact.metadata);
+  const hero = asRecord(metadata.hero);
+  const sidebar = asRecord(metadata.sidebar);
+  const sections = asRecordArray(artifact.sections).filter((section) => section.teacher_only !== true);
+  return {
+    title: asString(artifact.title, "Learning Roadmap"),
+    theme: asString(artifact.theme, "default"),
+    hero: {
+      eyebrow: asString(hero.eyebrow),
+      title: asString(hero.title, asString(artifact.title, "Learning Roadmap")),
+      lede: asString(hero.lede),
+      stats: asRecordArray(hero.stats).map((stat) => ({
+        label: asString(stat.label, "Milestones"),
+        value: asString(stat.value, "0"),
+        variant: asString(stat.variant, "default") as "target" | "now" | "default",
+      })),
+    },
+    sections: sections.map((section, index) => ({
+      id: asString(section.id, `milestone-${index + 1}`),
+      title: asString(section.title, `Milestone ${index + 1}`),
+      subtitle: asString(section.subtitle),
+      tag_num: asString(section.tag_num, String(index + 1)),
+      components: [...preserveStudentComponents(section, `milestone-${index + 1}`)],
+    })),
+    sidebar: {
+      title: asString(sidebar.title, asString(artifact.title, "Learning Roadmap")),
+      subtitle: asString(sidebar.subtitle),
+      nav: asRecordArray(sidebar.nav).map((item) => ({
+        label: asString(item.label),
+        href: asString(item.href),
+        group: asString(item.group, "a"),
+      })),
+    },
+    accessibility: { language: common(artifact).lang },
+  };
+}
+
+function readingPassageData(artifact: ArtifactRecord): ReadingPassageData {
+  const metadata = asRecord(artifact.metadata);
+  const section = asRecord(asRecordArray(artifact.sections)[0]);
+  return {
+    ...common(artifact),
+    passage: asString(section.content),
+    questions: asRecordArray(metadata.comprehension_questions).map((question, index) => ({
+      id: asString(question.id, `passage-question-${index + 1}`),
+      prompt: asString(question.prompt),
+      answer: asString(question.answer),
+      type: asString(question.type, "short_answer") as "mc" | "short_answer" | "essay",
+    })),
+    source: asString(metadata.passage_source),
+  };
+}
+
+function exitTicketData(artifact: ArtifactRecord): ExitTicketData {
+  const section = asRecord(asRecordArray(artifact.sections)[0]);
+  const questions = asRecordArray(section.components).filter((component) => asString(component.type) === "question_card");
+  return {
+    ...common(artifact),
+    questions: questions.map((question, index) => ({
+      id: asString(question.id, `exit-ticket-${index + 1}`),
+      prompt: asString(question.text),
+      type: "mc" as const,
+      options: optionList(question.options),
     })),
   };
 }
@@ -239,6 +304,12 @@ export async function renderAgentArtifact(input: unknown): Promise<string> {
       return render({ kind: "recap", input: recapData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
     case "infographic":
       return render({ kind: "infographic", input: infographicData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
+    case "roadmap":
+      return render({ kind: "roadmap", input: roadmapData(artifact), context: makeContext("teacher", lang) }).then((r) => r.html);
+    case "reading_passage":
+      return render({ kind: "reading_passage", input: readingPassageData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
+    case "exit_ticket":
+      return render({ kind: "exit_ticket", input: exitTicketData(artifact), context: makeContext("student", lang) }).then((r) => r.html);
     case "answer_key":
       return render({ kind: "answer_key", input: answerKeyData(artifact), context: makeContext("teacher", lang) }).then((r) => r.html);
     case "slide_deck":

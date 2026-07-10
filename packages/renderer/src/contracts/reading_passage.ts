@@ -19,6 +19,8 @@ export interface ReadingPassageData {
   gradeLevel: string;
   passage: string;
   questions: ComprehensionQuestion[];
+  author?: string;
+  source?: string;
   theme?: string;
   lang?: string;
 }

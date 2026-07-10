@@ -43,6 +43,9 @@ _CORE_ARTIFACT_TYPES = frozenset({
     "answer_key",
     "roadmap",
     "slide_deck",
+    "infographic",
+    "reading_passage",
+    "exit_ticket",
 })
 
 

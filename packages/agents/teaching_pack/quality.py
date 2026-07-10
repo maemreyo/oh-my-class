@@ -86,7 +86,9 @@ def _pack_coherence_issues(artifacts: list[ArtifactContent]) -> list[str]:
             issues.append("pack.coherence: quiz_not_aligned_with_lesson")
         if lesson_objective_terms and artifact_terms and lesson_objective_terms.isdisjoint(artifact_terms):
             issues.append(f"pack.coherence: {artifact.artifact_type}_not_aligned_with_objectives")
-        if lesson_vocabulary and artifact_terms and artifact.artifact_type in {"quiz", "worksheet"}:
+        if lesson_vocabulary and artifact_terms and artifact.artifact_type in {
+            "quiz", "worksheet", "drill", "exit_ticket", "reading_passage",
+        }:
             missing_terms = sorted(lesson_vocabulary - artifact_terms)
             if missing_terms:
                 issues.append(f"pack.coherence: {artifact.artifact_type}_missing_lesson_vocabulary")

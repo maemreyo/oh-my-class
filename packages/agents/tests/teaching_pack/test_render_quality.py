@@ -205,6 +205,41 @@ class TestTeachingPackRenderQuality:
         assert route_after_render_quality(TeachingPackState(**result)) == "artifact_workflow"
 
     @pytest.mark.anyio
+    async def test_render_quality_detects_vocabulary_drift_in_drill_and_exit_ticket(self) -> None:
+        state, store = await _quality_state("run-core-pack-coherence", [
+            {
+                "artifact_type": "lesson",
+                "theme": "default",
+                "title": "Fraction Vocabulary Lesson",
+                "sections": [{"title": "Intro", "content": "Numerator and denominator name fraction parts."}],
+                "metadata": {"key_terms": ["numerator", "denominator"]},
+                "accessibility": {"language": "en"},
+            },
+            {
+                "artifact_type": "drill",
+                "theme": "default",
+                "title": "Fraction Drill",
+                "sections": [{"title": "Practice", "content": "Which planet is closest to the sun?"}],
+                "metadata": {},
+                "accessibility": {"language": "en"},
+            },
+            {
+                "artifact_type": "exit_ticket",
+                "theme": "default",
+                "title": "Fraction Exit Ticket",
+                "sections": [{"title": "Quick check", "content": "Name a layer of the atmosphere."}],
+                "metadata": {},
+                "accessibility": {"language": "en"},
+            },
+        ])
+
+        result = await _render_quality(state, content_store=store)
+
+        issues = result.get("quality_issues", [])
+        assert "pack.coherence: drill_missing_lesson_vocabulary" in issues
+        assert "pack.coherence: exit_ticket_missing_lesson_vocabulary" in issues
+
+    @pytest.mark.anyio
     async def test_render_quality_routes_invalid_vietnamese_difficulty_distribution(self) -> None:
         state, store = await _quality_state("run-vi-difficulty-coherence", [
                 {

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, NotRequired, TypedDict
 
 from pydantic import ValidationError
 
+from common.contracts.answer_set import AnswerSet, derive_answer_key_artifact, derive_answer_set
 from common.contracts.artifact import ArtifactContent
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
 from packages.agents.teaching_pack.specialist_registry import get_specialist
@@ -52,9 +53,13 @@ async def generate_one_artifact(
                 )
             ]
         specialist = get_specialist(artifact_type)
-        if specialist is not None:
+        if artifact_type == "answer_key":
+            artifact = _derived_answer_key(dependency_artifacts, payload["theme"])
+        elif artifact_type == "slide_deck":
+            artifact = await _slide_deck_artifact(payload, dependency_artifacts)
+        elif specialist is not None:
             artifact = specialist(payload["lesson_plan"], payload["research_brief"])
-            artifact.setdefault("theme", payload["theme"])
+            artifact["theme"] = payload["theme"]
         else:
             result = await content_creator_node({
                 "lesson_plan": payload["lesson_plan"],
@@ -75,6 +80,16 @@ async def generate_one_artifact(
     except (ArtifactTypeMismatchError, ValidationError, ValueError) as exc:
         return {"artifact_workflow_states": [_workflow_state(payload, "failed", exc)]}
     projection = parsed.model_dump()
+    if artifact_type in {"quiz", "drill", "exit_ticket"}:
+        answer_set = derive_answer_set(
+            projection,
+            source_document_id=f"{generation_id}:{artifact_id}",
+            source_version=1,
+        )
+        projection["metadata"] = {
+            **projection["metadata"],
+            "answer_set": answer_set.model_dump(mode="json"),
+        }
     _stamp_research_sources(projection, payload["research_brief"])
     _stamp_pedagogy_context(projection, payload["lesson_plan"])
     if content_store is not None:
@@ -167,6 +182,37 @@ def _single_artifact(result: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(artifact, dict):
         raise ValueError("content_creator_node returned a non-object artifact")
     return artifact
+
+
+def _derived_answer_key(dependencies: list[dict[str, Any]], theme: str) -> dict[str, Any]:
+    quiz = next((artifact for artifact in dependencies if artifact.get("artifact_type") == "quiz"), None)
+    if quiz is None:
+        raise ValueError("answer_key requires a generated quiz dependency")
+    metadata = quiz.get("metadata")
+    answer_set_json = metadata.get("answer_set") if isinstance(metadata, dict) else None
+    if not isinstance(answer_set_json, dict):
+        raise ValueError("quiz dependency has no teacher-only answer set")
+    answer_set = AnswerSet.model_validate(answer_set_json)
+    language = str(quiz.get("accessibility", {}).get("language", "vi")) if isinstance(
+        quiz.get("accessibility"), dict,
+    ) else "vi"
+    return derive_answer_key_artifact(quiz, answer_set, theme=theme, language=language)
+
+
+async def _slide_deck_artifact(
+    payload: GenerateOneArtifactPayload,
+    dependencies: list[dict[str, Any]],
+) -> dict[str, Any]:
+    from packages.agents.sub_agents.content_creator.slide_deck_artifact import build_slide_deck_artifact
+
+    return await build_slide_deck_artifact({
+        "lesson_plan": payload["lesson_plan"],
+        "research_bundle": payload["research_brief"],
+        "theme": payload["theme"],
+        "run_id": payload["run_id"],
+        "artifacts": dependencies,
+        "revision_feedback": payload.get("revision_feedback", ""),
+    })
 
 
 def _workflow_state(

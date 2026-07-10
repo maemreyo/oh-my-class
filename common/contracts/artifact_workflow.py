@@ -15,7 +15,7 @@ from common.contracts.run_contract import (  # noqa: TC001 - Pydantic resolves a
 
 CoreArtifactType = Literal[
     "lesson", "worksheet", "quiz", "drill", "recap", "flashcard_deck", "answer_key", "roadmap",
-    "slide_deck",
+    "slide_deck", "exit_ticket", "reading_passage", "infographic",
 ]
 ArtifactWorkflowStatus = Literal[
     "queued",

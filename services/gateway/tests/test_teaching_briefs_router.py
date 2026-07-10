@@ -72,7 +72,7 @@ def test_brief_autosaves_previews_and_launches_with_planning_review(client: Test
     assert preview.status_code == 200
     assert preview.json()["setup_gate"] == "contract_confirmation"
     assert preview.json()["resolved_contract"]["artifact_types"] == [
-        "lesson", "worksheet", "quiz", "recap", "slide_deck",
+    "lesson", "worksheet", "quiz", "drill", "slide_deck",
     ]
     assert preview.json()["setup_details"]["planning_review"] is True
     assert preview.json()["setup_details"]["materiality_reasons"] == ["rigorous_research"]

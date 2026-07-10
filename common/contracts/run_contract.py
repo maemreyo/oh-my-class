@@ -10,7 +10,7 @@ type JsonObject = dict[str, JsonValue]
 PipelineMode = Literal["generate_pack", "diagnose_then_generate", "plan_unit", "vocabulary_batch"]
 ArtifactType = Literal[
     "lesson", "worksheet", "quiz", "drill", "recap", "infographic",
-    "flashcard_deck", "answer_key", "roadmap", "slide_deck",
+    "flashcard_deck", "answer_key", "roadmap", "slide_deck", "reading_passage", "exit_ticket",
 ]
 ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx"]
 PublishTarget = Literal["google_forms"]

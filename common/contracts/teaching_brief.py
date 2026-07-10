@@ -10,7 +10,7 @@ DEFAULT_ARTIFACT_TYPES: list[ArtifactType] = [
     "lesson",
     "worksheet",
     "quiz",
-    "recap",
+    "drill",
     "slide_deck",
 ]
 
