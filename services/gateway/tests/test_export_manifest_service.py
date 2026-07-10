@@ -14,6 +14,7 @@ from common.contracts.teaching_pack_capabilities import (
     CapabilityStatus,
     load_teaching_pack_capabilities,
 )
+from services.gateway import export_manifest_service
 from services.gateway.export_manifest_service import (
     ExportFormatNotImplementedError,
     UnsupportedExportPairError,
@@ -208,12 +209,14 @@ async def test_regenerate_rewrites_a_genuinely_stale_format_with_a_new_immutable
 
 
 async def test_regenerate_raises_for_a_format_with_no_writer_implementation(
-    session: AsyncSession, tmp_path: Path,
+    session: AsyncSession, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Today's real manifest rejects every non-html format outright (#454-458
-    aren't built yet), so this exercises the defense-in-depth guard against a
-    manifest that *does* declare a pair supported -- a writer must still exist,
-    or this must fail loudly rather than write mislabeled HTML into a .gift file."""
+    """Defense-in-depth guard: a manifest that *does* declare a pair supported
+    must still have a real writer registered, or this must fail loudly rather
+    than write mislabeled HTML into a .gift file. Forces gift's writer set
+    empty via monkeypatch so this stays true regardless of which formats
+    #454-458 have actually wired by the time this test runs."""
+    monkeypatch.setattr(export_manifest_service, "_NODE_BRIDGE_FORMATS", frozenset())
     run_id = await _make_run_and_snapshot(session, artifact_type="lesson")
     snapshot_store = TeachingPackSnapshotStore(session)
     head = await snapshot_store.get_latest_snapshot(run_id, "artifact-1")
@@ -257,5 +260,67 @@ async def test_regenerate_raises_for_a_format_with_no_writer_implementation(
             manifest=manifest_declaring_gift_supported,
             base_dir=tmp_path,
         )
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
+
+
+async def test_regenerate_writes_a_real_gift_file_for_a_quiz_artifact(
+    session: AsyncSession, tmp_path: Path,
+) -> None:
+    """#454: gift now has a real writer -- exercise it end to end through the
+    node CLI bridge rather than only asserting it no longer raises."""
+    run_id = RunId(f"export-svc-{uuid4()}")
+    session.add(Run(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-export-svc"),
+        status=RunStatus.COMPLETED,
+        current_step=1,
+        raw_request="Test gift export",
+        class_info={"grade": 5},
+    ))
+    await session.flush()
+    quiz_content = {
+        "sections": [{
+            "questions": [{
+                "id": "q1",
+                "type": "multiple_choice_single",
+                "stem": "2 + 2 = ?",
+                "options": [
+                    {"text": "3", "isCorrect": False},
+                    {"text": "4", "isCorrect": True},
+                ],
+            }],
+        }],
+    }
+    snapshot_store = TeachingPackSnapshotStore(session)
+    await snapshot_store.create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=f"snap-{uuid4()}",
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        content_json=quiz_content,
+        rendered_html="<!DOCTYPE html><html><body>quiz</body></html>",
+        renderer_version="1.0",
+    ))
+    head = await snapshot_store.get_latest_snapshot(run_id, "artifact-1")
+    assert head is not None
+
+    result = await regenerate_stale_exports(
+        session,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        head=head,
+        formats=["gift"],
+        base_dir=tmp_path,
+    )
+
+    assert result.regenerated == ["gift"]
+    export_store = TeachingPackExportStore(session)
+    latest = await export_store.get_latest_export_for_format(run_id, "artifact-1", "gift")
+    assert latest is not None
+    written = Path(latest.storage_path).read_text(encoding="utf-8")
+    assert "2 + 2" in written
+    assert "=4" in written
     await session.execute(delete(Run).where(Run.run_id == run_id))
     await session.commit()

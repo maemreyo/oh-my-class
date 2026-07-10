@@ -59,7 +59,7 @@ class FileSystemTeachingPackExportWriter:
             export_path.write_text(rendered_html, encoding="utf-8")
             exported_files.append(str(export_path))
         for export_format in _subprocess_formats(state):
-            out_path = await _node_export(export_format, run_id, approved_snapshots, export_dir)
+            out_path = await node_export(export_format, run_id, approved_snapshots, export_dir)
             exported_files.append(out_path)
         return exported_files
 
@@ -147,7 +147,7 @@ def _export_format(value: str) -> ExportFormat:
             raise ExportAdapterError(f"Unsupported export format: {value}")
 
 
-async def _node_export(
+async def node_export(
     export_format: ExportFormat,
     run_id: RunId,
     snapshots: list[JsonObject],
@@ -156,7 +156,9 @@ async def _node_export(
     """Invoke the Node export CLI bridge and return the written file path.
 
     Fails closed: raises ExportAdapterError on subprocess failure, timeout,
-    or missing CLI build. Never silently falls back to HTML.
+    or missing CLI build. Never silently falls back to HTML. Shared by the
+    completion-time writer above and the explicit regeneration path in
+    export_manifest_service.py.
     """
     if not _EXPORT_CLI_PATH.exists():
         raise ExportAdapterError(

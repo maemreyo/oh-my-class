@@ -21,12 +21,20 @@ from services.gateway.teaching_pack_export_store import (
     ExportRecordRead,
     TeachingPackExportStore,
 )
+from services.gateway.teaching_pack_export_writer import node_export
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from services.gateway.teaching_pack_snapshot_schemas import ArtifactSnapshotRead
     from services.gateway.teaching_pack_types import RunId
+
+# Formats #454-458 have wired to a real writer -- grows as each format lands.
+# Anything else falls through to ExportFormatNotImplementedError below, even
+# if the capability manifest declares the (artifact_type, format) pair
+# supported (defense-in-depth: a product-truth declaration must never race
+# ahead of an actual writer).
+_NODE_BRIDGE_FORMATS: frozenset[str] = frozenset({"gift"})
 
 
 class UnsupportedExportPairError(ValueError):
@@ -123,12 +131,21 @@ async def regenerate_stale_exports(
             needs_generation.append(export_format)
     for export_format in needs_generation:
         assert_export_pair_supported(manifest, artifact_type, export_format)
-        if export_format != "html":
-            raise ExportFormatNotImplementedError(export_format)
         export_dir = base_dir / str(run_id)
         export_dir.mkdir(parents=True, exist_ok=True)
-        export_path = export_dir / f"{head.snapshot_id}.{export_format}"
-        export_path.write_text(head.rendered_html, encoding="utf-8")
+        if export_format == "html":
+            export_path = export_dir / f"{head.snapshot_id}.{export_format}"
+            export_path.write_text(head.rendered_html, encoding="utf-8")
+            storage_path = str(export_path)
+        elif export_format in _NODE_BRIDGE_FORMATS:
+            storage_path = await node_export(
+                export_format,
+                run_id,
+                [{"artifact_type": artifact_type, "content_json": head.content_json}],
+                export_dir,
+            )
+        else:
+            raise ExportFormatNotImplementedError(export_format)
         await create_export_record_checked(
             store,
             manifest,
@@ -138,7 +155,7 @@ async def regenerate_stale_exports(
                 artifact_id=artifact_id,
                 snapshot_id=head.snapshot_id,
                 format=export_format,
-                storage_path=str(export_path),
+                storage_path=storage_path,
             ),
             artifact_type,
         )

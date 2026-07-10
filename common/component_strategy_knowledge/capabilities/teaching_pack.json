@@ -205,12 +205,10 @@
     },
     {
       "export_format": "gift",
-      "status": "rejected",
+      "status": "supported",
       "supported_artifact_types": ["quiz"],
       "requires_answer_set": true,
-      "file_validation": "Moodle import smoke test",
-      "rejection_reason": "gateway export registry currently returns a planned path without materializing GIFT",
-      "alternative": "use standalone HTML until the GIFT exporter is wired"
+      "file_validation": "Moodle import smoke test"
     },
     {
       "export_format": "h5p",
