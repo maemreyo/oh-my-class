@@ -1,0 +1,135 @@
+{
+  "manifest_version": "math-capability-pack.v1",
+  "subject": "math",
+  "deterministic_solver": "packages.agents.teaching_pack.subject_packs.math_solver",
+  "grade_bands": [
+    {
+      "grade_band": "k_2",
+      "artifact_families": ["quiz", "drill"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.MATH.CONTENT.K.OA.A.1",
+          "description_en": "Represent addition and subtraction within 10 using objects, drawings, and equations.",
+          "description_vi": "Biểu diễn phép cộng và phép trừ trong phạm vi 10 bằng đồ vật, hình vẽ và phép tính."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.TOAN.1.PHEP_CONG_TRU_10",
+          "description_en": "Grade 1 Math: addition and subtraction within 10.",
+          "description_vi": "Toán lớp 1: Phép cộng, phép trừ trong phạm vi 10."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "k2_equals_means_answer_follows",
+          "description_en": "Students think '=' means 'the answer comes next' rather than balance, so 5 = 2 + 3 looks wrong to them.",
+          "description_vi": "Học sinh nghĩ dấu '=' nghĩa là 'kết quả tiếp theo sau' chứ không phải sự cân bằng, nên 5 = 2 + 3 trông có vẻ sai.",
+          "guard_strategy": "Generator alternates equation orientation (unknown-on-right vs unknown-on-left) across items in the same problem set."
+        },
+        {
+          "misconception_id": "k2_subtraction_order_confusion",
+          "description_en": "Students subtract the smaller digit from the larger one regardless of position (e.g. treating 3 - 5 as 5 - 3).",
+          "description_vi": "Học sinh lấy số lớn trừ số bé bất kể vị trí (ví dụ coi 3 - 5 như 5 - 3).",
+          "guard_strategy": "K-2 problem generation restricts subtraction operands so the minuend is always the first, larger operand -- negative results are deferred to the 6-8 band."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_3_5",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.MATH.CONTENT.5.NF.A.1",
+          "description_en": "Add and subtract fractions with unlike denominators by replacing with equivalent fractions.",
+          "description_vi": "Cộng và trừ phân số khác mẫu số bằng cách quy đồng mẫu số."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.TOAN.5.PHAN_SO",
+          "description_en": "Grade 5 Math: fractions, common denominators, addition and subtraction of fractions.",
+          "description_vi": "Toán lớp 5: Phân số, quy đồng mẫu số, phép cộng và phép trừ phân số."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade35_add_numerators_and_denominators",
+          "description_en": "Adding numerators and denominators directly (1/2 + 1/3 treated as 2/5) instead of finding a common denominator.",
+          "description_vi": "Cộng trực tiếp tử số và mẫu số (coi 1/2 + 1/3 là 2/5) thay vì quy đồng mẫu số.",
+          "guard_strategy": "Every generated fraction-addition item includes the naive numerator+denominator result as an explicitly-labeled incorrect distractor, and the solver-verified common-denominator result as the answer."
+        },
+        {
+          "misconception_id": "grade35_multiplication_always_increases",
+          "description_en": "Believing multiplication always produces a larger result, which breaks down when multiplying by a fraction less than 1.",
+          "description_vi": "Cho rằng phép nhân luôn cho kết quả lớn hơn, điều này sai khi nhân với phân số nhỏ hơn 1.",
+          "guard_strategy": "Problem sets for this band always include at least one multiplication-by-a-proper-fraction item alongside whole-number multiplication."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_6_8",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.MATH.CONTENT.7.NS.A.1",
+          "description_en": "Apply and extend understanding of addition and subtraction to add and subtract rational numbers, including negatives.",
+          "description_vi": "Vận dụng và mở rộng hiểu biết về phép cộng, phép trừ để cộng trừ các số hữu tỉ, bao gồm số âm."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.TOAN.7.SO_HUU_TI",
+          "description_en": "Grade 7 Math: rational numbers, operations with negative numbers.",
+          "description_vi": "Toán lớp 7: Số hữu tỉ, các phép toán với số âm."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade68_negative_distribution_sign_error",
+          "description_en": "Sign errors when distributing a negative across a subtraction, e.g. computing -(3-5) as -3-5 instead of -3+5.",
+          "description_vi": "Sai dấu khi phân phối số âm qua phép trừ, ví dụ tính -(3-5) thành -3-5 thay vì -3+5.",
+          "guard_strategy": "Generator solves both the correctly-distributed expression and the naive misconception expression via the solver, offering the misconception's result as an explicitly-labeled incorrect distractor."
+        },
+        {
+          "misconception_id": "grade68_percent_change_additive_error",
+          "description_en": "Treating a percentage increase then an equal percentage decrease as returning to the original value (they do not, except at 0%).",
+          "description_vi": "Cho rằng tăng một tỉ lệ phần trăm rồi giảm cùng tỉ lệ đó sẽ trở về giá trị ban đầu (thực tế không đúng, trừ khi tỉ lệ là 0%).",
+          "guard_strategy": "Percent-change items are solver-verified as multiplicative operations (value * (1 + rate)), never modeled as reversible addition."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_9_12",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.MATH.CONTENT.HSA.REI.B.3",
+          "description_en": "Solve linear equations and inequalities in one variable, including equations with coefficients represented by letters.",
+          "description_vi": "Giải phương trình và bất phương trình bậc nhất một ẩn, kể cả phương trình có hệ số là chữ."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.TOAN.10.PHUONG_TRINH_BAC_NHAT",
+          "description_en": "Grade 10 Math: first-degree (linear) equations in one variable.",
+          "description_vi": "Toán lớp 10: Phương trình bậc nhất một ẩn."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade912_distribution_sign_error",
+          "description_en": "Sign errors distributing a negative coefficient across parentheses, e.g. -2(x - 3) miscomputed as -2x - 3 instead of -2x + 6 at a given x value.",
+          "description_vi": "Sai dấu khi phân phối hệ số âm qua ngoặc, ví dụ -2(x - 3) tính sai thành -2x - 3 thay vì -2x + 6 tại một giá trị x cho trước.",
+          "guard_strategy": "Generator evaluates both the correctly-distributed expression and the naive misconception expression at the same substituted value via the solver, offering the misconception's numeric result as an explicitly-labeled incorrect distractor."
+        },
+        {
+          "misconception_id": "grade912_order_of_operations_error",
+          "description_en": "Applying operations left-to-right without respecting operator precedence, e.g. treating 2 + 3 * 4 as (2+3)*4 = 20 instead of 2+(3*4) = 14.",
+          "description_vi": "Thực hiện các phép toán từ trái sang phải mà không tuân theo thứ tự ưu tiên, ví dụ tính 2 + 3 * 4 thành (2+3)*4 = 20 thay vì 2+(3*4) = 14.",
+          "guard_strategy": "Every generated multi-operator expression is solver-evaluated with correct precedence, and the left-to-right misreading is offered as an explicitly-labeled incorrect distractor."
+        }
+      ]
+    }
+  ]
+}

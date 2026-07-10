@@ -1,11 +1,43 @@
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from typing import Any
+
+from common.contracts.grade_band import grade_band_for_label
+from packages.agents.teaching_pack.subject_packs.math_question_builder import (
+    build_math_questions,
+    to_question_card,
+)
 
 
 class NoQuizObjectivesError(ValueError):
     pass
+
+
+def _is_math_subject(lesson_plan: dict[str, Any]) -> bool:
+    return str(lesson_plan.get("subject") or "").strip().lower() == "math"
+
+
+def _deterministic_seed(*parts: str) -> int:
+    digest = hashlib.sha256("|".join(parts).encode()).hexdigest()
+    return int(digest[:8], 16)
+
+
+def _build_math_quiz_questions(lesson_plan: dict[str, Any]) -> list[dict[str, Any]] | None:
+    """Real, solver-verified math questions (#447) when a Grade Band can be
+    determined; falls back to the generic objective-matching builder
+    (returns None) otherwise -- never silently mislabels an unparseable
+    grade as a specific band's content."""
+    grade_level = str(lesson_plan.get("grade_level") or lesson_plan.get("grade") or "")
+    grade_band = grade_band_for_label(grade_level)
+    if grade_band is None:
+        return None
+    topic = str(lesson_plan.get("topic") or lesson_plan.get("title") or "lesson")
+    locale = str(lesson_plan.get("locale") or "vi")
+    seed = _deterministic_seed(topic, grade_band.value)
+    questions = build_math_questions(grade_band, count=8, seed=seed)
+    return [to_question_card(question, locale=locale) for question in questions]
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,7 +104,8 @@ def generate_quiz_artifact(
     objectives = _objectives(lesson_plan)
     if not objectives:
         raise NoQuizObjectivesError("no approved learning objectives to build a quiz")
-    questions = build_quiz_questions(lesson_plan)
+    math_questions = _build_math_quiz_questions(lesson_plan) if _is_math_subject(lesson_plan) else None
+    questions = math_questions if math_questions is not None else build_quiz_questions(lesson_plan)
     scorecard = score_quiz(questions, len(objectives))
     topic = str(lesson_plan.get("topic") or lesson_plan.get("title") or "the lesson").strip()
     return {

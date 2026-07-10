@@ -75,6 +75,7 @@ async def test_quiz_workflow_persists_answer_set_and_derives_teacher_only_answer
     quiz = await store.read_projection(quiz_reference["document_id"])
 
     assert "answer_set" in quiz.metadata
+    first_question_answer = quiz.sections[0]["components"][0]["answer"]
     key_result = await generate_one_artifact({
         "run_id": "run-1",
         "artifact_generation_id": "run-1:artifact:1",
@@ -88,4 +89,8 @@ async def test_quiz_workflow_persists_answer_set_and_derives_teacher_only_answer
 
     assert key.artifact_type == "answer_key"
     assert key.theme == "ocean"
-    assert key.sections[0]["components"][0]["text"] == "Answer: A"
+    # #447: this lesson plan is math/Grade 5, so quiz_specialist now builds
+    # real solver-verified questions whose correct option isn't always "A"
+    # (shuffled to avoid a guessable pattern) -- assert against the quiz's
+    # own stored answer rather than a hardcoded letter.
+    assert key.sections[0]["components"][0]["text"] == f"Answer: {first_question_answer}"
