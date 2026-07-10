@@ -1,8 +1,9 @@
 """
-Shared helpers for the system-trace skill's scripts.
+Shared helpers for the anatomy skill's scripts.
 No third-party dependencies -- stdlib only, so this runs anywhere Python 3.8+ runs.
 """
 import hashlib
+import json
 import os
 from pathlib import Path
 
@@ -10,15 +11,26 @@ from pathlib import Path
 # dependency caches, VCS internals. Matched by exact directory name at any depth.
 IGNORE_DIR_NAMES = {
     ".git", ".hg", ".svn", "node_modules", "__pycache__", ".venv", "venv", "env",
-    ".env", "dist", "build", "target", "vendor", ".next", ".nuxt", "out",
+    ".env", "dist", "build", "target", ".next", ".nuxt", "out",
     "coverage", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox",
     ".idea", ".vscode", ".gradle", "bin", "obj", "Pods", "DerivedData",
     ".terraform", ".serverless", "egg-info", ".eggs", ".cache", ".parcel-cache",
-    "site-packages", "bower_components", "packages", ".dart_tool",
+    "site-packages", "bower_components", ".dart_tool",
 }
-# Note: "packages" is ambiguous (real module dir in some monorepos, vendored
-# deps in others) -- inventory.py flags it for a human/Claude decision rather
-# than silently trusting either interpretation. See module-detection.md.
+# "packages" and "vendor" are deliberately NOT in IGNORE_DIR_NAMES, even
+# though they're common noise-dir names, because they're ambiguous: real
+# first-party module dir in some monorepos (pnpm/Lerna/Nx/Turborepo all use
+# "packages/*" as their canonical workspace-member convention), vendored
+# third-party deps in others (Go, PHP/Composer both use "vendor/" for real
+# dependency snapshots). Pruning them outright would silently skip actual
+# application code for the former case. Instead they're walked normally and
+# flagged via AMBIGUOUS_DIR_NAMES below, so inventory.py's
+# ambiguous_dirs_found lets Claude look at a sample file and decide per
+# module-detection.md, rather than either interpretation being assumed
+# silently. Keep these out of IGNORE_DIR_NAMES: walk_source_files prunes
+# before the ambiguous-dir check ever sees a file inside, so if either name
+# ends up back in IGNORE_DIR_NAMES, ambiguous_dirs_found can never fire for
+# it and this comment's premise silently stops being true.
 AMBIGUOUS_DIR_NAMES = {"packages", "vendor", "third_party", "external"}
 
 IGNORE_FILE_SUFFIXES = {".pyc", ".pyo", ".so", ".o", ".class", ".min.js", ".min.css"}
@@ -135,3 +147,56 @@ def slugify(name: str) -> str:
     while "--" in slug:
         slug = slug.replace("--", "-")
     return slug.strip("-") or "module"
+
+
+def load_module_map(modules_json_path):
+    """Load a Phase-2 `modules.json` (slug -> relative-path) and return it
+    sorted longest-path-first, ready for prefix matching via
+    `resolve_module_for_path`. Returns None (not {}) if the path is falsy,
+    so callers can tell "no --modules flag given" apart from "an empty
+    mapping was given" -- the two should behave differently (fall back to
+    directory-guessing vs. genuinely finding no module for anything)."""
+    if not modules_json_path:
+        return None
+    data = json.loads(Path(modules_json_path).read_text())
+    entries = []
+    for slug, rel in data.items():
+        parts = tuple(p for p in Path(rel).parts if p not in (".",))
+        entries.append((parts, slug))
+    # Longest prefix (most path segments) first, so a nested module wins
+    # over an ancestor one if both happen to be declared.
+    entries.sort(key=lambda e: -len(e[0]))
+    return entries
+
+
+def resolve_module_for_path(rel_path_parts, module_map):
+    """Longest-prefix match of a file's path parts against a loaded
+    `module_map` (from `load_module_map`). Returns the owning slug, or None
+    if the path doesn't fall under any declared module (e.g. a repo-root
+    config file, or a directory Phase 2 didn't map) -- callers should treat
+    None as 'unmapped', not silently bucket it somewhere misleading."""
+    if module_map is None:
+        return None
+    for prefix_parts, slug in module_map:
+        if rel_path_parts[: len(prefix_parts)] == prefix_parts:
+            return slug
+    return None
+
+
+def resolve_relative_import(source_rel_path, target: str):
+    """Resolve a relative-looking import target (starts with '.' or '..',
+    the common JS/TS/Python-relative convention) against the importing
+    file's own directory, returning a repo-root-relative path string (no
+    guarantee the file exists at that exact path -- extension/index
+    resolution isn't attempted, this is still a hypothesis). Returns None
+    if `target` doesn't look like a relative import, so callers can fall
+    back to their existing dotted/bare-package handling for everything
+    else."""
+    if not (target.startswith(".") or target.startswith("./") or target.startswith("../")):
+        return None
+    source_dir = Path(source_rel_path).parent
+    combined = (source_dir / target).as_posix()
+    normalized = os.path.normpath(combined).replace("\\", "/")
+    if normalized.startswith(".."):
+        return None  # escapes repo root -- not a resolvable in-repo target
+    return normalized

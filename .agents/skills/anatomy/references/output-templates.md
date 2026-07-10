@@ -83,10 +83,16 @@ it).
      with the real nature of the relationship -- not just "imports X".
      See tracing-methodology.md's "what interaction means concretely."
      Cite the call site (`path/to/file.py:line`) on every line here, not
-     just on discrepancies -- see the citation note below. -->
+     just on discrepancies -- see the citation note below.
+     What scripts/rollup.py, scripts/verify_diagram.py, and
+     scripts/graph_export.py all key on is the "**`module-slug`**" or
+     "external:`name`" prefix at the start of the bullet -- keep that
+     exact bold/backtick shape. The separator after it (shown below as
+     an em dash, matching what these bullets actually get written with)
+     isn't itself load-bearing; write it however reads naturally. -->
 
-- **`other-module`** -- calls `OtherModule.save()` on every write, synchronously; propagates its errors (`src/services/order.py:88`)
-- external: `library-name` -- used for Y (`src/services/payments.py:12`)
+- **`other-module`** — calls `OtherModule.save()` on every write, synchronously; propagates its errors (`src/services/order.py:88`)
+- external: `library-name` — used for Y (`src/services/payments.py:12`)
 
 ## Used by
 
@@ -96,7 +102,7 @@ it).
      (see SKILL.md's Phase 4/5 transition), so the citation carries over
      directly rather than needing to be re-found. -->
 
-- **`caller-module`** -- calls this on every incoming request to ... (`src/api/routes.py:44`)
+- **`caller-module`** — calls this on every incoming request to ... (`src/api/routes.py:44`)
 
 ## Data & side effects
 
@@ -711,11 +717,14 @@ docstring, since this is the file whoever consumes `_graph.json` is most
 likely to actually read):
 
 - `depends_on`/`used_by` internal/external classification is a convention
-  check against the exact bullet format `output-templates.md`'s module
-  template uses (`**\`slug\`**` for internal, `external:\`name\`` for
-  external). A module doc that doesn't follow that format won't be
-  captured here -- the same brittleness `rollup.py` already has against
-  the same convention.
+  check against the module template's bullet *prefix* (`**\`slug\`**` for
+  internal, `external:\`name\`` for external). A module doc that doesn't
+  start each bullet that way won't be captured here -- the same
+  brittleness `rollup.py` already has against the same convention. The
+  separator between that prefix and the rest of the bullet is not part of
+  this check (any of `--`, an em dash, an en dash, a hyphen, or a colon is
+  recognized and stripped), so writing style there doesn't affect
+  extraction.
 - Outbound cross-service calls (an HTTP client hitting another service, a
   gRPC stub) don't have a guaranteed structured field the way queue topics
   do -- they show up as prose inside a "Depends on" bullet's `detail` if

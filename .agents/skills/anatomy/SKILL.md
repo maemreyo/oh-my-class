@@ -301,10 +301,10 @@ apply to this project -- `data-model.md` and `deployment.md`. Follow
 content to what actually applies to each module or project, but keep the
 overall shape consistent). Every edge in `system-diagram.md`/`.html` and
 every "Depends on"/"Used by" line in a module doc should be traceable to
-something you actually confirmed in Phase 4 -- run `scripts/verify_diagram.py`
-and `scripts/verify_entry_points.py` (see below) to check this
-mechanically before considering the phase done, rather than only
-eyeballing it.
+something you actually confirmed in Phase 4 -- run `scripts/verify_diagram.py`,
+`scripts/verify_entry_points.py`, and `scripts/verify_health_signals.py`
+(see below) to check this mechanically before considering the phase done,
+rather than only eyeballing it.
 
 `index.md`'s "Architecture narrative" and "Codebase health signals"
 sections are new-ish and easy to shortchange -- don't skip them or reduce
@@ -355,6 +355,7 @@ correct information for unchanged modules without re-tracing them.
 ```bash
 python3 scripts/verify_diagram.py <output_root>
 python3 scripts/verify_entry_points.py <output_root>
+python3 scripts/verify_health_signals.py <output_root>
 ```
 
 `verify_diagram.py` mechanically cross-references `system-diagram.md`'s
@@ -366,15 +367,23 @@ the corresponding module's "Used by" disagree with each other.
 `verify_entry_points.py` does the same check for `entry-points.md` against
 each module's "Public interface" section -- the exact same
 lifted-from-elsewhere relationship, and the exact same drift risk, just a
-different pair of files. Run both regardless of mode (full or
-incremental), since they check the final state of the output, not what
-changed this run. If either flags anything, open the module(s) involved
-and fix whichever side is wrong -- don't just delete the flagged line to
-make it quiet. An empty result from both means the diagram, entry-points.md,
-and module docs all agree with each other; it doesn't mean any of it is
-correct against the actual source code, which is what Phase 4 is for.
+different pair of files. `verify_health_signals.py` checks the third such
+relationship: it re-runs `rollup.py`'s computation fresh and compares it
+against what `index.md`'s "Codebase health signals" section actually says
+-- catching the case where that section got hand-approximated in prose
+instead of copied from `rollup.py`'s output as instructed above (a wrong
+most-connected ranking, a "none found" for cycles/orphans that isn't
+true, or a trace-coverage claim that outruns what the module docs' own
+footers say). Run all three regardless of mode (full or incremental),
+since they check the final state of the output, not what changed this
+run. If any flags something, open the module(s) or section involved and
+fix whichever side is wrong -- don't just delete or reword the flagged
+line to make it quiet. An empty result from all three means the diagram,
+entry-points.md, index.md's health signals, and the module docs all agree
+with each other; it doesn't mean any of it is correct against the actual
+source code, which is what Phase 4 is for.
 
-Once both checks are clean, export the structured snapshot:
+Once all three checks are clean, export the structured snapshot:
 
 ```bash
 python3 scripts/graph_export.py <output_root> --write
@@ -470,7 +479,11 @@ All scripts are stdlib-only Python (3.8+), no installs required:
 - `scripts/verify_entry_points.py` -- end of Phase 5, the same cross-check
   applied to `entry-points.md` against every module doc's "Public interface"
   section
-- `scripts/graph_export.py` -- end of Phase 5, after both verify scripts;
+- `scripts/verify_health_signals.py` -- end of Phase 5, cross-checks
+  `index.md`'s "Codebase health signals" prose against a fresh
+  `rollup.py` computation over `modules/*.md`, catching drift between what
+  the section says and what the numbers actually are
+- `scripts/graph_export.py` -- end of Phase 5, after all three verify scripts;
   re-parses `modules/*.md` and `entry-points.md` into `_graph.json`, a
   single structured artifact of the whole module/edge/entry-point/
   health-signal graph for another tool (or a future/multi-repo run of this

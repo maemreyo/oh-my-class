@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-state.py -- manifest read/hash/diff/write, for Phase 0 and Phase 6 of
-system-trace (handling a pre-existing docs/system-trace output folder).
+state.py -- manifest read/hash/diff/write, for Phase 0 and Phase 6 of the
+anatomy skill's tracing workflow (handling a pre-existing docs/anatomy
+output folder, including one left over at the older default location,
+docs/system-trace, by a previous version of this skill).
 
 Subcommands:
   hash-modules <repo_root> <modules.json>
@@ -9,7 +11,11 @@ Subcommands:
       Prints JSON: {"module-slug": {"hash": "...", "file_count": N}, ...}
       Hash is content-based (sha256 over sorted relative file paths + each
       file's sha256), so it is immune to touch-without-change mtime noise
-      and works identically whether or not the repo uses git.
+      and works identically whether or not the repo uses git. Files under
+      noise directories nested inside the module (node_modules,
+      __pycache__, dist, .venv, etc. -- the same list walk_source_files
+      prunes everywhere else) are excluded from the hash, so a rebuild or a
+      dependency install doesn't masquerade as a source change.
 
   diff <old_manifest.json> <fresh_hashes.json>
       Compares a previous manifest's per-module hashes against a freshly
@@ -39,7 +45,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import sha256_file, sha256_text  # noqa: E402
+from _common import sha256_file, sha256_text, walk_source_files  # noqa: E402
 
 
 def hash_module(repo_root: Path, module_rel_path: str):
@@ -50,13 +56,22 @@ def hash_module(repo_root: Path, module_rel_path: str):
     if module_dir.is_file():
         file_hashes.append(f"{module_rel_path}:{sha256_file(module_dir)}")
     else:
-        for p in sorted(module_dir.rglob("*")):
-            if p.is_file():
-                # Keep this loop's ignore behavior intentionally minimal --
-                # callers should pass in module paths already scoped
-                # sensibly (Phase 1/2 output), so we hash what's given.
-                rel = p.relative_to(repo_root)
-                file_hashes.append(f"{rel}:{sha256_file(p)}")
+        # Reuse walk_source_files' noise-dir pruning (node_modules,
+        # __pycache__, dist, .venv, etc.) instead of a raw rglob. A module
+        # directory very commonly contains its own build/dependency
+        # artifacts nested inside it (a workspace package's own
+        # node_modules, a Python package's __pycache__, a built dist/) --
+        # hashing those would make "content changed" noisy and untrustworthy
+        # (a bare `npm install` or `pip install -e .` could flip the hash
+        # with zero source change) and would be needlessly slow on top of
+        # that. walk_source_files(module_dir) yields paths relative to
+        # module_dir; re-derive the repo-root-relative path for each so the
+        # hash key stays identical to before this fix, keeping old manifests
+        # comparable against fresh hashes computed with this version.
+        for abs_path, _rel_to_module in walk_source_files(module_dir):
+            rel = abs_path.relative_to(repo_root)
+            file_hashes.append(f"{rel}:{sha256_file(abs_path)}")
+        file_hashes.sort()
     combined = sha256_text("\n".join(file_hashes))
     return {"hash": combined, "file_count": len(file_hashes)}
 
