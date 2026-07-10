@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """FastAPI Gateway — entry point for oh-my-class pipeline.
 
 Embeds LangGraph runtime. Exposes REST + WebSocket (SSE) for the teacher dashboard.
 Port: 8001
 """
+
+from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
@@ -25,6 +25,7 @@ from .routers import (
     artifact_documents,
     artifacts,
     auth_router,
+    content_briefs,
     exports,
     media_assets,
     notifications,
@@ -33,8 +34,8 @@ from .routers import (
     runs,
     snapshots,
     source_collections,
-    teaching_pack_previews,
     teaching_briefs,
+    teaching_pack_previews,
     teaching_pack_runs,
     teaching_session_live,
     unit_runs,
@@ -87,6 +88,8 @@ async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
 
 
 async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None:
+    from packages.agents.teaching_pack.content_orchestrator import LangGraphArtifactContentStore
+
     from .outcome_delivery import SqlAlchemyOutcomeDeliverySink
     from .teaching_pack_completion import TeachingPackCompletionRecorder
     from .teaching_pack_executor import (
@@ -97,7 +100,6 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
     from .teaching_pack_export_store import TeachingPackExportStore
     from .teaching_pack_store import TeachingPackRunStore
     from .teaching_pack_worker import TeachingPackWorkerConfig, run_worker_batch
-    from packages.agents.teaching_pack.content_orchestrator import LangGraphArtifactContentStore
 
     def executor_factory(session: AsyncSession) -> TeachingPackExecutor:
         run_store = TeachingPackRunStore(session)
@@ -237,6 +239,7 @@ app.include_router(teaching_briefs.router, prefix="/teaching-packs", tags=["teac
 app.include_router(teaching_pack_previews.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(artifact_documents.router, prefix="/teaching-packs", tags=["artifact-documents"])
 app.include_router(source_collections.router, prefix="/teaching-packs", tags=["source-collections"])
+app.include_router(content_briefs.router, prefix="/teaching-packs", tags=["content-briefs"])
 app.include_router(exports.router, prefix="/teaching-packs", tags=["exports"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
