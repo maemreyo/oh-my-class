@@ -12,7 +12,7 @@ The persistent teacher-facing surface of the Teaching Content Creator. It keeps 
 
 ### Teaching Content Generation Engine
 
-The internal capability of the Teaching Content Creator that turns an approved teaching intent into typed, grounded, quality-gated artifacts. It uses the existing teaching-pack stages, specialist agents, deterministic component strategy, renderer, and scoped healing rather than forming a second orchestration system.
+The internal capability of the Teaching Content Creator that turns an approved teaching intent into typed, grounded, quality-gated artifacts. It uses the existing teaching-pack stages, Artifact Specialists, deterministic component strategy, renderer, and scoped healing rather than forming a second orchestration system.
 
 ### Teaching Pack
 
@@ -48,7 +48,7 @@ A focused content-generation module behind the Content Orchestrator that owns th
 
 ### Specialist Families
 
-The five pedagogical capability groups used to dispatch content generation: Lesson Design for lessons; Assessment for quizzes, answer keys, and exit tickets; Practice for worksheets, drills, and flashcard decks; Synthesis for recaps, infographics, roadmaps, and reading passages; and Presentation for slide decks.
+The five pedagogical capability groups used to dispatch content generation: Lesson Design for lessons; Assessment for quizzes, exit tickets, and their AnswerSets; Practice for worksheets, drills, flashcard decks, and applicable AnswerSets; Synthesis for recaps, infographics, roadmaps, and reading passages; and Presentation for slide decks. Answer-key artifacts are derived teacher projections of AnswerSets rather than independently authored specialist output.
 
 ### Bounded Specialist Choice
 
@@ -109,10 +109,6 @@ The precedence for selecting a teaching methodology. A teacher may pin a methodo
 ### Structured Artifact Edit
 
 A teacher-authored or teacher-confirmed AI-assisted change to a typed section, component, question, slide, or block. Structured Artifact Edits never modify raw HTML, create an immutable content version, and trigger quality checks appropriate to the changed scope.
-
-### Content Document
-
-The canonical typed content model for an artifact version. It is composed of discriminated, contract-backed sections and blocks rather than arbitrary dictionaries or authored HTML.
 
 ### ArtifactDocument
 
