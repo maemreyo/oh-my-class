@@ -12,7 +12,7 @@
 # Error details
 
 ```
-Error: SLIDE_DECK_EXPORT_HTML must point at a real exported HTML file (got: .scratch/slide-deck-acceptance/artifacts/exports/vietnamese_classroom_deck.snap-98ccfc1ffc5c123188ada045.student.html)
+Error: SLIDE_DECK_EXPORT_HTML must point at a real exported HTML file (got: .scratch/slide-deck-acceptance/artifacts/exports/grade5_math_worked_example.snap-df9f0677cda01b159b0674f2.student.html)
 ```
 
 # Test source
@@ -37,7 +37,7 @@ Error: SLIDE_DECK_EXPORT_HTML must point at a real exported HTML file (got: .scr
   17 | test.beforeAll(() => {
   18 |   if (!htmlPath || !existsSync(htmlPath)) {
 > 19 |     throw new Error(
-     |           ^ Error: SLIDE_DECK_EXPORT_HTML must point at a real exported HTML file (got: .scratch/slide-deck-acceptance/artifacts/exports/vietnamese_classroom_deck.snap-98ccfc1ffc5c123188ada045.student.html)
+     |           ^ Error: SLIDE_DECK_EXPORT_HTML must point at a real exported HTML file (got: .scratch/slide-deck-acceptance/artifacts/exports/grade5_math_worked_example.snap-df9f0677cda01b159b0674f2.student.html)
   20 |       `SLIDE_DECK_EXPORT_HTML must point at a real exported HTML file (got: ${htmlPath ?? "unset"})`,
   21 |     );
   22 |   }

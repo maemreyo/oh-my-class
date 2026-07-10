@@ -1,0 +1,14 @@
+{
+  "agents": "packages/agents",
+  "quality": "packages/quality",
+  "renderer": "packages/renderer",
+  "exporters": "packages/exporters",
+  "gateway": "services/gateway",
+  "web": "apps/web",
+  "contracts": "common/contracts",
+  "schemas": "common/schemas",
+  "llm-client": "packages/llm_client",
+  "notifications": "packages/notifications",
+  "methodologies": "packages/methodologies",
+  "infra": "infra"
+}

@@ -1,0 +1,468 @@
+{
+  "version": 1,
+  "generated_at": "2026-07-10T06:50:30Z",
+  "source_root": "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/docs/anatomy",
+  "modules": {
+    "agents": {
+      "path": "packages/agents",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "full",
+        "detail": "all 434 files in packages/agents, prioritized by reference count and size. Key entry points: teaching_pack/graph.py, teaching_pack/nodes.py, middleware/registry.py"
+      }
+    },
+    "contracts": {
+      "path": "common/contracts",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "unstated",
+        "detail": null
+      }
+    },
+    "exporters": {
+      "path": "packages/exporters",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "unstated",
+        "detail": null
+      }
+    },
+    "gateway": {
+      "path": "services/gateway",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "full",
+        "detail": "all 325 files in services/gateway. The most important files are main.py (composition root), teaching_pack_executor.py (graph bridge), and teaching_pack_store.py (persistence layer)"
+      }
+    },
+    "infra": {
+      "path": "infra",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "unstated",
+        "detail": null
+      }
+    },
+    "llm-client": {
+      "path": "packages/llm_client",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "unstated",
+        "detail": null
+      }
+    },
+    "methodologies": {
+      "path": "packages/methodologies",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "unstated",
+        "detail": null
+      }
+    },
+    "notifications": {
+      "path": "packages/notifications",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "unstated",
+        "detail": null
+      }
+    },
+    "quality": {
+      "path": "packages/quality",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "full",
+        "detail": "all 72 files in packages/quality. The compliance_policy.py is the most important file \u2014 every other layer's hard-block check eventually calls it"
+      }
+    },
+    "renderer": {
+      "path": "packages/renderer",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "listed",
+        "detail": "all 169 source files + 70 template files. The plugin system (18 plugins) and theme system (3-tier tokens) are the most architecturally significant subsystems"
+      }
+    },
+    "schemas": {
+      "path": "common/schemas",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "unstated",
+        "detail": null
+      }
+    },
+    "web": {
+      "path": "apps/web",
+      "depends_on": [],
+      "used_by": [],
+      "trace_coverage": {
+        "status": "unstated",
+        "detail": null
+      }
+    }
+  },
+  "entry_points": {
+    "http_routes": [
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs",
+        "raw": "POST | `/teaching-packs/runs` | `gateway` | `create_teaching_pack_run` | Create a new teaching pack run (202)"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/resume",
+        "raw": "POST | `/teaching-packs/runs/{run_id}/resume` | `gateway` | `resume_teaching_pack_run` | Resume gated run (teacher decision)"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/request-revision",
+        "raw": "POST | `/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/request-revision` | `gateway` | `request_artifact_revision` | Scoped artifact revision (202)"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}",
+        "raw": "GET | `/teaching-packs/runs/{run_id}` | `gateway` | `get_teaching_pack_run` | Get run status + pending gate"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/status",
+        "raw": "GET | `/teaching-packs/runs/{run_id}/status` | `gateway` | `stream_teaching_pack_status` | SSE stream of run events"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/cancel",
+        "raw": "POST | `/teaching-packs/runs/{run_id}/cancel` | `gateway` | `cancel_teaching_pack_run` | Cancel a run"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}",
+        "raw": "DELETE | `/teaching-packs/runs/{run_id}` | `gateway` | `delete_teaching_pack_run` | Soft-delete a run"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/restore",
+        "raw": "POST | `/teaching-packs/runs/{run_id}/restore` | `gateway` | `restore_teaching_pack_run` | Restore a soft-deleted run"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/preview",
+        "raw": "GET | `/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/preview` | `gateway` | `preview_rendered_snapshot` | Rendered HTML preview"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/approved-snapshots",
+        "raw": "POST | `/teaching-packs/runs/{run_id}/approved-snapshots` | `gateway` | `approve_rendered_snapshots` | Approve snapshots"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}",
+        "raw": "PATCH | `/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}` | `gateway` | `edit_slide_deck_snapshot_block` | Edit slide deck block"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}/rewrite-suggestion",
+        "raw": "POST | `/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}/rewrite-suggestion` | `gateway` | `suggest_slide_deck_block_rewrite` | AI-assisted block rewrite"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/translate",
+        "raw": "GET | `/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/translate` | `gateway` | `translate_slide_deck_snapshot` | Translate slide deck"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions",
+        "raw": "GET | `/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions` | `gateway` | `list_artifact_versions` | Version history"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions/{id}/restore",
+        "raw": "POST | `/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions/{id}/restore` | `gateway` | `restore_artifact_version` | Restore previous version"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/exports",
+        "raw": "GET | `/teaching-packs/runs/{run_id}/exports` | `gateway` | `list_exports` | Export records"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/export-status",
+        "raw": "GET | `/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/export-status` | `gateway` | `get_export_status` | Staleness check"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/runs/{run_id}/evidence",
+        "raw": "GET | `/teaching-packs/runs/{run_id}/evidence` | `gateway` | `get_run_evidence` | Release evidence"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/units/{parent_run_id}",
+        "raw": "GET | `/teaching-packs/units/{parent_run_id}` | `gateway` | `get_unit_view` | Unit view with session progress"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/units/{parent_run_id}/status",
+        "raw": "GET | `/teaching-packs/units/{parent_run_id}/status` | `gateway` | `stream_unit_status` | Unit SSE stream"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/units/{parent_run_id}/approve-all",
+        "raw": "POST | `/teaching-packs/units/{parent_run_id}/approve-all` | `gateway` | `approve_all_sessions` | Bulk approve"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/units/{parent_run_id}/sessions/{id}/spawn-anyway",
+        "raw": "POST | `/teaching-packs/units/{parent_run_id}/sessions/{id}/spawn-anyway` | `gateway` | `spawn_anyway` | Force-spawn session"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-packs/units/{parent_run_id}/export",
+        "raw": "POST | `/teaching-packs/units/{parent_run_id}/export` | `gateway` | `export_unit` | Queue unit packaging"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-sessions/{session_id}/slide",
+        "raw": "POST | `/teaching-sessions/{session_id}/slide` | `gateway` | `advance_slide` | Teacher advances slide"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-sessions/{session_id}/branch",
+        "raw": "POST | `/teaching-sessions/{session_id}/branch` | `gateway` | `select_branch` | Teacher selects branch"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-sessions/{session_id}/branches",
+        "raw": "GET | `/teaching-sessions/{session_id}/branches` | `gateway` | `get_precomputed_branches` | Precomputed branch options"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-sessions/{session_id}/branch-suggestions",
+        "raw": "POST | `/teaching-sessions/{session_id}/branch-suggestions` | `gateway` | `suggest_branch_content` | AI branch suggestion"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-sessions/{session_id}/branch-suggestions/apply",
+        "raw": "POST | `/teaching-sessions/{session_id}/branch-suggestions/apply` | `gateway` | `apply_branch_suggestion` | Apply AI suggestion"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-sessions/{session_id}/responses",
+        "raw": "POST | `/teaching-sessions/{session_id}/responses` | `gateway` | `submit_response` | Student response"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-sessions/{session_id}/state",
+        "raw": "GET | `/teaching-sessions/{session_id}/state` | `gateway` | `get_current_state` | Session state (reconnect)"
+      },
+      {
+        "module": "gateway",
+        "detail": "/teaching-sessions/{session_id}/stream",
+        "raw": "GET | `/teaching-sessions/{session_id}/stream` | `gateway` | `stream_session_events` | SSE broadcast"
+      },
+      {
+        "module": "gateway",
+        "detail": "/auth/login",
+        "raw": "POST | `/auth/login` | `gateway` | `login` | JWT authentication"
+      },
+      {
+        "module": "gateway",
+        "detail": "/auth/me",
+        "raw": "GET | `/auth/me` | `gateway` | `get_me` | Current user"
+      },
+      {
+        "module": "gateway",
+        "detail": "/health",
+        "raw": "GET | `/health` | `gateway` | `health_check` | Load balancer"
+      },
+      {
+        "module": "gateway",
+        "detail": "/ops/slo",
+        "raw": "GET | `/ops/slo` | `gateway` | `get_slo_snapshot` | SLO metrics (admin)"
+      },
+      {
+        "module": "gateway",
+        "detail": "/webhook/notify",
+        "raw": "POST | `/webhook/notify` | `gateway` | `send_notification` | Gate notification dispatch"
+      },
+      {
+        "module": "gateway",
+        "detail": "/webhook/telegram",
+        "raw": "POST | `/webhook/telegram` | `gateway` | `telegram_webhook` | Telegram bot ingress"
+      },
+      {
+        "module": "gateway",
+        "detail": "/webhook/zalo",
+        "raw": "POST | `/webhook/zalo` | `gateway` | `zalo_webhook` | Zalo webhook ingress"
+      },
+      {
+        "module": "gateway",
+        "detail": "/webhook/error",
+        "raw": "POST | `/webhook/error` | `gateway` | `frontend_error` | Frontend error ingestion"
+      },
+      {
+        "module": "gateway",
+        "detail": "/media-assets",
+        "raw": "POST | `/media-assets` | `gateway` | `upload_media_asset` | Upload image/diagram"
+      },
+      {
+        "module": "gateway",
+        "detail": "/media-assets",
+        "raw": "GET | `/media-assets` | `gateway` | `list_media_assets` | List assets"
+      },
+      {
+        "module": "gateway",
+        "detail": "/media-assets/{id}/file",
+        "raw": "GET | `/media-assets/{id}/file` | `gateway` | `get_media_asset_file` | Retrieve asset"
+      },
+      {
+        "module": "gateway",
+        "detail": "/media-assets/{id}/generate-alt-text",
+        "raw": "POST | `/media-assets/{id}/generate-alt-text` | `gateway` | `generate_media_asset_alt_text` | AI alt text"
+      },
+      {
+        "module": "gateway",
+        "detail": "/media-assets/{id}/alt-text",
+        "raw": "PUT | `/media-assets/{id}/alt-text` | `gateway` | `set_media_asset_alt_text` | Persist alt text"
+      },
+      {
+        "module": "gateway",
+        "detail": "/notifications",
+        "raw": "GET | `/notifications` | `gateway` | `list_notifications` | Teacher notifications"
+      },
+      {
+        "module": "gateway",
+        "detail": "/notifications/{id}/read",
+        "raw": "POST | `/notifications/{id}/read` | `gateway` | `read_notification` | Mark as read"
+      },
+      {
+        "module": "gateway",
+        "detail": "/notifications/{id}/dismiss",
+        "raw": "POST | `/notifications/{id}/dismiss` | `gateway` | `dismiss` | Dismiss channel"
+      },
+      {
+        "module": "gateway",
+        "detail": "/notifications/admin/runs",
+        "raw": "GET | `/notifications/admin/runs` | `gateway` | `list_admin_runs` | Admin run management"
+      },
+      {
+        "module": "gateway",
+        "detail": "/notifications/admin/runs/{id}/recover",
+        "raw": "POST | `/notifications/admin/runs/{id}/recover` | `gateway` | `recover_run` | Admin recovery"
+      }
+    ],
+    "cli_commands": [
+      {
+        "module": "renderer",
+        "detail": "pnpm --filter @oh-my-class/renderer dist/cli.js",
+        "raw": "`pnpm --filter @oh-my-class/renderer dist/cli.js` | `renderer` | Artifacts to HTML via stdin/stdout JSON"
+      },
+      {
+        "module": "exporters",
+        "detail": "pnpm --filter @oh-my-class/exporters dist/cli.js",
+        "raw": "`pnpm --filter @oh-my-class/exporters dist/cli.js` | `exporters` | Artifacts to GIFT/H5P/Anki/TSV via stdin/stdout JSON"
+      },
+      {
+        "module": "exporters",
+        "detail": "pnpm --filter @oh-my-class/exporters dist/vocabulary-batch/cli.js",
+        "raw": "`pnpm --filter @oh-my-class/exporters dist/vocabulary-batch/cli.js` | `exporters` | Vocabulary batch ZIP via stdin/stdout JSON"
+      }
+    ],
+    "queue_consumers": [],
+    "cron_jobs": []
+  },
+  "health_signals": {
+    "most_connected": [
+      {
+        "module": "agents",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "contracts",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "exporters",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "gateway",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "infra",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "llm-client",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "methodologies",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "notifications",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "quality",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      },
+      {
+        "module": "renderer",
+        "depends_on_count": 0,
+        "used_by_count": 0,
+        "total_degree": 0
+      }
+    ],
+    "orphan_candidates": [
+      "agents",
+      "contracts",
+      "exporters",
+      "gateway",
+      "infra",
+      "llm-client",
+      "methodologies",
+      "notifications",
+      "quality",
+      "renderer",
+      "schemas",
+      "web"
+    ],
+    "cycles": [],
+    "trace_coverage_counts": {
+      "full": 3,
+      "sampled": 0,
+      "listed": 1,
+      "unstated": 8
+    }
+  }
+}
