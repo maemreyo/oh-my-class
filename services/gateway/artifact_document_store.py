@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from common.contracts.answer_set import AnswerSet
@@ -18,11 +18,13 @@ from services.gateway.artifact_document_models import (
     ContentDependencyRecord,
     ContentVariantRecord,
 )
+from services.gateway.teaching_pack_snapshot_errors import StaleArtifactVersionError
 from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot
 
 if TYPE_CHECKING:
-    from services.gateway.teaching_pack_types import JsonObject, RunId
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from services.gateway.teaching_pack_types import JsonObject, RunId
 
 
 type ApprovalStatus = Literal["approved", "rejected", "pending"]
@@ -125,11 +127,58 @@ class ArtifactDocumentStore:
         for dependency in write.dependencies:
             await self._insert_dependency(document.document_id, dependency)
         if write.approval is not None:
-            await self._insert_approval(document.document_id, write.approval)
+            await self.insert_approval(document.document_id, write.approval)
         if write.snapshot_id is not None:
             await self._insert_snapshot_link(document.document_id, write.snapshot_id)
         await self._session.flush()
         return await self._read_persisted(document.document_id)
+
+    async def get_latest(self, run_id: RunId, artifact_id: str) -> ArtifactDocumentRecord | None:
+        """The highest-version V2 record for one artifact, or None if never edited."""
+        statement = (
+            select(ArtifactDocumentRecord)
+            .where(
+                ArtifactDocumentRecord.run_id == run_id,
+                ArtifactDocumentRecord.artifact_id == artifact_id,
+            )
+            .order_by(ArtifactDocumentRecord.version.desc())
+            .limit(1)
+        )
+        return (await self._session.execute(statement)).scalar_one_or_none()
+
+    async def list_versions(self, run_id: RunId, artifact_id: str) -> list[ArtifactDocumentRecord]:
+        """All versions of one artifact, newest first."""
+        statement = (
+            select(ArtifactDocumentRecord)
+            .where(
+                ArtifactDocumentRecord.run_id == run_id,
+                ArtifactDocumentRecord.artifact_id == artifact_id,
+            )
+            .order_by(ArtifactDocumentRecord.version.desc())
+        )
+        return list((await self._session.execute(statement)).scalars().all())
+
+    async def create_edit(
+        self, run_id: RunId, base_version: int, write: ArtifactDocumentWrite,
+    ) -> PersistedArtifactDocument:
+        """Persist a new version iff `base_version` is still the artifact's head.
+
+        Optimistic locking via a transaction-scoped Postgres advisory lock
+        keyed on `artifact_id` (mirrors
+        `TeachingPackSnapshotStore.create_scoped_edit_snapshot`): the first
+        concurrent editor to commit wins, the second re-reads the advanced
+        head and raises `StaleArtifactVersionError` instead of overwriting.
+        """
+        artifact_id = write.document.artifact_id
+        await self._session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:artifact_id))"),
+            {"artifact_id": artifact_id},
+        )
+        latest = await self.get_latest(run_id, artifact_id)
+        current_version = latest.version if latest is not None else None
+        if current_version != base_version:
+            raise StaleArtifactVersionError(artifact_id, base_version, current_version)
+        return await self.persist(write)
 
     async def get_preview_source(
         self,
@@ -198,7 +247,7 @@ class ArtifactDocumentStore:
             .on_conflict_do_nothing(constraint="uq_content_dependencies_edge"),
         )
 
-    async def _insert_approval(self, document_id: str, approval: ContentApprovalCreate) -> None:
+    async def insert_approval(self, document_id: str, approval: ContentApprovalCreate) -> None:
         await self._session.execute(
             pg_insert(ContentApprovalRecord)
             .values(

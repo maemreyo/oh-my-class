@@ -127,6 +127,51 @@ class ContentApprovalRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class ReviewNoteRecord(Base):
+    """An anchored review note on one document version; may block approval."""
+
+    __tablename__ = "artifact_review_notes"
+    __table_args__ = (
+        Index("ix_artifact_review_notes_document", "document_id"),
+        {"schema": "public"},
+    )
+
+    note_id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("public.runs.run_id", ondelete="CASCADE"), nullable=False,
+    )
+    artifact_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    document_id: Mapped[str] = mapped_column(
+        String(80), ForeignKey("public.artifact_documents.document_id", ondelete="CASCADE"), nullable=False,
+    )
+    content_entity_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    author_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    body: Mapped[str] = mapped_column(String(2_000), nullable=False)
+    blocking: Mapped[bool] = mapped_column(nullable=False, default=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="open")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class RunDelegationRecord(Base):
+    """An explicit, audited grant of reviewer/approval authority on one run."""
+
+    __tablename__ = "run_delegations"
+    __table_args__ = (
+        UniqueConstraint("run_id", "delegate_id", name="uq_run_delegations_run_delegate"),
+        Index("ix_run_delegations_run", "run_id"),
+        {"schema": "public"},
+    )
+
+    delegation_id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("public.runs.run_id", ondelete="CASCADE"), nullable=False,
+    )
+    delegate_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    granted_by: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class ArtifactDocumentSnapshotRecord(Base):
     """Pins a V2 document version to an immutable rendered snapshot."""
 

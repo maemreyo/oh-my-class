@@ -55,3 +55,21 @@ class SnapshotBaseVersionConflictError(RuntimeError):
             f"base_snapshot_id {base_snapshot_id!r} is stale "
             f"(current head is {current_head_snapshot_id!r})",
         )
+
+
+class StaleArtifactVersionError(RuntimeError):
+    """Raised when an edit's `base_version` is not the V2 document's current head.
+
+    Mirrors `SnapshotBaseVersionConflictError` for the V2 `ArtifactDocument`
+    lineage: the gateway router maps this to HTTP 409 with both versions in
+    the response body so the client can reload and reconcile.
+    """
+
+    def __init__(self, artifact_id: str, base_version: int, current_version: int | None) -> None:
+        self.artifact_id = artifact_id
+        self.base_version = base_version
+        self.current_version = current_version
+        super().__init__(
+            f"base_version {base_version} for artifact {artifact_id!r} is stale "
+            f"(current version is {current_version!r})",
+        )

@@ -22,6 +22,11 @@ async def check_run_owner(run_id: str, user: User, db: AsyncSession) -> bool:
       organization (matched via the ``users`` table).
     - TEACHER / ADMIN: authorized only if ``run.teacher_id == user.user_id``.
     - Run not found → False.
+
+    Note: an explicit reviewer delegation (ADR-051) does NOT satisfy this
+    check -- delegation grants review/approval authority only, not full run
+    ownership (delete, cancel, export, brief edits, ...). Use
+    `check_run_reviewer` for review/approval-surface endpoints.
     """
     statement = select(Run).where(Run.run_id == run_id)
     result = await db.execute(statement)
@@ -37,6 +42,24 @@ async def check_run_owner(run_id: str, user: User, db: AsyncSession) -> bool:
         return await _check_same_organization(run.teacher_id, user, db)
 
     return run.teacher_id == user.user_id
+
+
+async def check_run_reviewer(run_id: str, user: User, db: AsyncSession) -> bool:
+    """Return True if *user* may review/approve content on the given run.
+
+    Everyone `check_run_owner` authorizes, plus a teacher the run owner has
+    explicitly delegated reviewer authority to (ADR-051 "an organization may
+    grant explicit, audited delegation"). Scoped to review/approval-surface
+    endpoints only -- delegates must not gain run-deletion/export/brief-edit
+    access through this check.
+    """
+    if await check_run_owner(run_id, user, db):
+        return True
+
+    from services.gateway.run_delegation_store import RunDelegationStore  # avoid import cycle
+    from services.gateway.teaching_pack_types import RunId
+
+    return await RunDelegationStore(db).is_delegate(RunId(run_id), user.user_id)
 
 
 # BLOCKED-ON: users.organization_id migration (see .scratch/multi-tenancy/organization-id-migration.md)

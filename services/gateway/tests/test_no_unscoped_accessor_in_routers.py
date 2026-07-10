@@ -9,6 +9,7 @@ ALLOWED_UNSCOPED_RUN_ACCESS: frozenset[tuple[str, str]] = frozenset({
     ("notifications.py", "recover_run"),
     ("teaching_pack_deps.py", "get_run_with_ownership"),
     ("teaching_pack_deps.py", "get_deleted_run_with_ownership"),
+    ("teaching_pack_deps.py", "get_run_with_reviewer_access"),
 })
 
 

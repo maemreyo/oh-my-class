@@ -22,6 +22,7 @@ from .middleware.error_handler import register_exception_handlers
 from .middleware.request_id import RequestIDMiddleware
 from .routers import (
     approvals,
+    artifact_documents,
     artifacts,
     auth_router,
     exports,
@@ -233,6 +234,7 @@ app.include_router(approvals.router, prefix="/run", tags=["approvals"])
 app.include_router(teaching_pack_runs.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(teaching_briefs.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(teaching_pack_previews.router, prefix="/teaching-packs", tags=["teaching-pack"])
+app.include_router(artifact_documents.router, prefix="/teaching-packs", tags=["artifact-documents"])
 app.include_router(exports.router, prefix="/teaching-packs", tags=["exports"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
