@@ -17,6 +17,12 @@ _MATH_PACK_PATH = (
     / "capabilities"
     / "math_capability_pack.json"
 )
+_SCIENCE_PACK_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "component_strategy_knowledge"
+    / "capabilities"
+    / "science_capability_pack.json"
+)
 
 
 def _minimal_pack_kwargs(**overrides: object) -> dict:
@@ -57,6 +63,16 @@ def test_math_capability_pack_json_loads_and_validates() -> None:
         coverage = pack.coverage_for(band)
         assert coverage.standards
         assert coverage.misconceptions
+
+
+def test_science_capability_pack_json_loads_and_validates() -> None:
+    pack = load_subject_capability_pack(_SCIENCE_PACK_PATH)
+    assert pack.subject == "science"
+    for band in GradeBand:
+        coverage = pack.coverage_for(band)
+        assert coverage.standards
+        assert coverage.misconceptions
+        assert any(standard.framework == "NGSS" for standard in coverage.standards)
 
 
 def test_valid_minimal_pack_round_trips() -> None:

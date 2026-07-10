@@ -1,0 +1,135 @@
+{
+  "manifest_version": "science-capability-pack.v1",
+  "subject": "science",
+  "deterministic_solver": "packages.agents.teaching_pack.subject_packs.math_solver",
+  "grade_bands": [
+    {
+      "grade_band": "k_2",
+      "artifact_families": ["quiz", "drill"],
+      "standards": [
+        {
+          "framework": "NGSS",
+          "code": "NGSS.K-PS2-1",
+          "description_en": "Plan and conduct an investigation to compare the effects of different strengths or directions of pushes and pulls on the motion of an object.",
+          "description_vi": "Lập kế hoạch và thực hiện khảo sát để so sánh ảnh hưởng của lực đẩy, lực kéo mạnh yếu khác nhau lên chuyển động của vật."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.TNXH.1.DO_DAI_CAN_NANG",
+          "description_en": "Grade 1 Science (Nature and Society): comparing length and weight using simple counted units.",
+          "description_vi": "Tự nhiên và Xã hội lớp 1: So sánh độ dài, cân nặng bằng đơn vị đếm đơn giản."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "k2_bigger_always_heavier",
+          "description_en": "Students believe a physically larger object is always heavier, ignoring density/material differences.",
+          "description_vi": "Học sinh cho rằng vật to hơn luôn nặng hơn, bỏ qua sự khác biệt về mật độ/chất liệu.",
+          "guard_strategy": "Weight-comparison problems are posed as direct numeric unit counts (e.g. '5 blocks' vs '3 blocks'), never inferred from size, so the comparison is solver-verified arithmetic rather than a size judgment."
+        },
+        {
+          "misconception_id": "k2_combines_pushes_by_multiplying_instead_of_adding",
+          "description_en": "When combining two same-direction pushes, students multiply the two push strengths instead of adding them, conflating 'combine' with the newer, more memorable operation.",
+          "description_vi": "Khi kết hợp hai lực đẩy cùng hướng, học sinh nhân hai độ mạnh của lực đẩy thay vì cộng lại, nhầm lẫn 'kết hợp' với phép toán mới học và dễ nhớ hơn.",
+          "guard_strategy": "The generator solves both the correct sum and the naive-multiplication expression via the solver, offering the multiplied result as an explicitly-labeled incorrect distractor; only same-direction forces are combined at this band, opposing-direction cancellation is deferred to the 6-8 band's signed-number treatment."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_3_5",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "NGSS",
+          "code": "NGSS.3-5-ETS1-1",
+          "description_en": "Define a simple design problem reflecting a need, including criteria for success and constraints on materials, time, or cost -- including measurement in standard units.",
+          "description_vi": "Xác định một vấn đề thiết kế đơn giản phản ánh một nhu cầu, bao gồm tiêu chí thành công và giới hạn về vật liệu, thời gian hoặc chi phí -- bao gồm đo lường bằng đơn vị chuẩn."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.KHOA_HOC.5.DO_LUONG",
+          "description_en": "Grade 5 Science: measurement and metric unit conversion (cm, m, km).",
+          "description_vi": "Khoa học lớp 5: Đo lường và đổi đơn vị đo (cm, m, km)."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade35_bigger_unit_means_bigger_number",
+          "description_en": "Students assume converting to a larger unit (e.g. cm to m) always increases the numeric value, rather than understanding it decreases as the unit grows.",
+          "description_vi": "Học sinh cho rằng đổi sang đơn vị lớn hơn (ví dụ cm sang m) luôn làm tăng giá trị số, thay vì hiểu rằng giá trị số giảm khi đơn vị đo lớn hơn.",
+          "guard_strategy": "Every generated conversion problem set includes both a smaller-to-larger unit conversion (dividing) and a larger-to-smaller conversion (multiplying), each solver-verified, so the direction can't be pattern-matched."
+        },
+        {
+          "misconception_id": "grade35_conversion_factor_error",
+          "description_en": "Students multiply or divide by the wrong power of 10 when converting between metric units (e.g. using 10 instead of 100 for cm-to-m).",
+          "description_vi": "Học sinh nhân hoặc chia sai lũy thừa của 10 khi đổi đơn vị mét (ví dụ dùng 10 thay vì 100 khi đổi cm sang m).",
+          "guard_strategy": "The generator solves both the correct conversion and the wrong-power-of-10 misconception expression via the solver, offering the misconception's numeric result as an explicitly-labeled incorrect distractor."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_6_8",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "NGSS",
+          "code": "NGSS.MS-PS3-1",
+          "description_en": "Construct and interpret graphical displays of data to describe the relationships of kinetic energy to the mass of an object and to the speed of an object.",
+          "description_vi": "Xây dựng và diễn giải biểu đồ dữ liệu để mô tả mối quan hệ giữa động năng với khối lượng và tốc độ của một vật."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.KHTN.8.VAN_TOC",
+          "description_en": "Grade 8 Natural Science: velocity as distance divided by time.",
+          "description_vi": "Khoa học tự nhiên lớp 8: Vận tốc bằng quãng đường chia cho thời gian."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade68_average_speed_by_averaging_speeds",
+          "description_en": "Students compute average speed over two legs of a journey by averaging the two speeds directly, instead of total distance divided by total time (only correct when the two legs take equal time).",
+          "description_vi": "Học sinh tính vận tốc trung bình của hai chặng đường bằng cách lấy trung bình cộng hai vận tốc, thay vì lấy tổng quãng đường chia tổng thời gian (chỉ đúng khi hai chặng có thời gian bằng nhau).",
+          "guard_strategy": "Average-speed problems are always solver-verified as total_distance / total_time; the naive averaged-speeds result is offered as an explicitly-labeled incorrect distractor."
+        },
+        {
+          "misconception_id": "grade68_negative_direction_sign_error",
+          "description_en": "Sign errors when combining forces or velocities in opposite directions, e.g. treating a rightward 5 and leftward 3 as summing to 8 instead of 2.",
+          "description_vi": "Sai dấu khi tổng hợp lực hoặc vận tốc theo hướng ngược nhau, ví dụ coi 5 đơn vị sang phải và 3 đơn vị sang trái cộng thành 8 thay vì 2.",
+          "guard_strategy": "Opposing-direction combination problems represent one direction as negative and are solver-verified via signed addition; the same-sign naive sum is offered as an explicitly-labeled incorrect distractor."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_9_12",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "NGSS",
+          "code": "NGSS.HS-PS3-1",
+          "description_en": "Create a computational model to calculate the change in energy of one component in a system when the change in energy of the other component(s) and energy flows in and out of the system are known.",
+          "description_vi": "Xây dựng mô hình tính toán để tính độ biến thiên năng lượng của một thành phần trong hệ khi biết độ biến thiên năng lượng của (các) thành phần khác và dòng năng lượng ra vào hệ."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.VATLY.10.DONG_NANG",
+          "description_en": "Grade 10 Physics: kinetic energy KE = (1/2) * m * v^2.",
+          "description_vi": "Vật lý lớp 10: Động năng KE = (1/2) * m * v^2."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade912_forgets_to_square_velocity",
+          "description_en": "Students compute kinetic energy as (1/2) * m * v instead of (1/2) * m * v^2, forgetting velocity is squared.",
+          "description_vi": "Học sinh tính động năng bằng (1/2) * m * v thay vì (1/2) * m * v^2, quên rằng vận tốc phải được bình phương.",
+          "guard_strategy": "Kinetic-energy problems are always solver-verified as (1/2)*m*v*v (expanded, since the grammar has no exponent operator); the linear-in-v misconception (1/2)*m*v is offered as an explicitly-labeled incorrect distractor."
+        },
+        {
+          "misconception_id": "grade912_order_of_operations_error",
+          "description_en": "Applying operations left-to-right without respecting operator precedence when combining energy terms, e.g. treating 2 + 3 * 4 as (2+3)*4 instead of 2+(3*4).",
+          "description_vi": "Thực hiện các phép toán từ trái sang phải mà không tuân theo thứ tự ưu tiên khi kết hợp các số hạng năng lượng, ví dụ tính 2 + 3 * 4 thành (2+3)*4 thay vì 2+(3*4).",
+          "guard_strategy": "Every generated multi-operator expression is solver-evaluated with correct precedence, and the left-to-right misreading is offered as an explicitly-labeled incorrect distractor."
+        }
+      ]
+    }
+  ]
+}

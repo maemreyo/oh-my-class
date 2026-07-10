@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
 from common.contracts.grade_band import grade_band_for_label
-from packages.agents.teaching_pack.subject_packs.math_question_builder import (
-    build_math_questions,
+from packages.agents.teaching_pack.subject_packs.math_question_builder import build_math_questions
+from packages.agents.teaching_pack.subject_packs.science_question_builder import build_science_questions
+from packages.agents.teaching_pack.subject_packs.solver_question_builder import (
+    SolverQuestion,
     to_question_card,
 )
 
@@ -15,8 +18,11 @@ class NoDrillObjectivesError(ValueError):
     pass
 
 
-def _is_math_subject(lesson_plan: dict[str, Any]) -> bool:
-    return str(lesson_plan.get("subject") or "").strip().lower() == "math"
+_SubjectQuestionBuilder = Callable[..., list[SolverQuestion]]
+_SUBJECT_BUILDERS: dict[str, _SubjectQuestionBuilder] = {
+    "math": build_math_questions,
+    "science": build_science_questions,
+}
 
 
 def _deterministic_seed(*parts: str) -> int:
@@ -24,18 +30,23 @@ def _deterministic_seed(*parts: str) -> int:
     return int(digest[:8], 16)
 
 
-def _build_math_drill_activities(lesson_plan: dict[str, Any]) -> list[dict[str, Any]] | None:
-    """Real, solver-verified progressive math practice (#447); falls back to
-    the generic objective-repetition builder (returns None) when no Grade
-    Band can be determined from the lesson plan."""
+def _build_subject_drill_activities(lesson_plan: dict[str, Any]) -> list[dict[str, Any]] | None:
+    """Real, solver-verified progressive practice (#447 Math, #448 Science);
+    falls back to the generic objective-repetition builder (returns None)
+    when the subject has no capability-pack builder or no Grade Band can be
+    determined from the lesson plan."""
+    subject = str(lesson_plan.get("subject") or "").strip().lower()
+    build_questions = _SUBJECT_BUILDERS.get(subject)
+    if build_questions is None:
+        return None
     grade_level = str(lesson_plan.get("grade_level") or lesson_plan.get("grade") or "")
     grade_band = grade_band_for_label(grade_level)
     if grade_band is None:
         return None
     topic = str(lesson_plan.get("topic") or lesson_plan.get("title") or "lesson")
     locale = str(lesson_plan.get("locale") or "vi")
-    seed = _deterministic_seed(topic, grade_band.value, "drill")
-    questions = build_math_questions(grade_band, count=5, seed=seed)
+    seed = _deterministic_seed(subject, topic, grade_band.value, "drill")
+    questions = build_questions(grade_band, count=5, seed=seed)
     activities: list[dict[str, Any]] = []
     for level, question in enumerate(questions, start=1):
         card = to_question_card(question, locale=locale)
@@ -109,8 +120,8 @@ def generate_drill_artifact(
 ) -> dict[str, Any]:
     if not _objectives(lesson_plan):
         raise NoDrillObjectivesError("no approved learning objectives to build a drill")
-    math_activities = _build_math_drill_activities(lesson_plan) if _is_math_subject(lesson_plan) else None
-    activities = math_activities if math_activities is not None else build_drill_activities(lesson_plan)
+    subject_activities = _build_subject_drill_activities(lesson_plan)
+    activities = subject_activities if subject_activities is not None else build_drill_activities(lesson_plan)
     scorecard = score_drill(activities)
     topic = str(lesson_plan.get("topic") or lesson_plan.get("title") or "the lesson").strip()
     return {

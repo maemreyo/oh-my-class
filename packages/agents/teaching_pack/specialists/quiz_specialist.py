@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
 from common.contracts.grade_band import grade_band_for_label
-from packages.agents.teaching_pack.subject_packs.math_question_builder import (
-    build_math_questions,
+from packages.agents.teaching_pack.subject_packs.math_question_builder import build_math_questions
+from packages.agents.teaching_pack.subject_packs.science_question_builder import build_science_questions
+from packages.agents.teaching_pack.subject_packs.solver_question_builder import (
+    SolverQuestion,
     to_question_card,
 )
 
@@ -15,8 +18,11 @@ class NoQuizObjectivesError(ValueError):
     pass
 
 
-def _is_math_subject(lesson_plan: dict[str, Any]) -> bool:
-    return str(lesson_plan.get("subject") or "").strip().lower() == "math"
+_SubjectQuestionBuilder = Callable[..., list[SolverQuestion]]
+_SUBJECT_BUILDERS: dict[str, _SubjectQuestionBuilder] = {
+    "math": build_math_questions,
+    "science": build_science_questions,
+}
 
 
 def _deterministic_seed(*parts: str) -> int:
@@ -24,19 +30,24 @@ def _deterministic_seed(*parts: str) -> int:
     return int(digest[:8], 16)
 
 
-def _build_math_quiz_questions(lesson_plan: dict[str, Any]) -> list[dict[str, Any]] | None:
-    """Real, solver-verified math questions (#447) when a Grade Band can be
+def _build_subject_quiz_questions(lesson_plan: dict[str, Any]) -> list[dict[str, Any]] | None:
+    """Real, solver-verified questions (#447 Math, #448 Science) when the
+    subject has a Subject Capability Pack builder AND a Grade Band can be
     determined; falls back to the generic objective-matching builder
     (returns None) otherwise -- never silently mislabels an unparseable
-    grade as a specific band's content."""
+    grade, or an unsupported subject, as governed content."""
+    subject = str(lesson_plan.get("subject") or "").strip().lower()
+    build_questions = _SUBJECT_BUILDERS.get(subject)
+    if build_questions is None:
+        return None
     grade_level = str(lesson_plan.get("grade_level") or lesson_plan.get("grade") or "")
     grade_band = grade_band_for_label(grade_level)
     if grade_band is None:
         return None
     topic = str(lesson_plan.get("topic") or lesson_plan.get("title") or "lesson")
     locale = str(lesson_plan.get("locale") or "vi")
-    seed = _deterministic_seed(topic, grade_band.value)
-    questions = build_math_questions(grade_band, count=8, seed=seed)
+    seed = _deterministic_seed(subject, topic, grade_band.value)
+    questions = build_questions(grade_band, count=8, seed=seed)
     return [to_question_card(question, locale=locale) for question in questions]
 
 
@@ -104,8 +115,8 @@ def generate_quiz_artifact(
     objectives = _objectives(lesson_plan)
     if not objectives:
         raise NoQuizObjectivesError("no approved learning objectives to build a quiz")
-    math_questions = _build_math_quiz_questions(lesson_plan) if _is_math_subject(lesson_plan) else None
-    questions = math_questions if math_questions is not None else build_quiz_questions(lesson_plan)
+    subject_questions = _build_subject_quiz_questions(lesson_plan)
+    questions = subject_questions if subject_questions is not None else build_quiz_questions(lesson_plan)
     scorecard = score_quiz(questions, len(objectives))
     topic = str(lesson_plan.get("topic") or lesson_plan.get("title") or "the lesson").strip()
     return {
