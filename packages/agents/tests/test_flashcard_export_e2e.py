@@ -27,7 +27,7 @@ from packages.quality.layer6_export.export_validator import (
 )
 from services.gateway.teaching_pack_export_writer import (
     ExportAdapterError,
-    _node_export,
+    node_export,
     _subprocess_formats,
 )
 
@@ -257,7 +257,7 @@ async def test_node_export_sends_sections_cards_to_cli(tmp_path: Path) -> None:
     ]
 
     with patch("services.gateway.teaching_pack_export_writer._EXPORT_CLI_PATH", fake_cli):
-        result = await _node_export("anki_apkg", "run-1", snapshots, tmp_path)
+        result = await node_export("anki_apkg", "run-1", snapshots, tmp_path)
 
     assert result == str(out_file)
 
@@ -266,7 +266,7 @@ async def test_node_export_sends_sections_cards_to_cli(tmp_path: Path) -> None:
 async def test_node_export_fails_closed_no_cli(tmp_path: Path) -> None:
     with patch("services.gateway.teaching_pack_export_writer._EXPORT_CLI_PATH", tmp_path / "missing.js"):
         with pytest.raises(ExportAdapterError, match="Export CLI not built"):
-            await _node_export("flashcard_tsv", "run-x", [], tmp_path)
+            await node_export("flashcard_tsv", "run-x", [], tmp_path)
 
 
 # ── Issue #04: Pack-generator prompt module ───────────────────────────────────

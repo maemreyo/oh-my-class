@@ -66,7 +66,7 @@ class TestWriterDispatchesToNodeExport:
         )
         mock_path = str(tmp_path / "run-1" / "run-1.gift.txt")
         with patch(
-            "services.gateway.teaching_pack_export_writer._node_export",
+            "services.gateway.teaching_pack_export_writer.node_export",
             new_callable=AsyncMock,
             return_value=mock_path,
         ) as mock_export:
@@ -88,7 +88,7 @@ class TestWriterDispatchesToNodeExport:
         )
         mock_path = str(tmp_path / "run-2" / "run-2.h5p")
         with patch(
-            "services.gateway.teaching_pack_export_writer._node_export",
+            "services.gateway.teaching_pack_export_writer.node_export",
             new_callable=AsyncMock,
             return_value=mock_path,
         ) as mock_export:
@@ -110,7 +110,7 @@ class TestWriterDispatchesToNodeExport:
         )
         mock_path = str(tmp_path / "run-3" / "run-3.qti.xml")
         with patch(
-            "services.gateway.teaching_pack_export_writer._node_export",
+            "services.gateway.teaching_pack_export_writer.node_export",
             new_callable=AsyncMock,
             return_value=mock_path,
         ) as mock_export:

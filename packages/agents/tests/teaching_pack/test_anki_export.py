@@ -95,40 +95,40 @@ def test_gift_h5p_qti_routed_to_subprocess() -> None:
 
 @pytest.mark.asyncio
 async def test_node_export_fails_closed_when_cli_missing(tmp_path: Path) -> None:
-    from services.gateway.teaching_pack_export_writer import ExportAdapterError, _node_export
+    from services.gateway.teaching_pack_export_writer import ExportAdapterError, node_export
 
     with patch("services.gateway.teaching_pack_export_writer._EXPORT_CLI_PATH", tmp_path / "nonexistent.js"):
         with pytest.raises(ExportAdapterError, match="Export CLI not built"):
-            await _node_export("anki_apkg", "run-1", [], tmp_path)
+            await node_export("anki_apkg", "run-1", [], tmp_path)
 
 
 @pytest.mark.asyncio
 async def test_node_export_fails_closed_on_nonzero_exit(tmp_path: Path) -> None:
-    from services.gateway.teaching_pack_export_writer import ExportAdapterError, _node_export
+    from services.gateway.teaching_pack_export_writer import ExportAdapterError, node_export
 
     fake_cli = tmp_path / "cli.js"
     fake_cli.write_text("process.exit(1)")
 
     with patch("services.gateway.teaching_pack_export_writer._EXPORT_CLI_PATH", fake_cli):
         with pytest.raises(ExportAdapterError, match="exited 1"):
-            await _node_export("anki_apkg", "run-1", [], tmp_path)
+            await node_export("anki_apkg", "run-1", [], tmp_path)
 
 
 @pytest.mark.asyncio
 async def test_node_export_fails_closed_on_cli_error_field(tmp_path: Path) -> None:
-    from services.gateway.teaching_pack_export_writer import ExportAdapterError, _node_export
+    from services.gateway.teaching_pack_export_writer import ExportAdapterError, node_export
 
     fake_cli = tmp_path / "cli.js"
     fake_cli.write_text('process.stdout.write(JSON.stringify({error:"bad deck"}))')
 
     with patch("services.gateway.teaching_pack_export_writer._EXPORT_CLI_PATH", fake_cli):
         with pytest.raises(ExportAdapterError, match="bad deck"):
-            await _node_export("anki_apkg", "run-1", [], tmp_path)
+            await node_export("anki_apkg", "run-1", [], tmp_path)
 
 
 @pytest.mark.asyncio
 async def test_node_export_returns_path_on_success(tmp_path: Path) -> None:
-    from services.gateway.teaching_pack_export_writer import _node_export
+    from services.gateway.teaching_pack_export_writer import node_export
 
     out_file = tmp_path / "run-1.apkg"
     out_file.write_bytes(b"")
@@ -136,7 +136,7 @@ async def test_node_export_returns_path_on_success(tmp_path: Path) -> None:
     fake_cli.write_text(f'process.stdout.write(JSON.stringify({{path:"{out_file}"}}));')
 
     with patch("services.gateway.teaching_pack_export_writer._EXPORT_CLI_PATH", fake_cli):
-        result = await _node_export("anki_apkg", "run-1", [], tmp_path)
+        result = await node_export("anki_apkg", "run-1", [], tmp_path)
     assert result == str(out_file)
 
 
