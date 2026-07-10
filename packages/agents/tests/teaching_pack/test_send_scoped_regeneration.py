@@ -26,7 +26,13 @@ def _state() -> dict[str, object]:
     return {
         "run_id": "run-scoped",
         "contract": {"topic": "Fractions", "theme": "default"},
-        "lesson_plan": {"topic": "Fractions"},
+        # learning_objectives present -- the Recap specialist (#439) compresses
+        # from approved objectives/findings and fails closed without any, unlike
+        # the old universal placeholder this fixture predates.
+        "lesson_plan": {
+            "topic": "Fractions",
+            "learning_objectives": [{"description": "Compare equivalent fractions."}],
+        },
         "research_brief": {"sources": []},
         "artifact_types": ["lesson", "worksheet", "quiz", "drill", "recap"],
         "artifact_generation_id": "run-scoped:artifact:1",
@@ -224,6 +230,8 @@ async def test_graph_reenters_artifact_workflow_for_scoped_rejection_by_default(
         ],
     })
 
-    assert calls == ["quiz", "recap"]
+    # "recap" is dispatched to the real Recap specialist (#439), not this fake
+    # content_creator_node -- it must still complete, just without hitting the mock.
+    assert calls == ["quiz"]
     assert result["artifact_generation_id"] == "run-scoped:artifact:2"
     assert result["artifact_fanout_complete"] is True

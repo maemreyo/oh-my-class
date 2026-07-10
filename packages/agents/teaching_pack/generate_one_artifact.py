@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, NotRequired, TypedDict
 
 from pydantic import ValidationError
 
 from common.contracts.artifact import ArtifactContent
-
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
-from packages.agents.teaching_pack.content_orchestrator import ArtifactContentStore
+from packages.agents.teaching_pack.specialist_registry import get_specialist
 from packages.agents.teaching_pack.stages import StageEnum
+
+if TYPE_CHECKING:
+    from packages.agents.teaching_pack.content_orchestrator import ArtifactContentStore
 
 
 class GenerateOneArtifactPayload(TypedDict):
@@ -49,18 +51,23 @@ async def generate_one_artifact(
                     payload.get("dependency_artifact_references", []),
                 )
             ]
-        result = await content_creator_node({
-            "lesson_plan": payload["lesson_plan"],
-            "research_bundle": payload["research_brief"],
-            "artifact_types": [artifact_type],
-            "theme": payload["theme"],
-            "run_id": payload["run_id"],
-            "current_step": StageEnum.ARTIFACT_WORKFLOW,
-            "artifacts": dependency_artifacts,
-            "revision_feedback": payload.get("revision_feedback", ""),
-            "use_hierarchical_creator": True,
-        })
-        artifact = _single_artifact(result)
+        specialist = get_specialist(artifact_type)
+        if specialist is not None:
+            artifact = specialist(payload["lesson_plan"], payload["research_brief"])
+            artifact.setdefault("theme", payload["theme"])
+        else:
+            result = await content_creator_node({
+                "lesson_plan": payload["lesson_plan"],
+                "research_bundle": payload["research_brief"],
+                "artifact_types": [artifact_type],
+                "theme": payload["theme"],
+                "run_id": payload["run_id"],
+                "current_step": StageEnum.ARTIFACT_WORKFLOW,
+                "artifacts": dependency_artifacts,
+                "revision_feedback": payload.get("revision_feedback", ""),
+                "use_hierarchical_creator": True,
+            })
+            artifact = _single_artifact(result)
         if str(artifact.get("artifact_type", "")) != artifact_type:
             raise ArtifactTypeMismatchError(artifact_type, str(artifact.get("artifact_type", "")))
         parsed = ArtifactContent.model_validate(artifact)

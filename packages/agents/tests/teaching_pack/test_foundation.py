@@ -198,9 +198,9 @@ class TestTeachingPackPorts:
 
 
 class TestGateRegistrySnapshot:
-    """Snapshot tests for the gateway gate registry — 6 gates with stable allowed_actions."""
+    """Snapshot tests for the gateway gate registry — 7 gates with stable allowed_actions."""
 
-    def test_all_six_gates_exist(self) -> None:
+    def test_all_seven_gates_exist(self) -> None:
         from services.gateway.teaching_pack_gate_registry import (
             TeachingPackGateName,
         )
@@ -208,6 +208,7 @@ class TestGateRegistrySnapshot:
         expected_gates = frozenset({
             "clarification_required",
             "contract_confirmation",
+            "source_conflict",
             "search_plan_confirmation",
             "blueprint_approval",
             "content_approval",
@@ -237,6 +238,20 @@ class TestGateRegistrySnapshot:
         )
 
         actions = allowed_actions_for_gate(TeachingPackGateName.CONTRACT_CONFIRMATION)
+        assert actions == frozenset({
+            TeachingPackGateAction.APPROVE,
+            TeachingPackGateAction.EDIT,
+            TeachingPackGateAction.REJECT,
+        })
+
+    def test_source_conflict_actions(self) -> None:
+        from services.gateway.teaching_pack_gate_registry import (
+            TeachingPackGateAction,
+            TeachingPackGateName,
+            allowed_actions_for_gate,
+        )
+
+        actions = allowed_actions_for_gate(TeachingPackGateName.SOURCE_CONFLICT)
         assert actions == frozenset({
             TeachingPackGateAction.APPROVE,
             TeachingPackGateAction.EDIT,

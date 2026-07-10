@@ -26,7 +26,13 @@ def _base_state(artifact_types: list[str] | None = None) -> dict[str, object]:
     return {
         "run_id": "run-send",
         "contract": {"topic": "Fractions", "theme": "default"},
-        "lesson_plan": {"topic": "Fractions"},
+        # learning_objectives present -- the Recap specialist (#439) compresses
+        # from approved objectives/findings and fails closed without any, unlike
+        # the old universal placeholder this fixture predates.
+        "lesson_plan": {
+            "topic": "Fractions",
+            "learning_objectives": [{"description": "Compare equivalent fractions."}],
+        },
         "research_brief": {"sources": []},
         "artifact_types": artifact_types or ["lesson", "worksheet", "quiz", "drill", "recap"],
     }
@@ -264,7 +270,9 @@ async def test_compiled_graph_runs_waves_before_render_quality_by_default(
         ],
     })
 
-    assert calls == ["lesson", "quiz", "recap"]
+    # "recap" is dispatched to the real Recap specialist (#439), not this fake
+    # content_creator_node -- it must still complete, just without hitting the mock.
+    assert calls == ["lesson", "quiz"]
     assert result["artifact_fanout_complete"] is True
     assert [reference["artifact_type"] for reference in result["artifact_references"]] == ["lesson", "quiz", "recap"]
 
