@@ -228,21 +228,17 @@
     },
     {
       "export_format": "anki_apkg",
-      "status": "rejected",
+      "status": "supported",
       "supported_artifact_types": ["flashcard_deck"],
       "requires_answer_set": false,
-      "file_validation": "Anki import smoke test",
-      "rejection_reason": "gateway export registry currently returns a planned path without materializing APKG",
-      "alternative": "use standalone HTML until the Anki exporter is wired"
+      "file_validation": "Anki import smoke test"
     },
     {
       "export_format": "flashcard_tsv",
-      "status": "rejected",
+      "status": "supported",
       "supported_artifact_types": ["flashcard_deck"],
       "requires_answer_set": false,
-      "file_validation": "TSV schema validation",
-      "rejection_reason": "gateway export registry currently returns a planned path without materializing TSV",
-      "alternative": "use standalone HTML until the TSV exporter is wired"
+      "file_validation": "TSV schema validation"
     },
     {
       "export_format": "pptx",

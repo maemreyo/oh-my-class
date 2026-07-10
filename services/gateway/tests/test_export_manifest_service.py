@@ -385,3 +385,88 @@ async def test_regenerate_writes_a_real_h5p_package_for_a_quiz_artifact(
     assert written[:2] == b"PK"  # H5P packages are zip archives
     await session.execute(delete(Run).where(Run.run_id == run_id))
     await session.commit()
+
+
+async def _make_flashcard_run_and_snapshot(session: AsyncSession) -> tuple[RunId, ArtifactSnapshotRead]:
+    run_id = RunId(f"export-svc-{uuid4()}")
+    session.add(Run(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-export-svc"),
+        status=RunStatus.COMPLETED,
+        current_step=1,
+        raw_request="Test flashcard export",
+        class_info={"grade": 5},
+    ))
+    await session.flush()
+    snapshot_store = TeachingPackSnapshotStore(session)
+    await snapshot_store.create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=f"snap-{uuid4()}",
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="flashcard_deck",
+        content_json={
+            "cards": [
+                {"id": "c1", "front": "Photosynthesis", "back": "How plants make food from light"},
+            ],
+            "subject": "science",
+            "gradeLevel": "5",
+        },
+        rendered_html="<!DOCTYPE html><html><body>flashcards</body></html>",
+        renderer_version="1.0",
+    ))
+    head = await snapshot_store.get_latest_snapshot(run_id, "artifact-1")
+    assert head is not None
+    return run_id, head
+
+
+async def test_regenerate_writes_a_real_anki_apkg_for_a_flashcard_deck(
+    session: AsyncSession, tmp_path: Path,
+) -> None:
+    """#457: anki_apkg now has a real writer -- exercise it end to end."""
+    run_id, head = await _make_flashcard_run_and_snapshot(session)
+
+    result = await regenerate_stale_exports(
+        session,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="flashcard_deck",
+        head=head,
+        formats=["anki_apkg"],
+        base_dir=tmp_path,
+    )
+
+    assert result.regenerated == ["anki_apkg"]
+    export_store = TeachingPackExportStore(session)
+    latest = await export_store.get_latest_export_for_format(run_id, "artifact-1", "anki_apkg")
+    assert latest is not None
+    written = Path(latest.storage_path).read_bytes()
+    assert written[:2] == b"PK"  # .apkg is a zip archive containing a SQLite collection
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
+
+
+async def test_regenerate_writes_a_real_flashcard_tsv_for_a_flashcard_deck(
+    session: AsyncSession, tmp_path: Path,
+) -> None:
+    """#457: flashcard_tsv now has a real writer -- exercise it end to end."""
+    run_id, head = await _make_flashcard_run_and_snapshot(session)
+
+    result = await regenerate_stale_exports(
+        session,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="flashcard_deck",
+        head=head,
+        formats=["flashcard_tsv"],
+        base_dir=tmp_path,
+    )
+
+    assert result.regenerated == ["flashcard_tsv"]
+    export_store = TeachingPackExportStore(session)
+    latest = await export_store.get_latest_export_for_format(run_id, "artifact-1", "flashcard_tsv")
+    assert latest is not None
+    written = Path(latest.storage_path).read_text(encoding="utf-8")
+    assert "Photosynthesis" in written
+    assert "How plants make food from light" in written
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
