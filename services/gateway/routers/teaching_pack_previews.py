@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Annotated, Literal
 from uuid import uuid4
 
@@ -14,6 +15,11 @@ from common.contracts.slide_deck import (
     resolve_slide_deck_display_preferences,
 )
 from packages.agents.slide_deck_engine import UnsupportedTranslationLanguageError, translate_slide_deck
+from packages.agents.slide_deck_engine.phases.block_rewrite_llm import (
+    BlockRewriteInstructionError,
+    generate_slide_deck_block_rewrite,
+    resolve_rewrite_instruction,
+)
 from packages.agents.slide_deck_engine.scoped_block_edit import (
     SlideDeckBlockEditInvalidError,
     SlideDeckBlockNotFoundError,
@@ -37,9 +43,15 @@ from services.gateway.teaching_pack_store import TeachingPackEventCreate, Teachi
 from services.gateway.teaching_pack_types import JsonObject, JsonValue, RunId
 from services.gateway.routers.teaching_pack_deps import get_run_with_ownership
 from services.gateway.routers.teaching_pack_preview_schemas import (
+    ArtifactVersionListResponse,
+    ArtifactVersionSummary,
     RenderedSnapshotMetadataResponse,
+    RestoreArtifactVersionRequest,
+    RestoreArtifactVersionResponse,
     SlideDeckBlockEditRequest,
     SlideDeckBlockEditResponse,
+    SlideDeckBlockRewriteSuggestionRequest,
+    SlideDeckBlockRewriteSuggestionResponse,
     SnapshotApprovalRequest,
     SnapshotApprovalResponse,
     TranslateSlideDeckRequest,
@@ -322,7 +334,9 @@ async def edit_slide_deck_snapshot_block(
     except SnapshotBaseVersionConflictError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="base_snapshot_id_stale") from exc
 
-    edit_event = slide_deck_block_edit_event(head.artifact_id, block_id, payload.rationale)
+    edit_event = slide_deck_block_edit_event(
+        head.artifact_id, block_id, payload.rationale, authority=payload.authority, snapshot_id=created.snapshot_id,
+    )
     edit_event_payload = edit_event["payload"]
     await TeachingPackRunStore(session).write_event(TeachingPackEventCreate(
         run_id=typed_run_id,
@@ -338,6 +352,295 @@ async def edit_slide_deck_snapshot_block(
         base_snapshot_id=payload.base_snapshot_id,
         snapshot_id=created.snapshot_id,
     )
+
+
+@router.post(
+    "/run/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}/rewrite-suggestion",
+    response_model=SlideDeckBlockRewriteSuggestionResponse,
+)
+@router.post(
+    "/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}/rewrite-suggestion",
+    response_model=SlideDeckBlockRewriteSuggestionResponse,
+)
+async def suggest_slide_deck_block_rewrite(
+    run_id: str,
+    snapshot_id: str,
+    block_id: str,
+    payload: SlideDeckBlockRewriteSuggestionRequest,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> SlideDeckBlockRewriteSuggestionResponse:
+    """SDE-08: AI-assisted rewrite CANDIDATE for one block -- returns a
+    before/after pair for the teacher's confirmation modal. Never persists
+    anything; the teacher's own "Apply" click, which reuses
+    `edit_slide_deck_snapshot_block` with `authority="ai_assisted_edit"`, is
+    the only path that writes a new snapshot/event.
+
+    Resolves the artifact's current head the same way the block-edit endpoint
+    does (`get_latest_snapshot`, not the URL's own possibly-stale
+    `snapshot_id`), so the candidate is always generated against the latest
+    body, not a stale copy.
+    """
+    typed_run_id = RunId(run_id)
+    await _require_run_access(session, typed_run_id, current_user)
+    snapshot_store = TeachingPackSnapshotStore(session)
+    snapshot = await snapshot_store.get_snapshot(typed_run_id, snapshot_id)
+    if snapshot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="snapshot_not_found")
+    if snapshot.artifact_type != "slide_deck":
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="not_a_slide_deck")
+
+    head = await snapshot_store.get_latest_snapshot(typed_run_id, snapshot.artifact_id)
+    if head is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="snapshot_not_found")
+    deck_dict = _slide_deck_data(head)
+    if deck_dict is None:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="slide_deck_data_missing")
+
+    try:
+        deck = SlideDeckData.model_validate(deck_dict)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="slide_deck_data_invalid") from exc
+
+    current_body = next(
+        (block.body for slide in deck.slides for block in slide.blocks if block.block_id == block_id),
+        None,
+    )
+    if current_body is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="block_not_found")
+
+    try:
+        instruction = resolve_rewrite_instruction(preset=payload.preset, freeform=payload.instruction)
+    except BlockRewriteInstructionError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+
+    rewritten = await generate_slide_deck_block_rewrite(
+        run_id=run_id, current_body=current_body, instruction=instruction,
+    )
+    if rewritten is None:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="rewrite_unavailable")
+
+    return SlideDeckBlockRewriteSuggestionResponse(block_id=block_id, before=current_body, after=rewritten)
+
+
+_CONTENT_VERSION_EVENT_NAME = "teaching_pack.content_version.created"
+_MAX_VERSION_LABEL_RATIONALE_LEN = 60
+
+
+@router.get(
+    "/run/{run_id}/artifacts/{artifact_id}/versions",
+    response_model=ArtifactVersionListResponse,
+)
+@router.get(
+    "/runs/{run_id}/artifacts/{artifact_id}/versions",
+    response_model=ArtifactVersionListResponse,
+)
+async def list_artifact_versions(
+    run_id: str,
+    artifact_id: str,
+    current_user: Annotated[User, Depends(require_teacher)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> ArtifactVersionListResponse:
+    """SDE-05: linear, newest-first, paginated version history for one artifact.
+
+    Not a diff/comparison view (explicitly deferred, ADR-047 decision 7) --
+    just enough per version to identify it (timestamp, who/what produced it,
+    a short label) and open it read-only via the existing
+    `GET .../snapshots/{snapshot_id}/preview` endpoint.
+    """
+    typed_run_id = RunId(run_id)
+    await _require_run_access(session, typed_run_id, current_user)
+    snapshot_store = TeachingPackSnapshotStore(session)
+    page, total = await snapshot_store.list_artifact_snapshot_versions(
+        typed_run_id, artifact_id, limit=limit, offset=offset,
+    )
+    if total == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="artifact_not_found")
+    earliest_snapshot_id = await snapshot_store.get_earliest_snapshot_id(typed_run_id, artifact_id)
+    head = await snapshot_store.get_latest_snapshot(typed_run_id, artifact_id)
+    events_by_snapshot_id = await _content_version_events_by_snapshot_id(session, typed_run_id, artifact_id)
+    versions = [
+        ArtifactVersionSummary(
+            snapshot_id=snapshot.snapshot_id,
+            created_at=snapshot.created_at,
+            authority=_version_authority(snapshot, earliest_snapshot_id, events_by_snapshot_id),
+            label=_version_label(snapshot, earliest_snapshot_id, events_by_snapshot_id),
+            is_current=head is not None and snapshot.snapshot_id == head.snapshot_id,
+        )
+        for snapshot in page
+    ]
+    return ArtifactVersionListResponse(
+        run_id=run_id,
+        artifact_id=artifact_id,
+        total=total,
+        limit=limit,
+        offset=offset,
+        versions=versions,
+    )
+
+
+@router.post(
+    "/run/{run_id}/artifacts/{artifact_id}/versions/{version_snapshot_id}/restore",
+    response_model=RestoreArtifactVersionResponse,
+)
+@router.post(
+    "/runs/{run_id}/artifacts/{artifact_id}/versions/{version_snapshot_id}/restore",
+    response_model=RestoreArtifactVersionResponse,
+)
+async def restore_artifact_version(
+    run_id: str,
+    artifact_id: str,
+    version_snapshot_id: str,
+    payload: RestoreArtifactVersionRequest,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> RestoreArtifactVersionResponse:
+    """SDE-05: "Restore this version" -- copies an old version's content into
+    a brand-new snapshot row. Never mutates or deletes the restored version
+    or any version in between; this only ever inserts a new row. Reuses the
+    same optimistic-locked `create_scoped_edit_snapshot` path as a normal
+    block edit, so a stale `base_snapshot_id` 409s exactly like SDE-04's
+    edit endpoint instead of silently clobbering a newer head.
+    """
+    typed_run_id = RunId(run_id)
+    await _require_run_access(session, typed_run_id, current_user)
+    snapshot_store = TeachingPackSnapshotStore(session)
+    restore_from = await snapshot_store.get_snapshot(typed_run_id, version_snapshot_id)
+    if restore_from is None or restore_from.artifact_id != artifact_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="snapshot_not_found")
+    if restore_from.content_json is None:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="snapshot_content_missing")
+
+    new_snapshot_id = f"snapshot-{uuid4().hex[:12]}"
+    try:
+        created = await snapshot_store.create_scoped_edit_snapshot(
+            run_id=typed_run_id,
+            artifact_id=artifact_id,
+            base_snapshot_id=payload.base_snapshot_id,
+            new_snapshot=ArtifactSnapshotCreate(
+                snapshot_id=new_snapshot_id,
+                run_id=typed_run_id,
+                artifact_id=artifact_id,
+                artifact_type=restore_from.artifact_type,
+                content_json=_restored_content(restore_from),
+                rendered_html=restore_from.rendered_html,
+                student_rendered_html=restore_from.student_rendered_html,
+                renderer_version=restore_from.renderer_version,
+                template_version=restore_from.template_version,
+                theme_version=restore_from.theme_version,
+                version_mismatch_policy="warn",
+            ),
+        )
+    except SnapshotBaseVersionConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="base_snapshot_id_stale") from exc
+
+    restore_event: JsonObject = {
+        "artifact_id": artifact_id,
+        "authority": "teacher_edit",
+        "snapshot_id": created.snapshot_id,
+        "diff": {
+            "status": "restore",
+            "restored_from_snapshot_id": restore_from.snapshot_id,
+        },
+    }
+    await TeachingPackRunStore(session).write_event(TeachingPackEventCreate(
+        run_id=typed_run_id,
+        event_name=_CONTENT_VERSION_EVENT_NAME,
+        visibility=TeachingPackEventVisibility.TEACHER,
+        payload=restore_event,
+    ))
+    await session.commit()
+    return RestoreArtifactVersionResponse(
+        run_id=run_id,
+        artifact_id=artifact_id,
+        restored_from_snapshot_id=restore_from.snapshot_id,
+        base_snapshot_id=payload.base_snapshot_id,
+        snapshot_id=created.snapshot_id,
+    )
+
+
+def _restored_content(snapshot: ArtifactSnapshotRead) -> JsonObject:
+    """Copy a past version's content_json verbatim for a restore, tagging
+    provenance (+ a timestamp) into `metadata`. The tag also guarantees the
+    new row's content_hash differs from the restored row's -- `content_hash`
+    has a *global* uniqueness constraint (`ArtifactSnapshot.content_hash`),
+    so an untagged byte-for-byte copy would collide and `create_snapshot`
+    would silently return the *old* row instead of inserting a new one
+    (defeating "restore creates a brand-new version").
+    """
+    content = dict(snapshot.content_json or {})
+    metadata = content.get("metadata")
+    content["metadata"] = {
+        **(metadata if isinstance(metadata, dict) else {}),
+        "restored_from_snapshot_id": snapshot.snapshot_id,
+        "restored_at": datetime.now(UTC).isoformat(),
+    }
+    return content
+
+
+async def _content_version_events_by_snapshot_id(
+    session: AsyncSession,
+    run_id: RunId,
+    artifact_id: str,
+) -> dict[str, JsonObject]:
+    """Map `snapshot_id -> content_version.created event payload` for one
+    artifact, so the version list can label each row without guessing by
+    timestamp order. Events pre-dating SDE-05 (or from the gate-resume edit
+    path, which has no snapshot row at event-write time) never carried a
+    `snapshot_id` and are simply absent here -- callers fall back to a
+    generic label for those.
+    """
+    events = await TeachingPackRunStore(session).list_events_by_name(run_id, _CONTENT_VERSION_EVENT_NAME)
+    events_by_snapshot_id: dict[str, JsonObject] = {}
+    for event in events:
+        payload = event.payload
+        if not isinstance(payload, dict) or payload.get("artifact_id") != artifact_id:
+            continue
+        event_snapshot_id = payload.get("snapshot_id")
+        if isinstance(event_snapshot_id, str):
+            events_by_snapshot_id[event_snapshot_id] = payload
+    return events_by_snapshot_id
+
+
+def _version_authority(
+    snapshot: ArtifactSnapshotRead,
+    earliest_snapshot_id: str | None,
+    events_by_snapshot_id: dict[str, JsonObject],
+) -> str:
+    if snapshot.snapshot_id == earliest_snapshot_id:
+        return "initial"
+    event_payload = events_by_snapshot_id.get(snapshot.snapshot_id)
+    authority = event_payload.get("authority") if event_payload is not None else None
+    return authority if isinstance(authority, str) else "teacher_edit"
+
+
+def _version_label(
+    snapshot: ArtifactSnapshotRead,
+    earliest_snapshot_id: str | None,
+    events_by_snapshot_id: dict[str, JsonObject],
+) -> str:
+    if snapshot.snapshot_id == earliest_snapshot_id:
+        return "Initial version"
+    event_payload = events_by_snapshot_id.get(snapshot.snapshot_id)
+    if event_payload is None:
+        return "Manual edit"
+    diff = event_payload.get("diff")
+    diff = diff if isinstance(diff, dict) else {}
+    if diff.get("status") == "restore":
+        return "Restored version"
+    rationale = diff.get("rationale")
+    rationale = rationale.strip() if isinstance(rationale, str) and rationale.strip() else None
+    if event_payload.get("authority") == "ai_assisted_edit":
+        return f"AI rewrite: {_truncate(rationale)}" if rationale else "AI rewrite"
+    return "Manual edit"
+
+
+def _truncate(text: str, *, limit: int = _MAX_VERSION_LABEL_RATIONALE_LEN) -> str:
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip() + "…"
 
 
 def _edited_artifact_content(snapshot: ArtifactSnapshotRead, deck: SlideDeckData) -> JsonObject:

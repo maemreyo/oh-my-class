@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+from pathlib import Path
 from uuid import uuid4
 
 from services.gateway.models import RunStatus
 from services.gateway.outcome_delivery import OutcomeDeliverySink, OutcomeDeliveryWriteError
+from services.gateway.teaching_pack_export_store import ExportRecordCreate, TeachingPackExportStore
 from services.gateway.teaching_pack_export_writer import (
     FileSystemTeachingPackExportWriter,
     RendererAdapterSnapshotRenderer,
     TeachingPackExportWriter,
     TeachingPackSnapshotRenderer,
+    approved_snapshots_for_export,
 )
 from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate
@@ -30,6 +33,7 @@ class TeachingPackCompletionRecorder:
         export_writer: TeachingPackExportWriter | None = None,
         notifications: TeachingPackNotificationSink | None = None,
         outcome_delivery: OutcomeDeliverySink | None = None,
+        export_store: TeachingPackExportStore | None = None,
     ) -> None:
         self._store = store
         self._renderer = renderer or RendererAdapterSnapshotRenderer()
@@ -38,6 +42,7 @@ class TeachingPackCompletionRecorder:
         )
         self._notifications = notifications
         self._outcome_delivery = outcome_delivery
+        self._export_store = export_store
 
     async def persist_completion(self, run_id: RunId, state: JsonObject) -> None:
         content_update_event = _content_update_event(state)
@@ -59,6 +64,10 @@ class TeachingPackCompletionRecorder:
         if _has_export_evidence(state):
             run = await self._store.get_run_by_id(run_id)
             exported_files = await self._export_writer.write_exports(run_id, state)
+            if self._export_store is not None:
+                approved_snapshots = approved_snapshots_for_export(state)
+                for record in _export_records_from_files(run_id, exported_files, approved_snapshots):
+                    await self._export_store.create_export_record(record)
             exported_file_values: list[JsonValue] = [str(file_path) for file_path in exported_files]
             completed_payload: JsonObject = {"exported_files": exported_file_values}
             auto_approval_payload = _auto_approval_payload(state)
@@ -181,6 +190,41 @@ class TeachingPackCompletionRecorder:
             visibility=TeachingPackEventVisibility.INTERNAL,
             payload=recovery_payload,
         ))
+
+
+def _export_records_from_files(
+    run_id: RunId,
+    exported_files: list[str],
+    approved_snapshots: list[JsonObject],
+) -> list[ExportRecordCreate]:
+    """Map each exported file back to the snapshot(s) it was generated from.
+
+    html/pptx exports are 1:1 (`{snapshot_id}.{ext}`, see exporters.py), so
+    the filename stem recovers the exact snapshot_id. Batch formats (gift/
+    h5p/qti/anki_apkg/flashcard_tsv) produce one file for every approved
+    snapshot combined, so there's no per-snapshot filename to match — those
+    fan out to one export_records row per contributing snapshot, sharing the
+    same storage_path.
+    # ponytail: batch-format rows share a storage_path; revisit if a format
+    # ever needs an independently downloadable per-snapshot artifact.
+    """
+    by_snapshot_id = {str(snapshot.get("snapshot_id", "")): snapshot for snapshot in approved_snapshots}
+    records: list[ExportRecordCreate] = []
+    for file_path in exported_files:
+        stem = Path(file_path).stem
+        export_format = Path(file_path).suffix.lstrip(".") or "unknown"
+        matched = by_snapshot_id.get(stem)
+        targets = [matched] if matched is not None else approved_snapshots
+        for snapshot in targets:
+            records.append(ExportRecordCreate(
+                export_id=f"export-{uuid4()}",
+                run_id=run_id,
+                artifact_id=str(snapshot.get("artifact_id", "")),
+                snapshot_id=str(snapshot.get("snapshot_id", "")),
+                format=export_format,
+                storage_path=file_path,
+            ))
+    return records
 
 
 def _has_export_evidence(state: JsonObject) -> bool:

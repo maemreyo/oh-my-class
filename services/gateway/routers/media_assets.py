@@ -13,7 +13,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import (
@@ -50,7 +50,11 @@ class GenerateAltTextResponse(BaseModel):
 
 
 class SetAltTextRequest(BaseModel):
-    alt_text: str
+    """Mirrors `SlideDeckMedia.alt_text`'s schema constraint
+    (`common/contracts/slide_deck.py`) so a rejected/oversized value 422s
+    here rather than reaching the deck contract later."""
+
+    alt_text: str = Field(min_length=1, max_length=500)
 
 
 def _to_response(row) -> MediaAssetResponse:  # noqa: ANN001
@@ -129,3 +133,51 @@ async def get_media_asset_file(
         raise NotFoundError(message=f"Media asset {asset_id} not found")
     content = MediaStorage().read(row.storage_key)
     return Response(content=content, media_type=row.content_type)
+
+
+@router.post("/{asset_id}/generate-alt-text")  # pyright: ignore[reportUntypedFunctionDecorator]
+async def generate_media_asset_alt_text(
+    asset_id: str,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: TeachingPackSession,
+    context: str | None = None,
+) -> GenerateAltTextResponse:
+    """SDX-04: returns a best-guess alt-text candidate for the teacher's
+    before/after confirmation modal. Never persisted here — see
+    `set_media_asset_alt_text` for the Accept step. No vision capability
+    exists in this LLM setup (see `media_alt_text_llm.py`'s docstring), so
+    the candidate is built from the asset's filename/tags/optional slide
+    context, not true image understanding."""
+    store = MediaAssetStore(session)
+    row = await store.get_asset(asset_id, current_user.user_id)
+    if row is None:
+        raise NotFoundError(message=f"Media asset {asset_id} not found")
+    candidate = await generate_alt_text_for_image(
+        run_id=f"media-alt-text-{asset_id}",
+        filename=row.filename,
+        tags=row.tags,
+        context=context,
+    )
+    if candidate is None:
+        raise ValidationError(message="Alt-text generation failed — try again")
+    return GenerateAltTextResponse(candidate=candidate)
+
+
+@router.put("/{asset_id}/alt-text")  # pyright: ignore[reportUntypedFunctionDecorator]
+async def set_media_asset_alt_text(
+    asset_id: str,
+    body: SetAltTextRequest,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: TeachingPackSession,
+) -> MediaAssetResponse:
+    """Persists alt text the teacher Accepted (AI-generated or hand-edited).
+    `SetAltTextRequest.alt_text`'s Pydantic `Field(min_length=1,
+    max_length=500)` already enforces the same schema constraint
+    `SlideDeckMedia.alt_text` needs downstream — a bad value 422s before it
+    reaches the store."""
+    store = MediaAssetStore(session)
+    row = await store.set_alt_text(asset_id, current_user.user_id, body.alt_text)
+    if row is None:
+        raise NotFoundError(message=f"Media asset {asset_id} not found")
+    await session.commit()
+    return _to_response(row)

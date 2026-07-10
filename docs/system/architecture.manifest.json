@@ -7,7 +7,6 @@
       "qti",
       "anki_apkg",
       "flashcard_tsv",
-      "google_forms",
       "pptx"
     ],
     "supported": [
@@ -19,9 +18,7 @@
       "flashcard_tsv",
       "pptx"
     ],
-    "unsupported": [
-      "google_forms"
-    ]
+    "unsupported": []
   },
   "gate_names": [
     "clarification_required",
@@ -42,7 +39,7 @@
     ],
     "fast_lane_threshold_default": null
   },
-  "migration_count": 25,
+  "migration_count": 27,
   "models": {
     "assignments": {
       "blueprint_design": "4omc",
@@ -113,6 +110,13 @@
       "prefix": "/run",
       "tags": [
         "snapshots"
+      ]
+    },
+    {
+      "name": "exports",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "exports"
       ]
     },
     {

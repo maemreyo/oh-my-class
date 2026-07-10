@@ -14,9 +14,18 @@ const CHOICE_INTERACTION_TYPES = new Set<SlideDeckInteraction["interaction_type"
 export function SlideCanvas({
 	slide,
 	onSlideChange,
+	runId,
+	snapshotId,
+	onBlockRewriteApplied,
 }: {
 	readonly slide: SlideDeckSlide;
 	readonly onSlideChange: (next: SlideDeckSlide) => void;
+	/** SDE-08: passed straight through to `SlideBlockEditor`'s generic
+	 * "Rewrite with AI" control -- this component has no rewrite logic of its
+	 * own, it's pure plumbing. */
+	readonly runId: string;
+	readonly snapshotId: string | null;
+	readonly onBlockRewriteApplied: (blockId: string) => void;
 }) {
 	function updateBlock(updated: SlideDeckBlock) {
 		onSlideChange({ ...slide, blocks: slide.blocks.map((block) => (block.block_id === updated.block_id ? updated : block)) });
@@ -36,7 +45,14 @@ export function SlideCanvas({
 			<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{slide.layout} layout</p>
 			<div className="space-y-3">
 				{slide.blocks.map((block) => (
-					<SlideBlockEditor key={block.block_id} block={block} onChange={updateBlock} />
+					<SlideBlockEditor
+						key={block.block_id}
+						block={block}
+						onChange={updateBlock}
+						runId={runId}
+						snapshotId={snapshotId}
+						onBlockRewriteApplied={onBlockRewriteApplied}
+					/>
 				))}
 			</div>
 			{(slide.interactions ?? []).length > 0 ? (

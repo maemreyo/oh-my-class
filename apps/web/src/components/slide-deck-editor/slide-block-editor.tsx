@@ -2,6 +2,7 @@
 
 import type { ComponentType } from "react";
 import type { SlideDeckBlock } from "@oh-my-class/schemas";
+import { BlockRewriteControls } from "./block-rewrite-controls";
 import { CalloutBlock } from "./blocks/callout-block";
 import { HeadingBlock } from "./blocks/heading-block";
 import { ImageBlock } from "./blocks/image-block";
@@ -24,12 +25,29 @@ const BLOCK_COMPONENTS: Partial<Record<SlideDeckBlock["block_type"], BlockCompon
 	interaction_prompt: InteractionPromptBlock,
 };
 
+const BLOCK_TYPE_LABELS: Partial<Record<SlideDeckBlock["block_type"], string>> = {
+	heading: "Heading",
+	paragraph: "Paragraph text",
+	callout: "Callout",
+	image: "Image caption",
+	interaction_prompt: "Interaction prompt",
+};
+
 export function SlideBlockEditor({
 	block,
 	onChange,
+	runId,
+	snapshotId,
+	onBlockRewriteApplied,
 }: {
 	readonly block: SlideDeckBlock;
 	readonly onChange: (next: SlideDeckBlock) => void;
+	/** SDE-08: threaded down (rather than duplicating the "Rewrite with AI"
+	 * trigger inside every block component) so one `BlockRewriteControls`
+	 * instance covers every block type generically. */
+	readonly runId: string;
+	readonly snapshotId: string | null;
+	readonly onBlockRewriteApplied: (blockId: string) => void;
 }) {
 	const Component = BLOCK_COMPONENTS[block.block_type];
 	if (!Component) {
@@ -39,5 +57,19 @@ export function SlideBlockEditor({
 			</div>
 		);
 	}
-	return <Component block={block} onChange={onChange} />;
+	return (
+		<div className="space-y-2">
+			<Component block={block} onChange={onChange} />
+			<BlockRewriteControls
+				runId={runId}
+				snapshotId={snapshotId}
+				block={block}
+				blockLabel={BLOCK_TYPE_LABELS[block.block_type] ?? "Block"}
+				onApply={(newBody) => {
+					onChange({ ...block, body: newBody });
+					onBlockRewriteApplied(block.block_id);
+				}}
+			/>
+		</div>
+	);
 }

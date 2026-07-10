@@ -11,7 +11,7 @@ from datetime import datetime
 from hashlib import sha256
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from services.gateway.teaching_pack_snapshot_errors import (
@@ -179,6 +179,47 @@ class TeachingPackSnapshotStore:
         snapshot = result.scalar_one_or_none()
         return _read_snapshot(snapshot) if snapshot is not None else None
 
+    async def list_artifact_snapshot_versions(
+        self,
+        run_id: RunId,
+        artifact_id: str,
+        *,
+        limit: int,
+        offset: int,
+    ) -> tuple[list[ArtifactSnapshotRead], int]:
+        """SDE-05: paginated, newest-first version lineage for one artifact.
+
+        Returns `(page, total)` -- `total` is the full lineage length so the
+        caller can render "page N of M" / decide whether more pages remain
+        without fetching every row.
+        """
+        count_statement = select(func.count()).select_from(ArtifactSnapshot).where(
+            ArtifactSnapshot.run_id == run_id, ArtifactSnapshot.artifact_id == artifact_id,
+        )
+        total = (await self._session.execute(count_statement)).scalar_one()
+        statement = (
+            select(ArtifactSnapshot)
+            .where(ArtifactSnapshot.run_id == run_id, ArtifactSnapshot.artifact_id == artifact_id)
+            .order_by(ArtifactSnapshot.created_at.desc(), ArtifactSnapshot.snapshot_id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await self._session.execute(statement)
+        page = [_read_snapshot(snapshot) for snapshot in result.scalars().all()]
+        return page, total
+
+    async def get_earliest_snapshot_id(self, run_id: RunId, artifact_id: str) -> str | None:
+        """The artifact's first-ever snapshot (materialization, not an edit) -- used to
+        label that one version "Initial version" instead of "Manual edit"."""
+        statement = (
+            select(ArtifactSnapshot.snapshot_id)
+            .where(ArtifactSnapshot.run_id == run_id, ArtifactSnapshot.artifact_id == artifact_id)
+            .order_by(ArtifactSnapshot.created_at.asc(), ArtifactSnapshot.snapshot_id.asc())
+            .limit(1)
+        )
+        result = await self._session.execute(statement)
+        return result.scalar_one_or_none()
+
     async def create_scoped_edit_snapshot(
         self,
         *,
@@ -262,4 +303,5 @@ def _read_snapshot(snapshot: ArtifactSnapshot) -> ArtifactSnapshotRead:
         theme_version=snapshot.theme_version,
         standalone_valid=snapshot.standalone_valid,
         approved_at=snapshot.approved_at,
+        created_at=snapshot.created_at,
     )

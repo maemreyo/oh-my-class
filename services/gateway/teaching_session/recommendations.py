@@ -20,7 +20,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime  # noqa: TC003
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 from uuid import uuid4
 
 from sqlalchemy import JSON, DateTime, Index, String, select
@@ -29,7 +29,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from services.gateway.exceptions import ErrorCode, OMCError
 from services.gateway.models import Base, utc_now
 from services.gateway.teaching_session.models import DeliveryMode, RetentionTier, SessionAuditEvent
-from services.gateway.teaching_session.responses import MisconceptionRollupRow
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,6 +37,7 @@ if TYPE_CHECKING:
         GenerateOneArtifactPayload,
         GenerateOneArtifactResult,
     )
+    from services.gateway.teaching_session.responses import MisconceptionRollupRow
 
 # ---------------------------------------------------------------------------
 # Candidate generation (pure, cites aggregate evidence only)
@@ -102,7 +102,10 @@ def generate_recommendation_candidates(
         candidates.append(RecommendationCandidate(
             kind=RecommendationKind.RETEACH_MINI_DECK,
             evidence_keys=weak_keys,
-            rationale=f"{len(weak)} concept(s) below {_WEAK_CONCEPT_ACCURACY_THRESHOLD:.0%} class accuracy",
+            rationale=(
+                f"{len(weak)} concept(s) below "
+                f"{_WEAK_CONCEPT_ACCURACY_THRESHOLD:.0%} class accuracy"
+            ),
         ))
         candidates.append(RecommendationCandidate(
             kind=RecommendationKind.PRACTICE_WORKSHEET,

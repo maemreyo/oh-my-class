@@ -1,7 +1,14 @@
 import { SlideDeckBlockSchema, type SlideDeckMedia } from "@oh-my-class/schemas";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { apiClient } from "@/lib/api-client";
 import { BLOCK_BODY_MAX, MEDIA_ALT_TEXT_MAX } from "../block-constraints";
-import { applyImageAltTextEdit, applyImageCaptionEdit, applyMediaSelection } from "./image-block";
+import {
+	applyImageAltTextEdit,
+	applyImageCaptionEdit,
+	applyMediaSelection,
+	persistAltTextToLibrary,
+	requestAltTextCandidate,
+} from "./image-block";
 
 // Parsed through the real schema so the fixture stays valid as the contract
 // grows new optional/defaulted fields.
@@ -73,5 +80,43 @@ describe("applyMediaSelection", () => {
 
 		expect(result.media).toEqual(selected);
 		expect(result.body).toBe(blockWithoutMedia.body); // only `media` changes
+	});
+});
+
+// SDX-04: editor round-trip for the "Tạo alt-text bằng AI" action (mocked
+// gateway calls — no live LLM/DB).
+describe("requestAltTextCandidate", () => {
+	it("returns the gateway's generated candidate for the block's media asset", async () => {
+		const postSpy = vi.spyOn(apiClient, "post").mockResolvedValue({ candidate: "A ripe red apple on a plate." });
+
+		const candidate = await requestAltTextCandidate(block.media as SlideDeckMedia);
+
+		expect(postSpy).toHaveBeenCalledWith("/media-assets/media-model/generate-alt-text");
+		expect(candidate).toBe("A ripe red apple on a plate.");
+
+		postSpy.mockRestore();
+	});
+});
+
+describe("persistAltTextToLibrary", () => {
+	it("PUTs the accepted alt text back to the library for reuse across decks", () => {
+		const putSpy = vi.spyOn(apiClient, "put").mockResolvedValue({});
+
+		persistAltTextToLibrary("media-model", "A ripe red apple on a plate.");
+
+		expect(putSpy).toHaveBeenCalledWith("/media-assets/media-model/alt-text", {
+			alt_text: "A ripe red apple on a plate.",
+		});
+
+		putSpy.mockRestore();
+	});
+
+	it("swallows a failed sync — the local draft edit already applied regardless", async () => {
+		const putSpy = vi.spyOn(apiClient, "put").mockRejectedValue(new Error("network error"));
+
+		expect(() => persistAltTextToLibrary("media-model", "text")).not.toThrow();
+		await Promise.resolve(); // let the rejection's .catch() run before restoring
+
+		putSpy.mockRestore();
 	});
 });

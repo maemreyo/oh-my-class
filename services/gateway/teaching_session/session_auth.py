@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from services.gateway.teaching_session.tokens import (
@@ -44,6 +44,34 @@ async def get_session_claims(
         )
     try:
         return verify_session_token(credentials.credentials)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from e
+
+
+async def get_session_claims_for_stream(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(session_security)],
+    session_token: Annotated[str | None, Query()] = None,
+) -> SessionTokenPayload:
+    """Same verification as `get_session_claims`, plus a query-param fallback
+    (TSP-04) -- mirrors `auth.dependencies.get_current_user_for_status_stream`'s
+    cookie fallback for the same reason: the browser's native `EventSource`
+    cannot set an Authorization header, so the live cockpit's `GET /stream`
+    consumer (the only caller of this dependency) has no other way to attach
+    the session-role token to the request that starts the connection.
+    """
+    token = credentials.credentials if credentials is not None else session_token
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing session role token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    try:
+        return verify_session_token(token)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

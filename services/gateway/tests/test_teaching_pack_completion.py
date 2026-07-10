@@ -7,6 +7,7 @@ import pytest
 
 from services.gateway.models import RunStatus
 from services.gateway.teaching_pack_completion import TeachingPackCompletionRecorder
+from services.gateway.teaching_pack_export_store import ExportRecordCreate
 from services.gateway.teaching_pack_export_writer import ExportAdapterError, FileSystemTeachingPackExportWriter
 from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate
@@ -92,6 +93,15 @@ class RecordingExportWriter:
     async def write_exports(self, run_id: RunId, state: JsonObject) -> list[str]:
         self.calls.append((run_id, state))
         return self.exported_files
+
+
+@dataclass(slots=True)
+class RecordingExportStore:
+    records: list[ExportRecordCreate] = field(default_factory=list)
+
+    async def create_export_record(self, payload: ExportRecordCreate) -> ExportRecordCreate:
+        self.records.append(payload)
+        return payload
 
 
 class TestTeachingPackCompletionRecorder:
@@ -218,6 +228,54 @@ class TestTeachingPackCompletionRecorder:
         assert store.events[-1].payload == {"exported_files": ["exports/run-1/snapshot-1.html"]}
         assert notifications.completed == [(RunId("run-1"), "teacher-1")]
         assert outcome_delivery.calls == [(RunId("run-1"), "teacher-1", state)]
+
+    @pytest.mark.anyio
+    async def test_export_finalize_persists_export_record_with_source_snapshot_id(self) -> None:
+        """SDE-06: the export record's snapshot_id is the snapshot actually
+        exported (passed through explicitly), not "whatever is current"."""
+        store = RecordingFailureStore()
+        export_writer = RecordingExportWriter(
+            exported_files=["exports/run-1/snapshot-1.html"],
+        )
+        export_store = RecordingExportStore()
+        recorder = TeachingPackCompletionRecorder(
+            store,
+            RecordingRenderer(),
+            export_writer,
+            export_store=export_store,
+        )
+        state = {
+            "run_id": "run-1",
+            "exported_files": ["exports/run-1/snapshot-1.html"],
+            "approved_snapshot_ids": ["snapshot-1"],
+            "rendered_snapshots": [{
+                "snapshot_id": "snapshot-1",
+                "artifact_id": "artifact-1",
+                "content_json": {"title": "Lesson"},
+            }],
+        }
+
+        await recorder.persist_completion(RunId("run-1"), state)
+
+        assert len(export_store.records) == 1
+        record = export_store.records[0]
+        assert record.snapshot_id == "snapshot-1"
+        assert record.artifact_id == "artifact-1"
+        assert record.format == "html"
+        assert record.storage_path == "exports/run-1/snapshot-1.html"
+
+    @pytest.mark.anyio
+    async def test_export_finalize_without_export_evidence_never_creates_export_record(self) -> None:
+        """SDE-06: no automatic re-export/export-record creation is ever
+        triggered by anything other than a successful export — an edit alone
+        (no export evidence in state) must not create a record."""
+        store = RecordingFailureStore()
+        export_store = RecordingExportStore()
+        recorder = TeachingPackCompletionRecorder(store, export_store=export_store)
+
+        await recorder.persist_completion(RunId("run-1"), {"run_id": "run-1"})
+
+        assert export_store.records == []
 
     @pytest.mark.anyio
     async def test_auto_approval_is_teacher_visible_before_completion(self) -> None:

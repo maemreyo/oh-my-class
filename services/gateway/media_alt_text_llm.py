@@ -99,7 +99,8 @@ async def generate_alt_text_for_image(
             parse=parse,
             retry_messages=lambda _err, _content: runtime.messages(
                 _SYSTEM_PROMPT,
-                "Invalid response. Return ONLY the JSON object with the exact alt_text key requested.",
+                "Invalid response. Return ONLY the JSON object with the exact "
+                "alt_text key requested.",
             ),
             extra_tags=("phase:media_asset_alt_text",),
         )

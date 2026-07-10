@@ -14,6 +14,19 @@ export interface RequestOptions {
 	readonly headers?: Readonly<Record<string, string>>;
 }
 
+/** Thrown by `APIClient.request` on a non-OK response — carries the HTTP
+ * status so callers can branch on it (e.g. SDE-04's 409 optimistic-lock
+ * conflict) instead of parsing it back out of a message string. */
+export class ApiError extends Error {
+	constructor(
+		message: string,
+		readonly status: number,
+	) {
+		super(message);
+		this.name = "ApiError";
+	}
+}
+
 class APIClient {
 	private baseUrl: string;
 
@@ -71,7 +84,7 @@ class APIClient {
 				.json()
 				.catch(() => ({ detail: "Unknown error" }));
 			const errorMessage = error.detail || `HTTP ${response.status}`;
-			throw new Error(`${errorMessage} (request: ${responseRequestId})`);
+			throw new ApiError(`${errorMessage} (request: ${responseRequestId})`, response.status);
 		}
 
 		return response.json() as Promise<T>;
@@ -87,6 +100,10 @@ class APIClient {
 
 	put<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
 		return this.request<T>("PUT", path, body, options);
+	}
+
+	patch<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+		return this.request<T>("PATCH", path, body, options);
 	}
 
 	/** POST a `FormData` body (file upload) — no JSON `Content-Type` header,

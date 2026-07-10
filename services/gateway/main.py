@@ -24,6 +24,7 @@ from .routers import (
     approvals,
     artifacts,
     auth_router,
+    exports,
     media_assets,
     notifications,
     ops,
@@ -90,6 +91,7 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
         TeachingPackFailureRecorder,
     )
     from .teaching_pack_executor_types import InAppTeachingPackNotificationSink
+    from .teaching_pack_export_store import TeachingPackExportStore
     from .teaching_pack_store import TeachingPackRunStore
     from .teaching_pack_worker import TeachingPackWorkerConfig, run_worker_batch
 
@@ -106,6 +108,7 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
                 outcome_delivery=SqlAlchemyOutcomeDeliverySink(
                     app.state.teaching_pack_session_factory,
                 ),
+                export_store=TeachingPackExportStore(session),
             ),
         )
 
@@ -224,6 +227,7 @@ app.include_router(snapshots.router, prefix="/run", tags=["snapshots"])
 app.include_router(approvals.router, prefix="/run", tags=["approvals"])
 app.include_router(teaching_pack_runs.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(teaching_pack_previews.router, prefix="/teaching-packs", tags=["teaching-pack"])
+app.include_router(exports.router, prefix="/teaching-packs", tags=["exports"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 app.include_router(ops.router)

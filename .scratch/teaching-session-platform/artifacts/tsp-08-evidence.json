@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-07-10T05:57:33.859305+00:00",
+  "scenarios": [
+    {
+      "checks": {
+        "controller_drove_slide_and_branch": true,
+        "drill_down_rejected_at_aggregate_tier": true,
+        "idempotent_submission_single_aggregate_record": true,
+        "non_controller_roles_blocked_from_slide_and_branch": true,
+        "non_student_roles_blocked_from_responses": true,
+        "raw_response_count_at_aggregate_tier": 0,
+        "recommendation_generated_but_pending_teacher_approval": true,
+        "sse_reconnect_delivered_only_missed_events": true,
+        "state_reconnect_reflects_latest_event": true
+      },
+      "deck_id": "deck-tsp08",
+      "delivery_mode": "live",
+      "final_lifecycle_state": "ended",
+      "name": "live_classroom",
+      "retention_policy": {
+        "label": "Aggregate / class-level (K-12 default)",
+        "tier": "aggregate"
+      },
+      "role_tokens_used": [
+        {
+          "role": "controller",
+          "token_fingerprint": "bd0897f3cb03b8a0"
+        },
+        {
+          "role": "display",
+          "token_fingerprint": "e3aaa87c23597cd4"
+        },
+        {
+          "role": "student",
+          "token_fingerprint": "d94852c3ff9641da"
+        },
+        {
+          "role": "observer",
+          "token_fingerprint": "2e93e42982d2d2d0"
+        }
+      ],
+      "session_id": "tsp08-70ee710f-156d-40de-b26d-94a16b34a05a",
+      "snapshot_id": "snap-tsp08"
+    },
+    {
+      "checks": {
+        "redis_hot_state_genuinely_unreachable": true,
+        "state_recovers_via_postgres_replay": true,
+        "write_path_succeeds_with_redis_down": true
+      },
+      "deck_id": "deck-tsp08",
+      "delivery_mode": "live",
+      "final_lifecycle_state": "scheduled",
+      "name": "offline_degraded_presentation_fallback",
+      "retention_policy": {
+        "label": "Aggregate / class-level (K-12 default)",
+        "tier": "aggregate"
+      },
+      "role_tokens_used": [
+        {
+          "role": "controller",
+          "token_fingerprint": "29e8cd33a5b4d0a0"
+        },
+        {
+          "role": "student",
+          "token_fingerprint": "a8e44f2e6da08d0a"
+        }
+      ],
+      "session_id": "tsp08-739f939d-0b2d-4afd-98b6-6b12a26f199c",
+      "snapshot_id": "snap-tsp08"
+    },
+    {
+      "checks": {
+        "homework_review_flipped_catch_up_cleanly_rejected": true,
+        "live_mode_selectable": true,
+        "note": "TSP-07 declares all 5 delivery modes and fail-closed-gates the 4 async ones; only `live` has a working runtime, proven end to end by the live_classroom scenario above."
+      },
+      "deck_id": "deck-tsp08",
+      "delivery_mode": "live",
+      "final_lifecycle_state": "scheduled",
+      "name": "review_homework_delivery_mode_declaration",
+      "retention_policy": {
+        "label": "Aggregate / class-level (K-12 default)",
+        "tier": "aggregate"
+      },
+      "role_tokens_used": [],
+      "session_id": "tsp08-f8cbc7fd-8d2b-4dcc-9c55-8baec28df1a1",
+      "snapshot_id": "snap-tsp08"
+    }
+  ],
+  "schema": "oh-my-class.teaching_session.evidence.v1"
+}

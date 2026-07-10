@@ -87,6 +87,7 @@ def slide_deck_block_edit_event(
     rationale: str,
     *,
     authority: str = "teacher_edit",
+    snapshot_id: str | None = None,
 ) -> JsonObject:
     """Build the shared `content_version.created` event payload.
 
@@ -95,17 +96,28 @@ def slide_deck_block_edit_event(
     emit an identical event regardless of which one is called. `authority`
     defaults to `"teacher_edit"`; SDE-08's AI-assisted rewrite passes
     `"ai_assisted_edit"` through the same helper.
+
+    `snapshot_id` (SDE-05, optional): the newly created snapshot row this
+    edit produced. The standalone endpoint (which creates exactly one
+    snapshot row per call) passes it through so the version-history list can
+    join a version to the event that produced it, instead of guessing by
+    timestamp order. The gate-resume path doesn't have a snapshot row at
+    event-write time (it edits in-memory graph state), so it's left `None`
+    there -- those entries just fall back to a generic label.
     """
+    payload: JsonObject = {
+        "artifact_id": artifact_id,
+        "block_id": block_id,
+        "authority": authority,
+        "diff": {
+            "status": "teacher_block_edit",
+            "changed_path": f"{artifact_id}.blocks[{block_id}]",
+            "rationale": rationale,
+        },
+    }
+    if snapshot_id is not None:
+        payload["snapshot_id"] = snapshot_id
     return {
         "event_name": "teaching_pack.content_version.created",
-        "payload": {
-            "artifact_id": artifact_id,
-            "block_id": block_id,
-            "authority": authority,
-            "diff": {
-                "status": "teacher_block_edit",
-                "changed_path": f"{artifact_id}.blocks[{block_id}]",
-                "rationale": rationale,
-            },
-        },
+        "payload": payload,
     }

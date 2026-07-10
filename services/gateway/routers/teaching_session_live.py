@@ -24,10 +24,15 @@ import anyio
 import orjson
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from redis.exceptions import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
+from packages.agents.slide_deck_engine.phases.block_rewrite_llm import (
+    BlockRewriteInstructionError,
+    generate_slide_deck_block_rewrite,
+    resolve_rewrite_instruction,
+)
 from packages.agents.teaching_pack.teacher_memory import (
     read_pacing_nudge_preference,
     write_pacing_nudge_preference,
@@ -36,6 +41,13 @@ from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import User  # noqa: TC001
 from services.gateway.teaching_pack_db import get_teaching_pack_session
 from services.gateway.teaching_session import live_sync
+from services.gateway.teaching_session.branches import (
+    BranchContentType,
+    BranchRejected,
+    BranchSource,
+    create_precomputed_branch,
+    list_precomputed_branches,
+)
 from services.gateway.teaching_session.event_log import (
     RecordedEvent,
     current_state,
@@ -60,6 +72,7 @@ from services.gateway.teaching_session.responses import (
 from services.gateway.teaching_session.retention import allowed_data_categories_for_tier
 from services.gateway.teaching_session.session_auth import (
     get_session_claims,
+    get_session_claims_for_stream,
     require_controller,
     require_session_role,
 )
@@ -78,6 +91,55 @@ class AdvanceSlideRequest(BaseModel):
 class SelectBranchRequest(BaseModel):
     slide_id: str
     branch_id: str
+
+
+class PrecomputedBranchResponse(BaseModel):
+    """One zero-latency branch option (TSP-06 amendment #2: the cockpit's default)."""
+
+    branch_id: str
+    slide_id: str
+    interaction_id: str | None
+    branch_type: BranchContentType
+    label: str
+
+
+class ListPrecomputedBranchesResponse(BaseModel):
+    branches: list[PrecomputedBranchResponse]
+
+
+class BranchSuggestionRequest(BaseModel):
+    """TSP-06 amendment #1: identical shape to SDE-08's rewrite-suggestion
+    request -- exactly one of `preset`/`instruction`, resolved by the same
+    `resolve_rewrite_instruction` function. Never persists."""
+
+    slide_id: str
+    current_body: str = Field(min_length=1, max_length=2000)
+    preset: str | None = None
+    instruction: str | None = Field(default=None, max_length=500)
+
+
+class BranchSuggestionResponse(BaseModel):
+    """Handed straight back to the requesting teacher's own HTTP response --
+    never written anywhere, never broadcast (see `branches.py` module
+    docstring's content-safety-boundary note)."""
+
+    slide_id: str
+    before: str
+    after: str
+
+
+class ApplyBranchSuggestionRequest(BaseModel):
+    """The teacher's explicit "Apply" on the reused `AiBlockRewriteConfirmModal`
+    (SDE-08's exact modal). `approved_body` is that modal's `after` text,
+    possibly re-edited by the teacher before applying -- either way it is
+    re-validated by the same quality gate a precomputed branch must pass
+    before it can ever land in `branch_selected`."""
+
+    slide_id: str
+    branch_type: BranchContentType
+    label: str = Field(min_length=1, max_length=200)
+    approved_body: str = Field(min_length=1, max_length=2000)
+    interaction_id: str | None = None
 
 
 class SubmitResponseRequest(BaseModel):
@@ -186,6 +248,119 @@ async def select_branch(
         event_type=SessionEventType.BRANCH_SELECTED,
         actor_role=claims.role,
         payload=body.model_dump(),
+    )
+    return await _finish(db, recorded)
+
+
+@router.get("/{session_id}/branches", response_model=ListPrecomputedBranchesResponse)
+async def get_precomputed_branches(
+    session_id: str,
+    slide_id: str,
+    claims: Annotated[SessionTokenPayload, Depends(require_controller)],
+    db: Annotated[AsyncSession, Depends(get_teaching_pack_session)],
+) -> ListPrecomputedBranchesResponse:
+    """The zero-latency default the cockpit lists FIRST (TSP-06 amendment #2)
+    -- no LLM call on this path. Controller-only: only the teacher acts on
+    branch options, same gating `/branch` itself uses."""
+    _require_matching_session(claims, session_id)
+    session = await _load_session_or_404(db, session_id)
+    branches = await list_precomputed_branches(db, deck_id=session.deck_id, slide_id=slide_id)
+    return ListPrecomputedBranchesResponse(
+        branches=[
+            PrecomputedBranchResponse(
+                branch_id=branch.branch_id,
+                slide_id=branch.slide_id,
+                interaction_id=branch.interaction_id,
+                branch_type=BranchContentType(branch.branch_type),
+                label=branch.label,
+            )
+            for branch in branches
+        ],
+    )
+
+
+@router.post("/{session_id}/branch-suggestions", response_model=BranchSuggestionResponse)
+async def suggest_branch_content(
+    session_id: str,
+    body: BranchSuggestionRequest,
+    claims: Annotated[SessionTokenPayload, Depends(require_controller)],
+    db: Annotated[AsyncSession, Depends(get_teaching_pack_session)],
+) -> BranchSuggestionResponse:
+    """On-the-fly AI branch suggestion (TSP-06 amendment #1): the FALLBACK for
+    when no precomputed branch fits, reusing SDE-08's exact
+    `resolve_rewrite_instruction` + `generate_slide_deck_block_rewrite`
+    pipeline -- not a separate live-generation system.
+
+    Returns a teacher-only draft straight in this response body: never
+    persisted, never logged as a session event, never handed to the module
+    that broadcasts to subscribers -- structurally unreachable from any
+    student/display SSE connection (see `branches.py` module docstring).
+    Only `/branch-suggestions/apply`, gated behind the teacher's explicit
+    "Apply" on the reused confirmation modal, can turn this into
+    student-visible content.
+    """
+    _require_matching_session(claims, session_id)
+    await _load_session_or_404(db, session_id)
+    try:
+        instruction = resolve_rewrite_instruction(preset=body.preset, freeform=body.instruction)
+    except BlockRewriteInstructionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc),
+        ) from exc
+
+    rewritten = await generate_slide_deck_block_rewrite(
+        run_id=session_id, current_body=body.current_body, instruction=instruction,
+    )
+    if rewritten is None:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="rewrite_unavailable")
+    return BranchSuggestionResponse(
+        slide_id=body.slide_id, before=body.current_body, after=rewritten,
+    )
+
+
+@router.post("/{session_id}/branch-suggestions/apply", response_model=SessionStateResponse)
+async def apply_branch_suggestion(
+    session_id: str,
+    body: ApplyBranchSuggestionRequest,
+    claims: Annotated[SessionTokenPayload, Depends(require_controller)],
+    db: Annotated[AsyncSession, Depends(get_teaching_pack_session)],
+) -> SessionStateResponse:
+    """Teacher-approved promotion of an AI suggestion (TSP-06 base AC6):
+    quality-gates `approved_body` through the SAME gate a precomputed branch
+    must pass (`create_precomputed_branch`), then -- only on success --
+    records `branch_selected` with `source="ai_generated"`, the FINAL
+    approved content, never the raw suggestion this route received.
+    """
+    _require_matching_session(claims, session_id)
+    session = await _load_session_or_404(db, session_id)
+
+    created = await create_precomputed_branch(
+        db,
+        deck_id=session.deck_id,
+        slide_id=body.slide_id,
+        branch_type=body.branch_type,
+        label=body.label,
+        body=body.approved_body,
+        created_by=f"controller:{session_id}",
+        interaction_id=body.interaction_id,
+        source=BranchSource.AI_GENERATED,
+    )
+    if isinstance(created, BranchRejected):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"reason": created.reason, "codes": [report.code for report in created.reports]},
+        )
+
+    recorded = await record_event(
+        db,
+        session_id=session_id,
+        event_type=SessionEventType.BRANCH_SELECTED,
+        actor_role=claims.role,
+        payload={
+            "slide_id": body.slide_id,
+            "branch_id": created.branch_id,
+            "source": BranchSource.AI_GENERATED.value,
+        },
     )
     return await _finish(db, recorded)
 
@@ -300,13 +475,18 @@ async def get_current_state(
 @router.get("/{session_id}/stream")
 async def stream_session_events(
     session_id: str,
-    claims: Annotated[SessionTokenPayload, Depends(get_session_claims)],
+    claims: Annotated[SessionTokenPayload, Depends(get_session_claims_for_stream)],
     db: Annotated[AsyncSession, Depends(get_teaching_pack_session)],
     last_event_id: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
 ) -> StreamingResponse:
     """SSE broadcast (base AC3). Replays missed events via `Last-Event-ID` (base AC5),
     then relays live Redis Pub/Sub events; degrades to polling Postgres if Redis is
-    unreachable (base AC7 -- live sync degrades, it never just stops)."""
+    unreachable (base AC7 -- live sync degrades, it never just stops).
+
+    Uses `get_session_claims_for_stream` (query-param fallback), not the plain
+    `get_session_claims` every other route here uses -- TSP-04's browser
+    `EventSource` consumer can't set an Authorization header on the request
+    that opens this connection (see that dependency's docstring)."""
     _require_matching_session(claims, session_id)
     await _load_session_or_404(db, session_id)
     after_sequence = int(last_event_id) if last_event_id else 0

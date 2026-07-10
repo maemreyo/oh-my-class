@@ -275,6 +275,27 @@ class TeachingPackRunStore:
             for event in result.scalars().all()
         ]
 
+    async def list_events_by_name(self, run_id: RunId, event_name: str) -> list[TeachingPackEventRead]:
+        """SDE-05: fetch one event type for a run (e.g. `content_version.created`)
+        so the version-history list can look up each version's authority/rationale
+        without replaying the run's entire event log."""
+        statement = (
+            select(RunEvent)
+            .where(RunEvent.run_id == run_id, RunEvent.event_name == event_name)
+            .order_by(RunEvent.sequence)
+        )
+        result = await self._session.execute(statement)
+        return [
+            TeachingPackEventRead(
+                run_id=RunId(event.run_id),
+                sequence=event.sequence,
+                event_name=event.event_name,
+                visibility=event.visibility,
+                payload=event.payload,
+            )
+            for event in result.scalars().all()
+        ]
+
     async def has_snapshot(self, content_hash: str) -> bool:
         return await TeachingPackSnapshotStore(self._session).has_snapshot(content_hash)
 

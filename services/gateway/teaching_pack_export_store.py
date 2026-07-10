@@ -1,0 +1,108 @@
+"""Persistence and staleness queries for export records (SDE-06)."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from sqlalchemy import select
+
+from services.gateway.teaching_pack_export_models import ExportRecord
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from services.gateway.teaching_pack_types import RunId
+
+
+@dataclass(frozen=True, slots=True)
+class ExportRecordCreate:
+    export_id: str
+    run_id: RunId
+    artifact_id: str
+    snapshot_id: str
+    format: str
+    storage_path: str
+
+
+@dataclass(frozen=True, slots=True)
+class ExportRecordRead:
+    export_id: str
+    run_id: RunId
+    artifact_id: str
+    snapshot_id: str
+    format: str
+    storage_path: str
+    created_at: datetime
+
+
+class TeachingPackExportStore:
+    """Append-only store for export records.
+
+    No update/delete method exists on purpose: an edit must never touch a
+    prior export row (SDE-06 AC1). Old rows simply keep pointing at their
+    (still-persisted, never-deleted) source ArtifactSnapshot.
+    """
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def create_export_record(self, payload: ExportRecordCreate) -> ExportRecordRead:
+        record = ExportRecord(
+            export_id=payload.export_id,
+            run_id=payload.run_id,
+            artifact_id=payload.artifact_id,
+            snapshot_id=payload.snapshot_id,
+            format=payload.format,
+            storage_path=payload.storage_path,
+        )
+        self._session.add(record)
+        await self._session.flush()
+        return _read_record(record)
+
+    async def list_exports(self, run_id: RunId, artifact_id: str | None = None) -> list[ExportRecordRead]:
+        statement = select(ExportRecord).where(ExportRecord.run_id == run_id)
+        if artifact_id is not None:
+            statement = statement.where(ExportRecord.artifact_id == artifact_id)
+        statement = statement.order_by(ExportRecord.created_at.desc())
+        result = await self._session.execute(statement)
+        return [_read_record(record) for record in result.scalars().all()]
+
+    async def get_latest_export(self, run_id: RunId, artifact_id: str) -> ExportRecordRead | None:
+        statement = (
+            select(ExportRecord)
+            .where(ExportRecord.run_id == run_id, ExportRecord.artifact_id == artifact_id)
+            .order_by(ExportRecord.created_at.desc())
+            .limit(1)
+        )
+        result = await self._session.execute(statement)
+        record = result.scalar_one_or_none()
+        return _read_record(record) if record is not None else None
+
+    async def is_stale(self, run_id: RunId, artifact_id: str, current_snapshot_id: str | None) -> bool:
+        """True when the latest export's snapshot_id lags the current head.
+
+        No export yet -> not stale (nothing to re-export against); a
+        missing/unknown current head is treated as "can't tell, not stale"
+        since there's nothing newer to flag against.
+        """
+        if current_snapshot_id is None:
+            return False
+        latest = await self.get_latest_export(run_id, artifact_id)
+        if latest is None:
+            return False
+        return latest.snapshot_id != current_snapshot_id
+
+
+def _read_record(record: ExportRecord) -> ExportRecordRead:
+    return ExportRecordRead(
+        export_id=record.export_id,
+        run_id=record.run_id,
+        artifact_id=record.artifact_id,
+        snapshot_id=record.snapshot_id,
+        format=record.format,
+        storage_path=record.storage_path,
+        created_at=record.created_at,
+    )

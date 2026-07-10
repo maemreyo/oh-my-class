@@ -18,7 +18,16 @@ export default function SlideDeckEditPage() {
 	if (error) return <FullScreenMessage>Could not load run {runId}: {error.message}</FullScreenMessage>;
 	if (!deck) return <FullScreenMessage>No slide deck data found for artifact {deckId}.</FullScreenMessage>;
 
-	return <SlideDeckEditor initialDeck={deck} />;
+	// SDE-07 gap, not fixed here: `useArtifact` reads the legacy in-memory
+	// `/run/{run_id}/artifacts/{artifact_id}` endpoint (services/gateway/routers/artifacts.py),
+	// which carries no `snapshot_id` -- it's a different storage path than
+	// the `TeachingPackSnapshotStore`-backed one SDE-04's PATCH endpoint
+	// optimistic-locks against. There is no existing "latest snapshot_id for
+	// this artifact_id" lookup anywhere in the gateway today (confirmed by
+	// grepping every router), so there's no real value to pass here yet.
+	// `SlideDeckEditor` disables Save until a real snapshot id is threaded
+	// through (see its `baseSnapshotId` prop doc).
+	return <SlideDeckEditor runId={runId} artifactId={deckId} initialDeck={deck} baseSnapshotId={null} />;
 }
 
 /**

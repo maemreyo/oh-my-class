@@ -398,16 +398,16 @@
          every slide renders in print regardless of which one is active on
          screen. Same selector/specificity as the screen rule (main pageCSS
          block above), so source order (this rule is later) decides the tie
-         in print's favor; `.slide-frame { display: block; }` below is a
+         in print's favor; the plain .slide-frame rule below is a
          lower-specificity belt-and-suspenders backstop. */
       .slide-deck--js-ready .slide-frame[aria-hidden="true"] { display: block; }
       .slide-frame { display: block; }
       .slide-viewport { min-height: 0; display: grid; gap: .5rem; grid-template-columns: 1fr; }
       .slide-list { grid-template-columns: 1fr; }
       /* SDH-05: real 16:9 layout sizing (aspect-ratio), not transform-based
-         scaling -- and a single border owner (`.slide-card` alone) with a
+         scaling -- and a single border owner (.slide-card alone) with a
          solid crisp border/radius and no shadow/filter/transform, which used
-         to blur print corners. `overflow: hidden` keeps content from
+         to blur print corners. overflow: hidden keeps content from
          spilling past the rounded corners it now strictly owns. */
       .slide-card {
         min-height: auto;
@@ -427,8 +427,8 @@
          displayPreferences and client-side from the toolbar radiogroup)
          choose 1/2/4/6-up paged layout or a continuous, unpaginated flow.
          Mirrored per-selector (not comma-joined) for both the interactive
-         presentation player's `.slide-viewport`/`.slide-frame` markup and
-         the dedicated print surface's `.slide-list`/`<li>` markup, which
+         presentation player's .slide-viewport/.slide-frame markup and
+         the dedicated print surface's .slide-list/li markup, which
          share the same grid mechanics but different container/item tags. */
       .print-mode--paged-1 .slide-card { page-break-after: always; page-break-inside: avoid; }
       .print-mode--paged-2 .slide-viewport { grid-template-columns: repeat(2, 1fr); }

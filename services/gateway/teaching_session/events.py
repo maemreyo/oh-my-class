@@ -70,8 +70,16 @@ class AggregateUpdatedPayload(BaseModel):
 
 
 class BranchSelectedPayload(BaseModel):
+    """`source` records how `branch_id`'s content came to exist (TSP-06):
+    `"precomputed"` for a pre-authored branch looked up by
+    `teaching_session.branches.list_precomputed_branches`, `"ai_generated"`
+    for one the teacher approved via `/branch-suggestions/apply` -- either
+    way `branch_id` always references an already-quality-gated
+    `PrecomputedBranch` row, never raw/unapproved AI output."""
+
     slide_id: str
     branch_id: str
+    source: str = "precomputed"
 
 
 class AnnotationAddedPayload(BaseModel):

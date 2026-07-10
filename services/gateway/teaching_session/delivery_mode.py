@@ -74,5 +74,8 @@ IMPLEMENTED_DELIVERY_MODES: Final[frozenset[DeliveryMode]] = frozenset({Delivery
 
 
 def describe_delivery_mode_policy(mode: DeliveryMode) -> DeliveryModePolicy:
-    """Policy lookup for teacher/admin surfaces and evidence (mirrors `describe_retention_policy`)."""
+    """Policy lookup for teacher/admin surfaces and evidence.
+
+    Mirrors `retention.describe_retention_policy`'s shape.
+    """
     return DELIVERY_MODE_POLICIES[mode]

@@ -253,8 +253,11 @@ function extractStyleBlock(html: string): string {
   return match[1];
 }
 
+// base.html's own tiny `@media print { .no-print {...} }` rule is baked into
+// every render's <style> block ahead of slide_deck's pageCSS -- take the
+// *last* `@media print` occurrence, which is the slide_deck-specific one.
 function extractPrintMediaBlock(css: string): string {
-  const startIndex = css.indexOf("@media print");
+  const startIndex = css.lastIndexOf("@media print");
   if (startIndex === -1) throw new Error("no @media print block found");
   const openBraceIndex = css.indexOf("{", startIndex);
   let depth = 1;
@@ -306,9 +309,14 @@ describe("slide_deck print layout and border fidelity (SDH-05)", () => {
   it("renders every slide in the dedicated print surface's DOM with no active-slide gating at all", async () => {
     const twoSlideDeck = { ...deck, slides: [...deck.slides, { ...deck.slides[0], slide_id: "slide-2", title: "Second" }] };
     const html = await renderArtifact("slide_deck", { ...twoSlideDeck, render_surface: "print" });
+    const mainMatch = html.match(/<main id="main-content">([\s\S]*?)<\/main>/);
+    const mainHtml = mainMatch?.[1] ?? "";
 
-    expect(html).not.toContain("aria-hidden");
-    expect((html.match(/class="slide-card/g) ?? []).length).toBe(2);
+    // The CSS block legitimately contains the *string* "aria-hidden" as part
+    // of an attribute-selector (`[aria-hidden="true"]`) -- only the actual
+    // rendered markup (inside <main>) must never gate a slide on it.
+    expect(mainHtml).not.toContain("aria-hidden");
+    expect((mainHtml.match(/class="slide-card/g) ?? []).length).toBe(2);
   });
 
   it("renders every slide frame in the interactive player's DOM even though only slide 0 starts visible", async () => {
@@ -339,7 +347,7 @@ describe("slide_deck print layout and border fidelity (SDH-05)", () => {
     const cardRule = extractSlideCardRuleBody(printBlock);
 
     expect(cardRule).toMatch(/aspect-ratio:\s*16\s*\/\s*9/);
-    expect(cardRule).not.toMatch(/transform:\s*(?!none)/);
+    expect(cardRule).not.toMatch(/transform:\s+(?!none\b)/);
   });
 
   it("supports paged grids for 1/2/4/6 slides per page and lets continuous mode ignore the grid", async () => {
@@ -368,9 +376,9 @@ describe("slide_deck print layout and border fidelity (SDH-05)", () => {
     expect(cardRule).toMatch(/filter:\s*none/);
     expect(cardRule).toMatch(/transform:\s*none/);
     // No shadow/filter/transform value other than the explicit "none" reset.
-    expect(cardRule).not.toMatch(/box-shadow:\s*(?!none)/);
-    expect(cardRule).not.toMatch(/filter:\s*(?!none)/);
-    expect(cardRule).not.toMatch(/transform:\s*(?!none)/);
+    expect(cardRule).not.toMatch(/box-shadow:\s+(?!none\b)/);
+    expect(cardRule).not.toMatch(/filter:\s+(?!none\b)/);
+    expect(cardRule).not.toMatch(/transform:\s+(?!none\b)/);
   });
 
   it("keeps the print rules fully inside @media print -- mobile screen styles stay untouched", async () => {

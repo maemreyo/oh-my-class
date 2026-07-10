@@ -5,12 +5,11 @@ Frozen dataclasses for snapshot creation and retrieval (separate from ORM models
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from services.gateway.teaching_pack_types import JsonObject
 
 from services.gateway.teaching_pack_types import (
@@ -59,3 +58,7 @@ class ArtifactSnapshotRead:
     theme_version: str
     standalone_valid: bool
     approved_at: datetime | None
+    # SDE-05: defaulted (not required) so existing call sites that construct
+    # this directly without caring about version-history timestamps (mostly
+    # tests) don't all need updating for an unrelated field.
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))

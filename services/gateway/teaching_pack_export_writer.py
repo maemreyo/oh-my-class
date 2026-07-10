@@ -42,7 +42,6 @@ class FileSystemTeachingPackExportWriter:
     renderer: TeachingPackSnapshotRenderer = RendererAdapterSnapshotRenderer()
 
     async def write_exports(self, run_id: RunId, state: JsonObject) -> list[str]:
-        approved_ids = _approved_snapshot_ids(state)
         export_dir = self.base_dir / str(run_id)
         export_dir.mkdir(parents=True, exist_ok=True)
         unsupported_formats = _unsupported_formats(state)
@@ -52,12 +51,9 @@ class FileSystemTeachingPackExportWriter:
                 + ", ".join(unsupported_formats),
             )
         exported_files: list[str] = []
-        approved_snapshots: list[JsonObject] = []
-        for snapshot in _rendered_snapshots(state):
+        approved_snapshots = approved_snapshots_for_export(state)
+        for snapshot in approved_snapshots:
             snapshot_id = str(snapshot.get("snapshot_id", ""))
-            if snapshot_id not in approved_ids:
-                continue
-            approved_snapshots.append(snapshot)
             rendered_html = await self.renderer.render(_snapshot_content(snapshot))
             export_path = export_dir / f"{snapshot_id}.html"
             export_path.write_text(rendered_html, encoding="utf-8")
@@ -73,6 +69,20 @@ def _approved_snapshot_ids(state: JsonObject) -> set[str]:
     if not isinstance(values, list):
         return set()
     return {str(value) for value in values}
+
+
+def approved_snapshots_for_export(state: JsonObject) -> list[JsonObject]:
+    """The exact snapshots (with snapshot_id/artifact_id) an export was built from.
+
+    SDE-06: this is the one source of truth for "what snapshot_id did this
+    export come from" — callers must pass this through explicitly rather
+    than re-deriving/inferring a snapshot_id at read time.
+    """
+    approved_ids = _approved_snapshot_ids(state)
+    return [
+        snapshot for snapshot in _rendered_snapshots(state)
+        if str(snapshot.get("snapshot_id", "")) in approved_ids
+    ]
 
 
 def _rendered_snapshots(state: JsonObject) -> list[JsonObject]:

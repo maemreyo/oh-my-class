@@ -629,6 +629,299 @@ class TestSlideDeckBlockEdit:
         anyio.run(delete_run, run_id)
 
 
+class TestSlideDeckBlockRewriteSuggestion:
+    """SDE-08: AI-assisted rewrite CANDIDATE endpoint -- returns a before/after
+    pair and never persists anything (no new snapshot, no version-history
+    row) until the teacher separately calls the existing block-edit endpoint
+    with `authority="ai_assisted_edit"` to Apply it.
+    """
+
+    def _stub_rewrite(self, monkeypatch, *, returns: str | None = "Shorter heading.") -> None:
+        async def fake_rewrite(*, run_id: str, current_body: str, instruction: str) -> str | None:
+            return returns
+
+        monkeypatch.setattr(teaching_pack_previews, "generate_slide_deck_block_rewrite", fake_rewrite)
+
+    def _suggestion_url(self, run_id: RunId, snapshot_id: str, block_id: str = "block-title") -> str:
+        base = f"/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}"
+        return f"{base}/blocks/{block_id}/rewrite-suggestion"
+
+    def test_preset_returns_a_candidate_without_persisting(
+        self, client: TestClient, monkeypatch,
+    ) -> None:
+        self._stub_rewrite(monkeypatch)
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        response = client.post(self._suggestion_url(run_id, snapshot_id), json={"preset": "shorter"})
+
+        assert response.status_code == 200
+        data = response.json()
+        expected = {"block_id": "block-title", "before": "Fractions", "after": "Shorter heading."}
+        assert data == expected
+        # No new version was created -- this is a candidate only.
+        versions_url = f"/teaching-packs/runs/{run_id}/artifacts/slide-deck-1/versions"
+        versions = client.get(versions_url).json()
+        assert versions["total"] == 1
+        anyio.run(delete_run, run_id)
+
+    def test_freeform_instruction_routes_through_the_same_endpoint_as_presets(
+        self, client: TestClient, monkeypatch,
+    ) -> None:
+        self._stub_rewrite(monkeypatch, returns="Freeform-rewritten heading.")
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        response = client.post(
+            self._suggestion_url(run_id, snapshot_id),
+            json={"instruction": "Make it rhyme."},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["after"] == "Freeform-rewritten heading."
+        anyio.run(delete_run, run_id)
+
+    def test_unknown_preset_is_rejected(self, client: TestClient, monkeypatch) -> None:
+        self._stub_rewrite(monkeypatch)
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        response = client.post(
+            self._suggestion_url(run_id, snapshot_id),
+            json={"preset": "not_a_real_preset"},
+        )
+
+        assert response.status_code == 422
+        anyio.run(delete_run, run_id)
+
+    def test_neither_preset_nor_instruction_is_rejected(
+        self, client: TestClient, monkeypatch,
+    ) -> None:
+        self._stub_rewrite(monkeypatch)
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        response = client.post(self._suggestion_url(run_id, snapshot_id), json={})
+
+        assert response.status_code == 422
+        anyio.run(delete_run, run_id)
+
+    def test_unknown_block_id_is_rejected(self, client: TestClient, monkeypatch) -> None:
+        self._stub_rewrite(monkeypatch)
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        url = self._suggestion_url(run_id, snapshot_id, "block-does-not-exist")
+        response = client.post(url, json={"preset": "shorter"})
+
+        assert response.status_code == 404
+        anyio.run(delete_run, run_id)
+
+    def test_llm_unavailable_surfaces_as_502_not_a_silent_no_op_suggestion(
+        self, client: TestClient, monkeypatch,
+    ) -> None:
+        self._stub_rewrite(monkeypatch, returns=None)
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        response = client.post(self._suggestion_url(run_id, snapshot_id), json={"preset": "shorter"})
+
+        assert response.status_code == 502
+        anyio.run(delete_run, run_id)
+
+    def test_non_owner_cannot_request_rewrite_suggestion(
+        self, other_teacher_client: TestClient, monkeypatch,
+    ) -> None:
+        self._stub_rewrite(monkeypatch)
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        response = other_teacher_client.post(
+            self._suggestion_url(run_id, snapshot_id),
+            json={"preset": "shorter"},
+        )
+
+        assert response.status_code == 404
+        anyio.run(delete_run, run_id)
+
+
+class TestArtifactVersionHistory:
+    """SDE-05: linear, newest-first, paginated version list + restore, built on
+    top of SDE-04's immutable snapshot lineage. Live-path-proof against the
+    real gateway router, same convention as `TestSlideDeckBlockEdit`.
+    """
+
+    def test_version_list_is_newest_first_with_labels(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        manual = client.patch(
+            f"/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/block-title",
+            json={"base_snapshot_id": snapshot_id, "new_content": "Manually revised heading."},
+        )
+        assert manual.status_code == 200
+        manual_snapshot_id = manual.json()["snapshot_id"]
+
+        ai_edit = client.patch(
+            f"/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/block-title",
+            json={
+                "base_snapshot_id": manual_snapshot_id,
+                "new_content": "AI-shortened heading.",
+                "rationale": "shorter",
+                "authority": "ai_assisted_edit",
+            },
+        )
+        assert ai_edit.status_code == 200
+
+        response = client.get(f"/teaching-packs/runs/{run_id}/artifacts/slide-deck-1/versions")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 3
+        labels = [version["label"] for version in data["versions"]]
+        # newest first: SDE-08's applied AI rewrite (authority="ai_assisted_edit")
+        # gets its own "AI rewrite: <rationale>" label, distinct from the plain
+        # "Manual edit" (default authority="teacher_edit") beneath it.
+        assert labels == ["AI rewrite: shorter", "Manual edit", "Initial version"]
+        assert data["versions"][0]["is_current"] is True
+        assert data["versions"][0]["snapshot_id"] == ai_edit.json()["snapshot_id"]
+        anyio.run(delete_run, run_id)
+
+    def test_version_list_paginates(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+        base = snapshot_id
+        for i in range(4):
+            edit = client.patch(
+                f"/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/block-title",
+                json={"base_snapshot_id": base, "new_content": f"Revision {i}."},
+            )
+            assert edit.status_code == 200
+            base = edit.json()["snapshot_id"]
+
+        page1 = client.get(
+            f"/teaching-packs/runs/{run_id}/artifacts/slide-deck-1/versions",
+            params={"limit": 2, "offset": 0},
+        ).json()
+        page2 = client.get(
+            f"/teaching-packs/runs/{run_id}/artifacts/slide-deck-1/versions",
+            params={"limit": 2, "offset": 2},
+        ).json()
+
+        assert page1["total"] == 5
+        assert len(page1["versions"]) == 2
+        assert len(page2["versions"]) == 2
+        # no overlap between pages, and page1 is strictly newer than page2
+        assert {v["snapshot_id"] for v in page1["versions"]}.isdisjoint(
+            {v["snapshot_id"] for v in page2["versions"]},
+        )
+        anyio.run(delete_run, run_id)
+
+    def test_restore_creates_new_version_and_leaves_intervening_versions_untouched(
+        self, client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        edit_one = client.patch(
+            f"/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/block-title",
+            json={"base_snapshot_id": snapshot_id, "new_content": "First revision."},
+        )
+        assert edit_one.status_code == 200
+        edit_one_id = edit_one.json()["snapshot_id"]
+
+        edit_two = client.patch(
+            f"/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/block-title",
+            json={"base_snapshot_id": edit_one_id, "new_content": "Second revision."},
+        )
+        assert edit_two.status_code == 200
+        edit_two_id = edit_two.json()["snapshot_id"]
+
+        before_restore_original = anyio.run(_get_snapshot, run_id, snapshot_id)
+        before_restore_edit_one = anyio.run(_get_snapshot, run_id, edit_one_id)
+
+        # Restore the very first (pre-edit) version, currently two versions behind head.
+        restore = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/slide-deck-1/versions/{snapshot_id}/restore",
+            json={"base_snapshot_id": edit_two_id},
+        )
+        assert restore.status_code == 200
+        restored_data = restore.json()
+        assert restored_data["restored_from_snapshot_id"] == snapshot_id
+        restored_snapshot_id = restored_data["snapshot_id"]
+        assert restored_snapshot_id not in (snapshot_id, edit_one_id, edit_two_id)
+
+        # Intervening versions (original + edit_one + edit_two) are byte-identical.
+        after_restore_original = anyio.run(_get_snapshot, run_id, snapshot_id)
+        after_restore_edit_one = anyio.run(_get_snapshot, run_id, edit_one_id)
+        assert after_restore_original.rendered_html == before_restore_original.rendered_html
+        assert after_restore_original.content_json == before_restore_original.content_json
+        assert after_restore_edit_one.rendered_html == before_restore_edit_one.rendered_html
+        assert after_restore_edit_one.content_json == before_restore_edit_one.content_json
+
+        # Restored content matches the original's visible content (heading body).
+        restored_snapshot = anyio.run(_get_snapshot, run_id, restored_snapshot_id)
+        assert _block_body(restored_snapshot) == "Fractions"
+
+        # Restore-then-list shows the new version at the top.
+        listing = client.get(f"/teaching-packs/runs/{run_id}/artifacts/slide-deck-1/versions").json()
+        assert listing["versions"][0]["snapshot_id"] == restored_snapshot_id
+        assert listing["versions"][0]["label"] == "Restored version"
+        assert listing["versions"][0]["is_current"] is True
+        assert listing["total"] == 4
+        anyio.run(delete_run, run_id)
+
+    def test_restore_returns_409_on_stale_base_snapshot_id(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        edit = client.patch(
+            f"/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/block-title",
+            json={"base_snapshot_id": snapshot_id, "new_content": "First revision."},
+        )
+        assert edit.status_code == 200
+
+        # base_snapshot_id still points at the pre-edit head -- stale now.
+        restore = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/slide-deck-1/versions/{snapshot_id}/restore",
+            json={"base_snapshot_id": snapshot_id},
+        )
+        assert restore.status_code == 409
+        assert restore.json()["detail"] == "base_snapshot_id_stale"
+        anyio.run(delete_run, run_id)
+
+    def test_restore_rejects_unknown_snapshot(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        restore = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/slide-deck-1/versions/does-not-exist/restore",
+            json={"base_snapshot_id": snapshot_id},
+        )
+        assert restore.status_code == 404
+        anyio.run(delete_run, run_id)
+
+    def test_version_list_404s_for_unknown_artifact(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_create_run_with_slide_deck_snapshot, run_id, snapshot_id)
+
+        response = client.get(f"/teaching-packs/runs/{run_id}/artifacts/does-not-exist/versions")
+        assert response.status_code == 404
+        anyio.run(delete_run, run_id)
+
+
 async def _get_snapshot(run_id: RunId, snapshot_id: str) -> ArtifactSnapshotRead:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
