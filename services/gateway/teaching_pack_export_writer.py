@@ -8,7 +8,7 @@ from typing import Literal, Protocol
 
 from services.gateway.teaching_pack_types import JsonObject, RunId
 
-type ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "google_forms"]
+type ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx", "google_forms"]
 
 _EXPORT_CLI_PATH = Path("packages/exporters/dist/cli.js")
 _EXPORT_CLI_TIMEOUT = 30.0
@@ -146,7 +146,9 @@ def _snapshot_content(snapshot: JsonObject) -> JsonObject:
     return {**content, "artifact_type": artifact_type}
 
 
-_SUBPROCESS_EXPORT_FORMATS: frozenset[str] = frozenset({"gift", "h5p", "qti", "anki_apkg", "flashcard_tsv"})
+_SUBPROCESS_EXPORT_FORMATS: frozenset[str] = frozenset(
+    {"gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx"},
+)
 _UNSUPPORTED_GATEWAY_FORMATS: frozenset[str] = frozenset({"google_forms"})
 
 
@@ -184,6 +186,8 @@ def _export_format(value: str) -> ExportFormat:
             return "anki_apkg"
         case "flashcard_tsv":
             return "flashcard_tsv"
+        case "pptx":
+            return "pptx"
         case _:
             raise ExportAdapterError(f"Unsupported export format: {value}")
 

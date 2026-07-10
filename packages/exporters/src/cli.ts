@@ -11,11 +11,12 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { ExportFormat } from './index.js'
 import type { BaseQuestion } from '@oh-my-class/renderer/contracts/questions/base.js'
+import type { SlideDeckData } from '@oh-my-class/renderer/contracts/slide_deck.js'
 
 type ArtifactEntry = { artifact_type: string; content: Record<string, unknown> }
 
 interface CliInput {
-  format: Extract<ExportFormat, 'anki_apkg' | 'flashcard_tsv' | 'gift' | 'h5p' | 'qti'>
+  format: Extract<ExportFormat, 'anki_apkg' | 'flashcard_tsv' | 'gift' | 'h5p' | 'qti' | 'pptx'>
   run_id: string
   artifacts: ArtifactEntry[]
   output_dir: string
@@ -99,6 +100,18 @@ async function run(): Promise<void> {
     const xml = exporter.export(questions)
     const outPath = join(output_dir, `${run_id}.qti.xml`)
     await writeFile(outPath, xml, 'utf-8')
+    process.stdout.write(JSON.stringify({ path: outPath }))
+    return
+  }
+
+  if (format === 'pptx') {
+    const { PPTXExporter } = await import('@oh-my-class/renderer/exporters/pptx/index.js')
+    const deckArtifact = artifacts.find(a => a.artifact_type === 'slide_deck')
+    if (!deckArtifact) throw new Error('No slide_deck artifact found for PPTX export')
+    const exporter = new PPTXExporter()
+    const bytes = await exporter.export(deckArtifact.content as unknown as SlideDeckData)
+    const outPath = join(output_dir, `${run_id}.pptx`)
+    await writeFile(outPath, bytes)
     process.stdout.write(JSON.stringify({ path: outPath }))
     return
   }

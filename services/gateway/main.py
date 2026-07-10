@@ -33,6 +33,7 @@ from .routers import (
     ops,
     release_evidence,
     runs,
+    slide_deck_live_publication,
     snapshots,
     source_collections,
     teaching_briefs,
@@ -245,6 +246,9 @@ app.include_router(
     media_asset_versions.router, prefix="/teaching-packs", tags=["media-asset-versions"],
 )
 app.include_router(exports.router, prefix="/teaching-packs", tags=["exports"])
+app.include_router(
+    slide_deck_live_publication.router, prefix="/teaching-packs", tags=["live-publication"],
+)
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 app.include_router(ops.router)

@@ -533,3 +533,70 @@ async def test_regenerate_writes_a_real_flashcard_tsv_for_a_flashcard_deck(
     assert "How plants make food from light" in written
     await session.execute(delete(Run).where(Run.run_id == run_id))
     await session.commit()
+
+
+async def test_regenerate_writes_a_real_pptx_for_a_slide_deck(
+    session: AsyncSession, tmp_path: Path,
+) -> None:
+    """#458: pptx now has a real writer -- exercise it end to end."""
+    run_id = RunId(f"export-svc-{uuid4()}")
+    session.add(Run(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-export-svc"),
+        status=RunStatus.COMPLETED,
+        current_step=1,
+        raw_request="Test pptx export",
+        class_info={"grade": 5},
+    ))
+    await session.flush()
+    slide_deck_content = {
+        "deck_id": "deck-pptx-test",
+        "title": "Equivalent Fractions Mini Deck",
+        "locale": "en-US",
+        "theme": "default",
+        "surfaces": {
+            "student": {"mode": "presentation", "export_format": "html"},
+            "teacher": {"mode": "teacher_guide", "export_format": "html"},
+            "print": {"mode": "print", "export_format": "html"},
+        },
+        "slides": [{
+            "slide_id": "slide-title",
+            "title": "Equivalent Fractions",
+            "layout": "title",
+            "progression": {"step_index": 1, "reveal_policy": "all_at_once"},
+            "blocks": [{"block_id": "b1", "block_type": "heading", "body": "Equivalent Fractions"}],
+        }],
+        "accessibility": {"alt_text_required": True, "reading_level": "grade_5"},
+        "media_policy": {"allow_external": False},
+    }
+    snapshot_store = TeachingPackSnapshotStore(session)
+    await snapshot_store.create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=f"snap-{uuid4()}",
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="slide_deck",
+        content_json=slide_deck_content,
+        rendered_html="<!DOCTYPE html><html><body>deck</body></html>",
+        renderer_version="1.0",
+    ))
+    head = await snapshot_store.get_latest_snapshot(run_id, "artifact-1")
+    assert head is not None
+
+    result = await regenerate_stale_exports(
+        session,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="slide_deck",
+        head=head,
+        formats=["pptx"],
+        base_dir=tmp_path,
+    )
+
+    assert result.regenerated == ["pptx"]
+    export_store = TeachingPackExportStore(session)
+    latest = await export_store.get_latest_export_for_format(run_id, "artifact-1", "pptx")
+    assert latest is not None
+    written = Path(latest.storage_path).read_bytes()
+    assert written[:2] == b"PK"  # .pptx is a zip archive
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()
