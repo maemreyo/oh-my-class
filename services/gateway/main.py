@@ -27,6 +27,7 @@ from .routers import (
     auth_router,
     content_briefs,
     exports,
+    media_asset_versions,
     media_assets,
     notifications,
     ops,
@@ -240,6 +241,9 @@ app.include_router(teaching_pack_previews.router, prefix="/teaching-packs", tags
 app.include_router(artifact_documents.router, prefix="/teaching-packs", tags=["artifact-documents"])
 app.include_router(source_collections.router, prefix="/teaching-packs", tags=["source-collections"])
 app.include_router(content_briefs.router, prefix="/teaching-packs", tags=["content-briefs"])
+app.include_router(
+    media_asset_versions.router, prefix="/teaching-packs", tags=["media-asset-versions"],
+)
 app.include_router(exports.router, prefix="/teaching-packs", tags=["exports"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])

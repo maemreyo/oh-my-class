@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, model_validator
 
 from common.contracts.artifact_workflow import CoreArtifactType
+from common.contracts.media_asset import is_remote_source
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
@@ -117,7 +118,7 @@ class SlideDeckMedia(BaseModel):
 
     @model_validator(mode="after")
     def _media_policy_fields_are_consistent(self) -> SlideDeckMedia:
-        if self.tier == "packaged" and self.source.startswith(("http://", "https://")):
+        if self.tier == "packaged" and is_remote_source(self.source):
             msg = "packaged media must not use unmanaged external URLs"
             raise ValueError(msg)
         if self.tier == "online_optional" and not self.requires_network:
