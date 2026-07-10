@@ -1,10 +1,13 @@
-"""Export listing and staleness endpoints (SDE-06).
+"""Export listing, staleness, and regeneration endpoints (SDE-06).
 
-Read-only: exports themselves are produced by the teaching-pack export
-pipeline (services/gateway/teaching_pack_completion.py), never by a route
-here -- there is deliberately no "trigger export" endpoint in this file,
-because re-export is always an explicit teacher action wired elsewhere, not
-something this router should be able to kick off implicitly.
+Mostly read-only: per-artifact exports are produced by the teaching-pack
+export pipeline (services/gateway/teaching_pack_completion.py) or the
+explicit `/exports/regenerate` trigger below, a teacher action, never
+something automatic. `/exports/teaching-pack` is the one other explicit
+trigger here: it bundles every approved artifact in a run into a single
+standalone HTML document via the renderer's `teaching_pack` plugin (#453),
+distinct from -- and not gated by the same capability matrix as -- the
+per-artifact export path.
 
 Mounted the same way as SDE-05's version-history routes
 (teaching_pack_previews.py): prefix `/teaching-packs`, dual `/run/` and
@@ -16,7 +19,8 @@ works against, not the legacy in-memory `/run/{run_id}/artifacts` dict.
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -33,7 +37,15 @@ from services.gateway.routers.teaching_pack_deps import (
     TEACHING_PACK_SESSION,
     get_run_with_ownership,
 )
-from services.gateway.teaching_pack_export_store import ExportRecordRead, TeachingPackExportStore
+from services.gateway.teaching_pack_export_store import (
+    ExportRecordCreate,
+    ExportRecordRead,
+    TeachingPackExportStore,
+)
+from services.gateway.teaching_pack_export_writer import TeachingPackBundleWriter
+
+if TYPE_CHECKING:
+    from services.gateway.teaching_pack_snapshot_schemas import ArtifactSnapshotRead
 from services.gateway.teaching_pack_snapshot_store import TeachingPackSnapshotStore
 from services.gateway.teaching_pack_types import RunId
 
@@ -251,3 +263,89 @@ async def regenerate_exports(
         ) from exc
     await session.commit()
     return RegenerateExportsResponse(regenerated=result.regenerated, reused=result.reused)
+
+
+class TeachingPackBundleExportResponse(BaseModel):
+    storage_path: str
+    artifact_ids: list[str]
+
+
+_TEACHING_PACK_BUNDLE_ARTIFACT_ID = "__teaching_pack__"
+
+
+@router.post(  # pyright: ignore[reportUntypedFunctionDecorator]
+    "/run/{run_id}/exports/teaching-pack",
+    response_model=TeachingPackBundleExportResponse,
+)
+@router.post(  # pyright: ignore[reportUntypedFunctionDecorator]
+    "/runs/{run_id}/exports/teaching-pack",
+    response_model=TeachingPackBundleExportResponse,
+)
+async def export_teaching_pack_bundle(
+    run_id: str,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> TeachingPackBundleExportResponse:
+    """Bundle every approved artifact in this run into one standalone HTML
+    Teaching Pack document (#453, ADR-056) -- distinct from per-artifact
+    export above. Always html; not gated by export_manifest_service's
+    (artifact_type, format) capability matrix, which answers a different
+    question (can *this one artifact* export to *this format*)."""
+    typed_run_id = RunId(run_id)
+    await get_run_with_ownership(run_id, current_user, session)
+
+    snapshot_store = TeachingPackSnapshotStore(session)
+    all_snapshots = await snapshot_store.list_run_snapshots(typed_run_id)
+    latest_by_artifact: dict[str, ArtifactSnapshotRead] = {}
+    for snapshot in all_snapshots:
+        current = latest_by_artifact.get(snapshot.artifact_id)
+        if current is None or snapshot.created_at > current.created_at:
+            latest_by_artifact[snapshot.artifact_id] = snapshot
+    approved = sorted(
+        (s for s in latest_by_artifact.values() if s.approved_at is not None),
+        key=lambda s: s.artifact_id,
+    )
+    if not approved:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="no_approved_artifacts",
+        )
+
+    first_metadata = (approved[0].content_json or {}).get("metadata")
+    metadata = first_metadata if isinstance(first_metadata, dict) else {}
+    subject = str(metadata.get("subject", "General"))
+    grade_level = str(metadata.get("grade_level", "Grade"))
+
+    writer = TeachingPackBundleWriter()
+    storage_path = await writer.write_bundle(
+        typed_run_id,
+        [
+            {
+                "artifact_id": s.artifact_id,
+                "artifact_type": s.artifact_type,
+                "content_json": s.content_json,
+            }
+            for s in approved
+        ],
+        title=f"Teaching Pack — {run_id}",
+        subject=subject,
+        grade_level=grade_level,
+    )
+
+    export_store = TeachingPackExportStore(session)
+    await export_store.create_export_record(ExportRecordCreate(
+        export_id=f"export-{uuid4()}",
+        run_id=typed_run_id,
+        artifact_id=_TEACHING_PACK_BUNDLE_ARTIFACT_ID,
+        # export_records.snapshot_id has a real FK to artifact_snapshots, so a
+        # bundle spanning many artifacts can't invent its own id -- it's
+        # pinned to one representative constituent snapshot (deterministic:
+        # sorted by artifact_id above) rather than tracking the full set.
+        snapshot_id=approved[0].snapshot_id,
+        format="html",
+        storage_path=storage_path,
+    ))
+    await session.commit()
+    return TeachingPackBundleExportResponse(
+        storage_path=storage_path,
+        artifact_ids=[s.artifact_id for s in approved],
+    )

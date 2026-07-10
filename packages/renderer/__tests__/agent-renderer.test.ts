@@ -199,4 +199,65 @@ describe("renderAgentArtifact", () => {
     expect(html).toContain("Teacher Answers");
     expect(html).toContain("oh-my-class");
   });
+
+  it("renders a teaching_pack bundle combining every child artifact into one document (#453)", async () => {
+    const html = await renderAgentArtifact({
+      artifact_type: "teaching_pack",
+      title: "Fractions Unit",
+      subject: "Math",
+      gradeLevel: "Grade 5",
+      children: [
+        {
+          id: "lesson-1",
+          input: {
+            artifact_type: "lesson",
+            title: "Intro to Fractions",
+            sections: [{ id: "s1", type: "objective", title: "Objective", content: "Understand fractions" }],
+          },
+        },
+        {
+          id: "quiz-1",
+          input: {
+            artifact_type: "quiz",
+            title: "Fractions Quiz",
+            sections: [{ id: "q1", content: "What is 1/2 + 1/2?", options: { A: "1", B: "2", C: "0" } }],
+          },
+        },
+      ],
+    });
+
+    expect(html).toContain("Fractions Unit");
+    expect(html).toContain("Intro to Fractions");
+    expect(html).toContain("Fractions Quiz");
+  });
+
+  it("omits a teaching_pack child with no bundle-safe renderer instead of mis-rendering it as a lesson", async () => {
+    const html = await renderAgentArtifact({
+      artifact_type: "teaching_pack",
+      title: "Mixed Unit",
+      subject: "Math",
+      gradeLevel: "Grade 5",
+      children: [
+        {
+          id: "lesson-1",
+          input: {
+            artifact_type: "lesson",
+            title: "Intro to Fractions",
+            sections: [{ id: "s1", type: "objective", title: "Objective", content: "Understand fractions" }],
+          },
+        },
+        {
+          id: "deck-1",
+          input: {
+            artifact_type: "slide_deck",
+            title: "Fractions Deck",
+            sections: [{ id: "sec1" }],
+          },
+        },
+      ],
+    });
+
+    expect(html).toContain("Intro to Fractions");
+    expect(html).not.toContain("Fractions Deck");
+  });
 });

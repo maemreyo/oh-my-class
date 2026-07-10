@@ -288,7 +288,55 @@ function makeContext(audience: RenderContext["audience"], lang: string): RenderC
   };
 }
 
+/** Per-child shaping for a Teaching Pack bundle (ADR-056): the same {kind,
+ * input} pair the top-level switch below would produce for a standalone
+ * export of that artifact type. Types with no generic shaper here (e.g.
+ * slide_deck, which renders through a different pipeline) are omitted from
+ * the bundle rather than silently mis-rendered as a lesson. */
+function childRenderInput(artifact: ArtifactRecord): { kind: string; input: unknown } | null {
+  switch (asString(artifact.artifact_type, "lesson")) {
+    case "quiz": return { kind: "quiz", input: quizData(artifact) };
+    case "worksheet": return { kind: "worksheet", input: worksheetData(artifact) };
+    case "drill": return { kind: "drill", input: drillData(artifact) };
+    case "recap": return { kind: "recap", input: recapData(artifact) };
+    case "infographic": return { kind: "infographic", input: infographicData(artifact) };
+    case "roadmap": return { kind: "roadmap", input: roadmapData(artifact) };
+    case "reading_passage": return { kind: "reading_passage", input: readingPassageData(artifact) };
+    case "exit_ticket": return { kind: "exit_ticket", input: exitTicketData(artifact) };
+    case "answer_key": return { kind: "answer_key", input: answerKeyData(artifact) };
+    case "lesson": return { kind: "lesson", input: lessonData(artifact) };
+    default: return null;
+  }
+}
+
+async function renderTeachingPackBundle(bundle: ArtifactRecord, lang: string): Promise<string> {
+  const rawChildren = Array.isArray(bundle.children) ? bundle.children as unknown[] : [];
+  const children = rawChildren
+    .map((child) => {
+      const c = asRecord(child);
+      const childArtifact = ArtifactContentSchema.parse(c.input);
+      const shaped = childRenderInput(childArtifact);
+      if (!shaped) return null;
+      return { id: asString(c.id, shaped.kind), kind: shaped.kind, input: shaped.input };
+    })
+    .filter((c): c is { id: string; kind: string; input: unknown } => c !== null);
+  return render({
+    kind: "teaching_pack",
+    input: {
+      title: asString(bundle.title, "Teaching Pack"),
+      subject: asString(bundle.subject, "General"),
+      gradeLevel: asString(bundle.gradeLevel, "Grade"),
+      children,
+    },
+    context: makeContext("teacher", lang),
+  }).then((r) => r.html);
+}
+
 export async function renderAgentArtifact(input: unknown): Promise<string> {
+  const rawInput = asRecord(input);
+  if (asString(rawInput.artifact_type) === "teaching_pack") {
+    return renderTeachingPackBundle(rawInput, asString(asRecord(rawInput.accessibility).language, "vi"));
+  }
   const artifact = ArtifactContentSchema.parse(input);
   const artifactType = asString(artifact.artifact_type, "lesson");
   const lang = asString(asRecord(asRecord(artifact).accessibility).language, "vi");

@@ -64,6 +64,47 @@ class FileSystemTeachingPackExportWriter:
         return exported_files
 
 
+@dataclass(frozen=True, slots=True)
+class TeachingPackBundleWriter:
+    """Renders every approved artifact in a run as one combined standalone
+    HTML document via the renderer's `teaching_pack` plugin (ADR-056), rather
+    than one file per artifact. Not gated by the per-(artifact_type, format)
+    capability matrix in export_manifest_service.py -- a bundle isn't a single
+    artifact export, it's always html, which is unconditionally supported."""
+
+    base_dir: Path = Path(".scratch/pipeline-v2/artifacts/exports")
+    renderer: TeachingPackSnapshotRenderer = RendererAdapterSnapshotRenderer()
+
+    async def write_bundle(
+        self,
+        run_id: RunId,
+        approved_snapshots: list[JsonObject],
+        *,
+        title: str,
+        subject: str,
+        grade_level: str,
+    ) -> str:
+        if not approved_snapshots:
+            raise ExportAdapterError("No approved artifacts to bundle into a Teaching Pack export")
+        children = [
+            {"id": str(snapshot.get("artifact_id", "")), "input": _snapshot_content(snapshot)}
+            for snapshot in approved_snapshots
+        ]
+        bundle_content: JsonObject = {
+            "artifact_type": "teaching_pack",
+            "title": title,
+            "subject": subject,
+            "gradeLevel": grade_level,
+            "children": children,
+        }
+        rendered_html = await self.renderer.render(bundle_content)
+        export_dir = self.base_dir / str(run_id)
+        export_dir.mkdir(parents=True, exist_ok=True)
+        export_path = export_dir / f"{run_id}.teaching_pack.html"
+        export_path.write_text(rendered_html, encoding="utf-8")
+        return str(export_path)
+
+
 def _approved_snapshot_ids(state: JsonObject) -> set[str]:
     values = state.get("approved_snapshot_ids", [])
     if not isinstance(values, list):

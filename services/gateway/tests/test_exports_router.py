@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -102,11 +103,9 @@ async def _seed_run_snapshot_and_export(
 async def _seed_lesson_run_snapshot_and_export(
     run_id: RunId, snapshot_id: str, with_export: bool, new_run: bool = True,
 ) -> None:
-    """Like `_seed_run_snapshot_and_export`, but `lesson`/`html` -- the one
-    (artifact_type, export_format) pair the real capability manifest actually
-    supports today, needed for anything that goes through the capability-
-    checked regenerate path (every other pair is currently rejected, per
-    #453-458 not being built yet)."""
+    """Like `_seed_run_snapshot_and_export`, but `lesson`/`html` -- a pair the
+    real capability manifest supports (lesson has no export format wired
+    beyond html), used for the capability-checked regenerate path tests."""
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as session:
@@ -135,6 +134,51 @@ async def _seed_lesson_run_snapshot_and_export(
                 format="html",
                 storage_path=f"exports/{run_id}/{snapshot_id}.html",
             ))
+        await session.commit()
+    await engine.dispose()
+
+
+async def _seed_two_approved_artifacts(run_id: RunId) -> None:
+    """A lesson + a quiz, both approved -- the minimum shape #453's Teaching
+    Pack bundle export needs (it only bundles approved artifacts)."""
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
+            run_id=run_id,
+            teacher_id=TeacherId("teacher-export"),
+            raw_request="Test teaching pack bundle export",
+            class_info={"grade": 5, "subject": "Math"},
+        ))
+        snapshot_store = TeachingPackSnapshotStore(session)
+        lesson_snapshot = await snapshot_store.create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=f"snap-{uuid4()}",
+            run_id=run_id,
+            artifact_id="lesson-1",
+            artifact_type="lesson",
+            content_json={
+                "title": "Intro to Fractions",
+                "sections": [
+                    {"id": "s1", "type": "objective", "title": "Objective", "content": "Understand fractions"},
+                ],
+                "metadata": {"subject": "Math", "grade_level": "Grade 5"},
+            },
+            rendered_html=f"<!DOCTYPE html><html><body>oh-my-class lesson {run_id}</body></html>",
+            renderer_version="1.0",
+        ))
+        quiz_snapshot = await snapshot_store.create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=f"snap-{uuid4()}",
+            run_id=run_id,
+            artifact_id="quiz-1",
+            artifact_type="quiz",
+            content_json={
+                "title": "Fractions Quiz",
+                "sections": [{"id": "q1", "prompt": "What is 1/2 + 1/2?", "options": ["1", "2", "0"]}],
+            },
+            rendered_html=f"<!DOCTYPE html><html><body>oh-my-class quiz {run_id}</body></html>",
+            renderer_version="1.0",
+        ))
+        await snapshot_store.approve_snapshots(run_id, [lesson_snapshot.snapshot_id, quiz_snapshot.snapshot_id])
         await session.commit()
     await engine.dispose()
 
@@ -267,4 +311,41 @@ class TestExportsRouter:
         )
         assert response.status_code == 422
         assert response.json()["detail"] == "no_formats_to_regenerate"
+        anyio.run(delete_run, run_id)
+
+    def test_teaching_pack_bundle_export_combines_every_approved_artifact(
+        self, client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_seed_two_approved_artifacts, run_id)
+
+        response = client.post(f"/teaching-packs/runs/{run_id}/exports/teaching-pack")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert set(data["artifact_ids"]) == {"lesson-1", "quiz-1"}
+        written_path = Path(data["storage_path"])
+        written = written_path.read_text(encoding="utf-8")
+        assert "Intro to Fractions" in written
+        assert "Fractions Quiz" in written
+
+        listed = client.get(f"/teaching-packs/runs/{run_id}/exports")
+        bundle_records = [e for e in listed.json() if e["artifact_id"] == "__teaching_pack__"]
+        assert len(bundle_records) == 1
+        assert bundle_records[0]["format"] == "html"
+
+        written_path.unlink()
+        written_path.parent.rmdir()
+        anyio.run(delete_run, run_id)
+
+    def test_teaching_pack_bundle_export_rejects_a_run_with_no_approved_artifacts(
+        self, client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_seed_lesson_run_snapshot_and_export, run_id, snapshot_id, False)
+
+        response = client.post(f"/teaching-packs/runs/{run_id}/exports/teaching-pack")
+        assert response.status_code == 422
+        assert response.json()["detail"] == "no_approved_artifacts"
         anyio.run(delete_run, run_id)
