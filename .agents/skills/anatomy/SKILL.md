@@ -441,6 +441,17 @@ in a browser for the interactive view, and note that `_graph.json` was
 multi-repo run -- wants the same information in a structured form instead
 of parsing Markdown.
 
+## Wiring the output into agent-read files
+
+If the repo has an `AGENTS.md`, `CLAUDE.md`, or similar agent-instruction
+file and the user wants future agent sessions to discover `docs/anatomy/`
+automatically instead of re-deriving the architecture from source each
+time, use the separate `anatomy-link` skill to insert a small, idempotent
+pointer block into those files. This skill doesn't touch them itself --
+writing `docs/anatomy/` and wiring it into agent-read files are kept as
+two separate skills on purpose, so a re-trace here never risks clobbering
+anything a human wrote in `AGENTS.md`/`CLAUDE.md`.
+
 ## A note on languages the user writes in
 
 Write the skill's own output (module docs, index, diagrams) in English by
