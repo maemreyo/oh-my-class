@@ -15,7 +15,10 @@ from services.gateway.models import Base
 from services.gateway.routers.exports import router
 from services.gateway.teaching_pack_db import get_teaching_pack_session
 from services.gateway.teaching_pack_export_store import ExportRecordCreate, TeachingPackExportStore
-from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate, TeachingPackSnapshotStore
+from services.gateway.teaching_pack_snapshot_store import (
+    ArtifactSnapshotCreate,
+    TeachingPackSnapshotStore,
+)
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
 from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.tests.teaching_pack_preview_db import DATABASE_URL
@@ -96,6 +99,66 @@ async def _seed_run_snapshot_and_export(
     await engine.dispose()
 
 
+async def _seed_lesson_run_snapshot_and_export(
+    run_id: RunId, snapshot_id: str, with_export: bool, new_run: bool = True,
+) -> None:
+    """Like `_seed_run_snapshot_and_export`, but `lesson`/`html` -- the one
+    (artifact_type, export_format) pair the real capability manifest actually
+    supports today, needed for anything that goes through the capability-
+    checked regenerate path (every other pair is currently rejected, per
+    #453-458 not being built yet)."""
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        if new_run:
+            await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
+                run_id=run_id,
+                teacher_id=TeacherId("teacher-export"),
+                raw_request="Test export router",
+                class_info={"grade": 5},
+            ))
+        await TeachingPackSnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=snapshot_id,
+            run_id=run_id,
+            artifact_id="artifact-1",
+            artifact_type="lesson",
+            content_json={"title": f"Lesson {snapshot_id}"},
+            rendered_html=f"<!DOCTYPE html><html><body>{snapshot_id}</body></html>",
+            renderer_version="1.0",
+        ))
+        if with_export:
+            await TeachingPackExportStore(session).create_export_record(ExportRecordCreate(
+                export_id=f"export-{uuid4()}",
+                run_id=run_id,
+                artifact_id="artifact-1",
+                snapshot_id=snapshot_id,
+                format="html",
+                storage_path=f"exports/{run_id}/{snapshot_id}.html",
+            ))
+        await session.commit()
+    await engine.dispose()
+
+
+async def _export_extra_format(run_id: RunId, snapshot_id: str, export_format: str) -> None:
+    """Add one more export row (any format, no capability check) for an
+    already-existing snapshot -- used to set up multi-format staleness
+    fixtures for the read-only `/export-status/by-format` endpoint, which
+    doesn't enforce the capability matrix (only regenerate does)."""
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        await TeachingPackExportStore(session).create_export_record(ExportRecordCreate(
+            export_id=f"export-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            snapshot_id=snapshot_id,
+            format=export_format,
+            storage_path=f"exports/{run_id}/{snapshot_id}.{export_format}",
+        ))
+        await session.commit()
+    await engine.dispose()
+
+
 class TestExportsRouter:
     def test_export_status_not_stale_when_export_matches_head(self, client: TestClient) -> None:
         run_id = RunId(f"test-{uuid4()}")
@@ -137,4 +200,71 @@ class TestExportsRouter:
         assert response.status_code == 200
         snapshot_ids = {item["snapshot_id"] for item in response.json()}
         assert {snapshot_v1, snapshot_v2}.issubset(snapshot_ids)
+        anyio.run(delete_run, run_id)
+
+    def test_export_status_by_format_flags_only_the_impacted_format(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_v1 = f"snap-{uuid4()}"
+        anyio.run(_seed_lesson_run_snapshot_and_export, run_id, snapshot_v1, True)
+        anyio.run(_export_extra_format, run_id, snapshot_v1, "gift")
+        # An edit lands but only html gets re-exported -- gift now lags.
+        snapshot_v2 = f"snap-{uuid4()}"
+        anyio.run(_seed_lesson_run_snapshot_and_export, run_id, snapshot_v2, False, False)
+        anyio.run(_export_extra_format, run_id, snapshot_v2, "html")
+
+        response = client.get(f"/teaching-packs/runs/{run_id}/artifacts/artifact-1/export-status/by-format")
+        assert response.status_code == 200
+        by_format = {entry["format"]: entry["stale"] for entry in response.json()["formats"]}
+        assert by_format == {"html": False, "gift": True}
+        anyio.run(delete_run, run_id)
+
+    def test_regenerate_rewrites_only_what_needs_it(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_v1 = f"snap-{uuid4()}"
+        anyio.run(_seed_lesson_run_snapshot_and_export, run_id, snapshot_v1, True)
+        # An edit lands with no re-export -- the existing html export is now stale.
+        snapshot_v2 = f"snap-{uuid4()}"
+        anyio.run(_seed_lesson_run_snapshot_and_export, run_id, snapshot_v2, False, False)
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/artifact-1/exports/regenerate",
+            json={"formats": ["html"]},
+        )
+        assert response.status_code == 200
+        assert response.json() == {"regenerated": ["html"], "reused": []}
+
+        # Calling it again immediately: the just-regenerated export is now current.
+        again = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/artifact-1/exports/regenerate",
+            json={"formats": ["html"]},
+        )
+        assert again.json() == {"regenerated": [], "reused": ["html"]}
+        anyio.run(delete_run, run_id)
+
+    def test_regenerate_rejects_unsupported_pair(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_seed_lesson_run_snapshot_and_export, run_id, snapshot_id, True)
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/artifact-1/exports/regenerate",
+            json={"formats": ["not-a-real-format"]},
+        )
+        assert response.status_code == 422
+        assert response.json()["detail"]["error"] == "unsupported_export_pair"
+        anyio.run(delete_run, run_id)
+
+    def test_regenerate_with_no_prior_exports_and_no_formats_given_is_rejected(
+        self, client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_seed_lesson_run_snapshot_and_export, run_id, snapshot_id, False)
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/artifact-1/exports/regenerate",
+            json={},
+        )
+        assert response.status_code == 422
+        assert response.json()["detail"] == "no_formats_to_regenerate"
         anyio.run(delete_run, run_id)

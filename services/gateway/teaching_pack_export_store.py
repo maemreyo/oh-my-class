@@ -25,6 +25,7 @@ class ExportRecordCreate:
     snapshot_id: str
     format: str
     storage_path: str
+    capability_version: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,6 +36,7 @@ class ExportRecordRead:
     snapshot_id: str
     format: str
     storage_path: str
+    capability_version: str | None
     created_at: datetime
 
 
@@ -57,6 +59,7 @@ class TeachingPackExportStore:
             snapshot_id=payload.snapshot_id,
             format=payload.format,
             storage_path=payload.storage_path,
+            capability_version=payload.capability_version,
         )
         self._session.add(record)
         await self._session.flush()
@@ -95,6 +98,44 @@ class TeachingPackExportStore:
             return False
         return latest.snapshot_id != current_snapshot_id
 
+    async def get_latest_export_for_format(
+        self, run_id: RunId, artifact_id: str, export_format: str,
+    ) -> ExportRecordRead | None:
+        """Latest export of one *specific* format -- `get_latest_export` picks
+        the newest row across all formats, which conflates e.g. `html` and
+        `gift` staleness for the same artifact; this does not."""
+        statement = (
+            select(ExportRecord)
+            .where(
+                ExportRecord.run_id == run_id,
+                ExportRecord.artifact_id == artifact_id,
+                ExportRecord.format == export_format,
+            )
+            .order_by(ExportRecord.created_at.desc())
+            .limit(1)
+        )
+        result = await self._session.execute(statement)
+        record = result.scalar_one_or_none()
+        return _read_record(record) if record is not None else None
+
+    async def stale_formats(
+        self,
+        run_id: RunId,
+        artifact_id: str,
+        current_snapshot_id: str | None,
+        formats: list[str],
+    ) -> list[str]:
+        """Which of `formats` are stale for this artifact -- content changes must
+        mark only the impacted (artifact, format) entries, not every export."""
+        if current_snapshot_id is None:
+            return []
+        stale: list[str] = []
+        for export_format in formats:
+            latest = await self.get_latest_export_for_format(run_id, artifact_id, export_format)
+            if latest is not None and latest.snapshot_id != current_snapshot_id:
+                stale.append(export_format)
+        return stale
+
 
 def _read_record(record: ExportRecord) -> ExportRecordRead:
     return ExportRecordRead(
@@ -104,5 +145,6 @@ def _read_record(record: ExportRecord) -> ExportRecordRead:
         snapshot_id=record.snapshot_id,
         format=record.format,
         storage_path=record.storage_path,
+        capability_version=record.capability_version,
         created_at=record.created_at,
     )

@@ -10,7 +10,10 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from services.gateway.models import Base, Run, RunStatus
 from services.gateway.teaching_pack_export_models import ExportRecord
 from services.gateway.teaching_pack_export_store import ExportRecordCreate, TeachingPackExportStore
-from services.gateway.teaching_pack_snapshot_store import ArtifactSnapshotCreate, TeachingPackSnapshotStore
+from services.gateway.teaching_pack_snapshot_store import (
+    ArtifactSnapshotCreate,
+    TeachingPackSnapshotStore,
+)
 from services.gateway.teaching_pack_types import RunId, TeacherId
 
 if TYPE_CHECKING:
@@ -174,5 +177,70 @@ class TestTeachingPackExportStore:
         # No export at all for an artifact -> not stale (nothing to compare).
         assert await store.is_stale(run_id, "artifact-none", "snap-x") is False
 
+        await session.execute(delete(Run).where(Run.run_id == run_id))
+        await session.commit()
+
+    async def test_capability_version_is_persisted_and_read_back(self, session: AsyncSession) -> None:
+        run_id = await _make_run(session)
+        await _make_snapshot(session, run_id, "artifact-1", "snap-1")
+        store = TeachingPackExportStore(session)
+
+        record = await store.create_export_record(ExportRecordCreate(
+            export_id=f"export-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            snapshot_id="snap-1",
+            format="html",
+            storage_path=f"exports/{run_id}/snap-1.html",
+            capability_version="teaching-pack-capabilities.v1",
+        ))
+
+        assert record.capability_version == "teaching-pack-capabilities.v1"
+        fetched = await store.list_exports(run_id)
+        assert fetched[0].capability_version == "teaching-pack-capabilities.v1"
+        await session.execute(delete(Run).where(Run.run_id == run_id))
+        await session.commit()
+
+    async def test_stale_formats_flags_only_the_impacted_format(self, session: AsyncSession) -> None:
+        """#452 AC2: content changes mark only impacted export entries stale --
+        an html export lagging the head must not report a still-current gift
+        export (or vice versa) as stale."""
+        run_id = await _make_run(session)
+        await _make_snapshot(session, run_id, "artifact-1", "snap-1")
+        store = TeachingPackExportStore(session)
+        await store.create_export_record(ExportRecordCreate(
+            export_id=f"export-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            snapshot_id="snap-1",
+            format="html",
+            storage_path=f"exports/{run_id}/snap-1.html",
+        ))
+        await store.create_export_record(ExportRecordCreate(
+            export_id=f"export-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            snapshot_id="snap-1",
+            format="gift",
+            storage_path=f"exports/{run_id}/snap-1.gift.txt",
+        ))
+
+        # An edit lands, but only html is re-exported -- gift now lags.
+        await _make_snapshot(session, run_id, "artifact-1", "snap-2")
+        await store.create_export_record(ExportRecordCreate(
+            export_id=f"export-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            snapshot_id="snap-2",
+            format="html",
+            storage_path=f"exports/{run_id}/snap-2.html",
+        ))
+
+        stale = await store.stale_formats(run_id, "artifact-1", "snap-2", ["html", "gift"])
+
+        assert stale == ["gift"]
+        latest_gift = await store.get_latest_export_for_format(run_id, "artifact-1", "gift")
+        assert latest_gift is not None
+        assert latest_gift.snapshot_id == "snap-1"
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()

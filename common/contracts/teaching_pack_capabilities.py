@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from enum import StrEnum
 from pathlib import Path
-from collections.abc import Iterable
 from typing import Literal, assert_never, get_args
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -192,6 +192,22 @@ def validate_teaching_pack_capabilities(manifest: TeachingPackCapabilityManifest
             undeclared_renderers,
             undeclared_specialists,
         )
+
+
+def is_export_pair_supported(
+    manifest: TeachingPackCapabilityManifest,
+    artifact_type: str,
+    export_format: str,
+) -> bool:
+    """True iff (artifact_type, export_format) is a declared, non-rejected pair.
+
+    The one place that answers "can this artifact export to this format" --
+    callers must not re-derive it from the raw manifest lists themselves.
+    """
+    capability = next((e for e in manifest.exports if e.export_format == export_format), None)
+    if capability is None or capability.status is CapabilityStatus.REJECTED:
+        return False
+    return artifact_type in capability.supported_artifact_types
 
 
 def _default_manifest_path() -> Path:
