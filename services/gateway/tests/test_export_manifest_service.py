@@ -324,3 +324,64 @@ async def test_regenerate_writes_a_real_gift_file_for_a_quiz_artifact(
     assert "=4" in written
     await session.execute(delete(Run).where(Run.run_id == run_id))
     await session.commit()
+
+
+async def test_regenerate_writes_a_real_h5p_package_for_a_quiz_artifact(
+    session: AsyncSession, tmp_path: Path,
+) -> None:
+    """#455: h5p now has a real writer -- exercise it end to end through the
+    node CLI bridge and confirm a real H5P (zip) package is written."""
+    run_id = RunId(f"export-svc-{uuid4()}")
+    session.add(Run(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-export-svc"),
+        status=RunStatus.COMPLETED,
+        current_step=1,
+        raw_request="Test h5p export",
+        class_info={"grade": 5},
+    ))
+    await session.flush()
+    quiz_content = {
+        "sections": [{
+            "questions": [{
+                "id": "q1",
+                "type": "multiple_choice_single",
+                "stem": "2 + 2 = ?",
+                "options": [
+                    {"text": "3", "isCorrect": False},
+                    {"text": "4", "isCorrect": True},
+                ],
+            }],
+        }],
+    }
+    snapshot_store = TeachingPackSnapshotStore(session)
+    await snapshot_store.create_snapshot(ArtifactSnapshotCreate(
+        snapshot_id=f"snap-{uuid4()}",
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        content_json=quiz_content,
+        rendered_html="<!DOCTYPE html><html><body>quiz</body></html>",
+        renderer_version="1.0",
+    ))
+    head = await snapshot_store.get_latest_snapshot(run_id, "artifact-1")
+    assert head is not None
+
+    result = await regenerate_stale_exports(
+        session,
+        run_id=run_id,
+        artifact_id="artifact-1",
+        artifact_type="quiz",
+        head=head,
+        formats=["h5p"],
+        base_dir=tmp_path,
+    )
+
+    assert result.regenerated == ["h5p"]
+    export_store = TeachingPackExportStore(session)
+    latest = await export_store.get_latest_export_for_format(run_id, "artifact-1", "h5p")
+    assert latest is not None
+    written = Path(latest.storage_path).read_bytes()
+    assert written[:2] == b"PK"  # H5P packages are zip archives
+    await session.execute(delete(Run).where(Run.run_id == run_id))
+    await session.commit()

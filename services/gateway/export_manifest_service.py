@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 # if the capability manifest declares the (artifact_type, format) pair
 # supported (defense-in-depth: a product-truth declaration must never race
 # ahead of an actual writer).
-_NODE_BRIDGE_FORMATS: frozenset[str] = frozenset({"gift"})
+_NODE_BRIDGE_FORMATS: frozenset[str] = frozenset({"gift", "h5p"})
 
 
 class UnsupportedExportPairError(ValueError):

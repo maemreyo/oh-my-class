@@ -212,12 +212,10 @@
     },
     {
       "export_format": "h5p",
-      "status": "rejected",
+      "status": "supported",
       "supported_artifact_types": ["quiz", "drill"],
       "requires_answer_set": true,
-      "file_validation": "H5P package import smoke test",
-      "rejection_reason": "gateway export registry currently returns a planned path without materializing H5P",
-      "alternative": "use standalone HTML until the H5P exporter is wired"
+      "file_validation": "H5P package import smoke test"
     },
     {
       "export_format": "qti",
