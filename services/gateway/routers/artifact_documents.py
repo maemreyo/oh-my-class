@@ -11,6 +11,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
 from common.contracts.artifact_document import ArtifactDocument, ArtifactPayload, DocumentAuthority
+from common.contracts.claim_evidence import ClaimEvidence
+from common.contracts.decision_provenance import DecisionProvenance
+from common.contracts.research_brief import ResearchRiskLevel  # noqa: TC001
 from services.gateway.artifact_approval_service import (
     ArtifactNotCurrentError,
     BlockingReviewNotesOpenError,
@@ -34,6 +37,11 @@ from services.gateway.artifact_rewrite_proposal import (
 )
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import User  # noqa: TC001
+from services.gateway.claim_evidence_store import ClaimEvidenceStore, UngroundedHighRiskClaimError
+from services.gateway.decision_provenance_service import (
+    DecisionProvenanceDocumentNotFoundError,
+    assemble_decision_provenance,
+)
 from services.gateway.review_note_store import ReviewNoteCreate, ReviewNoteRead, ReviewNoteStore
 from services.gateway.routers.teaching_pack_deps import (
     TEACHING_PACK_SESSION,
@@ -111,6 +119,19 @@ class ApproveAllCurrentRequest(BaseModel):
 class ApproveAllCurrentResponse(BaseModel):
     approved: list[str]
     blocked: list[dict[str, str]]
+
+
+class ClaimEvidenceRequest(BaseModel):
+    claim_id: str = Field(min_length=1, max_length=80)
+    claim_text: str = Field(min_length=1, max_length=2_000)
+    risk_level: ResearchRiskLevel
+    citation_ids: list[str] = Field(default_factory=list)
+    verification_status: str = Field(pattern="^(VERIFIED|MODIFIED|REMOVED|UNCERTAIN)$")
+
+
+class PersistClaimEvidenceRequest(BaseModel):
+    version: int = Field(ge=1)
+    claims: list[ClaimEvidenceRequest] = Field(min_length=1)
 
 
 class DelegateReviewerRequest(BaseModel):
@@ -370,6 +391,63 @@ async def approve_all_current_route(
 
 
 @router.post(
+    "/runs/{run_id}/artifacts/{artifact_id}/claim-evidence",
+    status_code=status.HTTP_201_CREATED,
+)
+async def persist_claim_evidence(
+    run_id: str,
+    artifact_id: str,
+    payload: PersistClaimEvidenceRequest,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> None:
+    """Fail-closed per ADR-054: rejects the whole batch if any high-risk claim is ungrounded."""
+    await get_run_with_reviewer_access(run_id, current_user, session)
+    document_id = await _document_id_for_version(session, run_id, artifact_id, payload.version)
+    if document_id is None:
+        raise _artifact_version_not_found()
+    claims = [
+        ClaimEvidence(
+            claim_id=c.claim_id,
+            claim_text=c.claim_text,
+            risk_level=c.risk_level,
+            citation_ids=c.citation_ids,
+            verification_status=c.verification_status,  # type: ignore[arg-type]
+        )
+        for c in payload.claims
+    ]
+    try:
+        await ClaimEvidenceStore(session).persist_for_document(document_id, claims)
+    except UngroundedHighRiskClaimError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={"error": "ungrounded_high_risk_claims", "failures": exc.failures},
+        ) from exc
+    await session.commit()
+
+
+@router.get(
+    "/runs/{run_id}/artifacts/{artifact_id}/versions/{version}/provenance",
+    response_model=DecisionProvenance,
+)
+async def get_decision_provenance(
+    run_id: str,
+    artifact_id: str,
+    version: int,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> DecisionProvenance:
+    await get_run_with_reviewer_access(run_id, current_user, session)
+    document_id = await _document_id_for_version(session, run_id, artifact_id, version)
+    if document_id is None:
+        raise _artifact_version_not_found()
+    try:
+        return await assemble_decision_provenance(session, document_id)
+    except DecisionProvenanceDocumentNotFoundError as exc:
+        raise _artifact_version_not_found() from exc
+
+
+@router.post(
     "/runs/{run_id}/delegate",
     response_model=DelegateReviewerResponse,
     status_code=status.HTTP_201_CREATED,
@@ -389,6 +467,18 @@ async def delegate_reviewer(
     return DelegateReviewerResponse(
         delegation_id=delegation.delegation_id, delegate_id=delegation.delegate_id,
     )
+
+
+def _artifact_version_not_found() -> HTTPException:
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="artifact_version_not_found")
+
+
+async def _document_id_for_version(
+    session: AsyncSession, run_id: str, artifact_id: str, version: int,
+) -> str | None:
+    versions = await ArtifactDocumentStore(session).list_versions(RunId(run_id), artifact_id)
+    record = next((v for v in versions if v.version == version), None)
+    return record.document_id if record is not None else None
 
 
 def _edit_response(outcome: EditOutcome) -> EditArtifactDocumentResponse:

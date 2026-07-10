@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.run_contract_setup import (
     DEFAULT_POLICY,
     ContractSetupGate,
@@ -8,6 +7,7 @@ from services.gateway.run_contract_setup import (
     ContractSetupReady,
     resolve_contract_setup,
 )
+from services.gateway.teaching_pack_types import RunId, TeacherId
 
 
 class TestTeachingPackContractSetup:
@@ -86,6 +86,73 @@ class TestTeachingPackContractSetup:
                 "reason": "locale_default",
             },
         ]
+
+    def test_required_source_conflict_opens_source_conflict_gate_before_generation(self) -> None:
+        result = resolve_contract_setup(ContractSetupInput(
+            run_id=RunId("run-conflict"),
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Fractions",
+            class_info={
+                "topic": "Fractions",
+                "grade": 5,
+                "subject": "science",
+                "source_collection": {
+                    "collection_id": "sources-1",
+                    "scope": "private_teacher",
+                    "owner_id": "teacher-a",
+                    "entries": [{
+                        "entry_id": "entry-1",
+                        "title": "District science handbook",
+                        "authority": "required",
+                        "subject_key": "boiling_point_water_celsius",
+                        "claim_value": "100",
+                    }],
+                },
+                "verified_findings": [{
+                    "subject_key": "boiling_point_water_celsius",
+                    "claim_value": "90",
+                    "source_id": "src-verified-1",
+                    "verification_status": "VERIFIED",
+                }],
+            },
+        ))
+
+        assert isinstance(result, ContractSetupGate)
+        assert result.gate_name == "source_conflict"
+        assert result.contract is not None
+        assert result.payload["conflicts"] == [{
+            "entry_id": "entry-1",
+            "subject_key": "boiling_point_water_celsius",
+            "required_claim_value": "100",
+            "verified_claim_value": "90",
+            "verified_source_id": "src-verified-1",
+        }]
+
+    def test_source_collection_without_conflict_does_not_open_source_conflict_gate(self) -> None:
+        result = resolve_contract_setup(ContractSetupInput(
+            run_id=RunId("run-no-conflict"),
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Fractions",
+            class_info={
+                "topic": "Fractions",
+                "grade": 5,
+                "subject": "science",
+                "source_collection": {
+                    "collection_id": "sources-1",
+                    "scope": "private_teacher",
+                    "owner_id": "teacher-a",
+                    "entries": [{
+                        "entry_id": "entry-1",
+                        "title": "District science handbook",
+                        "authority": "required",
+                        "subject_key": "boiling_point_water_celsius",
+                        "claim_value": "100",
+                    }],
+                },
+            },
+        ))
+
+        assert isinstance(result, ContractSetupReady)
 
     def test_all_renderable_artifact_types_are_requestable(self) -> None:
         result = resolve_contract_setup(ContractSetupInput(

@@ -13,6 +13,12 @@ from common.contracts.run_contract import (
     ResearchPolicy,
     RunContract,
 )
+from common.contracts.source_collection import (
+    SourceCollection,
+    SourceConflict,
+    VerifiedFinding,
+    detect_required_source_conflicts,
+)
 from services.gateway.research_safety import minimize_student_evidence
 from services.gateway.run_contract_policy import (
     CONFIG_VERSION,
@@ -25,7 +31,7 @@ from services.gateway.run_contract_policy import (
 if TYPE_CHECKING:
     from services.gateway.teaching_pack_types import JsonObject, RunId, TeacherId
 
-SetupGateName = Literal["clarification_required", "contract_confirmation"]
+SetupGateName = Literal["clarification_required", "contract_confirmation", "source_conflict"]
 MAX_TOPIC_LENGTH = 200
 _DECK_REQUEST_RE = re.compile(
     r"\b(?:generate|create|make|build)\s+(?:a\s+)?(?:slide\s+deck|slidedeck|presentation\s+deck)\s+for\s+",
@@ -81,6 +87,16 @@ def resolve_contract_setup(payload: ContractSetupInput) -> ContractSetupResult:
         )
 
     contract = _build_contract(payload, raw_request, student_evidence)
+    conflicts = _source_conflicts(class_info)
+    if conflicts:
+        return ContractSetupGate(
+            gate_name="source_conflict",
+            payload=cast("JsonObject", {
+                "conflicts": [conflict.model_dump(mode="json") for conflict in conflicts],
+                "contract": contract.model_dump(mode="json"),
+            }),
+            contract=contract,
+        )
     risky = _risky_inferences(raw_request, class_info, contract)
     planning_review_reasons = _string_list(class_info.get("planning_review_reasons"), [])
     if planning_review_reasons:
@@ -177,6 +193,28 @@ def _build_contract(
             effective_stage="setup_contract",
         ),
     )
+
+
+def _source_conflicts(class_info: JsonObject) -> list[SourceConflict]:
+    """Compare a teacher-provided Source Collection against verified findings.
+
+    Both sides are optional: a request with no `source_collection` (the
+    common case today, since Source Collections are new) simply has no
+    conflicts to detect. ADR-054: a `required` source that materially
+    disagrees with `VERIFIED` evidence must open Planning Review before the
+    disputed claim is generated -- neither side is auto-resolved here.
+    """
+    raw_collection = class_info.get("source_collection")
+    if not isinstance(raw_collection, dict):
+        return []
+    collection = SourceCollection.model_validate(raw_collection)
+    raw_findings = class_info.get("verified_findings")
+    findings = [
+        VerifiedFinding.model_validate(item)
+        for item in raw_findings
+        if isinstance(item, dict)
+    ] if isinstance(raw_findings, list) else []
+    return detect_required_source_conflicts(collection, findings)
 
 
 def _risky_inferences(

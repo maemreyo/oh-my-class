@@ -8,6 +8,7 @@ from typing import assert_never
 class TeachingPackGateName(StrEnum):
     CLARIFICATION_REQUIRED = "clarification_required"
     CONTRACT_CONFIRMATION = "contract_confirmation"
+    SOURCE_CONFLICT = "source_conflict"
     SEARCH_PLAN_CONFIRMATION = "search_plan_confirmation"
     BLUEPRINT_APPROVAL = "blueprint_approval"
     CONTENT_APPROVAL = "content_approval"
@@ -54,6 +55,12 @@ def allowed_actions_for_gate(gate: TeachingPackGateName) -> frozenset[TeachingPa
         case TeachingPackGateName.CLARIFICATION_REQUIRED:
             return frozenset({TeachingPackGateAction.ANSWER})
         case TeachingPackGateName.CONTRACT_CONFIRMATION:
+            return frozenset({
+                TeachingPackGateAction.APPROVE,
+                TeachingPackGateAction.EDIT,
+                TeachingPackGateAction.REJECT,
+            })
+        case TeachingPackGateName.SOURCE_CONFLICT:
             return frozenset({
                 TeachingPackGateAction.APPROVE,
                 TeachingPackGateAction.EDIT,

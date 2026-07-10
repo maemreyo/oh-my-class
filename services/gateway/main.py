@@ -32,6 +32,7 @@ from .routers import (
     release_evidence,
     runs,
     snapshots,
+    source_collections,
     teaching_pack_previews,
     teaching_briefs,
     teaching_pack_runs,
@@ -235,6 +236,7 @@ app.include_router(teaching_pack_runs.router, prefix="/teaching-packs", tags=["t
 app.include_router(teaching_briefs.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(teaching_pack_previews.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(artifact_documents.router, prefix="/teaching-packs", tags=["artifact-documents"])
+app.include_router(source_collections.router, prefix="/teaching-packs", tags=["source-collections"])
 app.include_router(exports.router, prefix="/teaching-packs", tags=["exports"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
