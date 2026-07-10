@@ -52,6 +52,12 @@ export interface TeachingBriefResponse extends TeachingBrief {
 	readonly materiality_reasons: readonly string[];
 }
 
+export interface TeachingBriefContractPreviewResponse extends TeachingBriefResponse {
+	readonly resolved_contract: Readonly<Record<string, unknown>> | null;
+	readonly setup_gate: "clarification_required" | "contract_confirmation" | null;
+	readonly setup_details: Readonly<Record<string, unknown>> | null;
+}
+
 export interface TeachingBriefLaunchResponse extends TeachingBriefResponse {
 	readonly run_id: string;
 	readonly job_id: string | null;

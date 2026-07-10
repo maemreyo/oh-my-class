@@ -38,6 +38,7 @@ class TeachingBriefResponse(TeachingBrief):
 class TeachingBriefContractPreviewResponse(TeachingBriefResponse):
     resolved_contract: dict[str, object] | None
     setup_gate: str | None
+    setup_details: dict[str, object] | None
 
 
 class TeachingBriefLaunchResponse(TeachingBriefResponse):
@@ -102,9 +103,11 @@ async def preview_teaching_brief_contract(
         case ContractSetupReady(contract=contract):
             contract_json = contract.model_dump(mode="json")
             setup_gate = None
-        case ContractSetupGate(gate_name=gate_name, contract=contract):
+            setup_details = None
+        case ContractSetupGate(gate_name=gate_name, contract=contract, payload=payload):
             contract_json = contract.model_dump(mode="json") if contract is not None else None
             setup_gate = gate_name
+            setup_details = dict(payload)
         case unreachable:
             from typing import assert_never
 
@@ -113,6 +116,7 @@ async def preview_teaching_brief_contract(
         **_response(stored).model_dump(),
         resolved_contract=contract_json,
         setup_gate=setup_gate,
+        setup_details=setup_details,
     )
 
 

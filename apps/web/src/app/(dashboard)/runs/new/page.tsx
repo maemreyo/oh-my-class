@@ -1,12 +1,18 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, Check, LoaderCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAutosaveTeachingBrief, useCreateTeachingBrief, useLaunchTeachingBrief } from "@/hooks/use-teaching-brief";
+import {
+	useAutosaveTeachingBrief,
+	useCreateTeachingBrief,
+	useLaunchTeachingBrief,
+	useTeachingBrief,
+	useTeachingBriefContractPreview,
+} from "@/hooks/use-teaching-brief";
 import type { TeachingBrief, TeachingBriefArtifactType, TeachingBriefExportFormat } from "@/types/teaching-pack-api";
 
 const CORE_ARTIFACTS: readonly { readonly value: TeachingBriefArtifactType; readonly label: string; readonly detail: string }[] = [
@@ -18,6 +24,19 @@ const CORE_ARTIFACTS: readonly { readonly value: TeachingBriefArtifactType; read
 ];
 const EXPORTS: readonly TeachingBriefExportFormat[] = ["html", "gift", "h5p", "pptx"];
 const RESEARCH_POLICIES = ["basic", "standard", "rigorous"] as const;
+
+const MATERIALITY_LABELS: Readonly<Record<string, string>> = {
+	always_review: "You chose always review",
+	rigorous_research: "Rigorous research mode",
+	custom_artifact_scope: "Custom artifact scope",
+	non_html_export: "Additional export format",
+	methodology_preference: "Methodology preference",
+};
+const INFERRED_REASON_LABELS: Readonly<Record<string, string>> = {
+	inferred_from_request: "inferred from your request",
+	mixed_language_request: "inferred from a mixed-language request",
+	locale_default: "defaulted from the class locale",
+};
 
 const INITIAL_BRIEF: TeachingBrief = {
 	raw_request: "",
@@ -39,8 +58,16 @@ const INITIAL_BRIEF: TeachingBrief = {
 
 export default function NewRunPage() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const resumeBriefId = searchParams.get("briefId");
+
 	const [brief, setBrief] = useState<TeachingBrief>(INITIAL_BRIEF);
-	const [briefId, setBriefId] = useState<string | null>(null);
+	const [briefId, setBriefId] = useState<string | null>(resumeBriefId);
+	const [materialityReasons, setMaterialityReasons] = useState<readonly string[]>([]);
+	const hydratedRef = useRef(false);
+
+	const resumeQuery = useTeachingBrief(hydratedRef.current ? null : resumeBriefId);
+	const contractPreview = useTeachingBriefContractPreview(briefId);
 	const createMutation = useCreateTeachingBrief();
 	const autosaveMutation = useAutosaveTeachingBrief(briefId);
 	const launchMutation = useLaunchTeachingBrief(briefId);
@@ -49,11 +76,50 @@ export default function NewRunPage() {
 	createBriefRef.current = createMutation.mutate;
 	autosaveBriefRef.current = autosaveMutation.mutate;
 	const launchBrief = launchMutation.mutateAsync;
-	const materiality = useMemo(() => materialityReasons(brief), [brief]);
 	const isComplete = brief.raw_request.trim() !== "" && brief.topic.trim() !== "" && brief.subject.trim() !== "";
 
-	const saveState = createMutation.isPending || autosaveMutation.isPending ? "Saving draft" : briefId ? "Saved to workspace" : "Complete the required fields to save";
-	const saveError = createMutation.error ?? autosaveMutation.error ?? launchMutation.error;
+	useEffect(() => {
+		if (resumeQuery.data && !hydratedRef.current) {
+			hydratedRef.current = true;
+			const { brief_id, materiality_reasons } = resumeQuery.data;
+			setBrief(resumeQuery.data);
+			setBriefId(brief_id);
+			setMaterialityReasons(materiality_reasons);
+		}
+	}, [resumeQuery.data]);
+
+	const clarification = useMemo(() => {
+		if (contractPreview.data?.setup_gate !== "clarification_required") return null;
+		const details = contractPreview.data.setup_details;
+		const missing = Array.isArray(details?.missing_fields) ? (details.missing_fields as string[]) : [];
+		const unsupported = Array.isArray(details?.unsupported_values)
+			? (details.unsupported_values as { field: string; value: string }[])
+			: [];
+		return { missing, unsupported };
+	}, [contractPreview.data]);
+
+	const inferredFields = useMemo(() => {
+		if (contractPreview.data?.setup_gate !== "contract_confirmation") return [];
+		const inferred = contractPreview.data.setup_details?.inferred_fields;
+		return Array.isArray(inferred) ? (inferred as { field: string; value: string; reason: string }[]) : [];
+	}, [contractPreview.data]);
+
+	const reviewReasons = useMemo(
+		() => [
+			...materialityReasons.map((reason) => MATERIALITY_LABELS[reason] ?? reason),
+			...inferredFields.map(
+				(item) => `${item.field.replace(/_/g, " ")} was ${INFERRED_REASON_LABELS[item.reason] ?? item.reason} (${item.value})`,
+			),
+		],
+		[materialityReasons, inferredFields],
+	);
+
+	const saveState = createMutation.isPending || autosaveMutation.isPending
+		? "Saving draft"
+		: briefId
+			? "Saved to workspace"
+			: "Complete the required fields to save";
+	const saveError = createMutation.error ?? autosaveMutation.error ?? launchMutation.error ?? resumeQuery.error;
 
 	async function launch(): Promise<void> {
 		if (!briefId) return;
@@ -65,9 +131,15 @@ export default function NewRunPage() {
 		setBrief(nextBrief);
 		if (nextBrief.raw_request.trim() === "" || nextBrief.topic.trim() === "" || nextBrief.subject.trim() === "") return;
 		if (briefId) {
-			autosaveBriefRef.current(nextBrief);
+			autosaveBriefRef.current(nextBrief, { onSuccess: (saved) => setMaterialityReasons(saved.materiality_reasons) });
 		} else {
-			createBriefRef.current(nextBrief, { onSuccess: (saved) => setBriefId(saved.brief_id) });
+			createBriefRef.current(nextBrief, {
+				onSuccess: (saved) => {
+					setBriefId(saved.brief_id);
+					setMaterialityReasons(saved.materiality_reasons);
+					router.replace(`/runs/new?briefId=${saved.brief_id}`);
+				},
+			});
 		}
 	}
 
@@ -80,6 +152,11 @@ export default function NewRunPage() {
 			</header>
 
 			{saveError && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{saveError.message}</p>}
+			{clarification && (clarification.missing.length > 0 || clarification.unsupported.length > 0) && (
+				<p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">
+					Before you can launch: {[...clarification.missing.map((field) => `add ${field.replace(/_/g, " ")}`), ...clarification.unsupported.map((item) => `choose a supported ${item.field.replace(/_/g, " ")} instead of ${item.value}`)].join("; ")}.
+				</p>
+			)}
 			<section aria-labelledby="brief-heading" className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
 				<Card>
 					<CardHeader><CardTitle id="brief-heading" className="text-lg">Teaching Brief</CardTitle></CardHeader>
@@ -94,12 +171,12 @@ export default function NewRunPage() {
 				</Card>
 				<aside className="space-y-4" aria-label="Brief save status and planning review">
 					<Card><CardHeader><CardTitle className="text-lg">Workspace status</CardTitle></CardHeader><CardContent className="space-y-3 text-sm"><p aria-live="polite" className="flex items-center gap-2"><Check className="size-4 text-primary" aria-hidden="true" />{saveState}</p><p className="text-muted-foreground">Drafts are stored on the server before you launch a pack.</p></CardContent></Card>
-					<Card><CardHeader><CardTitle className="text-lg">Planning Review</CardTitle></CardHeader><CardContent className="space-y-3 text-sm">{materiality.length === 0 ? <p className="text-muted-foreground">No material changes. The plan can proceed after the standard contract check.</p> : <><p className="flex items-center gap-2 font-medium"><AlertCircle className="size-4 text-primary" aria-hidden="true" />Review required</p><ul className="list-disc space-y-1 pl-5 text-muted-foreground">{materiality.map((reason) => <li key={reason}>{reason}</li>)}</ul></>}</CardContent></Card>
+					<Card><CardHeader><CardTitle className="text-lg">Planning Review</CardTitle></CardHeader><CardContent className="space-y-3 text-sm">{reviewReasons.length === 0 ? <p className="text-muted-foreground">No material changes. The plan can proceed after the standard contract check.</p> : <><p className="flex items-center gap-2 font-medium"><AlertCircle className="size-4 text-primary" aria-hidden="true" />Review required</p><ul className="list-disc space-y-1 pl-5 text-muted-foreground">{reviewReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></>}</CardContent></Card>
 				</aside>
 			</section>
 
 			<section aria-labelledby="scope-heading" className="grid gap-6 lg:grid-cols-2"><Card><CardHeader><CardTitle id="scope-heading" className="text-lg">Pack recipe</CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-2">{CORE_ARTIFACTS.map((artifact) => <label key={artifact.value} className="rounded-md border border-border bg-background p-3"><input type="checkbox" checked={brief.artifact_types.includes(artifact.value)} onChange={() => updateBrief({ ...brief, artifact_types: toggle(brief.artifact_types, artifact.value) })} className="mr-2" /><span className="text-sm font-medium">{artifact.label}</span><p className="mt-1 text-xs text-muted-foreground">{artifact.detail}</p></label>)}</CardContent></Card><Card><CardHeader><CardTitle className="text-lg">Research and output</CardTitle></CardHeader><CardContent className="space-y-4"><Field label="Research rigor"><select value={brief.research_policy} onChange={(event) => updateBrief({ ...brief, research_policy: researchPolicy(event.currentTarget.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{RESEARCH_POLICIES.map((policy) => <option key={policy} value={policy}>{policy[0].toUpperCase()}{policy.slice(1)}</option>)}</select></Field><fieldset><legend className="text-sm font-medium">Export formats</legend><div className="mt-2 flex flex-wrap gap-3">{EXPORTS.map((format) => <label key={format} className="text-sm"><input type="checkbox" checked={brief.export_formats.includes(format)} onChange={() => updateBrief({ ...brief, export_formats: toggle(brief.export_formats, format) })} className="mr-2" />{format.toUpperCase()}</label>)}</div></fieldset><label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={brief.always_review} onChange={(event) => updateBrief({ ...brief, always_review: event.currentTarget.checked })} className="mt-1" />Always review the plan before generation</label></CardContent></Card></section>
-			<div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-muted-foreground">Final content still needs teacher approval after generation.</p><Button type="button" size="lg" disabled={!briefId || launchMutation.isPending} onClick={() => void launch()}>{launchMutation.isPending ? <LoaderCircle className="mr-2 size-4 animate-spin" aria-hidden="true" /> : <Sparkles className="mr-2 size-4" aria-hidden="true" />}{materiality.length > 0 ? "Review plan and generate" : "Generate teaching pack"}</Button></div>
+			<div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-muted-foreground">Final content still needs teacher approval after generation.</p><Button type="button" size="lg" disabled={!briefId || launchMutation.isPending} onClick={() => void launch()}>{launchMutation.isPending ? <LoaderCircle className="mr-2 size-4 animate-spin" aria-hidden="true" /> : <Sparkles className="mr-2 size-4" aria-hidden="true" />}{reviewReasons.length > 0 ? "Review plan and generate" : "Generate teaching pack"}</Button></div>
 		</main>
 	);
 }
@@ -108,4 +185,3 @@ function Field({ label, required = false, children }: { readonly label: string; 
 function LanguageSelect({ value, onChange }: { readonly value: string; readonly onChange: (value: string) => void }) { return <select value={value} onChange={(event) => onChange(event.currentTarget.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><option value="en">English</option><option value="vi">Vietnamese</option></select>; }
 function toggle<T>(values: readonly T[], value: T): T[] { return values.includes(value) ? values.filter((item) => item !== value) : [...values, value]; }
 function researchPolicy(value: string): TeachingBrief["research_policy"] { switch (value) { case "basic": return "basic"; case "rigorous": return "rigorous"; default: return "standard"; } }
-function materialityReasons(brief: TeachingBrief): string[] { const reasons: string[] = []; if (brief.always_review) reasons.push("You chose always review"); if (brief.research_policy === "rigorous") reasons.push("Rigorous research"); if (brief.export_formats.some((format) => format !== "html")) reasons.push("Additional export format"); if (brief.artifact_types.length !== CORE_ARTIFACTS.length) reasons.push("Custom artifact scope"); return reasons; }
