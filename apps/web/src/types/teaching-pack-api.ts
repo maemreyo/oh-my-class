@@ -25,6 +25,40 @@ export interface TeachingPackCreateRunRequest {
 	readonly class_info: Readonly<Record<string, unknown>>;
 }
 
+export type TeachingBriefArtifactType = "lesson" | "worksheet" | "quiz" | "drill" | "recap" | "infographic" | "flashcard_deck" | "answer_key" | "roadmap" | "slide_deck";
+export type TeachingBriefExportFormat = "html" | "gift" | "h5p" | "qti" | "anki_apkg" | "flashcard_tsv" | "pptx";
+
+export interface TeachingBrief {
+	readonly raw_request: string;
+	readonly topic: string;
+	readonly grade: number;
+	readonly subject: string;
+	readonly target_language: string;
+	readonly instruction_language: string;
+	readonly curriculum: string | null;
+	readonly class_context: string;
+	readonly artifact_types: readonly TeachingBriefArtifactType[];
+	readonly export_formats: readonly TeachingBriefExportFormat[];
+	readonly methodology: string | null;
+	readonly research_policy: "basic" | "standard" | "rigorous";
+	readonly must_include: string;
+	readonly avoid: string;
+	readonly always_review: boolean;
+}
+
+export interface TeachingBriefResponse extends TeachingBrief {
+	readonly brief_id: string;
+	readonly planning_review_required: boolean;
+	readonly materiality_reasons: readonly string[];
+}
+
+export interface TeachingBriefLaunchResponse extends TeachingBriefResponse {
+	readonly run_id: string;
+	readonly job_id: string | null;
+	readonly status: TeachingPackRunStatus;
+	readonly queued: boolean;
+}
+
 export interface TeachingPackRunAcceptedResponse {
 	readonly run_id: string;
 	readonly job_id: string | null;

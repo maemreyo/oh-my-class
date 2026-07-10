@@ -1,0 +1,251 @@
+{
+  "manifest_version": "teaching-pack-capabilities.v1",
+  "generated_from": "renderer plugins, teaching-pack fanout, and exporter registry",
+  "renderer_plugins": [
+    "lesson",
+    "worksheet",
+    "quiz",
+    "drill",
+    "recap",
+    "infographic",
+    "answer_key",
+    "flashcard_deck",
+    "reading_passage",
+    "exit_ticket",
+    "roadmap",
+    "teaching_pack",
+    "navy-ticket.teaching",
+    "navy-ticket.practice",
+    "investigation-folder.inverse-thinking",
+    "paper-dossier.root-cause-session",
+    "transit-route.video-route",
+    "fixture.echo"
+  ],
+  "specialist_adapters": [
+    "content_creator_hierarchical",
+    "slide_deck_engine",
+    "roadmap_agent",
+    "inverse_thinking_pipeline",
+    "practice_generator"
+  ],
+  "artifacts": [
+    {
+      "artifact_type": "lesson",
+      "status": "degraded",
+      "payload_type": "block_document",
+      "renderer_plugin": "lesson",
+      "specialist_adapter": "content_creator_hierarchical",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["heading_order", "language", "alt_text"],
+      "requires_answer_set": false,
+      "asset_policy": "governed_media",
+      "degradation": "renderer currently accepts legacy ArtifactContent projection"
+    },
+    {
+      "artifact_type": "worksheet",
+      "status": "degraded",
+      "payload_type": "block_document",
+      "renderer_plugin": "worksheet",
+      "specialist_adapter": "content_creator_hierarchical",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["heading_order", "form_labels", "language"],
+      "requires_answer_set": false,
+      "asset_policy": "governed_media",
+      "degradation": "renderer currently accepts legacy ArtifactContent projection"
+    },
+    {
+      "artifact_type": "quiz",
+      "status": "degraded",
+      "payload_type": "assessment_document",
+      "renderer_plugin": "quiz",
+      "specialist_adapter": "content_creator_hierarchical",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["answer_key_separation", "form_labels", "language"],
+      "requires_answer_set": true,
+      "asset_policy": "not_applicable",
+      "degradation": "renderer currently accepts legacy ArtifactContent projection"
+    },
+    {
+      "artifact_type": "drill",
+      "status": "degraded",
+      "payload_type": "assessment_document",
+      "renderer_plugin": "drill",
+      "specialist_adapter": "content_creator_hierarchical",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["answer_key_separation", "form_labels", "language"],
+      "requires_answer_set": true,
+      "asset_policy": "not_applicable",
+      "degradation": "renderer currently accepts legacy ArtifactContent projection"
+    },
+    {
+      "artifact_type": "recap",
+      "status": "degraded",
+      "payload_type": "block_document",
+      "renderer_plugin": "recap",
+      "specialist_adapter": "content_creator_hierarchical",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["heading_order", "language"],
+      "requires_answer_set": false,
+      "asset_policy": "governed_media",
+      "degradation": "renderer currently accepts legacy ArtifactContent projection"
+    },
+    {
+      "artifact_type": "infographic",
+      "status": "rejected",
+      "payload_type": "block_document",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["long_description", "alt_text", "language"],
+      "requires_answer_set": false,
+      "asset_policy": "inline_only",
+      "rejection_reason": "teaching-pack fanout has no infographic wave or quality workflow",
+      "alternative": "request lesson or recap until infographic fanout is implemented"
+    },
+    {
+      "artifact_type": "flashcard_deck",
+      "status": "degraded",
+      "payload_type": "block_document",
+      "renderer_plugin": "flashcard_deck",
+      "specialist_adapter": "content_creator_hierarchical",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["language", "print_fallback"],
+      "requires_answer_set": false,
+      "asset_policy": "not_applicable",
+      "degradation": "renderer currently accepts legacy ArtifactContent projection"
+    },
+    {
+      "artifact_type": "answer_key",
+      "status": "rejected",
+      "payload_type": "block_document",
+      "audiences": ["teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["teacher_only_projection", "language"],
+      "requires_answer_set": true,
+      "asset_policy": "not_applicable",
+      "rejection_reason": "V2 derived answer-key projection is not wired to AnswerSet persistence",
+      "alternative": "use the linked teacher-only AnswerSet until the derived projection lands"
+    },
+    {
+      "artifact_type": "roadmap",
+      "status": "degraded",
+      "payload_type": "block_document",
+      "renderer_plugin": "roadmap",
+      "specialist_adapter": "content_creator_hierarchical",
+      "audiences": ["teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["heading_order", "language"],
+      "requires_answer_set": false,
+      "asset_policy": "not_applicable",
+      "degradation": "roadmap_agent is not the teaching-pack graph adapter"
+    },
+    {
+      "artifact_type": "slide_deck",
+      "status": "rejected",
+      "payload_type": "slide_deck_data",
+      "specialist_adapter": "slide_deck_engine",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["alt_text", "no_js_fallback", "teacher_only_projection"],
+      "requires_answer_set": false,
+      "asset_policy": "governed_media",
+      "rejection_reason": "ArtifactPayload has no slide_deck_data discriminant, so ArtifactDocument cannot represent a slide deck payload",
+      "alternative": "use the existing legacy SlideDeckEngine snapshot path"
+    },
+    {
+      "artifact_type": "exit_ticket",
+      "status": "rejected",
+      "payload_type": "assessment_document",
+      "renderer_plugin": "exit_ticket",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["answer_key_separation", "form_labels", "language"],
+      "requires_answer_set": true,
+      "asset_policy": "not_applicable",
+      "rejection_reason": "exit_ticket is not requestable through the current run contract",
+      "alternative": "request quiz or drill until exit-ticket lifecycle support lands"
+    },
+    {
+      "artifact_type": "reading_passage",
+      "status": "rejected",
+      "payload_type": "block_document",
+      "renderer_plugin": "reading_passage",
+      "audiences": ["student", "teacher", "print"],
+      "supports_print": true,
+      "accessibility_requirements": ["reading_level", "language", "heading_order"],
+      "requires_answer_set": false,
+      "asset_policy": "not_applicable",
+      "rejection_reason": "reading_passage is not requestable through the current run contract",
+      "alternative": "request lesson or worksheet until reading-passage lifecycle support lands"
+    }
+  ],
+  "exports": [
+    {
+      "export_format": "html",
+      "status": "degraded",
+      "supported_artifact_types": ["lesson", "worksheet", "quiz", "drill", "recap", "flashcard_deck", "roadmap"],
+      "requires_answer_set": false,
+      "file_validation": "standalone HTML validator",
+      "degradation": "current renderer accepts legacy ArtifactContent projection"
+    },
+    {
+      "export_format": "gift",
+      "status": "rejected",
+      "supported_artifact_types": ["quiz"],
+      "requires_answer_set": true,
+      "file_validation": "Moodle import smoke test",
+      "rejection_reason": "gateway export registry currently returns a planned path without materializing GIFT",
+      "alternative": "use standalone HTML until the GIFT exporter is wired"
+    },
+    {
+      "export_format": "h5p",
+      "status": "rejected",
+      "supported_artifact_types": ["quiz", "drill"],
+      "requires_answer_set": true,
+      "file_validation": "H5P package import smoke test",
+      "rejection_reason": "gateway export registry currently returns a planned path without materializing H5P",
+      "alternative": "use standalone HTML until the H5P exporter is wired"
+    },
+    {
+      "export_format": "qti",
+      "status": "rejected",
+      "supported_artifact_types": [],
+      "requires_answer_set": true,
+      "file_validation": "QTI import smoke test",
+      "rejection_reason": "QTI has no real implementation",
+      "alternative": "use Moodle GIFT or standalone HTML"
+    },
+    {
+      "export_format": "anki_apkg",
+      "status": "rejected",
+      "supported_artifact_types": ["flashcard_deck"],
+      "requires_answer_set": false,
+      "file_validation": "Anki import smoke test",
+      "rejection_reason": "gateway export registry currently returns a planned path without materializing APKG",
+      "alternative": "use standalone HTML until the Anki exporter is wired"
+    },
+    {
+      "export_format": "flashcard_tsv",
+      "status": "rejected",
+      "supported_artifact_types": ["flashcard_deck"],
+      "requires_answer_set": false,
+      "file_validation": "TSV schema validation",
+      "rejection_reason": "gateway export registry currently returns a planned path without materializing TSV",
+      "alternative": "use standalone HTML until the TSV exporter is wired"
+    },
+    {
+      "export_format": "pptx",
+      "status": "rejected",
+      "supported_artifact_types": ["slide_deck"],
+      "requires_answer_set": false,
+      "file_validation": "PPTX open smoke test",
+      "rejection_reason": "gateway export registry does not materialize PPTX files",
+      "alternative": "use the legacy slide-deck HTML snapshot until PPTX publication is wired"
+    }
+  ]
+}

@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+from common.contracts.artifact import ArtifactContent
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from services.gateway.models import RunStatus
 from services.gateway.teaching_pack_completion import TeachingPackCompletionRecorder
 from services.gateway.teaching_pack_export_store import ExportRecordCreate
@@ -157,6 +159,77 @@ class TestTeachingPackCompletionRecorder:
         assert store.snapshots[0].student_rendered_html is None
         assert store.gates[0].gate_name == "content_approval"
         assert store.events[0].payload.get("content_artifacts") == []
+
+    @pytest.mark.anyio
+    async def test_hydrates_reference_snapshot_before_opening_content_gate(self) -> None:
+        store = RecordingFailureStore()
+        renderer = RecordingRenderer()
+        content_store = InMemoryArtifactContentStore()
+        artifact = ArtifactContent(
+            artifact_id="artifact-1",
+            artifact_type="lesson",
+            theme="default",
+            title="Durable Lesson",
+            sections=[{"title": "Intro", "content": "A durable projection."}],
+            metadata={},
+            accessibility={"language": "en"},
+        )
+        reference = await content_store.persist("run-1", "run-1:artifact:1", artifact, "artifact-1")
+        recorder = TeachingPackCompletionRecorder(store, renderer, content_store=content_store)
+
+        await recorder.persist_completion(RunId("run-1"), {
+            "__interrupt__": [{
+                "value": {
+                    "gate": "content_approval",
+                    "snapshot_ids": ["snapshot-1"],
+                    "rendered_snapshots": [{
+                        "snapshot_id": "snapshot-1",
+                        "artifact_id": "artifact-1",
+                        "artifact_type": "lesson",
+                        "document_id": reference.document_id,
+                    }],
+                },
+            }],
+        })
+
+        assert renderer.calls == [artifact.model_dump(mode="json")]
+        assert store.snapshots[0].content_json == artifact.model_dump(mode="json")
+
+    @pytest.mark.anyio
+    async def test_hydrates_reference_snapshot_before_export(self) -> None:
+        store = RecordingFailureStore()
+        content_store = InMemoryArtifactContentStore()
+        artifact = ArtifactContent(
+            artifact_id="artifact-1",
+            artifact_type="lesson",
+            theme="default",
+            title="Durable Lesson",
+            sections=[{"title": "Intro", "content": "A durable projection."}],
+            metadata={},
+            accessibility={"language": "en"},
+        )
+        reference = await content_store.persist("run-1", "run-1:artifact:1", artifact, "artifact-1")
+        export_writer = RecordingExportWriter()
+        recorder = TeachingPackCompletionRecorder(
+            store,
+            export_writer=export_writer,
+            content_store=content_store,
+        )
+
+        await recorder.persist_completion(RunId("run-1"), {
+            "run_id": "run-1",
+            "exported_files": ["exports/run-1/snapshot-1.html"],
+            "approved_snapshot_ids": ["snapshot-1"],
+            "rendered_snapshots": [{
+                "snapshot_id": "snapshot-1",
+                "artifact_id": "artifact-1",
+                "artifact_type": "lesson",
+                "document_id": reference.document_id,
+            }],
+        })
+
+        export_state = export_writer.calls[0][1]
+        assert export_state["rendered_snapshots"][0]["content_json"] == artifact.model_dump(mode="json")
 
     @pytest.mark.anyio
     async def test_content_update_event_is_teacher_visible_before_next_gate(self) -> None:
@@ -361,7 +434,7 @@ class TestTeachingPackCompletionRecorder:
         self,
         tmp_path: Path,
     ) -> None:
-        from unittest.mock import AsyncMock, patch
+        from unittest.mock import patch
 
         renderer = RecordingRenderer(
             rendered_html="<!DOCTYPE html><html><body>oh-my-class export</body></html>",
@@ -383,7 +456,12 @@ class TestTeachingPackCompletionRecorder:
             ],
         }
 
-        async def fake_node_export(fmt: str, run_id: str, snapshots: list, export_dir: Path) -> str:
+        async def fake_node_export(
+            fmt: str,
+            run_id: str,
+            _: list[JsonObject],
+            export_dir: Path,
+        ) -> str:
             path = export_dir / f"{run_id}.{fmt.replace('gift', 'gift.txt').replace('h5p', 'h5p').replace('qti', 'qti.xml')}"
             path.write_text(f"fake {fmt}", encoding="utf-8")
             return str(path)

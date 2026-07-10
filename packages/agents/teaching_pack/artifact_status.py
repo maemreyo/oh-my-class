@@ -38,7 +38,7 @@ class ArtifactStatusItem(TypedDict):
 
 def artifact_statuses_for_teacher(state: JsonObject) -> list[JsonObject]:
     requested_types = _requested_artifact_types(state)
-    artifacts_by_type = _artifacts_by_type(_json_objects(state.get("artifacts")))
+    artifacts_by_type = _artifacts_by_type(_json_objects(state.get("artifact_references")))
     workflow_by_type = _workflow_by_type(_json_objects(state.get("artifact_workflow_states")))
     values: list[JsonObject] = []
     for artifact_type in requested_types:
@@ -128,7 +128,7 @@ def _requested_artifact_types(state: JsonObject) -> list[str]:
     contract_values = contract.get("artifact_types")
     if isinstance(contract_values, list) and contract_values:
         return [str(value) for value in contract_values]
-    artifacts = _json_objects(state.get("artifacts"))
+    artifacts = _json_objects(state.get("artifact_references"))
     artifact_types = [str(artifact.get("artifact_type", "")) for artifact in artifacts]
     return [artifact_type for artifact_type in artifact_types if artifact_type]
 

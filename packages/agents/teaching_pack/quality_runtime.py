@@ -6,6 +6,7 @@ from common.contracts.artifact_workflow import ArtifactWorkflowState
 from common.contracts.quality import QualityFailureClass
 
 from packages.agents.teaching_pack.healing_runtime import heal_quality_failure
+from packages.agents.teaching_pack.content_orchestrator import ArtifactContentStore, ArtifactDocumentReferenceState
 from packages.agents.teaching_pack.quality import TeachingPackQualityGateError, quality_issues
 from packages.agents.teaching_pack.quality_routing import (
     pack_coherence_issues,
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
-type TeachingPackQualityValue = JsonValue | list[str]
+type TeachingPackQualityValue = JsonValue | list[str] | list[JsonObject]
 type TeachingPackQualityState = dict[str, TeachingPackQualityValue]
 
 _CORE_ARTIFACT_TYPES = frozenset({
@@ -48,8 +49,9 @@ _CORE_ARTIFACT_TYPES = frozenset({
 async def render_quality(
     state: TeachingPackQualityState,
     quality_gate: QualityGate | None = None,
+    content_store: ArtifactContentStore | None = None,
 ) -> TeachingPackQualityState:
-    artifacts = _json_objects(state.get("artifacts"))
+    artifacts = await _artifact_projections(state, content_store)
     issues = quality_issues(artifacts)
     if issues:
         _log.warning("render_quality.layer1_issues run_id=%s artifact_count=%d issues=%r", state.get("run_id"), len(artifacts), issues)
@@ -134,7 +136,14 @@ async def render_quality(
                 **healing,
             })
         passing_reports = reports
-    snapshots = [build_snapshot(str(state["run_id"]), artifact) for artifact in artifacts]
+    snapshots = [
+        _snapshot_reference(build_snapshot(str(state["run_id"]), artifact), reference)
+        for artifact, reference in zip(
+            artifacts,
+            _artifact_references(state.get("artifact_references")),
+            strict=True,
+        )
+    ]
     quality_scores: JsonObject = {
         "overall": 8.0,
         "passed": True,
@@ -175,6 +184,39 @@ def _state_update(value: TeachingPackQualityState) -> TeachingPackQualityState:
     return value
 
 
+async def _artifact_projections(
+    state: TeachingPackQualityState,
+    content_store: ArtifactContentStore | None,
+) -> list[JsonObject]:
+    if content_store is None:
+        return []
+    references = _artifact_references(state.get("artifact_references"))
+    projections = await content_store.read_projections(references)
+    return [
+        {**projection.model_dump(mode="json"), "artifact_id": reference["artifact_id"]}
+        for projection, reference in zip(projections, references, strict=True)
+    ]
+
+
+def _artifact_references(value: TeachingPackQualityValue | None) -> list[ArtifactDocumentReferenceState]:
+    return [reference for reference in _json_objects(value) if "document_id" in reference]
+
+
+def _snapshot_reference(
+    snapshot: JsonObject,
+    reference: ArtifactDocumentReferenceState,
+) -> JsonObject:
+    return {
+        "snapshot_id": snapshot["snapshot_id"],
+        "artifact_id": snapshot["artifact_id"],
+        "artifact_type": snapshot["artifact_type"],
+        "document_id": reference["document_id"],
+        "renderer_version": snapshot["renderer_version"],
+        "template_version": snapshot["template_version"],
+        "theme_version": snapshot["theme_version"],
+    }
+
+
 def _workflow_state(run_id: str, artifact: JsonObject, index: int) -> ArtifactWorkflowState:
     artifact_type = str(artifact.get("artifact_type", "lesson"))
     return ArtifactWorkflowState(
@@ -212,7 +254,7 @@ def _json_objects(value: TeachingPackQualityValue | None) -> list[JsonObject]:
     return [item for item in value if isinstance(item, dict)]
 
 
-def _json_object(value: JsonValue | list[str] | None) -> JsonObject:
+def _json_object(value: TeachingPackQualityValue | None) -> JsonObject:
     if isinstance(value, dict):
         return value
     return {}

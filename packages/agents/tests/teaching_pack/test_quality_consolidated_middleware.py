@@ -23,7 +23,7 @@ def _make_state(**overrides: Any) -> TeachingPackState:
     base: dict[str, Any] = {
         "run_id": "run-mw-test",
         "quality_scores": {},
-        "artifacts": [],
+        "artifact_references": [],
     }
     base.update(overrides)
     return TeachingPackState(**base)
@@ -169,7 +169,7 @@ class TestRenderQualityMiddlewareWiring:
             call_order.append("middleware")
             return state
 
-        async def fake_render_quality(state, quality_gate=None):
+        async def fake_render_quality(state, quality_gate=None, content_store=None):
             call_order.append("render_quality")
             return {
                 "run_id": state["run_id"],
@@ -204,7 +204,7 @@ class TestRenderQualityMiddlewareWiring:
             scores["middleware_warnings"] = {"bias_check": "flagged"}
             return TeachingPackState(**{**state, "quality_scores": scores})
 
-        async def fake_render_quality(state, quality_gate=None):
+        async def fake_render_quality(state, quality_gate=None, content_store=None):
             return {
                 "run_id": state["run_id"],
                 "quality_scores": {"overall": 8.0, "passed": True},

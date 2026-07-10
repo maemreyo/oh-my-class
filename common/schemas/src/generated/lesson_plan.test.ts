@@ -20,7 +20,7 @@ describe("generated LessonPlan methodology schema", () => {
 	test("keeps methodology generated as a typed object schema", () => {
 		const generated = readFileSync(new URL("./lesson_plan.ts", import.meta.url), "utf8");
 
-		expect(generated).toContain('"methodology": z.union([MethodologyMetadataSchema, z.null()]).default(null)');
+		expect(generated).toContain('"methodology": z.union([z.lazy(() => MethodologyMetadataSchema), z.null()]).default(null)');
 		expect(generated).toContain('"tags": z.array(z.enum(["concept_map"');
 		expect(generated).not.toContain('"methodology": z.union([z.any(), z.null()])');
 	});

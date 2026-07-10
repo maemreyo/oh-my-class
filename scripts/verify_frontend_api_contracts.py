@@ -19,6 +19,11 @@ from services.gateway.routers.teaching_pack_schemas import (
     TeachingPackRunAcceptedResponse,
     TeachingPackRunStatusResponse,
 )
+from services.gateway.routers.teaching_briefs import (
+    TeachingBriefLaunchResponse,
+    TeachingBriefResponse,
+)
+from common.contracts.teaching_brief import TeachingBrief
 from services.gateway.teaching_pack_gate_registry import (
     TeachingPackGateAction,
     TeachingPackGateName,
@@ -67,6 +72,9 @@ def _contract_mismatches(source: str) -> list[str]:
         "TeachingPackCancelResponse": set(TeachingPackCancelResponse.model_fields),
         "TeachingPackDeleteResponse": set(TeachingPackDeleteResponse.model_fields),
         "TeachingPackRestoreResponse": set(TeachingPackRestoreResponse.model_fields),
+        "TeachingBrief": set(TeachingBrief.model_fields),
+        "TeachingBriefResponse": set(TeachingBriefResponse.model_fields),
+        "TeachingBriefLaunchResponse": set(TeachingBriefLaunchResponse.model_fields),
     }
     for interface_name, expected_fields in model_checks.items():
         _compare_set(
@@ -101,11 +109,18 @@ def _extract_union(source: str, type_name: str) -> set[str]:
 
 
 def _extract_interface_fields(source: str, interface_name: str) -> set[str]:
-    pattern = re.compile(rf"export interface {interface_name}\s*{{(?P<body>.*?)}}", re.DOTALL)
+    pattern = re.compile(
+        rf"export interface {interface_name}(?:\s+extends\s+(?P<bases>[^{{]+))?\s*{{(?P<body>.*?)}}",
+        re.DOTALL,
+    )
     match = pattern.search(source)
     if match is None:
         return set()
     fields: set[str] = set()
+    bases = match.group("bases")
+    if bases is not None:
+        for base in bases.split(","):
+            fields.update(_extract_interface_fields(source, base.strip()))
     for field_match in re.finditer(r"readonly\s+(\w+)\??\s*:", match.group("body")):
         fields.add(field_match.group(1))
     return fields

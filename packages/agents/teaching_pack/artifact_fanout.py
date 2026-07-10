@@ -4,15 +4,11 @@ from typing import Any, Final
 
 from langgraph.types import Send
 
-from packages.agents.teaching_pack.artifacts import normalize_generated_artifacts
 from packages.agents.teaching_pack.artifact_fanout_helpers import (
-    all_artifact_types,
     any_json_object,
-    any_json_objects,
     json_object,
     json_objects,
     skipped_dependents,
-    sort_artifacts,
     string_field,
     string_value,
     with_dependents,
@@ -21,11 +17,10 @@ from packages.agents.teaching_pack.config import TeachingPackConfig
 from packages.agents.teaching_pack.features import artifact_send_fanout_v1_enabled
 from packages.agents.teaching_pack.generate_one_artifact import GenerateOneArtifactPayload
 from packages.agents.teaching_pack.reducers import (
-    current_generation_artifact_chunks,
+    current_generation_artifact_references,
     current_generation_workflow_states,
 )
 from packages.agents.teaching_pack.scoped_regeneration import (
-    merge_regenerated_artifacts,
     rejected_artifact_types,
 )
 
@@ -56,32 +51,28 @@ def coordinate_artifact_fanout(state: JsonObject) -> JsonObject:
     generation_id = _generation_id(state, generation_revision)
     requested_types = _requested_types(state)
     current_wave_index = _current_wave_index(state)
+    scoped_types = _scoped_generation_types(state)
     current_states = current_generation_workflow_states(
         json_objects(state.get("artifact_workflow_states")),
         generation_id,
     )
-    current_chunks = current_generation_artifact_chunks(
-        json_objects(state.get("artifact_chunks")),
+    current_references = current_generation_artifact_references(
+        json_objects(state.get("artifact_references")),
         generation_id,
     )
-    scoped_types = _scoped_generation_types(state)
-    materialized = sort_artifacts(
-        normalize_generated_artifacts(current_chunks, requested_types),
-        requested_types,
-    )
-    artifacts = _merge_fanout_artifacts(
-        json_objects(state.get("artifacts")),
-        json_object(state.get("gate_payload")),
-        materialized,
-        scoped_types,
-    )
+    preserved_references = [
+        reference
+        for reference in json_objects(state.get("artifact_references"))
+        if str(reference.get("artifact_type", "")) not in scoped_types
+    ] if scoped_types else []
+    references = [*preserved_references, *current_references]
     update: JsonObject = {
         "run_id": str(state["run_id"]),
         "artifact_generation_id": generation_id,
         "artifact_generation_revision": generation_revision,
         "artifact_wave_index": current_wave_index,
         "artifact_fanout_complete": False,
-        "artifacts": artifacts,
+        "artifact_references": references,
     }
     if scoped_types:
         update["artifact_regeneration_scope"] = {
@@ -136,7 +127,7 @@ def _payload(state: JsonObject, generation_id: str, artifact_type: str) -> Gener
         "research_brief": any_json_object(state.get("research_brief")),
         "theme": string_field(contract, "theme", "default"),
         "revision_feedback": string_value(state.get("revision_feedback")),
-        "dependency_artifacts": any_json_objects(state.get("artifacts")),
+        "dependency_artifact_references": json_objects(state.get("artifact_references")),
     }
 
 
@@ -210,7 +201,7 @@ def _scoped_generation_types(state: JsonObject) -> list[str]:
 
 def _rejected_generation_types(state: JsonObject) -> list[str]:
     rejected_types = rejected_artifact_types(
-        json_objects(state.get("artifacts")),
+        json_objects(state.get("artifact_references")),
         json_object(state.get("gate_payload")),
     )
     if not rejected_types:
@@ -267,20 +258,3 @@ def _artifact_parallelism_cap() -> int:
 
 def _failed_types(states: list[JsonObject]) -> set[str]:
     return {str(state.get("artifact_type", "")) for state in states if state.get("status") == "failed"}
-
-
-def _merge_fanout_artifacts(
-    artifacts: list[JsonObject],
-    gate_payload: JsonObject,
-    generated: list[JsonObject],
-    scoped_types: list[str],
-) -> list[JsonObject]:
-    if scoped_types:
-        scoped_set = set(scoped_types)
-        preserved = [
-            artifact for artifact in artifacts
-            if str(artifact.get("artifact_type", "")) not in scoped_set
-        ]
-        merged = [*preserved, *generated]
-        return sort_artifacts(merged, all_artifact_types(merged))
-    return merge_regenerated_artifacts(artifacts, gate_payload, generated)

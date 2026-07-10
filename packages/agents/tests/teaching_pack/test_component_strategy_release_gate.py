@@ -72,7 +72,7 @@ async def test_final_strategy_stage_creates_blueprint_payload_then_routes_to_art
         run_id="cs08-stage-flow",
         teacher_approved=True,
         component_strategy_plan=result["component_strategy_plan"],
-        artifacts=[],
+        artifact_references=[],
     )) == "artifact_workflow"
     reset_features()
 

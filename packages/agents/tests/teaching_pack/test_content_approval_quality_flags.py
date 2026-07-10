@@ -6,8 +6,10 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from common.contracts.artifact import ArtifactContent
 from common.contracts.quality import ArtifactQualityReport
 from packages.agents.teaching_pack.compliance import evaluate_compliance
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.quality_runtime import render_quality
 
 
@@ -36,6 +38,23 @@ def _make_passing_report(artifact_id: str, artifact_type: str = "lesson") -> Art
     )
 
 
+async def _persist_artifacts(
+    run_id: str, artifacts: list[dict[str, Any]],
+) -> tuple[InMemoryArtifactContentStore, list[dict[str, Any]]]:
+    """Persist raw artifact dicts into an in-memory store and return references."""
+    store = InMemoryArtifactContentStore()
+    references = []
+    generation_id = f"{run_id}:artifact:1"
+    for index, artifact in enumerate(artifacts, start=1):
+        artifact_id = str(artifact.get("artifact_id", f"artifact-{index}"))
+        parsed = ArtifactContent.model_validate(
+            {k: v for k, v in artifact.items() if k != "artifact_id"},
+        )
+        ref = await store.persist(run_id, generation_id, parsed, artifact_id)
+        references.append(ref.as_state())
+    return store, references
+
+
 @pytest.mark.asyncio
 async def test_quality_scores_includes_reports_when_gate_passes() -> None:
     """When quality gate evaluates and all reports pass, quality_scores.reports is populated."""
@@ -45,8 +64,9 @@ async def test_quality_scores_includes_reports_when_gate_passes() -> None:
     mock_gate = AsyncMock()
     mock_gate.evaluate.return_value = report
 
-    state = {"run_id": "run-test-001", "artifacts": [artifact]}
-    result = await render_quality(state, quality_gate=mock_gate)
+    store, references = await _persist_artifacts("run-test-001", [artifact])
+    state = {"run_id": "run-test-001", "artifact_references": references}
+    result = await render_quality(state, quality_gate=mock_gate, content_store=store)
 
     scores = result.get("quality_scores")
     assert isinstance(scores, dict)
@@ -67,8 +87,9 @@ async def test_slide_deck_quality_uses_existing_gate_path() -> None:
     mock_gate = AsyncMock()
     mock_gate.evaluate.return_value = report
 
-    state = {"run_id": "run-slide-quality", "artifacts": [artifact]}
-    result = await render_quality(state, quality_gate=mock_gate)
+    store, references = await _persist_artifacts("run-slide-quality", [artifact])
+    state = {"run_id": "run-slide-quality", "artifact_references": references}
+    result = await render_quality(state, quality_gate=mock_gate, content_store=store)
 
     mock_gate.evaluate.assert_awaited_once()
     scores = result.get("quality_scores")
@@ -83,7 +104,14 @@ async def test_quality_scores_has_no_reports_when_gate_is_none(monkeypatch: pyte
     from common.contracts.judge_output import JudgeOutput
     from packages.agents import llm
 
-    async def fake_complete_json_chat(*, model: str, messages: list, temperature: float, tags: list[str]) -> str:
+    async def fake_complete_json_chat(
+        *,
+        model: str,
+        messages: list[object],
+        temperature: float,
+        tags: list[str],
+    ) -> str:
+        _ = (model, messages, temperature, tags)
         return JudgeOutput(
             overall_score=8.0, layer_scores=[], critical_issues=[], passed=True,
             rationale="ok", teacher_facing_summary="ok",
@@ -92,8 +120,9 @@ async def test_quality_scores_has_no_reports_when_gate_is_none(monkeypatch: pyte
     monkeypatch.setattr(llm, "complete_json_chat", fake_complete_json_chat)
 
     artifact = _make_artifact("art-002", "quiz")
-    state = {"run_id": "run-test-002", "artifacts": [artifact]}
-    result = await render_quality(state, quality_gate=None)
+    store, references = await _persist_artifacts("run-test-002", [artifact])
+    state = {"run_id": "run-test-002", "artifact_references": references}
+    result = await render_quality(state, quality_gate=None, content_store=store)
 
     scores = result.get("quality_scores")
     assert isinstance(scores, dict)
@@ -123,8 +152,9 @@ async def test_quality_scores_includes_reports_with_issues_when_gate_fails() -> 
     mock_gate = AsyncMock()
     mock_gate.evaluate.return_value = failed_report
 
-    state = {"run_id": "run-test-003", "artifacts": [artifact]}
-    result = await render_quality(state, quality_gate=mock_gate)
+    store, references = await _persist_artifacts("run-test-003", [artifact])
+    state = {"run_id": "run-test-003", "artifact_references": references}
+    result = await render_quality(state, quality_gate=mock_gate, content_store=store)
 
     # Failed path: quality_recovery_route is set; rendered_snapshots is absent
     assert "quality_recovery_route" in result
@@ -146,7 +176,10 @@ def test_gate_body_quality_scores_passed_to_interrupt(monkeypatch: pytest.Monkey
 
     state = {
         "run_id": "run-test-004",
-        "artifacts": [_make_artifact("art-004")],
+        "artifact_references": [
+            {"document_id": "gen:art-004", "artifact_id": "art-004", "artifact_type": "lesson",
+             "generation_id": "gen", "version": 1, "title": "Test Lesson"},
+        ],
         "rendered_snapshots": [{"snapshot_id": "snap-001", "artifact_id": "art-004"}],
         "quality_scores": {
             "overall": 8.0,
@@ -179,7 +212,11 @@ def test_gate_body_handles_escalated_state_without_snapshots(monkeypatch: pytest
 
     state = {
         "run_id": "run-escalated-no-snapshots",
-        "artifacts": [_make_artifact("art-escalated")],
+        "artifact_references": [
+            {"document_id": "gen:art-escalated", "artifact_id": "art-escalated",
+             "artifact_type": "lesson", "generation_id": "gen", "version": 1,
+             "title": "Escalated Lesson"},
+        ],
         "rendered_snapshots": None,
         "quality_scores": {"overall": 4.0, "passed": False},
         "escalate": True,
@@ -191,8 +228,8 @@ def test_gate_body_handles_escalated_state_without_snapshots(monkeypatch: pytest
     result = _teacher_approval(state)
 
     assert result["teacher_approved"] is False
-    assert captured[0]["snapshot_ids"]
-    assert captured[0]["rendered_snapshots"][0]["artifact_id"] == "art-escalated"
+    assert captured[0]["snapshot_ids"] == []
+    assert captured[0]["rendered_snapshots"] == []
     assert captured[0]["escalated"] is True
 
 

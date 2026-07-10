@@ -122,6 +122,22 @@ class Run(Base):
     persona_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
 
+class TeachingBriefModel(Base):
+    __tablename__ = "teaching_briefs"
+    __table_args__ = (
+        Index("ix_teaching_briefs_teacher_id", "teacher_id"),
+        {"schema": "public"},
+    )
+
+    brief_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    brief_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now,
+    )
+
+
 class ClassProfileModel(Base):
     __tablename__ = "class_profiles"
     __table_args__ = (

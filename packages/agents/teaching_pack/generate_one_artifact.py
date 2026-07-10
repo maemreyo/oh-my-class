@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from common.contracts.artifact import ArtifactContent
 
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+from packages.agents.teaching_pack.content_orchestrator import ArtifactContentStore
 from packages.agents.teaching_pack.stages import StageEnum
 
 
@@ -18,11 +19,11 @@ class GenerateOneArtifactPayload(TypedDict):
     research_brief: dict[str, Any]
     theme: str
     revision_feedback: NotRequired[str]
-    dependency_artifacts: NotRequired[list[dict[str, Any]]]
+    dependency_artifact_references: NotRequired[list[dict[str, Any]]]
 
 
 class GenerateOneArtifactResult(TypedDict, total=False):
-    artifact_chunks: list[dict[str, Any]]
+    artifact_references: list[dict[str, Any]]
     artifact_workflow_states: list[dict[str, Any]]
 
 
@@ -33,10 +34,21 @@ class ArtifactTypeMismatchError(ValueError):
         super().__init__(f"expected {expected}, got {actual}")
 
 
-async def generate_one_artifact(payload: GenerateOneArtifactPayload) -> GenerateOneArtifactResult:
+async def generate_one_artifact(
+    payload: GenerateOneArtifactPayload,
+    content_store: ArtifactContentStore | None = None,
+) -> GenerateOneArtifactResult:
     artifact_type = payload["artifact_type"]
     generation_id = payload["artifact_generation_id"]
     try:
+        dependency_artifacts: list[dict[str, Any]] = []
+        if content_store is not None:
+            dependency_artifacts = [
+                projection.model_dump(mode="json")
+                for projection in await content_store.read_projections(
+                    payload.get("dependency_artifact_references", []),
+                )
+            ]
         result = await content_creator_node({
             "lesson_plan": payload["lesson_plan"],
             "research_bundle": payload["research_brief"],
@@ -44,22 +56,38 @@ async def generate_one_artifact(payload: GenerateOneArtifactPayload) -> Generate
             "theme": payload["theme"],
             "run_id": payload["run_id"],
             "current_step": StageEnum.ARTIFACT_WORKFLOW,
-            "artifacts": payload.get("dependency_artifacts", []),
+            "artifacts": dependency_artifacts,
             "revision_feedback": payload.get("revision_feedback", ""),
             "use_hierarchical_creator": True,
         })
         artifact = _single_artifact(result)
         if str(artifact.get("artifact_type", "")) != artifact_type:
             raise ArtifactTypeMismatchError(artifact_type, str(artifact.get("artifact_type", "")))
-        parsed = ArtifactContent.model_validate(artifact).model_dump()
+        parsed = ArtifactContent.model_validate(artifact)
         artifact_id = str(artifact.get("artifact_id", f"{artifact_type}-1"))
     except (ArtifactTypeMismatchError, ValidationError, ValueError) as exc:
         return {"artifact_workflow_states": [_workflow_state(payload, "failed", exc)]}
-    chunk = {**parsed, "artifact_id": artifact_id, "artifact_generation_id": generation_id}
-    _stamp_research_sources(chunk, payload["research_brief"])
-    _stamp_pedagogy_context(chunk, payload["lesson_plan"])
+    projection = parsed.model_dump()
+    _stamp_research_sources(projection, payload["research_brief"])
+    _stamp_pedagogy_context(projection, payload["lesson_plan"])
+    if content_store is not None:
+        persisted = ArtifactContent.model_validate(projection)
+        reference = await content_store.persist(
+            payload["run_id"],
+            generation_id,
+            persisted,
+            artifact_id,
+        )
+        return {
+            "artifact_references": [reference.as_state()],
+            "artifact_workflow_states": [_workflow_state(
+                payload,
+                "passed",
+                None,
+                artifact_id=artifact_id,
+            )],
+        }
     return {
-        "artifact_chunks": [chunk],
         "artifact_workflow_states": [_workflow_state(
             payload,
             "passed",

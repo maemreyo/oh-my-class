@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations  # noqa: SIZE_OK — declarative codegen registry is one source of truth
 
 from typing import TypedDict
 
@@ -43,18 +43,16 @@ MODELS: dict[str, ModelConfig] = {
         "main_model": "ArtifactDocument",
         "all_models": [
             "ArtifactDocument",
-            "BlockDocument",
+            "ArtifactPayload",
             "DocumentSection",
-            "HeadingBlock",
-            "ParagraphBlock",
-            "AssessmentDocument",
+            "DocumentBlock",
             "AssessmentQuestion",
             "AssessmentOption",
         ],
         "output": "common/schemas/src/generated/artifact_document.ts",
         "field_refs": {
             "sections": "DocumentSection",
-            "blocks": "HeadingBlock",
+            "blocks": "DocumentBlock",
             "questions": "AssessmentQuestion",
             "options": "AssessmentOption",
             "entries": "AnswerEntry",

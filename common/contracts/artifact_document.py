@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Literal, assert_never
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic_core import PydanticCustomError
 
 
 ArtifactDocumentType = Literal[
@@ -26,28 +27,34 @@ DocumentAuthority = Literal["generated", "teacher_edit", "ai_assisted_edit", "re
 DocumentLanguage = Literal["en", "vi"]
 
 
-class HeadingBlock(BaseModel):
-    """A stable heading in a block document."""
+class DocumentBlock(BaseModel):
+    """A stable block with a validated heading or paragraph shape."""
 
-    model_config = ConfigDict(frozen=True)
-
-    entity_id: str = Field(min_length=1, max_length=80)
-    block_kind: Literal["heading"] = "heading"
-    level: Literal[1, 2, 3, 4]
-    text: str = Field(min_length=1, max_length=2_000)
-
-
-class ParagraphBlock(BaseModel):
-    """A stable paragraph in a block document."""
-
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
     entity_id: str = Field(min_length=1, max_length=80)
-    block_kind: Literal["paragraph"] = "paragraph"
+    block_kind: Literal["heading", "paragraph"]
     text: str = Field(min_length=1, max_length=10_000)
+    level: Literal[1, 2, 3, 4] | None = None
 
-
-DocumentBlock = Annotated[HeadingBlock | ParagraphBlock, Field(discriminator="block_kind")]
+    @model_validator(mode="after")
+    def _validate_shape(self) -> DocumentBlock:
+        match self.block_kind:
+            case "heading":
+                if self.level is None:
+                    raise PydanticCustomError(
+                        "heading_level_required",
+                        "heading blocks require level",
+                    )
+            case "paragraph":
+                if self.level is not None:
+                    raise PydanticCustomError(
+                        "paragraph_level_forbidden",
+                        "paragraph blocks must not set level",
+                    )
+            case unreachable:
+                assert_never(unreachable)
+        return self
 
 
 class DocumentSection(BaseModel):
@@ -58,15 +65,6 @@ class DocumentSection(BaseModel):
     entity_id: str = Field(min_length=1, max_length=80)
     title: str = Field(min_length=1, max_length=200)
     blocks: list[DocumentBlock] = Field(min_length=1)
-
-
-class BlockDocument(BaseModel):
-    """Typed payload for lesson-like and synthesis artifact surfaces."""
-
-    model_config = ConfigDict(frozen=True)
-
-    payload_kind: Literal["block_document"] = "block_document"
-    sections: list[DocumentSection] = Field(min_length=1)
 
 
 class AssessmentOption(BaseModel):
@@ -88,19 +86,33 @@ class AssessmentQuestion(BaseModel):
     options: list[AssessmentOption] = Field(default_factory=list)
 
 
-class AssessmentDocument(BaseModel):
-    """Typed student-safe payload for question-bearing artifacts."""
+class ArtifactPayload(BaseModel):
+    """A strict block or assessment payload selected by payload_kind."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
-    payload_kind: Literal["assessment_document"] = "assessment_document"
-    questions: list[AssessmentQuestion] = Field(min_length=1)
+    payload_kind: Literal["block_document", "assessment_document"]
+    sections: list[DocumentSection] | None = None
+    questions: list[AssessmentQuestion] | None = None
 
-
-ArtifactPayload = Annotated[
-    BlockDocument | AssessmentDocument,
-    Field(discriminator="payload_kind"),
-]
+    @model_validator(mode="after")
+    def _validate_shape(self) -> ArtifactPayload:
+        match self.payload_kind:
+            case "block_document":
+                if not self.sections or self.questions is not None:
+                    raise PydanticCustomError(
+                        "block_document_shape_invalid",
+                        "block_document requires sections and forbids questions",
+                    )
+            case "assessment_document":
+                if not self.questions or self.sections is not None:
+                    raise PydanticCustomError(
+                        "assessment_document_shape_invalid",
+                        "assessment_document requires questions and forbids sections",
+                    )
+            case unreachable:
+                assert_never(unreachable)
+        return self
 
 
 class ArtifactDocument(BaseModel):
@@ -124,8 +136,8 @@ class ArtifactDocument(BaseModel):
         assessment_types = frozenset({"quiz", "drill", "exit_ticket"})
         if self.artifact_type in assessment_types and self.payload.payload_kind != "assessment_document":
             msg = f"{self.artifact_type} requires an assessment_document payload"
-            raise ValueError(msg)
+            raise PydanticCustomError("artifact_payload_mismatch", msg)
         if self.artifact_type not in assessment_types and self.payload.payload_kind != "block_document":
             msg = f"{self.artifact_type} requires a block_document payload"
-            raise ValueError(msg)
+            raise PydanticCustomError("artifact_payload_mismatch", msg)
         return self

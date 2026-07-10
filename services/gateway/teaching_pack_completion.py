@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
+from packages.agents.teaching_pack.content_orchestrator import ArtifactContentStore
 from services.gateway.models import RunStatus
 from services.gateway.outcome_delivery import OutcomeDeliverySink, OutcomeDeliveryWriteError
 from services.gateway.teaching_pack_export_store import ExportRecordCreate, TeachingPackExportStore
@@ -34,6 +35,7 @@ class TeachingPackCompletionRecorder:
         notifications: TeachingPackNotificationSink | None = None,
         outcome_delivery: OutcomeDeliverySink | None = None,
         export_store: TeachingPackExportStore | None = None,
+        content_store: ArtifactContentStore | None = None,
     ) -> None:
         self._store = store
         self._renderer = renderer or RendererAdapterSnapshotRenderer()
@@ -43,6 +45,7 @@ class TeachingPackCompletionRecorder:
         self._notifications = notifications
         self._outcome_delivery = outcome_delivery
         self._export_store = export_store
+        self._content_store = content_store
 
     async def persist_completion(self, run_id: RunId, state: JsonObject) -> None:
         content_update_event = _content_update_event(state)
@@ -63,7 +66,8 @@ class TeachingPackCompletionRecorder:
             return
         if _has_export_evidence(state):
             run = await self._store.get_run_by_id(run_id)
-            exported_files = await self._export_writer.write_exports(run_id, state)
+            export_state = await _hydrate_state_snapshots(state, self._content_store)
+            exported_files = await self._export_writer.write_exports(run_id, export_state)
             if self._export_store is not None:
                 approved_snapshots = approved_snapshots_for_export(state)
                 for record in _export_records_from_files(run_id, exported_files, approved_snapshots):
@@ -128,7 +132,7 @@ class TeachingPackCompletionRecorder:
 
     async def _persist_content_gate(self, run_id: RunId, gate_payload: JsonObject) -> None:
         for snapshot in _rendered_snapshots(gate_payload):
-            content_json = _snapshot_content(snapshot)
+            content_json = await _snapshot_content_from_store(snapshot, self._content_store)
             rendered_html = await self._renderer.render(content_json)
             await self._store.create_snapshot(ArtifactSnapshotCreate(
                 snapshot_id=str(snapshot["snapshot_id"]),
@@ -303,6 +307,40 @@ def _snapshot_content(snapshot: JsonObject) -> JsonObject:
     if not isinstance(artifact_type, str) or not artifact_type:
         return content
     return {**content, "artifact_type": artifact_type}
+
+
+async def _snapshot_content_from_store(
+    snapshot: JsonObject,
+    content_store: ArtifactContentStore | None,
+) -> JsonObject:
+    inline_content = _snapshot_content(snapshot)
+    if "content_json" in snapshot or content_store is None:
+        return inline_content
+    document_id = snapshot.get("document_id")
+    if not isinstance(document_id, str) or not document_id:
+        return inline_content
+    projection = await content_store.read_projection(document_id)
+    content = projection.model_dump(mode="json")
+    return content if "artifact_type" in content else _snapshot_content({**snapshot, "content_json": content})
+
+
+async def _hydrate_state_snapshots(
+    state: JsonObject,
+    content_store: ArtifactContentStore | None,
+) -> JsonObject:
+    approval_gate = _json_object(state.get("approval_gate"))
+    snapshots = _rendered_snapshots(state) or _rendered_snapshots(approval_gate)
+    hydrated_snapshots = [
+        {**snapshot, "content_json": await _snapshot_content_from_store(snapshot, content_store)}
+        for snapshot in snapshots
+    ]
+    hydrated_approval_gate = {
+        **approval_gate,
+        "rendered_snapshots": hydrated_snapshots,
+    } if approval_gate else {}
+    if approval_gate and "rendered_snapshots" not in state:
+        return {**state, "approval_gate": hydrated_approval_gate}
+    return {**state, "rendered_snapshots": hydrated_snapshots}
 
 
 def _json_object(value: object) -> JsonObject:

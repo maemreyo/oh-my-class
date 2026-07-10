@@ -10,7 +10,14 @@ def test_artifact_status_projection_redacts_internal_error_details() -> None:
     state = {
         "run_id": "run-partial",
         "artifact_types": ["lesson", "quiz", "recap"],
-        "artifacts": [{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+        "artifact_references": [{
+            "document_id": "run-partial:artifact:1:lesson-1",
+            "artifact_id": "lesson-1",
+            "artifact_type": "lesson",
+            "generation_id": "run-partial:artifact:1",
+            "version": 1,
+            "title": "Lesson",
+        }],
         "artifact_workflow_states": [
             {"artifact_type": "lesson", "artifact_id": "lesson-1", "status": "passed"},
             {
@@ -35,7 +42,14 @@ def test_content_approval_gate_payload_includes_partial_artifact_statuses() -> N
     state = TeachingPackState(
         run_id="run-gate-partial",
         artifact_types=["lesson", "quiz", "recap"],
-        artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+        artifact_references=[{
+            "document_id": "run-gate-partial:artifact:1:lesson-1",
+            "artifact_id": "lesson-1",
+            "artifact_type": "lesson",
+            "generation_id": "run-gate-partial:artifact:1",
+            "version": 1,
+            "title": "Lesson",
+        }],
         artifact_workflow_states=[
             {"artifact_type": "lesson", "artifact_id": "lesson-1", "status": "passed"},
             {"artifact_type": "quiz", "artifact_id": "quiz-1", "status": "failed"},

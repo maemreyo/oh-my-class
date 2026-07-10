@@ -28,7 +28,7 @@ class TestTeachingPackContractSetup:
             "subject",
         ]
 
-    def test_unsupported_artifact_and_export_open_clarification_gate(self) -> None:
+    def test_unsupported_artifact_opens_clarification_gate_when_pptx_is_supported(self) -> None:
         result = resolve_contract_setup(ContractSetupInput(
             run_id=RunId("run-unsupported"),
             teacher_id=TeacherId("teacher-a"),
@@ -46,7 +46,6 @@ class TestTeachingPackContractSetup:
         assert result.gate_name == "clarification_required"
         assert result.payload["unsupported_values"] == [
             {"field": "artifact_types", "value": "slides"},
-            {"field": "export_formats", "value": "pptx"},
         ]
 
     def test_safe_defaults_create_runnable_contract_without_gate(self) -> None:

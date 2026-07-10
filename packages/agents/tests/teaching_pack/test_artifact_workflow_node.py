@@ -4,7 +4,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from common.contracts.artifact import ArtifactContent
 from common.contracts.quality import ArtifactQualityReport
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.nodes import JsonObject, TeachingPackState, _render_quality
 from packages.agents.teaching_pack.stages import StageEnum
 
@@ -20,8 +22,18 @@ def _passing_gate() -> AsyncMock:
     return gate
 
 
-def _artifacts(result: TeachingPackState) -> list[JsonObject]:
-    return result.get("artifacts", [])
+async def _projections(
+    store: InMemoryArtifactContentStore,
+    result: TeachingPackState,
+) -> list[JsonObject]:
+    return [
+        {**projection.model_dump(mode="json"), "artifact_id": reference["artifact_id"]}
+        for projection, reference in zip(
+            await store.read_projections(result["artifact_references"]),
+            result["artifact_references"],
+            strict=True,
+        )
+    ]
 
 
 def _json_list(value: JsonObject, key: str) -> list[JsonObject]:
@@ -66,6 +78,7 @@ class TestTeachingPackArtifactWorkflow:
             "packages.agents.sub_agents.content_creator.nodes.content_creator_node",
             fake_content_creator_node,
         )
+        store = InMemoryArtifactContentStore()
 
         result = await nodes._artifact_workflow(TeachingPackState(
             run_id="run-content",
@@ -73,7 +86,7 @@ class TestTeachingPackArtifactWorkflow:
             lesson_plan={"topic": "Fractions"},
             research_brief={"sources": []},
             artifact_types=["lesson"],
-        ))
+        ), content_store=store)
 
         assert calls == [{
             "lesson_plan": {"topic": "Fractions"},
@@ -88,8 +101,8 @@ class TestTeachingPackArtifactWorkflow:
             "component_effectiveness": {},
             "component_strategy_plan": {},
         }]
-        assert _artifacts(result)[0].get("title") == "Generated Lesson"
-        assert _artifacts(result)[0].get("status") == "ready"
+        assert (await _projections(store, result))[0]["title"] == "Generated Lesson"
+        assert "sections" not in result["artifact_references"][0]
 
     @pytest.mark.anyio
     async def test_artifact_workflow_adds_stable_ids_when_creator_omits_them(self, monkeypatch) -> None:
@@ -110,6 +123,7 @@ class TestTeachingPackArtifactWorkflow:
             "packages.agents.sub_agents.content_creator.nodes.content_creator_node",
             fake_content_creator_node,
         )
+        store = InMemoryArtifactContentStore()
 
         result = await nodes._artifact_workflow(TeachingPackState(
             run_id="run-normalize",
@@ -117,14 +131,16 @@ class TestTeachingPackArtifactWorkflow:
             lesson_plan={"topic": "Fractions"},
             research_brief={"sources": []},
             artifact_types=["lesson"],
-        ))
+        ), content_store=store)
+
+        artifacts = await _projections(store, result)
 
         render_result = await _render_quality(TeachingPackState(
             run_id="run-normalize",
-            artifacts=_artifacts(result),
-        ), quality_gate=_passing_gate())
+            artifact_references=result["artifact_references"],
+        ), quality_gate=_passing_gate(), content_store=store)
 
-        assert _artifacts(result)[0].get("artifact_id") == "lesson-1"
+        assert artifacts[0]["artifact_id"] == "lesson-1"
         snapshots = render_result.get("rendered_snapshots", [])
         assert snapshots[0].get("artifact_id") == "lesson-1"
 
@@ -153,6 +169,7 @@ class TestTeachingPackArtifactWorkflow:
             "packages.agents.sub_agents.content_creator.nodes.content_creator_node",
             fake_content_creator_node,
         )
+        store = InMemoryArtifactContentStore()
 
         result = await nodes._artifact_workflow(TeachingPackState(
             run_id="run-answer-key",
@@ -160,13 +177,14 @@ class TestTeachingPackArtifactWorkflow:
             lesson_plan={"topic": "Photosynthesis"},
             research_brief={"sources": []},
             artifact_types=["quiz"],
-        ))
+        ), content_store=store)
+        artifacts = await _projections(store, result)
         render_result = await _render_quality(TeachingPackState(
             run_id="run-answer-key",
-            artifacts=_artifacts(result),
-        ), quality_gate=_passing_gate())
+            artifact_references=result["artifact_references"],
+        ), quality_gate=_passing_gate(), content_store=store)
 
-        sections = _json_list(_artifacts(result)[0], "sections")
+        sections = _json_list(artifacts[0], "sections")
         assert sections[1].get("teacher_only") is True
         assert render_result.get("quality_scores", {}).get("passed") is True
 
@@ -195,6 +213,7 @@ class TestTeachingPackArtifactWorkflow:
             "packages.agents.sub_agents.content_creator.nodes.content_creator_node",
             fake_content_creator_node,
         )
+        store = InMemoryArtifactContentStore()
 
         result = await nodes._artifact_workflow(TeachingPackState(
             run_id="run-correct-answer",
@@ -202,13 +221,14 @@ class TestTeachingPackArtifactWorkflow:
             lesson_plan={"topic": "Classroom objects"},
             research_brief={"sources": []},
             artifact_types=["quiz"],
-        ))
+        ), content_store=store)
+        artifacts = await _projections(store, result)
         render_result = await _render_quality(TeachingPackState(
             run_id="run-correct-answer",
-            artifacts=_artifacts(result),
-        ), quality_gate=_passing_gate())
+            artifact_references=result["artifact_references"],
+        ), quality_gate=_passing_gate(), content_store=store)
 
-        sections = _json_list(_artifacts(result)[0], "sections")
+        sections = _json_list(artifacts[0], "sections")
         assert sections[1].get("teacher_only") is True
         assert render_result.get("quality_scores", {}).get("passed") is True
 
@@ -237,6 +257,35 @@ class TestTeachingPackArtifactWorkflow:
             "packages.agents.sub_agents.content_creator.nodes.content_creator_node",
             fake_content_creator_node,
         )
+        store = InMemoryArtifactContentStore()
+        lesson = {
+            "artifact_id": "lesson-1",
+            "artifact_type": "lesson",
+            "title": "Accepted Lesson",
+            "sections": [{"title": "Intro", "content": "Keep this."}],
+            "metadata": {},
+            "accessibility": {"language": "en"},
+        }
+        rejected_quiz = {
+            "artifact_id": "quiz-2",
+            "artifact_type": "quiz",
+            "title": "Rejected Quiz",
+            "sections": [{"title": "Question", "content": "Old."}],
+            "metadata": {},
+            "accessibility": {"language": "en"},
+        }
+        lesson_reference = await store.persist(
+            "run-scoped-reject",
+            "run-scoped-reject:artifact:1",
+            ArtifactContent.model_validate(lesson),
+            "lesson-1",
+        )
+        quiz_reference = await store.persist(
+            "run-scoped-reject",
+            "run-scoped-reject:artifact:1",
+            ArtifactContent.model_validate(rejected_quiz),
+            "quiz-2",
+        )
 
         result = await nodes._artifact_workflow(TeachingPackState(
             run_id="run-scoped-reject",
@@ -244,24 +293,7 @@ class TestTeachingPackArtifactWorkflow:
             lesson_plan={"topic": "Addition"},
             research_brief={"sources": []},
             artifact_types=["lesson", "quiz"],
-            artifacts=[
-                {
-                    "artifact_id": "lesson-1",
-                    "artifact_type": "lesson",
-                    "title": "Accepted Lesson",
-                    "sections": [{"title": "Intro", "content": "Keep this."}],
-                    "metadata": {},
-                    "accessibility": {"language": "en"},
-                },
-                {
-                    "artifact_id": "quiz-2",
-                    "artifact_type": "quiz",
-                    "title": "Rejected Quiz",
-                    "sections": [{"title": "Question", "content": "Old."}],
-                    "metadata": {},
-                    "accessibility": {"language": "en"},
-                },
-            ],
+            artifact_references=[lesson_reference.as_state(), quiz_reference.as_state()],
             gate_payload={
                 "action": "reject",
                 "rejection_type": "scoped",
@@ -270,11 +302,11 @@ class TestTeachingPackArtifactWorkflow:
                 ],
             },
             revision_feedback="Need easier distractors.",
-        ))
+        ), content_store=store)
 
         assert calls[0]["artifact_types"] == ["quiz"]
         assert calls[0]["revision_feedback"] == "Need easier distractors."
-        assert [artifact.get("title") for artifact in _artifacts(result)] == [
+        assert [artifact["title"] for artifact in await _projections(store, result)] == [
             "Accepted Lesson",
             "Regenerated Quiz",
         ]

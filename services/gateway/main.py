@@ -32,6 +32,7 @@ from .routers import (
     runs,
     snapshots,
     teaching_pack_previews,
+    teaching_briefs,
     teaching_pack_runs,
     teaching_session_live,
     unit_runs,
@@ -94,6 +95,7 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
     from .teaching_pack_export_store import TeachingPackExportStore
     from .teaching_pack_store import TeachingPackRunStore
     from .teaching_pack_worker import TeachingPackWorkerConfig, run_worker_batch
+    from packages.agents.teaching_pack.content_orchestrator import LangGraphArtifactContentStore
 
     def executor_factory(session: AsyncSession) -> TeachingPackExecutor:
         run_store = TeachingPackRunStore(session)
@@ -109,6 +111,7 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
                     app.state.teaching_pack_session_factory,
                 ),
                 export_store=TeachingPackExportStore(session),
+                content_store=LangGraphArtifactContentStore(app.state.store),
             ),
         )
 
@@ -212,8 +215,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:3100",
+        "http://localhost:3101",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3100",
+        "http://127.0.0.1:3101",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -226,6 +231,7 @@ app.include_router(artifacts.router, prefix="/run", tags=["artifacts"])
 app.include_router(snapshots.router, prefix="/run", tags=["snapshots"])
 app.include_router(approvals.router, prefix="/run", tags=["approvals"])
 app.include_router(teaching_pack_runs.router, prefix="/teaching-packs", tags=["teaching-pack"])
+app.include_router(teaching_briefs.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(teaching_pack_previews.router, prefix="/teaching-packs", tags=["teaching-pack"])
 app.include_router(exports.router, prefix="/teaching-packs", tags=["exports"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])

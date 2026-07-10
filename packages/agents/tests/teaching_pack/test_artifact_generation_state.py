@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 from packages.agents.teaching_pack.reducers import (
-    current_generation_artifact_chunks,
+    current_generation_artifact_references,
     current_generation_workflow_states,
 )
 
 
-def test_current_generation_artifact_chunks_excludes_stale_values() -> None:
-    chunks = [
-        {"artifact_id": "lesson-1", "artifact_generation_id": "gen-old", "artifact_type": "lesson"},
-        {"artifact_id": "quiz-1", "artifact_generation_id": "gen-current", "artifact_type": "quiz"},
-        {"artifact_id": "recap-1", "artifact_generation_id": "gen-current", "artifact_type": "recap"},
-        {"artifact_id": "worksheet-1", "artifact_type": "worksheet"},
+def test_current_generation_artifact_references_exclude_stale_values() -> None:
+    references = [
+        {"document_id": "old-lesson", "generation_id": "gen-old", "artifact_type": "lesson"},
+        {"document_id": "current-quiz", "generation_id": "gen-current", "artifact_type": "quiz"},
+        {"document_id": "current-recap", "generation_id": "gen-current", "artifact_type": "recap"},
+        {"document_id": "missing-generation", "artifact_type": "worksheet"},
     ]
 
-    result = current_generation_artifact_chunks(chunks, "gen-current")
+    result = current_generation_artifact_references(references, "gen-current")
 
-    assert result == [chunks[1], chunks[2]]
+    assert result == [references[1], references[2]]
 
 
 def test_current_generation_workflow_states_excludes_stale_values() -> None:
@@ -48,5 +48,5 @@ def test_current_generation_workflow_states_excludes_stale_values() -> None:
 
 
 def test_current_generation_filters_return_empty_for_missing_generation() -> None:
-    assert current_generation_artifact_chunks([], "gen-current") == []
+    assert current_generation_artifact_references([], "gen-current") == []
     assert current_generation_workflow_states([], "gen-current") == []

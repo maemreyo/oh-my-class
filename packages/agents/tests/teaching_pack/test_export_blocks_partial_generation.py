@@ -9,7 +9,14 @@ def test_export_finalize_blocks_when_required_artifact_failed() -> None:
         teacher_approved=True,
         contract={"export_formats": ["html"], "artifact_types": ["lesson", "quiz"]},
         artifact_types=["lesson", "quiz"],
-        artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+        artifact_references=[{
+            "document_id": "run-export-block:artifact:1:lesson-1",
+            "artifact_id": "lesson-1",
+            "artifact_type": "lesson",
+            "generation_id": "run-export-block:artifact:1",
+            "version": 1,
+            "title": "Lesson",
+        }],
         artifact_workflow_states=[
             {"artifact_id": "lesson-1", "artifact_type": "lesson", "status": "passed"},
             {"artifact_id": "quiz-1", "artifact_type": "quiz", "status": "failed"},

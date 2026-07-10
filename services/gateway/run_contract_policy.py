@@ -19,11 +19,11 @@ SUPPORTED_ARTIFACTS = {
     "roadmap",
     "slide_deck",
 }
-SUPPORTED_EXPORTS = {"html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv"}
+SUPPORTED_EXPORTS = {"html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx"}
 PUBLISH_TARGETS = {"google_forms"}
 CONFIG_VERSION = "teaching-packs-contract-setup@1"
 DEFAULT_POLICY = {
-    "artifact_types": ["lesson", "worksheet", "quiz"],
+    "artifact_types": ["lesson", "worksheet", "quiz", "recap", "slide_deck"],
     "export_formats": ["html"],
     "research_policy": "standard",
     "locale": "en-US",

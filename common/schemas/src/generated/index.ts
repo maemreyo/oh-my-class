@@ -7,8 +7,8 @@ export { LessonPlanSchema, LearningObjectiveSchema, AssessmentCheckpointSchema, 
 export type { LessonPlan, LearningObjective, AssessmentCheckpoint, MethodologyPayloads, MethodologyMetadata } from "./lesson_plan.js";
 export { ArtifactContentSchema, TeachingPackSchema } from "./artifact.js";
 export type { ArtifactContent, TeachingPack } from "./artifact.js";
-export { ArtifactDocumentSchema, BlockDocumentSchema, DocumentSectionSchema, HeadingBlockSchema, ParagraphBlockSchema, AssessmentDocumentSchema, AssessmentQuestionSchema, AssessmentOptionSchema } from "./artifact_document.js";
-export type { ArtifactDocument, BlockDocument, DocumentSection, HeadingBlock, ParagraphBlock, AssessmentDocument, AssessmentQuestion, AssessmentOption } from "./artifact_document.js";
+export { ArtifactDocumentSchema, ArtifactPayloadSchema, DocumentSectionSchema, DocumentBlockSchema, AssessmentQuestionSchema, AssessmentOptionSchema } from "./artifact_document.js";
+export type { ArtifactDocument, ArtifactPayload, DocumentSection, DocumentBlock, AssessmentQuestion, AssessmentOption } from "./artifact_document.js";
 export { AnswerSetSchema, AnswerEntrySchema } from "./answer_set.js";
 export type { AnswerSet, AnswerEntry } from "./answer_set.js";
 export { SlideDeckDataSchema, SlideDeckSurfacesSchema, SlideDeckSurfaceSchema, SlideDeckSourceRefSchema, SlideDeckSlideSchema, SlideDeckProgressionSchema, SlideDeckBlockSchema, SlideDeckMediaSchema, SlideDeckInteractionSchema, SlideDeckInteractionOptionSchema, SlideDeckInteractionTeacherOnlySchema, SlideDeckTeacherOnlySchema, SlideDeckDifferentiationNoteSchema, SlideDeckAccessibilitySchema, SlideDeckMediaPolicySchema, SlideDeckDisplayPreferencesSchema, SlideDeckSnapshotLineageSchema } from "./slide_deck.js";

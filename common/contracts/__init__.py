@@ -9,13 +9,11 @@ from common.contracts.answer_set import AnswerEntry, AnswerSet
 from common.contracts.artifact import ArtifactContent, Flashcard, FlashcardDeckData, TeachingPack
 from common.contracts.artifact_document import (
     ArtifactDocument,
-    AssessmentDocument,
+    ArtifactPayload,
     AssessmentOption,
     AssessmentQuestion,
-    BlockDocument,
+    DocumentBlock,
     DocumentSection,
-    HeadingBlock,
-    ParagraphBlock,
 )
 from common.contracts.artifact_workflow import ArtifactGenerationInput, ArtifactWorkflowState
 from common.contracts.auth import Role, Token, User
@@ -121,6 +119,7 @@ from common.contracts.run_contract import (
     PublishTarget,
     RunContract,
 )
+from common.contracts.teaching_brief import TeachingBrief, materiality_reasons
 from common.contracts.slide_deck import (
     SlideDeckAccessibility,
     SlideDeckBlock,
@@ -179,12 +178,12 @@ from common.contracts.vocabulary_cluster_workflow import (
 __all__ = [
     "ArtifactContent",
     "ArtifactDocument",
-    "AssessmentDocument",
+    "ArtifactPayload",
     "AssessmentOption",
     "AssessmentQuestion",
     "AnswerEntry",
     "AnswerSet",
-    "BlockDocument",
+    "DocumentBlock",
     "DocumentSection",
     "Flashcard",
     "FlashcardDeckData",
@@ -231,7 +230,6 @@ __all__ = [
     "FeedbackEventType",
     "FeedbackSource",
     "HealingDecision",
-    "HeadingBlock",
     "HealingStrategy",
     "InverseThinkingCase",
     "InverseThinkingPack",
@@ -284,6 +282,8 @@ __all__ = [
     "RubricLevel",
     "RubricRegistry",
     "RunContract",
+    "TeachingBrief",
+    "materiality_reasons",
     "SemanticAnchorCluster",
     "SourceConfidence",
     "SlideDeckAccessibility",
@@ -332,6 +332,5 @@ __all__ = [
     "VocabularyClusterWorkflow",
     "ArtifactWorkflowHandoff",
     "PlannerHandoff",
-    "ParagraphBlock",
     "ResearcherHandoff",
 ]

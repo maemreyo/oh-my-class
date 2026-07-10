@@ -129,7 +129,14 @@ def test_component_strategy_content_approval_reenters_when_fanout_is_rolled_back
         completed_stages=[TeachingPackStage.TEACHER_APPROVAL],
         teacher_approved=True,
         component_strategy_plan={"strategy_id": "strategy-run-1"},
-        artifacts=[{"artifact_type": "lesson"}],
+        artifact_references=[{
+            "document_id": "cs-content-approval-reentry:artifact:1:lesson-1",
+            "artifact_id": "lesson-1",
+            "artifact_type": "lesson",
+            "generation_id": "cs-content-approval-reentry:artifact:1",
+            "version": 1,
+            "title": "Lesson",
+        }],
         quality_recovery_route="artifact_workflow",
     )
 

@@ -6,21 +6,21 @@ from pydantic import ValidationError
 from common.contracts.answer_set import AnswerEntry, AnswerSet
 from common.contracts.artifact_document import (
     ArtifactDocument,
-    BlockDocument,
+    ArtifactPayload,
     DocumentSection,
-    HeadingBlock,
+    DocumentBlock,
 )
 
 
-def _block_document() -> BlockDocument:
-    return BlockDocument(
+def _block_document() -> ArtifactPayload:
+    return ArtifactPayload(
         payload_kind="block_document",
         sections=[
             DocumentSection(
                 entity_id="section-intro",
                 title="Introduction",
                 blocks=[
-                    HeadingBlock(
+                    DocumentBlock(
                         entity_id="block-heading",
                         block_kind="heading",
                         level=2,
@@ -32,19 +32,19 @@ def _block_document() -> BlockDocument:
     )
 
 
-def _document(**overrides: object) -> ArtifactDocument:
-    values: dict[str, object] = {
-        "document_id": "document-lesson-1",
-        "artifact_id": "artifact-lesson-1",
-        "artifact_type": "lesson",
-        "version": 1,
-        "language": "en",
-        "audience": "student",
-        "authority": "generated",
-        "payload": _block_document(),
-    }
-    values.update(overrides)
-    return ArtifactDocument(**values)
+def _document(
+    payload: ArtifactPayload | dict[str, str | list[dict[str, str]]] | None = None,
+) -> ArtifactDocument:
+    return ArtifactDocument(
+        document_id="document-lesson-1",
+        artifact_id="artifact-lesson-1",
+        artifact_type="lesson",
+        version=1,
+        language="en",
+        audience="student",
+        authority="generated",
+        payload=_block_document() if payload is None else payload,
+    )
 
 
 class TestArtifactDocument:

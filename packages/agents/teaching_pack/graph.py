@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Literal, NotRequired, TypedDict
+from functools import partial
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 from packages.agents.teaching_pack.nodes import (
     TeachingPackState,
@@ -16,9 +17,8 @@ from packages.agents.teaching_pack.artifact_fanout import route_after_artifact_w
 from packages.agents.teaching_pack.quality_routing import route_after_render_quality
 from packages.agents.teaching_pack.stages import TeachingPackStage, teaching_pack_stages
 
-from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
+    from packages.agents.teaching_pack.content_orchestrator import ArtifactContentStore
     from packages.agents.teaching_pack.ports import QualityGate
 
 InterruptSpec = list[str] | Literal["*"] | None
@@ -34,6 +34,7 @@ def build_teaching_pack_graph(
     checkpointer=None,
     store=None,
     quality_gate: QualityGate | None = None,
+    content_store: ArtifactContentStore | None = None,
     interrupt_before: InterruptSpec = None,
     interrupt_after: InterruptSpec = None,
 ):
@@ -49,13 +50,28 @@ def build_teaching_pack_graph(
     from langgraph.graph import END, StateGraph
     from packages.agents.config.features import features
     from packages.agents.teaching_pack.artifact_fanout import GENERATE_ONE_ARTIFACT_NODE
+    from packages.agents.teaching_pack.content_orchestrator import (
+        InMemoryArtifactContentStore,
+        LangGraphArtifactContentStore,
+    )
     from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
 
+    resolved_content_store = content_store or (
+        LangGraphArtifactContentStore(store) if store is not None else InMemoryArtifactContentStore()
+    )
     stages = teaching_pack_stages(features().component_strategist_v1)
     graph = StateGraph(TeachingPackState)
     for stage in stages:
-        graph.add_node(stage.value, make_stage_node(stage, quality_gate=quality_gate, store=store))
-    graph.add_node(GENERATE_ONE_ARTIFACT_NODE, generate_one_artifact)
+        graph.add_node(stage.value, make_stage_node(
+            stage,
+            quality_gate=quality_gate,
+            store=store,
+            content_store=resolved_content_store,
+        ))
+    graph.add_node(
+        GENERATE_ONE_ARTIFACT_NODE,
+        partial(generate_one_artifact, content_store=resolved_content_store),
+    )
 
     first_stage = stages[0]
     graph.set_entry_point(first_stage.value)
@@ -73,15 +89,15 @@ def build_teaching_pack_graph(
             )
             graph.add_node(
                 TeachingPackStage.UNIT_PLANNING.value,
-                make_stage_node(TeachingPackStage.UNIT_PLANNING, quality_gate=quality_gate, store=store),
+                make_stage_node(TeachingPackStage.UNIT_PLANNING, quality_gate=quality_gate, store=store, content_store=resolved_content_store),
             )
             graph.add_node(
                 TeachingPackStage.UNIT_APPROVAL.value,
-                make_stage_node(TeachingPackStage.UNIT_APPROVAL, quality_gate=quality_gate, store=store),
+                make_stage_node(TeachingPackStage.UNIT_APPROVAL, quality_gate=quality_gate, store=store, content_store=resolved_content_store),
             )
             graph.add_node(
                 TeachingPackStage.UNIT_PREP.value,
-                make_stage_node(TeachingPackStage.UNIT_PREP, quality_gate=quality_gate, store=store),
+                make_stage_node(TeachingPackStage.UNIT_PREP, quality_gate=quality_gate, store=store, content_store=resolved_content_store),
             )
             graph.add_edge(TeachingPackStage.UNIT_PLANNING.value, TeachingPackStage.UNIT_APPROVAL.value)
             graph.add_conditional_edges(

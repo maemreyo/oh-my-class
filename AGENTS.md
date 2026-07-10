@@ -223,7 +223,7 @@ The reviewer never calls an LLM directly. It constructs `AdaptiveJudge(num_judge
 
 ## 5. State Schema
 
-The live teaching-pack runtime uses `TeachingPackState` in `packages/agents/teaching_pack/nodes.py`, with boundary-local state shapes for middleware, gates, and node adapters. The deleted legacy state module is not a runtime contract.
+The live teaching-pack runtime uses `TeachingPackState` in `packages/agents/teaching_pack/nodes.py`, with boundary-local state shapes for middleware, gates, and node adapters. The deleted legacy state module is not a runtime contract. Generated `ArtifactContent` never belongs in LangGraph checkpoints: graph state keeps compact `artifact_references` and snapshot metadata only; `ArtifactContentStore` hydrates projections for quality, compliance, scoped edits, and the gateway completion boundary persists snapshots/exports.
 
 ```python
 from typing import Annotated, NotRequired
@@ -248,7 +248,8 @@ class TeachingPackState(TypedDict):
     # ── Content ────────────────────────────
     artifact_types: list[str]
     theme: str
-    artifacts: Annotated[list[dict], merge_artifacts]   # deduplicated
+    artifact_references: Annotated[list[dict], stable_merge_artifact_references]
+        # document_id, artifact_id, artifact_type, generation_id, version, title
 
     # ── Quality ────────────────────────────
     quality_scores: NotRequired[dict]
@@ -304,16 +305,11 @@ class TeachingPackState(TypedDict):
 ### Custom Reducers
 
 ```python
-def merge_artifacts(prev: list, new: list) -> list:
-    """Deduplicated union preserving insertion order."""
-    seen = set()
-    result = []
-    for item in (prev or []) + (new or []):
-        key = item if isinstance(item, str) else item.get("id", str(item))
-        if key not in seen:
-            seen.add(key)
-            result.append(item)
-    return result
+def stable_merge_artifact_references(prev: list, new: list) -> list:
+    """Deduplicate compact durable references by document_id."""
+    by_document_id = {item["document_id"]: item for item in prev or []}
+    by_document_id.update({item["document_id"]: item for item in new or []})
+    return sorted(by_document_id.values(), key=lambda item: item["document_id"])
 ```
 
 ### Persistence Strategy

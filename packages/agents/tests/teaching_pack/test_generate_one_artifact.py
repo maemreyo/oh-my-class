@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
 from packages.agents.teaching_pack.stages import StageEnum
 from packages.quality.layer2_content.pedagogical import check_pedagogical_metrics
@@ -17,7 +18,7 @@ def _payload(artifact_type: str = "lesson") -> dict[str, object]:
         "research_brief": {"sources": []},
         "theme": "default",
         "revision_feedback": "",
-        "dependency_artifacts": [],
+        "dependency_artifact_references": [],
     }
 
 
@@ -49,7 +50,7 @@ def _artifact(artifact_type: str = "lesson") -> dict[str, object]:
 
 
 @pytest.mark.anyio
-async def test_success_returns_chunk_and_passed_workflow_state(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_generation_without_store_returns_status_without_payload(monkeypatch: pytest.MonkeyPatch) -> None:
     captured_state: dict[str, object] = {}
 
     async def fake_content_creator_node(state: dict[str, object]) -> dict[str, object]:
@@ -65,8 +66,7 @@ async def test_success_returns_chunk_and_passed_workflow_state(monkeypatch: pyte
     result = await generate_one_artifact(_payload("lesson"))
 
     assert captured_state["use_hierarchical_creator"] is True
-    assert set(result) == {"artifact_chunks", "artifact_workflow_states"}
-    assert result["artifact_chunks"] == [{**_artifact("lesson"), "artifact_generation_id": "gen-1"}]
+    assert set(result) == {"artifact_workflow_states"}
     assert result["artifact_workflow_states"] == [{
         "workflow_id": "gen-1:lesson",
         "artifact_generation_id": "gen-1",
@@ -76,7 +76,33 @@ async def test_success_returns_chunk_and_passed_workflow_state(monkeypatch: pyte
     }]
 
 
+@pytest.mark.anyio
+async def test_store_backed_generation_returns_reference_without_chunk(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_content_creator_node(_state: dict[str, object]) -> dict[str, object]:
+        return {"artifacts": [_artifact("lesson")]}
+
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
+        fake_content_creator_node,
+    )
+
+    result = await generate_one_artifact(_payload("lesson"), InMemoryArtifactContentStore())
+
+    assert "artifact_references" in result
+    assert result["artifact_references"] == [{
+        "document_id": "gen-1:lesson-1",
+        "artifact_id": "lesson-1",
+        "artifact_type": "lesson",
+        "generation_id": "gen-1",
+        "version": 1,
+        "title": "Lesson Artifact",
+    }]
+
+
 async def test_hierarchical_artifact_carries_bloom_evidence_for_pedagogical_gate(stub_section_prose) -> None:
+    _ = stub_section_prose
     result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan_with_bloom(),
         "research_bundle": {"key_findings": ["Fractions represent equal parts of a whole."], "sources": []},
@@ -106,7 +132,7 @@ async def test_schema_mismatch_returns_failed_workflow_state(monkeypatch: pytest
 
     result = await generate_one_artifact(_payload("lesson"))
 
-    assert "artifact_chunks" not in result
+    assert "artifact_references" not in result
     assert result["artifact_workflow_states"][0]["status"] == "failed"
     assert result["artifact_workflow_states"][0]["error_class"] == "ValidationError"
     assert len(str(result["artifact_workflow_states"][0]["error_summary"])) <= 240
@@ -124,7 +150,7 @@ async def test_artifact_type_mismatch_returns_failed_workflow_state(monkeypatch:
 
     result = await generate_one_artifact(_payload("lesson"))
 
-    assert "artifact_chunks" not in result
+    assert "artifact_references" not in result
     assert result["artifact_workflow_states"][0]["status"] == "failed"
     assert result["artifact_workflow_states"][0]["error_class"] == "ArtifactTypeMismatchError"
 

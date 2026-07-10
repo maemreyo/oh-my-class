@@ -72,16 +72,13 @@ def extract_zod_fields(zod_file: Path) -> set[str]:
 
 def extract_zod_schema_fields(zod_file: Path, model_name: str) -> set[str]:
     content = zod_file.read_text()
-    pattern = re.compile(
-        rf"export const {model_name}Schema\s*=\s*z\.object\(\{{(?P<body>.*?)\}}\)",
-        re.DOTALL,
-    )
-    match = pattern.search(content)
-    if match is None:
+    start = content.find(f"export const {model_name}Schema")
+    end = content.find(f"export type {model_name} =", start)
+    if start < 0 or end < 0:
         return set()
     return {
         field_match.group(1)
-        for field_match in re.finditer(r'"?(\w+)"?\s*:', match.group("body"))
+        for field_match in re.finditer(r'"?(\w+)"?\s*:', content[start:end])
     }
 
 

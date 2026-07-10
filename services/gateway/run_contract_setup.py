@@ -82,6 +82,17 @@ def resolve_contract_setup(payload: ContractSetupInput) -> ContractSetupResult:
 
     contract = _build_contract(payload, raw_request, student_evidence)
     risky = _risky_inferences(raw_request, class_info, contract)
+    planning_review_reasons = _string_list(class_info.get("planning_review_reasons"), [])
+    if planning_review_reasons:
+        return ContractSetupGate(
+            gate_name="contract_confirmation",
+            payload=cast("JsonObject", {
+                "planning_review": True,
+                "materiality_reasons": planning_review_reasons,
+                "contract": contract.model_dump(mode="json"),
+            }),
+            contract=contract,
+        )
     if risky:
         return ContractSetupGate(
             gate_name="contract_confirmation",

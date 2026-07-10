@@ -2,13 +2,29 @@ from __future__ import annotations
 
 import pytest
 
+from common.contracts.artifact import ArtifactContent
 from common.contracts.quality import ArtifactQualityReport
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.nodes import (
     TeachingPackState,
     _render_quality,
 )
 from packages.agents.teaching_pack.quality import TeachingPackQualityGateError
 from packages.agents.teaching_pack.quality_routing import route_after_render_quality
+
+
+async def _quality_state(
+    run_id: str,
+    artifacts: list[dict[str, object]],
+) -> tuple[TeachingPackState, InMemoryArtifactContentStore]:
+    store = InMemoryArtifactContentStore()
+    references = []
+    generation_id = f"{run_id}:artifact:1"
+    for index, artifact in enumerate(artifacts, start=1):
+        parsed = ArtifactContent.model_validate(artifact)
+        artifact_id = str(artifact.get("artifact_id", f"{parsed.artifact_type}-{index}"))
+        references.append((await store.persist(run_id, generation_id, parsed, artifact_id)).as_state())
+    return TeachingPackState(run_id=run_id, artifact_references=references), store
 
 
 class TestTeachingPackRenderQuality:
@@ -28,20 +44,30 @@ class TestTeachingPackRenderQuality:
                     passed=True,
                 )
 
+        store = InMemoryArtifactContentStore()
+        reference = await store.persist(
+            "run-quality-gate",
+            "run-quality-gate:artifact:1",
+            ArtifactContent(
+                artifact_type="lesson",
+                theme="default",
+                title="Equivalent Fractions Lesson",
+                sections=[{"title": "Intro", "content": "Compare equivalent fractions."}],
+                metadata={},
+                accessibility={"language": "en"},
+            ),
+            "lesson-1",
+        )
         state = TeachingPackState(
             run_id="run-quality-gate",
-            artifacts=[{
-                "artifact_id": "lesson-1",
-                "artifact_type": "lesson",
-                "theme": "default",
-                "title": "Equivalent Fractions Lesson",
-                "sections": [{"title": "Intro", "content": "Compare equivalent fractions."}],
-                "metadata": {},
-                "accessibility": {"language": "en"},
-            }],
+            artifact_references=[reference.as_state()],
         )
 
-        result = await _render_quality(state, quality_gate=RecordingQualityGate())
+        result = await _render_quality(
+            state,
+            quality_gate=RecordingQualityGate(),
+            content_store=store,
+        )
 
         assert len(calls) == 1
         assert calls[0][0].run_id == "run-quality-gate"
@@ -63,62 +89,42 @@ class TestTeachingPackRenderQuality:
                     passed=True,
                 )
 
-        state = TeachingPackState(
-            run_id="run-quality",
-            artifacts=[{
-                "artifact_type": "lesson",
-                "theme": "default",
-                "title": "[TBD] Lesson",
-                "sections": [{"title": "Intro", "content": "placeholder"}],
-                "metadata": {},
-                "accessibility": {"language": "vi"},
-            }],
-        )
+        state, store = await _quality_state("run-quality", [{
+            "artifact_type": "lesson", "theme": "default", "title": "[TBD] Lesson",
+            "sections": [{"title": "Intro", "content": "placeholder"}], "metadata": {},
+            "accessibility": {"language": "vi"},
+        }])
 
         with pytest.raises(TeachingPackQualityGateError, match="placeholder_content"):
-            await _render_quality(state, quality_gate=RecordingQualityGate())
+            await _render_quality(state, quality_gate=RecordingQualityGate(), content_store=store)
 
         assert calls == []
 
     @pytest.mark.anyio
     async def test_render_quality_blocks_placeholder_artifacts_before_approval(self) -> None:
-        state = TeachingPackState(
-            run_id="run-quality",
-            artifacts=[{
-                "artifact_type": "lesson",
-                "theme": "default",
-                "title": "[TBD] Lesson",
-                "sections": [{"title": "Intro", "content": "placeholder"}],
-                "metadata": {},
-                "accessibility": {"language": "vi"},
-            }],
-        )
+        state, store = await _quality_state("run-quality", [{
+            "artifact_type": "lesson", "theme": "default", "title": "[TBD] Lesson",
+            "sections": [{"title": "Intro", "content": "placeholder"}], "metadata": {},
+            "accessibility": {"language": "vi"},
+        }])
 
         with pytest.raises(TeachingPackQualityGateError, match="placeholder_content"):
-            await _render_quality(state)
+            await _render_quality(state, content_store=store)
 
     @pytest.mark.anyio
     async def test_render_quality_blocks_student_facing_answer_keys(self) -> None:
-        state = TeachingPackState(
-            run_id="run-quality",
-            artifacts=[{
-                "artifact_type": "quiz",
-                "theme": "default",
-                "title": "Quiz Lesson",
-                "sections": [{"title": "Question", "content": "Answer: A"}],
-                "metadata": {},
-                "accessibility": {"language": "vi"},
-            }],
-        )
+        state, store = await _quality_state("run-quality", [{
+            "artifact_type": "quiz", "theme": "default", "title": "Quiz Lesson",
+            "sections": [{"title": "Question", "content": "Answer: A"}], "metadata": {},
+            "accessibility": {"language": "vi"},
+        }])
 
         with pytest.raises(TeachingPackQualityGateError, match="answer_key_leakage"):
-            await _render_quality(state)
+            await _render_quality(state, content_store=store)
 
     @pytest.mark.anyio
     async def test_render_quality_routes_quiz_that_does_not_match_lesson_terms(self) -> None:
-        state = TeachingPackState(
-            run_id="run-coherence",
-            artifacts=[
+        state, store = await _quality_state("run-coherence", [
                 {
                     "artifact_type": "lesson",
                     "theme": "default",
@@ -135,10 +141,9 @@ class TestTeachingPackRenderQuality:
                     "metadata": {},
                     "accessibility": {"language": "en"},
                 },
-            ],
-        )
+            ])
 
-        result = await _render_quality(state)
+        result = await _render_quality(state, content_store=store)
 
         assert result.get("quality_recovery_route") == "artifact_workflow"
         assert "pack.coherence: quiz_not_aligned_with_lesson" in result.get("quality_issues", [])
@@ -146,9 +151,7 @@ class TestTeachingPackRenderQuality:
 
     @pytest.mark.anyio
     async def test_render_quality_routes_artifacts_that_miss_lesson_objectives(self) -> None:
-        state = TeachingPackState(
-            run_id="run-objective-coherence",
-            artifacts=[
+        state, store = await _quality_state("run-objective-coherence", [
                 {
                     "artifact_type": "lesson",
                     "theme": "default",
@@ -165,10 +168,9 @@ class TestTeachingPackRenderQuality:
                     "metadata": {},
                     "accessibility": {"language": "en"},
                 },
-            ],
-        )
+            ])
 
-        result = await _render_quality(state)
+        result = await _render_quality(state, content_store=store)
 
         assert result.get("quality_recovery_route") == "planning_blueprint"
         assert "pack.coherence: worksheet_not_aligned_with_objectives" in result.get("quality_issues", [])
@@ -177,9 +179,7 @@ class TestTeachingPackRenderQuality:
 
     @pytest.mark.anyio
     async def test_render_quality_routes_vocabulary_drift_across_student_artifacts(self) -> None:
-        state = TeachingPackState(
-            run_id="run-vocabulary-coherence",
-            artifacts=[
+        state, store = await _quality_state("run-vocabulary-coherence", [
                 {
                     "artifact_type": "lesson",
                     "theme": "default",
@@ -196,10 +196,9 @@ class TestTeachingPackRenderQuality:
                     "metadata": {},
                     "accessibility": {"language": "en"},
                 },
-            ],
-        )
+            ])
 
-        result = await _render_quality(state)
+        result = await _render_quality(state, content_store=store)
 
         assert result.get("quality_recovery_route") == "artifact_workflow"
         assert "pack.coherence: quiz_missing_lesson_vocabulary" in result.get("quality_issues", [])
@@ -207,9 +206,7 @@ class TestTeachingPackRenderQuality:
 
     @pytest.mark.anyio
     async def test_render_quality_routes_invalid_vietnamese_difficulty_distribution(self) -> None:
-        state = TeachingPackState(
-            run_id="run-vi-difficulty-coherence",
-            artifacts=[
+        state, store = await _quality_state("run-vi-difficulty-coherence", [
                 {
                     "artifact_type": "lesson",
                     "theme": "default",
@@ -233,10 +230,9 @@ class TestTeachingPackRenderQuality:
                     },
                     "accessibility": {"language": "vi"},
                 },
-            ],
-        )
+            ])
 
-        result = await _render_quality(state)
+        result = await _render_quality(state, content_store=store)
 
         assert result.get("quality_recovery_route") == "planning_blueprint"
         assert "pack.coherence: quiz_invalid_vietnamese_difficulty_distribution" in result.get("quality_issues", [])

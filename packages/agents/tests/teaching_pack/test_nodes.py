@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from common.contracts.artifact import ArtifactContent
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.nodes import (
     TeachingPackState,
     _compliance_gate,
@@ -12,6 +14,33 @@ from packages.agents.teaching_pack.nodes import (
 )
 from packages.agents.teaching_pack.quality_routing import route_after_render_quality
 from packages.agents.teaching_pack.stages import StageEnum, TeachingPackStage
+
+
+def _reference(artifact_id: str, artifact_type: str, **extra: object) -> dict[str, object]:
+    return {
+        "document_id": f"run-test:artifact:1:{artifact_id}",
+        "artifact_id": artifact_id,
+        "artifact_type": artifact_type,
+        "generation_id": "run-test:artifact:1",
+        "version": 1,
+        "title": artifact_type.title(),
+        **extra,
+    }
+
+
+async def _reference_for_artifact(
+    store: InMemoryArtifactContentStore,
+    run_id: str,
+    artifact: dict[str, object],
+) -> dict[str, object]:
+    artifact_id = str(artifact["artifact_id"])
+    reference = await store.persist(
+        run_id,
+        f"{run_id}:artifact:1",
+        ArtifactContent.model_validate(artifact),
+        artifact_id,
+    )
+    return reference.as_state()
 
 
 class TestTeachingPackPlanningResearch:
@@ -371,7 +400,7 @@ class TestTeachingPackApprovalExport:
                 contract={"teacher_id": "teacher-1"},
                 compliance_passed=True,
                 rendered_snapshots=[{"snapshot_id": "snap-1"}],
-                artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+                artifact_references=[_reference("lesson-1", "lesson")],
             ),
             store=TrustStore(),
         )
@@ -415,7 +444,7 @@ class TestTeachingPackApprovalExport:
                 healing_strategy="escalate",
                 fail_count=4,
                 rendered_snapshots=[{"snapshot_id": "snap-1"}],
-                artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+                artifact_references=[_reference("lesson-1", "lesson")],
             ),
             store=TrustStore(),
         )
@@ -444,7 +473,7 @@ class TestTeachingPackApprovalExport:
         nodes._teacher_approval(TeachingPackState(
             run_id="run-explain",
             rendered_snapshots=[{"snapshot_id": "snap-quiz", "artifact_id": "quiz-1"}],
-            artifacts=[{"artifact_id": "quiz-1", "artifact_type": "quiz"}],
+            artifact_references=[_reference("quiz-1", "quiz")],
             artifact_workflow_states=[{"artifact_id": "quiz-1", "artifact_type": "quiz", "status": "passed"}],
             quality_scores={
                 "reports": [{
@@ -502,7 +531,7 @@ class TestTeachingPackApprovalExport:
             run_id="run-strategy-route",
             teacher_approved=True,
             component_strategy_plan={"strategy_id": "strategy-run-1"},
-            artifacts=[],
+            artifact_references=[],
         )
 
         assert route_after_teacher_approval(state) == "artifact_workflow"
@@ -520,9 +549,9 @@ class TestTeachingPackApprovalExport:
 
         nodes._teacher_approval(TeachingPackState(
             run_id="run-explain-revisions",
-            artifacts=[
-                {"artifact_id": "quiz-1", "artifact_type": "quiz", "title": "Quiz", "revision_count": 3},
-                {"artifact_id": "worksheet-1", "artifact_type": "worksheet", "title": "Worksheet"},
+            artifact_references=[
+                _reference("quiz-1", "quiz", title="Quiz", revision_count=3),
+                _reference("worksheet-1", "worksheet", title="Worksheet"),
             ],
             artifact_revision_counts={"worksheet-1": 5},
             artifact_generation_revision=1,
@@ -564,7 +593,7 @@ class TestTeachingPackApprovalExport:
         state = TeachingPackState(
             run_id="run-scoped",
             teacher_approved=False,
-            artifacts=[{"artifact_id": "quiz-1", "artifact_type": "quiz"}],
+            artifact_references=[_reference("quiz-1", "quiz")],
             gate_payload={
                 "action": "reject",
                 "rejection_type": "scoped",
@@ -578,7 +607,7 @@ class TestTeachingPackApprovalExport:
         state = TeachingPackState(
             run_id="run-scoped-alias",
             teacher_approved=False,
-            artifacts=[{"artifact_id": "quiz-1", "artifact_type": "quiz"}],
+            artifact_references=[_reference("quiz-1", "quiz")],
             gate_payload={
                 "action": "reject_selected",
                 "artifact_rejections": [{"artifact_id": "quiz-1", "reason": "Simplify."}],
@@ -591,7 +620,7 @@ class TestTeachingPackApprovalExport:
         state = TeachingPackState(
             run_id="run-section-edit",
             teacher_approved=False,
-            artifacts=[{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
+            artifact_references=[_reference("lesson-1", "lesson")],
             gate_payload={
                 "action": "edit",
                 "edit_type": "scoped_section",
@@ -647,11 +676,14 @@ def _teacher_html(body: str) -> str:
 class TestComplianceGateNode:
     @pytest.mark.anyio
     async def test_valid_content_passes_through_stage_node(self) -> None:
-        stage_node = make_stage_node(StageEnum.COMPLIANCE_GATE)
+        store = InMemoryArtifactContentStore()
+        artifact = _valid_artifact()
+        reference = await _reference_for_artifact(store, "run-compliance-pass", artifact)
+        stage_node = make_stage_node(StageEnum.COMPLIANCE_GATE, content_store=store)
 
         result = await stage_node(TeachingPackState(
             run_id="run-compliance-pass",
-            artifacts=[_valid_artifact()],
+            artifact_references=[reference],
             rendered_snapshots=[_valid_snapshot()],
         ))
 
@@ -678,9 +710,12 @@ class TestComplianceGateNode:
     )
     @pytest.mark.anyio
     async def test_html_hard_block_fails_through_stage_node(self, html: str, expected_code: str) -> None:
-        result = await make_stage_node(StageEnum.COMPLIANCE_GATE)(TeachingPackState(
-            run_id=f"run-{expected_code}",
-            artifacts=[_valid_artifact()],
+        store = InMemoryArtifactContentStore()
+        run_id = f"run-{expected_code}"
+        reference = await _reference_for_artifact(store, run_id, _valid_artifact())
+        result = await make_stage_node(StageEnum.COMPLIANCE_GATE, content_store=store)(TeachingPackState(
+            run_id=run_id,
+            artifact_references=[reference],
             rendered_snapshots=[_valid_snapshot(student_html=html)],
         ))
 
@@ -694,9 +729,12 @@ class TestComplianceGateNode:
 
         clear_run("run-pii")
 
-        result = await make_stage_node(StageEnum.COMPLIANCE_GATE)(TeachingPackState(
+        store = InMemoryArtifactContentStore()
+        artifact = _valid_artifact(content="Contact student at jane@example.test before class.")
+        reference = await _reference_for_artifact(store, "run-pii", artifact)
+        result = await make_stage_node(StageEnum.COMPLIANCE_GATE, content_store=store)(TeachingPackState(
             run_id="run-pii",
-            artifacts=[_valid_artifact(content="Contact student at jane@example.test before class.")],
+            artifact_references=[reference],
             rendered_snapshots=[_valid_snapshot()],
         ))
 
@@ -706,11 +744,14 @@ class TestComplianceGateNode:
         assert "pii_leakage" in result["compliance_result"]["violations"]
         assert any(event["event_type"] == "hard_block_violation" and event["code"] == "pii_leakage" for event in events)
 
-    def test_teacher_only_answer_key_html_is_allowed(self) -> None:
-        result = _compliance_gate(TeachingPackState(
+    @pytest.mark.anyio
+    async def test_teacher_only_answer_key_html_is_allowed(self) -> None:
+        store = InMemoryArtifactContentStore()
+        reference = await _reference_for_artifact(store, "run-teacher-only", _valid_artifact())
+        result = await _compliance_gate(TeachingPackState(
             run_id="run-teacher-only",
-            artifacts=[_valid_artifact()],
+            artifact_references=[reference],
             rendered_snapshots=[_valid_snapshot(teacher_html=_teacher_html("Answer key: A"))],
-        ))
+        ), content_store=store)
 
         assert result["compliance_passed"] is True

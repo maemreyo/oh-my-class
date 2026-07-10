@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from common.contracts.artifact import ArtifactContent
 from common.contracts.quality import ArtifactQualityReport
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
 from packages.agents.teaching_pack.quality_runtime import render_quality
 
@@ -42,6 +44,8 @@ def _research_brief() -> dict[str, object]:
 
 @pytest.mark.anyio
 async def test_slide_deck_release_gate_pipeline_produces_approval_snapshots(stub_section_prose) -> None:
+    _ = stub_section_prose
+    content_store = InMemoryArtifactContentStore()
     slide_result = await generate_one_artifact({
         "run_id": "run-slide-release",
         "artifact_generation_id": "run-slide-release:artifact:1",
@@ -49,9 +53,10 @@ async def test_slide_deck_release_gate_pipeline_produces_approval_snapshots(stub
         "lesson_plan": _lesson_plan(),
         "research_brief": _research_brief(),
         "theme": "default",
-        "dependency_artifacts": [{"artifact_id": "lesson-1", "artifact_type": "lesson"}],
-    })
-    slide_deck = slide_result["artifact_chunks"][0]
+        "dependency_artifact_references": [],
+    }, content_store)
+    slide_reference = slide_result["artifact_references"][0]
+    slide_deck = (await content_store.read_projection(slide_reference["document_id"])).model_dump(mode="json")
     lesson = {
         "artifact_id": "lesson-1",
         "artifact_type": "lesson",
@@ -70,11 +75,23 @@ async def test_slide_deck_release_gate_pipeline_produces_approval_snapshots(stub
         "metadata": {},
         "accessibility": {"language": "en"},
     }
+    lesson_reference = await content_store.persist(
+        "run-slide-release",
+        "run-slide-release:artifact:1",
+        ArtifactContent.model_validate(lesson),
+        "lesson-1",
+    )
+    quiz_reference = await content_store.persist(
+        "run-slide-release",
+        "run-slide-release:artifact:1",
+        ArtifactContent.model_validate(quiz),
+        "quiz-1",
+    )
 
     quality = await render_quality({
         "run_id": "run-slide-release",
-        "artifacts": [lesson, slide_deck, quiz],
-    }, quality_gate=PassingQualityGate())
+        "artifact_references": [lesson_reference.as_state(), slide_reference, quiz_reference.as_state()],
+    }, quality_gate=PassingQualityGate(), content_store=content_store)
 
     snapshots = quality["rendered_snapshots"]
     snapshot_types = {snapshot["artifact_type"] for snapshot in snapshots}

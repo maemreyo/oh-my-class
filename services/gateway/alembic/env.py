@@ -21,6 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from services.gateway import (  # noqa: E402
+    artifact_document_models,  # noqa: F401
     outcome_models,  # noqa: F401
     teaching_pack_models,  # noqa: F401
 )

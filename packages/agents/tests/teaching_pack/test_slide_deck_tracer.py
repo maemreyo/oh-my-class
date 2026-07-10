@@ -6,6 +6,7 @@ import pytest
 
 from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
 from packages.agents.teaching_pack.artifact_fanout import route_after_artifact_workflow
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
 from packages.agents.teaching_pack.stages import StageEnum
 
@@ -38,6 +39,7 @@ async def test_hierarchical_content_creator_returns_slide_deck_artifact(stub_sec
     # SDE-01: slide_deck now makes a real llm_client call (ContentMaterializer
     # wording) too, so this needs the same stub as the other artifact types to
     # stay fast/hermetic instead of hitting a live 9router.
+    _ = stub_section_prose
     result = await build_hierarchical_artifacts({
         "lesson_plan": _lesson_plan(),
         "research_bundle": _research_brief(),
@@ -56,7 +58,9 @@ async def test_hierarchical_content_creator_returns_slide_deck_artifact(stub_sec
 
 
 @pytest.mark.anyio
-async def test_generate_one_artifact_returns_slide_deck_chunk_without_llm(stub_section_prose) -> None:
+async def test_generate_one_artifact_persists_slide_deck_without_llm(stub_section_prose) -> None:
+    _ = stub_section_prose
+    content_store = InMemoryArtifactContentStore()
     result = await generate_one_artifact({
         "run_id": "run-slide-one",
         "artifact_generation_id": "run-slide-one:artifact:1",
@@ -65,14 +69,15 @@ async def test_generate_one_artifact_returns_slide_deck_chunk_without_llm(stub_s
         "research_brief": _research_brief(),
         "theme": "default",
         "revision_feedback": "",
-        "dependency_artifacts": [],
-    })
+        "dependency_artifact_references": [],
+    }, content_store)
 
-    chunk = result["artifact_chunks"][0]
+    reference = result["artifact_references"][0]
+    artifact = await content_store.read_projection(reference["document_id"])
     workflow = result["artifact_workflow_states"][0]
 
-    assert chunk["artifact_type"] == "slide_deck"
-    assert chunk["metadata"]["slide_deck_data"]["deck_id"] == "slide-deck-run-slide-one"
+    assert artifact.artifact_type == "slide_deck"
+    assert artifact.metadata["slide_deck_data"]["deck_id"] == "slide-deck-run-slide-one"
     assert workflow["artifact_type"] == "slide_deck"
     assert workflow["status"] == "passed"
 
@@ -104,11 +109,19 @@ async def test_generate_one_artifact_reaches_content_materialization_llm_call(mo
         "exit_prompt": "LIVE_PATH_PROOF_MARKER exit prompt",
     }
 
-    async def fake_complete_json_chat(*, model: str, messages: list, temperature: float, tags: list[str]) -> str:
+    async def fake_complete_json_chat(
+        *,
+        model: str,
+        messages: list[object],
+        temperature: float,
+        tags: list[str],
+    ) -> str:
+        _ = (model, messages, temperature, tags)
         return json.dumps(marker_wording)
 
     monkeypatch.setattr(llm, "complete_json_chat", fake_complete_json_chat)
 
+    content_store = InMemoryArtifactContentStore()
     result = await generate_one_artifact({
         "run_id": "run-slide-live-path",
         "artifact_generation_id": "run-slide-live-path:artifact:1",
@@ -117,14 +130,15 @@ async def test_generate_one_artifact_reaches_content_materialization_llm_call(mo
         "research_brief": _research_brief(),
         "theme": "default",
         "revision_feedback": "",
-        "dependency_artifacts": [],
-    })
+        "dependency_artifact_references": [],
+    }, content_store)
 
-    chunk = result["artifact_chunks"][0]
-    slide_deck_json = json.dumps(chunk["metadata"]["slide_deck_data"])
+    reference = result["artifact_references"][0]
+    artifact = await content_store.read_projection(reference["document_id"])
+    slide_deck_json = json.dumps(artifact.metadata["slide_deck_data"])
 
     assert "LIVE_PATH_PROOF_MARKER" in slide_deck_json
-    assert chunk["metadata"]["slide_deck_trace"]["llm_calls"] == 1
+    assert artifact.metadata["slide_deck_trace"]["llm_calls"] == 1
 
 
 def test_slide_deck_fanout_runs_after_lesson_dependency(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -145,7 +159,14 @@ def test_slide_deck_fanout_runs_after_lesson_dependency(monkeypatch: pytest.Monk
                 "status": "passed",
             },
         ],
-        "artifacts": [{"artifact_type": "lesson", "artifact_id": "lesson-1"}],
+        "artifact_references": [{
+            "document_id": "run-slide-fanout:artifact:1:lesson-1",
+            "artifact_id": "lesson-1",
+            "artifact_type": "lesson",
+            "generation_id": "run-slide-fanout:artifact:1",
+            "version": 1,
+            "title": "Lesson",
+        }],
     }
 
     routed = route_after_artifact_workflow({**state, "artifact_wave_index": 1})
@@ -154,4 +175,4 @@ def test_slide_deck_fanout_runs_after_lesson_dependency(monkeypatch: pytest.Monk
     assert len(routed) == 1
     assert routed[0].node == "generate_one_artifact"
     assert routed[0].arg["artifact_type"] == "slide_deck"
-    assert routed[0].arg["dependency_artifacts"] == [{"artifact_type": "lesson", "artifact_id": "lesson-1"}]
+    assert routed[0].arg["dependency_artifact_references"][0]["artifact_id"] == "lesson-1"

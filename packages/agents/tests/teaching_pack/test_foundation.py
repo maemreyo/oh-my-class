@@ -426,7 +426,7 @@ class TestTeachingPackStateSnapshot:
             "run_id",
             "raw_request",
             "contract",
-            "artifacts",
+            "artifact_references",
             "quality_scores",
             "quality_issues",
             "teacher_approved",
@@ -444,14 +444,13 @@ class TestTeachingPackStateSnapshot:
         for field in required_fields:
             assert field in hints, f"TeachingPackState missing field: {field}"
 
-    def test_state_has_artifact_chunks_reducer(self) -> None:
-        """artifact_chunks uses stable_merge_artifacts reducer (fan-in)."""
+    def test_state_has_artifact_references_reducer(self) -> None:
         from typing import get_type_hints
 
         from packages.agents.teaching_pack.nodes import TeachingPackState
 
         hints = get_type_hints(TeachingPackState, include_extras=True)
-        assert "artifact_chunks" in hints
+        assert "artifact_references" in hints
 
     def test_state_has_artifact_workflow_states_reducer(self) -> None:
         """artifact_workflow_states uses stable_merge_workflow_states reducer."""

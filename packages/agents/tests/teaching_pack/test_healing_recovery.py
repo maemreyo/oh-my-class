@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from common.contracts.artifact import ArtifactContent
 from common.contracts.quality import ArtifactQualityReport, QualityFailureClass, QualityIssue
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.nodes import TeachingPackState, _render_quality
 
 
@@ -23,29 +25,40 @@ class FailingQualityGate:
         )
 
 
-def _valid_state(fail_count: int = 0, max_healing_attempts: int | None = None) -> TeachingPackState:
+async def _valid_state(
+    fail_count: int = 0, max_healing_attempts: int | None = None,
+) -> tuple[TeachingPackState, InMemoryArtifactContentStore]:
+    store = InMemoryArtifactContentStore()
+    artifact = ArtifactContent(
+        artifact_type="lesson",
+        theme="default",
+        title="Equivalent Fractions Lesson",
+        sections=[{"title": "Intro", "content": "Compare equivalent fractions."}],
+        metadata={},
+        accessibility={"language": "en"},
+    )
+    ref = await store.persist(
+        "run-healing", "run-healing:artifact:1", artifact, "lesson-1",
+    )
+    extra: dict[str, object] = {}
+    if max_healing_attempts is not None:
+        extra["max_healing_attempts"] = max_healing_attempts
     return TeachingPackState(
         run_id="run-healing",
         fail_count=fail_count,
-        **({"max_healing_attempts": max_healing_attempts} if max_healing_attempts is not None else {}),
-        artifacts=[{
-            "artifact_id": "lesson-1",
-            "artifact_type": "lesson",
-            "theme": "default",
-            "title": "Equivalent Fractions Lesson",
-            "sections": [{"title": "Intro", "content": "Compare equivalent fractions."}],
-            "metadata": {},
-            "accessibility": {"language": "en"},
-        }],
-    )
+        artifact_references=[ref.as_state()],
+        **extra,
+    ), store
 
 
 class TestTeachingPackHealingRecovery:
     @pytest.mark.anyio
     async def test_quality_failure_triggers_rewrite_healing(self) -> None:
+        state, store = await _valid_state()
         result = await _render_quality(
-            _valid_state(),
+            state,
             quality_gate=FailingQualityGate(QualityFailureClass.ANSWER_KEY_LEAKAGE),
+            content_store=store,
         )
 
         assert result.get("healing_strategy") == "rewrite"
@@ -54,9 +67,11 @@ class TestTeachingPackHealingRecovery:
 
     @pytest.mark.anyio
     async def test_persistent_quality_failure_reroutes_generation_model(self) -> None:
+        state, store = await _valid_state(fail_count=1)
         result = await _render_quality(
-            _valid_state(fail_count=1),
+            state,
             quality_gate=FailingQualityGate(QualityFailureClass.ANSWER_KEY_LEAKAGE),
+            content_store=store,
         )
 
         assert result.get("healing_strategy") == "reroute"
@@ -68,9 +83,11 @@ class TestTeachingPackHealingRecovery:
 
     @pytest.mark.anyio
     async def test_structural_quality_failure_replans_after_two_failed_heals(self) -> None:
+        state, store = await _valid_state(fail_count=2)
         result = await _render_quality(
-            _valid_state(fail_count=2),
+            state,
             quality_gate=FailingQualityGate(QualityFailureClass.PEDAGOGICAL_MISMATCH),
+            content_store=store,
         )
 
         assert result.get("healing_strategy") == "replan"
@@ -79,9 +96,11 @@ class TestTeachingPackHealingRecovery:
 
     @pytest.mark.anyio
     async def test_quality_failure_escalates_after_max_healing_attempts(self) -> None:
+        state, store = await _valid_state(fail_count=3)
         result = await _render_quality(
-            _valid_state(fail_count=3),
+            state,
             quality_gate=FailingQualityGate(QualityFailureClass.ANSWER_KEY_LEAKAGE),
+            content_store=store,
         )
 
         assert result.get("healing_strategy") == "escalate"
@@ -90,9 +109,11 @@ class TestTeachingPackHealingRecovery:
 
     @pytest.mark.anyio
     async def test_zero_max_healing_attempts_disables_healing(self) -> None:
+        state, store = await _valid_state(max_healing_attempts=0)
         result = await _render_quality(
-            _valid_state(max_healing_attempts=0),
+            state,
             quality_gate=FailingQualityGate(QualityFailureClass.ANSWER_KEY_LEAKAGE),
+            content_store=store,
         )
 
         assert "healing_strategy" not in result

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from common.contracts.artifact import ArtifactContent
 from packages.agents.events import clear_run, get_run_events
+from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
 from packages.agents.teaching_pack.quality_runtime import render_quality
 from packages.agents.teaching_pack.strategy_quality import (
     VALIDATOR_REGISTRY,
@@ -127,11 +129,21 @@ def test_strategy_quality_events_do_not_include_teacher_id_or_debug_ledger() -> 
 async def test_render_quality_routes_strategy_fill_mismatch_and_emits_event() -> None:
     clear_run("run-strategy-render")
 
+    store = InMemoryArtifactContentStore()
+    artifact_data = _artifact(slot_ids=[])
+    artifact_id = str(artifact_data.get("artifact_id", "lesson-1"))
+    parsed = ArtifactContent.model_validate(
+        {k: v for k, v in artifact_data.items() if k != "artifact_id"},
+    )
+    ref = await store.persist(
+        "run-strategy-render", "run-strategy-render:artifact:1", parsed, artifact_id,
+    )
+
     result = await render_quality({
         "run_id": "run-strategy-render",
         "component_strategy_plan": _plan(),
-        "artifacts": [_artifact(slot_ids=[])],
-    }, quality_gate=_PassingQualityGate())
+        "artifact_references": [ref.as_state()],
+    }, quality_gate=_PassingQualityGate(), content_store=store)
 
     assert result["quality_recovery_route"] == "artifact_workflow"
     assert "component_strategy.selected_slot_order_changed: lesson" in result["quality_issues"]
