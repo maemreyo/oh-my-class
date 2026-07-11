@@ -23,7 +23,9 @@ ArtifactDocumentType = Literal[
     "reading_passage",
 ]
 DocumentAudience = Literal["student", "teacher", "print"]
-DocumentAuthority = Literal["generated", "teacher_edit", "ai_assisted_edit", "restored"]
+DocumentAuthority = Literal[
+    "generated", "teacher_edit", "ai_assisted_edit", "restored", "translated", "variant_generated",
+]
 DocumentLanguage = Literal["en", "vi"]
 
 

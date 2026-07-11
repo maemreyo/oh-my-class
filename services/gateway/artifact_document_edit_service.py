@@ -90,7 +90,7 @@ async def edit_artifact_document(
         base_version,
         ArtifactDocumentWrite(run_id=run_id, document=next_document),
     )
-    impacted = await _impacted_artifact_ids(session, latest.document_id)
+    impacted = await impacted_artifact_ids(session, latest.document_id)
     return EditOutcome(document=persisted.document, impacted_artifact_ids=impacted)
 
 
@@ -124,12 +124,14 @@ async def restore_artifact_document(
     )
 
 
-async def _impacted_artifact_ids(session: AsyncSession, edited_document_id: str) -> list[str]:
+async def impacted_artifact_ids(session: AsyncSession, edited_document_id: str) -> list[str]:
     """Dependency-impact hook: which other artifacts point at the version just superseded.
 
     Visible to the teacher as a heads-up, never auto-regenerated -- the
     workspace surfaces this list and the teacher chooses which scoped
-    repairs to run (ADR-055).
+    repairs to run (ADR-055). Public so other derivation services (e.g.
+    `artifact_language_version_service`) can report staleness the same way
+    edits and restores do, without duplicating the query.
     """
     statement = (
         select(ArtifactDocumentRecord.artifact_id)

@@ -10,7 +10,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
-from common.contracts.artifact_document import ArtifactDocument, ArtifactPayload, DocumentAuthority
+from common.contracts.artifact_document import (
+    ArtifactDocument,
+    ArtifactPayload,
+    DocumentAuthority,
+    DocumentLanguage,
+)
 from common.contracts.claim_evidence import ClaimEvidence
 from common.contracts.decision_provenance import DecisionProvenance
 from common.contracts.research_brief import ResearchRiskLevel  # noqa: TC001
@@ -27,7 +32,13 @@ from services.gateway.artifact_document_edit_service import (
     edit_artifact_document,
     restore_artifact_document,
 )
-from services.gateway.artifact_document_store import ArtifactDocumentStore
+from services.gateway.artifact_document_store import ArtifactDocumentStore, VariantKind  # noqa: TC001
+from services.gateway.artifact_language_version_service import (
+    DerivedVersionOutcome,
+    LanguageVersionAlreadyInTargetLanguageError,
+    create_content_variant,
+    create_language_version,
+)
 from services.gateway.artifact_rewrite_proposal import (
     BlockNotFoundError,
     BlockRewriteInstructionError,
@@ -76,6 +87,24 @@ class RestoreArtifactDocumentRequest(BaseModel):
 
 
 class EditArtifactDocumentResponse(BaseModel):
+    document: ArtifactDocument
+    impacted_artifact_ids: list[str]
+
+
+class CreateLanguageVersionRequest(BaseModel):
+    target_language: DocumentLanguage
+    payload: ArtifactPayload
+    authority: DocumentAuthority = "translated"
+
+
+class CreateContentVariantRequest(BaseModel):
+    variant_kind: VariantKind
+    payload: ArtifactPayload
+    authority: DocumentAuthority = "variant_generated"
+
+
+class DerivedVersionResponse(BaseModel):
+    artifact_id: str
     document: ArtifactDocument
     impacted_artifact_ids: list[str]
 
@@ -228,6 +257,74 @@ async def restore_artifact_document_route(
         ) from exc
     await session.commit()
     return _edit_response(outcome)
+
+
+@router.post(
+    "/runs/{run_id}/artifacts/{artifact_id}/translate",
+    response_model=DerivedVersionResponse,
+)
+async def create_language_version_route(
+    run_id: str,
+    artifact_id: str,
+    payload: CreateLanguageVersionRequest,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> DerivedVersionResponse:
+    """Translation is its own source-linked lineage with independent approval
+    (#451) -- approving the returned artifact_id never touches `artifact_id`'s
+    own approval status."""
+    await get_run_with_reviewer_access(run_id, current_user, session)
+    try:
+        outcome = await create_language_version(
+            session,
+            run_id=RunId(run_id),
+            source_artifact_id=artifact_id,
+            target_language=payload.target_language,
+            payload=payload.payload,
+            authority=payload.authority,
+        )
+    except ArtifactHasNoVersionsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="artifact_not_found",
+        ) from exc
+    except LanguageVersionAlreadyInTargetLanguageError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={"error": "already_in_target_language", "language": exc.language},
+        ) from exc
+    await session.commit()
+    return _derived_version_response(outcome)
+
+
+@router.post(
+    "/runs/{run_id}/artifacts/{artifact_id}/variants",
+    response_model=DerivedVersionResponse,
+)
+async def create_content_variant_route(
+    run_id: str,
+    artifact_id: str,
+    payload: CreateContentVariantRequest,
+    current_user: Annotated[User, Depends(require_teacher)],
+    session: AsyncSession = TEACHING_PACK_SESSION,
+) -> DerivedVersionResponse:
+    """One typed content variant (semantic_support/challenge/language_scaffold/
+    accessibility) as its own independently-approvable lineage (#451)."""
+    await get_run_with_reviewer_access(run_id, current_user, session)
+    try:
+        outcome = await create_content_variant(
+            session,
+            run_id=RunId(run_id),
+            source_artifact_id=artifact_id,
+            variant_kind=payload.variant_kind,
+            payload=payload.payload,
+            authority=payload.authority,
+        )
+    except ArtifactHasNoVersionsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="artifact_not_found",
+        ) from exc
+    await session.commit()
+    return _derived_version_response(outcome)
 
 
 @router.post(
@@ -483,6 +580,14 @@ async def _document_id_for_version(
 
 def _edit_response(outcome: EditOutcome) -> EditArtifactDocumentResponse:
     return EditArtifactDocumentResponse(
+        document=outcome.document,
+        impacted_artifact_ids=outcome.impacted_artifact_ids,
+    )
+
+
+def _derived_version_response(outcome: DerivedVersionOutcome) -> DerivedVersionResponse:
+    return DerivedVersionResponse(
+        artifact_id=outcome.document.artifact_id,
         document=outcome.document,
         impacted_artifact_ids=outcome.impacted_artifact_ids,
     )

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 type ApprovalStatus = Literal["approved", "rejected", "pending"]
 type VariantKind = Literal["semantic_support", "challenge", "language_scaffold", "accessibility"]
-type DependencyKind = Literal["answer_projection", "variant", "snapshot", "export"]
+type DependencyKind = Literal["answer_projection", "variant", "translation", "snapshot", "export"]
 type PreviewSchemaVersion = Literal["v1", "v2"]
 
 

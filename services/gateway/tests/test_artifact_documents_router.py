@@ -175,6 +175,68 @@ def test_only_owner_may_delegate_but_delegate_can_approve(client: TestClient) ->
     anyio.run(_delete_created, run_id)
 
 
+def test_translation_is_independently_approvable_and_source_stays_untouched(client: TestClient) -> None:
+    artifact_id = "recap-router-translate-1"
+    run_id = anyio.run(_seed_run_with_document, artifact_id)
+
+    translated = client.post(
+        f"/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/translate",
+        json={"target_language": "vi", "payload": _payload_for("Văn bản đã dịch")},
+    )
+    assert translated.status_code == 200
+    body = translated.json()
+    translated_artifact_id = body["artifact_id"]
+    assert translated_artifact_id != artifact_id
+    assert body["document"]["version"] == 1
+    assert body["document"]["language"] == "vi"
+    assert body["document"]["authority"] == "translated"
+
+    approval = client.post(
+        f"/teaching-packs/runs/{run_id}/artifacts/{translated_artifact_id}/approve",
+        json={"version": 1},
+    )
+    assert approval.status_code == 204
+
+    source_versions = client.get(f"/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions")
+    assert [v["version"] for v in source_versions.json()] == [1]
+    unapproved_source_approval = client.post(
+        f"/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/approve",
+        json={"version": 1},
+    )
+    assert unapproved_source_approval.status_code == 204, "approving the source is independent, and still succeeds on its own merits"
+
+    same_language_translation = client.post(
+        f"/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/translate",
+        json={"target_language": "en", "payload": _payload_for("Already English")},
+    )
+    assert same_language_translation.status_code == 422
+    assert same_language_translation.json()["detail"]["error"] == "already_in_target_language"
+
+    anyio.run(_delete_created, run_id)
+
+
+def test_content_variant_is_its_own_lineage_reported_as_impacted_on_source_edit(client: TestClient) -> None:
+    artifact_id = "recap-router-variant-1"
+    run_id = anyio.run(_seed_run_with_document, artifact_id)
+
+    variant = client.post(
+        f"/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/variants",
+        json={"variant_kind": "accessibility", "payload": _payload_for("Simplified, accessible text")},
+    )
+    assert variant.status_code == 200
+    variant_artifact_id = variant.json()["artifact_id"]
+    assert variant_artifact_id != artifact_id
+
+    edited_source = client.post(
+        f"/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/edit",
+        json={"base_version": 1, "payload": _payload_for("Edited source text"), "authority": "teacher_edit"},
+    )
+    assert edited_source.status_code == 200
+    assert variant_artifact_id in edited_source.json()["impacted_artifact_ids"]
+
+    anyio.run(_delete_created, run_id)
+
+
 async def _skip_if_schema_missing() -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     async with engine.begin() as connection:
