@@ -197,7 +197,7 @@ def _wiring_booleans() -> WiringManifest:
         "teaching_pack_graph_builder_present": callable(build_teaching_pack_graph),
         "artifact_send_default_enabled": artifact_send_fanout_v1_enabled(),
         "artifact_send_worker_node_present": GENERATE_ONE_ARTIFACT_NODE in graph_source,
-        "artifact_send_reducer_channels_present": "artifact_chunks" in state_annotations and "artifact_workflow_states" in state_annotations,
+        "artifact_send_reducer_channels_present": "artifact_references" in state_annotations and "artifact_workflow_states" in state_annotations,
         "artifact_send_rollback_flag": "OMC_ROLLBACK_ARTIFACT_SEND_FANOUT_V1",
     }
 

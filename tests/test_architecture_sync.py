@@ -32,6 +32,11 @@ def test_architecture_manifest_tracks_artifact_send_wiring() -> None:
 
 
 def test_architecture_manifest_path_is_documented() -> None:
-    architecture_doc = Path("docs/system/ARCHITECTURE.md").read_text(encoding="utf-8")
+    # docs/system/ARCHITECTURE.md was deleted when this repo's hand-written
+    # architecture doc was replaced by the auto-generated docs/anatomy/ trace
+    # (6ea12b9); docs/testbook/runbook.md is the canonical, hand-maintained
+    # reference this repo keeps in sync with actual tooling, so that's where
+    # the manifest path -- and how to regenerate it -- now lives.
+    runbook = Path("docs/testbook/runbook.md").read_text(encoding="utf-8")
 
-    assert str(MANIFEST_PATH.relative_to(Path.cwd())) in architecture_doc
+    assert str(MANIFEST_PATH.relative_to(Path.cwd())) in runbook

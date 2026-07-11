@@ -17,6 +17,8 @@
 | Headless driver | `uv run python scripts/run_teacher_scenarios.py --base-url http://localhost:8101` | All 4 scenarios → HTML artifacts |
 | Fixture mode (offline) | `uv run python scripts/run_teacher_scenarios.py --fixture` | No gateway, no Postgres · <5 s |
 | Slide deck release gate | `uv run pytest common/contracts/tests/test_slide_deck_golden_fixtures.py packages/agents/tests/teaching_pack/test_slide_deck_release_gate.py services/gateway/tests/test_teaching_pack_export_writer.py -q && pnpm --dir packages/renderer exec vitest run __tests__/slide-deck-release-gate.test.ts && pnpm --dir apps/web exec playwright test tests/e2e/slide-deck-visual-smoke.spec.ts` | Golden fixtures + pipeline/export + browser visual smoke |
+| Architecture manifest drift check | `uv run pytest tests/test_architecture_sync.py -q` | Compares the live codebase against the stored snapshot at `docs/system/architecture.manifest.json` |
+| Regenerate the architecture manifest | `uv run python scripts/generate_architecture_manifest.py` | Run after any change to stages/gates/migrations/wiring flags the sync check covers, then commit the updated `docs/system/architecture.manifest.json` |
 
 ---
 

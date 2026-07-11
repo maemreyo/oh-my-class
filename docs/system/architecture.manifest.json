@@ -23,6 +23,7 @@
   "gate_names": [
     "clarification_required",
     "contract_confirmation",
+    "source_conflict",
     "search_plan_confirmation",
     "blueprint_approval",
     "content_approval",
@@ -39,7 +40,7 @@
     ],
     "fast_lane_threshold_default": null
   },
-  "migration_count": 29,
+  "migration_count": 37,
   "models": {
     "assignments": {
       "blueprint_design": "4omc",
@@ -113,6 +114,20 @@
       ]
     },
     {
+      "name": "artifact_documents",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "artifact-documents"
+      ]
+    },
+    {
+      "name": "content_briefs",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "content-briefs"
+      ]
+    },
+    {
       "name": "exports",
       "prefix": "/teaching-packs",
       "tags": [
@@ -120,10 +135,38 @@
       ]
     },
     {
+      "name": "media_asset_versions",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "media-asset-versions"
+      ]
+    },
+    {
       "name": "release_evidence",
       "prefix": "/teaching-packs",
       "tags": [
         "release-evidence"
+      ]
+    },
+    {
+      "name": "slide_deck_live_publication",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "live-publication"
+      ]
+    },
+    {
+      "name": "source_collections",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "source-collections"
+      ]
+    },
+    {
+      "name": "teaching_briefs",
+      "prefix": "/teaching-packs",
+      "tags": [
+        "teaching-pack"
       ]
     },
     {

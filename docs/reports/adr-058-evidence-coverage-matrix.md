@@ -61,27 +61,43 @@ each cross-checked against runtime registries by dedicated tests
 `packages/renderer/__tests__/teaching-pack-capabilities.test.ts`,
 `common/contracts/tests/test_subject_capability_pack.py`).
 
-**Known real gap, investigated during this pass (do not shallow-patch)**:
+**Known real gap, investigated in depth (do not shallow-patch)**:
 `packages/renderer/__tests__/teaching-pack-capabilities.test.ts` fails
 because `teaching_pack.json` declares `slide_deck` as a `renderer_plugin`,
 but `packages/renderer/src/core/runtime.ts`'s `defaultRegistry` never
-registers a `slide_deck` plugin — slide decks render through the separate
-`SlideDeckEngine` (`packages/agents/slide_deck_engine/`), not this shared
-plugin registry. Removing `slide_deck` from the manifest's top-level
-`renderer_plugins` list looks like the obvious fix, but it isn't: the same
-manifest's per-artifact entry for `slide_deck`
+registers a `slide_deck` plugin. Removing `slide_deck` from the manifest's
+top-level `renderer_plugins` list looks like the obvious fix, but it isn't:
+the same manifest's per-artifact entry for `slide_deck`
 (`common/contracts/teaching_pack_capabilities.py`'s
 `ArtifactCapability._validate_status_requirements`) requires a non-null
 `renderer_plugin` for any `status: degraded` artifact (confirmed by
 actually making the edit and watching
 `test_teaching_pack_capabilities.py::test_manifest_declares_every_v2_artifact_and_export_format`
-fail with `undeclared renderers=['slide_deck']`). Fixing this correctly
-means one of: (a) registering a thin TS plugin that delegates to
-`SlideDeckEngine`, or (b) extending `ArtifactCapability` with an explicit
-"renders via a different pipeline" escape hatch distinct from
-`renderer_plugin`. Both are real design decisions, not a 2-line patch —
-flagged here rather than shipped as a shallow fix that would have traded
-one red test for another.
+fail with `undeclared renderers=['slide_deck']`).
+
+Tracing further: `packages/renderer/src/renderer.ts`'s `renderArtifact()`
+(the stable, documented public API) renders **every** artifact type,
+slide_deck included, through the same `pages/{type}.html` Eta template —
+slide_deck is not actually a second, disconnected rendering system, it's
+just the one core artifact type that was never migrated onto the newer
+`defaultRegistry`/`render()` plugin path the other 11 core types already
+use (compare `packages/renderer/src/plugins/quiz.ts`, a thin adapter over
+the identical `pages/quiz` template). So registering a `slideDeckPlugin`
+is plausible in principle. What blocks it: `renderArtifact()` calls
+`assertStudentSlideDeckHtmlIsSafe()` (`slide-deck-projection.ts`) *after*
+sanitization, specifically to stop teacher-only notes/answers leaking into
+the student-facing slide HTML — a real security check, not decoration.
+The registry-based `render()` pipeline (`core/render.ts`) has no
+plugin-specific post-sanitization hook at all; every plugin's output only
+passes through the generic `sanitizeRenderedHtml()`. Registering
+`slideDeckPlugin` today, as-is, would mean either skipping that leak check
+(unacceptable) or bolting it on ad hoc outside the plugin contract
+(inconsistent with every other plugin). The correct fix is adding a
+`postSanitizeCheck?(html, templateData)` hook to `ArtifactKindPlugin` and
+`render()`'s pipeline, then writing `slideDeckPlugin` against it — a real,
+if small, pipeline change, not a 2-line patch, and one that touches a
+security-relevant code path carefully enough that it deserves its own
+change and review rather than being folded into a hardening pass.
 
 WCAG/accessibility: **Covered and runnable** —
 `apps/web/tests/e2e/a11y-artifacts.spec.ts` / `a11y-dashboard.spec.ts` (real
@@ -103,15 +119,22 @@ pass** (`tests/security/test_answer_key_leakage.py` now `await`s it) — the
 answer-leakage invariant now has real, passing coverage again, but this
 means it had zero working coverage for an unknown period before today.
 
-**Third known gap (pre-existing, not touched in this pass)**:
-`packages/agents/tests/test_reviewer_live_wiring.py` — 3 of 4 tests fail;
-`render_quality`'s Layer-4 reviewer escalation does not populate
-`quality_recovery_route` the way the test expects
-(`assert None == "artifact_workflow"`). Confirmed pre-existing on `main`
-via git-stash bisection (fails identically with none of this epic's
-changes applied) — this is a real behavioral gap in reviewer/quality
-wiring, not a stale test, and deserves its own investigation rather than a
-collateral fix here.
+**Third gap — investigated and fixed**:
+`packages/agents/tests/test_reviewer_live_wiring.py` looked like a real
+behavioral gap (3 of 4 tests failed with `quality_recovery_route` staying
+`None` instead of routing to `artifact_workflow`/`planning_blueprint`).
+Tracing `render_quality` (`packages/agents/teaching_pack/quality_runtime.py`)
+showed it only ever reads artifacts via `_artifact_projections(state,
+content_store)`, which returns `[]` whenever `content_store is None` —
+this test constructed state with a direct `"artifacts": [...]` key (the
+pre-V2-lineage calling convention) and never passed `content_store` or
+`artifact_references`, so `render_quality` saw zero artifacts and never
+even reached the Layer-4 reviewer call. Confirmed the reviewer/quality
+logic itself is correct by rewriting the test to build state the same way
+the (passing) sibling `test_render_quality.py` does — via
+`InMemoryArtifactContentStore.persist()` + `artifact_references` — after
+which all 4 tests pass with no product code changed. This was a stale
+test-construction bug, not a reviewer-routing regression.
 
 ## 4. Backup, migration, deployment rollback, big-bang cutover
 
@@ -138,27 +161,39 @@ test`/`pytest`/`pnpm` invocations. `docs/runbooks/*.md` (6 failure-mode
 runbooks) exist and pass `tests/test_runbook_presence.py`'s structural
 check. ADR-058 itself is well-formed and current.
 
-**Stale, not fixed in this pass**: `tests/test_architecture_sync.py` fails
-in 3 places, including a reference to `docs/system/ARCHITECTURE.md`, which
-no longer exists — the repo has since migrated to `docs/anatomy/`. This is
-exactly the kind of doc/ADR drift ADR-058's Definition of Done requires
-catching, and it is itself currently uncaught. Left for a dedicated
-doc-sync pass rather than patched here, since the right fix depends on
-whether `docs/anatomy/` is meant to fully replace the old sync check's
-target or run alongside it.
+**Fixed**: `tests/test_architecture_sync.py` failed in 3 places. Two were
+the stored `docs/system/architecture.manifest.json` snapshot simply being
+stale (`migration_count: 29` vs. the real `37`, missing the `source_conflict`
+gate from #432, missing several routers added since) plus a dangling
+reference to the pre-rename `artifact_chunks` state key
+(`scripts/generate_architecture_manifest.py`, same root cause as the
+`stable_merge_artifacts` rename above) — fixed by correcting the stale key
+reference and re-running `python scripts/generate_architecture_manifest.py`
+to regenerate the snapshot. The third was the reference to
+`docs/system/ARCHITECTURE.md`, deleted in 6ea12b9 when this repo's
+hand-written architecture doc was replaced by the auto-generated
+`docs/anatomy/` trace; retargeted the check at `docs/testbook/runbook.md`
+(the canonical, hand-maintained command reference this repo already keeps
+current) and added the manifest's path and regeneration command there.
 
 ## Overall verdict
 
 This is closer to a **documentation/evidence-assembly gap than a
 functional gap**. The substantive infrastructure ADR-058 asks for — tenant
 isolation, worker leasing, retention/purge, admin recovery, WCAG a11y specs
-— is real and passing, not stubbed. Two collateral bugs found during this
-audit (a stale reducer-rename import blocking whole-suite collection, and
-the un-awaited async compliance gate) are fixed as of this pass. Three
-gaps remain deliberately unfixed because a correct fix requires design
-judgment beyond a hardening pass: the `slide_deck` renderer-plugin
-declaration mismatch, the reviewer Layer-4 escalation-routing bug, and the
-stale architecture-sync doc reference. The big-bang cutover evidence itself
-cannot be produced by code changes — it requires an actual planned release
-date, rollback owner, and sign-off, which is a decision for the team, not
+— is real and passing, not stubbed. Four collateral bugs found during this
+audit are fixed as of this pass: a stale reducer-rename import blocking
+whole-suite collection, the un-awaited async compliance gate, a stale
+architecture-manifest snapshot plus its own dangling rename reference, and
+a test that looked like a reviewer-routing regression but was actually
+constructing state with a pre-V2 calling convention. Only one gap remains
+deliberately unfixed, because a correct fix touches a security-relevant
+code path and deserves its own change: the `slide_deck` renderer-plugin
+registration needs a new `postSanitizeCheck` hook on `ArtifactKindPlugin`
+before it can be added safely (see above — attempting it without that hook
+means either skipping the teacher-notes leak check or bolting it on
+inconsistently with every other plugin). The big-bang cutover evidence
+itself cannot be produced by code changes — it requires an actual planned
+release date, rollback owner, and sign-off, which is a decision for the
+team, not
 an artifact this document can manufacture.
