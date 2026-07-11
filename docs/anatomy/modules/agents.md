@@ -1,120 +1,322 @@
 # Module: agents
 
 **Path:** `packages/agents`
-**Role:** LangGraph multi-agent pipeline — the orchestration engine that takes a teacher's lesson request and produces a complete, quality-gated teaching pack through a 10-stage state machine.
+**Role:** LangGraph multi-agent pipeline that orchestrates teaching-pack generation through a 10-stage (default) or 12-stage (component-strategist) StateGraph, with 23-layer middleware, 6-layer quality gates, self-healing, and HITL approval gates.
 
 ## Public interface
 
-- `build_teaching_pack_graph(checkpointer, store, quality_gate)` → compiled LangGraph StateGraph (`teaching_pack/graph.py:32`)
-- `teaching_pack_thread_config(run_id)` → LangGraph configurable dict (`teaching_pack/graph.py:152`)
-- `TeachingPackState` — the full pipeline state TypedDict with ~55 fields (`teaching_pack/nodes.py`)
-- `AgentRuntime` — LLM call orchestration with retry, tags, temperature ramping (`runtime.py`)
-- `emit_run_event()` / `subscribe()` — in-memory event bus for SSE (`events.py`)
-- `get_checkpointer(environment)` → MemorySaver | SqliteSaver | PostgresSaver (`checkpointer.py`)
-- `ORDERED_MIDDLEWARE_LIST` — 23 middleware layers in fixed execution order (`middleware/registry.py:36`)
-- `SKILL_MAP` — 6 curriculum skill definitions (`skills/registry.py`)
-- `PromptCompiler` / `PromptRegistry` — versioned prompt governance (`prompts/`)
+### Graph construction and execution
+- `build_teaching_pack_graph(checkpointer, store, quality_gate, content_store, ...)` — builds the compiled LangGraph StateGraph. Entry point for the entire pipeline. (`teaching_pack/graph.py:32`)
+- `teaching_pack_thread_config(run_id) -> LangGraphRunnableConfig` — returns thread config with `thread_id` and `max_concurrency`. (`teaching_pack/graph.py:168`)
+- `TeachingPackState` — the canonical LangGraph state TypedDict used by all stage nodes. (`teaching_pack/nodes.py:61`)
+
+### Stage definitions
+- `TeachingPackStage` (alias for `StageEnum`) — 15-value StrEnum of all possible stage names. (`teaching_pack/stages.py:9`)
+- `teaching_pack_stages(component_strategy_enabled) -> tuple[StageEnum, ...]` — returns the 10-stage or 12-stage tuple based on feature flag. (`teaching_pack/stages.py:71`)
+- `TEACHING_PACK_STAGES` — default 10-stage tuple. (`teaching_pack/stages.py:42`)
+- `TEACHING_PACK_STAGES_WITH_COMPONENT_STRATEGY` — 12-stage variant. (`teaching_pack/stages.py:55`)
+
+### Protocol ports (boundary contracts)
+- `TeachingPackGraph` — LangGraph execution boundary protocol. (`teaching_pack/ports.py:62`)
+- `QualityGate` — artifact quality check boundary. (`teaching_pack/ports.py:125`)
+- `ArtifactRenderer` — HTML rendering boundary. (`teaching_pack/ports.py:97`)
+- `SearchFetchClient` — search/fetch boundary. (`teaching_pack/ports.py:89`)
+- `LLMTransport` — structured model call boundary. (`teaching_pack/ports.py:74`)
+- `NotificationChannel` — teacher/admin notification boundary. (`teaching_pack/ports.py:110`)
+- `RunStore` — run metadata persistence boundary. (`teaching_pack/ports.py:17`)
+- `EventWriter` — compact event persistence boundary. (`teaching_pack/ports.py:29`)
+- `ArtifactSnapshotStore` — rendered snapshot cache boundary. (`teaching_pack/ports.py:42`)
+- `RunExecutor` — queued run execution boundary. (`teaching_pack/ports.py:50`)
+
+### Runtime
+- `AgentRuntime` — LLM call wrapper with retry, temperature decay, and metadata tagging. (`runtime.py:47`)
+- `AgentRuntimeConfig` — configuration for agent, model, retries, temperature. (`runtime.py:34`)
+
+### Event bus
+- `emit_run_event(run_id, event_type, data)` — append event + notify SSE subscribers. (`events.py:79`)
+- `publish_event(event: ObservabilityEvent)` — low-level publish. (`events.py:84`)
+- `ObservabilityEvent` — Pydantic model for typed pipeline events. (`events.py:52`)
+- `subscribe(run_id) -> Queue` / `unsubscribe(run_id, queue)` — SSE subscription management. (`events.py:115`)
+
+### Checkpointer factory
+- `get_checkpointer(environment, **kwargs)` — creates MemorySaver/SqliteSaver/PostgresSaver by environment. (`checkpointer.py:19`)
+
+### Healing
+- `healing_node(state)` — graph node that delegates to `HealingOrchestrator`. (`healing/orchestrator.py:71`)
+- `HealingOrchestrator` — selects healing strategy (retry/rewrite/reroute/replan/escalate) by fail count and type. (`healing/orchestrator.py:14`)
+- `CircuitBreaker` — per-run or per-provider circuit breaker with Redis-backed persistence. (`healing/circuit_breaker.py:77`)
+
+### Middleware
+- `BaseMiddleware` — ABC with `before_model`/`after_model` hooks. (`middleware/base.py:38`)
+- `ORDERED_MIDDLEWARE_LIST` — 23 middleware in execution order. (`middleware/registry.py:36`)
+- `RUN_ENTRY_MIDDLEWARE`, `GENERATION_CONTEXT_MIDDLEWARE`, `GATE_LAYER_MIDDLEWARE`, `QUALITY_GATE_CONSOLIDATED_MIDDLEWARE` — middleware subsets for specific pipeline phases. (`middleware/registry.py:64-90`)
+
+### Configuration
+- `MODELS` — `ModelAssignments` singleton (14 model slots, 3 tiers, env-overridable). (`config/models.py:150`)
+- `MAX_TOKENS` — `MaxTokensConfig` singleton (per-agent token budgets). (`config/models.py:151`)
+- `NINEROUTER` — `NinerouterConfig` singleton (search/fetch config). (`config/models.py:152`)
+- `features() -> FeatureFlags` — cached feature flags from env. (`config/features.py:32`)
+- `GateConfig` — all quality gate thresholds (Pydantic Settings, `GATE_` prefix). (`config/gate_config.py:12`)
+
+### Compliance gate
+- `compliance_gate_state(state)` — deterministic compliance checks (answer key leakage, PII, HTML hard blocks). (`teaching_pack/compliance.py:39`)
+- `evaluate_compliance(state) -> ComplianceResult` — core evaluation logic. (`teaching_pack/compliance.py:65`)
+
+### Quality routing
+- `route_after_render_quality(state)` — conditional routing after quality gate (5 destinations). (`teaching_pack/quality_routing.py:27`)
+- `route_after_compliance_gate(state)` — routes to teacher_approval or artifact_workflow. (graph wiring: `graph.py:139`)
+- `route_after_teacher_approval(state)` — routes to export_finalize or artifact_workflow. (graph wiring: `graph.py:115`)
+- `route_after_triage(state)` — routes to plan_unit or generate_pack path. (graph wiring: `graph.py:83`)
+- `route_after_unit_approval(state)` — routes to unit_prep or back to unit_planning. (graph wiring: `graph.py:103`)
+- `route_after_artifact_workflow(state)` — fan-out to render_quality or generate_one_artifact. (graph wiring: `graph.py:122`)
 
 ## Internal structure
 
-### teaching_pack/ (42 files) — The Authoritative Pipeline
-
-- `graph.py` — `build_teaching_pack_graph()`: wires stage nodes with conditional edges. Feature-flagged: 10 stages default, 12 with component strategist. Conditional routes: `route_after_triage` → `unit_planning` or `preplanning_search`; `route_after_teacher_approval` → `artifact_workflow` or `export_finalize` (with scoped rejection logic); `route_after_compliance_gate` → `teacher_approval` or `artifact_workflow`; `route_after_render_quality` → `planning_blueprint`, `post_blueprint_research`, `artifact_workflow`, `teacher_approval`, or `compliance_gate`
-- `stages.py` — `StageEnum` (StrEnum, 15 values): `SETUP_CONTRACT`, `TRIAGE`, `UNIT_PLANNING`, `UNIT_APPROVAL`, `UNIT_PREP`, `PREPLANNING_SEARCH`, `PLANNING_BLUEPRINT`, `PROVISIONAL_COMPONENT_STRATEGY`, `POST_BLUEPRINT_RESEARCH`, `FINALIZE_COMPONENT_STRATEGY`, `ARTIFACT_WORKFLOW`, `RENDER_QUALITY`, `COMPLIANCE_GATE`, `TEACHER_APPROVAL`, `EXPORT_FINALIZE`. Two presets: `TEACHING_PACK_STAGES` (10 default) and `TEACHING_PACK_STAGES_WITH_COMPONENT_STRATEGY` (12, adds `PROVISIONAL_COMPONENT_STRATEGY` and `FINALIZE_COMPONENT_STRATEGY`). Note: `UNIT_PLANNING`/`UNIT_APPROVAL`/`UNIT_PREP` are NOT in either preset tuple — they are added conditionally by `build_teaching_pack_graph()` based on triage routing.
-- `nodes.py` — `make_stage_node()` factory dispatching to handler functions; `TeachingPackState` TypedDict (~55 fields); all routing functions for conditional edges including `_unit_approval()`, `route_after_triage()`, `route_after_teacher_approval()` (checks `component_strategy_plan`, `is_scoped_teacher_action`, `has_scoped_section_edit`, `_scoped_reactions`), `route_after_compliance_gate()`
-- `ports.py` — 8 Protocol interfaces (`RunStore`, `QualityGate`, `ArtifactRenderer`, `LLMTransport`, etc.) decoupling the graph from infrastructure
-- `config.py` — `TeachingPackConfig` (pydantic-settings): parallelism, timeouts, max attempts
-- `triage.py` — Heuristic + LLM single-lesson vs multi-session unit routing
-- `compliance.py` — `compliance_gate_state()`: deterministic hard-block checks (answer-key, PII, HTML)
-- `quality.py` — `quality_issues()`: schema validation, placeholder detection, answer-key separation, pack coherence
-- `quality_routing.py` — `route_after_render_quality()`: routes by issue type; `quality_recovery_route()` maps `factual_uncertainty` → `post_blueprint_research`, `not_aligned_with_objectives`/`vietnamese_difficulty` → `planning_blueprint`, default → `artifact_workflow`
-- `quality_runtime.py` — `render_quality()`: orchestrates Layer 1-4 quality checks
-- `artifact_fanout.py` — Parallel artifact generation via LangGraph `Send` with wave-based dependency ordering (`_DEPENDENCIES`, `_WAVES`)
-- `exporters.py` — `ExporterRegistry`: HTML/GIFT/H5P/QTI/Anki/PPTX dispatch
-- `snapshots.py` — `build_snapshot()`: renders artifacts to standalone HTML (teacher + student views)
-- `store.py` — PostgresStore factory for cross-run memory with TTL
-- `middleware_runtime.py` — 4 middleware groups: entry, generation-context, gate, quality-consolidated
-- `scoped_regeneration.py` — Scoped section/block edit application on teacher rejection
-
-### sub_agents/ (9 agents)
-
-| Agent | Role | Key contracts |
-|-------|------|---------------|
-| `planner` | UbD lesson plan generation (Gagne 9-event) | `LessonPlan`, `LessonSequence` |
-| `researcher` | FACT-protocol web research + grounding | `ResearchBundle` |
-| `content_creator` | ArtifactContent generation (hierarchical or sequential) | `ArtifactContent` |
-| `reviewer` | LLM-as-Judge via AdaptiveJudge (G-Eval, 3 judges) | `JudgeOutput` |
-| `unit_planner` | Multi-session unit sequencing + critique | `LessonSequence` |
-| `diagnostician` | Student performance diagnostics (BKT) | `DiagnosticReport` |
-| `coherence_judge` | Cross-artifact coherence check | skeleton |
-| `practice_generator` | Drill/practice set generation | minimal |
-| `roadmap_agent` | Curriculum roadmap generation | `RoadmapContent` |
-
-### middleware/ (23 layers)
-
-Ordered execution: `InputSanitization(1)` → `TokenBudget(2)` → `ThreadData(3)` → `Uploads(4)` → `ContentSafety(5)` → `LLMErrorHandling(6)` → `Guardrail(7)` → `TeacherAuditLog(8)` → `SafetyFinishReason(9)` → `DynamicContext(10)` → `SkillActivation(11)` → `TokenUsage(12)` → `Title(13)` → `Memory(14)` → `SystemMessageCoalescing(15)` → `CurriculumAlignment(16)` → `ReadabilityLevel(17)` → `PedagogicalQuality(18)` → `BiasDetection(19)` → `ArtifactCoherence(20)` → `LearningObjectiveAlignment(21)` → `SequenceConsistencyValidator(22)` → `Clarification(23)` — **Clarification must always be last (INVARIANT-08)**.
-
-### gates/ (HITL implementations)
-
-`blueprint_approval`, `content_approval`, `schema_validator`, `content_reviewer`, `llm_judge`, `export_readiness`, `fact_check/`, `presentation/`
-
-### healing/ (self-healing system)
-
-Escalation ladder: `retry(1st)` → `rewrite(2nd)` → `reroute(3rd)` → `replan(4th)` → `escalate(>4)`. Includes `CircuitBreaker` (run-scoped + provider-scoped, Redis-backed).
-
-### llm/ (LLM routing)
-
-`complete_json_chat()` main call path with streaming transport policy, Langfuse tracing, event emission, prompt gate enforcement.
-
-### tools/ (agent tool definitions)
-
-`web_search`, `web_fetch` (via 9Router sidecar), `read_file`, `write_file`. Access matrix: planner=web_search+read_file, researcher=web_search+web_fetch+read_file, content_creator=read_file+write_file.
-
-### config/ (model routing)
-
-3-tier model assignment: strong (`MODEL_STRONG_DEFAULT`), medium (always "4omc"), fast (`MODEL_FAST_DEFAULT`). Feature flags: `topic_decomposition_v1`, `vocabulary_batch_v1`, `component_strategist_v1`.
-
-### Other
-
-- `prompts/` — Versioned prompt modules with SHA-256 content hashes, overlay governance, drift detection
-- `skills/` — 6 curriculum skills (CCSS Math/ELA, VN Ministry 2018, HSA Exam Prep, Bloom Taxonomy, Zamery Pack)
-- `observability/` — Langfuse tracing (degrades to no-op)
-- `slide_deck_engine/` — Deterministic slide deck generation with phases, policies, quality checks
-- `inverse_thinking_pipeline.py` — Alternative pedagogy projection
-- `kt_engine.py` — Knowledge Tracing (BKT) update per student per KC
+```
+packages/agents/
+├── teaching_pack/             # Authoritative stage graph
+│   ├── graph.py               # build_teaching_pack_graph — StateGraph assembly
+│   ├── stages.py              # StageEnum (15 values), teaching_pack_stages()
+│   ├── nodes.py               # make_stage_node() dispatch, all stage node impls
+│   ├── ports.py               # Protocol boundaries (10 protocols)
+│   ├── config.py              # TeachingPackConfig (parallelism, etc.)
+│   ├── quality_routing.py     # route_after_render_quality (5-way conditional)
+│   ├── quality.py             # Quality gate helper functions
+│   ├── quality_runtime.py     # Runtime quality evaluation
+│   ├── compliance.py          # Deterministic compliance gate (answer key, PII, HTML)
+│   ├── content_orchestrator.py # ArtifactContentStore abstraction
+│   ├── artifact_fanout.py     # Artifact fan-out routing and generation
+│   ├── generate_one_artifact.py # Single artifact generation node
+│   ├── healing_runtime.py     # Healing integration for teaching-pack pipeline
+│   ├── scoped_repair.py       # Scoped regeneration on rejection
+│   ├── scoped_repair_models.py # Repair model definitions
+│   ├── gate_trust.py          # Teacher trust score computation
+│   ├── triage.py              # Request triage (unit vs children)
+│   ├── vocabulary_batch_orchestrator.py # Vocabulary batch workflow
+│   ├── vocabulary_input_normalizer.py # Input normalization
+│   ├── vocabulary_snapshot.py # Vocabulary snapshot management
+│   ├── component_strategy_stage.py # Component strategy generation
+│   ├── component_strategy_rollout.py # Feature-flagged rollout logic
+│   ├── strategy_quality.py    # Strategy quality validators
+│   ├── strategy_quality_events.py # Strategy quality observability
+│   ├── teacher_memory.py      # Cross-run teacher memory (LangGraph store)
+│   ├── subject_packs/         # Subject-specific question builders
+│   └── specialists/           # Artifact-type specialists
+├── sub_agents/                # 9 sub-agent implementations
+│   ├── planner/               # Lesson planning (UbD, staged engine, curriculum coverage)
+│   ├── researcher/            # Research gathering (lexical grounding, evidence)
+│   ├── content_creator/       # Content generation (hierarchical, semantic anchors)
+│   ├── reviewer/              # Quality review (live quality gate, AdaptiveJudge)
+│   ├── unit_planner/          # Unit-level sequencing (critique, repair, observability)
+│   ├── diagnostician/         # Student performance diagnostics
+│   ├── roadmap_agent/         # Curriculum roadmap generation
+│   ├── practice_generator/    # Drill/practice set generation (semantic anchors)
+│   └── coherence_judge/       # Cross-artifact coherence check
+├── middleware/                 # 23-layer middleware chain
+│   ├── base.py                # BaseMiddleware ABC, MiddlewareState, MiddlewareContext
+│   ├── registry.py            # Ordered middleware list, phase subsets
+│   ├── context/               # DynamicContext, Memory, SkillActivation, Title, TokenUsage, SystemMessageCoalescing
+│   ├── quality/               # Curriculum, Readability, Pedagogical, Bias, ArtifactCoherence, LOAlignment
+│   ├── safety/                # ContentSafety, Guardrail, InputSanitization, LLMErrorHandling, SafetyFinishReason, TeacherAuditLog, ThreadData, TokenBudget, Uploads
+│   └── terminal/              # Clarification (always last, order=23)
+├── gates/                     # Quality gate implementations
+│   ├── state.py               # GateState TypedDict
+│   ├── content_reviewer.py    # Content quality review gate
+│   ├── llm_judge.py           # LLM-as-Judge (AdaptiveJudge)
+│   ├── presentation/          # HTML validation, answer key guard
+│   ├── export_readiness.py    # Export readiness gate
+│   └── gate_01_blueprint.py, gate_02_content_approval.py # Legacy gate nodes
+├── healing/                   # Self-healing system
+│   ├── orchestrator.py        # HealingOrchestrator (strategy selection)
+│   ├── circuit_breaker.py     # CircuitBreaker (per-run, per-provider)
+│   ├── strategies/            # retry, rewrite, reroute, replan, escalate
+│   ├── redis_breaker_store.py # Redis-backed breaker state persistence
+│   └── html_healer.py         # HTML-specific healing
+├── config/                    # Configuration
+│   ├── models.py              # ModelAssignments, MaxTokensConfig, NinerouterConfig
+│   ├── features.py            # FeatureFlags (6 flags)
+│   ├── gate_config.py         # GateConfig (all thresholds)
+│   └── model_drift.py         # Model snapshot and drift detection
+├── events.py                  # In-memory event bus (SSE/observability)
+├── runtime.py                 # AgentRuntime, AgentRuntimeConfig
+├── checkpointer.py            # LangGraph checkpointer factory
+├── llm/                       # LLM client wrappers
+├── prompts/                   # Prompt compiler
+├── tools/                     # LLM tools (web_search, read_file, write_file, ninerouter_web)
+├── observability/             # Langfuse tracing integration
+├── quality/                   # Internal quality checks (unit_coherence)
+├── slide_deck_engine/         # Slide deck generation engine (~15 files)
+├── effectiveness/             # Student effectiveness tracking (MoET export)
+├── skills/                    # Skill loader/registry
+├── nodes/                     # Legacy node implementations (NodeState, finalize, etc.)
+└── grounding/                 # Knowledge grounding
+```
 
 ## Depends on
 
-- **`contracts`** — imports 147+ Pydantic models: `LessonPlan`, `ResearchBundle`, `ArtifactContent`, `RunContract`, `ArtifactWorkflowState`, `QualityReport`, `LessonSequence`, `InverseThinkingPack`, etc. (`teaching_pack/nodes.py`, `sub_agents/*/nodes.py`)
-- **`quality`** — imports `AdaptiveJudge`, `check_artifact_answer_key_leakage`, `html_hard_blocks`, `detect_pii`, `ComplianceResultDict` (`healing/`, `gates/`, `middleware/safety/`)
-- **`renderer`** — imports `renderArtifact()`, `SlideDeckData` projection (`teaching_pack/snapshots.py`, `slide_deck_engine/`)
-- **`methodologies`** — imports `InverseThinkingProjection` (`inverse_thinking_pipeline.py`)
-- **`gateway`** — imports `services.gateway.events`, `services.gateway.teaching_pack.stages` (only in `teaching_pack/store.py` for PostgresStore)
-- external: `langgraph>=1.0.0` (StateGraph, checkpointer, interrupt, Send)
-- external: `httpx>=0.27.0` (9Router HTTP transport)
-- external: `langchain-openai>=1.3.3`
-- external: `networkx>=3.5` (graph algorithms)
-- external: `pydantic-settings>=2.14.2`
-- external: `langfuse>=2.0.0` (optional tracing)
+### common/contracts (157 imports across 125 files) — CONFIRMED
+
+The primary dependency. Agents imports Pydantic models that define the data contracts between pipeline stages and across module boundaries.
+
+**Key imports by contract:**
+- `common.contracts.artifact` → `ArtifactContent` — `teaching_pack/nodes.py:5`, `teaching_pack/content_orchestrator.py:8`, `teaching_pack/generate_one_artifact.py:8`, `sub_agents/content_creator/nodes.py:12`, `sub_agents/content_creator/hierarchical.py:7`
+- `common.contracts.lesson_plan` → `LessonPlan`, `MethodologyMetadata` — `sub_agents/planner/nodes.py:13`, `sub_agents/planner/staged_engine.py:7`, `sub_agents/planner/lesson_critic.py:6`
+- `common.contracts.quality` → `QualityFailureClass`, `QualityIssue`, `ArtifactQualityReport` — `teaching_pack/compliance.py:9`, `teaching_pack/quality_runtime.py:6`, `teaching_pack/scoped_repair.py:5`, `sub_agents/reviewer/live_quality_gate.py:8`
+- `common.contracts.run_contract` → `JsonObject`, `RunContract`, `DecompositionIntent` — `teaching_pack/ports.py:13`, `teaching_pack/triage.py:6`, `slide_deck_engine/deck_shape.py:28`
+- `common.contracts.research_bundle` → `ResearchBundle` — `sub_agents/researcher/nodes.py:15`
+- `common.contracts.slide_deck` → `SlideDeckData`, `SlideDeckSlide`, `PedagogicalRole` — `slide_deck_engine/models.py:7`, `slide_deck_engine/deck_shape.py:29`, `slide_deck_engine/pedagogical_components.py:58`
+- `common.contracts.vocabulary_batch` → `SemanticAnchorCluster`, `PracticeSet`, `NormalizedVocabularyCluster` — `sub_agents/practice_generator/semantic_anchor.py:9`, `sub_agents/content_creator/semantic_anchor_synthesis.py:8`, `teaching_pack/vocabulary_batch_orchestrator.py:10`
+- `common.contracts.lesson_sequence` → `LessonSequence`, `SessionPlan`, `BloomLevel` — `sub_agents/unit_planner/nodes.py:7`, `sub_agents/unit_planner/sequence_critic.py:7`, `middleware/sequence_consistency_validator.py:9`
+- `common.contracts.component_strategy` → `ComponentStrategyRequest` — `teaching_pack/component_strategy_stage.py:5`
+- `common.contracts.outcome` → `StudentAttempt`, `StudentKCState` — `kt_engine.py:8`, `effectiveness/moet_export.py:6`
+- `common.contracts.grade_band` → `GradeBand`, `grade_band_for_label` — `teaching_pack/subject_packs/math_question_builder.py:16`, `teaching_pack/specialists/quiz_specialist.py:8`
+- `common.contracts.answer_set` → `AnswerSet`, `derive_answer_key_artifact`, `derive_answer_set` — `teaching_pack/generate_one_artifact.py:7`
+- `common.contracts.diagnostic_report` → `DiagnosticReport` — `sub_agents/diagnostician/nodes.py:12`
+- `common.contracts.inverse_thinking` → `CreativeFrame`, `InverseThinkingPack` — `inverse_thinking_pipeline.py:8`
+- `common.contracts.methodology_registry` → `MethodologyTag`, `methodology_entry_by_tag` — `sub_agents/planner/staged_engine.py:9`, `sub_agents/content_creator/methodology_helpers.py:7`
+- `common.contracts.artifact_workflow` → `ArtifactWorkflowState` — `teaching_pack/quality_runtime.py:5`, `sub_agents/reviewer/live_quality_gate.py:7`
+- `common.contracts.seam_contracts` → `PlannerHandoff` — `teaching_pack/nodes.py` (within `_planning_blueprint`)
+
+### packages/quality (17 imports across 14 files) — CONFIRMED
+
+Deterministic quality checks used in compliance gate, LLM judge, and middleware.
+
+- `packages.quality.compliance_policy` → `check_doctype`, `external_asset_issues`, `check_artifact_answer_key_leakage`, `html_hard_blocks`, `hard_block_violations` — `teaching_pack/compliance.py:9`, `gates/presentation/html_validator.py:7`, `gates/presentation/answer_key_guard.py:6`
+- `packages.quality.layer2_content.pii` → `detect_pii`, `PiiAuditEvent`, `scrub_pii` — `teaching_pack/compliance.py:10`, `inverse_thinking_pipeline.py:18`, `middleware/safety/guardrail.py:4`
+- `packages.quality.layer1_schema.component_gate` → `validate_component_minimums` — `gates/content_reviewer.py:15`
+- `packages.quality.layer2_content.component_scorer` → `score_component_usage` — `gates/llm_judge.py:9`
+- `packages.quality.layer2_content.methodology` → `check_methodology_compliance` — `gates/content_reviewer.py:16`
+- `packages.quality.layer2_content.pedagogical` → `check_pedagogical_metrics` — `tests/teaching_pack/test_generate_one_artifact.py:9`
+- `packages.quality.layer6_export.export_validator` → `check_export_readiness` — `tests/test_flashcard_export_e2e.py:24`
+- `packages.quality.layer2_content.inverse_thinking` → `validate_inverse_thinking_pack` — `inverse_thinking_pipeline.py:17`
+
+### packages/llm_client (4 imports across 3 files) — CONFIRMED
+
+LLM transport layer.
+
+- `packages.llm_client.client` → `ChatMessage`, `LLMClient`, `ChatCompletionMessageParam`, `ChatResponse` — `llm/chat.py:9`, `runtime.py` (TYPE_CHECKING), `tests/llm/test_transport_policy.py:11`
+- `packages.llm_client.errors` → `OpenAIError` — `llm/chat.py:10`
+- `packages.llm_client.config` → `LLMClientConfig` — `tests/test_llm_config.py:4`
+
+### packages/methodologies (1 import in 1 file) — CONFIRMED
+
+- `packages.methodologies.inverse_thinking` — `inverse_thinking_pipeline.py:9`
+
+### langgraph (framework dependency)
+
+- `langgraph.graph.StateGraph`, `END` — `teaching_pack/graph.py:50-51`
+- `langgraph.types.interrupt` — `teaching_pack/nodes.py` (within `_unit_approval` and teacher gate nodes)
+- `langgraph.checkpoint.memory.MemorySaver`, `langgraph.checkpoint.sqlite.SqliteSaver`, `langgraph.checkpoint.postgres.PostgresSaver` — referenced in `checkpointer.py:13-16`
+
+### packages/agents (internal, runtime-resolved)
+
+- `packages.agents.llm` → LLM call wrappers (`runtime.py:8`, `runtime.py:61`)
+- `packages.agents.config` → All config singletons (loaded throughout)
+- `packages.agents.events` → Event bus (`healing/orchestrator.py:6`, `teaching_pack/compliance.py:6`)
+- `packages.agents.prompts.compiler` → `CompiledPrompt` (`runtime.py:11` via TYPE_CHECKING)
+
+### agents → gateway (1 import, TEST ONLY — not a production boundary violation)
+
+- `tests/test_flashcard_export_e2e.py:28` — imports `services.gateway.teaching_pack_export_writer`. Production code has **zero** imports from `services/*`.
+
+### agents → renderer (0 Python imports — DISPROVED)
+
+The hypothesis of 9 imports is incorrect. Agents does NOT import from `packages/renderer` via Python imports. The renderer is invoked via:
+1. **Subprocess** — `nodes/finalize.py:28` runs `node packages/renderer/dist/agent-renderer.js`
+2. **Protocol boundary** — `teaching_pack/ports.py:97` defines `ArtifactRenderer` protocol
+3. **Test-only** — `prompts/tests/test_registry.py:25` imports `TemplateModule` from renderer
 
 ## Used by
 
-- **`gateway`** — imports `build_teaching_pack_graph`, `TeachingPackState`, `teaching_pack_thread_config` at startup (`services/gateway/main.py:150-155`, `teaching_pack_executor.py`)
-- **`tests`** — imports teaching pack graph, nodes, stages, artifact fan-out (`tests/e2e/`, `tests/integration/`, `tests/security/`)
-- **`scripts`** — imports agents config and testing utilities (`scripts/`)
+### services/gateway (production imports confirmed by grep across 26 files)
+
+- `services/gateway/teaching_pack_executor.py:10-11` — `LangGraphRunnableConfig`, `teaching_pack_thread_config` from `packages.agents.teaching_pack.graph`
+- `services/gateway/teaching_pack_executor.py:10` — `safe_error_summary` from `packages.agents.llm.error_summary`
+- `services/gateway/routers/runs.py:13` — `get_run_events`, `has_terminal_event`, `subscribe`, `unsubscribe` from `packages.agents.events`
+- `services/gateway/observability_events.py:3` — `ObservabilityEvent` from `packages.agents.events`
+- `services/gateway/teaching_pack_store.py:9` — `ObservabilityEvent` from `packages.agents.events`
+- `services/gateway/teaching_pack_completion.py:6` — `ArtifactContentStore` from `packages.agents.teaching_pack.content_orchestrator`
+- `services/gateway/routers/teaching_pack_previews.py:17-19` — `ObservabilityEvent`, `features`, slide_deck_engine components from `packages.agents`
+- `services/gateway/research_provider_9router.py:8` — `NineRouterFetchRequest`, `NineRouterSearchRequest` from `packages.agents.tools.ninerouter_web`
+- `services/gateway/artifact_rewrite_proposal.py:20` — block rewrite LLM from `packages.agents.slide_deck_engine`
+- `services/gateway/artifact_workflow_errors.py:6` — `safe_message_summary` from `packages.agents.llm.error_summary`
+- `services/gateway/teaching_session/branches.py:67-68` — `DensityBudgetPolicy`, slide deck quality from `packages.agents.slide_deck_engine`
+- `services/gateway/routers/teaching_session_live.py:31-36` — block rewrite LLM and teacher memory from `packages.agents`
+
+### tests/ (cross-package integration)
+
+- `tests/e2e/canonical_flow.py` — `build_teaching_pack_graph`
+- `tests/integration/test_full_pipeline.py` — `NodeState`
+- `tests/test_basestore_ttl.py` — `build_teaching_pack_graph`
+
+### apps/web (indirect, via gateway HTTP API only — no direct imports)
 
 ## Data & side effects
 
-- Reads/writes: PostgreSQL via SQLAlchemy (state persistence), Redis (circuit breaker, teaching session pub/sub)
-- Network calls: 9Router sidecar (`http://localhost:20128/v1`) for LLM and web search/fetch (sync/async)
-- Config/env vars: `MODEL_*`, `FEATURE_*`, `MAX_TOKENS_*`, `NINEROUTER_*`, `OMC_ENVIRONMENT`, `DATABASE_URL`, `REDIS_URL`
+### Environment variables consumed
+
+| Variable | Source | Purpose |
+|----------|--------|---------|
+| `MODEL_STRONG_DEFAULT` | `config/models.py:60` | Tier alias for strong-tier models |
+| `MODEL_FAST_DEFAULT` | `config/models.py:59` | Tier alias for fast-tier models |
+| `MODEL_<TASK>` | `config/models.py:40-80` | Per-task model overrides (14 slots) |
+| `MAX_TOKENS_<AGENT>` | `config/models.py:107-127` | Per-agent max output tokens |
+| `NINEROUTER_*` | `config/models.py:130-147` | 9Router web tool config (timeout, search_results, min_sources, fetch limits) |
+| `GATE_*` | `config/gate_config.py:12-74` | Quality gate thresholds (judge score, HITL timeout, circuit breaker, etc.) |
+| `FEATURE_TOPIC_DECOMPOSITION_V1` | `config/features.py:22` | Topic decomposition feature flag |
+| `FEATURE_VOCABULARY_BATCH_V1` | `config/features.py:23` | Vocabulary batch feature flag |
+| `FEATURE_COMPONENT_STRATEGIST_V1` | `config/features.py:24` | Component strategist feature flag |
+| `FEATURE_SLIDE_DECK_EDITOR_V1` | `config/features.py:25` | Slide deck editor feature flag |
+| `FEATURE_SLIDE_DECK_AI_REWRITE_V1` | `config/features.py:26` | Slide deck AI rewrite feature flag |
+| `UNIT_FANOUT_CONCURRENCY` | `config/features.py:27` | Parallel artifact generation concurrency |
+| `REDIS_URL` / `REDIS_HOST` / `REDIS_PORT` / `REDIS_AUTH` | `healing/circuit_breaker.py:221-235` | Circuit breaker state persistence |
+
+### Network calls
+
+- **LLM calls** via `packages/llm_client` — all traffic routes through 9Router (`http://localhost:20128/v1`) or optional LiteLLM proxy
+- **Web search/fetch** via `tools/ninerouter_web.py` — 9Router web tool for research
+- **Redis** via `healing/redis_breaker_store.py` — circuit breaker state persistence
+- **Langfuse** via `observability/langfuse_client.py` — tracing (optional, degrades to no-op)
+
+### File I/O
+
+- **Checkpointer files** — SQLite at `omc_checkpoints.db` (staging) via `checkpointer.py:60`
+- **Renderer subprocess** — `nodes/finalize.py:28` shells out to `node packages/renderer/dist/agent-renderer.js`
+
+### In-memory state
+
+- **Event bus** (`events.py:72-73`) — `_event_store` and `_event_subscribers` dicts, per `run_id`. Not persisted; lost on restart. Used for SSE streaming.
+- **Feature flag cache** (`config/features.py:30`) — `_FEATURES` global singleton, lazily initialized.
+- **Model assignments singleton** (`config/models.py:150`) — `MODELS` created once at import time.
 
 ## Notes / discrepancies vs existing docs
 
-- AGENTS.md §4.1 claims model names `deepseek-v4-flash` / `gpt-5.4`; the code uses `"4omc"` everywhere with tier aliases (all default to "4omc" unless env vars override). The model source of truth is `config/models.py`, not AGENTS.md.
-- AGENTS.md §4.4 describes Reviewer as calling LLM directly; it actually constructs `AdaptiveJudge(num_judges=gate_config.judge_n)` and delegates through `AgentRuntime` with multi-judge dispatch.
-- AGENTS.md §8.5 lists 13 template files; the actual count in `templates/pages/` is 13 page templates plus 43 component templates plus 10 Artifact UI templates.
+### Corrected from prior trace
+
+1. **"agents → renderer: 9 imports"** — **DISPROVED**. Zero Python imports from `packages.renderer` in production code. Renderer is called via subprocess (`nodes/finalize.py:28`) and Protocol boundary (`ports.py:97`). One test-only import in `prompts/tests/test_registry.py:25`.
+
+2. **"agents → gateway: 17 imports"** — **INCORRECT for production**. Exactly 1 import from `services/*` exists, and it's in a test file (`tests/test_flashcard_export_e2e.py:28`). Production code has zero gateway imports. INVARIANT-02 is clean.
+
+3. **"agents → quality: 20 imports"** — Actual count is 17 (14 production + 3 test). Close but not exact.
+
+4. **"agents → contracts: 184 imports"** — Actual count is 157 across 125 files.
+
+### Structural observations
+
+5. **Component-strategist variant** (`TEACHING_PACK_STAGES_WITH_COMPONENT_STRATEGY`) places `teacher_approval` BEFORE `artifact_workflow` — structurally different from the default path, not just a longer sequence.
+
+6. **Legacy `nodes/` directory** still exists (`state.py`, `finalize.py`, `preflight.py`, `pack_scope.py`, `quickstart.py`) but is NOT part of the authoritative teaching-pack pipeline. Remnants of older graph architecture.
+
+7. **`slide_deck_engine/`** is a substantial sub-module (~15 files) for slide deck generation. Not mentioned in AGENTS.md project structure but actively used by the gateway for slide deck editing (preview, block rewrite, scoped edit).
+
+8. **`effectiveness/`** directory contains student effectiveness tracking (`moet_export.py` for MoET data export). An operational module not in AGENTS.md.
+
+### Runtime-wired dependencies (not visible from imports)
+
+- **Content store** resolved at graph build time (`graph.py:59-61`) — `LangGraphArtifactContentStore(store)` or `InMemoryArtifactContentStore()`. Gateway injects the implementation.
+- **Quality gate** injected via `quality_gate` parameter to `build_teaching_pack_graph()`. Gateway creates `GatewayTeachingPackQualityGate`.
+- **Checkpointer** injected externally; agents provides the factory (`checkpointer.py`).
+- **Healing strategies** imported statically (`healing/orchestrator.py:8`) but behavior varies by GateConfig.
 
 ---
-
-_Traced from source on 2026-07-10. Files examined in depth: all 434 files in packages/agents, prioritized by reference count and size. Key entry points: teaching_pack/graph.py, teaching_pack/nodes.py, middleware/registry.py._
+_Traced from source on 2026-07-11. Files examined in depth: `teaching_pack/graph.py`, `teaching_pack/nodes.py`, `teaching_pack/stages.py`, `teaching_pack/ports.py`, `teaching_pack/compliance.py`, `teaching_pack/quality_routing.py`, `teaching_pack/quality_runtime.py`, `config/models.py`, `config/features.py`, `config/gate_config.py`, `config/model_drift.py`, `runtime.py`, `events.py`, `checkpointer.py`, `middleware/base.py`, `middleware/registry.py`, `healing/orchestrator.py`, `healing/circuit_breaker.py`, `healing/strategies/*.py`, `inverse_thinking_pipeline.py`. Grep-verified all 5 Phase 3 hypothesis edges plus llm_client dependency. Confirmed gateway→agents reverse direction across 26 gateway files._
