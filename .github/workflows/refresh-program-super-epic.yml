@@ -1,0 +1,55 @@
+name: Refresh Program Super Epic
+
+on:
+  # Issue và Epic đều phát sinh event này khi được đóng hoặc mở lại.
+  issues:
+    types:
+      - closed
+      - reopened
+
+  # Cho phép chạy thủ công trong tab Actions.
+  workflow_dispatch:
+
+  # Chạy dự phòng 4 lần/ngày nếu webhook nào đó bị bỏ lỡ.
+  schedule:
+    - cron: "17 */6 * * *"
+
+  # Refresh khi chính script hoặc workflow được thay đổi.
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/create_program_super_epic.py"
+      - ".github/workflows/refresh-program-super-epic.yml"
+
+permissions:
+  contents: read
+  issues: write
+
+# Nếu nhiều issue được đóng liên tiếp, chỉ giữ lần chạy mới nhất.
+concurrency:
+  group: refresh-program-super-epic
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh Super Epic
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/create_program_super_epic.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --yes \
+            --top 15
