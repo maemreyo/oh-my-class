@@ -197,6 +197,8 @@
 | Method | Path | Handler | Notes |
 |--------|------|---------|-------|
 | GET | `/ops/slo` | `routers/ops.py:17` `get_slo_snapshot` | Admin only |
+| GET | `/ops/dead-letter-jobs` | `routers/ops.py` `list_dead_letter_jobs` | #124: admin-only inspection of `RunJobStatus.DEAD_LETTER` jobs |
+| POST | `/ops/dead-letter-jobs/{job_id}/replay` | `routers/ops.py` `replay_dead_letter_job` | #124: admin-only replay -- resets to `pending` with a clean attempt count via `TeachingPackJobStore.replay_dead_letter` |
 
 ### Teaching Session Live (prefix `/teaching-sessions`) — session-token auth, not JWT
 

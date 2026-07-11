@@ -91,6 +91,18 @@ class TeachingPackJobStore:
         result = await self._session.execute(statement)
         return [_read_job(job) for job in result.scalars().all()]
 
+    async def list_dead_letter(self, limit: int) -> list[RunJobRead]:
+        """#124: ops inspection view -- newest-first so the most recent
+        poison runs surface first."""
+        statement = (
+            select(RunJob)
+            .where(RunJob.status == RunJobStatus.DEAD_LETTER)
+            .order_by(RunJob.dead_lettered_at.desc())
+            .limit(limit)
+        )
+        result = await self._session.execute(statement)
+        return [_read_job(job) for job in result.scalars().all()]
+
     async def claim_next(
         self,
         lease_owner: str,
