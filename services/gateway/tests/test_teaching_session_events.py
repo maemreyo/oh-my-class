@@ -48,7 +48,8 @@ class TestBuildEvent:
     def test_every_significant_event_type_has_a_payload_model(
         self, event_type: SessionEventType,
     ) -> None:
-        """AC: all seven significant event types are specified (base AC1)."""
+        """AC: all significant event types are specified (base AC1), including
+        `CONTENT_REPUBLISHED` (#458 follow-up gap)."""
         payloads = {
             SessionEventType.SESSION_STARTED: {"deck_id": "d1", "snapshot_id": "snap1"},
             SessionEventType.SLIDE_CHANGED: {"slide_id": "slide-1"},
@@ -57,6 +58,7 @@ class TestBuildEvent:
             SessionEventType.BRANCH_SELECTED: {"slide_id": "slide-1", "branch_id": "b1"},
             SessionEventType.ANNOTATION_ADDED: {"slide_id": "slide-1", "annotation_id": "a1"},
             SessionEventType.SESSION_ENDED: {"reason": "class_over"},
+            SessionEventType.CONTENT_REPUBLISHED: {"snapshot_id": "snap2"},
         }
         event = build_event(
             session_id="s1", event_type=event_type, actor_role=SessionRole.CONTROLLER,
@@ -131,3 +133,17 @@ class TestApplyEvent:
         ).model_copy(update={"sequence": 2})
         state = apply_event(state, event_2)
         assert state.last_sequence == 2
+
+    def test_content_republished_derives_no_read_model_field(self) -> None:
+        """`TeachingSession.snapshot_id` in Postgres is the pin's one source
+        of truth (see `ContentRepublishedPayload`'s docstring) -- this event
+        is logged/broadcast only, same as SESSION_STARTED/ANNOTATION_ADDED."""
+        state = initial_read_model("s1")
+        event = build_event(
+            session_id="s1", event_type=SessionEventType.CONTENT_REPUBLISHED,
+            actor_role=SessionRole.CONTROLLER, payload={"snapshot_id": "snap2"},
+        ).model_copy(update={"sequence": 1})
+        next_state = apply_event(state, event)
+        assert next_state == state.__class__(
+            session_id="s1", last_sequence=1, updated_at=next_state.updated_at,
+        )

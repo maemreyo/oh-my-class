@@ -17,6 +17,11 @@ export interface TeachingSessionReadModel {
 	readonly open_interaction_id: string | null;
 	readonly tallies: Readonly<Record<string, TeachingSessionTally>>;
 	readonly ended: boolean;
+	/** Fetch `GET /teaching-sessions/{sessionId}/content` for the actual
+	 * slide content when this changes -- this field is just the pointer
+	 * (mirrors `services/gateway/routers/teaching_session_live.py`'s
+	 * `SessionContentResponse`), never the content itself. */
+	readonly current_snapshot_id: string | null;
 }
 
 export interface TeachingSessionLiveEvent {
@@ -30,6 +35,7 @@ const INITIAL_STATE: TeachingSessionReadModel = {
 	open_interaction_id: null,
 	tallies: {},
 	ended: false,
+	current_snapshot_id: null,
 };
 
 /**
@@ -80,6 +86,7 @@ export function useTeachingSessionLive(sessionId: string | null, sessionToken: s
 					open_interaction_id: string | null;
 					tallies: Record<string, TeachingSessionTally>;
 					ended: boolean;
+					current_snapshot_id: string | null;
 				};
 				if (cancelled) return;
 				setState({
@@ -88,6 +95,7 @@ export function useTeachingSessionLive(sessionId: string | null, sessionToken: s
 					open_interaction_id: data.open_interaction_id,
 					tallies: data.tallies ?? {},
 					ended: data.ended,
+					current_snapshot_id: data.current_snapshot_id ?? null,
 				});
 			} catch {
 				// ponytail: best-effort seed -- the stream's own replay-from-
@@ -146,4 +154,5 @@ const SESSION_EVENT_TYPES = [
 	"branch_selected",
 	"annotation_added",
 	"session_ended",
+	"content_republished",
 ] as const;

@@ -8,6 +8,7 @@ const INITIAL: TeachingSessionReadModel = {
 	open_interaction_id: null,
 	tallies: {},
 	ended: false,
+	current_snapshot_id: null,
 };
 
 describe("connectionStateOnError", () => {
@@ -55,6 +56,11 @@ describe("applyLiveEvent", () => {
 	it("marks ended on session_ended", () => {
 		const next = applyLiveEvent(INITIAL, "session_ended", {});
 		expect(next.ended).toBe(true);
+	});
+
+	it("folds content_republished into current_snapshot_id", () => {
+		const next = applyLiveEvent(INITIAL, "content_republished", { snapshot_id: "snap-2" });
+		expect(next.current_snapshot_id).toBe("snap-2");
 	});
 
 	it("is a no-op for events with no derived read-model field (mirrors apply_event)", () => {

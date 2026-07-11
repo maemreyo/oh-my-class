@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import partial
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -21,7 +22,8 @@ from services.gateway.teaching_pack_snapshot_store import (
 )
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
 from services.gateway.teaching_pack_types import RunId, TeacherId
-from services.gateway.teaching_session.models import TeachingSession
+from services.gateway.teaching_session.models import SessionStatus, TeachingSession
+from services.gateway.teaching_session.service import create_session
 from services.gateway.tests.teaching_pack_preview_db import DATABASE_URL
 from services.gateway.tests.teaching_pack_preview_helpers import delete_run
 
@@ -93,6 +95,54 @@ async def _seed_slide_deck_snapshot(run_id: RunId, approve: bool) -> str:
     return snapshot_id
 
 
+async def _seed_additional_slide_deck_snapshot(run_id: RunId, approve: bool) -> str:
+    """A second version of `deck-1` in an already-seeded run (no `create_run`
+    -- that would collide with the run `_seed_slide_deck_snapshot` already made)."""
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        snapshot_store = TeachingPackSnapshotStore(session)
+        snapshot = await snapshot_store.create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=f"snap-{uuid4()}",
+            run_id=run_id,
+            artifact_id="deck-1",
+            artifact_type="slide_deck",
+            content_json={"deck_id": "deck-1", "title": f"Deck {run_id} v2"},
+            rendered_html=f"<!DOCTYPE html><html><body>oh-my-class deck {run_id} v2</body></html>",
+            renderer_version="1.0",
+        ))
+        if approve:
+            await snapshot_store.approve_snapshots(run_id, [snapshot.snapshot_id])
+        await session.commit()
+        snapshot_id = snapshot.snapshot_id
+    await engine.dispose()
+    return snapshot_id
+
+
+async def _create_teaching_session(
+    *,
+    run_id: RunId,
+    deck_id: str = "deck-1",
+    snapshot_id: str,
+    teacher_id: str = "teacher-live-pub",
+    status: SessionStatus = SessionStatus.LIVE,
+) -> TeachingSession:
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        created = await create_session(
+            session,
+            session_id=f"session-{uuid4()}",
+            teacher_id=teacher_id,
+            deck_id=deck_id,
+            snapshot_id=snapshot_id,
+        )
+        created.status = status
+        await session.commit()
+    await engine.dispose()
+    return created
+
+
 async def _delete_published_sessions(run_id: RunId) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -101,6 +151,15 @@ async def _delete_published_sessions(run_id: RunId) -> None:
         await session.commit()
     await engine.dispose()
     await delete_run(run_id)
+
+
+async def _delete_session(session_id: str) -> None:
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        await session.execute(delete(TeachingSession).where(TeachingSession.session_id == session_id))
+        await session.commit()
+    await engine.dispose()
 
 
 class TestSlideDeckLivePublicationRouter:
@@ -166,4 +225,136 @@ class TestSlideDeckLivePublicationRouter:
 
         assert response.status_code == 422
         assert response.json()["detail"]["error"] == "not_a_slide_deck"
+        anyio.run(delete_run, run_id)
+
+
+class TestRepublishLiveSessionRouter:
+    """#458 follow-up gap: re-pin an already-live session to a newer approved
+    version, closing the gap this router's own docstring used to name."""
+
+    def test_republish_repins_the_session_to_the_new_approved_snapshot(
+        self, client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_seed_slide_deck_snapshot, run_id, True)
+        session = anyio.run(
+            partial(_create_teaching_session, run_id=run_id, snapshot_id="snap-original"),
+        )
+        new_snapshot_id = anyio.run(_seed_additional_slide_deck_snapshot, run_id, True)
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/deck-1/republish-live-session",
+            json={"session_id": session.session_id},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["session_id"] == session.session_id
+        assert data["snapshot_id"] == new_snapshot_id
+        assert data["republished"] is True
+        anyio.run(_delete_session, session.session_id)
+        anyio.run(delete_run, run_id)
+
+    def test_republish_is_a_no_op_when_already_pinned_to_the_head_snapshot(
+        self, client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = anyio.run(_seed_slide_deck_snapshot, run_id, True)
+        session = anyio.run(
+            partial(_create_teaching_session, run_id=run_id, snapshot_id=snapshot_id),
+        )
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/deck-1/republish-live-session",
+            json={"session_id": session.session_id},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["snapshot_id"] == snapshot_id
+        assert data["republished"] is False
+        anyio.run(_delete_session, session.session_id)
+        anyio.run(delete_run, run_id)
+
+    def test_republish_rejects_an_unapproved_head_snapshot(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_seed_slide_deck_snapshot, run_id, False)
+        session = anyio.run(
+            partial(_create_teaching_session, run_id=run_id, snapshot_id="snap-original"),
+        )
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/deck-1/republish-live-session",
+            json={"session_id": session.session_id},
+        )
+
+        assert response.status_code == 422
+        assert response.json()["detail"] == "slide_deck_not_approved"
+        anyio.run(_delete_session, session.session_id)
+        anyio.run(delete_run, run_id)
+
+    def test_republish_rejects_a_deck_mismatched_session(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_seed_slide_deck_snapshot, run_id, True)
+        session = anyio.run(partial(
+            _create_teaching_session, run_id=run_id, deck_id="other-deck", snapshot_id="snap-x",
+        ))
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/deck-1/republish-live-session",
+            json={"session_id": session.session_id},
+        )
+
+        assert response.status_code == 422
+        assert response.json()["detail"] == "session_deck_mismatch"
+        anyio.run(_delete_session, session.session_id)
+        anyio.run(delete_run, run_id)
+
+    def test_republish_rejects_a_session_owned_by_another_teacher(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_seed_slide_deck_snapshot, run_id, True)
+        session = anyio.run(partial(
+            _create_teaching_session,
+            run_id=run_id, snapshot_id="snap-original", teacher_id="teacher-someone-else",
+        ))
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/deck-1/republish-live-session",
+            json={"session_id": session.session_id},
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"] == "session_not_owned_by_teacher"
+        anyio.run(_delete_session, session.session_id)
+        anyio.run(delete_run, run_id)
+
+    def test_republish_rejects_a_terminal_session(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_seed_slide_deck_snapshot, run_id, True)
+        session = anyio.run(partial(
+            _create_teaching_session,
+            run_id=run_id, snapshot_id="snap-original", status=SessionStatus.ENDED,
+        ))
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/deck-1/republish-live-session",
+            json={"session_id": session.session_id},
+        )
+
+        assert response.status_code == 422
+        assert response.json()["detail"] == "session_not_joinable"
+        anyio.run(_delete_session, session.session_id)
+        anyio.run(delete_run, run_id)
+
+    def test_republish_rejects_an_unknown_session(self, client: TestClient) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_seed_slide_deck_snapshot, run_id, True)
+
+        response = client.post(
+            f"/teaching-packs/runs/{run_id}/artifacts/deck-1/republish-live-session",
+            json={"session_id": "session-does-not-exist"},
+        )
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "session_not_found"
         anyio.run(delete_run, run_id)

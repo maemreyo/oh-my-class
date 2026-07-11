@@ -467,7 +467,7 @@ class TestTeachingPackCompletionRecorder:
             return str(path)
 
         with patch(
-            "services.gateway.teaching_pack_export_writer._node_export",
+            "services.gateway.teaching_pack_export_writer.node_export",
             side_effect=fake_node_export,
         ):
             exported_files = await writer.write_exports(RunId("run-assessment"), state)

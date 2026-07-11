@@ -40,6 +40,7 @@ from packages.agents.teaching_pack.teacher_memory import (
 from services.gateway.auth.dependencies import require_teacher
 from services.gateway.auth.models import User  # noqa: TC001
 from services.gateway.teaching_pack_db import get_teaching_pack_session
+from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot
 from services.gateway.teaching_session import live_sync
 from services.gateway.teaching_session.branches import (
     BranchContentType,
@@ -172,6 +173,13 @@ class SessionStateResponse(BaseModel):
     tallies: dict[str, dict[str, int]]
     ended: bool
     last_sequence: int
+    # Only populated by `/state` (see `get_current_state`), which already
+    # loads the `TeachingSession` row -- `current_snapshot_id` reads
+    # Postgres's `TeachingSession.snapshot_id` directly rather than
+    # duplicating it into the event-sourced `SessionReadModel`/Redis
+    # hot-state (see `events.py::ContentRepublishedPayload`'s docstring for
+    # why that pin has exactly one source of truth).
+    current_snapshot_id: str | None = None
 
 
 def _to_state_response(state: SessionReadModel) -> SessionStateResponse:
@@ -184,6 +192,22 @@ def _to_state_response(state: SessionReadModel) -> SessionStateResponse:
         ended=state.ended,
         last_sequence=state.last_sequence,
     )
+
+
+class SessionContentResponse(BaseModel):
+    """The current pinned content for a live session (#458 follow-up gap).
+
+    `student_rendered_html` only -- never `content_json`/`rendered_html`,
+    which can carry teacher-only answer-key content
+    (`TeachingPackSnapshotStore.create_snapshot`'s isolation logic only
+    strips that from the `student_*` field). This route is reachable by
+    every joined role via `get_session_claims`, so it must never leak.
+    """
+
+    session_id: str
+    deck_id: str
+    snapshot_id: str
+    student_rendered_html: str
 
 
 async def _load_session_or_404(db: AsyncSession, session_id: str) -> TeachingSession:
@@ -467,9 +491,37 @@ async def get_current_state(
     an SSE connection open.
     """
     _require_matching_session(claims, session_id)
-    await _load_session_or_404(db, session_id)
+    session = await _load_session_or_404(db, session_id)
     state = await current_state(db, session_id)
-    return _to_state_response(state)
+    response = _to_state_response(state)
+    response.current_snapshot_id = session.snapshot_id
+    return response
+
+
+@router.get("/{session_id}/content", response_model=SessionContentResponse)
+async def get_current_content(
+    session_id: str,
+    claims: Annotated[SessionTokenPayload, Depends(get_session_claims)],
+    db: Annotated[AsyncSession, Depends(get_teaching_pack_session)],
+) -> SessionContentResponse:
+    """The currently pinned slide_deck content (base gap: the live sync layer
+    only carried navigation/interaction events before this route existed).
+
+    Re-fetch this after a `content_republished` stream event -- that event
+    only carries the new `snapshot_id`, not content itself; this is the
+    fetchable reference clients follow to get the actual slide content.
+    """
+    _require_matching_session(claims, session_id)
+    session = await _load_session_or_404(db, session_id)
+    snapshot = await db.get(ArtifactSnapshot, session.snapshot_id)
+    if snapshot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="snapshot_not_found")
+    return SessionContentResponse(
+        session_id=session.session_id,
+        deck_id=session.deck_id,
+        snapshot_id=snapshot.snapshot_id,
+        student_rendered_html=snapshot.student_rendered_html,
+    )
 
 
 @router.get("/{session_id}/stream")

@@ -84,12 +84,36 @@ class TestTeachingPackExportWriter:
             },
             {
                 "snapshot_id": "quiz-snapshot",
-                "content_json": {"artifact_id": "quiz-1", "artifact_type": "quiz", "title": "Quiz"},
+                "content_json": {
+                    "artifact_id": "quiz-1",
+                    "artifact_type": "quiz",
+                    "title": "Quiz",
+                    "sections": [
+                        {
+                            "id": "s1",
+                            "questions": [
+                                {
+                                    "id": "q1",
+                                    "type": "multiple_choice_single",
+                                    "stem": "What is 2 + 2?",
+                                    "options": [
+                                        {"id": "a", "text": "3", "isCorrect": False},
+                                        {"id": "b", "text": "4", "isCorrect": True},
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
             },
         ]
         state = {
             "approved_snapshot_ids": ["lesson-snapshot", "slide-deck-snapshot", "quiz-snapshot"],
-            "contract": {"export_formats": ["html", "gift", "h5p", "qti"]},
+            # qti is intentionally excluded: the CLI bridge always raises
+            # UnsupportedFormatError for it (see packages/exporters/src/qti/qti.ts
+            # and its dedicated qti.test.ts/cli.test.ts coverage) until QTI export
+            # is actually implemented.
+            "contract": {"export_formats": ["html", "gift", "h5p"]},
             "rendered_snapshots": artifacts,
         }
 
@@ -101,6 +125,5 @@ class TestTeachingPackExportWriter:
             "quiz-snapshot.html",
             "run-slide-release.gift.txt",
             "run-slide-release.h5p",
-            "run-slide-release.qti.xml",
         }
         assert renderer.calls == [snapshot["content_json"] for snapshot in artifacts]

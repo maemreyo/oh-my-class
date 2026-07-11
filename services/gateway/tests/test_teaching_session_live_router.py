@@ -29,6 +29,12 @@ from services.gateway.auth.models import Role, User
 from services.gateway.models import Base
 from services.gateway.routers.teaching_session_live import router
 from services.gateway.teaching_pack_db import get_teaching_pack_session
+from services.gateway.teaching_pack_snapshot_store import (
+    ArtifactSnapshotCreate,
+    TeachingPackSnapshotStore,
+)
+from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId, TeacherId
 from services.gateway.teaching_session import live_sync, service
 from services.gateway.teaching_session.models import (
     RetentionTier,
@@ -37,6 +43,7 @@ from services.gateway.teaching_session.models import (
 )
 from services.gateway.teaching_session.responses import SessionResponseAggregate
 from services.gateway.teaching_session.tokens import SessionRole, mint_session_token
+from services.gateway.tests.teaching_pack_preview_helpers import delete_run
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
@@ -88,7 +95,11 @@ async def _skip_if_schema_missing() -> None:
 
 
 async def _create_session(
-    *, retention_tier: RetentionTier = RetentionTier.AGGREGATE, class_id: str | None = None,
+    *,
+    retention_tier: RetentionTier = RetentionTier.AGGREGATE,
+    class_id: str | None = None,
+    deck_id: str = "deck-1",
+    snapshot_id: str = "snap-1",
 ) -> TeachingSession:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -97,14 +108,43 @@ async def _create_session(
             db,
             session_id=f"live-{uuid4()}",
             teacher_id=OWNER.user_id,
-            deck_id="deck-1",
-            snapshot_id="snap-1",
+            deck_id=deck_id,
+            snapshot_id=snapshot_id,
             retention_tier=retention_tier,
             class_id=class_id,
         )
         await db.commit()
     await engine.dispose()
     return created
+
+
+async def _seed_slide_deck_snapshot(run_id: RunId, *, student_html: str) -> str:
+    """A real `ArtifactSnapshot` row for `GET /{session_id}/content` to fetch --
+    `TeachingSession.snapshot_id` has no DB-level FK to `artifact_snapshots`
+    (plain string column), so a content-endpoint test needs its own row."""
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as db:
+        await TeachingPackRunStore(db).create_run(TeachingPackRunCreate(
+            run_id=run_id,
+            teacher_id=TeacherId(OWNER.user_id),
+            raw_request="Test teaching session content route",
+            class_info={"grade": 5},
+        ))
+        snapshot = await TeachingPackSnapshotStore(db).create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=f"snap-{uuid4()}",
+            run_id=run_id,
+            artifact_id="deck-1",
+            artifact_type="slide_deck",
+            content_json={"deck_id": "deck-1", "teacher_only": {"secret_notes": "top-secret"}},
+            rendered_html="<!DOCTYPE html><html><body>teacher-only-view</body></html>",
+            student_rendered_html=student_html,
+            renderer_version="1.0",
+        ))
+        await db.commit()
+        snapshot_id = snapshot.snapshot_id
+    await engine.dispose()
+    return snapshot_id
 
 
 async def _read_hot_state(session_id: str):
@@ -303,6 +343,59 @@ class TestReconnectFlow:
 
         assert response.status_code == 200
         assert response.json()["current_slide_id"] == "slide-9"
+
+    def test_state_reports_the_currently_pinned_snapshot_id(self, client: TestClient) -> None:
+        """#458 follow-up gap: `/state` reads `TeachingSession.snapshot_id`
+        straight from Postgres (not the event-sourced read model), so it's
+        always accurate even without any `content_republished` event yet."""
+        session = anyio.run(partial(_create_session, snapshot_id="snap-initial"))
+        token = mint_session_token(session, role=SessionRole.CONTROLLER, minted_by=OWNER)
+
+        response = client.get(
+            f"/teaching-sessions/{session.session_id}/state", headers=_bearer(token),
+        )
+
+        assert response.status_code == 200
+        assert response.json()["current_snapshot_id"] == "snap-initial"
+
+
+class TestContentRoute:
+    """#458 follow-up gap: the live sync layer only carried navigation/
+    interaction events before this route existed -- this is the fetchable
+    reference clients follow for the actual pinned slide content."""
+
+    def test_returns_the_student_safe_rendering_of_the_pinned_snapshot(
+        self, client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        student_html = "<p>Slide content for students</p>"
+        snapshot_id = anyio.run(
+            partial(_seed_slide_deck_snapshot, run_id, student_html=student_html),
+        )
+        session = anyio.run(partial(_create_session, snapshot_id=snapshot_id))
+        token = mint_session_token(session, role=SessionRole.STUDENT)
+
+        response = client.get(
+            f"/teaching-sessions/{session.session_id}/content", headers=_bearer(token),
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["snapshot_id"] == snapshot_id
+        assert body["deck_id"] == "deck-1"
+        assert body["student_rendered_html"] == student_html
+        assert "teacher-only-view" not in response.text
+        anyio.run(delete_run, run_id)
+
+    def test_missing_snapshot_is_404(self, client: TestClient) -> None:
+        session = anyio.run(partial(_create_session, snapshot_id="snap-does-not-exist"))
+        token = mint_session_token(session, role=SessionRole.STUDENT)
+
+        response = client.get(
+            f"/teaching-sessions/{session.session_id}/content", headers=_bearer(token),
+        )
+
+        assert response.status_code == 404
 
 
 class TestStreamRoute:

@@ -37,6 +37,7 @@ class SessionEventType(StrEnum):
     BRANCH_SELECTED = "branch_selected"
     ANNOTATION_ADDED = "annotation_added"
     SESSION_ENDED = "session_ended"
+    CONTENT_REPUBLISHED = "content_republished"
 
 
 # ---------------------------------------------------------------------------
@@ -92,6 +93,16 @@ class SessionEndedPayload(BaseModel):
     reason: str | None = None
 
 
+class ContentRepublishedPayload(BaseModel):
+    """Emitted when a teacher re-pins an already-live session to a newer
+    approved `slide_deck` snapshot (#458 follow-up, ADR-056). Carries only
+    the new `snapshot_id` -- `TeachingSession.snapshot_id` in Postgres is
+    the actual pin; this event just tells subscribers it changed so they
+    know to refetch content from `GET /{session_id}/content`."""
+
+    snapshot_id: str
+
+
 _PAYLOAD_MODELS: dict[SessionEventType, type[BaseModel]] = {
     SessionEventType.SESSION_STARTED: SessionStartedPayload,
     SessionEventType.SLIDE_CHANGED: SlideChangedPayload,
@@ -100,6 +111,7 @@ _PAYLOAD_MODELS: dict[SessionEventType, type[BaseModel]] = {
     SessionEventType.BRANCH_SELECTED: BranchSelectedPayload,
     SessionEventType.ANNOTATION_ADDED: AnnotationAddedPayload,
     SessionEventType.SESSION_ENDED: SessionEndedPayload,
+    SessionEventType.CONTENT_REPUBLISHED: ContentRepublishedPayload,
 }
 
 
@@ -201,8 +213,16 @@ def apply_event(state: SessionReadModel, event: SessionEvent) -> SessionReadMode
             next_state = replace(next_state, tallies=tallies)
         case SessionEventType.SESSION_ENDED:
             next_state = replace(next_state, ended=True)
-        case SessionEventType.SESSION_STARTED | SessionEventType.ANNOTATION_ADDED:
-            pass  # no read-model field derived from these yet -- event is still logged/broadcast
+        case (
+            SessionEventType.SESSION_STARTED
+            | SessionEventType.ANNOTATION_ADDED
+            | SessionEventType.CONTENT_REPUBLISHED
+        ):
+            # No read-model field derived from these -- event is still
+            # logged/broadcast. CONTENT_REPUBLISHED's pin lives on
+            # `TeachingSession.snapshot_id` in Postgres, not here (see
+            # `ContentRepublishedPayload`'s docstring).
+            pass
     if event.sequence is not None:
         last_sequence = max(next_state.last_sequence, event.sequence)
         next_state = replace(next_state, last_sequence=last_sequence)

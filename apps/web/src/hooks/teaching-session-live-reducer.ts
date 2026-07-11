@@ -40,6 +40,11 @@ export function applyLiveEvent(
 		}
 		case "session_ended":
 			return { ...prev, ended: true };
+		case "content_republished":
+			return {
+				...prev,
+				current_snapshot_id: (payload.snapshot_id as string) ?? prev.current_snapshot_id,
+			};
 		default:
 			return prev;
 	}
