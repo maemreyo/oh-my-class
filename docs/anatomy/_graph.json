@@ -1,42 +1,181 @@
 {
   "version": 1,
-  "generated_at": "2026-07-10T06:50:30Z",
+  "generated_at": "2026-07-11T08:05:27Z",
   "source_root": "/Users/trung.ngo/Documents/zaob-dev/oh-my-class/docs/anatomy",
   "modules": {
     "agents": {
       "path": "packages/agents",
-      "depends_on": [],
-      "used_by": [],
+      "depends_on": [
+        {
+          "target": "contracts",
+          "kind": "internal",
+          "detail": "157 imports across 125 files; Pydantic models for all pipeline stages",
+          "citation": null
+        },
+        {
+          "target": "quality",
+          "kind": "internal",
+          "detail": "17 imports across 14 files; compliance policy, PII detection, component gates",
+          "citation": null
+        },
+        {
+          "target": "llm-client",
+          "kind": "internal",
+          "detail": "4 imports across 3 files; LLM transport layer",
+          "citation": null
+        },
+        {
+          "target": "methodologies",
+          "kind": "internal",
+          "detail": "1 import; inverse thinking pipeline",
+          "citation": null
+        }
+      ],
+      "used_by": [
+        {
+          "target": "gateway",
+          "kind": "internal",
+          "detail": "26 files import agents for graph construction, events, slide deck engine",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
-        "status": "full",
-        "detail": "all 434 files in packages/agents, prioritized by reference count and size. Key entry points: teaching_pack/graph.py, teaching_pack/nodes.py, middleware/registry.py"
+        "status": "listed",
+        "detail": "`teaching_pack/graph.py`, `teaching_pack/nodes.py`, `teaching_pack/stages.py`, `teaching_pack/ports.py`, `teaching_pack/compliance.py`, `teaching_pack/quality_routing.py`, `teaching_pack/quality_runtime.py`, `config/models.py`, `config/features.py`, `config/gate_config.py`, `config/model_drift.py`, `runtime.py`, `events.py`, `checkpointer.py`, `middleware/base.py`, `middleware/registry.py`, `healing/orchestrator.py`, `healing/circuit_breaker.py`, `healing/strategies/*.py`, `inverse_thinking_pipeline.py`. Grep-verified all 5 Phase 3 hypothesis edges plus llm_client dependency. Confirmed gateway\u2192agents reverse direction across 26 gateway files"
       }
     },
     "contracts": {
       "path": "common/contracts",
       "depends_on": [],
-      "used_by": [],
+      "used_by": [
+        {
+          "target": "agents",
+          "kind": "internal",
+          "detail": "157 imports across 125 files; ArtifactContent, LessonPlan, JudgeOutput, RunContract, SlideDeckData",
+          "citation": null
+        },
+        {
+          "target": "quality",
+          "kind": "internal",
+          "detail": "~20 imports; ArtifactContent, QualityIssue, QualityFailureClass",
+          "citation": null
+        },
+        {
+          "target": "gateway",
+          "kind": "internal",
+          "detail": "~40 imports; RunContract, ArtifactContent, ErrorResponse, User, Token, SlideDeckData",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
-        "status": "unstated",
-        "detail": null
+        "status": "full",
+        "detail": "`__init__.py`, `run_contract.py`, `lesson_plan.py`, `artifact.py`, `judge_output.py`, `errors.py`, `quality.py`, `auth.py`, `research_bundle.py`, `components/__init__.py`, `components/questions.py`, `slide_deck.py` (first 20 lines), `pyproject.toml`. Verified zero outbound imports across all 57 files via grep and manual inspection of representative files"
       }
     },
     "exporters": {
       "path": "packages/exporters",
-      "depends_on": [],
-      "used_by": [],
+      "depends_on": [
+        {
+          "target": "renderer",
+          "kind": "internal",
+          "detail": "~24 import lines across 9 files; question types, slide deck data, render functions",
+          "citation": null
+        },
+        {
+          "target": "schemas",
+          "kind": "internal",
+          "detail": "5 import lines across 4 files; ArtifactContent, SemanticAnchorCluster",
+          "citation": null
+        }
+      ],
+      "used_by": [
+        {
+          "target": "gateway",
+          "kind": "internal",
+          "detail": "CLI bridge invoked via subprocess by teaching_pack_export_writer",
+          "citation": null
+        },
+        {
+          "target": "agents",
+          "kind": "internal",
+          "detail": "test-only import (tests/test_flashcard_export_e2e.py)",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
-        "status": "unstated",
-        "detail": null
+        "status": "listed",
+        "detail": "`src/index.ts`, `src/cli.ts`, `src/inverse-thinking.ts`, `src/gift/gift.ts`, `src/gift-impl/index.ts`, `src/h5p/h5p.ts`, `src/h5p-impl/index.ts`, `src/h5p-impl/packager.ts`, `src/h5p-impl/content-types/` (directory), `src/qti/qti.ts`, `src/anki-apkg/index.ts`, `src/flashcard-tsv/index.ts`, `src/google-forms/auth.ts`, `src/google-forms/client.ts`, `src/google-forms/question-mapper.ts`, `src/google-forms/index.ts`, `src/vocabulary-batch/index.ts`, `package.json`"
       }
     },
     "gateway": {
       "path": "services/gateway",
-      "depends_on": [],
-      "used_by": [],
+      "depends_on": [
+        {
+          "target": "agents",
+          "kind": "internal",
+          "detail": "LangGraph runtime, graph construction, events, slide deck engine (26 files)",
+          "citation": null
+        },
+        {
+          "target": "contracts",
+          "kind": "internal",
+          "detail": "Pydantic schemas for artifact, quality, slide deck, teaching brief",
+          "citation": null
+        },
+        {
+          "target": "quality",
+          "kind": "internal",
+          "detail": "Layer 2/3 quality checks (FACT checker, PII, HTML validation)",
+          "citation": null
+        },
+        {
+          "target": "renderer",
+          "kind": "internal",
+          "detail": "HTML rendering via adapter + export writer",
+          "citation": null
+        }
+      ],
+      "used_by": [
+        {
+          "target": "apps/web",
+          "kind": "internal",
+          "detail": "Next.js frontend. Targets gateway via `NEXT_PUBLIC_GATEWAY_URL` (`:8101` local dev, `:8001` Docker)",
+          "citation": null
+        },
+        {
+          "target": "teaching_pack_worker.py",
+          "kind": "internal",
+          "detail": "\u2192 `teaching_pack_executor.py` \u2014 Worker dispatches claimed jobs to executor",
+          "citation": null
+        },
+        {
+          "target": "teaching_pack_executor.py",
+          "kind": "internal",
+          "detail": "\u2192 `packages.agents.teaching_pack.graph` \u2014 Executor invokes the LangGraph graph",
+          "citation": null
+        },
+        {
+          "target": "teaching_pack_quality_gate.py",
+          "kind": "internal",
+          "detail": "\u2192 `packages.quality.*` \u2014 Quality gate delegates to Layer 2/3 checks",
+          "citation": null
+        },
+        {
+          "target": "main.py",
+          "kind": "internal",
+          "detail": "\u2192 `recovery_sweeper.py` \u2014 Background sweeper requeues stuck jobs, escalates expired gates",
+          "citation": null
+        },
+        {
+          "target": "main.py",
+          "kind": "internal",
+          "detail": "\u2192 `unit_orchestrator.py` \u2014 Background reconciliation of unit parent/child states",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
         "status": "full",
-        "detail": "all 325 files in services/gateway. The most important files are main.py (composition root), teaching_pack_executor.py (graph bridge), and teaching_pack_store.py (persistence layer)"
+        "detail": "`main.py`, `routers/` (all 17 router files), `teaching_pack_executor.py`, `teaching_pack_worker.py`, `models.py`, `teaching_pack_models.py`, `teaching_pack_quality_gate.py`, `quality_gates.py`, `quality_workflow.py`, `auth/` (all 5 files). 123 total files in module"
       }
     },
     "infra": {
@@ -44,59 +183,171 @@
       "depends_on": [],
       "used_by": [],
       "trace_coverage": {
-        "status": "unstated",
-        "detail": null
+        "status": "full",
+        "detail": "all 6 files in infra/ (3 compose + 3 Dockerfiles). Zero code \u2014 pure infrastructure configuration"
       }
     },
     "llm-client": {
       "path": "packages/llm_client",
-      "depends_on": [],
-      "used_by": [],
+      "depends_on": [
+        {
+          "target": "agents",
+          "kind": "internal",
+          "detail": "1 reverse dependency import (BreakerStore, LayeredCircuitBreaker in circuit_breaker.py)",
+          "citation": null
+        }
+      ],
+      "used_by": [
+        {
+          "target": "agents",
+          "kind": "internal",
+          "detail": "LLMClient via AgentRuntime across all sub-agents, teaching_pack, middleware",
+          "citation": null
+        },
+        {
+          "target": "quality",
+          "kind": "internal",
+          "detail": "ChatMessage, LLMClient (lazy) in judge_transport.py",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
-        "status": "unstated",
-        "detail": null
+        "status": "listed",
+        "detail": "all 14 source + 4 test files in packages/llm_client/. Key finding: boundary violation with agents.healing.circuit_breaker (circuit_breaker.py:5-7) \u2014 reverse dependency from lower-level package to higher-level"
       }
     },
     "methodologies": {
       "path": "packages/methodologies",
-      "depends_on": [],
-      "used_by": [],
+      "depends_on": [
+        {
+          "target": "contracts",
+          "kind": "internal",
+          "detail": "2 import lines bringing in 9 types; components (Heading, Paragraph, etc.) + inverse_thinking",
+          "citation": null
+        }
+      ],
+      "used_by": [
+        {
+          "target": "quality",
+          "kind": "internal",
+          "detail": "validate_semantics in inverse_thinking gate",
+          "citation": null
+        },
+        {
+          "target": "agents",
+          "kind": "internal",
+          "detail": "InverseThinkingProjection, project_* functions in inverse_thinking_pipeline",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
-        "status": "unstated",
-        "detail": null
+        "status": "listed",
+        "detail": "all 7 source + 6 test files in packages/methodologies/. Only inverse_thinking methodology exists; no UbD or other frameworks implemented"
       }
     },
     "notifications": {
       "path": "packages/notifications",
       "depends_on": [],
-      "used_by": [],
+      "used_by": [
+        {
+          "target": "gateway",
+          "kind": "internal",
+          "detail": "build_dispatcher, NotificationDispatcher, ApprovalEvent in main.py, teaching_pack_completion.py",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
-        "status": "unstated",
-        "detail": null
+        "status": "listed",
+        "detail": "all 8 source + 1 test file in packages/notifications/. Clean leaf node with zero internal dependencies"
       }
     },
     "quality": {
       "path": "packages/quality",
-      "depends_on": [],
-      "used_by": [],
+      "depends_on": [
+        {
+          "target": "contracts",
+          "kind": "internal",
+          "detail": "12 import sites; JudgeOutput, Rubric, QualityFailureClass, InverseThinkingPack",
+          "citation": null
+        },
+        {
+          "target": "agents",
+          "kind": "internal",
+          "detail": "1 lazy import (GateConfig in export_validator.py)",
+          "citation": null
+        },
+        {
+          "target": "methodologies",
+          "kind": "internal",
+          "detail": "1 import (validate_semantics in inverse_thinking.py)",
+          "citation": null
+        },
+        {
+          "target": "llm-client",
+          "kind": "internal",
+          "detail": "1 lazy import (ChatMessage, LLMClient in judge_transport.py)",
+          "citation": null
+        }
+      ],
+      "used_by": [
+        {
+          "target": "agents",
+          "kind": "internal",
+          "detail": "compliance gate, LLM judge, PII detection, circuit breaker, pedagogical metrics",
+          "citation": null
+        },
+        {
+          "target": "gateway",
+          "kind": "internal",
+          "detail": "teaching_pack_quality_gate.py combines L2 sub-checks + L3 HTML",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
         "status": "full",
-        "detail": "all 72 files in packages/quality. The compliance_policy.py is the most important file \u2014 every other layer's hard-block check eventually calls it"
+        "detail": "all 72 files in packages/quality. Key cross-module imports verified with file:line citations: 12 sites in contracts, 1 in agents (lazy), 1 in methodologies, 1 in llm_client (lazy)"
       }
     },
     "renderer": {
       "path": "packages/renderer",
-      "depends_on": [],
-      "used_by": [],
+      "depends_on": [
+        {
+          "target": "schemas",
+          "kind": "internal",
+          "detail": "workspace devDependency; ArtifactContent schema validation in agent worker",
+          "citation": null
+        }
+      ],
+      "used_by": [
+        {
+          "target": "exporters",
+          "kind": "internal",
+          "detail": "~24 import lines across 9 files; question types, slide deck data, render functions",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
         "status": "listed",
-        "detail": "all 169 source files + 70 template files. The plugin system (18 plugins) and theme system (3-tier tokens) are the most architecturally significant subsystems"
+        "detail": "`src/renderer.ts`, `src/inline-assets.ts`, `src/eta-engine.ts`, `src/core/render.ts`, `src/core/registry.ts`, `src/core/types.ts`, `src/core/runtime.ts`, `src/core/asset-policy.ts`, `src/core/sanitizer.ts`, `src/sanitizer/index.ts`, `src/contracts/index.ts`, `src/contracts/questions/base.ts`, `src/contracts/questions/index.ts`, `src/theme/tokens.ts`, `src/theme/loader.ts`, `src/theme/index.ts`, `src/plugins/` (directory), `src/slide-deck-projection.ts`, `src/agent-renderer.ts`, `src/agent-component-projection.ts`, `src/agent-worker.ts`, `src/semantic-anchor-projections.ts`, `src/inverse-thinking-renderer.ts`, `src/design-kit/index.ts`, `src/preview-server/index.ts`, `src/exporters/export-writer.ts`, `src/scoring/index.ts`, `src/i18n/catalog.ts`, `src/diagrams/index.ts`, `templates/pages/` (directory), `package.json`"
       }
     },
     "schemas": {
       "path": "common/schemas",
       "depends_on": [],
-      "used_by": [],
+      "used_by": [
+        {
+          "target": "web",
+          "kind": "internal",
+          "detail": "~32 imports; ArtifactContent, SlideDeckData, SemanticAnchorCluster, InputNormalizationReport",
+          "citation": null
+        },
+        {
+          "target": "exporters",
+          "kind": "internal",
+          "detail": "5 imports; ArtifactContent, SemanticAnchorCluster, PracticeSet",
+          "citation": null
+        }
+      ],
       "trace_coverage": {
         "status": "unstated",
         "detail": null
@@ -104,277 +355,33 @@
     },
     "web": {
       "path": "apps/web",
-      "depends_on": [],
+      "depends_on": [
+        {
+          "target": "schemas",
+          "kind": "internal",
+          "detail": "18 type imports + 1 runtime Zod import in production code; ArtifactContent, SlideDeckData, SemanticAnchorCluster",
+          "citation": null
+        }
+      ],
       "used_by": [],
       "trace_coverage": {
-        "status": "unstated",
-        "detail": null
+        "status": "full",
+        "detail": "all 162 files in apps/web/src. Key findings: renderer dependency is dead (0 imports), methodology/mode-registry.ts bypasses workspace package with direct paths, only 1 runtime Zod import in production code"
       }
     }
   },
   "entry_points": {
-    "http_routes": [
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs",
-        "raw": "POST | `/teaching-packs/runs` | `gateway` | `create_teaching_pack_run` | Create a new teaching pack run (202)"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/resume",
-        "raw": "POST | `/teaching-packs/runs/{run_id}/resume` | `gateway` | `resume_teaching_pack_run` | Resume gated run (teacher decision)"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/request-revision",
-        "raw": "POST | `/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/request-revision` | `gateway` | `request_artifact_revision` | Scoped artifact revision (202)"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}",
-        "raw": "GET | `/teaching-packs/runs/{run_id}` | `gateway` | `get_teaching_pack_run` | Get run status + pending gate"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/status",
-        "raw": "GET | `/teaching-packs/runs/{run_id}/status` | `gateway` | `stream_teaching_pack_status` | SSE stream of run events"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/cancel",
-        "raw": "POST | `/teaching-packs/runs/{run_id}/cancel` | `gateway` | `cancel_teaching_pack_run` | Cancel a run"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}",
-        "raw": "DELETE | `/teaching-packs/runs/{run_id}` | `gateway` | `delete_teaching_pack_run` | Soft-delete a run"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/restore",
-        "raw": "POST | `/teaching-packs/runs/{run_id}/restore` | `gateway` | `restore_teaching_pack_run` | Restore a soft-deleted run"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/preview",
-        "raw": "GET | `/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/preview` | `gateway` | `preview_rendered_snapshot` | Rendered HTML preview"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/approved-snapshots",
-        "raw": "POST | `/teaching-packs/runs/{run_id}/approved-snapshots` | `gateway` | `approve_rendered_snapshots` | Approve snapshots"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}",
-        "raw": "PATCH | `/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}` | `gateway` | `edit_slide_deck_snapshot_block` | Edit slide deck block"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}/rewrite-suggestion",
-        "raw": "POST | `/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/blocks/{block_id}/rewrite-suggestion` | `gateway` | `suggest_slide_deck_block_rewrite` | AI-assisted block rewrite"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/translate",
-        "raw": "GET | `/teaching-packs/runs/{run_id}/snapshots/{snapshot_id}/translate` | `gateway` | `translate_slide_deck_snapshot` | Translate slide deck"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions",
-        "raw": "GET | `/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions` | `gateway` | `list_artifact_versions` | Version history"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions/{id}/restore",
-        "raw": "POST | `/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/versions/{id}/restore` | `gateway` | `restore_artifact_version` | Restore previous version"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/exports",
-        "raw": "GET | `/teaching-packs/runs/{run_id}/exports` | `gateway` | `list_exports` | Export records"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/export-status",
-        "raw": "GET | `/teaching-packs/runs/{run_id}/artifacts/{artifact_id}/export-status` | `gateway` | `get_export_status` | Staleness check"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/runs/{run_id}/evidence",
-        "raw": "GET | `/teaching-packs/runs/{run_id}/evidence` | `gateway` | `get_run_evidence` | Release evidence"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/units/{parent_run_id}",
-        "raw": "GET | `/teaching-packs/units/{parent_run_id}` | `gateway` | `get_unit_view` | Unit view with session progress"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/units/{parent_run_id}/status",
-        "raw": "GET | `/teaching-packs/units/{parent_run_id}/status` | `gateway` | `stream_unit_status` | Unit SSE stream"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/units/{parent_run_id}/approve-all",
-        "raw": "POST | `/teaching-packs/units/{parent_run_id}/approve-all` | `gateway` | `approve_all_sessions` | Bulk approve"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/units/{parent_run_id}/sessions/{id}/spawn-anyway",
-        "raw": "POST | `/teaching-packs/units/{parent_run_id}/sessions/{id}/spawn-anyway` | `gateway` | `spawn_anyway` | Force-spawn session"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-packs/units/{parent_run_id}/export",
-        "raw": "POST | `/teaching-packs/units/{parent_run_id}/export` | `gateway` | `export_unit` | Queue unit packaging"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-sessions/{session_id}/slide",
-        "raw": "POST | `/teaching-sessions/{session_id}/slide` | `gateway` | `advance_slide` | Teacher advances slide"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-sessions/{session_id}/branch",
-        "raw": "POST | `/teaching-sessions/{session_id}/branch` | `gateway` | `select_branch` | Teacher selects branch"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-sessions/{session_id}/branches",
-        "raw": "GET | `/teaching-sessions/{session_id}/branches` | `gateway` | `get_precomputed_branches` | Precomputed branch options"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-sessions/{session_id}/branch-suggestions",
-        "raw": "POST | `/teaching-sessions/{session_id}/branch-suggestions` | `gateway` | `suggest_branch_content` | AI branch suggestion"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-sessions/{session_id}/branch-suggestions/apply",
-        "raw": "POST | `/teaching-sessions/{session_id}/branch-suggestions/apply` | `gateway` | `apply_branch_suggestion` | Apply AI suggestion"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-sessions/{session_id}/responses",
-        "raw": "POST | `/teaching-sessions/{session_id}/responses` | `gateway` | `submit_response` | Student response"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-sessions/{session_id}/state",
-        "raw": "GET | `/teaching-sessions/{session_id}/state` | `gateway` | `get_current_state` | Session state (reconnect)"
-      },
-      {
-        "module": "gateway",
-        "detail": "/teaching-sessions/{session_id}/stream",
-        "raw": "GET | `/teaching-sessions/{session_id}/stream` | `gateway` | `stream_session_events` | SSE broadcast"
-      },
-      {
-        "module": "gateway",
-        "detail": "/auth/login",
-        "raw": "POST | `/auth/login` | `gateway` | `login` | JWT authentication"
-      },
-      {
-        "module": "gateway",
-        "detail": "/auth/me",
-        "raw": "GET | `/auth/me` | `gateway` | `get_me` | Current user"
-      },
-      {
-        "module": "gateway",
-        "detail": "/health",
-        "raw": "GET | `/health` | `gateway` | `health_check` | Load balancer"
-      },
-      {
-        "module": "gateway",
-        "detail": "/ops/slo",
-        "raw": "GET | `/ops/slo` | `gateway` | `get_slo_snapshot` | SLO metrics (admin)"
-      },
-      {
-        "module": "gateway",
-        "detail": "/webhook/notify",
-        "raw": "POST | `/webhook/notify` | `gateway` | `send_notification` | Gate notification dispatch"
-      },
-      {
-        "module": "gateway",
-        "detail": "/webhook/telegram",
-        "raw": "POST | `/webhook/telegram` | `gateway` | `telegram_webhook` | Telegram bot ingress"
-      },
-      {
-        "module": "gateway",
-        "detail": "/webhook/zalo",
-        "raw": "POST | `/webhook/zalo` | `gateway` | `zalo_webhook` | Zalo webhook ingress"
-      },
-      {
-        "module": "gateway",
-        "detail": "/webhook/error",
-        "raw": "POST | `/webhook/error` | `gateway` | `frontend_error` | Frontend error ingestion"
-      },
-      {
-        "module": "gateway",
-        "detail": "/media-assets",
-        "raw": "POST | `/media-assets` | `gateway` | `upload_media_asset` | Upload image/diagram"
-      },
-      {
-        "module": "gateway",
-        "detail": "/media-assets",
-        "raw": "GET | `/media-assets` | `gateway` | `list_media_assets` | List assets"
-      },
-      {
-        "module": "gateway",
-        "detail": "/media-assets/{id}/file",
-        "raw": "GET | `/media-assets/{id}/file` | `gateway` | `get_media_asset_file` | Retrieve asset"
-      },
-      {
-        "module": "gateway",
-        "detail": "/media-assets/{id}/generate-alt-text",
-        "raw": "POST | `/media-assets/{id}/generate-alt-text` | `gateway` | `generate_media_asset_alt_text` | AI alt text"
-      },
-      {
-        "module": "gateway",
-        "detail": "/media-assets/{id}/alt-text",
-        "raw": "PUT | `/media-assets/{id}/alt-text` | `gateway` | `set_media_asset_alt_text` | Persist alt text"
-      },
-      {
-        "module": "gateway",
-        "detail": "/notifications",
-        "raw": "GET | `/notifications` | `gateway` | `list_notifications` | Teacher notifications"
-      },
-      {
-        "module": "gateway",
-        "detail": "/notifications/{id}/read",
-        "raw": "POST | `/notifications/{id}/read` | `gateway` | `read_notification` | Mark as read"
-      },
-      {
-        "module": "gateway",
-        "detail": "/notifications/{id}/dismiss",
-        "raw": "POST | `/notifications/{id}/dismiss` | `gateway` | `dismiss` | Dismiss channel"
-      },
-      {
-        "module": "gateway",
-        "detail": "/notifications/admin/runs",
-        "raw": "GET | `/notifications/admin/runs` | `gateway` | `list_admin_runs` | Admin run management"
-      },
-      {
-        "module": "gateway",
-        "detail": "/notifications/admin/runs/{id}/recover",
-        "raw": "POST | `/notifications/admin/runs/{id}/recover` | `gateway` | `recover_run` | Admin recovery"
-      }
-    ],
+    "http_routes": [],
     "cli_commands": [
       {
+        "module": "renderer (via agents)",
+        "detail": "node packages/renderer/dist/agent-renderer.js",
+        "raw": "`node packages/renderer/dist/agent-renderer.js` | renderer (via agents) | Render ArtifactContent JSON from stdin to standalone HTML on stdout. Invoked by `nodes/finalize.py:28` as a subprocess."
+      },
+      {
         "module": "renderer",
-        "detail": "pnpm --filter @oh-my-class/renderer dist/cli.js",
-        "raw": "`pnpm --filter @oh-my-class/renderer dist/cli.js` | `renderer` | Artifacts to HTML via stdin/stdout JSON"
-      },
-      {
-        "module": "exporters",
-        "detail": "pnpm --filter @oh-my-class/exporters dist/cli.js",
-        "raw": "`pnpm --filter @oh-my-class/exporters dist/cli.js` | `exporters` | Artifacts to GIFT/H5P/Anki/TSV via stdin/stdout JSON"
-      },
-      {
-        "module": "exporters",
-        "detail": "pnpm --filter @oh-my-class/exporters dist/vocabulary-batch/cli.js",
-        "raw": "`pnpm --filter @oh-my-class/exporters dist/vocabulary-batch/cli.js` | `exporters` | Vocabulary batch ZIP via stdin/stdout JSON"
+        "detail": "omc-render",
+        "raw": "`omc-render` (bin) | renderer | Alias for `agent-renderer.js`. CLI entry via `package.json` bin field."
       }
     ],
     "queue_consumers": [],
@@ -383,86 +390,92 @@
   "health_signals": {
     "most_connected": [
       {
+        "module": "gateway",
+        "depends_on_count": 4,
+        "used_by_count": 5,
+        "total_degree": 9
+      },
+      {
+        "module": "quality",
+        "depends_on_count": 4,
+        "used_by_count": 2,
+        "total_degree": 6
+      },
+      {
         "module": "agents",
-        "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
+        "depends_on_count": 4,
+        "used_by_count": 1,
+        "total_degree": 5
+      },
+      {
+        "module": "exporters",
+        "depends_on_count": 2,
+        "used_by_count": 2,
+        "total_degree": 4
       },
       {
         "module": "contracts",
         "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
-      },
-      {
-        "module": "exporters",
-        "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
-      },
-      {
-        "module": "gateway",
-        "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
-      },
-      {
-        "module": "infra",
-        "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
+        "used_by_count": 3,
+        "total_degree": 3
       },
       {
         "module": "llm-client",
-        "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
+        "depends_on_count": 1,
+        "used_by_count": 2,
+        "total_degree": 3
       },
       {
         "module": "methodologies",
+        "depends_on_count": 1,
+        "used_by_count": 2,
+        "total_degree": 3
+      },
+      {
+        "module": "renderer",
+        "depends_on_count": 1,
+        "used_by_count": 1,
+        "total_degree": 2
+      },
+      {
+        "module": "schemas",
         "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
+        "used_by_count": 2,
+        "total_degree": 2
       },
       {
         "module": "notifications",
         "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
-      },
-      {
-        "module": "quality",
-        "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
-      },
-      {
-        "module": "renderer",
-        "depends_on_count": 0,
-        "used_by_count": 0,
-        "total_degree": 0
+        "used_by_count": 1,
+        "total_degree": 1
       }
     ],
     "orphan_candidates": [
-      "agents",
-      "contracts",
-      "exporters",
-      "gateway",
-      "infra",
-      "llm-client",
-      "methodologies",
-      "notifications",
-      "quality",
-      "renderer",
-      "schemas",
-      "web"
+      "infra"
     ],
-    "cycles": [],
+    "cycles": [
+      {
+        "path": [
+          "agents",
+          "llm-client",
+          "agents"
+        ],
+        "length": 2
+      },
+      {
+        "path": [
+          "agents",
+          "quality",
+          "agents"
+        ],
+        "length": 2
+      }
+    ],
     "trace_coverage_counts": {
-      "full": 3,
+      "full": 5,
       "sampled": 0,
-      "listed": 1,
-      "unstated": 8
+      "listed": 6,
+      "unstated": 1
     }
   }
 }

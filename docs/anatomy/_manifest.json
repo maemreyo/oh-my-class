@@ -1,15 +1,39 @@
 {
   "version": 1,
   "source_root": "/Users/trung.ngo/Documents/zaob-dev/oh-my-class",
-  "source_commit": "63f1d9a0186822111f98f770ffe32499cbaf3e64",
+  "source_commit": "a5628eddd615ae14fd784c5d239d8b3381098cd3",
   "modules": {
     "agents": {
-      "hash": "50b0285537a933eb06fc551f245e35ae60ed4be6242d0000b7a29e6090cf39d9",
-      "file_count": 434
+      "hash": "5c60b99732576f671fd68ee727e911ed996b8d75bebf5a6a79f2e8080691de91",
+      "file_count": 479
     },
     "quality": {
       "hash": "5714964ff1a5cd69f028bdbaef1613a81c3e755824c5ac91fa4fee351f888a12",
       "file_count": 72
+    },
+    "renderer": {
+      "hash": "25fc03a3f82b0e8b2639d3d674de71b0ef3d42a7a30f941676c5e640ec45f7ee",
+      "file_count": 339
+    },
+    "exporters": {
+      "hash": "09caca1f9dd6e771792fbe0640d5633557208356034ef1fa21a2e0a3456ed862",
+      "file_count": 47
+    },
+    "gateway": {
+      "hash": "466cbd0895b41ce3ba98cd320709bf223f8961b34118aec5be1f7e6208171789",
+      "file_count": 374
+    },
+    "web": {
+      "hash": "0bd09d3b55ad1f22fa5d31a9e37f5f398d7f9a7852796e9830427d4eb93e3f01",
+      "file_count": 162
+    },
+    "contracts": {
+      "hash": "c38935922956973ef439536a3f12537b7b6325f993e8c37956e0701682d73a2b",
+      "file_count": 123
+    },
+    "schemas": {
+      "hash": "56a34c7c08cc34ba4d9d351c497576502350bfd974a529d65dcfffa69acf7d73",
+      "file_count": 41
     },
     "llm-client": {
       "hash": "26a84de55f2e87d9378b47d18bbd0030fa1dd0b5a5ff90077788258a1c2f9930",
@@ -23,42 +47,10 @@
       "hash": "7c3b4cf9e1d54a65b85c1a4255758696885ba603eca39362f18a67af2b0e8678",
       "file_count": 9
     },
-    "renderer": {
-      "hash": "baad54ac409d301c4a39a8effb025e09f1e803787864e1f1a0302afc6cec1492",
-      "file_count": 335
-    },
-    "exporters": {
-      "hash": "2313c523b294f0aa60a2cfa2638a4ba9bd5266cd118897fce915bc8a30dec154",
-      "file_count": 47
-    },
-    "contracts": {
-      "hash": "ef143783cbf63dc1bc13c88d91d68638ab91c3cd5f69df6190544c87f8974607",
-      "file_count": 98
-    },
-    "schemas": {
-      "hash": "8a544db6faa154e70469edfbf0e03a6797964fb7ece5b0b810ef9a83e0fa725e",
-      "file_count": 39
-    },
-    "gateway": {
-      "hash": "8c7bbeae4470f6ada85215c4ee97f02b2364dbf09033b4709dbd38bf57b7afe4",
-      "file_count": 325
-    },
-    "web": {
-      "hash": "e1b65295b821e64bff70e0ecdd6833aa5f4fee060835f28600dcfb292d0ba276",
-      "file_count": 161
-    },
     "infra": {
       "hash": "29998bb1544a7359b8a215117b404981d39bc35c147fa64570596089895f6e49",
       "file_count": 6
-    },
-    "scripts": {
-      "hash": "0e0c9c74c128852867c93aad9509b4f563c6ddae75a38f775eed57388bfb8e9d",
-      "file_count": 30
-    },
-    "tests": {
-      "hash": "9d768cb42d8642c04f02bb2a83dfd9b753c946d614ce217a86cad059a169264c",
-      "file_count": 105
     }
   },
-  "generated_at": "2026-07-10T06:50:21Z"
+  "generated_at": "2026-07-11T08:07:44Z"
 }

@@ -90,4 +90,4 @@ _None (leaf node)._
 - The package is `"private": true` (not published to npm) — it's a workspace-only package consumed via TypeScript path aliases.
 
 ---
-_Traced from source on 2026-07-11. Files examined: all 41 files in common/schemas/src/. Key finding: pure leaf node with zero outbound project imports; METHODOLOGY_REGISTRY missing from barrel re-exports._
+_Traced from source on 2026-07-11. Files examined: all 41 files._

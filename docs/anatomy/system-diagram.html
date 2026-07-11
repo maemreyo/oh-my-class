@@ -289,7 +289,7 @@
   // ============================================================
   const DATA = {
   "project_name": "oh-my-class",
-  "generated_at": "2026-07-10",
+  "generated_at": "2026-07-11",
   "mode": "full trace",
   "source_commit": "63f1d9a0186822111f98f770ffe32499cbaf3e64",
   "modules": [
@@ -380,57 +380,27 @@
   ],
   "edges": [
     {
-      "from": "web",
-      "to": "schemas",
-      "label": "uses Zod types",
-      "kind": "sync"
-    },
-    {
-      "from": "web",
-      "to": "renderer",
-      "label": "renders via",
-      "kind": "sync"
-    },
-    {
-      "from": "exporters",
-      "to": "renderer",
-      "label": "imports types/runtime",
-      "kind": "sync"
-    },
-    {
-      "from": "exporters",
-      "to": "schemas",
-      "label": "imports types",
-      "kind": "sync"
-    },
-    {
       "from": "agents",
       "to": "contracts",
-      "label": "147 imports",
+      "label": "Pydantic models",
       "kind": "sync"
     },
     {
       "from": "agents",
       "to": "quality",
-      "label": "16 imports",
+      "label": "quality gates",
       "kind": "sync"
     },
     {
       "from": "agents",
-      "to": "renderer",
-      "label": "renders artifacts",
+      "to": "llm-client",
+      "label": "LLM calls",
       "kind": "sync"
     },
     {
       "from": "agents",
       "to": "methodologies",
-      "label": "inverse thinking",
-      "kind": "sync"
-    },
-    {
-      "from": "quality",
-      "to": "contracts",
-      "label": "27 imports",
+      "label": "pedagogy strategies",
       "kind": "sync"
     },
     {
@@ -442,25 +412,79 @@
     {
       "from": "gateway",
       "to": "contracts",
-      "label": "72 imports",
+      "label": "schema validation",
       "kind": "sync"
     },
     {
       "from": "gateway",
       "to": "quality",
-      "label": "7 imports",
+      "label": "compliance checks",
+      "kind": "sync"
+    },
+    {
+      "from": "gateway",
+      "to": "renderer",
+      "label": "snapshot preview",
+      "kind": "sync"
+    },
+    {
+      "from": "quality",
+      "to": "contracts",
+      "label": "validates against",
+      "kind": "sync"
+    },
+    {
+      "from": "quality",
+      "to": "agents",
+      "label": "reviews agent output",
+      "kind": "sync"
+    },
+    {
+      "from": "quality",
+      "to": "methodologies",
+      "label": "pedagogy checks",
+      "kind": "sync"
+    },
+    {
+      "from": "quality",
+      "to": "llm-client",
+      "label": "judge dispatch",
+      "kind": "sync"
+    },
+    {
+      "from": "exporters",
+      "to": "renderer",
+      "label": "render pipeline",
+      "kind": "sync"
+    },
+    {
+      "from": "exporters",
+      "to": "schemas",
+      "label": "Zod types",
       "kind": "sync"
     },
     {
       "from": "renderer",
       "to": "schemas",
-      "label": "8 imports",
+      "label": "Zod types",
+      "kind": "sync"
+    },
+    {
+      "from": "web",
+      "to": "schemas",
+      "label": "Zod types",
+      "kind": "sync"
+    },
+    {
+      "from": "methodologies",
+      "to": "contracts",
+      "label": "Pydantic models",
       "kind": "sync"
     },
     {
       "from": "llm-client",
       "to": "agents",
-      "label": "imports circuit_breaker",
+      "label": "circuit breaker",
       "kind": "sync"
     }
   ],
@@ -541,7 +565,7 @@
         {
           "from": "agents",
           "to": "gateway",
-          "label": "interrupt() at content_approval"
+          "label": "interrupt() at teacher_approval"
         },
         {
           "from": "gateway",
@@ -565,33 +589,83 @@
         },
         {
           "from": "agents",
+          "to": "renderer",
+          "label": "build_snapshot()"
+        },
+        {
+          "from": "gateway",
           "to": "web",
           "label": "SSE: run completed"
         }
       ]
     },
     {
-      "name": "Live Teaching Session",
+      "name": "HITL Gate Flow",
       "steps": [
         {
+          "from": "agents",
+          "to": "gateway",
+          "label": "interrupt() at content_approval"
+        },
+        {
+          "from": "gateway",
+          "to": "web",
+          "label": "SSE: gate_open event"
+        },
+        {
           "from": "Teacher",
+          "to": "web",
+          "label": "Review artifacts"
+        },
+        {
+          "from": "web",
           "to": "gateway",
-          "label": "POST slide advance"
+          "label": "POST /resume (approve or reject)"
         },
         {
           "from": "gateway",
-          "to": "redis",
-          "label": "Pub/Sub broadcast"
+          "to": "agents",
+          "label": "graph.ainvoke(Command(resume=...))"
         },
         {
-          "from": "Student",
+          "from": "agents",
+          "to": "agents",
+          "label": "export_finalize or artifact_workflow"
+        }
+      ]
+    },
+    {
+      "name": "Export Flow",
+      "steps": [
+        {
+          "from": "gateway",
+          "to": "renderer",
+          "label": "renderArtifact(artifact_json, theme)"
+        },
+        {
+          "from": "renderer",
           "to": "gateway",
-          "label": "POST submit_response"
+          "label": "standalone HTML"
         },
         {
           "from": "gateway",
-          "to": "redis",
-          "label": "Pub/Sub broadcast"
+          "to": "exporters",
+          "label": "exportGift(artifact_json)"
+        },
+        {
+          "from": "gateway",
+          "to": "exporters",
+          "label": "exportH5P(artifact_json)"
+        },
+        {
+          "from": "exporters",
+          "to": "renderer",
+          "label": "render pipeline (shared)"
+        },
+        {
+          "from": "gateway",
+          "to": "web",
+          "label": "GET /exports returns download links"
         }
       ]
     }
