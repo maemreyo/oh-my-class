@@ -146,20 +146,35 @@ test-construction bug, not a reviewer-routing regression.
 
 ## 4. Backup, migration, deployment rollback, big-bang cutover
 
-**Partial, with one dead link.** `docs/runbooks/db-restore.md` references
-`docs/operations/disaster-recovery.md`, which **does not exist anywhere in
-this repository** — a broken link a release reviewer would hit immediately.
-`services/gateway/disaster_recovery.py` (real code, `RestoreDrillSnapshot`)
-is exercised only incidentally via `test_checkpoint_recovery.py`, not a
-dedicated restore-drill test. `.omo/evidence/teaching-pack-hard-cutover.md`
-and `.omo/plans/teaching-pack-hard-cutover.md` are real, detailed cutover
-evidence — but for the earlier `pipeline-v2` → `teaching_pack` rename
-(dated 2026-06-28), not the ADR-058 full-V1 release this issue is actually
-gating. **No document addresses ADR-058's specific "big-bang GA with
-rollback-safe data" for this release** — this is the single largest gap in
-this whole audit, and it is fundamentally a business/release-management
-artifact, not something a coding pass can manufacture without an actual
-planned cutover date and rollback owner.
+**Fixed, except the one piece that's inherently human.**
+`docs/runbooks/db-restore.md` referenced `docs/operations/disaster-recovery.md`,
+which didn't exist in this checkout. Tracing it further: the whole
+`docs/operations/` directory (both `disaster-recovery.md` and
+`secrets.md`) was deleted in `6ea12b9` ("comprehensive cleanup of project
+scratch files and documentation") as apparent collateral damage — the same
+commit that deleted `docs/system/ARCHITECTURE.md` (see §5). Both files'
+content was still 100% accurate against current code (verified: `secrets.md`'s
+guarded variable list matches `.env.production` and
+`services/gateway/secrets_guard.py` exactly; `disaster-recovery.md`'s
+RPO/RTO/cadence numbers match what `db-restore.md` already summarized), so
+both were restored verbatim from git history rather than rewritten from
+scratch.
+
+Also added `docs/operations/full-v1-cutover.md` — the actual ADR-058
+"big-bang GA with rollback-safe data" evidence artifact, modeled on
+`.omo/plans/teaching-pack-hard-cutover.md`'s structure (the earlier
+pipeline-v2 rename's cutover plan, which was real but for a different,
+earlier release). It documents the pre-flight verification commands (all
+individually run and confirmed working while writing it — e.g. the
+secrets-guard command was verified to actually raise
+`ProductionSecretsError` naming every offending variable when run without
+production secrets loaded), the cutover procedure, and the rollback
+procedure. What it does **not** and cannot resolve: the actual cutover
+date, who the rollback owner is, and who signs off go/no-go — those are
+four checkboxes in the document's "Human decisions required" section,
+left unchecked on purpose. That's not an oversight; it's the one part of
+ADR-058's evidence requirement that is a business decision, not a missing
+capability or missing document.
 
 ## 5. Tests, QA, evidence commands, docs, ADR sync
 
@@ -189,16 +204,21 @@ current) and added the manifest's path and regeneration command there.
 This is closer to a **documentation/evidence-assembly gap than a
 functional gap**. The substantive infrastructure ADR-058 asks for — tenant
 isolation, worker leasing, retention/purge, admin recovery, WCAG a11y specs
-— is real and passing, not stubbed. Five collateral bugs found during this
-audit are fixed as of this pass: a stale reducer-rename import blocking
-whole-suite collection, the un-awaited async compliance gate, a stale
-architecture-manifest snapshot plus its own dangling rename reference, a
-test that looked like a reviewer-routing regression but was actually
-constructing state with a pre-V2 calling convention, and the `slide_deck`
-renderer-plugin registration gap (which needed a new `postSanitizeCheck`
-hook on `ArtifactKindPlugin` plus a managed-script declaration for its
-inline player script — both now real, tested, and green). No gaps from
-this audit remain unfixed at the code level. The big-bang cutover evidence
-itself cannot be produced by code changes — it requires an actual planned
-release date, rollback owner, and sign-off, which is a decision for the
-team, not an artifact this document can manufacture.
+— is real and passing, not stubbed. Six collateral bugs/gaps found during
+this audit are fixed as of this pass: a stale reducer-rename import
+blocking whole-suite collection, the un-awaited async compliance gate, a
+stale architecture-manifest snapshot plus its own dangling rename
+reference, a test that looked like a reviewer-routing regression but was
+actually constructing state with a pre-V2 calling convention, the
+`slide_deck` renderer-plugin registration gap (a new `postSanitizeCheck`
+hook on `ArtifactKindPlugin` plus a managed-script declaration, both now
+real, tested, and green), and two operations docs (`disaster-recovery.md`,
+`secrets.md`) deleted as collateral damage in an unrelated cleanup commit,
+restored verbatim after confirming their content still matches current
+code. `docs/operations/full-v1-cutover.md` is the real, ready-to-run
+ADR-058 cutover evidence artifact this release was missing. Every code-
+and documentation-level gap from this audit is now fixed. What remains —
+the actual cutover date, rollback owner, and go/no-go sign-off — is by
+nature not something a coding pass can produce: those are the four
+checkboxes left unchecked in that runbook, for the team to fill in when
+they're ready to execute.
