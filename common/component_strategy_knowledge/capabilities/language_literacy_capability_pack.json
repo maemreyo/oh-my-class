@@ -1,0 +1,135 @@
+{
+  "manifest_version": "language-literacy-capability-pack.v1",
+  "subject": "language_and_literacy",
+  "deterministic_solver": null,
+  "grade_bands": [
+    {
+      "grade_band": "k_2",
+      "artifact_families": ["quiz", "drill"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.ELA-LITERACY.RF.K.2",
+          "description_en": "Demonstrate understanding of spoken words, syllables, and sounds (phonemes), including recognizing and producing rhyming words.",
+          "description_vi": "Thể hiện khả năng hiểu từ nói, âm tiết và âm vị, bao gồm nhận biết và tạo ra các từ vần với nhau."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.TIENGVIET.1.GHEP_VAN",
+          "description_en": "Grade 1 Vietnamese: blending onset and rhyme parts (vần) to read and recognize simple words.",
+          "description_vi": "Tiếng Việt lớp 1: Ghép âm đầu và vần để đọc và nhận biết các từ đơn giản."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "k2_matches_onset_instead_of_rime",
+          "description_en": "When asked which word rhymes with a target English word, students pick a word that starts with the same letter/sound instead of one that shares the ending sound (rime).",
+          "description_vi": "Khi được hỏi từ tiếng Anh nào vần với từ mục tiêu, học sinh chọn từ bắt đầu bằng cùng chữ cái/âm thay vì từ có cùng âm cuối (rime).",
+          "guard_strategy": "Every rhyme item's onset-sharing word is offered as an explicitly-labeled incorrect distractor alongside the true rime match, so onset-matching alone can never select the correct option."
+        },
+        {
+          "misconception_id": "k2_matches_onset_instead_of_van",
+          "description_en": "When asked which Vietnamese word rhymes (cùng vần) with a target word, students pick a word that starts with the same initial consonant instead of one that shares the same vần.",
+          "description_vi": "Khi được hỏi từ tiếng Việt nào cùng vần với từ mục tiêu, học sinh chọn từ có cùng phụ âm đầu thay vì từ có cùng phần vần.",
+          "guard_strategy": "Every vần item's same-initial-consonant word is offered as an explicitly-labeled incorrect distractor alongside the true vần match, so matching by phụ âm đầu alone can never select the correct option."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_3_5",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.ELA-LITERACY.L.4.4",
+          "description_en": "Determine or clarify the meaning of unknown and multiple-meaning words based on grade-level content, choosing flexibly from a range of strategies.",
+          "description_vi": "Xác định hoặc làm rõ nghĩa của từ chưa biết hoặc từ đa nghĩa dựa trên nội dung phù hợp với cấp lớp, linh hoạt lựa chọn trong nhiều chiến lược."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.TIENGVIET.5.NGHIA_TU",
+          "description_en": "Grade 5 Vietnamese: determining the contextual meaning of a multiple-meaning word within a sentence.",
+          "description_vi": "Tiếng Việt lớp 5: Xác định nghĩa của từ nhiều nghĩa theo ngữ cảnh trong câu."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade35_selects_familiar_meaning_ignoring_context",
+          "description_en": "Given a multiple-meaning English word in a sentence, students pick the word's most common/familiar dictionary meaning rather than the meaning that fits the sentence's context.",
+          "description_vi": "Khi gặp một từ tiếng Anh đa nghĩa trong câu, học sinh chọn nghĩa quen thuộc/phổ biến nhất của từ đó thay vì nghĩa phù hợp với ngữ cảnh của câu.",
+          "guard_strategy": "The familiar-but-context-mismatched meaning is always offered as an explicitly-labeled incorrect distractor alongside the true context-derived meaning, so picking the frequent sense alone can never select the correct option."
+        },
+        {
+          "misconception_id": "grade35_chon_nghia_quen_thuoc_bo_qua_ngu_canh",
+          "description_en": "Given a multiple-meaning Vietnamese word in a sentence, students pick the word's most common/familiar meaning rather than the meaning that fits the sentence's context.",
+          "description_vi": "Khi gặp một từ tiếng Việt đa nghĩa trong câu, học sinh chọn nghĩa quen thuộc/phổ biến nhất của từ đó thay vì nghĩa phù hợp với ngữ cảnh của câu.",
+          "guard_strategy": "The familiar-but-context-mismatched meaning is always offered as an explicitly-labeled incorrect distractor alongside the true context-derived meaning, so picking the frequent sense alone can never select the correct option."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_6_8",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.ELA-LITERACY.L.7.1",
+          "description_en": "Demonstrate command of the conventions of standard English grammar and usage when writing or speaking, including subject-verb agreement with compound subjects.",
+          "description_vi": "Thể hiện khả năng nắm vững quy tắc ngữ pháp và cách dùng tiếng Anh chuẩn khi viết hoặc nói, bao gồm sự hòa hợp giữa chủ ngữ ghép và động từ."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.NGUVAN.7.LOAI_TU",
+          "description_en": "Grade 7 Vietnamese Language Arts: correct use of classifier words (loại từ) matching the noun they precede.",
+          "description_vi": "Ngữ văn lớp 7: Sử dụng đúng loại từ phù hợp với danh từ đi kèm."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade68_agrees_with_first_subject_not_nearest",
+          "description_en": "In 'neither...nor' / 'either...or' compound subjects, students make the verb agree with the first-listed subject instead of the subject nearest the verb.",
+          "description_vi": "Trong chủ ngữ ghép dùng 'neither...nor' / 'either...or', học sinh chia động từ theo chủ ngữ được liệt kê đầu tiên thay vì chủ ngữ gần động từ nhất.",
+          "guard_strategy": "The verb form that would agree with the first-listed subject is always offered as an explicitly-labeled incorrect distractor alongside the verb form that correctly agrees with the nearest subject."
+        },
+        {
+          "misconception_id": "grade68_overgeneralizes_con_as_default_classifier",
+          "description_en": "Learners overgeneralize the animal classifier 'con' as a default classifier for any noun, instead of selecting the classifier that matches the noun's category (e.g. 'quyển' for books, 'chiếc' for single manufactured items).",
+          "description_vi": "Học sinh lạm dụng loại từ 'con' (dùng cho động vật) như một loại từ mặc định cho mọi danh từ, thay vì chọn loại từ đúng theo nhóm danh từ (ví dụ 'quyển' cho sách, 'chiếc' cho vật dụng đơn chiếc).",
+          "guard_strategy": "The overgeneralized 'con' classifier is always offered as an explicitly-labeled incorrect distractor alongside the classifier that correctly matches the noun's category."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_9_12",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.ELA-LITERACY.RI.11-12.2",
+          "description_en": "Determine two or more central ideas of a text and analyze their development, including how they interact and build on one another.",
+          "description_vi": "Xác định hai hoặc nhiều ý chính của một văn bản và phân tích cách chúng được triển khai, bao gồm cách chúng tương tác và bổ sung cho nhau."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.NGUVAN.11.LUAN_DIEM_CHINH",
+          "description_en": "Grade 11 Vietnamese Language Arts: identifying the central argument (luận điểm chính) of an argumentative or informational passage.",
+          "description_vi": "Ngữ văn lớp 11: Xác định luận điểm chính của một đoạn văn nghị luận hoặc thông tin."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade912_assumes_first_sentence_is_main_idea",
+          "description_en": "Students assume the first sentence of a passage always states its main idea, even when the passage's actual central claim is synthesized across several sentences.",
+          "description_vi": "Học sinh cho rằng câu đầu tiên của đoạn văn luôn nêu ý chính, ngay cả khi ý chính thực sự của đoạn được tổng hợp từ nhiều câu.",
+          "guard_strategy": "The passage's literal first sentence is always offered as an explicitly-labeled incorrect distractor alongside the correctly-synthesized main idea, so first-sentence copying alone can never select the correct option."
+        },
+        {
+          "misconception_id": "grade912_nham_cau_dau_doan_la_luan_diem_chinh",
+          "description_en": "Students assume the first sentence of a Vietnamese passage always states its central argument (luận điểm chính), even when the passage's real central claim is synthesized across several sentences.",
+          "description_vi": "Học sinh cho rằng câu đầu tiên của đoạn văn tiếng Việt luôn là luận điểm chính, ngay cả khi luận điểm thực sự được tổng hợp từ nhiều câu trong đoạn.",
+          "guard_strategy": "The passage's literal first sentence is always offered as an explicitly-labeled incorrect distractor alongside the correctly-synthesized central argument, so first-sentence copying alone can never select the correct option."
+        }
+      ]
+    }
+  ]
+}

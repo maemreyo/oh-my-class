@@ -6,11 +6,19 @@ from dataclasses import dataclass
 from typing import Any
 
 from common.contracts.grade_band import grade_band_for_label
+from packages.agents.teaching_pack.subject_packs.fixed_answer_question_builder import (
+    FixedAnswerQuestion,
+    to_question_card as to_fixed_answer_question_card,
+)
+from packages.agents.teaching_pack.subject_packs.humanities_question_builder import build_humanities_questions
+from packages.agents.teaching_pack.subject_packs.language_literacy_question_builder import (
+    build_language_literacy_questions,
+)
 from packages.agents.teaching_pack.subject_packs.math_question_builder import build_math_questions
 from packages.agents.teaching_pack.subject_packs.science_question_builder import build_science_questions
 from packages.agents.teaching_pack.subject_packs.solver_question_builder import (
     SolverQuestion,
-    to_question_card,
+    to_question_card as to_solver_question_card,
 )
 
 
@@ -18,10 +26,14 @@ class NoDrillObjectivesError(ValueError):
     pass
 
 
-_SubjectQuestionBuilder = Callable[..., list[SolverQuestion]]
-_SUBJECT_BUILDERS: dict[str, _SubjectQuestionBuilder] = {
-    "math": build_math_questions,
-    "science": build_science_questions,
+_SubjectQuestion = SolverQuestion | FixedAnswerQuestion
+_SubjectQuestionBuilder = Callable[..., list[_SubjectQuestion]]
+_QuestionCardProjector = Callable[..., dict[str, Any]]
+_SUBJECT_BUILDERS: dict[str, tuple[_SubjectQuestionBuilder, _QuestionCardProjector]] = {
+    "math": (build_math_questions, to_solver_question_card),
+    "science": (build_science_questions, to_solver_question_card),
+    "language_and_literacy": (build_language_literacy_questions, to_fixed_answer_question_card),
+    "humanities_and_social_studies": (build_humanities_questions, to_fixed_answer_question_card),
 }
 
 
@@ -31,25 +43,28 @@ def _deterministic_seed(*parts: str) -> int:
 
 
 def _build_subject_drill_activities(lesson_plan: dict[str, Any]) -> list[dict[str, Any]] | None:
-    """Real, solver-verified progressive practice (#447 Math, #448 Science);
-    falls back to the generic objective-repetition builder (returns None)
-    when the subject has no capability-pack builder or no Grade Band can be
-    determined from the lesson plan."""
+    """Real, governed progressive practice (#447 Math, #448 Science, #449
+    Language and Literacy, #450 Humanities); falls back to the generic
+    objective-repetition builder (returns None) when the subject has no
+    capability-pack builder or no Grade Band can be determined from the
+    lesson plan."""
     subject = str(lesson_plan.get("subject") or "").strip().lower()
-    build_questions = _SUBJECT_BUILDERS.get(subject)
-    if build_questions is None:
+    builder = _SUBJECT_BUILDERS.get(subject)
+    if builder is None:
         return None
+    build_questions, project_card = builder
     grade_level = str(lesson_plan.get("grade_level") or lesson_plan.get("grade") or "")
     grade_band = grade_band_for_label(grade_level)
     if grade_band is None:
         return None
     topic = str(lesson_plan.get("topic") or lesson_plan.get("title") or "lesson")
-    locale = str(lesson_plan.get("locale") or "vi")
-    seed = _deterministic_seed(subject, topic, grade_band.value, "drill")
-    questions = build_questions(grade_band, count=5, seed=seed)
+    locale = str(lesson_plan.get("instruction_language") or lesson_plan.get("locale") or "vi")
+    target_language = str(lesson_plan.get("target_language") or locale)
+    seed = _deterministic_seed(subject, topic, grade_band.value, target_language, "drill")
+    questions = build_questions(grade_band, count=5, seed=seed, target_language=target_language)
     activities: list[dict[str, Any]] = []
     for level, question in enumerate(questions, start=1):
-        card = to_question_card(question, locale=locale)
+        card = project_card(question, locale=locale)
         card["id"] = f"{card['id']}-drill-{level}"
         card["difficulty_level"] = level
         activities.append(card)

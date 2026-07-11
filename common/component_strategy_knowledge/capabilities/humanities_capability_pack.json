@@ -1,0 +1,111 @@
+{
+  "manifest_version": "humanities-capability-pack.v1",
+  "subject": "humanities_and_social_studies",
+  "deterministic_solver": null,
+  "grade_bands": [
+    {
+      "grade_band": "k_2",
+      "artifact_families": ["quiz", "drill"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.ELA-LITERACY.RI.2.6",
+          "description_en": "Identify the main purpose of a text, including what the author wants to answer, explain, or describe.",
+          "description_vi": "Xác định mục đích chính của một văn bản, bao gồm điều tác giả muốn trả lời, giải thích hoặc mô tả."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.DAODUC.1.NOI_QUY",
+          "description_en": "Grade 1 Ethics/Civics: understanding why classroom and school rules exist.",
+          "description_vi": "Đạo đức lớp 1: Hiểu vì sao cần thực hiện nội quy lớp học và nhà trường."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "k2_thinks_rules_exist_only_to_punish",
+          "description_en": "Students believe classroom/school rules exist only to punish misbehavior, rather than to keep everyone safe and treated fairly.",
+          "description_vi": "Học sinh cho rằng nội quy lớp học/nhà trường chỉ để phạt khi làm sai, thay vì để giữ an toàn và công bằng cho mọi người.",
+          "guard_strategy": "The punishment-only framing is always offered as an explicitly-labeled incorrect distractor alongside the safety-and-fairness reason drawn from the specific rule and scenario described, so a punishment-first reading alone can never select the correct option."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_3_5",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.ELA-LITERACY.RI.4.7",
+          "description_en": "Interpret information presented visually, orally, or quantitatively (e.g., in maps, charts) and explain how the information contributes to understanding the text.",
+          "description_vi": "Diễn giải thông tin được trình bày trực quan, bằng lời nói hoặc số liệu (ví dụ: trong bản đồ, biểu đồ) và giải thích thông tin đó đóng góp gì cho việc hiểu văn bản."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.DIALY.5.BAN_DO",
+          "description_en": "Grade 5 History and Geography: reading a map and determining direction using a compass rose.",
+          "description_vi": "Lịch sử và Địa lý lớp 5: Đọc bản đồ và xác định phương hướng bằng la bàn/mũi tên chỉ hướng."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade35_confuses_map_up_with_forward_direction",
+          "description_en": "When determining direction on a map, students treat 'up on the page' as 'the direction I am facing' instead of reading the compass rose to find true North.",
+          "description_vi": "Khi xác định phương hướng trên bản đồ, học sinh coi 'phía trên trang giấy' là 'hướng mình đang nhìn tới' thay vì đọc la bàn/mũi tên chỉ hướng để xác định hướng Bắc thật.",
+          "guard_strategy": "Every direction item states the compass rose's North explicitly and the forward-facing misreading is offered as an explicitly-labeled incorrect distractor, so 'up equals forward' alone can never select the correct option."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_6_8",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.ELA-LITERACY.RH.6-8.1",
+          "description_en": "Cite specific textual evidence to support analysis of primary and secondary sources.",
+          "description_vi": "Trích dẫn bằng chứng cụ thể trong văn bản để hỗ trợ phân tích tư liệu gốc (sơ cấp) và tư liệu thứ cấp."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.LICHSU.8.NGUON_SU_LIEU",
+          "description_en": "Grade 8 History: distinguishing primary (sơ cấp) from secondary (thứ cấp) historical sources.",
+          "description_vi": "Lịch sử lớp 8: Phân biệt tư liệu lịch sử gốc (sơ cấp) và tư liệu thứ cấp."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade68_assumes_old_document_is_always_primary_source",
+          "description_en": "Students assume any old-looking or old-dated document is automatically a primary source, without checking whether its author directly witnessed or participated in the event it describes.",
+          "description_vi": "Học sinh cho rằng bất kỳ tài liệu nào trông cũ hoặc có niên đại xa xưa đều tự động là tư liệu gốc, mà không kiểm tra xem tác giả có trực tiếp chứng kiến hoặc tham gia sự kiện được mô tả hay không.",
+          "guard_strategy": "Every source-classification item describes the author's actual relationship to the event (eyewitness vs later historian/compiler), and the age-based misreading is offered as an explicitly-labeled incorrect distractor, so document age alone can never select the correct option -- guarding against treating a single retrospective account as unmediated ground truth."
+        }
+      ]
+    },
+    {
+      "grade_band": "grades_9_12",
+      "artifact_families": ["quiz", "drill", "worksheet"],
+      "standards": [
+        {
+          "framework": "CCSS",
+          "code": "CCSS.ELA-LITERACY.RL.11-12.2",
+          "description_en": "Determine two or more themes or central ideas of a text and analyze their development, including how they interact and build on one another; provide an objective summary of the text.",
+          "description_vi": "Xác định hai hoặc nhiều chủ đề hoặc ý chính của một tác phẩm và phân tích cách chúng được triển khai, bao gồm cách chúng tương tác và bổ sung cho nhau; trình bày tóm tắt khách quan của tác phẩm."
+        },
+        {
+          "framework": "MOET_2018",
+          "code": "MOET.NGUVAN.11.CHU_DE_TAC_PHAM",
+          "description_en": "Grade 11 Vietnamese Language Arts: identifying a literary work's theme, distinguishing it from a plot summary.",
+          "description_vi": "Ngữ văn lớp 11: Xác định chủ đề của tác phẩm văn học, phân biệt với việc tóm tắt cốt truyện."
+        }
+      ],
+      "misconceptions": [
+        {
+          "misconception_id": "grade912_confuses_plot_summary_with_theme",
+          "description_en": "When asked for a literary work's theme, students describe what happens in the plot instead of the underlying message or idea the events express.",
+          "description_vi": "Khi được hỏi về chủ đề của tác phẩm văn học, học sinh mô tả những gì xảy ra trong cốt truyện thay vì thông điệp hoặc ý tưởng cốt lõi mà các sự kiện thể hiện.",
+          "guard_strategy": "Every theme item's plot-summary sentence is offered as an explicitly-labeled incorrect distractor alongside the correctly-synthesized theme, so restating events alone can never select the correct option."
+        }
+      ]
+    }
+  ]
+}

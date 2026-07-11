@@ -23,6 +23,18 @@ _SCIENCE_PACK_PATH = (
     / "capabilities"
     / "science_capability_pack.json"
 )
+_LANGUAGE_LITERACY_PACK_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "component_strategy_knowledge"
+    / "capabilities"
+    / "language_literacy_capability_pack.json"
+)
+_HUMANITIES_PACK_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "component_strategy_knowledge"
+    / "capabilities"
+    / "humanities_capability_pack.json"
+)
 
 
 def _minimal_pack_kwargs(**overrides: object) -> dict:
@@ -73,6 +85,26 @@ def test_science_capability_pack_json_loads_and_validates() -> None:
         assert coverage.standards
         assert coverage.misconceptions
         assert any(standard.framework == "NGSS" for standard in coverage.standards)
+
+
+def test_language_literacy_capability_pack_json_loads_and_validates() -> None:
+    pack = load_subject_capability_pack(_LANGUAGE_LITERACY_PACK_PATH)
+    assert pack.subject == "language_and_literacy"
+    for band in GradeBand:
+        coverage = pack.coverage_for(band)
+        assert coverage.standards
+        assert coverage.misconceptions
+        assert any(standard.framework == "CCSS" for standard in coverage.standards)
+
+
+def test_humanities_capability_pack_json_loads_and_validates() -> None:
+    pack = load_subject_capability_pack(_HUMANITIES_PACK_PATH)
+    assert pack.subject == "humanities_and_social_studies"
+    for band in GradeBand:
+        coverage = pack.coverage_for(band)
+        assert coverage.standards
+        assert coverage.misconceptions
+        assert any(standard.framework == "CCSS" for standard in coverage.standards)
 
 
 def test_valid_minimal_pack_round_trips() -> None:

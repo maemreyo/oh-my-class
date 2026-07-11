@@ -140,9 +140,15 @@ _GENERATORS: dict[GradeBand, Callable[[random.Random, int], SolverQuestion]] = {
 }
 
 
-def build_science_questions(grade_band: GradeBand, *, count: int = 4, seed: int = 0) -> list[SolverQuestion]:
+def build_science_questions(
+    grade_band: GradeBand, *, count: int = 4, seed: int = 0, target_language: str = "en",
+) -> list[SolverQuestion]:
     """Deterministic given the same `seed` -- same grade band + seed always
-    produces the same problem set (#448 AC: deterministic and traceable)."""
+    produces the same problem set (#448 AC: deterministic and traceable).
+
+    `target_language` is accepted for signature parity with subject builders
+    that need it (#449 Language and Literacy) -- unused here."""
+    del target_language
     rng = random.Random(seed)
     generator = _GENERATORS[grade_band]
     return [generator(rng, index) for index in range(count)]
