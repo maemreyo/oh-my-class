@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from common.contracts.component_strategy import ComponentStrategyRequest, StrategyQualityScore
 from common.contracts.component_strategy_knowledge_models import ComponentBindingEntry
+from common.contracts.grade_band import (
+    StrategyKnowledgeGradeBand,
+    grade_band_for_label,
+    strategy_knowledge_grade_band,
+)
 
 
 def family_id_for(request: ComponentStrategyRequest) -> str:
@@ -14,14 +19,9 @@ def family_id_for(request: ComponentStrategyRequest) -> str:
     return "concept_math_science"
 
 
-def grade_band_for(grade_level: str) -> str:
-    digits = "".join(char for char in grade_level if char.isdigit())
-    grade = int(digits or "5")
-    if grade <= 6:
-        return "grade_4_6"
-    if grade <= 9:
-        return "grade_7_9"
-    return "grade_10_12"
+def grade_band_for(grade_level: str) -> StrategyKnowledgeGradeBand | None:
+    grade_band = grade_band_for_label(grade_level)
+    return strategy_knowledge_grade_band(grade_band) if grade_band is not None else None
 
 
 def subject_tag_for(request: ComponentStrategyRequest) -> str:

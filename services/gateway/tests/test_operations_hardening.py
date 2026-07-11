@@ -266,9 +266,11 @@ class TestRecoverySweeper:
         assert refreshed.attempts == 2  # incremented by claim_next earlier
         await _cleanup_run(session, run_id)
 
-    async def test_sweep_stuck_jobs_max_attempts_failed(
+    async def test_sweep_stuck_jobs_max_attempts_dead_letters(
         self, session: AsyncSession,
     ) -> None:
+        """#124: exhausting max_attempts via repeated lease expiry dead-letters
+        the job (inspectable/replayable), not FAILED (terminal)."""
         run_id = await _create_run(session)
         job = await _claim_job(session, run_id)
 
@@ -285,8 +287,9 @@ class TestRecoverySweeper:
         refreshed = (await session.execute(
             select(RunJob).where(RunJob.job_id == job.job_id),
         )).scalar_one()
-        assert refreshed.status is RunJobStatus.FAILED
+        assert refreshed.status is RunJobStatus.DEAD_LETTER
         assert refreshed.lease_owner is None
+        assert refreshed.error_classification == "transient_exhausted"
         await _cleanup_run(session, run_id)
 
     async def test_sweep_stuck_jobs_skips_non_expired(

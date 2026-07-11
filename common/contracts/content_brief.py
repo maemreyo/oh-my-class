@@ -15,6 +15,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from common.contracts.education_policy import EDUCATION_POLICY_VERSION
 from common.contracts.run_contract import ArtifactType  # noqa: TC001
 
 AnswerPolicy = Literal["none", "teacher_only", "derived"]
@@ -33,6 +34,7 @@ class ContentBrief(BaseModel):
 
     content_brief_id: str = Field(min_length=1, max_length=80)
     run_id: str = Field(min_length=1, max_length=64)
+    education_policy_version: Literal["education_policy.v1"] = EDUCATION_POLICY_VERSION
     artifact_type: ArtifactType
     objectives: list[str] = Field(min_length=1)
     scope: list[str] = Field(default_factory=list)

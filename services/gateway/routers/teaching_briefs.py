@@ -175,6 +175,7 @@ def _class_info(brief: TeachingBrief) -> dict[str, object]:
         "grade": brief.grade,
         "subject": brief.subject,
         "locale": _locale_for(brief.target_language),
+        "target_language": brief.target_language,
         "instruction_language": brief.instruction_language,
         "curriculum": brief.curriculum,
         "artifact_types": brief.artifact_types,

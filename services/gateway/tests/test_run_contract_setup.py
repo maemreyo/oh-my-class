@@ -8,6 +8,7 @@ from services.gateway.run_contract_setup import (
     resolve_contract_setup,
 )
 from services.gateway.teaching_pack_types import RunId, TeacherId
+from common.contracts.grade_band import GradeBand
 
 
 class TestTeachingPackContractSetup:
@@ -60,6 +61,51 @@ class TestTeachingPackContractSetup:
         assert result.contract.artifact_types == DEFAULT_POLICY["artifact_types"]
         assert result.contract.export_formats == ["html"]
         assert len(result.contract.config_hash) == 64
+        assert result.contract.grade_band == GradeBand.GRADES_3_5.value
+        assert result.contract.education_policy_version == "education_policy.v1"
+        assert result.contract.curriculum_framework == "general"
+
+    def test_invalid_grade_opens_clarification_instead_of_selecting_a_band(self) -> None:
+        result = resolve_contract_setup(ContractSetupInput(
+            run_id=RunId("run-invalid-grade"),
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Fractions",
+            class_info={"topic": "Fractions", "grade": 13, "subject": "math"},
+        ))
+
+        assert isinstance(result, ContractSetupGate)
+        assert result.gate_name == "clarification_required"
+        assert result.payload["unsupported_values"] == [{"field": "grade_band", "value": "Grade 13"}]
+
+    def test_target_language_remains_independent_from_instruction_language(self) -> None:
+        result = resolve_contract_setup(ContractSetupInput(
+            run_id=RunId("run-language-separation"),
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Fractions",
+            class_info={
+                "topic": "Fractions",
+                "grade": 5,
+                "subject": "math",
+                "target_language": "vi",
+                "instruction_language": "en",
+            },
+        ))
+
+        assert isinstance(result, ContractSetupReady)
+        assert result.contract.target_language == "vi"
+        assert result.contract.instruction_language == "en"
+
+    def test_vietnamese_curriculum_resolves_a_canonical_framework(self) -> None:
+        result = resolve_contract_setup(ContractSetupInput(
+            run_id=RunId("run-moet-framework"),
+            teacher_id=TeacherId("teacher-a"),
+            raw_request="Phân số",
+            class_info={"topic": "Phân số", "grade": 5, "subject": "math", "locale": "vi-VN"},
+        ))
+
+        assert isinstance(result, ContractSetupGate)
+        assert result.contract is not None
+        assert result.contract.curriculum_framework == "moet_2018"
 
     def test_slide_deck_request_creates_slide_deck_contract(self) -> None:
         result = resolve_contract_setup(ContractSetupInput(

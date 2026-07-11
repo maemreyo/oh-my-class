@@ -34,6 +34,9 @@ class RunJobRead:
     payload: JsonObject
     attempts: int
     eligible_at: datetime | None = None
+    last_error: str | None = None
+    error_classification: str | None = None
+    dead_lettered_at: datetime | None = None
 
 
 class TeachingPackJobStore:
@@ -141,6 +144,50 @@ class TeachingPackJobStore:
         job.status = RunJobStatus.FAILED
         job.lease_owner = None
         job.lease_expires_at = None
+        await self._session.flush()
+        return True
+
+    async def mark_dead_letter(
+        self,
+        job_id: str,
+        *,
+        error_summary: str,
+        classification: str,
+        now: datetime | None = None,
+    ) -> bool:
+        """#124: move a RUNNING job to DEAD_LETTER -- a holding state, not a
+        terminal one. Excluded from every claimable query the same as FAILED
+        (neither PENDING, eligible-QUEUED, nor RUNNING), but inspectable and
+        replayable by ops instead of a dead end.
+        """
+        job = await self._get_job_for_update(job_id)
+        if job.status is not RunJobStatus.RUNNING:
+            return False
+        job.status = RunJobStatus.DEAD_LETTER
+        job.lease_owner = None
+        job.lease_expires_at = None
+        job.last_error = error_summary[:2000]
+        job.error_classification = classification
+        job.dead_lettered_at = now or datetime.now(UTC)
+        await self._session.flush()
+        return True
+
+    async def replay_dead_letter(self, job_id: str) -> bool:
+        """#124: ops-triggered re-enqueue of a dead-lettered job.
+
+        Resets to PENDING with a clean attempt count -- replay rides on the
+        same idempotency-key/exactly-once-effects machinery as any other
+        (re-)claim, so a replayed run does not duplicate side effects.
+        """
+        job = await self._get_job_for_update(job_id)
+        if job.status is not RunJobStatus.DEAD_LETTER:
+            return False
+        job.status = RunJobStatus.PENDING
+        job.attempts = 0
+        job.eligible_at = None
+        job.last_error = None
+        job.error_classification = None
+        job.dead_lettered_at = None
         await self._session.flush()
         return True
 
@@ -258,4 +305,7 @@ def _read_job(job: RunJob) -> RunJobRead:
         payload=job.payload,
         attempts=job.attempts,
         eligible_at=job.eligible_at,
+        last_error=job.last_error,
+        error_classification=job.error_classification,
+        dead_lettered_at=job.dead_lettered_at,
     )

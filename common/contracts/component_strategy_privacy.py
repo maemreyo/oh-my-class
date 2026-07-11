@@ -7,6 +7,7 @@ from typing import Final, Self
 from pydantic import Field
 
 from common.contracts.component_strategy import ComponentStrategyRequest, StrategyModel
+from common.contracts.grade_band import grade_band_for_label
 
 PII_DELIVERY_CONTEXT_KEYS: Final = frozenset({"student_names", "student_emails", "individual_scores", "email"})
 FINGERPRINT_CONTEXT_KEYS: Final = ("class_context_tags", "cohort_tags", "delivery_mode")
@@ -46,7 +47,7 @@ class StrategyRequestFingerprint(StrategyModel):
         return cls(
             objective_refs=tuple(f"{ref.objective_id}@{ref.objective_revision}" for ref in request.objective_refs),
             subject=request.subject.lower(),
-            grade_band=_grade_band(request.grade_level),
+            grade_band=grade_band_for_label(request.grade_level) or "unresolved",
             duration_bucket=_duration_bucket(request.duration_minutes),
             artifact_types=tuple(sorted(request.artifact_types)),
             export_formats=tuple(sorted(request.export_formats)),
@@ -92,16 +93,6 @@ class StrategyObservabilitySummary(StrategyModel):
 def contains_forbidden_delivery_context(keys: set[str]) -> str | None:
     forbidden = keys.intersection(PII_DELIVERY_CONTEXT_KEYS)
     return sorted(forbidden)[0] if forbidden else None
-
-
-def _grade_band(grade_level: str) -> str:
-    digits = "".join(char for char in grade_level if char.isdigit())
-    grade = int(digits or "5")
-    if grade <= 6:
-        return "grade_4_6"
-    if grade <= 9:
-        return "grade_7_9"
-    return "grade_10_12"
 
 
 def _duration_bucket(minutes: int) -> str:

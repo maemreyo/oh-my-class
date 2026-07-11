@@ -1,0 +1,27 @@
+{
+  "mode": "final",
+  "run_id": "cs08-vocabulary-language",
+  "teacher_id_hash": "teacher-hash",
+  "locale": "vi",
+  "subject": "language",
+  "grade_level": "Grade 5",
+  "duration_minutes": 45,
+  "artifact_types": ["lesson", "worksheet"],
+  "export_formats": ["html"],
+  "objective_refs": [
+    { "objective_id": "LO-vocab-1", "objective_revision": "rev-1" },
+    { "objective_id": "LO-vocab-2", "objective_revision": "rev-1" }
+  ],
+  "delivery_context": {
+    "blueprint_revision_id": "bp-vocab-1",
+    "delivery_mode": "printable_classroom"
+  },
+  "assessment_intent": ["low_pressure_retrieval"],
+  "research_signals": {
+    "factual_risk": "low",
+    "source_confidence": "high",
+    "prerequisite_risk": "partial",
+    "misconception_refs": ["confusable_terms"],
+    "evidence_tags": ["retrieval_practice", "contrastive_examples", "vocabulary_scaffold"]
+  }
+}

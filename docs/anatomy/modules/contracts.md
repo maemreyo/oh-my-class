@@ -98,6 +98,47 @@
 | `Token` | Pydantic model | `auth.py:21` | JWT token response |
 | `Role` | StrEnum | `auth.py:8` | teacher/admin |
 
+### V2 domain document contracts (#463 cutover)
+
+| Symbol | Kind | File | Description |
+|--------|------|------|-------------|
+| `ArtifactDocument` | Pydantic model | `artifact_document.py` | Immutable V2 document: typed `ArtifactPayload` union (assessment/block/rich/slide_deck), `audience` (student/teacher/print), version lineage (`parent_document_id`, `source_document_id`) |
+| `ArtifactPayload` | Discriminated union | `artifact_document.py` | `payload_kind`-discriminated payload: `assessment_document` (questions/options), `block_document`, `rich_document`, `slide_deck_document` |
+| `artifact_document_from_content` | Function | `artifact_projection_mapper.py:22` | V1 `ArtifactContent` → V2 `ArtifactDocument`; strips teacher-only data for `audience="student"` — generic leaf-key scrub (`_student_value`) for assessment/rich/block payloads, whole-object `teacher_only`/`teacher_notes` removal for slide decks (`_student_safe_slide_deck`, required-field-safe) |
+| `artifact_content_from_document` | Function | `artifact_projection_mapper.py:56` | V2 `ArtifactDocument` → V1 `ArtifactContent` projection (read-compatibility path for renderer/quality/export consumers not yet V2-native) |
+| `ArtifactProjectionConversionError` | Exception | `artifact_projection_mapper.py:18` | Raised on an unmappable/lossy conversion instead of silently dropping fields |
+
+### Education policy taxonomy (#462 canonical vocabulary)
+
+| Symbol | Kind | File | Description |
+|--------|------|------|-------------|
+| `EDUCATION_POLICY_VERSION` | Constant | `education_policy.py:6` | `"education_policy.v1"` — pinned onto `RunContract`, `ContentBrief`, `TeachingBrief`, `ArtifactDocument`, `quality.py` reports |
+| `SubjectKey`, `CurriculumFramework`, `Audience`, `ArtifactKind`, `CapabilityStatus`, `ClaimRisk`, `ResearchRigor` | StrEnums | `education_policy.py` | Canonical taxonomy values shared across strategy/specialists/renderer/exporter/quality/analytics |
+| `normalize_subject`, `normalize_language`, `curriculum_framework_for` | Functions | `education_policy.py:73,105,115` | Bounded legacy-literal adapters (e.g. `"maths"` → `SubjectKey.MATH`) — the compatibility seam #462 requires instead of ad hoc branching |
+
+### Dependency plan (#464 ADR-053 Content Orchestrator — partial)
+
+| Symbol | Kind | File | Description |
+|--------|------|------|-------------|
+| `DependencyPlan` | Pydantic model (frozen) | `dependency_plan.py` | Versioned generation-wave/dependency structure; validates every dependency references a strictly earlier wave (rejects unknown/same-wave/forward dependencies) |
+| `DEFAULT_DEPENDENCY_PLAN` | Constant | `dependency_plan.py` | ADR-053's default plan (Wave 0 lesson → Wave 1 worksheet/quiz/slide_deck/... → Wave 2 recap/answer_key) — consumed directly by `packages/agents/teaching_pack/artifact_fanout.py`, replacing that module's own bare tuples |
+
+### Prerequisite graph (#465 Content Intelligence Graph — partial)
+
+| Symbol | Kind | File | Description |
+|--------|------|------|-------------|
+| `PrerequisiteGraph`, `PrerequisiteNode` | Pydantic models (frozen) | `prerequisite_graph.py` | Versioned (`snapshot_version`), immutable node/edge graph of knowledge-component prerequisite relationships |
+| `prerequisite_closure` | Function | `prerequisite_graph.py` | Deterministic, deepest-first closure over one target node; fails closed via `PrerequisiteCycleError`/`PrerequisiteMissingNodeError`/`PrerequisiteScopeConflictError` instead of silently truncating |
+
+**Scope note:** this is the prerequisite-graph slice of #465 only — standards/misconceptions/evidence nodes already existed (`subject_capability_pack.py`, `component_strategy_knowledge_models.py`) and are unaffected. **Not yet wired to a live caller** (no real curriculum prerequisite content has been authored to back a production integration) — tested and correct in isolation, but #465 remains open pending real content plus the tenant-scoped storage, versioned-snapshot pinning into `ContentBrief`/Decision Provenance, and golden query breadth the issue also asks for.
+
+### Gate/breaker runtime config
+
+| Symbol | Kind | File | Description |
+|--------|------|------|-------------|
+| `GateConfig` | Pydantic Settings | `gate_config.py:6` | `GATE_`-prefixed env-driven thresholds (schema retries, judge model/score, HITL timeout, export consensus) — consumed widely across `packages/agents/gates/*`, `packages/agents/healing/*`, `packages/quality` |
+| `ProviderCircuitBreaker` | Frozen dataclass | `provider_circuit_breaker.py:14` | Per-provider open/half-open/closed breaker with pluggable `BreakerStore`; consumed by `packages/llm_client/circuit_breaker.py` |
+
 ### Other contracts
 
 | Symbol | Kind | File | Description |
@@ -135,7 +176,7 @@
 `component_strategy.py`, `component_strategy_capabilities.py`, `component_strategy_coverage.py`, `component_strategy_enums.py`, `component_strategy_fallback_validation.py`, `component_strategy_knowledge.py`, `component_strategy_knowledge_index.py`, `component_strategy_knowledge_models.py`, `component_strategy_moet.py`, `component_strategy_privacy.py`, `component_strategy_selector.py`, `component_strategy_selector_fallback.py`, `component_strategy_selector_support.py`, `component_strategy_slot_contracts.py`, `component_strategy_slot_policy.py`, `component_strategy_smoke_benchmark.py`
 
 **Other:**
-`answer_key.py`, `answer_set.py`, `class_profile.py`, `content_brief.py`, `decision_provenance.py`, `grade_band.py`, `inverse_thinking.py`, `lesson_sequence.py`, `log_context.py`, `media_asset.py`, `methodology_registry.py`, `objective_lineage.py`, `outcome.py`, `research_brief.py`, `roadmap.py`, `rubric.py`, `seam_contracts.py`, `strategy_review.py`, `subject_capability_pack.py`, `teaching_brief.py`, `teaching_pack_capabilities.py`, `unit_view.py`, `visual_source_suggestion.py`, `vocabulary_batch.py`, `vocabulary_cluster_workflow.py`
+`answer_key.py`, `answer_set.py`, `artifact_projection_mapper.py` (#463 V1↔V2 mapper), `class_profile.py`, `content_brief.py`, `decision_provenance.py`, `education_policy.py` (#462 canonical taxonomy), `gate_config.py`, `grade_band.py`, `inverse_thinking.py`, `lesson_sequence.py`, `log_context.py`, `media_asset.py`, `methodology_registry.py`, `objective_lineage.py`, `outcome.py`, `provider_circuit_breaker.py`, `research_brief.py`, `roadmap.py`, `rubric.py`, `seam_contracts.py`, `strategy_review.py`, `subject_capability_pack.py`, `teaching_brief.py`, `teaching_pack_capabilities.py`, `unit_view.py`, `visual_source_suggestion.py`, `vocabulary_batch.py`, `vocabulary_cluster_workflow.py`
 
 ### Package configuration
 
@@ -171,9 +212,9 @@ All imports are within the `common.contracts` package. Key internal imports:
 
 ## Used by
 
-- **`agents`** — 157 imports across 125 files; ArtifactContent, LessonPlan, JudgeOutput, RunContract, SlideDeckData
+- **`agents`** — 157 imports across 125 files; ArtifactContent, LessonPlan, JudgeOutput, RunContract, SlideDeckData; `content_orchestrator.py` also calls `artifact_projection_mapper.artifact_document_from_content`/`artifact_content_from_document` (`teaching_pack/content_orchestrator.py:224`)
 - **`quality`** — ~20 imports; ArtifactContent, QualityIssue, QualityFailureClass
-- **`gateway`** — ~40 imports; RunContract, ArtifactContent, ErrorResponse, User, Token, SlideDeckData
+- **`gateway`** — ~40 imports; RunContract, ArtifactContent, ErrorResponse, User, Token, SlideDeckData; `artifact_document_content_store.py` imports `artifact_projection_mapper` directly (`services/gateway/artifact_document_content_store.py:5`)
 
 | Consumer | Import count | Key imports |
 |---------|-------------|-------------|

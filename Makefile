@@ -31,7 +31,7 @@
 #   make check-schemas Verify schema parity (Pydantic ↔ Zod)
 # ════════════════════════════════════════════════════════════════════
 
-.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
+.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
 
 # ── Docker compose path ──
 COMPOSE := docker compose -f infra/compose/docker-compose.yml
@@ -191,6 +191,11 @@ gen-schemas: ## Generate Zod schemas from Pydantic
 
 check-schemas: ## Verify schema parity (Pydantic <-> Zod)
 	uv run python scripts/verify_schema_parity.py
+
+check-architecture: ## Verify runtime manifest and generated anatomy trace freshness
+	uv run pytest tests/test_architecture_sync.py tests/test_system_trace_refs.py tests/test_architecture_truth_gate.py -q
+	uv run python scripts/check_architecture_truth.py
+	uv run python scripts/verify_doc_refs.py
 
 # ── Help ──
 help: ## Show this help message

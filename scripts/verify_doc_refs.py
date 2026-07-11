@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify every `path:line` (and `path:start-end`) reference inside docs/system-trace/*.md.
+"""Verify every `path:line` (and `path:start-end`) reference inside docs/anatomy/*.md.
 
 The system-trace documentation was produced by TRACING the source code, not by reading
 AGENTS.md. This script is the integrity gate: every `file:line` claim must point at a real
@@ -20,6 +20,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+from pathlib import Path
 
 # Extensions we treat as citable source files.
 _EXT = r"(?:py|ts|tsx|yml|yaml|json|md)"
@@ -46,8 +47,8 @@ def check_md(md_path: str, repo_root: str) -> list[tuple[str, str]]:
         ref_path, start_s, end_s = m.group(1), m.group(2), m.group(3)
         if ref_path.startswith("/") or "://" in ref_path:
             continue
-        abs_path = os.path.join(repo_root, ref_path)
-        if not os.path.isfile(abs_path):
+        abs_path = _resolve_reference(Path(repo_root), Path(md_path).name, ref_path)
+        if abs_path is None:
             broken.append((m.group(0), f"file not found: {ref_path}"))
             continue
         with open(abs_path, encoding="utf-8", errors="ignore") as ff:
@@ -61,13 +62,36 @@ def check_md(md_path: str, repo_root: str) -> list[tuple[str, str]]:
     return broken
 
 
+def _resolve_reference(repo_root: Path, document_name: str, reference: str) -> Path | None:
+    direct = repo_root / reference
+    if direct.is_file():
+        return direct
+    scoped = _scoped_candidate(repo_root, document_name, reference)
+    if scoped is not None and scoped.is_file():
+        return scoped
+    matches = [path for path in repo_root.rglob(Path(reference).name) if path.as_posix().endswith(reference)]
+    return matches[0] if len(matches) == 1 else None
+
+
+def _scoped_candidate(repo_root: Path, document_name: str, reference: str) -> Path | None:
+    scope_by_document = {
+        "deployment.md": "infra/compose",
+        "entry-points.md": "services/gateway",
+        "index.md": "packages",
+    }
+    scope = scope_by_document.get(document_name)
+    if scope is None:
+        return None
+    return repo_root / scope / reference
+
+
 def main() -> int:
     here = os.path.dirname(os.path.abspath(__file__))
     repo_root = find_repo_root(here)
     if repo_root is None:
         print("ERROR: repo root (AGENTS.md) not found", file=sys.stderr)
         return 2
-    doc_dir = os.path.join(repo_root, "docs", "system-trace")
+    doc_dir = os.path.join(repo_root, "docs", "anatomy")
     if not os.path.isdir(doc_dir):
         print(f"ERROR: {doc_dir} not found", file=sys.stderr)
         return 2

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from common.contracts.grade_band import FlashcardGradeBand
+
 from packages.agents.teaching_pack.specialists.flashcard_deck_specialist import (
     NoGroundedTermsError,
     build_flashcards,
@@ -68,7 +70,7 @@ def test_generate_flashcard_deck_artifact_uses_the_shape_the_exporter_reads() ->
 def test_scorecard_covers_all_four_dimensions() -> None:
     entries = build_flashcards(_lesson_plan(), _research_brief())
 
-    scorecard = score_flashcards(entries, grade_band="elementary")
+    scorecard = score_flashcards(entries, grade_band=FlashcardGradeBand.ELEMENTARY)
 
     assert scorecard.recall_value == 1.0  # every back is substantive (>= 2 words)
     assert scorecard.ambiguity == 0.0  # no duplicate fronts
@@ -89,7 +91,7 @@ def test_scorecard_flags_duplicate_fronts_and_backs() -> None:
 def test_scorecard_grade_fit_penalizes_backs_outside_the_declared_band() -> None:
     entries = build_flashcards(_lesson_plan(), _research_brief())
 
-    fit_for_elementary = score_flashcards(entries, grade_band="elementary").grade_fit
+    fit_for_elementary = score_flashcards(entries, grade_band=FlashcardGradeBand.ELEMENTARY).grade_fit
     fit_with_no_band = score_flashcards(entries, grade_band=None).grade_fit
 
     assert fit_with_no_band == 1.0  # no declared band -- not penalized

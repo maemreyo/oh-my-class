@@ -2,9 +2,38 @@ from __future__ import annotations
 
 import pytest
 
+from common.contracts.slide_deck import SlideDeckData
 from packages.agents.teaching_pack.graph import build_teaching_pack_graph
 from packages.agents.teaching_pack.nodes import TeachingPackState
 from packages.agents.teaching_pack.stages import StageEnum
+
+
+def _minimal_slide_deck_data() -> dict[str, object]:
+    """The smallest deck that satisfies `SlideDeckData` -- #463's V2 mapper
+    requires `metadata.slide_deck_data` to actually validate against the
+    contract (not just be present), unlike the pre-#463 path this fixture
+    predates."""
+    surface = {"mode": "presentation", "export_format": "html"}
+    return SlideDeckData.model_validate({
+        "deck_id": "deck-1",
+        "title": "Fractions Deck",
+        "locale": "en",
+        "theme": "default",
+        "surfaces": {"student": surface, "teacher": surface, "print": surface},
+        "slides": [{
+            "slide_id": "slide-1",
+            "title": "Intro",
+            "layout": "content",
+            "progression": {"step_index": 1, "reveal_policy": "all_at_once"},
+            "blocks": [{
+                "block_id": "block-1",
+                "block_type": "paragraph",
+                "body": "Use unit fractions.",
+            }],
+        }],
+        "accessibility": {"reading_level": "grade_5", "language": "en"},
+        "media_policy": {"default_tier": "packaged", "online_optional_allowed": False, "fallback_required": True},
+    }).model_dump(mode="json")
 
 
 def _artifact(artifact_type: str) -> dict[str, object]:
@@ -29,6 +58,8 @@ def _artifact(artifact_type: str) -> dict[str, object]:
                 "explain": "Two fourths equals one half.",
             }],
         }]
+    if artifact_type == "slide_deck":
+        artifact["metadata"] = {"slide_deck_data": _minimal_slide_deck_data()}
     return artifact
 
 

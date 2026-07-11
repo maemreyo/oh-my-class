@@ -270,9 +270,10 @@ async def test_compiled_graph_runs_waves_before_render_quality_by_default(
         ],
     })
 
-    # "recap" is dispatched to the real Recap specialist (#439), not this fake
-    # content_creator_node -- it must still complete, just without hitting the mock.
-    assert calls == ["lesson", "quiz"]
+    # "lesson", "quiz", and "recap" all now dispatch to real specialists
+    # (specialist_registry.py / #439), not this fake content_creator_node --
+    # they must still complete, just without hitting the mock.
+    assert calls == []
     assert result["artifact_fanout_complete"] is True
     assert [reference["artifact_type"] for reference in result["artifact_references"]] == ["lesson", "quiz", "recap"]
 
@@ -313,6 +314,8 @@ async def test_compiled_graph_runs_slide_deck_only_before_render_quality(
         ],
     })
 
-    assert calls == ["slide_deck"]
+    # "slide_deck" is built directly by `_slide_deck_artifact` in
+    # generate_one_artifact.py (never routed through content_creator_node).
+    assert calls == []
     assert result["artifact_fanout_complete"] is True
     assert [reference["artifact_type"] for reference in result["artifact_references"]] == ["slide_deck"]

@@ -67,6 +67,24 @@ class TestTeachingPackExportWriter:
         assert renderer.calls == [slide_deck]
 
     @pytest.mark.anyio
+    async def test_filesystem_writer_rejects_answer_material_in_approved_snapshot(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        writer = FileSystemTeachingPackExportWriter(base_dir=tmp_path, renderer=RecordingRenderer())
+        state = {
+            "approved_snapshot_ids": ["quiz-snapshot"],
+            "contract": {"export_formats": ["html"]},
+            "rendered_snapshots": [{
+                "snapshot_id": "quiz-snapshot",
+                "content_json": {"artifact_type": "quiz", "metadata": {"answer": "B"}},
+            }],
+        }
+
+        with pytest.raises(ExportAdapterError, match="answer material"):
+            await writer.write_exports(RunId("run-leaked-export"), state)
+
+    @pytest.mark.anyio
     async def test_filesystem_writer_exports_release_gate_html_matrix(
         self,
         tmp_path: Path,

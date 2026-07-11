@@ -456,6 +456,32 @@ async def test_snapshot_answer_keys_not_in_main_rendered_html(
     await session.commit()
 
 
+async def test_snapshot_rejects_recursive_answer_material_in_content_json(
+    session: AsyncSession,
+) -> None:
+    run_id = RunId(f"test-{uuid4()}")
+    await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-a"),
+        raw_request="Teach fractions",
+        class_info={"grade": 5},
+    ))
+
+    with pytest.raises(AnswerKeyLeakageError, match="content_json"):
+        await TeachingPackSnapshotStore(session).create_snapshot(ArtifactSnapshotCreate(
+            snapshot_id=f"snap-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            artifact_type="quiz",
+            content_json={
+                "title": "Fractions quiz",
+                "sections": [{"components": [{"answer": "B"}]}],
+            },
+            rendered_html="<!DOCTYPE html><html><body>oh-my-class</body></html>",
+            renderer_version="test-renderer@1",
+        ))
+
+
 async def test_slide_deck_snapshot_records_effective_preferences_for_export_replay(
     session: AsyncSession,
 ) -> None:

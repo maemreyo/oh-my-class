@@ -1,14 +1,14 @@
 {
   "version": 1,
   "source_root": "/Users/trung.ngo/Documents/zaob-dev/oh-my-class",
-  "source_commit": "a5628eddd615ae14fd784c5d239d8b3381098cd3",
+  "source_commit": "48f88d7bffaa3cf1759c001662a3d7220b218e15",
   "modules": {
     "agents": {
-      "hash": "5c60b99732576f671fd68ee727e911ed996b8d75bebf5a6a79f2e8080691de91",
-      "file_count": 479
+      "hash": "ba675aff7d93dd011229b20780c495eae781f2f6786266e16a7251be8d550f12",
+      "file_count": 481
     },
     "quality": {
-      "hash": "5714964ff1a5cd69f028bdbaef1613a81c3e755824c5ac91fa4fee351f888a12",
+      "hash": "ae7175c95980f4c2a8f27ce4b349636eaf91f74a151721a4381ea400f13e235d",
       "file_count": 72
     },
     "renderer": {
@@ -20,23 +20,23 @@
       "file_count": 47
     },
     "gateway": {
-      "hash": "466cbd0895b41ce3ba98cd320709bf223f8961b34118aec5be1f7e6208171789",
-      "file_count": 374
+      "hash": "f890af9fed100075a0774a7f7b7ac93fb68c109db383f2b8da82446396d78cc4",
+      "file_count": 377
     },
     "web": {
       "hash": "0bd09d3b55ad1f22fa5d31a9e37f5f398d7f9a7852796e9830427d4eb93e3f01",
       "file_count": 162
     },
     "contracts": {
-      "hash": "c38935922956973ef439536a3f12537b7b6325f993e8c37956e0701682d73a2b",
-      "file_count": 123
+      "hash": "787b2e463af6cae76028df698695081e21b456e5b660a7965eaf6ab994c7d481",
+      "file_count": 132
     },
     "schemas": {
-      "hash": "56a34c7c08cc34ba4d9d351c497576502350bfd974a529d65dcfffa69acf7d73",
+      "hash": "a49c5d556aecea330a43f174f46524d0535df00de6fb8c5d68169f1c5b8c4279",
       "file_count": 41
     },
     "llm-client": {
-      "hash": "26a84de55f2e87d9378b47d18bbd0030fa1dd0b5a5ff90077788258a1c2f9930",
+      "hash": "d3c9a7d99e30f069306a25af98abb5cd1d5343bdb4c5a4a267e93849f1632e1f",
       "file_count": 21
     },
     "notifications": {
@@ -52,5 +52,5 @@
       "file_count": 6
     }
   },
-  "generated_at": "2026-07-11T08:07:44Z"
+  "generated_at": "2026-07-11T12:42:55Z"
 }

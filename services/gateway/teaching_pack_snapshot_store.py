@@ -34,6 +34,7 @@ from services.gateway.teaching_pack_snapshot_validators import (
     _validate_snapshot_versions,
     bake_effective_slide_deck_display_preferences,
     remove_answer_keys_from_html,
+    teacher_only_value_paths,
     validate_answer_key_isolation,
 )
 from services.gateway.teaching_pack_types import RunId
@@ -84,6 +85,9 @@ class TeachingPackSnapshotStore:
         content_json = bake_effective_slide_deck_display_preferences(
             payload.artifact_type, payload.content_json,
         )
+        teacher_only_paths = teacher_only_value_paths(content_json)
+        if teacher_only_paths:
+            raise AnswerKeyLeakageError(payload.snapshot_id, teacher_only_paths)
         student_html = payload.student_rendered_html or payload.rendered_html
         student_html_safe = remove_answer_keys_from_html(student_html)
 

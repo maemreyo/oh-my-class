@@ -90,8 +90,7 @@ async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
 
 
 async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None:
-    from packages.agents.teaching_pack.content_orchestrator import LangGraphArtifactContentStore
-
+    from .artifact_document_content_store import GatewayArtifactDocumentContentStore
     from .outcome_delivery import SqlAlchemyOutcomeDeliverySink
     from .teaching_pack_completion import TeachingPackCompletionRecorder
     from .teaching_pack_executor import (
@@ -117,7 +116,7 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
                     app.state.teaching_pack_session_factory,
                 ),
                 export_store=TeachingPackExportStore(session),
-                content_store=LangGraphArtifactContentStore(app.state.store),
+                content_store=GatewayArtifactDocumentContentStore(app.state.teaching_pack_session_factory),
             ),
         )
 
@@ -163,6 +162,7 @@ async def lifespan(app: FastAPI):
         sync_connection_string,
     )
     from services.gateway.teaching_pack_quality_gate import GatewayTeachingPackQualityGate
+    from services.gateway.artifact_document_content_store import GatewayArtifactDocumentContentStore
 
     environment = os.getenv("OMC_ENVIRONMENT", "development")
     database_url = os.getenv(
@@ -186,10 +186,12 @@ async def lifespan(app: FastAPI):
             store = get_development_store()
 
         app.state.store = store
+        content_store = GatewayArtifactDocumentContentStore(app.state.teaching_pack_session_factory)
         app.state.teaching_pack_graph = build_teaching_pack_graph(
             checkpointer=app.state.checkpointer,
             store=store,
             quality_gate=GatewayTeachingPackQualityGate() if _quality_gate_enabled() else None,
+            content_store=content_store,
         )
 
         async with anyio.create_task_group() as task_group:

@@ -19,13 +19,13 @@ oh-my-class is an AI-powered teaching pack generator for K-12 education. A teach
 |--------|---------------|------------|------|
 | `agents` | LangGraph multi-agent pipeline (10-stage state machine, 23-layer middleware, self-healing, HITL gates) | `contracts`, `quality`, `llm-client`, `methodologies` | [modules/agents.md](modules/agents.md) |
 | `gateway` | FastAPI composition root, REST API, job queue, quality gate wiring, persistence (PostgreSQL) | `agents`, `contracts`, `quality`, `renderer` | [modules/gateway.md](modules/gateway.md) |
-| `quality` | 6-layer quality gate system: schema validation, content rules, HTML checks, LLM-as-Judge, HITL, export readiness | `contracts`, `agents`, `methodologies`, `llm-client` | [modules/quality.md](modules/quality.md) |
+| `quality` | 6-layer quality gate system: schema validation, content rules, HTML checks, LLM-as-Judge, HITL, export readiness | `contracts`, `methodologies`, `llm-client` | [modules/quality.md](modules/quality.md) |
 | `renderer` | Eta template engine: ArtifactContent JSON to standalone HTML with inlined CSS, 19 plugins, theme system | `schemas` | [modules/renderer.md](modules/renderer.md) |
 | `exporters` | Export format generators: GIFT, H5P, QTI, Anki, flashcard TSV, PPTX, Google Forms | `renderer`, `schemas` | [modules/exporters.md](modules/exporters.md) |
 | `web` | Next.js 16 teacher dashboard: run creation, approval gates, slide deck editor, live teaching cockpit | `schemas` | [modules/web.md](modules/web.md) |
 | `contracts` | Pydantic v2 models: single source of truth for all data schemas (120+ models across 57 files) | *(leaf)* | [modules/contracts.md](modules/contracts.md) |
 | `schemas` | TypeScript Zod schemas + 50+ exercise type definitions (generated from Pydantic + hand-written) | *(leaf)* | [modules/schemas.md](modules/schemas.md) |
-| `llm-client` | LLM client wrapper: unified async interface via 9Router, circuit breaker, token budget, cost attribution | `agents` | [modules/llm-client.md](modules/llm-client.md) |
+| `llm-client` | LLM client wrapper: unified async interface via 9Router, circuit breaker, token budget, cost attribution | `contracts` | [modules/llm-client.md](modules/llm-client.md) |
 | `notifications` | Pluggable notification dispatcher: SSE, Telegram, email (stubbed) | *(leaf)* | [modules/notifications.md](modules/notifications.md) |
 | `methodologies` | Teaching methodology implementations: inverse-thinking projections into lesson/worksheet/quiz/drill | `contracts` | [modules/methodologies.md](modules/methodologies.md) |
 | `infra` | Docker Compose manifests, Dockerfiles, database init scripts | *(leaf)* | [modules/infra.md](modules/infra.md) |
@@ -49,7 +49,7 @@ The dominant runtime pattern is a **job-queue adapter**. Teachers hit the gatewa
 
 Complexity concentrates in three areas. First, the **teaching pack pipeline** in `packages/agents/teaching_pack/` (42+ files): a 10-stage state machine with parallel artifact fan-out, scoped regeneration on rejection, a vocabulary batch orchestrator, and a component-strategist variant that reorders stages structurally. Second, the **quality gate system** across `packages/quality/` and `packages/agents/`: 6 layers from Pydantic schema validation through FACT protocol fact-checking, HTML hard-block enforcement (16 codes, WCAG AA contrast), a 3-judge AdaptiveJudge with majority vote, deterministic compliance gates, and export readiness. Third, the **middleware chain** with 23 ordered layers handling context injection, content safety, guardrails, pedagogical signals, and clarification, each implementing `before_model`/`after_model` hooks.
 
-Two dependency cycles exist in the graph. The `llm-client` module imports from `agents.healing.circuit_breaker` (a reverse dependency from a lower-level package to a higher-level one), while `quality` lazily imports `GateConfig` from `agents.config`. Both are guarded by lazy imports or fallbacks, so they don't cause circular import errors at runtime. Still, they represent architectural coupling worth watching. The `infra` module is a pure configuration leaf (Docker Compose, Dockerfiles, init scripts) with zero code, making it an orphan candidate in the dependency graph, though that's expected for infrastructure-as-code.
+The former `agents ↔ llm-client` and `agents ↔ quality` reverse imports were removed by moving provider circuit-breaking and gate thresholds into neutral `common/contracts` modules. `tests/test_architecture_truth_gate.py` rejects a reintroduced production import. The `infra` module is a pure configuration leaf (Docker Compose, Dockerfiles, init scripts), which is expected for infrastructure-as-code.
 
 ## Codebase health signals
 
@@ -58,18 +58,16 @@ Two dependency cycles exist in the graph. The `llm-client` module imports from `
 By combined inbound + outbound edges (module-to-module):
 
 1. `gateway` (9) ... depends on agents, contracts, quality, renderer; used by web (HTTP), infra (Dockerfile COPY), tests
-2. `quality` (6) ... depends on contracts, agents, methodologies, llm-client; used by agents, gateway
-3. `agents` (5) ... depends on contracts, quality, llm-client, methodologies; used by gateway, llm-client (reverse)
+2. `quality` (5) ... depends on contracts, methodologies, llm-client; used by agents, gateway
+3. `agents` (4) ... depends on contracts, quality, llm-client, methodologies; used by gateway
 4. `exporters` (4) ... depends on renderer, schemas; used by gateway (subprocess), agents (test-only)
 5. `contracts` (3) ... leaf node; used by agents, quality, gateway
 
 ### Dependency cycles
 
-Two cycles detected:
+No reverse dependency cycles remain:
 
-1. **agents <-> llm-client**: `packages/agents` depends on `packages/llm_client` (4 imports across 3 files for `LLMClient`, `ChatMessage`, `OpenAIError`). In the reverse direction, `llm_client/circuit_breaker.py:5-7` imports `BreakerStore` and `LayeredCircuitBreaker` from `packages.agents.healing.circuit_breaker`. This reverse import is the only cross-boundary violation. It's guarded by a fallback (`if self.provider is None: return None`) and doesn't appear in `pyproject.toml` declared dependencies (implicit via sys.path). Risk: if `agents.healing` ever imports from `llm_client`, it would create a true circular import.
-
-2. **agents <-> quality**: `packages/agents` depends on `packages/quality` (17 imports across 14 files for compliance policy, PII detection, component gates). In the reverse direction, `quality/layer6_export/export_validator.py:106` lazily imports `GateConfig` from `packages.agents.config.gate_config` inside `_run_judge_consensus()`. This is a lazy import (inside a function) to avoid circular imports at module load time, but the structural coupling exists. `quality` should ideally not depend on `agents` config.
+Provider circuit-breaking and gate thresholds are neutral contracts in `common/contracts`; `tests/test_architecture_truth_gate.py` rejects a reintroduced production import from `quality` or `llm-client` to `agents`.
 
 ### Orphan candidates
 
@@ -99,6 +97,7 @@ make check
 pytest                       # Python (packages/agents, packages/quality, common/contracts, services/gateway)
 pnpm test                    # TypeScript (packages/renderer, packages/exporters, common/schemas)
 pnpm build                   # TypeScript build (renderer + exporters + schemas)
+make check-architecture      # Runtime manifest + anatomy freshness + source references
 ```
 
 ### CI pipeline

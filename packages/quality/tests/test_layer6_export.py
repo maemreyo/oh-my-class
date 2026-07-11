@@ -214,7 +214,7 @@ class TestJudgeConsensus:
     @pytest.mark.asyncio
     async def test_consensus_threshold_from_gate_config(self) -> None:
         """export_consensus_threshold from GateConfig is wired into majority vote."""
-        from packages.agents.config.gate_config import GateConfig
+        from common.contracts.gate_config import GateConfig
 
         config = GateConfig()
         assert config.export_consensus_threshold == 0.67

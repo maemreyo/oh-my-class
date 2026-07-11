@@ -14,6 +14,8 @@ MIGRATIONS_PATH: Final[Path] = PROJECT_ROOT / "services" / "gateway" / "alembic"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from scripts.architecture_surfaces import ArchitectureSurfaces, collect_architecture_surfaces
+
 
 class StageManifest(TypedDict):
     enum: list[str]
@@ -65,6 +67,7 @@ class ArchitectureManifest(TypedDict):
     export_formats: ExportFormatManifest
     models: ModelManifest
     wiring: WiringManifest
+    surfaces: ArchitectureSurfaces
 
 
 def build_manifest() -> ArchitectureManifest:
@@ -114,6 +117,7 @@ def build_manifest() -> ArchitectureManifest:
             },
         },
         "wiring": _wiring_booleans(),
+        "surfaces": collect_architecture_surfaces(PROJECT_ROOT),
     }
 
 

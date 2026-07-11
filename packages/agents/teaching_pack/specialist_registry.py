@@ -9,10 +9,16 @@ prerequisite for an artifact type to keep working.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 from typing import Any
 
+from common.contracts.grade_band import FlashcardGradeBand
+
+# #464: ADR-053 names the (lesson_plan, research_brief) argument pair every
+# registered specialist takes "SpecialistRequest" -- kept as two positional
+# dicts (not wrapped in one object) since that's the real signature every
+# specialist below and its tests already implement; wrapping it would be a
+# parallel type with no behavior of its own.
 ArtifactSpecialist = Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]
 
 
@@ -106,21 +112,14 @@ def _exit_ticket_specialist(
     return generate_exit_ticket_artifact(lesson_plan, research_brief)
 
 
-def _grade_band(grade_level: str) -> str | None:
-    """Extracts a leading grade number (e.g. "Grade 10" -> 10) rather than
-    substring-matching digits, which would misclassify "10"/"11"/"12" as
-    elementary via their "1" character."""
-    if re.search(r"\bk\b", grade_level, re.IGNORECASE):
-        return "elementary"
-    match = re.search(r"\d+", grade_level)
-    if match is None:
-        return None
-    grade = int(match.group())
-    if grade <= 5:
-        return "elementary"
-    if grade <= 8:
-        return "middle"
-    return "high"
+def _grade_band(grade_level: str) -> FlashcardGradeBand | None:
+    from common.contracts.grade_band import (
+        flashcard_grade_band,
+        grade_band_for_label,
+    )
+
+    grade_band = grade_band_for_label(grade_level)
+    return flashcard_grade_band(grade_band) if grade_band is not None else None
 
 
 SPECIALIST_REGISTRY: dict[str, ArtifactSpecialist] = {

@@ -6,7 +6,15 @@ from pydantic import ValidationError
 
 from common.contracts.answer_set import AnswerSet, derive_answer_key_artifact, derive_answer_set
 from common.contracts.artifact import ArtifactContent
+from packages.agents.config.features import features
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+from packages.agents.teaching_pack.specialist_capability import (
+    ANSWER_SET_ARTIFACT_TYPES,
+)
+from packages.agents.teaching_pack.specialist_capability import (
+    NATIVELY_DISPATCHED_ARTIFACT_TYPES as _NATIVELY_DISPATCHED_ARTIFACT_TYPES,
+)
+from packages.agents.teaching_pack.specialist_capability import resolve_specialist_capability
 from packages.agents.teaching_pack.specialist_registry import get_specialist
 from packages.agents.teaching_pack.stages import StageEnum
 
@@ -25,6 +33,12 @@ class GenerateOneArtifactPayload(TypedDict):
     dependency_artifact_references: NotRequired[list[dict[str, Any]]]
 
 
+# #464: ADR-053 names this "OrchestratorRequest" -- an alias, not a parallel
+# type. Graph state stays a plain dict (LangGraph checkpoint requirement),
+# so this remains a TypedDict rather than a Pydantic model.
+OrchestratorRequest = GenerateOneArtifactPayload
+
+
 class GenerateOneArtifactResult(TypedDict, total=False):
     artifact_references: list[dict[str, Any]]
     artifact_workflow_states: list[dict[str, Any]]
@@ -37,6 +51,21 @@ class ArtifactTypeMismatchError(ValueError):
         super().__init__(f"expected {expected}, got {actual}")
 
 
+class UnsupportedArtifactCapabilityError(ValueError):
+    """#464: raised instead of silently reaching the generic content-creator
+    fallback for an artifact type with no registered specialist and no native
+    dispatch branch. Fails closed before any LLM call; names the artifact
+    types the teacher can actually pick instead."""
+
+    def __init__(self, artifact_type: str, supported_alternatives: tuple[str, ...]) -> None:
+        self.artifact_type = artifact_type
+        self.supported_alternatives = supported_alternatives
+        super().__init__(
+            f"'{artifact_type}' has no registered specialist; supported artifact types: "
+            + ", ".join(supported_alternatives),
+        )
+
+
 async def generate_one_artifact(
     payload: GenerateOneArtifactPayload,
     content_store: ArtifactContentStore | None = None,
@@ -45,16 +74,31 @@ async def generate_one_artifact(
     generation_id = payload["artifact_generation_id"]
     try:
         dependency_artifacts: list[dict[str, Any]] = []
+        dependency_answer_sets: dict[str, AnswerSet] = {}
+        dependency_references = payload.get("dependency_artifact_references", [])
         if content_store is not None:
             dependency_artifacts = [
                 projection.model_dump(mode="json")
                 for projection in await content_store.read_projections(
-                    payload.get("dependency_artifact_references", []),
+                    dependency_references,
                 )
             ]
+            for reference in dependency_references:
+                document_id = reference.get("document_id")
+                if not isinstance(document_id, str):
+                    continue
+                answer_set = await content_store.read_answer_set(document_id)
+                if answer_set is not None:
+                    dependency_answer_sets[document_id] = answer_set
+        resolution = resolve_specialist_capability(
+            artifact_type,
+            generic_fallback_enabled=features().generic_content_creator_fallback_v1,
+        )
         specialist = get_specialist(artifact_type)
+        if resolution.status == "unsupported":
+            raise UnsupportedArtifactCapabilityError(artifact_type, resolution.supported_alternatives)
         if artifact_type == "answer_key":
-            artifact = _derived_answer_key(dependency_artifacts, payload["theme"])
+            artifact = _derived_answer_key(dependency_artifacts, dependency_references, dependency_answer_sets, payload["theme"])
         elif artifact_type == "slide_deck":
             artifact = await _slide_deck_artifact(payload, dependency_artifacts)
         elif specialist is not None:
@@ -80,24 +124,32 @@ async def generate_one_artifact(
     except (ArtifactTypeMismatchError, ValidationError, ValueError) as exc:
         return {"artifact_workflow_states": [_workflow_state(payload, "failed", exc)]}
     projection = parsed.model_dump()
-    if artifact_type in {"quiz", "drill", "exit_ticket"}:
+    answer_set: AnswerSet | None = None
+    if artifact_type in ANSWER_SET_ARTIFACT_TYPES:
         answer_set = derive_answer_set(
             projection,
             source_document_id=f"{generation_id}:{artifact_id}",
             source_version=1,
         )
-        projection["metadata"] = {
-            **projection["metadata"],
-            "answer_set": answer_set.model_dump(mode="json"),
-        }
     _stamp_research_sources(projection, payload["research_brief"])
     _stamp_pedagogy_context(projection, payload["lesson_plan"])
     if content_store is not None:
+        from packages.agents.teaching_pack.content_orchestrator import ArtifactPersistenceResult
+
         persisted = ArtifactContent.model_validate(projection)
-        reference = await content_store.persist(
+        dependency_document_ids = tuple(
+            reference["document_id"]
+            for reference in dependency_references
+            if isinstance(reference.get("document_id"), str)
+        ) if artifact_type == "answer_key" else ()
+        reference = await content_store.persist_result(
             payload["run_id"],
             generation_id,
-            persisted,
+            ArtifactPersistenceResult(
+                artifact=persisted,
+                answer_set=answer_set,
+                dependency_document_ids=dependency_document_ids,
+            ),
             artifact_id,
         )
         return {
@@ -184,15 +236,20 @@ def _single_artifact(result: dict[str, Any]) -> dict[str, Any]:
     return artifact
 
 
-def _derived_answer_key(dependencies: list[dict[str, Any]], theme: str) -> dict[str, Any]:
-    quiz = next((artifact for artifact in dependencies if artifact.get("artifact_type") == "quiz"), None)
-    if quiz is None:
+def _derived_answer_key(
+    dependencies: list[dict[str, Any]],
+    references: list[dict[str, Any]],
+    answer_sets: dict[str, AnswerSet],
+    theme: str,
+) -> dict[str, Any]:
+    quiz_index = next((index for index, artifact in enumerate(dependencies) if artifact.get("artifact_type") == "quiz"), None)
+    if quiz_index is None:
         raise ValueError("answer_key requires a generated quiz dependency")
-    metadata = quiz.get("metadata")
-    answer_set_json = metadata.get("answer_set") if isinstance(metadata, dict) else None
-    if not isinstance(answer_set_json, dict):
+    quiz = dependencies[quiz_index]
+    document_id = references[quiz_index].get("document_id") if quiz_index < len(references) else None
+    answer_set = answer_sets.get(document_id) if isinstance(document_id, str) else None
+    if answer_set is None:
         raise ValueError("quiz dependency has no teacher-only answer set")
-    answer_set = AnswerSet.model_validate(answer_set_json)
     language = str(quiz.get("accessibility", {}).get("language", "vi")) if isinstance(
         quiz.get("accessibility"), dict,
     ) else "vi"

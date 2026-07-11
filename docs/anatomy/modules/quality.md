@@ -66,8 +66,7 @@ The **single owner** for deterministic hard-block policy. 16 hard-block codes (`
 
 ## Depends on
 
-- **`contracts`** — 12 import sites; JudgeOutput, Rubric, QualityFailureClass, InverseThinkingPack
-- **`agents`** — 1 lazy import (GateConfig in export_validator.py)
+- **`contracts`** — 13 import sites; JudgeOutput, Rubric, QualityFailureClass, InverseThinkingPack, GateConfig
 - **`methodologies`** — 1 import (validate_semantics in inverse_thinking.py)
 - **`llm-client`** — 1 lazy import (ChatMessage, LLMClient in judge_transport.py)
 
@@ -87,11 +86,9 @@ The **single owner** for deterministic hard-block policy. 16 hard-block codes (`
 | `semantic_anchoring/gate.py:8` | `PracticeSet`, `SemanticAnchorCluster` |
 | `semantic_anchoring/gate.py:9` | `JsonValue`, `VocabularyClusterEvidenceEntry` |
 
-### packages.agents (1 lazy import)
+### Gate configuration
 
-| File:Line | What imported |
-|-----------|---------------|
-| `layer6_export/export_validator.py:106` | `GateConfig` from `packages.agents.config.gate_config` (lazy, inside `_run_judge_consensus`) |
+`layer6_export/export_validator.py` imports `GateConfig` from `common.contracts.gate_config`, preserving quality as a pure validation library independent of orchestration.
 
 ### packages.methodologies (1 import)
 
@@ -140,7 +137,7 @@ The **single owner** for deterministic hard-block policy. 16 hard-block codes (`
 ## Notes / discrepancies vs existing docs
 
 - **Phase 3 hypothesis "quality → contracts: 27 imports" is understated** — I found 12 distinct import *sites* but they bring in 17+ individual types. The previous count of 27 may have counted individual type names across all files.
-- **Phase 3 hypothesis "quality → agents: 2 imports" is now 1** — the `export_validator.py:106` lazy import of `GateConfig` is the sole cross-boundary import from agents. This is a potential INVARIANT-02 concern: quality should not depend on agents config. The import is lazy (inside a function) to avoid circular import, but the structural coupling exists.
+- **Quality no longer imports agents** — gate configuration moved to `common.contracts.gate_config`; `tests/test_architecture_truth_gate.py` rejects a reintroduced production dependency.
 - **Phase 3 hypothesis "quality → methodologies: 1 import" confirmed** — `inverse_thinking.py:8` calls `validate_semantics()`. This is a clean dependency (quality validates what methodologies produces).
 - **Two CircuitBreaker implementations** exist in Layer 1: a simple threshold-only one in `validators.py` and a full stateful one in `circuit_breaker.py`. The stateful one is what `layer1_schema/__init__.py` exports. The simple one in `validators.py` appears unused from outside the file.
 - **`calibrate.py` is a stub** — raises `NotImplementedError`. Cohen's κ calibration is not yet implemented.
@@ -148,4 +145,4 @@ The **single owner** for deterministic hard-block policy. 16 hard-block codes (`
 - `compliance_policy.py` is the **single source of truth** for hard-blocks. All other layers (L3 HTML, L4 judge, presentation gate) delegate to it via direct function calls.
 
 ---
-_Traced from source on 2026-07-11. Files examined in depth: all 72 files in packages/quality. Key cross-module imports verified with file:line citations: 12 sites in contracts, 1 in agents (lazy), 1 in methodologies, 1 in llm_client (lazy)._
+_Traced from source on 2026-07-11. Files examined in depth: all 72 files in packages/quality. Key cross-module imports verified with file:line citations: contracts, methodologies, and llm_client (lazy); no production import from agents remains._

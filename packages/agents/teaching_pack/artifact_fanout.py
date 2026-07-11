@@ -4,6 +4,7 @@ from typing import Any, Final
 
 from langgraph.types import Send
 
+from common.contracts.dependency_plan import DEFAULT_DEPENDENCY_PLAN
 from packages.agents.teaching_pack.artifact_fanout_helpers import (
     any_json_object,
     json_object,
@@ -29,24 +30,12 @@ type JsonObject = dict[str, Any]
 
 GENERATE_ONE_ARTIFACT_NODE: Final = "generate_one_artifact"
 RENDER_QUALITY_NODE: Final = "render_quality"
-_WAVES: Final[tuple[tuple[str, ...], ...]] = (
-    ("lesson",),
-    ("worksheet", "quiz", "drill", "flashcard_deck", "roadmap", "slide_deck", "reading_passage", "infographic", "exit_ticket"),
-    ("recap", "answer_key"),
-)
-_DEPENDENCIES: Final[dict[str, tuple[str, ...]]] = {
-    "worksheet": ("lesson",),
-    "quiz": ("lesson",),
-    "drill": ("lesson",),
-    "recap": ("lesson", "quiz"),
-    "flashcard_deck": ("lesson",),
-    "answer_key": ("quiz",),
-    "roadmap": ("lesson",),
-    "slide_deck": ("lesson",),
-    "reading_passage": ("lesson",),
-    "infographic": ("lesson",),
-    "exit_ticket": ("lesson",),
-}
+# #464: the wave/dependency structure is now the typed, validated
+# `DependencyPlan` contract (common/contracts/dependency_plan.py) instead of
+# bare module-level tuples -- same ADR-053 default plan, now with cycle/
+# forward-dependency/unknown-node validation enforced at construction.
+_WAVES: Final[tuple[tuple[str, ...], ...]] = DEFAULT_DEPENDENCY_PLAN.waves
+_DEPENDENCIES: Final[dict[str, tuple[str, ...]]] = DEFAULT_DEPENDENCY_PLAN.dependencies
 
 
 def coordinate_artifact_fanout(state: JsonObject) -> JsonObject:

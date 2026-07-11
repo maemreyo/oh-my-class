@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 import time
 
-from packages.agents.healing.circuit_breaker import (
+from common.contracts.provider_circuit_breaker import (
     BreakerStore,
-    CircuitBreaker as LayeredCircuitBreaker,
+    ProviderCircuitBreaker as LayeredCircuitBreaker,
 )
 
 

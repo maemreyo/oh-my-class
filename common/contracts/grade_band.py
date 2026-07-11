@@ -27,9 +27,10 @@ from __future__ import annotations
 
 import re
 from enum import StrEnum
+from typing import assert_never
 
 _KINDERGARTEN_PATTERN = re.compile(r"\bk(indergarten)?\b", re.IGNORECASE)
-_GRADE_NUMBER_PATTERN = re.compile(r"\d+")
+_GRADE_NUMBER_PATTERN = re.compile(r"-?\d+")
 
 
 class GradeBand(StrEnum):
@@ -39,8 +40,22 @@ class GradeBand(StrEnum):
     GRADES_9_12 = "grades_9_12"
 
 
+class StrategyKnowledgeGradeBand(StrEnum):
+    GRADES_4_6 = "grade_4_6"
+    GRADES_7_9 = "grade_7_9"
+    GRADES_10_12 = "grade_10_12"
+
+
+class FlashcardGradeBand(StrEnum):
+    ELEMENTARY = "elementary"
+    HIGH = "high"
+    MIDDLE = "middle"
+
+
 def grade_band_for_grade(grade: int) -> GradeBand:
     """Canonical band for a numeric grade (0 == kindergarten)."""
+    if grade < 0 or grade > 12:
+        raise ValueError(f"grade must be between 0 and 12, received {grade}")
     if grade <= 2:
         return GradeBand.K_2
     if grade <= 5:
@@ -54,9 +69,40 @@ def grade_band_for_label(grade_level: str) -> GradeBand | None:
     """Canonical band from a free-text grade label (e.g. "Grade 10", "K",
     "Kindergarten"). Returns `None` if no grade can be parsed, rather than
     guessing -- callers decide their own fallback."""
+    normalized = grade_level.strip().lower().replace("-", "_")
+    for band in GradeBand:
+        if normalized == band.value:
+            return band
     if _KINDERGARTEN_PATTERN.search(grade_level):
         return GradeBand.K_2
     match = _GRADE_NUMBER_PATTERN.search(grade_level)
     if match is None:
         return None
-    return grade_band_for_grade(int(match.group()))
+    grade = int(match.group())
+    return grade_band_for_grade(grade) if 0 <= grade <= 12 else None
+
+
+def strategy_knowledge_grade_band(grade_band: GradeBand) -> StrategyKnowledgeGradeBand | None:
+    match grade_band:
+        case GradeBand.K_2:
+            return None
+        case GradeBand.GRADES_3_5:
+            return StrategyKnowledgeGradeBand.GRADES_4_6
+        case GradeBand.GRADES_6_8:
+            return StrategyKnowledgeGradeBand.GRADES_7_9
+        case GradeBand.GRADES_9_12:
+            return StrategyKnowledgeGradeBand.GRADES_10_12
+        case unreachable:
+            assert_never(unreachable)
+
+
+def flashcard_grade_band(grade_band: GradeBand) -> FlashcardGradeBand:
+    match grade_band:
+        case GradeBand.K_2 | GradeBand.GRADES_3_5:
+            return FlashcardGradeBand.ELEMENTARY
+        case GradeBand.GRADES_6_8:
+            return FlashcardGradeBand.MIDDLE
+        case GradeBand.GRADES_9_12:
+            return FlashcardGradeBand.HIGH
+        case unreachable:
+            assert_never(unreachable)

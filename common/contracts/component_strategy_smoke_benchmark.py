@@ -8,6 +8,7 @@ from pathlib import Path
 from common.contracts.component_strategy import ComponentStrategyMode, ComponentStrategyRequest
 from common.contracts.component_strategy_knowledge import DEFAULT_KNOWLEDGE_SOURCE_PATH, KnowledgeQuery, open_knowledge_index
 from common.contracts.component_strategy_selector import plan_component_strategy
+from common.contracts.grade_band import StrategyKnowledgeGradeBand
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,7 +31,7 @@ def run_component_strategy_smoke_benchmark(
         KnowledgeQuery(
             artifact_type="lesson",
             subject_tag="language",
-            grade_band="grade_4_6",
+            grade_band=StrategyKnowledgeGradeBand.GRADES_4_6,
             bloom_level="understand",
             gagne_event="present_content",
             strategy_family_id="vocabulary_language",

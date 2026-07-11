@@ -15,6 +15,13 @@ class FeatureFlags:
     slide_deck_editor_v1: bool
     slide_deck_ai_rewrite_v1: bool
     unit_fanout_concurrency: int  # 1 = sequential, >1 = parallel (Phase 2)
+    # #464: production default-deny. All 12 canonical ArtifactKind values
+    # (common.contracts.education_policy.ArtifactKind) resolve through
+    # `SPECIALIST_REGISTRY` or an explicit dispatch branch in
+    # `generate_one_artifact.py` -- the generic `content_creator_node`
+    # fallback is therefore experimental/development-only reach for an
+    # undeclared type, never a silent production path. Off by default.
+    generic_content_creator_fallback_v1: bool
 
 def get_feature_flags() -> FeatureFlags:
     """Read feature flags from environment."""
@@ -25,6 +32,9 @@ def get_feature_flags() -> FeatureFlags:
         slide_deck_editor_v1=os.getenv("FEATURE_SLIDE_DECK_EDITOR_V1", "false").lower() == "true",
         slide_deck_ai_rewrite_v1=os.getenv("FEATURE_SLIDE_DECK_AI_REWRITE_V1", "false").lower() == "true",
         unit_fanout_concurrency=int(os.getenv("UNIT_FANOUT_CONCURRENCY", "1")),
+        generic_content_creator_fallback_v1=os.getenv(
+            "FEATURE_GENERIC_CONTENT_CREATOR_FALLBACK_V1", "false",
+        ).lower() == "true",
     )
 
 _FEATURES: FeatureFlags | None = None

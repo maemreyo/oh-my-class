@@ -29,6 +29,7 @@ from services.gateway.artifact_document_models import ContentDependencyRecord
 from services.gateway.artifact_document_store import (
     ArtifactDocumentStore,
     ArtifactDocumentWrite,
+    ContentDependencyCreate,
 )
 from services.gateway.auth.models import Role, User
 from services.gateway.auth.ownership import check_run_owner, check_run_reviewer
@@ -137,6 +138,33 @@ async def test_edit_creates_next_version_and_surfaces_dependency_impact(session:
     assert outcome.document.parent_document_id == v1.document_id
     assert outcome.document.payload.sections[0].blocks[0].text == "Edited text"
     assert outcome.impacted_artifact_ids == ["quiz-derived"]
+
+
+async def test_quiz_edit_marks_derived_answer_key_dependency_impacted(session: AsyncSession) -> None:
+    run_id = await _seed_run_and_v1_document(session, artifact_id="quiz-answers")
+    source = await ArtifactDocumentStore(session).get_latest(run_id, "quiz-answers")
+    assert source is not None
+    answer_key = _block_document(f"document-{uuid4()}", artifact_id="answer-key-1", version=1)
+    await ArtifactDocumentStore(session).persist(ArtifactDocumentWrite(
+        run_id=run_id,
+        document=answer_key,
+        dependencies=[ContentDependencyCreate(
+            source_document_id=source.document_id,
+            dependency_kind="answer_projection",
+        )],
+    ))
+
+    outcome = await edit_artifact_document(
+        session,
+        run_id=run_id,
+        artifact_id="quiz-answers",
+        base_version=1,
+        payload=_block_document("ignored", artifact_id="quiz-answers", version=1, text="Edited question").payload,
+        authority="teacher_edit",
+    )
+
+    assert outcome.document.version == 2
+    assert outcome.impacted_artifact_ids == ["answer-key-1"]
 
 
 async def test_edit_with_stale_base_version_raises_actionable_conflict(session: AsyncSession) -> None:

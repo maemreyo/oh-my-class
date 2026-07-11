@@ -98,7 +98,7 @@ def breaker_for(provider) -> CircuitBreaker    # Per-provider singleton
 def should_skip_provider(provider) -> bool
 ```
 
-Delegates to `packages.agents.healing.circuit_breaker.LayeredCircuitBreaker` when a provider is named, with graceful fallback to local state.
+Delegates provider-scoped state to `common.contracts.provider_circuit_breaker.ProviderCircuitBreaker`, keeping the client independent of pipeline orchestration.
 
 ### Token Budget (`budget/`)
 
@@ -129,7 +129,7 @@ packages/llm_client/
 ├── middleware.py            # CallMiddlewareRunner (PII scrub, safety, JSON repair)
 ├── mock.py                  # MockLLMClient for tests
 ├── tags.py                  # build_tags() for cost attribution
-├── circuit_breaker.py       # Per-provider circuit breaker (delegates to agents.healing)
+├── circuit_breaker.py       # Per-provider circuit breaker (neutral contract adapter)
 ├── budget/
 │   ├── __init__.py
 │   ├── config.py            # TokenBudgetConfig (env BUDGET_*)
@@ -160,28 +160,17 @@ chat() / stream() / chat_via_streaming_transport()
 
 ## Depends on
 
-- **`agents`** — 1 reverse dependency import (BreakerStore, LayeredCircuitBreaker in circuit_breaker.py)
+- **`contracts`** — provider circuit-breaker state contract
 
 | Target | What | Where cited |
 |--------|------|-------------|
-| `packages.agents.healing.circuit_breaker` | `BreakerStore`, `CircuitBreaker as LayeredCircuitBreaker` | `circuit_breaker.py:5-7` |
+| `common.contracts.provider_circuit_breaker` | `BreakerStore`, `ProviderCircuitBreaker` | `circuit_breaker.py` |
 | `openai` | `AsyncOpenAI`, `OpenAIError`, typed exceptions | `client.py:5,8`; `errors.py` |
 | `pydantic_settings` | `BaseSettings`, `SettingsConfigDict` | `config.py:3-4`; `budget/config.py` |
 
-### Boundary verification (Phase 3 hypothesis: "llm-client → agents: 1 import")
+### Boundary verification
 
-**CONFIRMED.** `circuit_breaker.py:5-7` imports from `packages.agents.healing.circuit_breaker`:
-
-```python
-from packages.agents.healing.circuit_breaker import (
-    BreakerStore,
-    CircuitBreaker as LayeredCircuitBreaker,
-)
-```
-
-This is a **reverse dependency violation** — llm_client sits below agents in the dependency hierarchy. The import delegates provider-scoped circuit breaking to the healing subsystem's `LayeredCircuitBreaker.provider()` factory, with a graceful fallback to local state when the delegate is unavailable.
-
-**Risk:** Creates circular dependency risk if agents.healing ever imports from llm_client. Currently safe because the import is inside a method, not at module level. However, the `pyproject.toml` does NOT declare this dependency — it's an implicit runtime dependency via sys.path manipulation.
+`llm_client` has no production import from `packages.agents`. The neutral provider circuit-breaker contract lives in `common/contracts`, and `tests/test_architecture_truth_gate.py` enforces the boundary.
 
 ## Used by
 
@@ -208,10 +197,9 @@ This is a **reverse dependency violation** — llm_client sits below agents in t
 
 ## Notes / discrepancies vs existing docs
 
-- **Boundary issue confirmed:** llm_client imports from agents.healing.circuit_breaker (`circuit_breaker.py:5-7`). This violates INVARIANT-02 architectural intent. The import is guarded by a fallback (`if self.provider is None: return None`) so it degrades gracefully.
-- **`pyproject.toml` doesn't list `packages.agents.healing` as dependency** — only `openai>=1.0.0` and `pydantic-settings>=2.14.2` are declared. The agents dependency is implicit via sys.path.
+- **Boundary issue resolved:** provider circuit-breaking is defined in `common.contracts.provider_circuit_breaker`, so llm_client no longer depends on agents.
 - AGENTS.md §6 says "9Router direct is default" — **confirmed** by `config.py:8`: `base_url = "http://localhost:20228/v1"` (9Router port).
 - **`MiddlewareCallContext` requires agent and task to be non-"unknown"** — the `before_call` middleware raises `BadPromptError("missing_cost_tag_context")` if either is "unknown". This enforces INVARIANT-07 (all LLM calls MUST include metadata tags).
 
 ---
-_Traced from source on 2026-07-11. Files examined in depth: all 14 source + 4 test files in packages/llm_client/. Key finding: boundary violation with agents.healing.circuit_breaker (circuit_breaker.py:5-7) — reverse dependency from lower-level package to higher-level._
+_Traced from source on 2026-07-11. Files examined in depth: all 14 source + 4 test files in packages/llm_client/. Provider circuit-breaking is a neutral common-contract dependency; no production reverse dependency on agents remains._

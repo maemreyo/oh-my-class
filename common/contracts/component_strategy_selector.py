@@ -162,6 +162,7 @@ def _eligible_bindings(
         if family_id in binding.strategy_family_ids
         and any(artifact in binding.artifact_types for artifact in request.artifact_types)
         and subject_tag in binding.subject_tags
+        and grade_band is not None
         and grade_band in binding.grade_bands
         and binding.duration_min_minutes <= request.duration_minutes
         and binding.compliance_risk != "high"

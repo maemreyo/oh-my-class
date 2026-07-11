@@ -86,6 +86,10 @@ class RunJobStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    # #124: a holding state for infra-poison jobs, distinct from the terminal
+    # FAILED/CANCELLED states -- excluded from every claimable query (same
+    # as FAILED) but inspectable/replayable by ops instead of a dead end.
+    DEAD_LETTER = "dead_letter"
 
 
 class RunJobKind(StrEnum):
@@ -258,3 +262,8 @@ class RunJob(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now,
     )
+    # #124: dead-letter triage metadata -- populated only when status becomes
+    # DEAD_LETTER, so ops can inspect without joining to event logs.
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    error_classification: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    dead_lettered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

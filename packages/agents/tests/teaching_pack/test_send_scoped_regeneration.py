@@ -230,8 +230,9 @@ async def test_graph_reenters_artifact_workflow_for_scoped_rejection_by_default(
         ],
     })
 
-    # "recap" is dispatched to the real Recap specialist (#439), not this fake
-    # content_creator_node -- it must still complete, just without hitting the mock.
-    assert calls == ["quiz"]
+    # "quiz" (and "recap") now dispatch to real specialists (#439), not this
+    # fake content_creator_node -- they must still complete, just without
+    # hitting the mock.
+    assert calls == []
     assert result["artifact_generation_id"] == "run-scoped:artifact:2"
     assert result["artifact_fanout_complete"] is True

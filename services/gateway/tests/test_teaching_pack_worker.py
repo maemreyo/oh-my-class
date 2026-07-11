@@ -177,10 +177,14 @@ class TestTeachingPackWorker:
         assert status is RunJobStatus.COMPLETED
         await _delete_run(session, run_id)
 
-    async def test_run_one_marks_job_failed_when_executor_raises(
+    async def test_run_one_dead_letters_job_when_executor_raises(
         self,
         session: AsyncSession,
     ) -> None:
+        """#124: an unclassified/permanent executor error dead-letters the
+        job immediately (0 retries), not FAILED -- DEAD_LETTER is the
+        inspectable/replayable holding state; FAILED stays reserved for
+        genuinely terminal/cancelled jobs."""
         run_id = await _create_run(session)
         job = await _enqueue_job(
             session,
@@ -199,7 +203,7 @@ class TestTeachingPackWorker:
         status = await _job_status(session, job.job_id)
 
         assert did_work is True
-        assert status is RunJobStatus.FAILED
+        assert status is RunJobStatus.DEAD_LETTER
         await _delete_run(session, run_id)
 
     async def test_run_loop_drains_jobs_until_idle(self, session: AsyncSession) -> None:

@@ -14,14 +14,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from common.contracts.grade_band import FlashcardGradeBand
+
 MAX_CARDS = 12
-_GRADE_WORD_BAND = {
+_GRADE_WORD_BAND: dict[FlashcardGradeBand, tuple[int, int]] = {
     # (min_words, max_words) a card's back is expected to fall within for
     # the grade band to count as a comfortable read -- a coarse, real
     # heuristic, not a readability-formula replacement.
-    "elementary": (2, 12),
-    "middle": (3, 20),
-    "high": (4, 30),
+    FlashcardGradeBand.ELEMENTARY: (2, 12),
+    FlashcardGradeBand.MIDDLE: (3, 20),
+    FlashcardGradeBand.HIGH: (4, 30),
 }
 
 
@@ -122,7 +124,7 @@ def build_flashcards(
 def score_flashcards(
     entries: list[FlashcardEntry],
     *,
-    grade_band: str | None = None,
+    grade_band: FlashcardGradeBand | None = None,
 ) -> FlashcardScorecard:
     if not entries:
         return FlashcardScorecard(recall_value=0.0, ambiguity=0.0, duplication=0.0, grade_fit=0.0)
@@ -134,7 +136,7 @@ def score_flashcards(
     backs = [e.back.casefold() for e in entries]
     unique_backs = len(set(backs))
     duplication = round(1 - (unique_backs / len(backs)), 3)  # 0 = no duplicate answers
-    band = _GRADE_WORD_BAND.get(grade_band or "")
+    band = _GRADE_WORD_BAND.get(grade_band)
     if band is None:
         grade_fit = 1.0  # no declared band to check against -- not penalized
     else:
@@ -155,7 +157,7 @@ def generate_flashcard_deck_artifact(
     *,
     theme: str = "default",
     subject: str = "General",
-    grade_band: str | None = None,
+    grade_band: FlashcardGradeBand | None = None,
 ) -> dict[str, Any]:
     """Produce an `ArtifactContent`-shaped dict for a `flashcard_deck` artifact.
 

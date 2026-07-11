@@ -84,9 +84,10 @@ packages/agents/
 │   ├── quality.py             # Quality gate helper functions
 │   ├── quality_runtime.py     # Runtime quality evaluation
 │   ├── compliance.py          # Deterministic compliance gate (answer key, PII, HTML)
-│   ├── content_orchestrator.py # ArtifactContentStore abstraction
-│   ├── artifact_fanout.py     # Artifact fan-out routing and generation
-│   ├── generate_one_artifact.py # Single artifact generation node
+│   ├── content_orchestrator.py # ArtifactContentStore abstraction (persist/persist_result/read_projections/read_answer_set); InMemory + LangGraph adapters. Persistence port only -- NOT the ADR-053 Content Orchestrator (see module docstring). SpecialistResult (#464) is an alias of ArtifactPersistenceResult
+│   ├── artifact_fanout.py     # Artifact fan-out routing and generation; wave/dependency structure sourced from common.contracts.dependency_plan.DEFAULT_DEPENDENCY_PLAN (#464), not local tuples
+│   ├── generate_one_artifact.py # Single artifact generation node; dispatches through specialist_capability.resolve_specialist_capability (#464) -- raises UnsupportedArtifactCapabilityError when resolution.status == "unsupported". OrchestratorRequest (#464) is an alias of GenerateOneArtifactPayload
+│   ├── specialist_capability.py # #464: typed 3-way capability resolution (supported/degraded/unsupported) -- CapabilityResolution, resolve_specialist_capability(); the "no silent generic fallback" boundary. Also SPECIALIST_CAPABILITIES: per-artifact-type declared payload_kind/answer_bearing (deliberately no subject/grade claims -- the 10 registered specialists don't branch on either); ANSWER_SET_ARTIFACT_TYPES is generate_one_artifact.py's own SSOT for which types derive an AnswerSet; SPECIALIST_FAMILIES groups every artifact type into ADR-053's five named families (lesson_design/assessment/practice/synthesis/presentation)
 │   ├── healing_runtime.py     # Healing integration for teaching-pack pipeline
 │   ├── scoped_repair.py       # Scoped regeneration on rejection
 │   ├── scoped_repair_models.py # Repair model definitions
@@ -134,7 +135,7 @@ packages/agents/
 │   └── html_healer.py         # HTML-specific healing
 ├── config/                    # Configuration
 │   ├── models.py              # ModelAssignments, MaxTokensConfig, NinerouterConfig
-│   ├── features.py            # FeatureFlags (6 flags)
+│   ├── features.py            # FeatureFlags (7 flags)
 │   ├── gate_config.py         # GateConfig (all thresholds)
 │   └── model_drift.py         # Model snapshot and drift detection
 ├── events.py                  # In-memory event bus (SSE/observability)
@@ -174,8 +175,9 @@ The primary dependency. Agents imports Pydantic models that define the data cont
 - `common.contracts.lesson_sequence` → `LessonSequence`, `SessionPlan`, `BloomLevel` — `sub_agents/unit_planner/nodes.py:7`, `sub_agents/unit_planner/sequence_critic.py:7`, `middleware/sequence_consistency_validator.py:9`
 - `common.contracts.component_strategy` → `ComponentStrategyRequest` — `teaching_pack/component_strategy_stage.py:5`
 - `common.contracts.outcome` → `StudentAttempt`, `StudentKCState` — `kt_engine.py:8`, `effectiveness/moet_export.py:6`
-- `common.contracts.grade_band` → `GradeBand`, `grade_band_for_label` — `teaching_pack/subject_packs/math_question_builder.py:16`, `teaching_pack/specialists/quiz_specialist.py:8`
-- `common.contracts.answer_set` → `AnswerSet`, `derive_answer_key_artifact`, `derive_answer_set` — `teaching_pack/generate_one_artifact.py:7`
+- `common.contracts.grade_band` → `GradeBand`, `grade_band_for_label`, `FlashcardGradeBand`, `flashcard_grade_band` — `teaching_pack/subject_packs/math_question_builder.py:16`, `teaching_pack/specialists/quiz_specialist.py:8`, `teaching_pack/specialist_registry.py:12` (#462: replaced the specialist registry's own elementary/middle/high regex with this canonical adapter), `teaching_pack/specialists/flashcard_deck_specialist.py:17`
+- `common.contracts.answer_set` → `AnswerSet`, `derive_answer_key_artifact`, `derive_answer_set` — `teaching_pack/generate_one_artifact.py:7` (drives the #463 V2 flow: `generate_one_artifact` derives an `AnswerSet` for quiz/drill/exit_ticket, then calls `content_store.persist_result(...)` so the store — not the student projection — is the only place the answer set is retrievable via `read_answer_set`)
+- `common.contracts.artifact_projection_mapper` → `artifact_document_from_content` — `teaching_pack/content_orchestrator.py:224` (`_student_projection` round-trips a generated `ArtifactContent` through V2 `ArtifactDocument` and back, so the persisted student projection is answer-free by construction rather than by convention)
 - `common.contracts.diagnostic_report` → `DiagnosticReport` — `sub_agents/diagnostician/nodes.py:12`
 - `common.contracts.inverse_thinking` → `CreativeFrame`, `InverseThinkingPack` — `inverse_thinking_pipeline.py:8`
 - `common.contracts.methodology_registry` → `MethodologyTag`, `methodology_entry_by_tag` — `sub_agents/planner/staged_engine.py:9`, `sub_agents/content_creator/methodology_helpers.py:7`
@@ -276,6 +278,7 @@ The hypothesis of 9 imports is incorrect. Agents does NOT import from `packages/
 | `FEATURE_SLIDE_DECK_EDITOR_V1` | `config/features.py:25` | Slide deck editor feature flag |
 | `FEATURE_SLIDE_DECK_AI_REWRITE_V1` | `config/features.py:26` | Slide deck AI rewrite feature flag |
 | `UNIT_FANOUT_CONCURRENCY` | `config/features.py:27` | Parallel artifact generation concurrency |
+| `FEATURE_GENERIC_CONTENT_CREATOR_FALLBACK_V1` | `config/features.py:35` | #464: gates the generic `content_creator_node` fallback in `generate_one_artifact.py` -- off by default (default-deny); `generate_one_artifact` raises `UnsupportedArtifactCapabilityError` instead when an artifact type has no registered specialist and no native dispatch branch |
 | `REDIS_URL` / `REDIS_HOST` / `REDIS_PORT` / `REDIS_AUTH` | `healing/circuit_breaker.py:221-235` | Circuit breaker state persistence |
 
 ### Network calls
@@ -320,7 +323,7 @@ The hypothesis of 9 imports is incorrect. Agents does NOT import from `packages/
 
 ### Runtime-wired dependencies (not visible from imports)
 
-- **Content store** resolved at graph build time (`graph.py:59-61`) — `LangGraphArtifactContentStore(store)` or `InMemoryArtifactContentStore()`. Gateway injects the implementation.
+- **Content store** resolved at graph build time (`graph.py:59-61`) — `LangGraphArtifactContentStore(store)` or `InMemoryArtifactContentStore()` by default; the gateway can inject a third implementation, `GatewayArtifactDocumentContentStore` (`services/gateway/artifact_document_content_store.py`), which persists through the V2 `ArtifactDocumentStore`/Postgres instead of the LangGraph store (#463).
 - **Quality gate** injected via `quality_gate` parameter to `build_teaching_pack_graph()`. Gateway creates `GatewayTeachingPackQualityGate`.
 - **Checkpointer** injected externally; agents provides the factory (`checkpointer.py`).
 - **Healing strategies** imported statically (`healing/orchestrator.py:8`) but behavior varies by GateConfig.

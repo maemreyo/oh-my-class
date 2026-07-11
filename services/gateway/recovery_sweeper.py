@@ -66,9 +66,16 @@ async def sweep_stuck_jobs(
             job.lease_owner = None
             job.lease_expires_at = None
         else:
-            job.status = RunJobStatus.FAILED
+            # #124: repeated lease expiry after max_attempts is this sweep's
+            # equivalent of "transient exhausted" -- DEAD_LETTER (inspectable,
+            # replayable), not FAILED (reserved for genuinely terminal/
+            # cancelled jobs).
+            job.status = RunJobStatus.DEAD_LETTER
             job.lease_owner = None
             job.lease_expires_at = None
+            job.last_error = "lease expired after exhausting max_attempts (worker crashed or hung repeatedly)"
+            job.error_classification = "transient_exhausted"
+            job.dead_lettered_at = now
         recovered_ids.append(job.job_id)
 
     if recovered_ids:

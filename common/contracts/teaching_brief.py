@@ -2,8 +2,16 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from common.contracts.education_policy import (
+    EDUCATION_POLICY_VERSION,
+    InstructionLanguageValue,
+    SubjectKey,
+    TargetLanguageValue,
+    normalize_language,
+    normalize_subject,
+)
 from common.contracts.run_contract import ArtifactType, ExportFormat, ResearchPolicy
 
 DEFAULT_ARTIFACT_TYPES: list[ArtifactType] = [
@@ -23,9 +31,10 @@ class TeachingBrief(BaseModel):
     raw_request: str = Field(min_length=1, max_length=4_000)
     topic: str = Field(min_length=1, max_length=200)
     grade: int = Field(ge=1, le=12)
-    subject: str = Field(min_length=1, max_length=80)
-    target_language: str = Field(default="en", min_length=2, max_length=16)
-    instruction_language: str = Field(default="en", min_length=2, max_length=16)
+    education_policy_version: Literal["education_policy.v1"] = EDUCATION_POLICY_VERSION
+    subject: SubjectKey
+    target_language: TargetLanguageValue = "en"
+    instruction_language: InstructionLanguageValue = "en"
     curriculum: str | None = Field(default=None, max_length=80)
     class_context: str = Field(default="", max_length=1_000)
     artifact_types: list[ArtifactType] = Field(default_factory=lambda: list(DEFAULT_ARTIFACT_TYPES))
@@ -35,6 +44,18 @@ class TeachingBrief(BaseModel):
     must_include: str = Field(default="", max_length=1_000)
     avoid: str = Field(default="", max_length=1_000)
     always_review: bool = False
+
+    @field_validator("subject", mode="before")
+    @classmethod
+    def _normalize_subject(cls, value: SubjectKey | str) -> SubjectKey | str:
+        if isinstance(value, SubjectKey):
+            return value
+        return normalize_subject(value) or value
+
+    @field_validator("target_language", "instruction_language", mode="before")
+    @classmethod
+    def _normalize_language(cls, value: str) -> InstructionLanguageValue | str:
+        return normalize_language(value) or value
 
 
 MaterialityReason = Literal[

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Literal, Protocol
 
 from services.gateway.teaching_pack_types import JsonObject, RunId
+from services.gateway.teaching_pack_snapshot_validators import teacher_only_value_paths
 
 type ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx", "google_forms"]
 
@@ -54,7 +55,14 @@ class FileSystemTeachingPackExportWriter:
         approved_snapshots = approved_snapshots_for_export(state)
         for snapshot in approved_snapshots:
             snapshot_id = str(snapshot.get("snapshot_id", ""))
-            rendered_html = await self.renderer.render(_snapshot_content(snapshot))
+            content = _snapshot_content(snapshot)
+            teacher_only_paths = teacher_only_value_paths(content)
+            if teacher_only_paths:
+                raise ExportAdapterError(
+                    "Approved snapshot contains teacher-only answer material: "
+                    + ", ".join(teacher_only_paths),
+                )
+            rendered_html = await self.renderer.render(content)
             export_path = export_dir / f"{snapshot_id}.html"
             export_path.write_text(rendered_html, encoding="utf-8")
             exported_files.append(str(export_path))

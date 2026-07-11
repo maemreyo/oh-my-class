@@ -26,6 +26,12 @@ class TeachingPackWorkerConfig:
     promote_batch_size: int = 5
     worker_concurrency: int = 1
     heartbeat_interval_seconds: float | None = None
+    # #124: a transient error retries with capped backoff up to this many
+    # total attempts (claim_next increments `attempts` on every claim,
+    # including the first); exhausting the ceiling dead-letters the job
+    # instead of retrying forever. Matches recovery_sweeper.py's
+    # DEFAULT_MAX_ATTEMPTS for the equivalent lease-expiry path.
+    max_transient_attempts: int = 3
 
 
 class TeachingPackJobExecutor(Protocol):
@@ -91,13 +97,32 @@ class TeachingPackWorker:
         if isinstance(exc, BaseExceptionGroup) and len(exc.exceptions) == 1:
             root = exc.exceptions[0]
 
+        # #124: infra-poison classification -- transient errors get bounded
+        # retries then dead-letter; everything else (permanent/unclassified)
+        # dead-letters immediately with zero retries. This is distinct from
+        # ADR-029 quality-escalate: that path handles content that failed the
+        # quality bar, this handles operational failures (provider error,
+        # bad input, code bug). Neither path calls into the other.
         if isinstance(root, TransientProviderError):
-            from datetime import UTC, datetime as _datetime, timedelta
-            now = now or _datetime.now(UTC)
-            eligible_at = now + timedelta(seconds=root.retry_after_seconds)
-            await self._job_store.requeue_with_backoff(job.job_id, eligible_at)
+            if job.attempts < self._config.max_transient_attempts:
+                from datetime import UTC, datetime as _datetime, timedelta
+                now = now or _datetime.now(UTC)
+                eligible_at = now + timedelta(seconds=root.retry_after_seconds)
+                await self._job_store.requeue_with_backoff(job.job_id, eligible_at)
+                return
+            await self._job_store.mark_dead_letter(
+                job.job_id,
+                error_summary=str(root)[:2000],
+                classification="transient_exhausted",
+                now=now,
+            )
         else:
-            await self._job_store.mark_failed(job.job_id)
+            await self._job_store.mark_dead_letter(
+                job.job_id,
+                error_summary=str(root)[:2000],
+                classification="permanent",
+                now=now,
+            )
 
     async def run_loop(self, max_iterations: int | None = None) -> int:
         completed = 0

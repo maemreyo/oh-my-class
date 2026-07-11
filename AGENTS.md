@@ -1038,6 +1038,15 @@ The following minor corrections were applied during the grill-session docs sync:
 
 ## Agent skills
 
+### Architecture and policy gates
+
+- `make check-architecture` validates the runtime manifest, anatomy module
+  hashes, and anatomy `path:line` citations. Refresh the trace with `/anatomy`
+  after changing a traced module.
+- ADR-059 establishes `education_policy.v1` as the canonical runtime policy
+  vocabulary. New production paths must normalize at their boundary rather than
+  branch on legacy grade-band literals.
+
 ### Issue tracker
 
 GitHub Issues on `github.com/maemreyo/oh-my-class` (uses `gh` CLI). No external PRs. Supports Wayfinder map/child/blocking operations. See `docs/agents/issue-tracker.md`.

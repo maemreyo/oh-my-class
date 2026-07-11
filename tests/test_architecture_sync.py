@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.generate_architecture_manifest import MANIFEST_PATH, build_manifest
+from scripts.architecture_surfaces import surface_reachability_errors
+from scripts.generate_architecture_manifest import MANIFEST_PATH, PROJECT_ROOT, build_manifest
 
 
 def test_architecture_manifest_matches_code() -> None:
@@ -40,3 +41,7 @@ def test_architecture_manifest_path_is_documented() -> None:
     runbook = Path("docs/testbook/runbook.md").read_text(encoding="utf-8")
 
     assert str(MANIFEST_PATH.relative_to(Path.cwd())) in runbook
+
+
+def test_architecture_manifest_surfaces_resolve_to_live_modules() -> None:
+    assert surface_reachability_errors(PROJECT_ROOT, build_manifest()["surfaces"]) == []

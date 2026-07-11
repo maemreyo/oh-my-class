@@ -103,7 +103,7 @@ class ExportValidator:
         artifacts: list[dict[str, Any]],
         det_result: ExportValidationResult,
     ) -> ExportValidationResult:
-        from packages.agents.config.gate_config import GateConfig
+        from common.contracts.gate_config import GateConfig
         from packages.quality.layer4_judge.judge_interface import (
             AdaptiveJudge,
             JudgeUnavailableError,

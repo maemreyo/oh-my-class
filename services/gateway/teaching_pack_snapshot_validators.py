@@ -16,6 +16,41 @@ if TYPE_CHECKING:
     from services.gateway.teaching_pack_types import JsonObject
 
 
+_TEACHER_ONLY_KEYS = frozenset({
+    "answer",
+    "answer_set",
+    "accepted_answers",
+    "correct_option_ids",
+    "explain",
+    "rationale",
+    "wrong_reasons",
+    "rubric_solution",
+})
+
+
+def teacher_only_value_paths(value: JsonObject) -> list[str]:
+    """Return recursive paths that would leak answers from a student projection."""
+    return _teacher_only_value_paths(value, "content_json")
+
+
+def _teacher_only_value_paths(value: object, path: str) -> list[str]:
+    if isinstance(value, list):
+        return [
+            leaked_path
+            for index, item in enumerate(value)
+            for leaked_path in _teacher_only_value_paths(item, f"{path}[{index}]")
+        ]
+    if not isinstance(value, dict):
+        return []
+    paths: list[str] = []
+    for key, item in value.items():
+        child_path = f"{path}.{key}"
+        if key in _TEACHER_ONLY_KEYS:
+            paths.append(child_path)
+        paths.extend(_teacher_only_value_paths(item, child_path))
+    return paths
+
+
 def _contains_answer_key_patterns(text: str) -> bool:
     """Check if text contains answer-key patterns.
 

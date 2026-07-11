@@ -4,9 +4,12 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from common.contracts.answer_set import AnswerEntry, AnswerSet
+from common.contracts.artifact import ArtifactContent
+from packages.agents.teaching_pack.content_orchestrator import ArtifactPersistenceResult
 from common.contracts.artifact_document import (
     ArtifactDocument,
     ArtifactPayload,
@@ -20,7 +23,10 @@ from services.gateway.artifact_document_store import (
     ContentDependencyCreate,
     ContentVariantCreate,
 )
+from services.gateway.artifact_document_content_store import GatewayArtifactDocumentContentStore
 from services.gateway.models import Base
+from services.gateway.artifact_document_models import ArtifactDocumentRecord, AnswerSetRecord
+from services.gateway.teaching_pack_models import RunEvent
 from services.gateway.teaching_pack_snapshot_schemas import ArtifactSnapshotCreate
 from services.gateway.teaching_pack_snapshot_store import TeachingPackSnapshotStore
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
@@ -173,5 +179,136 @@ async def test_persists_immutable_v2_lineage_and_reads_legacy_preview(
     assert persisted.approval_status == "approved"
     assert v2_preview.schema_version == "v2"
     assert v2_preview.snapshot_id == snapshot_id
+    assert v2_preview.legacy is False
     assert v1_preview.schema_version == "v1"
     assert v1_preview.snapshot_id == snapshot_id
+    assert v1_preview.legacy is True
+
+    events = list((await session.execute(
+        select(RunEvent).where(RunEvent.run_id == run_id),
+    )).scalars())
+    legacy_events = [event for event in events if event.event_name == "artifact_document_legacy_read"]
+    assert len(legacy_events) == 1
+    assert legacy_events[0].payload["payload"]["document_id"] == "missing-document"
+    assert legacy_events[0].payload["payload"]["snapshot_id"] == snapshot_id
+
+
+async def test_gateway_adapter_persists_v2_document_and_separate_answer_set(
+    session: AsyncSession,
+) -> None:
+    run_id = RunId(f"test-{uuid4()}")
+    await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-v2-adapter"),
+        raw_request="Build a fractions quiz",
+        class_info={"grade": 5},
+    ))
+    await session.commit()
+    session_factory = async_sessionmaker(bind=session.bind, expire_on_commit=False)
+    adapter = GatewayArtifactDocumentContentStore(session_factory)
+    artifact = ArtifactContent(
+        artifact_type="quiz",
+        theme="default",
+        title="Fractions quiz",
+        sections=[{"components": [{
+            "type": "question_card",
+            "id": "question-1",
+            "text": "Which fraction equals one half?",
+            "options": {"A": "1/4", "B": "2/4"},
+            "answer": "B",
+            "explain": "Two fourths equals one half.",
+        }]}],
+        metadata={"answer_set": {"must_not_persist": True}},
+        accessibility={"language": "en"},
+    )
+    answers = AnswerSet(
+        answer_set_id="answers-pending",
+        source_document_id="pending",
+        source_version=1,
+        entries=[AnswerEntry(
+            entity_id="answer-question-1",
+            question_id="question-1",
+            correct_option_ids=["B"],
+        )],
+    )
+
+    reference = await adapter.persist_result(
+        str(run_id),
+        "generation-1",
+        ArtifactPersistenceResult(artifact=artifact, answer_set=answers),
+        "quiz-1",
+    )
+    async with session_factory() as verification_session:
+        persisted = await ArtifactDocumentStore(verification_session).get_persisted(reference.document_id)
+
+    assert persisted.answer_set is not None
+    assert persisted.answer_set.source_document_id == reference.document_id
+    assert "answer_set" not in persisted.document.model_dump(mode="json")
+    assert "answer" not in persisted.document.model_dump(mode="json")
+
+
+async def test_gateway_adapter_rolls_back_document_when_answer_set_insert_fails(
+    session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    run_id = RunId(f"test-{uuid4()}")
+    await TeachingPackRunStore(session).create_run(TeachingPackRunCreate(
+        run_id=run_id,
+        teacher_id=TeacherId("teacher-v2-rollback"),
+        raw_request="Build a fractions quiz",
+        class_info={"grade": 5},
+    ))
+    await session.commit()
+    session_factory = async_sessionmaker(bind=session.bind, expire_on_commit=False)
+    adapter = GatewayArtifactDocumentContentStore(session_factory)
+    artifact = ArtifactContent(
+        artifact_type="quiz",
+        theme="default",
+        title="Fractions quiz",
+        sections=[{"components": [{
+            "type": "question_card",
+            "id": "question-1",
+            "text": "Which fraction equals one half?",
+            "options": {"A": "1/4", "B": "2/4"},
+            "answer": "B",
+            "explain": "Two fourths equals one half.",
+        }]}],
+        metadata={},
+        accessibility={"language": "en"},
+    )
+    answers = AnswerSet(
+        answer_set_id="answers-pending",
+        source_document_id="pending",
+        source_version=1,
+        entries=[AnswerEntry(
+            entity_id="answer-question-1",
+            question_id="question-1",
+            correct_option_ids=["B"],
+        )],
+    )
+
+    async def fail_answer_insert(_store: ArtifactDocumentStore, _answer_set: AnswerSet) -> None:
+        raise RuntimeError("injected answer-set failure")
+
+    monkeypatch.setattr(ArtifactDocumentStore, "_insert_answer_set", fail_answer_insert)
+
+    with pytest.raises(RuntimeError, match="injected answer-set failure"):
+        await adapter.persist_result(
+            str(run_id),
+            "generation-rollback",
+            ArtifactPersistenceResult(artifact=artifact, answer_set=answers),
+            "quiz-1",
+        )
+
+    async with session_factory() as verification_session:
+        documents = list((await verification_session.execute(
+            select(ArtifactDocumentRecord).where(ArtifactDocumentRecord.run_id == run_id),
+        )).scalars())
+        answer_sets = list((await verification_session.execute(
+            select(AnswerSetRecord).where(
+                AnswerSetRecord.source_document_id == "generation-rollback:quiz-1",
+            ),
+        )).scalars())
+
+    assert documents == []
+    assert answer_sets == []

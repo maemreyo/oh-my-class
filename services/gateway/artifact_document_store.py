@@ -10,6 +10,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from common.contracts.answer_set import AnswerSet
 from common.contracts.artifact_document import ArtifactDocument
+from packages.agents.events import ObservabilityEvent
 from services.gateway.artifact_document_models import (
     AnswerSetRecord,
     ArtifactDocumentRecord,
@@ -18,8 +19,10 @@ from services.gateway.artifact_document_models import (
     ContentDependencyRecord,
     ContentVariantRecord,
 )
+from services.gateway.teaching_pack_models import TeachingPackEventVisibility
 from services.gateway.teaching_pack_snapshot_errors import StaleArtifactVersionError
 from services.gateway.teaching_pack_snapshot_models import ArtifactSnapshot
+from services.gateway.teaching_pack_store import TeachingPackRunStore
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -76,6 +79,7 @@ class ArtifactPreviewSource:
     schema_version: PreviewSchemaVersion
     snapshot_id: str
     content_json: JsonObject
+    legacy: bool
 
 
 class ArtifactDocumentNotFoundError(LookupError):
@@ -146,6 +150,9 @@ class ArtifactDocumentStore:
         )
         return (await self._session.execute(statement)).scalar_one_or_none()
 
+    async def get_persisted(self, document_id: str) -> PersistedArtifactDocument:
+        return await self._read_persisted(document_id)
+
     async def list_versions(self, run_id: RunId, artifact_id: str) -> list[ArtifactDocumentRecord]:
         """All versions of one artifact, newest first."""
         statement = (
@@ -201,7 +208,12 @@ class ArtifactDocumentStore:
         )
         v2 = (await self._session.execute(v2_statement)).one_or_none()
         if v2 is not None:
-            return ArtifactPreviewSource(schema_version="v2", snapshot_id=v2.snapshot_id, content_json=v2.document_json)
+            return ArtifactPreviewSource(
+                schema_version="v2",
+                snapshot_id=v2.snapshot_id,
+                content_json=v2.document_json,
+                legacy=False,
+            )
         v1_statement = select(ArtifactSnapshot.content_json).where(
             ArtifactSnapshot.run_id == run_id,
             ArtifactSnapshot.snapshot_id == snapshot_id,
@@ -209,7 +221,20 @@ class ArtifactDocumentStore:
         v1 = (await self._session.execute(v1_statement)).scalar_one_or_none()
         if v1 is None:
             raise ArtifactPreviewSourceNotFoundError(snapshot_id)
-        return ArtifactPreviewSource(schema_version="v1", snapshot_id=snapshot_id, content_json=v1)
+        await TeachingPackRunStore(self._session).write_observability_event(
+            ObservabilityEvent(
+                run_id=str(run_id),
+                event_type="artifact_document_legacy_read",
+                payload={"document_id": document_id, "snapshot_id": snapshot_id},
+            ),
+            visibility=TeachingPackEventVisibility.INTERNAL,
+        )
+        return ArtifactPreviewSource(
+            schema_version="v1",
+            snapshot_id=snapshot_id,
+            content_json=v1,
+            legacy=True,
+        )
 
     async def _insert_answer_set(self, answer_set: AnswerSet) -> None:
         await self._session.execute(

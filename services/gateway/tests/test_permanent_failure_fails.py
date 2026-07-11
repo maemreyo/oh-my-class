@@ -1,4 +1,4 @@
-"""Test that PermanentProviderError marks a job FAILED (not requeued)."""
+"""#124: a permanent/unclassified error dead-letters a job immediately (0 retries) -- never requeued, never left running."""
 from __future__ import annotations
 
 from uuid import uuid4
@@ -59,13 +59,13 @@ async def _enqueue_job(session, run_id: RunId):
     ))
 
 
-async def _job_status(session, job_id: str) -> RunJobStatus:
-    result = await session.execute(select(RunJob.status).where(RunJob.job_id == job_id))
+async def _job_row(session, job_id: str) -> RunJob:
+    result = await session.execute(select(RunJob).where(RunJob.job_id == job_id))
     return result.scalar_one()
 
 
-async def test_permanent_provider_error_marks_job_failed(session) -> None:
-    """PermanentProviderError must result in FAILED status, not QUEUED."""
+async def test_permanent_provider_error_dead_letters_job_immediately(session) -> None:
+    """PermanentProviderError must result in DEAD_LETTER, not QUEUED, with zero retries."""
     run_id = await _create_run(session)
     try:
         job = await _enqueue_job(session, run_id)
@@ -84,16 +84,19 @@ async def test_permanent_provider_error_marks_job_failed(session) -> None:
         did_work = await worker.run_one()
         await session.commit()
 
-        status = await _job_status(session, job.job_id)
+        row = await _job_row(session, job.job_id)
         assert did_work is True
-        assert status == RunJobStatus.FAILED, f"Expected FAILED, got {status}"
+        assert row.status == RunJobStatus.DEAD_LETTER, f"Expected DEAD_LETTER, got {row.status}"
+        assert row.attempts == 1, "permanent errors dead-letter with zero retries"
+        assert row.error_classification == "permanent"
+        assert row.last_error is not None and "bad schema validation" in row.last_error
     finally:
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()
 
 
-async def test_bad_prompt_error_marks_job_failed(session) -> None:
-    """BadPromptError (subclass of PermanentProviderError) must mark job FAILED."""
+async def test_bad_prompt_error_dead_letters_job_immediately(session) -> None:
+    """BadPromptError (subclass of PermanentProviderError) must dead-letter, zero retries."""
     run_id = await _create_run(session)
     try:
         job = await _enqueue_job(session, run_id)
@@ -112,16 +115,17 @@ async def test_bad_prompt_error_marks_job_failed(session) -> None:
         did_work = await worker.run_one()
         await session.commit()
 
-        status = await _job_status(session, job.job_id)
+        row = await _job_row(session, job.job_id)
         assert did_work is True
-        assert status == RunJobStatus.FAILED, f"Expected FAILED, got {status}"
+        assert row.status == RunJobStatus.DEAD_LETTER, f"Expected DEAD_LETTER, got {row.status}"
+        assert row.error_classification == "permanent"
     finally:
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()
 
 
-async def test_generic_exception_marks_job_failed(session) -> None:
-    """Any non-TransientProviderError exception must result in FAILED."""
+async def test_generic_exception_dead_letters_job(session) -> None:
+    """Any non-TransientProviderError exception must dead-letter, not silently fail closed elsewhere."""
     run_id = await _create_run(session)
     try:
         job = await _enqueue_job(session, run_id)
@@ -140,8 +144,47 @@ async def test_generic_exception_marks_job_failed(session) -> None:
         await worker.run_one()
         await session.commit()
 
-        status = await _job_status(session, job.job_id)
-        assert status == RunJobStatus.FAILED, f"Expected FAILED, got {status}"
+        row = await _job_row(session, job.job_id)
+        assert row.status == RunJobStatus.DEAD_LETTER, f"Expected DEAD_LETTER, got {row.status}"
+        assert row.error_classification == "permanent"
+    finally:
+        await session.execute(delete(Run).where(Run.run_id == run_id))
+        await session.commit()
+
+
+async def test_transient_error_retries_then_dead_letters_after_ceiling(session) -> None:
+    """A TransientProviderError retries with backoff up to max_transient_attempts, then dead-letters."""
+    from packages.llm_client.errors import ProviderTimeoutError
+
+    run_id = await _create_run(session)
+    try:
+        job = await _enqueue_job(session, run_id)
+
+        class _TransientErrorExecutor:
+            async def run_start_job(self, _job):
+                raise ProviderTimeoutError("provider timed out")
+
+            async def run_resume_job(self, _job):
+                raise ProviderTimeoutError("provider timed out")
+
+        store = TeachingPackJobStore(session)
+        config = TeachingPackWorkerConfig(worker_id="test-worker-transient", lease_seconds=30, max_transient_attempts=2)
+        worker = TeachingPackWorker(store, _TransientErrorExecutor(), config)
+
+        # First failure: attempts == 1 < ceiling (2) -> requeued, not dead-lettered.
+        await worker.run_one()
+        await session.commit()
+        row = await _job_row(session, job.job_id)
+        assert row.status == RunJobStatus.QUEUED
+        assert row.attempts == 1
+
+        # Second failure: attempts == 2 >= ceiling (2) -> dead-lettered.
+        await worker.run_one(now=row.eligible_at)
+        await session.commit()
+        row = await _job_row(session, job.job_id)
+        assert row.status == RunJobStatus.DEAD_LETTER
+        assert row.attempts == 2
+        assert row.error_classification == "transient_exhausted"
     finally:
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()

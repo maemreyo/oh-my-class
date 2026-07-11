@@ -56,6 +56,7 @@ def test_any_choice_is_within_bounds_when_no_variant_menu_is_declared() -> None:
     brief = _brief()
 
     assert is_choice_within_bounds(brief, "anything") is True
+    assert brief.education_policy_version == "education_policy.v1"
 
 
 def test_choice_must_be_listed_when_a_variant_menu_is_declared() -> None:

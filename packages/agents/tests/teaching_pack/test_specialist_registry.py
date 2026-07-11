@@ -238,6 +238,9 @@ async def test_lesson_generation_uses_the_requested_theme() -> None:
             assert getattr(artifact, "theme") == "ocean"
             return type("Reference", (), {"as_state": lambda self: {"document_id": "lesson-1"}})()
 
+        async def persist_result(self, run_id: str, generation_id: str, result: object, artifact_id: str) -> object:
+            return await self.persist(run_id, generation_id, result.artifact, artifact_id)
+
         async def read_projections(self, _references: object) -> list[object]:
             return []
 
@@ -327,3 +330,47 @@ async def test_flashcard_deck_generation_never_calls_content_creator_node(
     result = await generate_one_artifact(_flashcard_payload())  # type: ignore[arg-type]
 
     assert result["artifact_workflow_states"][0]["status"] == "passed"
+
+
+def test_all_canonical_artifact_kinds_are_natively_dispatched() -> None:
+    """#464: every `ArtifactKind` value must resolve through `SPECIALIST_REGISTRY`
+    or a native dispatch branch in `generate_one_artifact.py` (`answer_key`,
+    `slide_deck`) -- none may depend on the generic content-creator fallback,
+    which is experimental/dev-only behind `generic_content_creator_fallback_v1`."""
+    from common.contracts.education_policy import ArtifactKind
+    from packages.agents.teaching_pack.generate_one_artifact import _NATIVELY_DISPATCHED_ARTIFACT_TYPES
+
+    natively_dispatched = set(SPECIALIST_REGISTRY) | _NATIVELY_DISPATCHED_ARTIFACT_TYPES
+    missing = {kind.value for kind in ArtifactKind} - natively_dispatched
+    assert missing == set()
+
+
+@pytest.mark.anyio
+async def test_undeclared_artifact_type_fails_closed_without_generic_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """#464 acceptance: an unsupported capability fails before any LLM call
+    and never silently reaches content_creator_node, unless a caller has
+    explicitly opted into the experimental fallback flag."""
+    from packages.agents.config.features import reset_features
+    from packages.agents.teaching_pack.generate_one_artifact import UnsupportedArtifactCapabilityError
+
+    monkeypatch.delenv("FEATURE_GENERIC_CONTENT_CREATOR_FALLBACK_V1", raising=False)
+    reset_features()
+
+    async def fail_if_called(_state: dict[str, object]) -> dict[str, object]:
+        raise AssertionError("must not silently reach content_creator_node")
+
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
+        fail_if_called,
+    )
+
+    payload = _flashcard_payload()
+    payload["artifact_type"] = "an_undeclared_artifact_type"
+
+    result = await generate_one_artifact(payload)  # type: ignore[arg-type]
+
+    assert result["artifact_workflow_states"][0]["status"] == "failed"
+    assert result["artifact_workflow_states"][0]["error_class"] == UnsupportedArtifactCapabilityError.__name__
+    reset_features()

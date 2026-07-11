@@ -241,12 +241,14 @@
 - **`teaching_pack_models.py`** — Teaching-pack-specific ORM models: `run_status_history`, `run_contracts`, `contract_revisions`, `gate_interrupts`, `gate_responses`, `run_events`, `run_jobs`. Also re-exports: `ArtifactWorkflow`, `ArtifactSnapshot`, `VocabularyCluster*`.
 - **`teaching_pack_artifact_models.py`** — `ArtifactWorkflow` table.
 - **`teaching_pack_snapshot_models.py`** — `ArtifactSnapshot` table.
-- **`teaching_pack_job_store.py`** — `TeachingPackJobStore` — claim/lease/mark lifecycle for `run_jobs`.
+- **`teaching_pack_job_store.py`** — `TeachingPackJobStore` — claim/lease/mark lifecycle for `run_jobs`; `RunJobStatus.DEAD_LETTER` (#124) is an inspectable/replayable holding state (excluded from `claim_next`/`list_pending` like `FAILED`, but distinct from it) — `mark_dead_letter()` records `last_error`/`error_classification`/`dead_lettered_at`, `replay_dead_letter()` resets a dead-lettered job to `pending` with a clean attempt count.
 - **`teaching_pack_store.py`** — `TeachingPackRunStore` — run status transitions, event log, observability events.
 - **`teaching_pack_control_store.py`** — `TeachingPackControlStore` — gate interrupt/response management, contract CRUD.
 - **`teaching_pack_snapshot_store.py`** — `TeachingPackSnapshotStore` — snapshot CRUD, approval, optimistic locking.
 - **`teaching_pack_export_store.py`** — `TeachingPackExportStore` — export records, staleness checks.
 - **`teaching_pack_db.py`** — Session factory + `get_teaching_pack_session` dependency.
+- **`artifact_document_store.py`** — `ArtifactDocumentStore` — V2 `ArtifactDocument`/`AnswerSet`/variant/dependency/approval persistence (`persist`, `create_edit` with an advisory-lock optimistic-lock retry); `get_preview_source` (`:187`) returns the linked V2 snapshot or falls back to the legacy V1 `ArtifactSnapshot` (`legacy=True`), emitting an `artifact_document_legacy_read` observability event on the fallback path (#463 rollout metric).
+- **`artifact_document_content_store.py`** — `GatewayArtifactDocumentContentStore` — the agents-facing `ArtifactContentStore` port implementation the gateway composes at startup (`main.py:93,119,165,189`) that persists through `ArtifactDocumentStore`/Postgres instead of the LangGraph store; converts via `common.contracts.artifact_projection_mapper`.
 
 ### Auth
 
@@ -265,7 +267,7 @@
 ### Supporting services
 
 - **`backpressure.py`** — Rate limiting per teacher (concurrent runs, queue depth).
-- **`recovery_sweeper.py`** — Periodic sweep: stuck jobs → requeue, expired gate interrupts → escalate.
+- **`recovery_sweeper.py`** — Periodic sweep: stuck jobs → requeue (under `max_attempts`) or dead-letter (#124, at/over `max_attempts` — was `FAILED` before #124), expired gate interrupts → escalate.
 - **`soft_delete.py`** — Soft delete + restore for runs.
 - **`renderer_adapter.py`** — Bridges to `packages/renderer` for HTML rendering.
 - **`research_*.py`** — Research engine, provider (9Router), safety, URL handling, gate.
@@ -290,7 +292,7 @@
 | `build_teaching_pack_graph` | `main.py:159` | Constructs the authoritative stage graph at startup |
 | `get_checkpointer` | `main.py:158` | MemorySaver/SqliteSaver/PostgresSaver per environment |
 | `open_teaching_pack_store`, `get_development_store`, `sync_connection_string` | `main.py:161-164` | LangGraph store for multi-tenant memory |
-| `LangGraphArtifactContentStore` | `main.py:93` | Bridges artifact store to LangGraph content orchestrator |
+| `LangGraphArtifactContentStore` | `main.py:93` | Bridges artifact store to LangGraph content orchestrator; `GatewayArtifactDocumentContentStore` (gateway-owned, `artifact_document_content_store.py`) is the alternative V2-backed composition (#463) |
 | `teaching_pack_thread_config`, `LangGraphRunnableConfig` | `teaching_pack_executor.py:11` | Thread config for graph invocation |
 | `Command` (from `langgraph.types`) | `teaching_pack_executor.py:8` | Gate resume via `Command(resume=...)` |
 | `EmptyInputError` | `teaching_pack_executor.py:7` | Missing checkpoint handling |
@@ -302,7 +304,7 @@
 | `translate_slide_deck` | `routers/teaching_pack_previews.py:19` | SDX-01 translation engine |
 | `generate_slide_deck_block_rewrite`, `resolve_rewrite_instruction` | `routers/teaching_pack_previews.py:21-22` | SDE-08 AI block rewrite |
 | `apply_scoped_slide_deck_block_edit`, `slide_deck_block_edit_event` | `routers/teaching_pack_previews.py:26-27` | SDE-04 scoped block edit |
-| `TransentProviderError` | `teaching_pack_worker.py:86` | Retryable LLM provider errors |
+| `TransentProviderError` | `teaching_pack_worker.py:86` | Retryable LLM provider errors; `TeachingPackWorker._handle_job_error` retries with capped backoff up to `TeachingPackWorkerConfig.max_transient_attempts` (default 3), then dead-letters (`classification="transient_exhausted"`) — a permanent/unclassified error dead-letters immediately (`classification="permanent"`, 0 retries) (#124) |
 
 ### common/contracts (Pydantic schemas)
 
@@ -452,6 +454,10 @@ Plus tables from re-exported models: `artifact_workflows`, `artifact_snapshots`,
 6. **123+ files in the gateway module.** This is the largest service module in the codebase. The `teaching_session/` sub-package, `webhooks/` sub-package, and `observability/` sub-package add significant internal structure.
 
 7. **`cost_logs` table is in schema `litellm`**, not `public`. This is the only table in a non-public schema.
+
+8. **Recursive teacher-only leakage guard added (#463).** `teaching_pack_snapshot_validators.py` now exposes `teacher_only_value_paths(value)`, a recursive scan for the answer-bearing key set (`answer`, `answer_set`, `accepted_answers`, `correct_option_ids`, `explain`, `rationale`, `wrong_reasons`, `rubric_solution`) anywhere in a JSON value. It's enforced at two write seams: `TeachingPackSnapshotStore.create_snapshot` (`teaching_pack_snapshot_store.py:87-89`, raises `AnswerKeyLeakageError`) and `FileSystemTeachingPackExportWriter.export` (`teaching_pack_export_writer.py:58-64`, raises `ExportAdapterError`) — the property-test-style boundary #463's scope calls for, applied at the two points student-facing bytes actually leave the system rather than only at the V2 `ArtifactDocument` construction seam (see `contracts.md`'s `artifact_projection_mapper.py` entry for the construction-time half of the same guarantee).
+
+9. **Canonical grade-band/curriculum resolution (#462).** `run_contract_setup.py` now resolves `RunContract.grade_band` via `common.contracts.grade_band.grade_band_for_label` (rejecting ambiguous input as an `unsupported` field instead of guessing, `run_contract_setup.py:76-78`) and `RunContract.curriculum_framework` via `common.contracts.education_policy.curriculum_framework_for`, replacing the previous `f"Grade {class_info['grade']}"` string-interpolation fallback.
 
 ---
 _Traced from source on 2026-07-11. Files examined in depth: `main.py`, `routers/` (all 17 router files), `teaching_pack_executor.py`, `teaching_pack_worker.py`, `models.py`, `teaching_pack_models.py`, `teaching_pack_quality_gate.py`, `quality_gates.py`, `quality_workflow.py`, `auth/` (all 5 files). 123 total files in module._

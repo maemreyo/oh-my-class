@@ -2,11 +2,33 @@ from __future__ import annotations
 
 import pytest
 
+from common.contracts.answer_set import AnswerEntry, AnswerSet
+from common.contracts.artifact import ArtifactContent
 from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
-from packages.agents.teaching_pack.content_orchestrator import InMemoryArtifactContentStore
+from packages.agents.config.features import reset_features
+from packages.agents.teaching_pack.content_orchestrator import ArtifactPersistenceResult, InMemoryArtifactContentStore
 from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
 from packages.agents.teaching_pack.stages import StageEnum
 from packages.quality.layer2_content.pedagogical import check_pedagogical_metrics
+
+
+@pytest.fixture(autouse=True)
+def _reset_feature_cache() -> None:
+    """Guards every test in this file against feature-flag cache leakage
+    from `_enable_generic_fallback` below (the module-level `_FEATURES`
+    singleton otherwise survives past `monkeypatch.setenv`'s teardown)."""
+    reset_features()
+    yield
+    reset_features()
+
+
+def _enable_generic_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """#464: the generic content_creator_node path is experimental/dev-only
+    behind this flag now -- these tests deliberately force `get_specialist`
+    to return None to exercise that glue code in isolation, so they must
+    opt in explicitly rather than relying on it being reachable by default."""
+    monkeypatch.setenv("FEATURE_GENERIC_CONTENT_CREATOR_FALLBACK_V1", "true")
+    reset_features()
 
 
 def _payload(artifact_type: str = "lesson") -> dict[str, object]:
@@ -63,6 +85,7 @@ async def test_generation_without_store_returns_status_without_payload(monkeypat
         fake_content_creator_node,
     )
     monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
+    _enable_generic_fallback(monkeypatch)
 
     result = await generate_one_artifact(_payload("lesson"))
 
@@ -89,6 +112,7 @@ async def test_store_backed_generation_returns_reference_without_chunk(
         fake_content_creator_node,
     )
     monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
+    _enable_generic_fallback(monkeypatch)
 
     result = await generate_one_artifact(_payload("lesson"), InMemoryArtifactContentStore())
 
@@ -101,6 +125,69 @@ async def test_store_backed_generation_returns_reference_without_chunk(
         "version": 1,
         "title": "Lesson Artifact",
     }]
+
+
+@pytest.mark.anyio
+async def test_assessment_generation_persists_student_projection_without_answers(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def fake_content_creator_node(_state: dict[str, object]) -> dict[str, object]:
+        return {"artifacts": [{
+            **_artifact("quiz"),
+            "sections": [{"components": [{
+                "type": "question_card",
+                "id": "question-1",
+                "text": "Which fraction is one half?",
+                "options": {"A": "2/4", "B": "1/3"},
+                "answer": "A",
+                "explain": "Two fourths equals one half.",
+            }]}],
+        }]}
+
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
+        fake_content_creator_node,
+    )
+    monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
+    _enable_generic_fallback(monkeypatch)
+    store = InMemoryArtifactContentStore()
+
+    result = await generate_one_artifact(_payload("quiz"), store)
+    persisted = await store.read_projection(result["artifact_references"][0]["document_id"])
+
+    assert "answer_set" not in persisted.metadata
+    assert "answer" not in persisted.sections[0]["components"][0]
+
+
+@pytest.mark.anyio
+async def test_answer_key_generation_reads_teacher_only_answer_set_from_dependency_store() -> None:
+    store = InMemoryArtifactContentStore()
+    quiz = ArtifactContent.model_validate({
+        **_artifact("quiz"),
+        "sections": [{"components": [{
+            "type": "question_card",
+            "id": "question-1",
+            "text": "Which fraction is one half?",
+            "options": {"A": "2/4", "B": "1/3"},
+            "answer": "A",
+            "explain": "Two fourths equals one half.",
+        }]}],
+    })
+    answer_set = AnswerSet(
+        answer_set_id="answers-pending",
+        source_document_id="pending",
+        source_version=1,
+        entries=[AnswerEntry(entity_id="answer-question-1", question_id="question-1", correct_option_ids=["A"])],
+    )
+    reference = await store.persist_result(
+        "run-1", "gen-quiz", ArtifactPersistenceResult(artifact=quiz, answer_set=answer_set), "quiz-1",
+    )
+    payload = _payload("answer_key")
+    payload["dependency_artifact_references"] = [reference.as_state()]
+
+    result = await generate_one_artifact(payload, store)
+    answer_key = await store.read_projection(result["artifact_references"][0]["document_id"])
+
+    assert answer_key.artifact_type == "answer_key"
+    assert answer_key.sections[0]["components"][0]["text"] == "Answer: A"
 
 
 async def test_hierarchical_artifact_carries_bloom_evidence_for_pedagogical_gate(stub_section_prose) -> None:
@@ -132,6 +219,7 @@ async def test_schema_mismatch_returns_failed_workflow_state(monkeypatch: pytest
         fake_content_creator_node,
     )
     monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
+    _enable_generic_fallback(monkeypatch)
 
     result = await generate_one_artifact(_payload("lesson"))
 
@@ -151,6 +239,7 @@ async def test_artifact_type_mismatch_returns_failed_workflow_state(monkeypatch:
         fake_content_creator_node,
     )
     monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
+    _enable_generic_fallback(monkeypatch)
 
     result = await generate_one_artifact(_payload("lesson"))
 
@@ -169,6 +258,17 @@ async def test_infrastructure_error_is_not_swallowed(monkeypatch: pytest.MonkeyP
         fake_content_creator_node,
     )
     monkeypatch.setattr("packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None)
+    _enable_generic_fallback(monkeypatch)
 
     with pytest.raises(RuntimeError, match="provider unavailable"):
         await generate_one_artifact(_payload("lesson"))
+
+
+def test_orchestrator_request_is_the_adr_053_name_for_the_payload_shape() -> None:
+    """#464: OrchestratorRequest is an alias, not a parallel type."""
+    from packages.agents.teaching_pack.generate_one_artifact import (
+        GenerateOneArtifactPayload,
+        OrchestratorRequest,
+    )
+
+    assert OrchestratorRequest is GenerateOneArtifactPayload

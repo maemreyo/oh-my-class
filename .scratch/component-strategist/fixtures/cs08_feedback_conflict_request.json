@@ -1,0 +1,30 @@
+{
+  "mode": "final",
+  "run_id": "cs08-feedback-conflict",
+  "teacher_id_hash": "teacher-hash",
+  "locale": "vi",
+  "subject": "language",
+  "grade_level": "Grade 5",
+  "duration_minutes": 45,
+  "artifact_types": ["lesson"],
+  "export_formats": ["html"],
+  "objective_refs": [
+    { "objective_id": "LO-conflict-1", "objective_revision": "rev-1" }
+  ],
+  "research_signals": {
+    "factual_risk": "low",
+    "source_confidence": "high",
+    "prerequisite_risk": "met"
+  },
+  "teacher_preferences": {
+    "feedback_events": [
+      {
+        "event_id": "fb-conflict-1",
+        "event_type": "reject_component_family",
+        "source": "teacher",
+        "value": "vocabulary_language",
+        "rationale": "Teacher wants to compare alternatives."
+      }
+    ]
+  }
+}

@@ -11,8 +11,8 @@ class QuestionCard(BaseModel):
     id: int | str
     text: str
     options: dict[str, str]
-    answer: str
-    explain: str
+    answer: str | None = None
+    explain: str | None = None
     group: str = "a"
     wrong_reasons: dict[str, str] | None = None
     essence: str | None = None

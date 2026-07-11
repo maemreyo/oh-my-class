@@ -23,7 +23,13 @@ def _rejection_state() -> TeachingPackState:
     state: TeachingPackState = {
         "run_id": "run-send-e2e-scoped",
         "contract": {"topic": "Fractions", "theme": "default"},
-        "lesson_plan": {"topic": "Fractions"},
+        # learning_objectives present -- the real Quiz and Recap specialists
+        # (#439) fail closed without any, unlike the old universal placeholder
+        # this fixture predates.
+        "lesson_plan": {
+            "topic": "Fractions",
+            "learning_objectives": [{"description": "Compare equivalent fractions."}],
+        },
         "research_brief": {"sources": []},
         "artifact_types": ["lesson", "quiz", "recap"],
         "artifact_generation_id": "run-send-e2e-scoped:artifact:1",
@@ -79,7 +85,10 @@ async def test_scoped_rejection_regenerates_only_rejected_artifact_and_dependent
     graph = build_teaching_pack_graph(interrupt_before=["render_quality"])
     result = await graph.ainvoke(_rejection_state())
 
-    assert calls == ["quiz", "recap"]
+    # "quiz" and "recap" now dispatch to real specialists (#439), not this
+    # fake content_creator_node -- they must still complete, just without
+    # hitting the mock.
+    assert calls == []
     assert result["artifact_regeneration_scope"] == {
         "mode": "type_scoped",
         "artifact_types": ["quiz", "recap"],

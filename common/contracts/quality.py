@@ -4,6 +4,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from common.contracts.education_policy import EDUCATION_POLICY_VERSION
+
 
 class QualityFailureClass(StrEnum):
     SCHEMA_INVALID = "schema_invalid"
@@ -45,6 +47,7 @@ class ArtifactQualityReport(BaseModel):
 
     artifact_id: str
     artifact_type: str
+    education_policy_version: str = EDUCATION_POLICY_VERSION
     passed: bool
     issues: list[QualityIssue] = Field(default_factory=list)
 
@@ -61,6 +64,7 @@ class ExportReadinessReport(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     run_id: str
+    education_policy_version: str = EDUCATION_POLICY_VERSION
     passed: bool
     approved_snapshot_ids: list[str] = Field(default_factory=list)
     issues: list[QualityIssue] = Field(default_factory=list)

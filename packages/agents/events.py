@@ -46,6 +46,10 @@ type ObservabilityEventType = Literal[
     "slide_deck_ai_rewrite_accepted",
     "slide_deck_ai_rewrite_cancelled",
     "slide_deck_editor_return_usage",
+    # #463 rollout: fires whenever `ArtifactDocumentStore.get_preview_source`
+    # falls back to a legacy V1 `ArtifactSnapshot` (no linked V2 document yet)
+    # -- the explicit metric the V1-writer deprecation/deletion date depends on.
+    "artifact_document_legacy_read",
 ]
 
 

@@ -8,6 +8,7 @@ from common.contracts.artifact_document import (
     ArtifactDocument,
     ArtifactPayload,
     DocumentSection,
+    RichDocumentSection,
     DocumentBlock,
 )
 
@@ -53,13 +54,14 @@ class TestArtifactDocument:
 
         assert document.payload.payload_kind == "block_document"
         assert document.payload.sections[0].entity_id == "section-intro"
+        assert document.education_policy_version == "education_policy.v1"
 
     def test_rejects_unknown_payload_discriminator(self) -> None:
         with pytest.raises(ValidationError, match="payload_kind"):
             _document(payload={"payload_kind": "unknown_document"})
 
     def test_rejects_assessment_payload_for_lesson(self) -> None:
-        with pytest.raises(ValidationError, match="requires a block_document payload"):
+        with pytest.raises(ValidationError, match="requires a block_document or rich_document payload"):
             _document(
                 payload={
                     "payload_kind": "assessment_document",
@@ -67,6 +69,44 @@ class TestArtifactDocument:
                         {"entity_id": "question-1", "prompt": "What is light?"},
                     ],
                 },
+            )
+
+    def test_rejects_teacher_only_answer_material_in_student_document(self) -> None:
+        with pytest.raises(ValidationError, match="must not contain teacher-only answer material"):
+            ArtifactDocument(
+                document_id="document-lesson-1",
+                artifact_id="artifact-lesson-1",
+                artifact_type="lesson",
+                version=1,
+                language="en",
+                audience="student",
+                authority="generated",
+                metadata={"answer": "A"},
+                payload=_block_document(),
+            )
+
+    def test_rejects_teacher_only_answer_material_in_rich_student_payload(self) -> None:
+        with pytest.raises(ValidationError, match="must not contain teacher-only answer material"):
+            ArtifactDocument(
+                document_id="document-lesson-1",
+                artifact_id="artifact-lesson-1",
+                artifact_type="lesson",
+                version=1,
+                language="en",
+                audience="student",
+                authority="generated",
+                payload=ArtifactPayload(
+                    payload_kind="rich_document",
+                    rich_sections=[RichDocumentSection(
+                        entity_id="section-1",
+                        title="Questions",
+                        components=[{
+                            "type": "question_card",
+                            "id": "question-1",
+                            "answer": "A",
+                        }],
+                    )],
+                ),
             )
 
 

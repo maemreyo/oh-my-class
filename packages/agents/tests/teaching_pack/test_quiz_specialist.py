@@ -74,8 +74,13 @@ async def test_quiz_workflow_persists_answer_set_and_derives_teacher_only_answer
     quiz_reference = quiz_result["artifact_references"][0]
     quiz = await store.read_projection(quiz_reference["document_id"])
 
-    assert "answer_set" in quiz.metadata
-    first_question_answer = quiz.sections[0]["components"][0]["answer"]
+    # #463: the persisted student projection is structurally answer-free --
+    # no "answer_set" in metadata and no "answer" key on any question_card.
+    assert "answer_set" not in quiz.metadata
+    assert "answer" not in quiz.sections[0]["components"][0]
+    answer_set = await store.read_answer_set(quiz_reference["document_id"])
+    assert answer_set is not None
+    first_question_answer = answer_set.entries[0].correct_option_ids[0]
     key_result = await generate_one_artifact({
         "run_id": "run-1",
         "artifact_generation_id": "run-1:artifact:1",

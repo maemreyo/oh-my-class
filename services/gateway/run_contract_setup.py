@@ -13,6 +13,8 @@ from common.contracts.run_contract import (
     ResearchPolicy,
     RunContract,
 )
+from common.contracts.grade_band import grade_band_for_label
+from common.contracts.education_policy import curriculum_framework_for
 from common.contracts.source_collection import (
     SourceCollection,
     SourceConflict,
@@ -71,6 +73,9 @@ def resolve_contract_setup(payload: ContractSetupInput) -> ContractSetupResult:
     class_info = payload.class_info
     missing = _missing_required(raw_request, class_info)
     unsupported = _unsupported(class_info)
+    grade_band = _grade_band(class_info)
+    if grade_band is None and not missing:
+        unsupported.append({"field": "grade_band", "value": _grade_input(class_info)})
     mode = str(class_info.get("mode", "generate_pack"))
     student_evidence = _student_evidence(class_info)
 
@@ -159,6 +164,7 @@ def _build_contract(
     class_info = payload.class_info
     locale = _text(class_info, "locale") or DEFAULT_POLICY["locale"]
     language = _text(class_info, "instruction_language") or _language_for(locale)
+    target_language = _text(class_info, "target_language") or language
     contract_id = f"contract-{payload.run_id}"
     return RunContract(
         contract_id=contract_id,
@@ -166,11 +172,15 @@ def _build_contract(
         teacher_id=payload.teacher_id,
         mode=_mode(class_info),
         topic=_topic_text(class_info, raw_request),
-        grade_band=_text(class_info, "grade_band") or f"Grade {class_info['grade']}",
+        grade_band=_grade_band(class_info),
         subject=str(class_info["subject"]),
         locale=locale,
+        target_language=target_language,
         instruction_language=language,
         curriculum=_curriculum_for(locale, str(class_info["subject"]), class_info),
+        curriculum_framework=curriculum_framework_for(
+            _curriculum_for(locale, str(class_info["subject"]), class_info)
+        ),
         citation_locale=_text(class_info, "citation_locale") or locale,
         artifact_types=cast("list[ArtifactType]", _artifact_types_for(raw_request, class_info)),
         export_formats=cast("list[ExportFormat]", _string_list(
@@ -193,6 +203,18 @@ def _build_contract(
             effective_stage="setup_contract",
         ),
     )
+
+
+def _grade_input(class_info: JsonObject) -> str:
+    grade_band = _text(class_info, "grade_band")
+    if grade_band is not None:
+        return grade_band
+    grade = class_info.get("grade")
+    return f"Grade {grade}" if grade is not None else ""
+
+
+def _grade_band(class_info: JsonObject) -> str | None:
+    return grade_band_for_label(_grade_input(class_info))
 
 
 def _source_conflicts(class_info: JsonObject) -> list[SourceConflict]:

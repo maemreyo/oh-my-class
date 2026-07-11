@@ -40,7 +40,7 @@
     ],
     "fast_lane_threshold_default": null
   },
-  "migration_count": 37,
+  "migration_count": 38,
   "models": {
     "assignments": {
       "blueprint_design": "4omc",
@@ -246,6 +246,70 @@
       "compliance_gate",
       "teacher_approval",
       "export_finalize"
+    ]
+  },
+  "surfaces": {
+    "gate_handlers": [
+      "packages.agents.gates.gate_01_blueprint",
+      "packages.agents.gates.gate_02_content_approval"
+    ],
+    "renderer_plugins": [
+      "packages.renderer.src.plugins.answer-key",
+      "packages.renderer.src.plugins.drill",
+      "packages.renderer.src.plugins.exit-ticket",
+      "packages.renderer.src.plugins.fixture",
+      "packages.renderer.src.plugins.flashcard-deck",
+      "packages.renderer.src.plugins.infographic",
+      "packages.renderer.src.plugins.lesson",
+      "packages.renderer.src.plugins.navy-ticket",
+      "packages.renderer.src.plugins.quiz",
+      "packages.renderer.src.plugins.reading-passage",
+      "packages.renderer.src.plugins.recap",
+      "packages.renderer.src.plugins.roadmap",
+      "packages.renderer.src.plugins.slide-deck",
+      "packages.renderer.src.plugins.specialty-artifact-ui",
+      "packages.renderer.src.plugins.teaching-pack",
+      "packages.renderer.src.plugins.worksheet"
+    ],
+    "specialists": {
+      "drill": "packages.agents.teaching_pack.specialists.drill_specialist",
+      "exit_ticket": "packages.agents.teaching_pack.specialists.exit_ticket_specialist",
+      "flashcard_deck": "packages.agents.teaching_pack.specialists.flashcard_deck_specialist",
+      "infographic": "packages.agents.teaching_pack.specialists.infographic_specialist",
+      "lesson": "packages.agents.teaching_pack.specialists.lesson_design_specialist",
+      "quiz": "packages.agents.teaching_pack.specialists.quiz_specialist",
+      "reading_passage": "packages.agents.teaching_pack.specialists.reading_passage_specialist",
+      "recap": "packages.agents.teaching_pack.specialists.recap_specialist",
+      "roadmap": "packages.agents.teaching_pack.specialists.roadmap_specialist",
+      "worksheet": "packages.agents.teaching_pack.specialists.worksheet_specialist"
+    },
+    "stores": [
+      "services.gateway.artifact_document_content_store",
+      "services.gateway.artifact_document_store",
+      "services.gateway.claim_evidence_store",
+      "services.gateway.class_profile_store",
+      "services.gateway.content_brief_store",
+      "services.gateway.media_asset_store",
+      "services.gateway.media_asset_version_store",
+      "services.gateway.notification_store",
+      "services.gateway.outcome_store",
+      "services.gateway.release_evidence_store",
+      "services.gateway.review_note_store",
+      "services.gateway.run_delegation_store",
+      "services.gateway.source_collection_store",
+      "services.gateway.teaching_brief_store",
+      "services.gateway.teaching_pack_control_store",
+      "services.gateway.teaching_pack_export_store",
+      "services.gateway.teaching_pack_job_store",
+      "services.gateway.teaching_pack_snapshot_store",
+      "services.gateway.teaching_pack_store",
+      "services.gateway.unit_run_store",
+      "services.gateway.visual_source_suggestion_store",
+      "services.gateway.vocabulary_cluster_store"
+    ],
+    "unregistered_specialists": [],
+    "workers": [
+      "services.gateway.teaching_pack_worker"
     ]
   },
   "wiring": {
