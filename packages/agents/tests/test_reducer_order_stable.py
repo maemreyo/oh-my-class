@@ -8,14 +8,21 @@ from __future__ import annotations
 import itertools
 
 from packages.agents.teaching_pack.reducers import (
-    stable_merge_artifacts,
+    stable_merge_artifact_references,
     stable_merge_files,
     stable_merge_workflow_states,
 )
 
 
-def _artifact(artifact_id: str, artifact_type: str = "lesson") -> dict[str, object]:
-    return {"artifact_id": artifact_id, "artifact_type": artifact_type, "content": f"body-{artifact_id}"}
+def _artifact(document_id: str, artifact_type: str = "lesson") -> dict[str, object]:
+    return {
+        "document_id": document_id,
+        "artifact_id": document_id,
+        "artifact_type": artifact_type,
+        "generation_id": "gen-1",
+        "version": 1,
+        "title": f"body-{document_id}",
+    }
 
 
 def _workflow_state(
@@ -34,29 +41,29 @@ def _workflow_state(
 class TestStableMergeArtifacts:
     def test_empty_prev_returns_new_sorted(self):
         a, b, c = _artifact("c"), _artifact("a"), _artifact("b")
-        result = stable_merge_artifacts([], [a, b, c])
-        assert [r["artifact_id"] for r in result] == ["a", "b", "c"]
+        result = stable_merge_artifact_references([], [a, b, c])
+        assert [r["document_id"] for r in result] == ["a", "b", "c"]
 
     def test_empty_new_returns_prev_sorted(self):
         a, b = _artifact("b"), _artifact("a")
-        result = stable_merge_artifacts([a, b], [])
-        assert [r["artifact_id"] for r in result] == ["a", "b"]
+        result = stable_merge_artifact_references([a, b], [])
+        assert [r["document_id"] for r in result] == ["a", "b"]
 
     def test_both_empty_returns_empty(self):
-        assert stable_merge_artifacts([], []) == []
+        assert stable_merge_artifact_references([], []) == []
 
-    def test_new_overwrites_prev_by_artifact_id(self):
+    def test_new_overwrites_prev_by_document_id(self):
         old = _artifact("x", "lesson")
-        new = {"artifact_id": "x", "artifact_type": "lesson", "content": "updated"}
-        result = stable_merge_artifacts([old], [new])
+        new = {**old, "title": "updated", "version": 2}
+        result = stable_merge_artifact_references([old], [new])
         assert len(result) == 1
-        assert result[0]["content"] == "updated"
+        assert result[0]["title"] == "updated"
 
     def test_non_overlapping_accumulates(self):
         a = _artifact("a", "lesson")
         b = _artifact("b", "worksheet")
-        result = stable_merge_artifacts([a], [b])
-        ids = [r["artifact_id"] for r in result]
+        result = stable_merge_artifact_references([a], [b])
+        ids = [r["document_id"] for r in result]
         assert sorted(ids) == ids  # sorted
         assert set(ids) == {"a", "b"}
 
@@ -67,8 +74,8 @@ class TestStableMergeArtifacts:
             _artifact("m", "worksheet"),
             _artifact("b", "lesson"),
         ]
-        result = stable_merge_artifacts([], items)
-        keys = [(r["artifact_type"], r["artifact_id"]) for r in result]
+        result = stable_merge_artifact_references([], items)
+        keys = [(r["artifact_type"], r["document_id"]) for r in result]
         assert keys == sorted(keys)
 
     def test_permutation_property_all_arrivals_identical(self):
@@ -84,12 +91,12 @@ class TestStableMergeArtifacts:
         for perm in itertools.permutations(section_artifacts):
             state: list[dict[str, object]] = []
             for artifact in perm:
-                state = stable_merge_artifacts(state, [artifact])
+                state = stable_merge_artifact_references(state, [artifact])
             if canonical is None:
                 canonical = state
             else:
                 assert state == canonical, (
-                    f"Non-deterministic merge for permutation {[a['artifact_id'] for a in perm]}"
+                    f"Non-deterministic merge for permutation {[a['document_id'] for a in perm]}"
                 )
 
     def test_permutation_with_concurrent_batch_writes(self):
@@ -97,31 +104,38 @@ class TestStableMergeArtifacts:
         batch_a = [_artifact("a1", "lesson"), _artifact("a2", "worksheet")]
         batch_b = [_artifact("b1", "quiz"), _artifact("b2", "recap")]
 
-        result_ab = stable_merge_artifacts(
-            stable_merge_artifacts([], batch_a), batch_b
+        result_ab = stable_merge_artifact_references(
+            stable_merge_artifact_references([], batch_a), batch_b
         )
-        result_ba = stable_merge_artifacts(
-            stable_merge_artifacts([], batch_b), batch_a
+        result_ba = stable_merge_artifact_references(
+            stable_merge_artifact_references([], batch_b), batch_a
         )
         assert result_ab == result_ba
 
     def test_none_inputs_treated_as_empty(self):
         a = _artifact("a")
-        result = stable_merge_artifacts(None, [a])  # type: ignore[arg-type]
+        result = stable_merge_artifact_references(None, [a])  # type: ignore[arg-type]
         assert result == [a]
 
-        result2 = stable_merge_artifacts([a], None)  # type: ignore[arg-type]
+        result2 = stable_merge_artifact_references([a], None)  # type: ignore[arg-type]
         assert result2 == [a]
 
-    def test_falls_back_to_id_key_when_no_artifact_id(self):
-        item = {"id": "fallback-id", "artifact_type": "lesson", "content": "x"}
-        result = stable_merge_artifacts([], [item])
+    def test_missing_document_id_collapses_to_one_shared_key(self):
+        """No fallback key exists (unlike the old artifact_id-or-id scheme) --
+        references missing document_id all merge under the same empty-string
+        key, so only the last one survives. Callers must always populate
+        document_id; this documents the real behavior rather than a
+        speculative fallback."""
+        first = {"artifact_type": "lesson", "title": "first"}
+        second = {"artifact_type": "lesson", "title": "second"}
+        result = stable_merge_artifact_references([], [first, second])
         assert len(result) == 1
+        assert result[0]["title"] == "second"
 
     def test_idempotent_reapplication(self):
         items = [_artifact("a"), _artifact("b")]
-        once = stable_merge_artifacts([], items)
-        twice = stable_merge_artifacts(once, items)
+        once = stable_merge_artifact_references([], items)
+        twice = stable_merge_artifact_references(once, items)
         assert once == twice
 
 

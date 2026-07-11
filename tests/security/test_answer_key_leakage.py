@@ -56,8 +56,8 @@ def _state(snapshot: JsonObject) -> TeachingPackState:
 
 class TestStudentHtmlInvariant05:
     @pytest.mark.parametrize("marker", ANSWER_KEY_MARKERS)
-    def test_student_html_answer_markers_fail_compliance_gate(self, marker: str) -> None:
-        result = _compliance_gate(_state(_snapshot(_html(f"Question 1. {marker} B"))))
+    async def test_student_html_answer_markers_fail_compliance_gate(self, marker: str) -> None:
+        result = await _compliance_gate(_state(_snapshot(_html(f"Question 1. {marker} B"))))
         compliance_result = result.get("compliance_result", {})
         assert isinstance(compliance_result, dict)
         violations = compliance_result.get("violations", [])
@@ -66,8 +66,8 @@ class TestStudentHtmlInvariant05:
         assert result.get("compliance_passed") is False
         assert "answer_key_leakage" in violations
 
-    def test_clean_student_html_passes_while_teacher_answer_key_is_allowed(self) -> None:
-        result = _compliance_gate(_state(_snapshot(_html("Question 1. Choose the best answer."))))
+    async def test_clean_student_html_passes_while_teacher_answer_key_is_allowed(self) -> None:
+        result = await _compliance_gate(_state(_snapshot(_html("Question 1. Choose the best answer."))))
 
         assert result.get("compliance_passed") is True
 
