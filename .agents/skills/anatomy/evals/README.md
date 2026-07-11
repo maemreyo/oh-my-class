@@ -43,6 +43,12 @@ keyword or concept with the skill (`diagram`, `trace`, `circular
 dependency`, `monorepo`, `orphan module`) while actually needing something
 else.
 
+The former narrow read-only impact question was moved out of this set.
+`anatomy` now owns create/refresh/migrate/re-trace work; `anatomy-ask` owns
+questions answered from an existing trace. The positive slot remains an
+incremental documentation-refresh request, while `anatomy-ask/evals/` carries
+the routing regression for the read-only question.
+
 ## What this pass could and couldn't do
 
 This environment can't run `skill-creator`'s `run_loop.py` -- it shells out

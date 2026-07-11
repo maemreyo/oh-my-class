@@ -13,8 +13,14 @@ per module:
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "source_root": "/abs/path/at/trace/time",
+  "scan_policy": {
+    "version": 1,
+    "gitignore_root": ".",
+    "excludes": ["docs/anatomy", "docs/system-trace"],
+    "unreadable_file_policy": "error"
+  },
   "modules": {
     "api": { "hash": "sha256...", "file_count": 3 },
     "services": { "hash": "sha256...", "file_count": 5 }
@@ -38,6 +44,16 @@ This matters because:
 `source_commit` is still recorded when available, purely as a friendly
 reference point for the user ("last traced at commit abc123") -- never as
 the sole basis for the diff decision.
+
+`scan_policy` records the repository-root `.gitignore` basis, generated-output
+exclusions, and unreadable-file behavior used for the hashes. This is essential
+when a module maps to `.`: without excluding the actual output root, writing the
+trace changes the module hash and every later run appears stale forever. The two
+historical defaults are always excluded; a custom output root must be passed to
+every scanner/hasher with `--output-root`. Version-1 manifests have no policy
+field and are accepted once for migration; after a version-2 manifest exists, a
+policy change is surfaced explicitly because the old and new hashes may not be
+comparable.
 
 Path information isn't in `_manifest.json` -- it's kept in a sibling file,
 `docs/anatomy/_modules.json`, the persisted copy of Phase 2's slug ->
@@ -74,43 +90,13 @@ docs/system-trace docs/anatomy` (or a plain move if it's not a git repo),
 
 ## Fast path: answering one specific question without a full run
 
-Not every request needs the full Phase 0-7 workflow. If the user asks a
-narrow, specific question -- "where does X live", "what would changing Y
-break", "which module handles the `/orders` route" -- and a manifest
-already exists, it's often both faster and more useful to answer directly
-from the existing output than to re-run the whole workflow. SKILL.md's
-Phase 0 covers exactly when to take this path instead of a full or
-incremental run; this section covers the freshness check that path leans
-on.
-
-**Freshness, not just existence.** A stale `docs/anatomy/` answering a
-specific question confidently is worse than not answering at all, so the
-fast path always confirms freshness first -- it never just trusts that the
-existing docs are current because they're present:
-
-1. Run the same `state.py hash-modules` + `state.py diff` pair Phase 0
-   already uses for incremental updates.
-2. If `change_ratio` is `0.0` (nothing changed at all), the existing docs
-   are current for the whole repo -- answer straight from `index.md` and
-   the specific `modules/<slug>.md` file(s) the question touches, with no
-   further reading needed.
-3. If `change_ratio` is greater than `0.0` but the module(s) the question
-   is actually about are in `unchanged` (not `changed`/`added`/`removed`),
-   it's still safe to answer from the existing doc for _that_ module --
-   but say so plainly ("some other modules have changed since this trace;
-   `services` itself hasn't, so this answer is current") rather than
-   implying the whole repo is fresh when only the relevant slice is.
-4. If the relevant module _is_ in `changed`/`added`, or the question can't
-   be mapped to a specific existing module at all, the fast path doesn't
-   apply -- fall through to an ordinary incremental (or full) run instead
-   of answering from what's now known-stale information.
-
-This reuses the exact same diff machinery as an incremental update; the
-only difference is that a fast-path answer doesn't write anything back
-(no manifest update, no re-generated `index.md`/diagrams) -- it's a read,
-not a run. If the user's question turns into "okay, now update the docs for
-that," that's the cue to proceed into an ordinary incremental update from
-here rather than trying to patch just the one file that was read.
+The read-only fast path is implemented by the separate `anatomy-ask` skill.
+Route narrow questions against an existing trace there instead of loading this
+write-oriented workflow. `anatomy-ask` reads `_manifest.json` and
+`_modules.json`, applies the same scan policy and module hashes, names the
+trace's age, and refuses to present a changed/removed/unknown module as current.
+If the request becomes "update the docs," return here and perform an ordinary
+incremental update.
 
 ## Decision tree
 
@@ -135,12 +121,14 @@ here rather than trying to patch just the one file that was read.
 **3. Compute fresh hashes and diff:**
 
 ```bash
-python3 scripts/state.py hash-modules <repo_root> <modules.json> > fresh_hashes.json
+python3 scripts/state.py hash-modules <repo_root> <modules.json> --output-root <output_root> --with-policy > fresh_hashes.json
 python3 scripts/state.py diff <old_manifest_path> fresh_hashes.json
 ```
 
-This returns `unchanged`, `changed`, `added`, `removed`, and a
-`change_ratio` with a built-in recommendation.
+This returns `unchanged`, `changed`, `added`, `removed`, hashing
+`errors`, `scan_policy_changed`, and a `change_ratio` with a built-in
+recommendation. Any hashing error means unknown state and aborts the update. A
+policy change must be reviewed before treating old/new hashes as comparable.
 
 **4. Decide the update scope:**
 
@@ -169,42 +157,37 @@ This returns `unchanged`, `changed`, `added`, `removed`, and a
 
 ## Edges into a changed module
 
-The hash diff tells you when a module's _own_ files changed. It says
-nothing about whether an _unchanged_ module's description of its
-relationship to a changed module is still accurate -- and that gap matters
-more than it looks. Say module `A` is unchanged and its existing doc says
-"**Depends on `B`** -- calls `B.charge()` synchronously, propagates its
-errors." If `B` is in this run's `changed` set, `B.charge()` might now be
-async, might have a different failure mode, might not exist anymore under
-that name -- and because `A` itself didn't change, the ordinary incremental
-rule ("leave unchanged modules alone") would leave that now-possibly-wrong
-line sitting in `A`'s doc indefinitely. `index.md` and `system-diagram.md`
-being "always regenerated in full" doesn't fix this either, because both
-are compiled _from_ the "Depends on"/"Used by" lines already written in the
-module docs -- if `A`'s doc is wrong, the diagram built from it is wrong in
-exactly the same way, just re-rendered.
+The hash diff only describes which module's own files changed. Two additional
+steps keep relationships correct without re-tracing every unchanged module.
 
-The fix is narrow, not a reason to re-trace `A` wholesale: after computing
-the diff, for every `unchanged` module whose doc has a "Depends on" or
-"Used by" line naming a module in `changed`, open just the specific call
-site(s) between the two (not the rest of `A`) and confirm the line is still
-accurate. If it's still correct, leave it alone. If it changed, edit only
-that line (or that bullet) in `A`'s doc -- don't rewrite sections of `A`
-that have nothing to do with `B`. This keeps the efficiency benefit of
-incremental mode (you're still not re-reading all of `A`) while closing the
-one specific gap where content-hash diffing can't see a real change.
+First, for each **outbound `Depends on` edge from an unchanged module into a
+changed module**, reopen only the cited call site and confirm the relationship's
+behavior, failure mode, and target are still accurate. Edit only that bullet if
+needed. `Used by` is derived data; do not independently hand-maintain it during
+this check.
+
+Second, after changed/added docs are written and removed docs are deleted,
+transpose the **complete current** `Depends on` graph:
+
+```bash
+python3 scripts/sync_reverse_edges.py <output_root> --write
+python3 scripts/sync_reverse_edges.py <output_root> --check
+```
+
+This graph-wide pass covers the case the old existing-line rule missed: changed
+module `B` can newly depend on unchanged module `A`, even though `A` has no old
+`Used by B` line to revisit. The same pass adds that new reverse edge, removes
+stale ones, mirrors confirmation markers/citations, preserves external bullets
+and coverage footers, and reports internal targets with no current module doc.
 
 ## Regenerating the whole-system files
 
-**Regenerate `index.md`, `system-diagram.md`, `system-diagram.html`,
-`entry-points.md`, and `_graph.json` unconditionally**, even in incremental
-mode, even if none of them individually "changed." All five describe the
-_current full system_ -- a new or changed module can introduce a new edge,
-route, or flow involving an otherwise-untouched module, and that must show
-up. Regenerating these is cheap relative to re-tracing a module, so there's
-no reason to try to diff them incrementally too. (`_graph.json` is a
-re-parse of the other four once they're written, not an independent
-regeneration step -- see SKILL.md's Phase 5 for the ordering.)
+**Regenerate `index.md`, `entry-points.md`, `_entrypoint-scan.json`,
+`_diagram-data.json`, both rendered diagram files, and `_graph.json`
+unconditionally**, even in incremental mode. They describe the current full
+system. `render_diagrams.py` creates both diagram formats from the canonical
+JSON, while `_graph.json` is exported last from verified module/entry-point
+output.
 
 The part that isn't automatic: rebuilding these requires knowing every
 current module's role, dependencies, and entry points -- including the ones
@@ -218,8 +201,9 @@ re-traced this run. An unchanged module still belongs in the full picture;
 "unchanged" describes whether you re-verify it, not whether it exists.
 
 **Write the updated manifest** with `scripts/state.py write`, including
-hashes for every current module (changed, added, and unchanged all get
-fresh/carried-forward entries) so the next run's diff is accurate.
+fresh hashes for every current module and the `scan_policy` emitted by
+`state.py hash-modules --with-policy`, so the next run can distinguish source
+drift from a changed file-selection contract.
 `_modules.json` (see "The manifest" section above) was already refreshed at
 the start of Phase 5, so slugs stay stable across runs too -- nothing
 further to do for it here.

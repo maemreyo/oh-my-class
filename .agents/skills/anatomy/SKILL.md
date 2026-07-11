@@ -1,20 +1,17 @@
 ---
 name: anatomy
 description: >-
-  Traces a codebase from its source code, not stale docs, and writes or
-  updates architecture docs under docs/anatomy/ -- module docs, an index,
-  diagrams, and an entry-points inventory. Use whenever the user asks to
-  trace, map, document, or reverse-engineer a codebase's architecture; wants
-  an architecture, system, or dependency diagram of a codebase, service, or
-  repo; wants to understand how modules, services, or packages interact; asks
-  to generate or refresh architecture/onboarding docs (docs/anatomy or
-  docs/architecture); or wants a full inventory of every endpoint, command, or
-  background job. Also triggers on re-runs against an existing docs/anatomy
-  (or older docs/system-trace) output to update only what changed, and for
-  narrow questions ("where does X live", "what would changing Y break")
-  against an existing trace. Works for any language or shape: monolith,
-  monorepo, microservices, or library. NOT for explaining or diagramming a
-  single function, file, class, or snippet in isolation.
+  Traces a codebase from source and creates or refreshes docs/anatomy/ with
+  module docs, a verified dependency diagram, an entry-point inventory, and
+  incremental state. Use when the user asks to trace, map, document, or
+  reverse-engineer a repository's architecture; understand how modules,
+  services, or packages interact; generate architecture or onboarding docs;
+  inventory routes, commands, consumers, or jobs; or refresh an existing
+  docs/anatomy/ or legacy docs/system-trace output after code changes. Works
+  for monoliths, monorepos, microservices, and libraries. For a narrow
+  read-only question against an existing trace ("where does X live", "what
+  would changing Y break"), use `anatomy-ask` instead. Not for explaining or
+  diagramming one function, file, class, or snippet in isolation.
 ---
 
 # Anatomy
@@ -41,12 +38,14 @@ docs/anatomy/
 ├── index.md              overview, tech stack, module table, entry points, links out
 ├── system-diagram.md     Mermaid: optional system-context + module graph + key-flow sequences
 ├── system-diagram.html   same content, standalone and interactive -- opens in any browser
-├── entry-points.md       every HTTP route / CLI command / queue consumer / cron job, in one place
+├── entry-points.md       confirmed route / CLI / consumer / cron inventory, with grouping disclosed
 ├── data-model.md         ERD-style data model -- only written if the project actually has a datastore
 ├── deployment.md         deployment/infra topology -- only written if compose/k8s manifests exist
 ├── modules/
 │   └── <module-slug>.md  one file per module (see output-templates.md)
-├── _manifest.json        internal state enabling incremental updates
+├── _diagram-data.json    canonical data rendered into both diagram formats
+├── _entrypoint-scan.json source-level entry-point hypotheses, reviewed before final verification
+├── _manifest.json        internal state enabling incremental updates, including scan policy
 ├── _modules.json         internal state: Phase 2's slug -> path mapping, persisted
 └── _graph.json           machine-readable snapshot of the whole graph (see graph_export.py)
 ```
@@ -72,41 +71,23 @@ and helps migrate rather than silently starting a second, orphaned copy.
 
 ### Phase 0 -- Check for a pre-existing output folder
 
-Before doing anything else, check whether the output root already exists
-(and specifically whether `_manifest.json` is in it). This determines
-whether the rest of the run is a **full trace**, an **incremental
-update**, or -- if the user's request is a narrow, specific question rather
-than a request to generate/refresh documentation -- a **fast-path answer**
-that reads the existing output without re-running the workflow at all. Full
-decision tree, manifest schema, and the reasoning behind content-hash-based
-diffing: `references/incremental-updates.md`. Read it now if `docs/anatomy/`
-(or wherever the user pointed) already has anything in it -- don't guess at
-update logic inline.
+Before doing anything else, check whether the requested output root already
+contains `_manifest.json`. This determines whether the run is a **full trace**
+or an **incremental update**. The full decision tree, version-1-to-version-2
+manifest compatibility, scan-policy comparison, and legacy-location migration
+are in `references/incremental-updates.md`; read that file before updating an
+existing output.
 
-**Fast path first, if it applies.** If `_manifest.json` exists and the
-user's message is a specific question ("where does X live", "what would
-changing Y break", "which module handles the `/orders` route") rather than
-an instruction to trace/document/refresh, check
-`references/incremental-updates.md`'s "Fast path" section before starting
-any of Phases 1-7 -- a fresh-enough existing trace can usually answer this
-directly from `index.md` plus the relevant `modules/<slug>.md`, which is
-both faster and lower-risk than redoing work that's already been done. This
-is still a judgment call, not a rule to apply blindly: if the freshness
-check comes back stale for the relevant module, or the question doesn't map
-cleanly onto anything already traced, fall through to an ordinary
-incremental (or full) run below instead of forcing an answer from
-information that's known to be out of date.
+A narrow read-only question against an existing trace is owned by the separate
+`anatomy-ask` skill. Do not load or partially execute this seven-phase write
+workflow just to answer "where does X live" or "what would changing Y
+break." Route that request to `anatomy-ask`, which performs the same freshness
+check without writing documentation.
 
-If nothing exists at `docs/anatomy/`, also check for a `docs/system-trace/`
-folder with a `_manifest.json` in it before assuming this is a clean first
-run -- that's the older default location this skill used to write to.
-Finding one there means a prior trace already exists, just under a name
-this version no longer defaults to; see `references/incremental-updates.md`'s
-"Migrating from an older docs/system-trace output" section for how to handle
-that (offer to migrate) instead of silently starting a fresh full trace next
-to an orphaned old one.
-
-If it's a clean full trace (nothing exists anywhere), skip ahead to Phase 1.
+If the default `docs/anatomy/_manifest.json` is absent, also check the legacy
+`docs/system-trace/_manifest.json`. Offer to migrate that directory, or keep
+using it if the user prefers; never silently create a second competing trace.
+If neither output exists, continue as a clean full trace.
 
 ### Phase 1 -- Inventory the codebase
 
@@ -114,7 +95,7 @@ Run the inventory script rather than manually `find`/`ls`-ing your way
 around -- it's faster and gives you a structured starting point:
 
 ```bash
-python3 scripts/inventory.py <repo_root> --max-depth 3
+python3 scripts/inventory.py <repo_root> --max-depth 3 --output-root <output_root>
 ```
 
 This returns: total file count, a language histogram, detected manifest
@@ -152,6 +133,13 @@ context:
 { "api": "src/api", "services": "src/services", "...": "..." }
 ```
 
+Derive candidate slugs with `scripts/_common.py`'s `stable_slug_map()` rather
+than calling `slugify()` independently and assuming the result is unique. It
+produces ASCII/Mermaid-safe slugs and adds a deterministic path-derived suffix
+when names such as `foo_bar`, `foo-bar`, or `foo/bar` would otherwise collide.
+Validate the finished mapping before tracing; duplicate paths or duplicate JSON
+keys are errors, not last-write-wins behavior.
+
 If this is an incremental update, check `<output_root>/_modules.json` (the
 previous run's persisted mapping, written at the start of Phase 5) before
 inventing fresh slugs: for any path that still maps to the same directory,
@@ -188,8 +176,9 @@ recorded in their own doc's coverage line.
 ### Phase 3 -- Build interaction hypotheses
 
 ```bash
-python3 scripts/import_graph.py <repo_root> --group-by-top-level --modules modules.json
-python3 scripts/external_calls.py <repo_root> --modules modules.json
+python3 scripts/import_graph.py <repo_root> --group-by-top-level --modules modules.json --output-root <output_root>
+python3 scripts/external_calls.py <repo_root> --modules modules.json --output-root <output_root>
+python3 scripts/entrypoint_scan.py <repo_root> --modules modules.json --output-root <output_root> --write <output_root>/_entrypoint-scan.json
 ```
 
 Pass `--modules modules.json` (the Phase 2 slug -> relative-path mapping,
@@ -267,44 +256,32 @@ these up across the whole system into `entry-points.md`, and it's
 considerably cheaper to jot them down here than to reopen every module doc
 afterward hunting for them again.
 
-**Before moving to Phase 5, derive "Used by" by transposing "Depends on."**
-A module's own code can only tell you what it calls out to -- it can never
-tell you who calls into it, because that information doesn't live in the
-module itself. So once every module in scope has confirmed "Depends on"
-edges (all modules for a full trace; `changed`/`added` modules for
-incremental, combined with the "Depends on" data already sitting in
-`unchanged` modules' existing docs), build the reverse mapping: if X's
-confirmed "Depends on" includes Y, then Y's "Used by" includes X. This is
-bookkeeping over data you already have, not new reading -- but it's easy to
-skip by accident if each module doc gets written in isolation right after
-that module's own Phase 4 pass, since "who uses me" simply isn't visible
-from inside the module being read. `references/tracing-methodology.md` has
-the fuller version of this under "Reading order per module."
+**Before moving to Phase 5, derive `Used by` by transposing the complete current `Depends on` graph.** A changed module may add a dependency on an unchanged module, so updating only pre-existing reverse bullets is insufficient. After changed/added module docs are written and removed docs are deleted, run:
+
+```bash
+python3 scripts/sync_reverse_edges.py <output_root> --write
+python3 scripts/sync_reverse_edges.py <output_root> --check
+```
+
+The patcher reads every current module doc, replaces only internal module bullets
+inside `## Used by`, and preserves external bullets, prose, later sections, and
+the coverage footer. It also removes stale reverse edges and reports dangling
+internal targets. A module's own source can establish what it calls; this
+explicit graph-wide transpose establishes who calls it.
 
 ### Phase 5 -- Write the outputs
 
-Before writing any module docs, copy Phase 2's `modules.json` into the
-output root as `<output_root>/_modules.json` (create `<output_root>` now if
-this is a first run and nothing's been written there yet). This has to
-happen this early, not in Phase 6 with the rest of the manifest, because
-`graph_export.py` at the end of this phase reads it back -- writing it
-later would leave `graph_export.py` with no path data on a first run, and
-stale path data (missing this run's added/changed modules) on an
-incremental one.
+Before writing module docs, copy Phase 2's `modules.json` into the output root as `<output_root>/_modules.json`. Write or refresh `modules/<slug>.md` for changed/added modules and delete removed module docs. Revalidate any unchanged module's outbound `Depends on` call site that targets a changed module, then run `sync_reverse_edges.py --write` and `--check` so all reverse edges are recomputed across changed and unchanged modules.
 
-Write each module's `modules/<slug>.md` first, then run
-`scripts/rollup.py <output_root>` (once module docs exist -- see below),
-then the whole-system files in this order: `entry-points.md`, `index.md`,
-`system-diagram.md`, `system-diagram.html`, and -- only if they actually
-apply to this project -- `data-model.md` and `deployment.md`. Follow
-`references/output-templates.md` exactly for structure (adapt section
-content to what actually applies to each module or project, but keep the
-overall shape consistent). Every edge in `system-diagram.md`/`.html` and
-every "Depends on"/"Used by" line in a module doc should be traceable to
-something you actually confirmed in Phase 4 -- run `scripts/verify_diagram.py`,
-`scripts/verify_entry_points.py`, and `scripts/verify_health_signals.py`
-(see below) to check this mechanically before considering the phase done,
-rather than only eyeballing it.
+Run `scripts/rollup.py <output_root>`, write `entry-points.md` and `index.md`, and review `<output_root>/_entrypoint-scan.json`. A source hypothesis is not ground truth: confirm it in framework wiring, document it in the owning module and rollup, or mark it `"disposition": "false_positive"` with a `review_note`. Grouped rows are allowed for large repetitive surfaces, but the grouping and count must be explicit.
+
+Next write one canonical `<output_root>/_diagram-data.json` using the schema in `references/output-templates.md`, then render both diagram formats from it:
+
+```bash
+python3 scripts/render_diagrams.py <output_root>
+```
+
+Do not author `system-diagram.md` and `system-diagram.html` independently. The renderer validates that `_diagram-data.json` contains exactly the module set in `_modules.json`, escapes Mermaid labels, safely embeds JSON in the real HTML template, and writes both outputs from the same data. Write `data-model.md` and `deployment.md` only when their source-backed criteria apply.
 
 `index.md`'s "Architecture narrative" and "Codebase health signals"
 sections are new-ish and easy to shortchange -- don't skip them or reduce
@@ -323,38 +300,22 @@ either outright (don't write an empty or apologetic stub) if the project
 has no real datastore or no container/orchestration manifests to draw from.
 `references/output-templates.md` has the criteria for each.
 
-`system-diagram.html` is a standalone, interactive rendering of the same
-graph and flows in `system-diagram.md`, built by filling in
-`assets/diagram-template.html` -- not improvised from scratch each run (see
-`references/output-templates.md` for exactly how to fill it in). The reason
-for keeping both formats: `system-diagram.md`'s Mermaid renders natively on
-GitHub/GitLab, but is inert code-block text anywhere else (a plain editor,
-Slack, a browser without a Markdown-plus-Mermaid viewer); the `.html` file
-opens and renders in any browser with no dependency on the viewer. Build
-both from the same module/edge/flow data you assembled for Phase 4 rather
-than writing the Mermaid and the HTML data independently -- that's what
-keeps them from quietly drifting apart from each other over successive runs.
+`system-diagram.md` and `system-diagram.html` are both generated by
+`scripts/render_diagrams.py` from `_diagram-data.json`; the HTML renderer fills
+`assets/diagram-template.html`. This makes the same-data requirement
+mechanical rather than advisory. Never hand-edit either generated diagram; fix
+the canonical JSON or module docs and render again.
 
-In incremental mode: only `changed`/`added` modules get their
-`modules/<slug>.md` rewritten; `removed` modules get their file deleted;
-`unchanged` modules are left alone -- with one narrow exception. If an
-`unchanged` module's existing doc has a "Depends on" or "Used by" line
-pointing at a module that's in this run's `changed` set, re-open just that
-specific call site (not the whole module) and confirm the line is still
-accurate. The module itself didn't change, but the thing it depends on did,
-and that's precisely the case the content-hash diff can't catch on its own
--- see `references/incremental-updates.md`'s "Edges into a changed module"
-section for why this matters and how narrow the fix should stay.
-`index.md`, `system-diagram.md`, `system-diagram.html`, and
-`entry-points.md` are always regenerated in full regardless of mode -- see
-`references/incremental-updates.md` for why, and for how to carry forward
-correct information for unchanged modules without re-tracing them.
+In incremental mode, only changed/added module docs are re-traced and removed module docs are deleted. Unchanged docs keep their existing prose, except for narrowly revalidated outbound edges into changed modules and the mechanically regenerated internal `Used by` section. This graph-wide transpose is required because a changed module can create or remove an inbound edge to an unchanged module even when no old reverse bullet exists. `index.md`, `entry-points.md`, `_diagram-data.json`, both rendered diagrams, and `_graph.json` are regenerated in full from the complete current module set.
 
 **Before leaving Phase 5, run the consistency checks:**
 
 ```bash
+python3 scripts/sync_reverse_edges.py <output_root> --check
+python3 scripts/render_diagrams.py <output_root> --check
 python3 scripts/verify_diagram.py <output_root>
-python3 scripts/verify_entry_points.py <output_root>
+python3 scripts/verify_html.py <output_root>
+python3 scripts/verify_entry_points.py <output_root> --source-scan <output_root>/_entrypoint-scan.json --strict-source
 python3 scripts/verify_health_signals.py <output_root>
 ```
 
@@ -386,7 +347,7 @@ source code, which is what Phase 4 is for.
 Once all three checks are clean, export the structured snapshot:
 
 ```bash
-python3 scripts/graph_export.py <output_root> --write
+python3 scripts/graph_export.py <output_root> --source-root <repo_root> --write
 ```
 
 This writes `<output_root>/_graph.json` -- a machine-readable snapshot of
@@ -404,22 +365,22 @@ the schema and known limitations.
 ### Phase 6 -- Update the manifest
 
 ```bash
-python3 scripts/state.py hash-modules <repo_root> modules.json > fresh_hashes.json
-python3 scripts/state.py git-commit <repo_root>   # null if not a git repo
+python3 scripts/state.py hash-modules <repo_root> modules.json --output-root <output_root> --with-policy > fresh_state.json
+python3 scripts/state.py git-commit <repo_root>
 python3 scripts/state.py write <output_root>/_manifest.json manifest_data.json
 ```
 
-`manifest_data.json` should contain `{"version": 1, "source_root": ...,
-"modules": <fresh_hashes.json content>}`; `source_commit` gets merged in from
-the git-commit call. See `references/incremental-updates.md` for the exact
-schema if anything is unclear.
+Build `manifest_data.json` from `fresh_state.json` and add `source_root` plus
+`source_commit`. The resulting manifest is version 2 and contains both the
+module hashes and the exact `scan_policy` used to produce them. Version-1
+manifests remain readable for migration, but once a version-2 manifest exists,
+a changed scan policy must be surfaced rather than treating incomparable hashes
+as an ordinary clean diff. Hashing errors are unknown state and abort the
+update; they are never represented by a stable `"unreadable"` pseudo-hash.
 
-`<output_root>/_modules.json` was already written at the start of Phase 5
-(it has to exist before `graph_export.py` runs at the end of that phase) --
-nothing further to do for it here. Between the two, `_manifest.json` and
-`_modules.json` give a future run everything it needs: what was traced and
-its content hash (for the diff), and where each module lives (for slug
-continuity and for `_graph.json`'s `path` field).
+`<output_root>/_modules.json` was already refreshed before rendering. Together,
+`_manifest.json` and `_modules.json` retain hash state, output exclusions, and
+stable module identity for the next run.
 
 ### Phase 7 -- Report back
 
@@ -479,6 +440,16 @@ All scripts are stdlib-only Python (3.8+), no installs required:
   HTTP clients, gRPC stubs, queue publish/subscribe, cron, webhooks -- the
   interactions `import_graph.py` structurally can't see; also takes
   `--modules modules.json` for the same reason
+- `scripts/entrypoint_scan.py` -- Phase 3 source hypotheses for routes, CLI
+  commands, queue consumers, and scheduled jobs; review every hit before using
+  it as documentation evidence
+- `scripts/sync_reverse_edges.py` -- Phase 4/5 boundary, recomputes every
+  internal `Used by` bullet by transposing the complete current `Depends on`
+  graph while preserving external bullets and module footers
+- `scripts/render_diagrams.py` -- Phase 5, validates `_diagram-data.json` and
+  renders both system diagram formats from that one canonical input
+- `scripts/verify_html.py` -- Phase 5, checks HTML embedded-data parity and
+  confirms both generated diagram files are current
 - `scripts/state.py` -- Phase 0/6, manifest hash/diff/write for incremental
   updates (subcommands: `hash-modules`, `diff`, `write`, `git-commit`)
 - `scripts/rollup.py` -- end of Phase 5 (once module docs exist), aggregates
@@ -494,7 +465,7 @@ All scripts are stdlib-only Python (3.8+), no installs required:
   `index.md`'s "Codebase health signals" prose against a fresh
   `rollup.py` computation over `modules/*.md`, catching drift between what
   the section says and what the numbers actually are
-- `scripts/graph_export.py` -- end of Phase 5, after all three verify scripts;
+- `scripts/graph_export.py` -- end of Phase 5, after all consistency checks;
   re-parses `modules/*.md` and `entry-points.md` into `_graph.json`, a
   single structured artifact of the whole module/edge/entry-point/
   health-signal graph for another tool (or a future/multi-repo run of this

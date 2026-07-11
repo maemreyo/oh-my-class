@@ -1,99 +1,5 @@
 #!/usr/bin/env python3
-"""
-graph_export.py -- writes docs/anatomy/_graph.json, a persisted,
-machine-readable snapshot of the whole system graph, for the end of Phase 5
-of the anatomy skill's tracing workflow.
-
-Usage:
-    python3 graph_export.py <output_root> [--top-n 10]
-
-<output_root> is docs/anatomy/ (or wherever this run's output lives) -- the
-folder containing modules/*.md and entry-points.md. Run this after
-entry-points.md and module docs are written, same point in Phase 5 as
-rollup.py, verify_diagram.py, and verify_entry_points.py -- it re-parses the
-same already-written output those scripts do, so it should run after all of
-them, not instead of them.
-
-Why this exists, distinct from rollup.py: rollup.py prints health-signal
-numbers to stdout for index.md's "Codebase health signals" section and
-nothing else persists to disk. Every other output file in docs/anatomy/ is
-prose for a human to read. Nothing captures the whole module/edge/
-entry-point graph as a single structured artifact another tool (or a future
-run of this skill, or a different repo's run, in a multi-repo setup) could
-consume without re-parsing five different Markdown files by hand. This
-script writes that artifact: <output_root>/_graph.json.
-
-Like rollup.py, this is purely a re-parse of already-written output -- it
-does not re-read source code or re-verify anything against it. Everything
-in _graph.json is only as correct as the module docs and entry-points.md it
-was extracted from (which is what Phase 4's discipline and
-verify_diagram.py/verify_entry_points.py are for).
-
-Schema (version 1) -- see references/output-templates.md's "_graph.json"
-section for the authoritative version of this:
-
-{
-  "version": 1,
-  "generated_at": "<ISO8601>",
-  "source_root": "<abs path at export time>",
-  "modules": {
-    "<slug>": {
-      "path": "<relative path, from _modules.json if present, else null>",
-      "depends_on": [
-        {"target": "other-module", "kind": "internal"|"external",
-         "detail": "<bullet text minus the citation>",
-         "citation": "<path:line, or null if not present on that line>"}
-      ],
-      "used_by": [ <same shape as depends_on> ],
-      "trace_coverage": {"status": "full"|"sampled"|"listed"|"unstated",
-                          "detail": "<raw matched fragment, or null>"}
-    }
-  },
-  "entry_points": {
-    "http_routes": [{"module": "...", "detail": "<path>", "raw": "<full row>"}],
-    "cli_commands": [ <same shape> ],
-    "queue_consumers": [ <same shape -- "detail" is the topic/event name,
-                          the join key a future multi-repo run would match
-                          a publisher in one repo to a consumer in another> ],
-    "cron_jobs": [ <same shape> ]
-  },
-  "health_signals": {
-    "most_connected": [...],
-    "orphan_candidates": [...],
-    "cycles": [...],
-    "trace_coverage_counts": {"full": N, "sampled": N, "listed": N, "unstated": N}
-  }
-}
-
-Known limitations (v1, worth knowing before leaning on this for something
-load-bearing):
-  - "depends_on"/"used_by" internal/external classification is purely a
-    convention check (does the bullet start with "**`slug`**" or
-    "external:`name`" per output-templates.md's template) -- a module doc
-    that doesn't follow that bullet format won't be captured here, the
-    same brittleness rollup.py already has. The separator between the
-    name and the description (output-templates.md's literal "--" versus
-    the em dash real output actually writes) is deliberately NOT part of
-    that convention check -- only the "**`slug`**"/"external:`name`"
-    prefix is required, and whatever separator follows gets stripped by
-    LEADING_SEP_RE rather than gating the match. If module docs somehow
-    end up written without any bold-name/external-name prefix at all,
-    this script fails loudly (parsed N modules, 0 edges) instead of
-    silently emitting an empty graph -- see the --allow-empty-graph gate
-    in main().
-  - Outbound cross-service calls (an HTTP client hitting another service,
-    a gRPC stub) don't currently have a guaranteed structured field the way
-    queue topics do -- they show up as prose inside a "Depends on" bullet's
-    "detail" text if written as an external dependency, or inside "Data &
-    side effects" -> "Network calls" if not, neither of which this script
-    tries to further parse into a URL. queue_consumers' topic names are the
-    one entry-point kind with a clean, already-tabular join key today; HTTP
-    routes only capture the path this repo *serves*, not URLs it *calls*.
-    A future multi-repo pass will likely need external_calls.py's own
-    hypothesis output (URLs/topics it detects) folded in here directly,
-    not just what survived into module-doc prose -- noted for whoever picks
-    up the multi-repo direction next, not solved by this script.
-"""
+"""Export docs/anatomy output as a machine-readable `_graph.json` snapshot."""
 import argparse
 import json
 import re
@@ -102,79 +8,65 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _common import AnatomyInputError, load_module_map_dict  # noqa: E402
+from rollup import find_cycles  # noqa: E402
 from verify_entry_points import extract_entry_point_rows  # noqa: E402
 
 DEPENDS_HEADING_RE = re.compile(r"^#{1,6}\s*Depends on", re.IGNORECASE)
 USED_BY_HEADING_RE = re.compile(r"^#{1,6}\s*Used by", re.IGNORECASE)
 ANY_HEADING_RE = re.compile(r"^#{1,6}\s")
-# Only the bold module name (or "external:`name`") is load-bearing here --
-# the separator between it and the description text is NOT, and must not
-# be required as a literal ASCII "--". output-templates.md's own template
-# shows "--", but real output (and an LLM's natural writing style)
-# reliably uses a typographic em dash instead -- the same looser
-# convention rollup.py's/verify_diagram.py's MODULE_REF_RE already
-# tolerates by not anchoring on any separator at all. Capture everything
-# after the name and strip whatever separator actually shows up with
-# LEADING_SEP_RE below, rather than baking one specific dash into the
-# match itself.
 INTERNAL_LINE_RE = re.compile(r"^\s*-\s+\*\*`([^`]+)`\*\*\s*(.*)$")
 EXTERNAL_LINE_RE = re.compile(r"^\s*-\s+external:\s*`([^`]+)`\s*(.*)$")
-# Strips a single leading separator of whatever flavor got written: ASCII
-# double-hyphen (the template's literal example), em dash, en dash, a
-# lone hyphen, or a colon -- optionally followed by whitespace. Applied
-# once, to the text captured after the module name.
-LEADING_SEP_RE = re.compile(r"^\s*(?:--|[\-\u2013\u2014:])\s*")
+LEADING_SEP_RE = re.compile(r"^\s*(?:--|[-\u2013\u2014:])\s*")
 TRAILING_CITATION_RE = re.compile(r"\(`([^`]+)`\)\s*\.?\s*$")
-
+UNCONFIRMED_RE = re.compile(r"(?<![A-Za-z0-9])unconfirmed(?![A-Za-z0-9])", re.IGNORECASE)
 FOOTER_RE = re.compile(r"Files examined in depth:\s*(.+?)\.?\s*$", re.IGNORECASE)
 SAMPLED_RE = re.compile(r"sampled\s+(\d+)\s+of\s+(\d+)", re.IGNORECASE)
 ALL_N_RE = re.compile(r"\ball\s+(\d+)\s+files?\b", re.IGNORECASE)
 
 
+def read_json(path):
+    try:
+        return json.loads(Path(path).read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
 def extract_edges(text, heading_re):
-    """Same section-scoping as rollup.py's extract_refs, but keeps the full
-    bullet (target, kind, detail, citation) instead of collapsing to a bare
-    set of slugs -- that richer shape is the whole point of this script."""
-    edges = []
-    in_section = False
+    edges, in_section = [], False
     for line in text.splitlines():
         if heading_re.match(line):
             in_section = True
             continue
-        if in_section and ANY_HEADING_RE.match(line) and not heading_re.match(line):
-            in_section = False
-            continue
+        if in_section and ANY_HEADING_RE.match(line):
+            break
         if not in_section:
             continue
-        m = INTERNAL_LINE_RE.match(line)
-        kind = "internal"
-        if not m:
-            m = EXTERNAL_LINE_RE.match(line)
-            kind = "external"
-        if not m:
+        match, kind = INTERNAL_LINE_RE.match(line), "internal"
+        if not match:
+            match, kind = EXTERNAL_LINE_RE.match(line), "external"
+        if not match:
             continue
-        target, rest = m.group(1).strip(), m.group(2).strip()
+        target, rest = match.group(1).strip(), match.group(2).strip()
         rest = LEADING_SEP_RE.sub("", rest, count=1)
-        cm = TRAILING_CITATION_RE.search(rest)
-        citation = cm.group(1) if cm else None
+        citation_match = TRAILING_CITATION_RE.search(rest)
+        citation = citation_match.group(1) if citation_match else None
         detail = TRAILING_CITATION_RE.sub("", rest).strip().rstrip(".").strip()
-        edges.append({"target": target, "kind": kind, "detail": detail, "citation": citation})
+        edges.append({
+            "target": target,
+            "kind": kind,
+            "detail": detail,
+            "citation": citation,
+            "confirmed": not bool(UNCONFIRMED_RE.search(line)),
+        })
     return edges
 
 
 def extract_coverage(text):
-    """Identical logic to rollup.py's extract_coverage -- duplicated rather
-    than imported, same convention the other Phase-5 scripts already
-    follow (see verify_diagram.py/verify_entry_points.py each defining
-    their own small heading/line regexes independently)."""
-    m = FOOTER_RE.search(text)
-    if not m:
+    match = FOOTER_RE.search(text)
+    if not match:
         return "unstated", None
-    fragment = m.group(1).strip()
-    fragment = fragment.rstrip("*_")
-    fragment = fragment.rstrip(".")
-    fragment = fragment.rstrip("*_")
-    fragment = fragment.strip()
+    fragment = match.group(1).strip().rstrip("*_.").strip()
     if ALL_N_RE.search(fragment):
         return "full", fragment
     if SAMPLED_RE.search(fragment):
@@ -182,176 +74,132 @@ def extract_coverage(text):
     return "listed", fragment
 
 
-def find_cycles(graph, cap=25):
-    """Same DFS as rollup.py's find_cycles."""
-    cycles = []
-    visited = set()
-    stack = []
-    on_stack = set()
-
-    def dfs(node):
-        if len(cycles) >= cap:
-            return
-        visited.add(node)
-        stack.append(node)
-        on_stack.add(node)
-        for nxt in sorted(graph.get(node, ())):
-            if len(cycles) >= cap:
-                break
-            if nxt in on_stack:
-                start = stack.index(nxt)
-                cycles.append(stack[start:] + [nxt])
-            elif nxt not in visited:
-                dfs(nxt)
-        stack.pop()
-        on_stack.discard(node)
-
-    for node in sorted(graph.keys()):
-        if node not in visited and len(cycles) < cap:
-            dfs(node)
-    return cycles
-
-
-def load_module_paths(output_root):
-    """_modules.json is the persisted copy of Phase 2's slug->path mapping
-    (see SKILL.md Phase 6). Optional -- an older docs/anatomy/ written
-    before this file existed simply won't have "path" filled in below."""
-    p = output_root / "_modules.json"
-    if not p.is_file():
-        return {}
-    try:
-        data = json.loads(p.read_text())
-        return data if isinstance(data, dict) else {}
-    except (json.JSONDecodeError, OSError):
-        return {}
+def resolve_source_root(root, explicit):
+    if explicit:
+        return str(Path(explicit).resolve()), []
+    manifest = read_json(root / "_manifest.json")
+    if isinstance(manifest, dict) and manifest.get("source_root"):
+        return str(manifest["source_root"]), []
+    return None, ["source_root unavailable: pass --source-root or write it into _manifest.json"]
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("output_root", help="path to docs/anatomy/ (or wherever the trace was written)")
-    ap.add_argument("--top-n", type=int, default=10, help="how many modules to list under most_connected")
-    ap.add_argument("--write", action="store_true",
-                     help="write _graph.json into output_root instead of only printing to stdout")
-    ap.add_argument("--allow-empty-graph", action="store_true",
-                     help="don't fail if N modules were parsed but zero total edges were found. "
-                          "Only use this if you've confirmed by hand that the system really has no "
-                          "internal module-to-module edges -- for more than one module, that's rare "
-                          "enough that the default assumption is a parser/template mismatch, not a "
-                          "genuinely edgeless system.")
-    args = ap.parse_args()
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("output_root")
+    parser.add_argument("--source-root", default=None, help="repository root represented by the trace")
+    parser.add_argument("--top-n", type=int, default=10)
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--allow-empty-graph", action="store_true")
+    parser.add_argument("--allow-module-set-mismatch", action="store_true")
+    args = parser.parse_args()
     root = Path(args.output_root).resolve()
     modules_dir = root / "modules"
     if not modules_dir.is_dir():
-        print(json.dumps({"error": f"not found: {modules_dir}"}))
-        sys.exit(1)
+        print(json.dumps({"error": "not found: %s" % modules_dir}, indent=2))
+        sys.exit(2)
 
-    module_paths = load_module_paths(root)
-
-    modules = {}
-    for md in sorted(modules_dir.glob("*.md")):
-        slug = md.stem
-        text = md.read_text(errors="ignore")
-        depends_on = extract_edges(text, DEPENDS_HEADING_RE)
-        used_by = extract_edges(text, USED_BY_HEADING_RE)
-        status, fragment = extract_coverage(text)
-        modules[slug] = {
-            "path": module_paths.get(slug),
-            "depends_on": depends_on,
-            "used_by": used_by,
-            "trace_coverage": {"status": status, "detail": fragment},
-        }
-
-    # Hard gate: for more than one module, zero total edges is almost
-    # never a real finding -- it's almost always this script's parser
-    # failing to recognize the "Depends on"/"Used by" bullet format the
-    # module docs actually used (see the em-dash-vs-"--" bug this replaced).
-    # Fail loudly here rather than writing/printing a structurally valid
-    # but semantically empty _graph.json that a downstream consumer would
-    # silently misread as "this system has no dependencies."
-    total_edges = sum(len(info["depends_on"]) + len(info["used_by"]) for info in modules.values())
-    if len(modules) > 1 and total_edges == 0 and not args.allow_empty_graph:
+    module_map_path = root / "_modules.json"
+    try:
+        module_paths = load_module_map_dict(module_map_path)
+    except AnatomyInputError as exc:
+        if not args.allow_module_set_mismatch:
+            print(json.dumps({"error": "required non-empty module map not found or invalid: %s" % exc}, indent=2))
+            sys.exit(2)
+        module_paths = {}
+    doc_paths = sorted(modules_dir.glob("*.md"))
+    doc_slugs = {path.stem for path in doc_paths}
+    mapped_slugs = set(module_paths)
+    if mapped_slugs and mapped_slugs != doc_slugs and not args.allow_module_set_mismatch:
         print(json.dumps({
-            "error": (
-                f"parsed {len(modules)} module docs but found 0 total 'Depends on'/'Used by' "
-                "edges across all of them. For a multi-module system this almost always means "
-                "the parser didn't recognize the bullet format actually used in modules/*.md "
-                "(e.g. a dash/separator this script's regex doesn't expect), not that the "
-                "system genuinely has zero internal edges. Inspect a module doc's 'Depends on' "
-                "section by eye and compare it against this script's INTERNAL_LINE_RE/"
-                "EXTERNAL_LINE_RE before assuming the graph is really empty. If you've confirmed "
-                "it really is empty, re-run with --allow-empty-graph."
-            ),
-            "modules_found": len(modules),
-            "total_edges_found": 0,
+            "error": "module set mismatch between _modules.json and modules/*.md",
+            "missing_docs": sorted(mapped_slugs - doc_slugs),
+            "extra_docs": sorted(doc_slugs - mapped_slugs),
         }, indent=2))
         sys.exit(1)
 
-    entry_points_path = root / "entry-points.md"
-    entry_points = {"http_routes": [], "cli_commands": [], "queue_consumers": [], "cron_jobs": []}
-    if entry_points_path.is_file():
-        ep_text = entry_points_path.read_text(errors="ignore")
-        for row in extract_entry_point_rows(ep_text):
-            entry_points.setdefault(row["kind"], []).append(
-                {"module": row["module"], "detail": row["detail"], "raw": row["raw"]}
-            )
+    modules = {}
+    for path in doc_paths:
+        text = path.read_text(errors="ignore")
+        status, detail = extract_coverage(text)
+        modules[path.stem] = {
+            "path": module_paths.get(path.stem),
+            "depends_on": extract_edges(text, DEPENDS_HEADING_RE),
+            "used_by": extract_edges(text, USED_BY_HEADING_RE),
+            "trace_coverage": {"status": status, "detail": detail},
+        }
 
-    # Health signals: same computation as rollup.py, restricted to
-    # "internal" edges only -- external libs shouldn't count toward
-    # module-to-module degree/cycles, matching rollup.py's original
-    # behavior (its MODULE_REF_RE never matched "external:" lines either).
+    total_edges = sum(len(value["depends_on"]) + len(value["used_by"]) for value in modules.values())
+    if len(modules) > 1 and total_edges == 0 and not args.allow_empty_graph:
+        print(json.dumps({
+            "error": "parsed multiple module docs but found zero relationship edges; inspect bullet format or pass --allow-empty-graph after manual confirmation",
+            "modules_found": len(modules),
+        }, indent=2))
+        sys.exit(1)
+
+    entry_points = {"http_routes": [], "cli_commands": [], "queue_consumers": [], "cron_jobs": []}
+    ep_path = root / "entry-points.md"
+    if ep_path.is_file():
+        for row in extract_entry_point_rows(ep_path.read_text(errors="ignore")):
+            entry_points.setdefault(row["kind"], []).append({
+                "module": row["module"],
+                "detail": row["detail"],
+                "method": row.get("method"),
+                "raw": row["raw"],
+            })
+
+    all_slugs = sorted(modules)
     internal_depends = {
-        slug: {e["target"] for e in info["depends_on"] if e["kind"] == "internal"}
-        for slug, info in modules.items()
+        slug: {edge["target"] for edge in value["depends_on"] if edge["kind"] == "internal"}
+        for slug, value in modules.items()
     }
     internal_used_by = {
-        slug: {e["target"] for e in info["used_by"] if e["kind"] == "internal"}
-        for slug, info in modules.items()
+        slug: {edge["target"] for edge in value["used_by"] if edge["kind"] == "internal"}
+        for slug, value in modules.items()
     }
-    all_slugs = sorted(modules.keys())
-    degree = {
-        slug: len(internal_depends.get(slug, ())) + len(internal_used_by.get(slug, ()))
+    degree = {slug: len(internal_depends[slug]) + len(internal_used_by[slug]) for slug in all_slugs}
+    most_connected = sorted((
+        {
+            "module": slug,
+            "depends_on_count": len(internal_depends[slug]),
+            "used_by_count": len(internal_used_by[slug]),
+            "total_degree": degree[slug],
+        }
         for slug in all_slugs
-    }
-    most_connected = sorted(
-        (
-            {"module": slug, "depends_on_count": len(internal_depends.get(slug, ())),
-             "used_by_count": len(internal_used_by.get(slug, ())), "total_degree": degree[slug]}
-            for slug in all_slugs
-        ),
-        key=lambda r: (-r["total_degree"], r["module"]),
-    )[: args.top_n]
-    orphan_candidates = sorted(
-        slug for slug in all_slugs
-        if not internal_depends.get(slug) and not internal_used_by.get(slug)
-    )
-    graph = {slug: internal_depends.get(slug, set()) & set(all_slugs) for slug in all_slugs}
-    raw_cycles = find_cycles(graph)
-    cycles = [{"path": c, "length": len(c) - 1} for c in raw_cycles]
+    ), key=lambda row: (-row["total_degree"], row["module"]))[:args.top_n]
+    orphans = sorted(slug for slug in all_slugs if not internal_depends[slug] and not internal_used_by[slug])
+    graph = {slug: internal_depends[slug] & set(all_slugs) for slug in all_slugs}
+    cycles = [{"path": path, "length": len(path) - 1} for path in find_cycles(graph)]
+    coverage = {"full": 0, "sampled": 0, "listed": 0, "unstated": 0}
+    for value in modules.values():
+        status = value["trace_coverage"]["status"]
+        coverage[status] = coverage.get(status, 0) + 1
 
-    coverage_counts = {"full": 0, "sampled": 0, "listed": 0, "unstated": 0}
-    for info in modules.values():
-        status = info["trace_coverage"]["status"]
-        coverage_counts[status] = coverage_counts.get(status, 0) + 1
-
+    source_root, warnings = resolve_source_root(root, args.source_root)
     result = {
         "version": 1,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "source_root": str(root),
+        "source_root": source_root,
         "modules": modules,
         "entry_points": entry_points,
         "health_signals": {
             "most_connected": most_connected,
-            "orphan_candidates": orphan_candidates,
+            "orphan_candidates": orphans,
             "cycles": cycles,
-            "trace_coverage_counts": coverage_counts,
+            "trace_coverage_counts": coverage,
         },
+        "warnings": warnings,
     }
-
     if args.write:
-        out_path = root / "_graph.json"
-        out_path.write_text(json.dumps(result, indent=2) + "\n")
-        print(json.dumps({"written": str(out_path), "modules_found": len(modules)}, indent=2))
+        target = root / "_graph.json"
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temporary = target.with_name(target.name + ".tmp")
+            temporary.write_text(json.dumps(result, indent=2) + "\n")
+            temporary.replace(target)
+        except OSError as exc:
+            print(json.dumps({"error": "could not write %s: %s" % (target, exc)}, indent=2))
+            sys.exit(2)
+        print(json.dumps({"written": str(target), "modules_found": len(modules), "warnings": warnings}, indent=2))
     else:
         print(json.dumps(result, indent=2))
 

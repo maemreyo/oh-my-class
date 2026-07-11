@@ -1,41 +1,16 @@
 #!/usr/bin/env python3
-"""
-state.py -- manifest read/hash/diff/write, for Phase 0 and Phase 6 of the
-anatomy skill's tracing workflow (handling a pre-existing docs/anatomy
-output folder, including one left over at the older default location,
-docs/system-trace, by a previous version of this skill).
+"""Manifest hashing/diff helpers for anatomy incremental updates.
 
-Subcommands:
-  hash-modules <repo_root> <modules.json>
-      modules.json: {"module-slug": "relative/path/to/module", ...}
-      Prints JSON: {"module-slug": {"hash": "...", "file_count": N}, ...}
-      Hash is content-based (sha256 over sorted relative file paths + each
-      file's sha256), so it is immune to touch-without-change mtime noise
-      and works identically whether or not the repo uses git. Files under
-      noise directories nested inside the module (node_modules,
-      __pycache__, dist, .venv, etc. -- the same list walk_source_files
-      prunes everywhere else) are excluded from the hash, so a rebuild or a
-      dependency install doesn't masquerade as a source change.
+Existing commands remain compatible. `hash-modules` now accepts a custom
+output root/exclusions and can optionally emit the file-selection policy used
+for the hashes.
 
-  diff <old_manifest.json> <fresh_hashes.json>
-      Compares a previous manifest's per-module hashes against a freshly
-      computed hash-modules result. Prints JSON:
-      {"unchanged": [...], "changed": [...], "added": [...], "removed": [...],
-       "change_ratio": 0.0-1.0}
-
-  write <manifest_path> <data.json>
-      Writes/overwrites the manifest file with the given data (adds
-      "generated_at" and "source_commit" automatically).
-
-  git-commit <repo_root>
-      Prints the current HEAD commit hash, or null if not a git repo / no
-      commits yet. Convenience used when writing a fresh manifest.
-
-Why content hashing instead of only git diff: many real invocations happen
-against a working tree with uncommitted changes, or against a codebase that
-isn't a git repo at all (vendored code drop, extracted archive, etc). Content
-hashing works in every case; git commit info is recorded only as a friendly
-extra data point, never as the sole source of truth for "did this change".
+Usage:
+    python3 state.py hash-modules <repo_root> <modules.json> \
+        [--output-root PATH] [--exclude PATH ...] [--with-policy]
+    python3 state.py diff <old_manifest.json> <fresh_hashes.json>
+    python3 state.py write <manifest_path> <data.json>
+    python3 state.py git-commit <repo_root>
 """
 import argparse
 import json
@@ -45,59 +20,124 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import sha256_file, sha256_text, walk_source_files  # noqa: E402
+from _common import (  # noqa: E402
+    AnatomyInputError,
+    load_module_map_dict,
+    normalize_excludes,
+    path_is_within,
+    scan_policy_metadata,
+    sha256_file,
+    sha256_text,
+    walk_source_files,
+)
 
 
-def hash_module(repo_root: Path, module_rel_path: str):
-    module_dir = repo_root / module_rel_path
-    if not module_dir.exists():
-        return None
+def _read_json(path):
+    try:
+        return json.loads(Path(path).read_text())
+    except OSError as exc:
+        raise AnatomyInputError("could not read %s: %s" % (path, exc))
+    except json.JSONDecodeError as exc:
+        raise AnatomyInputError("invalid JSON in %s: %s" % (path, exc))
+
+
+def hash_module(repo_root, module_rel_path, exclude_paths=None):
+    """Hash one module or return an error-bearing record.
+
+    Unknown file state is never converted into a stable pseudo-hash. A module
+    containing an unreadable file receives an `error`, and `state.py diff`
+    refuses to classify the run as clean.
+    """
+    repo = Path(repo_root).resolve()
+    module_path = (repo / module_rel_path).resolve()
+    if not path_is_within(module_path, repo):
+        return {"error": "module path escapes repository root: %s" % module_rel_path}
+    if not module_path.exists():
+        return {"error": "path not found: %s" % module_rel_path}
+
+    excluded = normalize_excludes(repo, exclude_paths)
     file_hashes = []
-    if module_dir.is_file():
-        file_hashes.append(f"{module_rel_path}:{sha256_file(module_dir)}")
+    errors = []
+
+    if module_path.is_file():
+        if any(path_is_within(module_path, item) for item in excluded):
+            return {"error": "module path is excluded by scan policy: %s" % module_rel_path}
+        try:
+            digest = sha256_file(module_path)
+            file_hashes.append("%s:%s" % (Path(module_rel_path).as_posix(), digest))
+        except OSError as exc:
+            errors.append({"path": Path(module_rel_path).as_posix(), "error": str(exc)})
     else:
-        # Reuse walk_source_files' noise-dir pruning (node_modules,
-        # __pycache__, dist, .venv, etc.) instead of a raw rglob. A module
-        # directory very commonly contains its own build/dependency
-        # artifacts nested inside it (a workspace package's own
-        # node_modules, a Python package's __pycache__, a built dist/) --
-        # hashing those would make "content changed" noisy and untrustworthy
-        # (a bare `npm install` or `pip install -e .` could flip the hash
-        # with zero source change) and would be needlessly slow on top of
-        # that. walk_source_files(module_dir) yields paths relative to
-        # module_dir; re-derive the repo-root-relative path for each so the
-        # hash key stays identical to before this fix, keeping old manifests
-        # comparable against fresh hashes computed with this version.
-        for abs_path, _rel_to_module in walk_source_files(module_dir):
-            rel = abs_path.relative_to(repo_root)
-            file_hashes.append(f"{rel}:{sha256_file(abs_path)}")
+        for abs_path, _rel_to_module in walk_source_files(
+            module_path,
+            gitignore_root=repo,
+            exclude_paths=excluded,
+        ):
+            try:
+                rel = abs_path.relative_to(repo).as_posix()
+                file_hashes.append("%s:%s" % (rel, sha256_file(abs_path)))
+            except (OSError, ValueError) as exc:
+                try:
+                    rendered = abs_path.relative_to(repo).as_posix()
+                except ValueError:
+                    rendered = str(abs_path)
+                errors.append({"path": rendered, "error": str(exc)})
         file_hashes.sort()
-    combined = sha256_text("\n".join(file_hashes))
-    return {"hash": combined, "file_count": len(file_hashes)}
+
+    if errors:
+        return {
+            "error": "one or more files could not be hashed",
+            "file_count": len(file_hashes),
+            "file_errors": errors,
+        }
+    return {
+        "hash": sha256_text("\n".join(file_hashes)),
+        "file_count": len(file_hashes),
+    }
 
 
-def cmd_hash_modules(args):
-    repo_root = Path(args.repo_root).resolve()
-    modules = json.loads(Path(args.modules_json).read_text())
-    out = {}
-    for slug, rel_path in modules.items():
-        h = hash_module(repo_root, rel_path)
-        if h is None:
-            out[slug] = {"error": f"path not found: {rel_path}"}
-        else:
-            out[slug] = h
-    print(json.dumps(out, indent=2))
+def hash_modules(repo_root, modules, output_root=None, excludes=None):
+    repo = Path(repo_root).resolve()
+    effective_excludes = normalize_excludes(repo, excludes, output_root)
+    return {
+        slug: hash_module(repo, rel_path, exclude_paths=effective_excludes)
+        for slug, rel_path in sorted(modules.items())
+    }
 
 
-def cmd_diff(args):
-    old_manifest = json.loads(Path(args.old_manifest).read_text())
-    fresh = json.loads(Path(args.fresh_hashes).read_text())
+def unwrap_fresh_hashes(payload):
+    """Accept the legacy flat shape and the policy-bearing v2 shape."""
+    if not isinstance(payload, dict):
+        raise AnatomyInputError("fresh hashes JSON must be an object")
+    if "modules" in payload and isinstance(payload.get("modules"), dict):
+        return payload["modules"], payload.get("scan_policy")
+    return payload, None
 
-    old_modules = old_manifest.get("modules", {})
+
+def canonical_scan_policy(policy):
+    if not isinstance(policy, dict):
+        return policy
+    normalized = dict(policy)
+    excludes = normalized.get("excludes")
+    if isinstance(excludes, list):
+        normalized["excludes"] = sorted(set(str(item) for item in excludes))
+    return normalized
+
+
+def compute_diff(old_manifest, fresh_payload):
+    fresh, fresh_policy = unwrap_fresh_hashes(fresh_payload)
+    old_modules = old_manifest.get("modules", {}) if isinstance(old_manifest, dict) else {}
+    if not isinstance(old_modules, dict):
+        raise AnatomyInputError("old manifest's 'modules' field must be an object")
+
+    errors = {
+        slug: info
+        for slug, info in fresh.items()
+        if not isinstance(info, dict) or info.get("error")
+    }
     unchanged, changed, added = [], [], []
-
-    for slug, info in fresh.items():
-        if "error" in info:
+    for slug, info in sorted(fresh.items()):
+        if slug in errors:
             continue
         if slug not in old_modules:
             added.append(slug)
@@ -106,71 +146,145 @@ def cmd_diff(args):
         else:
             unchanged.append(slug)
 
-    removed = [slug for slug in old_modules if slug not in fresh]
-
+    # A path-not-found record still represents a currently declared slug. It
+    # is an error, not a removal; otherwise a typo in modules.json would make
+    # a live module appear safely removed.
+    removed = sorted(slug for slug in old_modules if slug not in fresh)
     total = len(unchanged) + len(changed) + len(added) + len(removed)
-    change_ratio = (len(changed) + len(added) + len(removed)) / total if total else 0.0
+    ratio = (len(changed) + len(added) + len(removed)) / total if total else 0.0
 
-    print(json.dumps({
+    old_policy = old_manifest.get("scan_policy") if isinstance(old_manifest, dict) else None
+    policy_changed = bool(
+        fresh_policy is not None and old_policy is not None
+        and canonical_scan_policy(fresh_policy) != canonical_scan_policy(old_policy)
+    )
+    policy_migrated = bool(fresh_policy is not None and old_policy is None)
+    return {
         "unchanged": unchanged,
         "changed": changed,
         "added": added,
         "removed": removed,
-        "change_ratio": round(change_ratio, 3),
+        "errors": errors,
+        "change_ratio": round(ratio, 3),
+        "scan_policy_changed": policy_changed,
+        "scan_policy_migrated": policy_migrated,
         "recommendation": (
-            "incremental update looks safe"
-            if change_ratio < 0.6
-            else "more than ~60% of modules differ -- consider a full re-trace "
-                 "instead of patching incrementally, and confirm with the user"
+            "hashing failed for one or more modules -- do not use this diff"
+            if errors
+            else "scan policy changed -- review exclusions before trusting unchanged classifications"
+            if policy_changed
+            else "scan policy metadata added -- verify exclusions once before carrying the manifest forward"
+            if policy_migrated
+            else "more than ~60% of modules differ -- consider a full re-trace"
+            if ratio >= 0.6
+            else "incremental update looks safe"
         ),
-    }, indent=2))
+    }
+
+
+def cmd_hash_modules(args):
+    repo = Path(args.repo_root).resolve()
+    modules = load_module_map_dict(args.modules_json, repo)
+    hashes = hash_modules(repo, modules, args.output_root, args.exclude)
+    if args.with_policy:
+        payload = {
+            "version": 2,
+            "scan_policy": scan_policy_metadata(repo, args.exclude, args.output_root),
+            "modules": hashes,
+        }
+    else:
+        payload = hashes
+    print(json.dumps(payload, indent=2))
+    if any(info.get("error") for info in hashes.values()):
+        sys.exit(2)
+
+
+def cmd_diff(args):
+    result = compute_diff(_read_json(args.old_manifest), _read_json(args.fresh_hashes))
+    print(json.dumps(result, indent=2))
+    if result["errors"]:
+        sys.exit(2)
 
 
 def cmd_write(args):
-    data = json.loads(Path(args.data_json).read_text())
+    data = _read_json(args.data_json)
+    if not isinstance(data, dict):
+        raise AnatomyInputError("manifest data must be a JSON object")
     data["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    Path(args.manifest_path).write_text(json.dumps(data, indent=2) + "\n")
-    print(json.dumps({"written": args.manifest_path}))
+    target = Path(args.manifest_path)
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        temporary = target.with_name(target.name + ".tmp")
+        temporary.write_text(json.dumps(data, indent=2) + "\n")
+        temporary.replace(target)
+    except OSError as exc:
+        raise AnatomyInputError("could not write %s: %s" % (target, exc))
+    print(json.dumps({"written": str(target)}))
 
 
 def cmd_git_commit(args):
-    repo_root = Path(args.repo_root).resolve()
+    repo = Path(args.repo_root).resolve()
     try:
-        out = subprocess.run(
-            ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=10,
+        proc = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
-        commit = out.stdout.strip() if out.returncode == 0 else None
+        commit = proc.stdout.strip() if proc.returncode == 0 else None
     except (OSError, subprocess.SubprocessError):
         commit = None
     print(json.dumps({"commit": commit}))
 
 
+def build_parser():
+    parser = argparse.ArgumentParser()
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    hash_parser = sub.add_parser("hash-modules")
+    hash_parser.add_argument("repo_root")
+    hash_parser.add_argument("modules_json")
+    hash_parser.add_argument(
+        "--output-root",
+        default=None,
+        help="actual anatomy output root; excluded from scans even when a module maps to '.'",
+    )
+    hash_parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        help="additional path to exclude (repeatable; relative paths are resolved from repo_root)",
+    )
+    hash_parser.add_argument(
+        "--with-policy",
+        action="store_true",
+        help="emit {version, scan_policy, modules}; default preserves the legacy flat JSON shape",
+    )
+    hash_parser.set_defaults(func=cmd_hash_modules)
+
+    diff_parser = sub.add_parser("diff")
+    diff_parser.add_argument("old_manifest")
+    diff_parser.add_argument("fresh_hashes")
+    diff_parser.set_defaults(func=cmd_diff)
+
+    write_parser = sub.add_parser("write")
+    write_parser.add_argument("manifest_path")
+    write_parser.add_argument("data_json")
+    write_parser.set_defaults(func=cmd_write)
+
+    git_parser = sub.add_parser("git-commit")
+    git_parser.add_argument("repo_root")
+    git_parser.set_defaults(func=cmd_git_commit)
+    return parser
+
+
 def main():
-    ap = argparse.ArgumentParser()
-    sub = ap.add_subparsers(dest="cmd", required=True)
-
-    p1 = sub.add_parser("hash-modules")
-    p1.add_argument("repo_root")
-    p1.add_argument("modules_json")
-    p1.set_defaults(func=cmd_hash_modules)
-
-    p2 = sub.add_parser("diff")
-    p2.add_argument("old_manifest")
-    p2.add_argument("fresh_hashes")
-    p2.set_defaults(func=cmd_diff)
-
-    p3 = sub.add_parser("write")
-    p3.add_argument("manifest_path")
-    p3.add_argument("data_json")
-    p3.set_defaults(func=cmd_write)
-
-    p4 = sub.add_parser("git-commit")
-    p4.add_argument("repo_root")
-    p4.set_defaults(func=cmd_git_commit)
-
-    args = ap.parse_args()
-    args.func(args)
+    try:
+        args = build_parser().parse_args()
+        args.func(args)
+    except AnatomyInputError as exc:
+        print(json.dumps({"error": str(exc)}, indent=2))
+        sys.exit(2)
 
 
 if __name__ == "__main__":

@@ -57,12 +57,23 @@ not so many that `index.md` becomes a wall of links nobody reads.
   concerns), it's fine to split it into a few sub-module docs -- just don't
   over-fragment down to one doc per file.
 - `scripts/inventory.py`'s `ambiguous_dirs_found` field flags directory names
-  like `packages`, `vendor`, `third_party` that could be either "real modules
+  like `packages`, `vendor`, `third_party`, or `bin` that could be either "real modules
   in this monorepo" or "vendored dependencies we don't own." Open one or two
   files inside before deciding -- if it's someone else's code (has its own
   unrelated license/changelog, or matches a known open-source project), treat
   it as external and don't write a module doc for it; just note it as a
   dependency where relevant.
+
+## Stable, collision-free module identity
+
+Module slugs are persistent IDs: they become filenames, Mermaid node IDs, and
+`_graph.json` join keys. Use `scripts/_common.py`'s `stable_slug_map()` over the
+whole candidate set, not one independent `slugify()` call per module. The
+helper normalizes names to ASCII-safe slugs and deterministically disambiguates
+collisions caused by spaces, underscores, separators, or non-ASCII-only names.
+Reuse `_modules.json` for unchanged paths on later runs. Treat duplicate JSON
+keys, duplicate source paths, and post-normalization collisions as errors to
+resolve before Phase 3.
 
 ## Entry points and composition roots
 

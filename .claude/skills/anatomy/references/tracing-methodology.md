@@ -59,17 +59,7 @@ Working in this order avoids both missing things and wasting effort:
    when). Use it to corroborate what you read in the implementation, and
    flag it if a test's assumptions don't match what the implementation
    actually does.
-6. **"Used by" doesn't come from this reading pass at all -- it comes from
-   everyone else's.** Steps 1-5 are all about what module X calls out to;
-   none of them can discover who calls _into_ X, because "who imports me"
-   isn't information X's own source contains. Treat "Used by" as something
-   you fill in only after every module's "Depends on" has been confirmed:
-   for every edge "X depends on Y" you wrote down, add the mirror-image "Y
-   is used by X" to Y's doc. Do this as an explicit pass across the whole
-   module set before writing final output (see SKILL.md's Phase 4/5
-   transition) -- not opportunistically while reading each module, which
-   will silently leave some modules' "Used by" sections thin or empty
-   simply because nothing in their own code could have surfaced it.
+6. **`Used by` is derived from the complete current `Depends on` graph, not from reading the target module.** Confirm outbound relationships while tracing each caller. After all changed/added docs are written, removed docs are deleted, and narrow outbound edges from unchanged modules into changed modules have been revalidated, run `scripts/sync_reverse_edges.py <output_root> --write` followed by `--check`. The script transposes every current internal edge, including newly created edges into unchanged modules, while preserving external bullets, prose, later sections, and coverage footers. Never infer "who uses me" from the callee's own files, and never update only reverse lines that already happened to exist.
 
 ## Choosing a trace depth: deep vs quick-scan
 

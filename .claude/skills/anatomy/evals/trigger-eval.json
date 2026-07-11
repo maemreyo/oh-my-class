@@ -30,9 +30,9 @@
     "note": "Near-verbatim match to 'reverse-engineer a codebase's architecture'. Easy case, kept as a regression floor."
   },
   {
-    "query": "quick one -- does anything break if I delete the notifications module? we ran the anatomy trace on this repo a couple weeks ago",
+    "query": "the notifications module changed this week; refresh the existing docs/anatomy output incrementally and make sure reverse dependencies and diagrams are current",
     "should_trigger": true,
-    "note": "Fast-path case, mirrors the description's own quoted example ('what would changing Y break') against an existing trace. Description explicitly primes this so it should NOT be under-triggered as 'just answer directly' despite being a short one-step-sounding question."
+    "note": "Incremental write request belongs to anatomy. A narrow read-only impact question against the existing trace is covered by anatomy-ask instead."
   },
   {
     "query": "we have a docs/system-trace folder sitting around from some old Claude skill run, but I think it's stale now that we split out the auth service into its own thing. can you bring it up to date?",

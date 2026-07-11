@@ -6,9 +6,8 @@ description: >-
   re-running any tracing. Use for questions like "where does X live,"
   "what would changing Y break," "which module handles the /orders
   route," or "is the payments module still coupled to billing" -- against
-  a repo that's already been traced. This is Phase 0's fast path from the
-  `anatomy` skill, pulled out on its own so answering a quick question
-  doesn't require loading anatomy's full 7-Phase trace/update workflow.
+  a repo that's already been traced. This skill owns that read-only route;
+  use it instead of loading `anatomy`'s full 7-Phase create/update workflow.
   If no `_manifest.json` exists yet at the expected output location, say
   so and point at the `anatomy` skill to produce one first -- don't
   attempt to trace anything from this skill. Not for requests to
@@ -20,9 +19,8 @@ description: >-
 
 ## What this is, and isn't
 
-`anatomy`'s own SKILL.md documents this exact fast path already
-(`references/incremental-updates.md`'s "Fast path" section) -- this skill
-exists purely so a quick question doesn't pull the full 7-Phase workflow
+The main `anatomy` skill delegates this read-only route here. This skill
+exists so a quick question doesn't pull the full 7-Phase write workflow
 description into context, or tempt a re-trace when a read is all that's
 needed. If the person's request turns into "okay, now update the docs for
 that," that's the cue to hand off to the `anatomy` skill for an
@@ -34,6 +32,9 @@ incremental update -- this skill only reads, never writes.
 
 Default to `docs/anatomy/` unless the user names a different path. Check
 for `_manifest.json` there.
+Pass that exact output path to `freshness_check.py`; the persisted scan
+policy ensures a root module does not hash the generated trace itself.
+
 
 - **Not found** -- check `docs/system-trace/_manifest.json` too (the
   older default location `anatomy` used to write to, in case this repo
