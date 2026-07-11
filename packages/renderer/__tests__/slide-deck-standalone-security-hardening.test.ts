@@ -41,7 +41,7 @@ const baseDeck: SlideDeckData = {
 };
 
 function extractScript(html: string): string {
-  const match = html.match(/<script>([\s\S]*?)<\/script>/);
+  const match = html.match(/<script[^>]*>([\s\S]*?)<\/script>/);
   if (!match) throw new Error("no <script> block found in rendered HTML");
   return match[1];
 }

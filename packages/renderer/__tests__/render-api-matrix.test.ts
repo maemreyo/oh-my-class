@@ -113,6 +113,34 @@ const MATRIX_CASES = [
       }],
     },
   },
+  {
+    kind: "slide_deck",
+    audience: "student" as const,
+    input: {
+      deck_id: "matrix-deck-1",
+      title: "Matrix Slide Deck",
+      locale: "en",
+      surfaces: {
+        student: { mode: "presentation", export_format: "html" },
+        teacher: { mode: "teacher_guide", export_format: "html" },
+        print: { mode: "print", export_format: "html" },
+      },
+      slides: [{
+        slide_id: "slide-1",
+        title: "Synonyms",
+        layout: "content",
+        progression: { step_index: 0, reveal_policy: "all_at_once" },
+        blocks: [{ block_id: "block-1", block_type: "paragraph", body: "Happy, joyful, elated are synonyms." }],
+        teacher_notes: {
+          facilitation_notes: ["SECRET_SLIDE_DECK_NOTE"],
+          answer_key_notes: ["SECRET_SLIDE_DECK_ANSWER"],
+        },
+      }],
+      accessibility: { reading_level: "grade_5", language: "en", alt_text_required: true, keyboard_navigation: true },
+      media_policy: { default_tier: "packaged", online_optional_allowed: false, fallback_required: true },
+      render_surface: "student",
+    },
+  },
 ] as const;
 
 // Kinds covered by this matrix
@@ -141,7 +169,7 @@ function makeContext(kind: string, audience: RenderContext["audience"]): RenderC
 
 // ── 1. Parametric matrix: each kind × audience renders valid standalone HTML ──
 
-describe("render() API matrix — all 12 registered artifact plugins", () => {
+describe("render() API matrix — all 13 registered artifact plugins", () => {
   for (const { kind, audience, input } of MATRIX_CASES) {
     it(`renders ${kind} for ${audience} audience`, async () => {
       const response = await render(
@@ -183,6 +211,10 @@ describe("render() API matrix — student output does not expose SECRET sentinel
       }
       if (kind === "reading_passage") {
         expect(html).not.toContain("SECRET_RP_ANSWER");
+      }
+      if (kind === "slide_deck") {
+        expect(html).not.toContain("SECRET_SLIDE_DECK_NOTE");
+        expect(html).not.toContain("SECRET_SLIDE_DECK_ANSWER");
       }
     });
   }

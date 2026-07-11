@@ -79,6 +79,7 @@ export async function render(request: RenderRequest, options: RenderOptions = {}
   enforceInlineOnlyAssetPolicy(rawHtml, plugin.managedScripts);
   const html = sanitizeRenderedHtml(rawHtml, plugin.sanitizerPolicy);
   enforceInlineOnlyAssetPolicy(html, plugin.managedScripts);
+  plugin.postSanitizeCheck?.(html, adaptedData, request.context);
   const renderedAt = new Date().toISOString();
   if (!isoTimestampPattern.test(renderedAt)) {
     throw new RendererError({

@@ -10,6 +10,7 @@ import { flashcardDeckPlugin } from "../plugins/flashcard-deck.js";
 import { readingPassagePlugin } from "../plugins/reading-passage.js";
 import { exitTicketPlugin } from "../plugins/exit-ticket.js";
 import { roadmapPlugin } from "../plugins/roadmap.js";
+import { slideDeckPlugin } from "../plugins/slide-deck.js";
 import { teachingPackPlugin } from "../plugins/teaching-pack.js";
 import { navyTicketPracticePlugin, navyTicketTeachingPlugin } from "../plugins/navy-ticket.js";
 import { inverseThinkingPlugin, rootCauseSessionPlugin, videoRoutePlugin } from "../plugins/specialty-artifact-ui.js";
@@ -28,6 +29,7 @@ export const defaultRegistry = createPluginRegistry([
   readingPassagePlugin,
   exitTicketPlugin,
   roadmapPlugin,
+  slideDeckPlugin,
   teachingPackPlugin,
   navyTicketTeachingPlugin,
   navyTicketPracticePlugin,

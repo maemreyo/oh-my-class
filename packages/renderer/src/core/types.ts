@@ -107,6 +107,17 @@ export type ArtifactKindPlugin<TTemplateData extends object> = {
   readonly managedScripts?: readonly ManagedScriptDeclaration[];
   readonly adapt: (input: unknown, context: RenderContext, services: RenderServices) => TTemplateData | Promise<TTemplateData>;
   readonly templatePath: (context: RenderContext) => string;
+  // Runs after `sanitizeRenderedHtml`, on the final HTML string, for plugins
+  // whose safety requirement isn't "strip disallowed tags/attributes" (what
+  // sanitizerPolicy already covers) but "this audience/surface must never
+  // contain this specific data at all" -- e.g. a slide deck's student
+  // surface must never leak teacher-only answer keys. Throw to fail the
+  // render closed; a plugin with no such requirement omits this entirely.
+  // `templateData` is `unknown`, not `TTemplateData`, for the same reason
+  // `adapt`'s `input` is `unknown`: a heterogeneous array of
+  // `ArtifactKindPlugin<...>` needs this in a covariance-safe position, so
+  // each plugin's own implementation re-asserts its own template data shape.
+  readonly postSanitizeCheck?: (html: string, templateData: unknown, context: RenderContext) => void;
 };
 
 export type PluginMetadata = {

@@ -205,7 +205,7 @@ describe("slide_deck standalone hash/query/localStorage plumbing (SDH-03)", () =
 
   it("guards every localStorage access with try/catch so file:// or disabled storage degrades gracefully", async () => {
     const html = await renderArtifact("slide_deck", deck);
-    const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/);
+    const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/);
 
     expect(scriptMatch).not.toBeNull();
     const script = scriptMatch?.[1] ?? "";

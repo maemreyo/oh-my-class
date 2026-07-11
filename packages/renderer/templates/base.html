@@ -70,7 +70,7 @@
     }
     <% if (it.pageCSS) { %><%~ it.pageCSS %><% } %>
   </style>
-  <% if (it.pageJS) { %><script><%~ it.pageJS %></script><% } %>
+  <% if (it.pageJS) { %><script data-managed-script-id="slide-deck-player"><%~ it.pageJS %></script><% } %>
 </head>
 <body class="artifact artifact--<%= it.type || 'unknown' %>">
   <header class="omc-header">

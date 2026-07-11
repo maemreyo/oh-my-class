@@ -61,43 +61,51 @@ each cross-checked against runtime registries by dedicated tests
 `packages/renderer/__tests__/teaching-pack-capabilities.test.ts`,
 `common/contracts/tests/test_subject_capability_pack.py`).
 
-**Known real gap, investigated in depth (do not shallow-patch)**:
-`packages/renderer/__tests__/teaching-pack-capabilities.test.ts` fails
-because `teaching_pack.json` declares `slide_deck` as a `renderer_plugin`,
-but `packages/renderer/src/core/runtime.ts`'s `defaultRegistry` never
-registers a `slide_deck` plugin. Removing `slide_deck` from the manifest's
-top-level `renderer_plugins` list looks like the obvious fix, but it isn't:
-the same manifest's per-artifact entry for `slide_deck`
-(`common/contracts/teaching_pack_capabilities.py`'s
-`ArtifactCapability._validate_status_requirements`) requires a non-null
-`renderer_plugin` for any `status: degraded` artifact (confirmed by
-actually making the edit and watching
-`test_teaching_pack_capabilities.py::test_manifest_declares_every_v2_artifact_and_export_format`
-fail with `undeclared renderers=['slide_deck']`).
+**Fixed.** `packages/renderer/__tests__/teaching-pack-capabilities.test.ts`
+failed because `teaching_pack.json` declared `slide_deck` as a
+`renderer_plugin`, but `defaultRegistry` never registered one. Tracing
+`renderArtifact()` (the stable Eta-template API every artifact type already
+uses) showed slide_deck wasn't a disconnected rendering system, just the
+one core type never migrated onto the newer `defaultRegistry`/`render()`
+plugin path — but two real blockers had to be resolved first, not
+shallow-patched around:
 
-Tracing further: `packages/renderer/src/renderer.ts`'s `renderArtifact()`
-(the stable, documented public API) renders **every** artifact type,
-slide_deck included, through the same `pages/{type}.html` Eta template —
-slide_deck is not actually a second, disconnected rendering system, it's
-just the one core artifact type that was never migrated onto the newer
-`defaultRegistry`/`render()` plugin path the other 11 core types already
-use (compare `packages/renderer/src/plugins/quiz.ts`, a thin adapter over
-the identical `pages/quiz` template). So registering a `slideDeckPlugin`
-is plausible in principle. What blocks it: `renderArtifact()` calls
-`assertStudentSlideDeckHtmlIsSafe()` (`slide-deck-projection.ts`) *after*
-sanitization, specifically to stop teacher-only notes/answers leaking into
-the student-facing slide HTML — a real security check, not decoration.
-The registry-based `render()` pipeline (`core/render.ts`) has no
-plugin-specific post-sanitization hook at all; every plugin's output only
-passes through the generic `sanitizeRenderedHtml()`. Registering
-`slideDeckPlugin` today, as-is, would mean either skipping that leak check
-(unacceptable) or bolting it on ad hoc outside the plugin contract
-(inconsistent with every other plugin). The correct fix is adding a
-`postSanitizeCheck?(html, templateData)` hook to `ArtifactKindPlugin` and
-`render()`'s pipeline, then writing `slideDeckPlugin` against it — a real,
-if small, pipeline change, not a 2-line patch, and one that touches a
-security-relevant code path carefully enough that it deserves its own
-change and review rather than being folded into a hardening pass.
+1. `renderArtifact()` calls `assertStudentSlideDeckHtmlIsSafe()`
+   (`slide-deck-projection.ts`) *after* sanitization to stop teacher-only
+   notes/answers leaking into student HTML — a real security check with no
+   equivalent hook in the registry pipeline. Added
+   `postSanitizeCheck?(html, templateData, context)` to `ArtifactKindPlugin`
+   (`core/types.ts`) and wired it into `render()` (`core/render.ts`), typed
+   as `unknown` (not `TTemplateData`) for the same covariance reason
+   `adapt`'s `input` is `unknown` — a heterogeneous plugin array needs it in
+   that position, confirmed by `tsc` initially rejecting the naive
+   `TTemplateData`-typed version across every existing plugin.
+2. `render()`'s inline-only asset policy (`core/asset-policy.ts`) requires
+   every inline `<script>` to carry a `data-managed-script-id` matching a
+   plugin-declared, hash-verified `ManagedScriptDeclaration` — but
+   `templates/base.html`'s `pageJS` script tag (slide_deck's presentation/
+   print-mode player, the one producer of inline JS among all 12 core
+   types) had no such attribute, and its source lives inline inside the Eta
+   template, not a standalone file `loadManagedScripts` can hash. Added the
+   attribute (one-line change to `base.html`, confirmed via `git diff` to
+   touch nothing else — an early attempt with an explanatory Eta comment on
+   its own line silently shifted whitespace in unrelated artifact types'
+   snapshot tests, caught by running the full suite, not assumed safe),
+   extracted a byte-identical copy of the embedded script to
+   `templates/pages/slide-deck-player.js` for hashing, and added
+   `slide-deck-player-script-sync.test.ts` as a drift guard (byte-equality
+   check) so the two copies can't silently diverge.
+
+`packages/renderer/src/plugins/slide-deck.ts` is the resulting plugin: a
+full zod schema mirroring `SlideDeckData` (no zod schema existed for this
+contract before), `adapt()` delegating to the same `projectSlideDeckSurface`
+`renderArtifact()` already uses (so `render_surface` on the input data
+drives behavior identically, not a new `context.audience`-derived mapping),
+and `postSanitizeCheck` re-running the same leak check. Extended
+`render-api-matrix.test.ts` with a real slide_deck case (renders through
+`render()`, asserts no SECRET-sentinel teacher-only leak into student
+output) rather than just making the capability-manifest check pass in
+isolation.
 
 WCAG/accessibility: **Covered and runnable** —
 `apps/web/tests/e2e/a11y-artifacts.spec.ts` / `a11y-dashboard.spec.ts` (real
@@ -181,19 +189,16 @@ current) and added the manifest's path and regeneration command there.
 This is closer to a **documentation/evidence-assembly gap than a
 functional gap**. The substantive infrastructure ADR-058 asks for — tenant
 isolation, worker leasing, retention/purge, admin recovery, WCAG a11y specs
-— is real and passing, not stubbed. Four collateral bugs found during this
+— is real and passing, not stubbed. Five collateral bugs found during this
 audit are fixed as of this pass: a stale reducer-rename import blocking
 whole-suite collection, the un-awaited async compliance gate, a stale
-architecture-manifest snapshot plus its own dangling rename reference, and
-a test that looked like a reviewer-routing regression but was actually
-constructing state with a pre-V2 calling convention. Only one gap remains
-deliberately unfixed, because a correct fix touches a security-relevant
-code path and deserves its own change: the `slide_deck` renderer-plugin
-registration needs a new `postSanitizeCheck` hook on `ArtifactKindPlugin`
-before it can be added safely (see above — attempting it without that hook
-means either skipping the teacher-notes leak check or bolting it on
-inconsistently with every other plugin). The big-bang cutover evidence
+architecture-manifest snapshot plus its own dangling rename reference, a
+test that looked like a reviewer-routing regression but was actually
+constructing state with a pre-V2 calling convention, and the `slide_deck`
+renderer-plugin registration gap (which needed a new `postSanitizeCheck`
+hook on `ArtifactKindPlugin` plus a managed-script declaration for its
+inline player script — both now real, tested, and green). No gaps from
+this audit remain unfixed at the code level. The big-bang cutover evidence
 itself cannot be produced by code changes — it requires an actual planned
 release date, rollback owner, and sign-off, which is a decision for the
-team, not
-an artifact this document can manufacture.
+team, not an artifact this document can manufacture.
