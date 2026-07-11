@@ -19,6 +19,11 @@ class _FakeEngine:
         return None
 
 
+async def _fake_get_checkpointer(environment: str, **kwargs: object) -> object:
+    _ = (environment, kwargs)
+    return object()
+
+
 class TestMainLifespan:
     def test_lifespan_starts_teaching_pack_worker_and_recovery_sweeper(
         self,
@@ -64,8 +69,6 @@ async def _assert_lifespan_starts_background_tasks(
         return object
 
     monkeypatch.setattr(gateway_main, "configure_logging", lambda **kwargs: None)
-    monkeypatch.setattr(gateway_main, "create_async_engine", lambda url, pool_pre_ping: _FakeEngine())
-    monkeypatch.setattr(gateway_main, "async_sessionmaker", fake_sessionmaker)
     monkeypatch.setattr(gateway_main, "_run_teaching_pack_sweeper", record_sweeper)
     monkeypatch.setattr(gateway_main, "_run_teaching_pack_worker", record_worker)
     monkeypatch.setenv("OMC_ENVIRONMENT", "development")
@@ -73,8 +76,11 @@ async def _assert_lifespan_starts_background_tasks(
 
     import packages.agents.checkpointer as checkpointer_module
     import packages.agents.teaching_pack.graph as teaching_pack_graph_module
+    import services.gateway.teaching_pack_runtime as teaching_pack_runtime_module
 
-    monkeypatch.setattr(checkpointer_module, "get_checkpointer", lambda environment: object())
+    monkeypatch.setattr(teaching_pack_runtime_module, "create_async_engine", lambda url, pool_pre_ping: _FakeEngine())
+    monkeypatch.setattr(teaching_pack_runtime_module, "async_sessionmaker", fake_sessionmaker)
+    monkeypatch.setattr(checkpointer_module, "get_checkpointer", _fake_get_checkpointer)
     monkeypatch.setattr(teaching_pack_graph_module, "build_teaching_pack_graph", lambda **kwargs: object())
 
     app = FastAPI()
@@ -96,8 +102,6 @@ async def _assert_lifespan_skips_legacy_graph(monkeypatch: pytest.MonkeyPatch) -
         return object
 
     monkeypatch.setattr(gateway_main, "configure_logging", lambda **kwargs: None)
-    monkeypatch.setattr(gateway_main, "create_async_engine", lambda url, pool_pre_ping: _FakeEngine())
-    monkeypatch.setattr(gateway_main, "async_sessionmaker", fake_sessionmaker)
     monkeypatch.setattr(gateway_main, "_run_teaching_pack_sweeper", record_sweeper)
     monkeypatch.setattr(gateway_main, "_run_teaching_pack_worker", record_worker)
     monkeypatch.setenv("OMC_ENVIRONMENT", "development")
@@ -105,8 +109,11 @@ async def _assert_lifespan_skips_legacy_graph(monkeypatch: pytest.MonkeyPatch) -
 
     import packages.agents.checkpointer as checkpointer_module
     import packages.agents.teaching_pack.graph as teaching_pack_graph_module
+    import services.gateway.teaching_pack_runtime as teaching_pack_runtime_module
 
-    monkeypatch.setattr(checkpointer_module, "get_checkpointer", lambda environment: object())
+    monkeypatch.setattr(teaching_pack_runtime_module, "create_async_engine", lambda url, pool_pre_ping: _FakeEngine())
+    monkeypatch.setattr(teaching_pack_runtime_module, "async_sessionmaker", fake_sessionmaker)
+    monkeypatch.setattr(checkpointer_module, "get_checkpointer", _fake_get_checkpointer)
     monkeypatch.setattr(teaching_pack_graph_module, "build_teaching_pack_graph", lambda **kwargs: object())
 
     app = FastAPI()

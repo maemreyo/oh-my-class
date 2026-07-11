@@ -349,3 +349,63 @@ class TestExportsRouter:
         assert response.status_code == 422
         assert response.json()["detail"] == "no_approved_artifacts"
         anyio.run(delete_run, run_id)
+
+
+class TestSignedDownloadUrl:
+    """#118: `download_url` is a real presigned URL when the app's export
+    writer is object-storage-backed, verified against the real local MinIO
+    -- not a mocked S3 client."""
+
+    @pytest.fixture
+    def object_storage_client(self, client: TestClient):
+        from botocore.exceptions import EndpointConnectionError
+
+        from services.gateway.object_storage import build_s3_client, ensure_bucket_exists, object_storage_config_from_env
+        from services.gateway.teaching_pack_export_writer import ObjectStorageTeachingPackExportWriter
+
+        config = object_storage_config_from_env()
+        s3_client = build_s3_client(config)
+        try:
+            ensure_bucket_exists(s3_client, config.bucket)
+        except EndpointConnectionError as exc:
+            pytest.skip(f"MinIO is unavailable for signed-URL tests: {exc}")
+        client.app.state.export_writer = ObjectStorageTeachingPackExportWriter(config=config, client=s3_client)
+        return s3_client, config
+
+    def test_list_exports_returns_a_working_signed_url_when_object_storage_backed(
+        self, client: TestClient, object_storage_client,
+    ) -> None:
+        import httpx
+
+        s3_client, config = object_storage_client
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_seed_run_snapshot_and_export, run_id, snapshot_id, True)
+        key = f"exports/{run_id}/{snapshot_id}.pptx"
+        body = b"fake pptx bytes for signed-url test"
+        s3_client.put_object(Bucket=config.bucket, Key=key, Body=body)
+
+        response = client.get(f"/teaching-packs/runs/{run_id}/exports")
+
+        assert response.status_code == 200
+        records = response.json()
+        assert len(records) == 1
+        download_url = records[0]["download_url"]
+        assert download_url is not None
+        fetched = httpx.get(download_url)
+        assert fetched.status_code == 200
+        assert fetched.content == body
+        anyio.run(delete_run, run_id)
+
+    def test_download_url_is_none_when_export_writer_is_not_object_storage_backed(
+        self, client: TestClient,
+    ) -> None:
+        run_id = RunId(f"test-{uuid4()}")
+        snapshot_id = f"snap-{uuid4()}"
+        anyio.run(_seed_run_snapshot_and_export, run_id, snapshot_id, True)
+
+        response = client.get(f"/teaching-packs/runs/{run_id}/exports")
+
+        assert response.status_code == 200
+        assert response.json()[0]["download_url"] is None
+        anyio.run(delete_run, run_id)

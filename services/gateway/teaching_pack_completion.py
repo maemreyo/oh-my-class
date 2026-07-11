@@ -66,6 +66,17 @@ class TeachingPackCompletionRecorder:
             return
         if _has_export_evidence(state):
             run = await self._store.get_run_by_id(run_id)
+            if run is not None and run.status == RunStatus.COMPLETED:
+                # #123 (OPS-10): a worker killed after this method's side
+                # effects committed but before the RunJob row itself was
+                # marked complete gets re-claimed and re-runs from the same
+                # graph checkpoint, which reaches this same completion state
+                # again. The Run is already COMPLETED -- exports/events/
+                # notifications already happened exactly once; re-running
+                # them would duplicate side effects and (for the Run status
+                # transition itself) hit an invalid EXPORTING/COMPLETED
+                # transition. Short-circuit instead.
+                return
             export_state = await _hydrate_state_snapshots(state, self._content_store)
             exported_files = await self._export_writer.write_exports(run_id, export_state)
             if self._export_store is not None:

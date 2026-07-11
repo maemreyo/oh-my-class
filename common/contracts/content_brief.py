@@ -48,6 +48,15 @@ class ContentBrief(BaseModel):
     answer_policy: AnswerPolicy = "none"
     dependency_document_ids: list[str] = Field(default_factory=list)
     source_citation_ids: list[str] = Field(default_factory=list)
+    # #465: pins the Content Intelligence Graph / capability-knowledge
+    # snapshot this brief's terminology/misconceptions/standards claims were
+    # resolved against -- the same `knowledge_db_version` already pinned into
+    # `ComponentStrategyPlan` (component_strategy.py) and the privacy decision
+    # ledger (component_strategy_privacy.py). Optional: not every brief is
+    # graph-derived (a teacher-authored brief may cite none), but when one is,
+    # this is where the snapshot identity is recorded so a later graph-version
+    # bump can never retroactively change what an already-approved brief meant.
+    knowledge_db_version: str | None = Field(default=None, max_length=80)
 
 
 def resolve_methodology(

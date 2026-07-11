@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import json
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Protocol
+from typing import TYPE_CHECKING, Literal, Protocol
 
 from services.gateway.teaching_pack_types import JsonObject, RunId
 from services.gateway.teaching_pack_snapshot_validators import teacher_only_value_paths
+
+if TYPE_CHECKING:
+    from services.gateway.object_storage import ObjectStorageConfig, S3Client
 
 type ExportFormat = Literal["html", "gift", "h5p", "qti", "anki_apkg", "flashcard_tsv", "pptx", "google_forms"]
 
@@ -70,6 +74,102 @@ class FileSystemTeachingPackExportWriter:
             out_path = await node_export(export_format, run_id, approved_snapshots, export_dir)
             exported_files.append(out_path)
         return exported_files
+
+
+@dataclass(frozen=True, slots=True)
+class ObjectStorageTeachingPackExportWriter:
+    """#118 (OPS-05): the same `write_exports` contract as the filesystem
+    writer, but PUTs to S3/MinIO and returns object keys (never local paths).
+
+    Keys are a deterministic function of identity -- `exports/<run_id>/<file>`
+    -- never a random per-attempt suffix, so a re-run overwrites the same key
+    rather than accumulating duplicates (the property #123/OPS-10 builds on).
+    """
+
+    config: ObjectStorageConfig
+    client: S3Client
+    renderer: TeachingPackSnapshotRenderer = RendererAdapterSnapshotRenderer()
+
+    async def write_exports(self, run_id: RunId, state: JsonObject) -> list[str]:
+        unsupported_formats = _unsupported_formats(state)
+        if unsupported_formats:
+            raise ExportAdapterError(
+                "Unsupported export format for offline gateway writer: "
+                + ", ".join(unsupported_formats),
+            )
+        exported_keys: list[str] = []
+        approved_snapshots = approved_snapshots_for_export(state)
+        for snapshot in approved_snapshots:
+            snapshot_id = str(snapshot.get("snapshot_id", ""))
+            content = _snapshot_content(snapshot)
+            teacher_only_paths = teacher_only_value_paths(content)
+            if teacher_only_paths:
+                raise ExportAdapterError(
+                    "Approved snapshot contains teacher-only answer material: "
+                    + ", ".join(teacher_only_paths),
+                )
+            rendered_html = await self.renderer.render(content)
+            key = f"exports/{run_id}/{snapshot_id}.html"
+            await self._put_object(key, rendered_html.encode("utf-8"))
+            exported_keys.append(key)
+        for export_format in _subprocess_formats(state):
+            key = await self._node_export_to_object(export_format, run_id, approved_snapshots)
+            exported_keys.append(key)
+        return exported_keys
+
+    async def _put_object(self, key: str, body: bytes) -> None:
+        """Overwrite-safe PUT -- S3 object writes are atomic per-key; the
+        same key always fully replaces the previous object, never merges."""
+        try:
+            await asyncio.to_thread(
+                self.client.put_object, Bucket=self.config.bucket, Key=key, Body=body,
+            )
+        except Exception as exc:  # noqa: BLE001 -- fail-closed, never silently skip the upload
+            raise ExportAdapterError(f"Object storage upload failed for key {key!r}: {exc}") from exc
+
+    async def _node_export_to_object(
+        self,
+        export_format: ExportFormat,
+        run_id: RunId,
+        snapshots: list[JsonObject],
+    ) -> str:
+        """The Node CLI only writes to a local directory -- give it a temp
+        dir, upload the produced file, then let the context manager clean
+        up. Preserves node_export's existing fail-closed timeout/exit-code
+        handling verbatim; only the sink after a successful run changes."""
+        with tempfile.TemporaryDirectory(prefix="omc-export-") as temp_dir:
+            local_path = await node_export(export_format, run_id, snapshots, Path(temp_dir))
+            body = Path(local_path).read_bytes()
+        key = f"exports/{run_id}/{run_id}.{export_format}"
+        await self._put_object(key, body)
+        return key
+
+    def presigned_url(self, key: str, *, expires_in_seconds: int = 300) -> str:
+        from services.gateway.object_storage import presigned_export_url
+
+        return presigned_export_url(
+            self.client, bucket=self.config.bucket, key=key, expires_in_seconds=expires_in_seconds,
+        )
+
+
+def export_writer_for_environment(
+    environment: str,
+    *,
+    base_dir: Path = Path(".scratch/pipeline-v2/artifacts/exports"),
+) -> TeachingPackExportWriter:
+    """#118: env-mapped writer selection, mirroring the store-factory
+    pattern at `main.py:167-172` (`if environment in ("staging", "production")`).
+    `development` (and anything else, fail-open to the safest default for
+    local dev) keeps the unchanged filesystem writer; only staging/production
+    write to object storage."""
+    if environment in ("staging", "production"):
+        from services.gateway.object_storage import build_s3_client, ensure_bucket_exists, object_storage_config_from_env
+
+        config = object_storage_config_from_env()
+        client = build_s3_client(config)
+        ensure_bucket_exists(client, config.bucket)
+        return ObjectStorageTeachingPackExportWriter(config=config, client=client)
+    return FileSystemTeachingPackExportWriter(base_dir=base_dir)
 
 
 @dataclass(frozen=True, slots=True)

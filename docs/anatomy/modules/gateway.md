@@ -9,7 +9,7 @@
 
 | Method | Path | Handler | Notes |
 |--------|------|---------|-------|
-| GET | `/health` | `main.py:264` `health_check` | Load balancer probe |
+| GET | `/health` | `main.py:257` `health_check` | Load balancer probe |
 
 ### Auth (prefix `/auth`)
 
@@ -216,13 +216,15 @@
 
 ### Entry point & lifecycle
 
-- **`main.py`** — FastAPI app factory. Lifespan initializes: SQLAlchemy engine (`postgresql+asyncpg://...`), LangGraph checkpointer, teaching pack graph (`build_teaching_pack_graph`), in-process worker loop, recovery sweeper (60s interval). Middleware: JWT, RequestID, CORS.
+- **`main.py`** — FastAPI app factory. Lifespan initializes: SQLAlchemy engine (`postgresql+asyncpg://...`), LangGraph checkpointer, teaching pack graph (`build_teaching_pack_graph`), in-process worker loop, recovery sweeper (60s interval). Middleware: JWT, RequestID, CORS. `lifespan()` uses `contextlib.AsyncExitStack` (not sync `ExitStack`, since production's checkpointer is now an async-entered `AsyncPostgresSaver` — see `agents.md`'s "Checkpointer factory" section for the bug this fixed, #123 OPS-10) and calls `teaching_pack_runtime.build_teaching_pack_runtime(...)` inside the stack to build the engine/checkpointer/store/graph, copying the results onto `app.state.*`.
+- **`teaching_pack_runtime.py`** — `TeachingPackRuntime` dataclass + `build_teaching_pack_runtime(environment, database_url, exit_stack)`, extracted this session from `main.py`'s `lifespan()` (#119 OPS-06's own implementation notes call for exactly this: "factor the executor/graph construction out of `lifespan` into a shared builder so API and worker use one code path"). Builds the SQLAlchemy engine/session-factory, the checkpointer (`get_checkpointer`), the LangGraph store, the export writer, and the compiled graph — the single construction path both `main.py`'s in-process worker and `worker_entrypoint.py`'s standalone worker now share, so they can never silently drift onto two different runtimes.
+- **`worker_entrypoint.py`** — Standalone teaching-pack worker process (#119 OPS-06, partial slice — the "standalone worker entrypoint" scope item only, not the K8s manifest/autoscaling/load-test items, which need real cluster infra this environment can't provide). `run_standalone_worker(runtime, *, shutdown_event=None, executor_factory_override=None)` runs the same claim/execute loop as `main.py`'s in-process worker but without a FastAPI app — built for `WORKER_MODE != "in_process"` deployments where the worker fleet scales independently. `worker_id()` derives a distinct `lease_owner` per replica (`POD_NAME`/`HOSTNAME`/pid fallback, in that order) — `claim_next`/`refresh_lease` key leases on this, so two replicas sharing one id would corrupt heartbeat semantics. The claim loop is breakable via `shutdown_event` for graceful drain (checked before each batch; interrupts the idle sleep immediately rather than waiting out the last tick) — the hook #119 says OPS-08 (drain-on-SIGTERM) needs. `main()` is the `python -m services.gateway.worker_entrypoint` process entrypoint: builds its own runtime, registers a SIGTERM/SIGINT handler that sets the shutdown event, and disposes its engine on exit. Tested end-to-end against the real Postgres job queue (`tests/test_worker_entrypoint.py`): enqueues a real job, runs the loop with a fake executor via `executor_factory_override` (avoiding a full LLM pipeline run), confirms the job is claimed/executed/marked `COMPLETED`, and confirms the loop drains promptly once `shutdown_event` is set.
 - **`secrets_guard.py`** — Validates production secrets at startup.
 - **`logging_config.py`** — Structured JSON logging setup.
 
 ### Agent runtime embedding
 
-- **`main.py:159`** — `build_teaching_pack_graph(checkpointer=..., store=..., quality_gate=...)` constructs the LangGraph `StateGraph` at startup and stores it in `app.state.teaching_pack_graph`.
+- **`teaching_pack_runtime.py:45`** — `build_teaching_pack_runtime(environment, database_url, exit_stack)` (extracted from `lifespan()` this session, #119 OPS-06, so the API and the standalone worker entrypoint share one construction path) builds the engine/session-factory/checkpointer/store/export-writer and calls `build_teaching_pack_graph(checkpointer=..., store=..., quality_gate=...)` to construct the LangGraph `StateGraph`. `main.py`'s `lifespan()` (`main.py:177`) calls it and copies the results onto `app.state.*`.
 - **`teaching_pack_executor.py:85-176`** — `TeachingPackExecutor` wraps the graph: calls `graph.ainvoke(state, config)` for new runs and `graph.ainvoke(Command(resume=...), config)` for gate resumptions. Delegates to `TeachingPackFailureSink`/`TeachingPackCompletionSink` protocols.
 - **`teaching_pack_worker.py:37-168`** — `TeachingPackWorker` polls `run_jobs` table via claim-lease pattern, dispatches to executor. `run_worker_batch()` processes N concurrent jobs per cycle.
 
@@ -250,7 +252,7 @@
 - **`teaching_pack_export_store.py`** — `TeachingPackExportStore` — export records, staleness checks.
 - **`teaching_pack_db.py`** — Session factory + `get_teaching_pack_session` dependency.
 - **`artifact_document_store.py`** — `ArtifactDocumentStore` — V2 `ArtifactDocument`/`AnswerSet`/variant/dependency/approval persistence (`persist`, `create_edit` with an advisory-lock optimistic-lock retry); `get_preview_source` (`:187`) returns the linked V2 snapshot or falls back to the legacy V1 `ArtifactSnapshot` (`legacy=True`), emitting an `artifact_document_legacy_read` observability event on the fallback path (#463 rollout metric).
-- **`artifact_document_content_store.py`** — `GatewayArtifactDocumentContentStore` — the agents-facing `ArtifactContentStore` port implementation the gateway composes at startup (`main.py:93,119,165,189`) that persists through `ArtifactDocumentStore`/Postgres instead of the LangGraph store; converts via `common.contracts.artifact_projection_mapper`.
+- **`artifact_document_content_store.py`** — `GatewayArtifactDocumentContentStore` — the agents-facing `ArtifactContentStore` port implementation composed at startup (`teaching_pack_runtime.py:82`, via `build_teaching_pack_runtime`; also directly in `main.py:92,125` for the in-process worker's completion recorder) that persists through `ArtifactDocumentStore`/Postgres instead of the LangGraph store; converts via `common.contracts.artifact_projection_mapper`.
 
 ### Auth
 
@@ -291,9 +293,9 @@
 
 | What | Where imported | Evidence |
 |------|---------------|----------|
-| `build_teaching_pack_graph` | `main.py:159` | Constructs the authoritative stage graph at startup |
-| `get_checkpointer` | `main.py:158` | MemorySaver/SqliteSaver/PostgresSaver per environment |
-| `open_teaching_pack_store`, `get_development_store`, `sync_connection_string` | `main.py:161-164` | LangGraph store for multi-tenant memory |
+| `build_teaching_pack_graph` | `teaching_pack_runtime.py:56` | Constructs the authoritative stage graph at startup, via the shared runtime builder (#119 OPS-06) |
+| `get_checkpointer` | `teaching_pack_runtime.py:55` | MemorySaver/SqliteSaver per environment, or `AsyncPostgresSaver` for production (fixed #123 OPS-10 — see agents.md) |
+| `open_teaching_pack_store`, `get_development_store`, `sync_connection_string` | `teaching_pack_runtime.py:57-60` | LangGraph store for multi-tenant memory |
 | `LangGraphArtifactContentStore` | `main.py:93` | Bridges artifact store to LangGraph content orchestrator; `GatewayArtifactDocumentContentStore` (gateway-owned, `artifact_document_content_store.py`) is the alternative V2-backed composition (#463) |
 | `teaching_pack_thread_config`, `LangGraphRunnableConfig` | `teaching_pack_executor.py:11` | Thread config for graph invocation |
 | `Command` (from `langgraph.types`) | `teaching_pack_executor.py:8` | Gate resume via `Command(resume=...)` |
@@ -419,18 +421,19 @@ Plus tables from re-exported models: `artifact_workflows`, `artifact_snapshots`,
 | Path | Purpose |
 |------|---------|
 | `media_storage.py` → teacher-scoped storage | Image/diagram uploads under `teacher-media/{teacher_id}/` |
-| `teaching_pack_export_writer.py` | Export file storage |
+| `teaching_pack_export_writer.py` | Export file storage — `FileSystemTeachingPackExportWriter` (dev) or `ObjectStorageTeachingPackExportWriter` (staging/prod, #118 OPS-05) |
+| `object_storage.py` | #118: shared S3/MinIO client construction (`build_s3_client`, `ensure_bucket_exists`, `presigned_export_url`), env-mapped (`OMC_S3_*`, falls back to the compose MinIO vars) |
 | `alembic/` | Database migration scripts |
 
 ### Environment variables
 
 | Variable | Default | Where read | Purpose |
 |----------|---------|------------|---------|
-| `DATABASE_URL` | `postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class` | `main.py:168` | Database connection |
-| `OMC_ENVIRONMENT` | `development` | `main.py:167` | Controls checkpointer type + store |
-| `OMC_ENABLE_SIX_LAYER_QUALITY` | `true` | `main.py:63` | Toggle quality gate |
-| `WORKER_MODE` | `in_process` | `main.py:67` | Worker execution mode |
-| `WORKER_CONCURRENCY` | `1` | `main.py:68` | Max concurrent jobs (capped at 10) |
+| `DATABASE_URL` | `postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class` | `main.py:167` | Database connection |
+| `OMC_ENVIRONMENT` | `development` | `main.py:165` | Controls checkpointer type + store |
+| `OMC_ENABLE_SIX_LAYER_QUALITY` | `true` | `main.py:62` | Toggle quality gate |
+| `WORKER_MODE` | `in_process` | `main.py:66` | Worker execution mode |
+| `WORKER_CONCURRENCY` | `1` | `main.py:67` | Max concurrent jobs (capped at 10) |
 | `LITELLM_PROXY_URL` | (optional) | `packages/agents/` | LiteLLM proxy for production |
 | `LLM_BASE_URL` | (optional) | `packages/agents/` | 9Router sidecar URL |
 
@@ -438,8 +441,8 @@ Plus tables from re-exported models: `artifact_workflows`, `artifact_snapshots`,
 
 | Task | File:line | Interval | Purpose |
 |------|-----------|----------|---------|
-| `_run_teaching_pack_worker` | `main.py:92` | Continuous (1s idle sleep) | Poll and execute queued jobs |
-| `_run_teaching_pack_sweeper` | `main.py:79` | 60s | Requeue stuck jobs, escalate expired gates, reconcile units |
+| `_run_teaching_pack_worker` | `main.py:91` | Continuous (1s idle sleep) | Poll and execute queued jobs |
+| `_run_teaching_pack_sweeper` | `main.py:78` | 60s | Requeue stuck jobs, escalate expired gates, reconcile units |
 
 ## Notes / discrepancies vs existing docs
 
@@ -451,7 +454,7 @@ Plus tables from re-exported models: `artifact_workflows`, `artifact_snapshots`,
 
 4. **Teaching session live routes use session-token auth, not JWT.** `teaching_session_live.py` is exempted from `JWTMiddleware` via `PUBLIC_PREFIXES` — these routes gate on session-role tokens instead.
 
-5. **Quality gate is optional.** `main.py:62-63` checks `OMC_ENABLE_SIX_LAYER_QUALITY` env var; the quality gate is wired as `None` when disabled.
+5. **Quality gate is optional.** `main.py:61-62` checks `OMC_ENABLE_SIX_LAYER_QUALITY` env var; the quality gate is wired as `None` when disabled.
 
 6. **123+ files in the gateway module.** This is the largest service module in the codebase. The `teaching_session/` sub-package, `webhooks/` sub-package, and `observability/` sub-package add significant internal structure.
 
@@ -460,6 +463,10 @@ Plus tables from re-exported models: `artifact_workflows`, `artifact_snapshots`,
 8. **Recursive teacher-only leakage guard added (#463).** `teaching_pack_snapshot_validators.py` now exposes `teacher_only_value_paths(value)`, a recursive scan for the answer-bearing key set (`answer`, `answer_set`, `accepted_answers`, `correct_option_ids`, `explain`, `rationale`, `wrong_reasons`, `rubric_solution`) anywhere in a JSON value. It's enforced at two write seams: `TeachingPackSnapshotStore.create_snapshot` (`teaching_pack_snapshot_store.py:87-89`, raises `AnswerKeyLeakageError`) and `FileSystemTeachingPackExportWriter.export` (`teaching_pack_export_writer.py:58-64`, raises `ExportAdapterError`) — the property-test-style boundary #463's scope calls for, applied at the two points student-facing bytes actually leave the system rather than only at the V2 `ArtifactDocument` construction seam (see `contracts.md`'s `artifact_projection_mapper.py` entry for the construction-time half of the same guarantee).
 
 9. **Canonical grade-band/curriculum resolution (#462).** `run_contract_setup.py` now resolves `RunContract.grade_band` via `common.contracts.grade_band.grade_band_for_label` (rejecting ambiguous input as an `unsupported` field instead of guessing, `run_contract_setup.py:76-78`) and `RunContract.curriculum_framework` via `common.contracts.education_policy.curriculum_framework_for`, replacing the previous `f"Grade {class_info['grade']}"` string-interpolation fallback.
+
+10. **Object-storage export writer (#118 OPS-05, live-verified).** `ObjectStorageTeachingPackExportWriter` (`teaching_pack_export_writer.py`) implements the same `TeachingPackExportWriter` protocol as the filesystem writer but PUTs to S3/MinIO and returns deterministic object keys (`exports/<run_id>/<file>`, never a random per-attempt suffix — a re-run overwrites the same key). The Node CLI export path (gift/h5p/qti/anki_apkg/flashcard_tsv/pptx) gets a `tempfile.TemporaryDirectory` as its output dir, then the produced file is uploaded and the temp dir cleaned up — the CLI's own fail-closed timeout/exit-code handling in `node_export()` is unchanged, only the sink after success differs. `object_storage.py` is the one shared S3 client/bucket/presigned-URL module (`OMC_S3_*` env vars, falling back to the compose MinIO credentials). `export_writer_for_environment()` mirrors `main.py`'s store-factory pattern: `development` unchanged (filesystem), `staging`/`production` → object storage — wired live at `main.py`'s worker startup (`app.state.environment` set in `lifespan()`, read by `_run_teaching_pack_worker`, one writer built once per worker start and passed into `TeachingPackCompletionRecorder`). Verified against the real local MinIO (`infra/compose/docker-compose.yml`, not a mocked S3 client): a real PUT + `get_object` round-trip, a same-key overwrite-not-duplicate check, a real presigned-URL fetch via `httpx`, and — the "keys in DB, not paths" scope item — a full `TeachingPackCompletionRecorder.persist_completion` → real `export_records` row → real MinIO object round-trip (`test_object_storage_export_writer.py::TestObjectKeysPersistToExportRecords`), proving the object key (not a local path) is what actually lands in Postgres. **Signed-URL issuance wired into the real router (#118, done this session):** `routers/exports.py`'s `ExportRecordResponse` now carries `download_url` — a real presigned URL computed via `app.state.export_writer` (set once in `main.py`'s `lifespan()`, reused by the worker so only one S3 client exists per process) when that writer is object-storage-backed; `None` in development, where `storage_path` is a local path the gateway process can still read directly. Verified against the real MinIO: `test_exports_router.py::TestSignedDownloadUrl` uploads a real object, calls `GET .../exports`, and fetches the returned `download_url` via `httpx` to confirm the bytes round-trip. `list_exports`/`get_export_status`/`get_export_status_by_format` all thread the request through; the teaching-pack-bundle export endpoint (`export_teaching_pack_bundle`) still uses the older `TeachingPackBundleWriter` (filesystem-only, unaffected — out of this issue's scope).
+
+11. **Exactly-once export completion (#123 OPS-10, live-verified).** `export_records` now has a real unique constraint on `(snapshot_id, format)` (migration `039_export_records_idempotency.py`), and `TeachingPackExportStore.create_export_record` (`teaching_pack_export_store.py:55-85`) does an `INSERT ... ON CONFLICT DO NOTHING` then re-selects the row — a retried write for the same snapshot+format returns the original row instead of raising or duplicating. Separately, `TeachingPackCompletionRecorder.persist_completion` (`teaching_pack_completion.py`) had a genuine idempotency gap: at-least-once job delivery means a worker that crashes after `persist_completion`'s side effects commit but before the `RunJob` row itself is marked complete gets re-claimed and re-runs the same completion logic against a `Run` that's already `COMPLETED`, which previously crashed with `InvalidRunStatusTransitionError` trying to re-transition `COMPLETED` → `EXPORTING`. Fixed with an early-return guard right after the run is fetched: if `run.status == RunStatus.COMPLETED`, return without re-running exports/events/notifications. Covered end-to-end (real Postgres + real MinIO, no mocks) by `tests/resilience/test_export_completion_kill_mid_job.py`, which claims a job, runs `persist_completion` once, force-expires the lease, reclaims the job via `recovery_sweeper.sweep_stuck_jobs`, and calls `persist_completion` again on the same run/state — asserting exactly one `export_records` row, one MinIO object at the deterministic key, and no duplicate-sequence `run_events`.
 
 ---
 _Traced from source on 2026-07-11. Files examined in depth: `main.py`, `routers/` (all 17 router files), `teaching_pack_executor.py`, `teaching_pack_worker.py`, `models.py`, `teaching_pack_models.py`, `teaching_pack_quality_gate.py`, `quality_gates.py`, `quality_workflow.py`, `auth/` (all 5 files). 123 total files in module._

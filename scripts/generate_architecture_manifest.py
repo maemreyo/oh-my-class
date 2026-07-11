@@ -188,13 +188,17 @@ def _wiring_booleans() -> WiringManifest:
     from packages.agents.teaching_pack.features import artifact_send_fanout_v1_enabled
     from packages.agents.teaching_pack.graph import build_teaching_pack_graph
     from packages.agents.teaching_pack.nodes import TeachingPackState
-    from services.gateway import main
+    from services.gateway import teaching_pack_runtime
 
-    main_source = inspect.getsource(main.lifespan)
+    # #119 (OPS-06): the graph/quality-gate construction moved out of
+    # `main.lifespan` into the shared `teaching_pack_runtime.build_teaching_pack_runtime`
+    # builder this session, so both the API process and the standalone
+    # worker entrypoint build it identically -- this check follows that move.
+    runtime_source = inspect.getsource(teaching_pack_runtime.build_teaching_pack_runtime)
     graph_source = inspect.getsource(build_teaching_pack_graph)
     state_annotations = TeachingPackState.__annotations__
     return {
-        "quality_gate_injected": "quality_gate=GatewayTeachingPackQualityGate() if _quality_gate_enabled() else None" in main_source,
+        "quality_gate_injected": "quality_gate=GatewayTeachingPackQualityGate() if quality_gate_enabled() else None" in runtime_source,
         "middleware_runner_active": (PROJECT_ROOT / "packages" / "llm_client" / "middleware.py").exists(),
         "lead_agent_present": (PROJECT_ROOT / "packages" / "agents" / "lead_agent" / "agent.py").exists(),
         "legacy_graph_present": (PROJECT_ROOT / "packages" / "agents" / "graph.py").exists(),

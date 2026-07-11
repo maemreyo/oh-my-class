@@ -89,6 +89,43 @@ class TestTeachingPackExportStore:
         await session.execute(delete(Run).where(Run.run_id == run_id))
         await session.commit()
 
+    async def test_creating_the_same_export_record_twice_is_idempotent(
+        self, session: AsyncSession,
+    ) -> None:
+        """#123 (OPS-10): a worker killed after write_exports+create_export_record
+        but before the job is marked complete gets re-claimed and re-runs the
+        same completion logic. `(snapshot_id, format)` has a real unique
+        constraint (migration 039) -- the retry must land on the exact same
+        row, not raise and not create a second row for the same export."""
+        run_id = await _make_run(session)
+        await _make_snapshot(session, run_id, "artifact-1", "snap-1")
+        store = TeachingPackExportStore(session)
+
+        first = await store.create_export_record(ExportRecordCreate(
+            export_id=f"export-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            snapshot_id="snap-1",
+            format="pptx",
+            storage_path=f"exports/{run_id}/snap-1.pptx",
+        ))
+        # Simulates the retry: a fresh export_id (as a real re-run would mint
+        # via uuid4()), same (snapshot_id, format), same storage_path.
+        second = await store.create_export_record(ExportRecordCreate(
+            export_id=f"export-{uuid4()}",
+            run_id=run_id,
+            artifact_id="artifact-1",
+            snapshot_id="snap-1",
+            format="pptx",
+            storage_path=f"exports/{run_id}/snap-1.pptx",
+        ))
+
+        assert second.export_id == first.export_id
+        fetched = await store.list_exports(run_id)
+        assert len(fetched) == 1
+        await session.execute(delete(Run).where(Run.run_id == run_id))
+        await session.commit()
+
     async def test_edit_does_not_touch_or_delete_existing_export_records(
         self, session: AsyncSession,
     ) -> None:

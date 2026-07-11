@@ -64,3 +64,15 @@ def test_choice_must_be_listed_when_a_variant_menu_is_declared() -> None:
 
     assert is_choice_within_bounds(brief, "multiple_choice") is True
     assert is_choice_within_bounds(brief, "essay") is False
+
+
+def test_knowledge_db_version_defaults_to_none_for_a_teacher_authored_brief() -> None:
+    brief = _brief()
+
+    assert brief.knowledge_db_version is None
+
+
+def test_knowledge_db_version_is_pinned_when_a_graph_snapshot_backs_the_brief() -> None:
+    brief = _brief(knowledge_db_version="knowledge-db-2026.07.1")
+
+    assert brief.knowledge_db_version == "knowledge-db-2026.07.1"

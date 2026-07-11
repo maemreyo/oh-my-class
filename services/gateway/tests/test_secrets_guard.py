@@ -93,20 +93,26 @@ async def _assert_lifespan_accepts_production_secrets(monkeypatch: pytest.Monkey
         pass
 
 
+async def _fake_get_checkpointer(environment: str, **kwargs: object) -> object:
+    _ = (environment, kwargs)
+    return object()
+
+
 def _set_gateway_lifespan_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
     def fake_sessionmaker(engine: _FakeEngine, expire_on_commit: bool) -> Callable[[], object]:
         _ = (engine, expire_on_commit)
         return object
 
     monkeypatch.setattr(gateway_main, "configure_logging", lambda **kwargs: None)
-    monkeypatch.setattr(gateway_main, "create_async_engine", lambda url, pool_pre_ping: _FakeEngine())
-    monkeypatch.setattr(gateway_main, "async_sessionmaker", fake_sessionmaker)
     monkeypatch.setattr(gateway_main, "_run_teaching_pack_sweeper", _sleep_forever)
 
     import packages.agents.checkpointer as checkpointer_module
     import packages.agents.teaching_pack.graph as teaching_pack_graph_module
+    import services.gateway.teaching_pack_runtime as teaching_pack_runtime_module
 
-    monkeypatch.setattr(checkpointer_module, "get_checkpointer", lambda environment: object())
+    monkeypatch.setattr(teaching_pack_runtime_module, "create_async_engine", lambda url, pool_pre_ping: _FakeEngine())
+    monkeypatch.setattr(teaching_pack_runtime_module, "async_sessionmaker", fake_sessionmaker)
+    monkeypatch.setattr(checkpointer_module, "get_checkpointer", _fake_get_checkpointer)
     monkeypatch.setattr(teaching_pack_graph_module, "build_teaching_pack_graph", lambda **kwargs: object())
 
 

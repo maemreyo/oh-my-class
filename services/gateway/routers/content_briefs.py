@@ -49,6 +49,7 @@ class CreateContentBriefRequest(BaseModel):
     answer_policy: AnswerPolicy = "none"
     dependency_document_ids: list[str] = Field(default_factory=list)
     source_citation_ids: list[str] = Field(default_factory=list)
+    knowledge_db_version: str | None = Field(default=None, max_length=80)
 
 
 class FillFailureRequest(BaseModel):

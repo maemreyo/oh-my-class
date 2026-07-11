@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 import anyio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from .logging_config import configure_logging
 from .middleware.auth_middleware import JWTMiddleware
@@ -99,8 +98,14 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
     )
     from .teaching_pack_executor_types import InAppTeachingPackNotificationSink
     from .teaching_pack_export_store import TeachingPackExportStore
+    from .teaching_pack_export_writer import FileSystemTeachingPackExportWriter
     from .teaching_pack_store import TeachingPackRunStore
     from .teaching_pack_worker import TeachingPackWorkerConfig, run_worker_batch
+
+    # #118: reuse the one writer `lifespan()` already built for this app
+    # (also used by the export-listing router for signed URLs) rather than
+    # constructing a second S3 client.
+    export_writer = getattr(app.state, "export_writer", None) or FileSystemTeachingPackExportWriter()
 
     def executor_factory(session: AsyncSession) -> TeachingPackExecutor:
         run_store = TeachingPackRunStore(session)
@@ -111,6 +116,7 @@ async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None
             TeachingPackFailureRecorder(run_store, notification_sink),
             TeachingPackCompletionRecorder(
                 run_store,
+                export_writer=export_writer,
                 notifications=notification_sink,
                 outcome_delivery=SqlAlchemyOutcomeDeliverySink(
                     app.state.teaching_pack_session_factory,
@@ -154,45 +160,30 @@ async def lifespan(app: FastAPI):
     configure_logging(log_level="INFO", json_output=True)
     validate_production_secrets()
 
-    from packages.agents.checkpointer import get_checkpointer
-    from packages.agents.teaching_pack.graph import build_teaching_pack_graph
-    from packages.agents.teaching_pack.store import (
-        get_development_store,
-        open_teaching_pack_store,
-        sync_connection_string,
-    )
-    from services.gateway.teaching_pack_quality_gate import GatewayTeachingPackQualityGate
-    from services.gateway.artifact_document_content_store import GatewayArtifactDocumentContentStore
+    from services.gateway.teaching_pack_runtime import build_teaching_pack_runtime
 
     environment = os.getenv("OMC_ENVIRONMENT", "development")
     database_url = os.getenv(
         "DATABASE_URL",
         "postgresql+asyncpg://omc_dev:omc_dev@localhost:5432/oh_my_class",
     )
-    app.state.teaching_pack_engine = create_async_engine(database_url, pool_pre_ping=True)
-    app.state.teaching_pack_session_factory = async_sessionmaker(
-        app.state.teaching_pack_engine,
-        expire_on_commit=False,
-    )
-    app.state.checkpointer = get_checkpointer(environment)
     app.state.runs = {}
 
-    with contextlib.ExitStack() as stack:
-        if environment in ("staging", "production"):
-            store = stack.enter_context(
-                open_teaching_pack_store(sync_connection_string(database_url))
-            )
-        else:
-            store = get_development_store()
-
-        app.state.store = store
-        content_store = GatewayArtifactDocumentContentStore(app.state.teaching_pack_session_factory)
-        app.state.teaching_pack_graph = build_teaching_pack_graph(
-            checkpointer=app.state.checkpointer,
-            store=store,
-            quality_gate=GatewayTeachingPackQualityGate() if _quality_gate_enabled() else None,
-            content_store=content_store,
+    async with contextlib.AsyncExitStack() as stack:
+        # #119 (OPS-06): shared with the standalone worker entrypoint
+        # (`worker_entrypoint.py`) so the API process and a dedicated worker
+        # process build the identical graph/checkpointer/store, not two
+        # independently-maintained code paths.
+        pack_runtime = await build_teaching_pack_runtime(
+            environment=environment, database_url=database_url, exit_stack=stack,
         )
+        app.state.teaching_pack_engine = pack_runtime.engine
+        app.state.teaching_pack_session_factory = pack_runtime.session_factory
+        app.state.checkpointer = pack_runtime.checkpointer
+        app.state.store = pack_runtime.store
+        app.state.environment = environment
+        app.state.export_writer = pack_runtime.export_writer
+        app.state.teaching_pack_graph = pack_runtime.graph
 
         async with anyio.create_task_group() as task_group:
             task_group.start_soon(_run_teaching_pack_sweeper, app)

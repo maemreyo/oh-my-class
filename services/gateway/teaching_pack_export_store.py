@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from services.gateway.teaching_pack_export_models import ExportRecord
 
@@ -52,7 +53,17 @@ class TeachingPackExportStore:
         self._session = session
 
     async def create_export_record(self, payload: ExportRecordCreate) -> ExportRecordRead:
-        record = ExportRecord(
+        """#123 (OPS-10): exactly-once -- `(snapshot_id, format)` has a real
+        unique constraint (migration 039). A retried completion (worker
+        killed after this write but before the job is marked complete, then
+        re-claimed and re-run) hits the conflict and this returns the
+        original row instead of raising or silently creating a duplicate.
+        The legitimate "new export" path always supplies a new snapshot_id
+        (`export_manifest_service.regenerate_stale_exports` only calls this
+        when the snapshot actually changed), so this never blocks a real
+        re-export.
+        """
+        statement = pg_insert(ExportRecord).values(
             export_id=payload.export_id,
             run_id=payload.run_id,
             artifact_id=payload.artifact_id,
@@ -60,10 +71,18 @@ class TeachingPackExportStore:
             format=payload.format,
             storage_path=payload.storage_path,
             capability_version=payload.capability_version,
+        ).on_conflict_do_nothing(
+            index_elements=["snapshot_id", "format"],
         )
-        self._session.add(record)
+        await self._session.execute(statement)
         await self._session.flush()
-        return _read_record(record)
+        existing = await self._session.execute(
+            select(ExportRecord).where(
+                ExportRecord.snapshot_id == payload.snapshot_id,
+                ExportRecord.format == payload.format,
+            ),
+        )
+        return _read_record(existing.scalar_one())
 
     async def list_exports(self, run_id: RunId, artifact_id: str | None = None) -> list[ExportRecordRead]:
         statement = select(ExportRecord).where(ExportRecord.run_id == run_id)

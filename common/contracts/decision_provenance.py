@@ -23,3 +23,9 @@ class DecisionProvenance(BaseModel):
     authority: DocumentAuthority
     claim_evidence: list[ClaimEvidence] = Field(default_factory=list)
     dependency_document_ids: list[str] = Field(default_factory=list)
+    # #465: same knowledge-graph snapshot pin as ContentBrief.knowledge_db_version
+    # -- teacher-visible evidence of *which* capability/knowledge snapshot this
+    # document's claims were checked against, immutable once the document version
+    # is persisted (a later graph-version bump never rewrites this document's
+    # own provenance).
+    knowledge_db_version: str | None = Field(default=None, max_length=80)

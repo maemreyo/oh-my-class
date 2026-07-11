@@ -14,7 +14,7 @@ Gateway runs on **`:8101`** in local dev (Makefile) and **`:8001`** in Docker (c
 
 | Method | Path | Handler | Description |
 |--------|------|---------|-------------|
-| GET | `/health` | `main.py:264` `health_check` | Load balancer probe |
+| GET | `/health` | `main.py:257` `health_check` | Load balancer probe |
 
 ### Auth (prefix `/auth`)
 
@@ -298,8 +298,8 @@ Next.js App Router at `apps/web/src/app/`.
 
 | Task | File | Interval | Description |
 |------|------|----------|-------------|
-| Teaching Pack Worker | `main.py:92` `_run_teaching_pack_worker` | Continuous (1s idle sleep) | Polls `run_jobs` table via claim-lease pattern, dispatches to `TeachingPackExecutor` |
-| Recovery Sweeper | `main.py:79` `_run_teaching_pack_sweeper` | 60s | Requeues stuck jobs, escalates expired gate interrupts, reconciles unit parent/child states |
+| Teaching Pack Worker | `main.py:91` `_run_teaching_pack_worker` | Continuous (1s idle sleep) | Polls `run_jobs` table via claim-lease pattern, dispatches to `TeachingPackExecutor` |
+| Recovery Sweeper | `main.py:78` `_run_teaching_pack_sweeper` | 60s | Requeues stuck jobs, escalates expired gate interrupts, reconciles unit parent/child states |
 
 ---
 

@@ -12,7 +12,17 @@ graph and its closure algorithm.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
+
+# #465: "Support private_teacher, organization, and system scopes without
+# cross-tenant cache keys or retrieval." Mirrors the same three-tier tenant
+# scope already established (and tested) for Source Collections
+# (`services/gateway/routers/source_collections.py`) -- reused here, not
+# reinvented. Distinct from `PrerequisiteNode.scope` (a subject/grade-band
+# key), which is about curriculum modeling, not tenant access.
+ContentAccessScope = Literal["private_teacher", "organization", "system"]
 
 
 class PrerequisiteGraphError(ValueError):
@@ -43,6 +53,16 @@ class PrerequisiteScopeConflictError(PrerequisiteGraphError):
         )
 
 
+class PrerequisiteAccessDeniedError(PrerequisiteGraphError):
+    """Tenant-isolation failure: a node outside the requester's visible
+    access scopes, or a `private_teacher` node owned by someone else."""
+
+    def __init__(self, node_id: str, access_scope: str) -> None:
+        self.node_id = node_id
+        self.access_scope = access_scope
+        super().__init__(f"node {node_id!r} (access_scope={access_scope!r}) is not visible to this requester")
+
+
 class PrerequisiteNode(BaseModel):
     """One knowledge-component node in the prerequisite graph."""
 
@@ -52,6 +72,11 @@ class PrerequisiteNode(BaseModel):
     description: str = Field(min_length=1, max_length=500)
     scope: str = Field(min_length=1, max_length=80, description="e.g. a subject or subject+grade-band key")
     requires: tuple[str, ...] = Field(default_factory=tuple, description="node_ids this node depends on")
+    # #465 tenant isolation: who may see this node at all, independent of
+    # the curriculum `scope` above. `owner_id` is required and checked only
+    # for "private_teacher" (a system/organization node has no single owner).
+    access_scope: ContentAccessScope = "system"
+    owner_id: str | None = Field(default=None, max_length=80)
 
 
 class PrerequisiteGraph(BaseModel):
@@ -72,7 +97,16 @@ class PrerequisiteGraph(BaseModel):
         return next((node for node in self.nodes if node.node_id == node_id), None)
 
 
-def prerequisite_closure(graph: PrerequisiteGraph, target_id: str) -> tuple[str, ...]:
+_DEFAULT_VISIBLE_ACCESS_SCOPES: frozenset[ContentAccessScope] = frozenset({"system"})
+
+
+def prerequisite_closure(
+    graph: PrerequisiteGraph,
+    target_id: str,
+    *,
+    visible_access_scopes: frozenset[ContentAccessScope] = _DEFAULT_VISIBLE_ACCESS_SCOPES,
+    requester_id: str | None = None,
+) -> tuple[str, ...]:
     """Return every prerequisite of `target_id`, deepest-first, deterministically ordered.
 
     Fails closed (raises) rather than silently truncating or ignoring a
@@ -83,6 +117,12 @@ def prerequisite_closure(graph: PrerequisiteGraph, target_id: str) -> tuple[str,
       match the dependent's scope (a prerequisite must stay within the same
       subject/grade-band scope it's claimed for -- cross-scope requirements
       are a modeling error, not a valid dependency).
+    - `PrerequisiteAccessDeniedError` (#465 tenant isolation) if traversal
+      would cross into a node outside `visible_access_scopes`, or into a
+      `private_teacher` node owned by someone other than `requester_id`.
+      The caller (gateway) resolves a user's role into the scope set it may
+      see -- this module has no knowledge of roles, only the resulting set,
+      keeping `common/contracts` a dependency-free leaf.
     """
     target = graph.node_by_id(target_id)
     if target is None:
@@ -92,11 +132,18 @@ def prerequisite_closure(graph: PrerequisiteGraph, target_id: str) -> tuple[str,
     ordering: list[str] = []
     in_progress: list[str] = []
 
+    def _assert_visible(node: PrerequisiteNode) -> None:
+        if node.access_scope not in visible_access_scopes:
+            raise PrerequisiteAccessDeniedError(node.node_id, node.access_scope)
+        if node.access_scope == "private_teacher" and node.owner_id != requester_id:
+            raise PrerequisiteAccessDeniedError(node.node_id, node.access_scope)
+
     def visit(node_id: str, expected_scope: str) -> None:
         node = graph.node_by_id(node_id)
         if node is None:
             parent = in_progress[-1] if in_progress else target_id
             raise PrerequisiteMissingNodeError(parent, node_id)
+        _assert_visible(node)
         if node_id != target_id and node.scope != expected_scope:
             raise PrerequisiteScopeConflictError(node_id, expected_scope, node.scope)
         if node_id in in_progress:
@@ -112,5 +159,6 @@ def prerequisite_closure(graph: PrerequisiteGraph, target_id: str) -> tuple[str,
         if node_id != target_id:
             ordering.append(node_id)
 
+    _assert_visible(target)
     visit(target_id, target.scope)
     return tuple(ordering)

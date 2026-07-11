@@ -66,3 +66,28 @@ def test_decision_provenance_has_no_reasoning_field_at_all() -> None:
     assert "chain_of_thought" not in field_names
     assert "reasoning" not in field_names
     assert "prompt" not in field_names
+
+
+def test_decision_provenance_knowledge_db_version_defaults_to_none() -> None:
+    provenance = DecisionProvenance(
+        document_id="doc-1",
+        version=1,
+        authority="generated",
+        claim_evidence=[],
+        dependency_document_ids=[],
+    )
+
+    assert provenance.knowledge_db_version is None
+
+
+def test_decision_provenance_pins_a_knowledge_db_version_when_provided() -> None:
+    provenance = DecisionProvenance(
+        document_id="doc-1",
+        version=1,
+        authority="generated",
+        claim_evidence=[],
+        dependency_document_ids=[],
+        knowledge_db_version="knowledge-db-2026.07.1",
+    )
+
+    assert provenance.knowledge_db_version == "knowledge-db-2026.07.1"

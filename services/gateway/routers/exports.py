@@ -22,7 +22,7 @@ from datetime import datetime  # noqa: TC003
 from typing import TYPE_CHECKING, Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
@@ -42,7 +42,10 @@ from services.gateway.teaching_pack_export_store import (
     ExportRecordRead,
     TeachingPackExportStore,
 )
-from services.gateway.teaching_pack_export_writer import TeachingPackBundleWriter
+from services.gateway.teaching_pack_export_writer import (
+    ObjectStorageTeachingPackExportWriter,
+    TeachingPackBundleWriter,
+)
 
 if TYPE_CHECKING:
     from services.gateway.teaching_pack_snapshot_schemas import ArtifactSnapshotRead
@@ -60,6 +63,11 @@ class ExportRecordResponse(BaseModel):
     storage_path: str
     capability_version: str | None
     created_at: datetime
+    # #118: a time-bounded signed URL when the run's export writer is
+    # object-storage-backed (staging/production) -- never proxy bytes
+    # through the API. `None` in development, where `storage_path` is a
+    # local path the gateway process itself can still read directly.
+    download_url: str | None = None
 
 
 class FormatStalenessEntry(BaseModel):
@@ -92,7 +100,7 @@ class ExportStatusResponse(BaseModel):
     stale: bool
 
 
-def _to_response(record: ExportRecordRead) -> ExportRecordResponse:
+def _to_response(record: ExportRecordRead, request: Request) -> ExportRecordResponse:
     return ExportRecordResponse(
         export_id=record.export_id,
         artifact_id=record.artifact_id,
@@ -101,13 +109,22 @@ def _to_response(record: ExportRecordRead) -> ExportRecordResponse:
         storage_path=record.storage_path,
         capability_version=record.capability_version,
         created_at=record.created_at,
+        download_url=_signed_download_url(request, record.storage_path),
     )
+
+
+def _signed_download_url(request: Request, storage_path: str) -> str | None:
+    writer = getattr(request.app.state, "export_writer", None)
+    if not isinstance(writer, ObjectStorageTeachingPackExportWriter):
+        return None
+    return writer.presigned_url(storage_path)
 
 
 @router.get("/run/{run_id}/exports", response_model=list[ExportRecordResponse])  # pyright: ignore[reportUntypedFunctionDecorator]
 @router.get("/runs/{run_id}/exports", response_model=list[ExportRecordResponse])  # pyright: ignore[reportUntypedFunctionDecorator]
 async def list_exports(
     run_id: str,
+    request: Request,
     current_user: Annotated[User, Depends(require_teacher)],
     artifact_id: str | None = None,
     session: AsyncSession = TEACHING_PACK_SESSION,
@@ -122,7 +139,7 @@ async def list_exports(
     await get_run_with_ownership(run_id, current_user, session)
     store = TeachingPackExportStore(session)
     records = await store.list_exports(typed_run_id, artifact_id)
-    return [_to_response(record) for record in records]
+    return [_to_response(record, request) for record in records]
 
 
 @router.get(  # pyright: ignore[reportUntypedFunctionDecorator]
@@ -136,6 +153,7 @@ async def list_exports(
 async def get_export_status(
     run_id: str,
     artifact_id: str,
+    request: Request,
     current_user: Annotated[User, Depends(require_teacher)],
     session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> ExportStatusResponse:
@@ -153,7 +171,7 @@ async def get_export_status(
     return ExportStatusResponse(
         artifact_id=artifact_id,
         current_snapshot_id=current_snapshot_id,
-        latest_export=_to_response(latest_export) if latest_export is not None else None,
+        latest_export=_to_response(latest_export, request) if latest_export is not None else None,
         stale=stale,
     )
 
@@ -169,6 +187,7 @@ async def get_export_status(
 async def get_export_status_by_format(
     run_id: str,
     artifact_id: str,
+    request: Request,
     current_user: Annotated[User, Depends(require_teacher)],
     session: AsyncSession = TEACHING_PACK_SESSION,
 ) -> ExportStatusByFormatResponse:
@@ -195,7 +214,7 @@ async def get_export_status_by_format(
         )
         entries.append(FormatStalenessEntry(
             format=export_format,
-            latest_export=_to_response(latest) if latest is not None else None,
+            latest_export=_to_response(latest, request) if latest is not None else None,
             stale=export_format in stale_formats,
         ))
     return ExportStatusByFormatResponse(
