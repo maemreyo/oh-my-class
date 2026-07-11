@@ -142,6 +142,8 @@ CLI entry via `bin.omc-render`. `renderAgentArtifact()` dispatches ArtifactConte
 
 ## Depends on
 
+- **`schemas`** — workspace devDependency; ArtifactContent schema validation in agent worker
+
 | Dependency | Kind | Import sites | Verified |
 |-----------|------|-------------|----------|
 | `eta` (npm) | runtime | `src/eta-engine.ts:11` — `import { Eta } from "eta"` | ✅ |
@@ -155,6 +157,8 @@ CLI entry via `bin.omc-render`. `renderAgentArtifact()` dispatches ArtifactConte
 **No inbound imports from Python contracts.** The renderer's TypeScript contracts (`src/contracts/`) are self-contained interfaces, NOT generated from `common/contracts`. The only connection to `@oh-my-class/schemas` is via the devDependency (used for runtime validation in the agent worker).
 
 ## Used by
+
+- **`exporters`** — ~24 import lines across 9 files; question types, slide deck data, render functions
 
 | Consumer | Import site | Usage |
 |---------|-------------|-------|

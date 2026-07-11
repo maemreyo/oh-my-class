@@ -154,6 +154,11 @@ packages/agents/
 
 ## Depends on
 
+- **`contracts`** — 157 imports across 125 files; Pydantic models for all pipeline stages
+- **`quality`** — 17 imports across 14 files; compliance policy, PII detection, component gates
+- **`llm-client`** — 4 imports across 3 files; LLM transport layer
+- **`methodologies`** — 1 import; inverse thinking pipeline
+
 ### common/contracts (157 imports across 125 files) — CONFIRMED
 
 The primary dependency. Agents imports Pydantic models that define the data contracts between pipeline stages and across module boundaries.
@@ -227,6 +232,8 @@ The hypothesis of 9 imports is incorrect. Agents does NOT import from `packages/
 3. **Test-only** — `prompts/tests/test_registry.py:25` imports `TemplateModule` from renderer
 
 ## Used by
+
+- **`gateway`** — 26 files import agents for graph construction, events, slide deck engine
 
 ### services/gateway (production imports confirmed by grep across 26 files)
 

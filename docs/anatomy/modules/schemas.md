@@ -53,6 +53,8 @@ common/schemas/
 
 ## Depends on
 
+_None (leaf node)._
+
 | Target | What | Where cited |
 |--------|------|-------------|
 | **Leaf node** | No outbound imports to other project modules | Verified: `src/index.ts` imports only from internal files and `zod` |
@@ -62,6 +64,9 @@ common/schemas/
 **Phase 3 hypothesis "schemas has no outbound imports to other project modules" — CONFIRMED.** `common/schemas` is a pure leaf node in the dependency graph. It depends only on `zod` at runtime and `json-schema-to-zod` at generation time.
 
 ## Used by
+
+- **`web`** — ~32 imports; ArtifactContent, SlideDeckData, SemanticAnchorCluster, InputNormalizationReport
+- **`exporters`** — 5 imports; ArtifactContent, SemanticAnchorCluster, PracticeSet
 
 | Consumer | What imported | Where |
 |----------|---------------|-------|

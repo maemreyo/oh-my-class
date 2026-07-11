@@ -66,6 +66,11 @@ The **single owner** for deterministic hard-block policy. 16 hard-block codes (`
 
 ## Depends on
 
+- **`contracts`** — 12 import sites; JudgeOutput, Rubric, QualityFailureClass, InverseThinkingPack
+- **`agents`** — 1 lazy import (GateConfig in export_validator.py)
+- **`methodologies`** — 1 import (validate_semantics in inverse_thinking.py)
+- **`llm-client`** — 1 lazy import (ChatMessage, LLMClient in judge_transport.py)
+
 ### common.contracts (12 import sites — heaviest dependency)
 
 | File:Line | What imported |
@@ -107,6 +112,9 @@ The **single owner** for deterministic hard-block policy. 16 hard-block codes (`
 - `playwright` (responsive check, optional)
 
 ## Used by
+
+- **`agents`** — compliance gate, LLM judge, PII detection, circuit breaker, pedagogical metrics
+- **`gateway`** — teaching_pack_quality_gate.py combines L2 sub-checks + L3 HTML
 
 - **agents** — Multiple touch points:
   - `teaching_pack/compliance.py` → `html_hard_blocks()`, `check_artifact_answer_key_leakage()`

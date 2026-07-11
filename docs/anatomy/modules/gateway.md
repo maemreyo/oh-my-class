@@ -278,6 +278,11 @@
 
 ## Depends on
 
+- **`agents`** — LangGraph runtime, graph construction, events, slide deck engine (26 files)
+- **`contracts`** — Pydantic schemas for artifact, quality, slide deck, teaching brief
+- **`quality`** — Layer 2/3 quality checks (FACT checker, PII, HTML validation)
+- **`renderer`** — HTML rendering via adapter + export writer
+
 ### packages/agents (LangGraph runtime)
 
 | What | Where imported | Evidence |
@@ -350,6 +355,8 @@
 | `langgraph` | `teaching_pack_executor.py:7-8` | LangGraph runtime (Command, EmptyInputError) |
 
 ## Used by
+
+_No confirmed callers discovered during this trace._
 
 The gateway is the top-level HTTP service — nothing in the codebase imports from it (enforced by INVARIANT-02: services/* and apps/* may import from packages/* and common/*, but not the reverse). External consumers:
 

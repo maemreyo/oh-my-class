@@ -93,6 +93,8 @@ packages/notifications/
 
 ## Depends on
 
+_None (leaf node)._
+
 | Target | What | Where cited |
 |--------|------|-------------|
 | **(none)** | No internal project dependencies | Verified: all imports are from stdlib, httpx, or pydantic_settings |
@@ -102,6 +104,8 @@ packages/notifications/
 **Phase 3 hypothesis "no outbound imports to other project modules" — CONFIRMED.** The notifications package is a pure leaf node with zero internal dependencies. All channel implementations are self-contained.
 
 ## Used by
+
+- **`gateway`** — build_dispatcher, NotificationDispatcher, ApprovalEvent in main.py, teaching_pack_completion.py
 
 | Consumer | What imported | Where |
 |----------|---------------|-------|

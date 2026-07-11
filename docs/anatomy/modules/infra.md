@@ -56,6 +56,8 @@ infra/
 
 ## Depends on
 
+_None (leaf node — filesystem COPY dependencies only, no code imports)._
+
 | Target | What | Where cited |
 |--------|------|-------------|
 | `services/gateway` | Source code copied into gateway image | `Dockerfile.gateway:4-5` |
@@ -68,6 +70,8 @@ infra/
 **Phase 3 hypothesis "no outbound imports" — CONFIRMED.** Infra contains only Dockerfiles (shell), Compose YAML, and a bash init script. No Python or TypeScript code exists in this module.
 
 ## Used by
+
+_No confirmed callers discovered during this trace._
 
 | Consumer | What consumed |
 |----------|---------------|

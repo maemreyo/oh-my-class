@@ -84,6 +84,9 @@ Invoked by the Python export adapter (`teaching_pack_export_writer.py`) via subp
 
 ## Depends on
 
+- **`renderer`** — ~24 import lines across 9 files; question types, slide deck data, render functions
+- **`schemas`** — 5 import lines across 4 files; ArtifactContent, SemanticAnchorCluster
+
 | Dependency | Kind | Import sites | Verified |
 |-----------|------|-------------|----------|
 | `@oh-my-class/renderer` (workspace) | runtime | See table below | ✅ |
@@ -135,6 +138,9 @@ Invoked by the Python export adapter (`teaching_pack_export_writer.py`) via subp
 | `src/google-forms/client.ts:3` | `https://forms.googleapis.com/v1/forms` | Forms API base URL |
 
 ## Used by
+
+- **`gateway`** — CLI bridge invoked via subprocess by teaching_pack_export_writer
+- **`agents`** — test-only import (tests/test_flashcard_export_e2e.py)
 
 | Consumer | Import site | Usage |
 |---------|-------------|-------|

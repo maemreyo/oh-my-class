@@ -73,6 +73,8 @@ export const apiClient = new APIClient(GATEWAY_URL);
 
 ## Depends on
 
+- **`schemas`** — 18 type imports + 1 runtime Zod import in production code; ArtifactContent, SlideDeckData, SemanticAnchorCluster
+
 ### @oh-my-class/schemas (type-only imports + 1 runtime Zod import)
 
 **Type imports (erased at compile, no Turbopack issue):**
@@ -124,6 +126,8 @@ These bypass `@oh-my-class/schemas` because the generated methodology registry i
 `next`, `react`, `@tanstack/react-query`, `@tanstack/react-table`, `zustand`, `react-hook-form`, `zod`, `motion`, `lucide-react`, `class-variance-authority`, `clsx`, `tailwind-merge`
 
 ## Used by
+
+_No confirmed callers discovered during this trace._
 
 - **No internal modules** — web is a leaf module in the dependency graph.
 

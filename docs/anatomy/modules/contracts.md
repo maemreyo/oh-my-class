@@ -146,6 +146,8 @@
 
 ## Depends on
 
+_None (leaf node)._
+
 | Dependency | Kind | Import sites | Verified |
 |-----------|------|-------------|----------|
 | `pydantic` (PyPI) | runtime | Every `.py` file — `from pydantic import BaseModel, Field` | ✅ |
@@ -168,6 +170,10 @@ All imports are within the `common.contracts` package. Key internal imports:
 **NONE.** Verified across all 57 files. The contracts package has zero imports from `packages/*`, `services/*`, or `apps/*`. This is a true leaf node in the dependency graph.
 
 ## Used by
+
+- **`agents`** — 157 imports across 125 files; ArtifactContent, LessonPlan, JudgeOutput, RunContract, SlideDeckData
+- **`quality`** — ~20 imports; ArtifactContent, QualityIssue, QualityFailureClass
+- **`gateway`** — ~40 imports; RunContract, ArtifactContent, ErrorResponse, User, Token, SlideDeckData
 
 | Consumer | Import count | Key imports |
 |---------|-------------|-------------|

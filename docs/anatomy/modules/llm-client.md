@@ -160,6 +160,8 @@ chat() / stream() / chat_via_streaming_transport()
 
 ## Depends on
 
+- **`agents`** — 1 reverse dependency import (BreakerStore, LayeredCircuitBreaker in circuit_breaker.py)
+
 | Target | What | Where cited |
 |--------|------|-------------|
 | `packages.agents.healing.circuit_breaker` | `BreakerStore`, `CircuitBreaker as LayeredCircuitBreaker` | `circuit_breaker.py:5-7` |
@@ -182,6 +184,9 @@ This is a **reverse dependency violation** — llm_client sits below agents in t
 **Risk:** Creates circular dependency risk if agents.healing ever imports from llm_client. Currently safe because the import is inside a method, not at module level. However, the `pyproject.toml` does NOT declare this dependency — it's an implicit runtime dependency via sys.path manipulation.
 
 ## Used by
+
+- **`agents`** — LLMClient via AgentRuntime across all sub-agents, teaching_pack, middleware
+- **`quality`** — ChatMessage, LLMClient (lazy) in judge_transport.py
 
 | Consumer | What imported | Where |
 |----------|---------------|-------|

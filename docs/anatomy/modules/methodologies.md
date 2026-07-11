@@ -57,6 +57,8 @@ packages/methodologies/
 
 ## Depends on
 
+- **`contracts`** — 2 import lines bringing in 9 types; components (Heading, Paragraph, etc.) + inverse_thinking
+
 | Target | What | Where cited |
 |--------|------|-------------|
 | `common.contracts.components` | `Callout, Heading, Paragraph, QuestionCard, QuestionList, Table` | `projections.py:4` |
@@ -65,6 +67,9 @@ packages/methodologies/
 **Phase 3 hypothesis "methodologies → contracts: 8 imports" — CONFIRMED.** Two import lines bring in 9 types total (6 from `components`, 3 from `inverse_thinking`). The actual type count is 9, not 8.
 
 ## Used by
+
+- **`quality`** — validate_semantics in inverse_thinking gate
+- **`agents`** — InverseThinkingProjection, project_* functions in inverse_thinking_pipeline
 
 | Consumer | What imported | Where cited |
 |----------|---------------|-------------|
