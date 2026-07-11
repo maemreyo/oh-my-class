@@ -457,11 +457,10 @@ def main() -> int:
         print("No changes made. Use --yes to create or refresh the Program issue.")
         return 0
 
-    progress("[3/4] Checking repository permission and labels...")
-    repo_info = run_gh(["repo", "view", args.repo, "--json", "nameWithOwner,viewerPermission"])
-    permission = str(repo_info.get("viewerPermission") or "").upper()
-    if permission not in {"ADMIN", "MAINTAIN", "WRITE"}:
-        raise RuntimeError(f"Need Issues write access; viewerPermission={permission!r}")
+    progress("[3/4] Checking repository labels...")
+    # Note: `gh repo view --json viewerPermission` does not return viewerPermission
+    # when using GITHUB_TOKEN in GitHub Actions.  We rely on the subsequent gh api
+    # calls to surface 403 errors if the token lacks write access.
     labels_present = available_labels(args.repo)
     labels = [name for name in ("epic", "feature", "architecture", "ready-for-agent") if name in labels_present]
 
