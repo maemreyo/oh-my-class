@@ -31,6 +31,13 @@ class GenerateOneArtifactPayload(TypedDict):
     theme: str
     revision_feedback: NotRequired[str]
     dependency_artifact_references: NotRequired[list[dict[str, Any]]]
+    # #464: threaded through by artifact_fanout.py's `_payload` so a caller
+    # can resolve `content_coverage_resolution.resolve_content_coverage`
+    # (subject/grade-band-scoped curriculum coverage, not just per-artifact-
+    # type code capability). `NotRequired` since not every caller of this
+    # payload (e.g. existing tests) supplies them yet.
+    subject: NotRequired[str]
+    grade_band: NotRequired[str]
 
 
 # #464: ADR-053 names this "OrchestratorRequest" -- an alias, not a parallel

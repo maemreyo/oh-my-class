@@ -5,6 +5,7 @@ from typing import Any, Final
 from langgraph.types import Send
 
 from common.contracts.dependency_plan import DEFAULT_DEPENDENCY_PLAN
+from common.contracts.grade_band import GradeBand, grade_band_for_label
 from packages.agents.teaching_pack.artifact_fanout_helpers import (
     any_json_object,
     json_object,
@@ -120,7 +121,19 @@ def _payload(state: JsonObject, generation_id: str, artifact_type: str) -> Gener
         "theme": string_field(contract, "theme", "default"),
         "revision_feedback": string_value(state.get("revision_feedback")),
         "dependency_artifact_references": json_objects(state.get("artifact_references")),
+        "subject": string_field(contract, "subject", "general"),
+        "grade_band": _grade_band_value(contract),
     }
+
+
+def _grade_band_value(contract: JsonObject) -> str:
+    # #464: threads a real GradeBand into GenerateOneArtifactPayload for
+    # content_coverage_resolution.resolve_content_coverage -- stored as its
+    # plain `.value` string (JSON-safe for the LangGraph checkpoint), not the
+    # GradeBand enum instance itself.
+    grade_level = string_field(contract, "grade_band", "Grade 5")
+    band = grade_band_for_label(grade_level)
+    return (band or GradeBand.GRADES_3_5).value
 
 
 def _generation_revision(state: JsonObject) -> int:
