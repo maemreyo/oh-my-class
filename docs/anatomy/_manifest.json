@@ -1,7 +1,14 @@
 {
-  "version": 1,
-  "source_root": "/Users/trung.ngo/Documents/zaob-dev/oh-my-class",
-  "source_commit": "48f88d7bffaa3cf1759c001662a3d7220b218e15",
+  "version": 2,
+  "scan_policy": {
+    "version": 1,
+    "gitignore_root": ".",
+    "excludes": [
+      "docs/anatomy",
+      "docs/system-trace"
+    ],
+    "unreadable_file_policy": "error"
+  },
   "modules": {
     "agents": {
       "hash": "17f2f7bb61bf6a7713aee45401ae8bee21342d14d45b8c4c0ee496674cdd66df",
@@ -16,7 +23,7 @@
       "file_count": 47
     },
     "gateway": {
-      "hash": "c2b1fb0037ab5c1a0e153c92b7597fe9a19a29791b4ce5a5e1d05950fc22524f",
+      "hash": "daca9b37653aca22cc9dbc26f9377b52a7044221bf7ea1f5dc0764dfe9c6006b",
       "file_count": 384
     },
     "infra": {
@@ -52,5 +59,6 @@
       "file_count": 161
     }
   },
-  "generated_at": "2026-07-11T12:42:55Z"
+  "source_root": "/Users/trung.ngo/Documents/zaob-dev/oh-my-class",
+  "source_commit": "d52ad7b254edc770e25fdfd50b60ea6956fbc90d"
 }

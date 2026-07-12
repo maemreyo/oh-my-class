@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +14,9 @@ from services.gateway.auth.models import User
 from services.gateway.slo_metrics import SloSnapshot, compute_slo_snapshot
 from services.gateway.teaching_pack_db import get_teaching_pack_session
 from services.gateway.teaching_pack_job_store import TeachingPackJobStore
+from services.gateway.teaching_pack_models import RunJob, TeachingPackEventVisibility
+from services.gateway.teaching_pack_store import TeachingPackEventCreate, TeachingPackRunStore
+from services.gateway.teaching_pack_types import RunId
 
 router = APIRouter(prefix="/ops", tags=["ops"])
 
@@ -70,17 +75,31 @@ async def list_dead_letter_jobs(
 @router.post("/dead-letter-jobs/{job_id}/replay")  # pyright: ignore[reportUntypedFunctionDecorator]
 async def replay_dead_letter_job(
     job_id: str,
-    _current_user: Annotated[User, Depends(require_admin)],
+    current_user: Annotated[User, Depends(require_admin)],
     session: AsyncSession = Depends(get_teaching_pack_session),
 ) -> ReplayDeadLetterJobResponse:
     """#124: ops-triggered replay -- resets a dead-lettered job to `pending`
     with a clean attempt count so it can be re-claimed. system_admin only,
-    same as inspection; never a teacher affordance."""
+    same as inspection; never a teacher affordance. Emits an ADMIN-visibility
+    audit event (who/when) on the affected run for traceability."""
     try:
         replayed = await TeachingPackJobStore(session).replay_dead_letter(job_id)
     except NoResultFound as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="dead_letter_job_not_found") from exc
     if not replayed:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="dead_letter_job_not_found")
+
+    run_id_row = await session.execute(select(RunJob.run_id).where(RunJob.job_id == job_id))
+    run_id = run_id_row.scalar_one()
+    await TeachingPackRunStore(session).write_event(TeachingPackEventCreate(
+        run_id=RunId(run_id),
+        event_name="admin.dead_letter.replayed",
+        visibility=TeachingPackEventVisibility.ADMIN,
+        payload={
+            "admin_id": current_user.user_id,
+            "job_id": job_id,
+            "replayed_at": datetime.now(UTC).isoformat(),
+        },
+    ))
     await session.commit()
     return ReplayDeadLetterJobResponse(job_id=job_id, replayed=True)

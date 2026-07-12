@@ -56,6 +56,7 @@ class TestSloMetrics:
         failed = _run(RunSeed(prefix, "failed", teacher_id, RunStatus.FAILED, now, 180, 2.75))
         session.add_all([completed, failed])
         session.add(_job(prefix, completed.run_id, RunJobStatus.PENDING, now))
+        session.add(_job(f"{prefix}-dlq", failed.run_id, RunJobStatus.DEAD_LETTER, now))
         session.add(_gate(prefix, completed.run_id, now - timedelta(minutes=5)))
         await session.commit()
 
@@ -68,8 +69,15 @@ class TestSloMetrics:
             assert teacher.run_latency_p95_seconds == 180
             assert teacher.queue_depth == 1
             assert teacher.gate_backlog == 1
+            # #124: dead-letter growth is the metric the page-alert rule watches.
+            assert teacher.dead_letter_count == 1
             assert teacher.cost_usd_today == 4.0
             assert snapshot.global_dimension.success_rate == 0.5
+            # Global aggregates across all teachers/tests sharing this DB, so
+            # assert presence rather than an exact count (matches the existing
+            # queue_depth/gate_backlog tests, which only check the teacher
+            # dimension for exact counts).
+            assert snapshot.global_dimension.dead_letter_count >= 1
         finally:
             await session.execute(delete(Run).where(Run.run_id.in_([completed.run_id, failed.run_id])))
             await session.commit()

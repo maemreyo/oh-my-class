@@ -9,7 +9,7 @@ from uuid import uuid4
 import anyio
 import pytest
 from fastapi import FastAPI
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from starlette.testclient import TestClient
 
@@ -19,7 +19,7 @@ from services.gateway.models import Base, Run
 from services.gateway.routers.ops import router
 from services.gateway.teaching_pack_db import get_teaching_pack_session
 from services.gateway.teaching_pack_job_store import RunJobCreate, TeachingPackJobStore
-from services.gateway.teaching_pack_models import RunJob, RunJobKind
+from services.gateway.teaching_pack_models import RunEvent, RunJob, RunJobKind
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
 from services.gateway.teaching_pack_types import RunId, TeacherId
 
@@ -90,6 +90,16 @@ async def _create_dead_lettered_job(run_id: RunId) -> str:
     return job_id
 
 
+async def _events_for_run(run_id: RunId) -> list[RunEvent]:
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        result = await session.execute(select(RunEvent).where(RunEvent.run_id == run_id))
+        events = list(result.scalars().all())
+    await engine.dispose()
+    return events
+
+
 async def _cleanup(run_id: RunId) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -136,3 +146,21 @@ class TestOpsDeadLetterRouter:
         response = client.post("/ops/dead-letter-jobs/does-not-exist/replay")
 
         assert response.status_code == 404
+
+    def test_replay_writes_an_admin_audit_event_with_who_and_when(self, client: TestClient) -> None:
+        """#124: replay is an ops affordance -- who replayed and when must be
+        traceable, same as every other admin recovery action."""
+        run_id = RunId(f"test-dlq-router-{uuid4()}")
+        job_id = anyio.run(_create_dead_lettered_job, run_id)
+        try:
+            response = client.post(f"/ops/dead-letter-jobs/{job_id}/replay")
+            assert response.status_code == 200
+
+            events = anyio.run(_events_for_run, run_id)
+            audit_events = [e for e in events if e.event_name == "admin.dead_letter.replayed"]
+            assert len(audit_events) == 1
+            assert audit_events[0].payload["admin_id"] == ADMIN.user_id
+            assert audit_events[0].payload["job_id"] == job_id
+            assert audit_events[0].payload["replayed_at"] is not None
+        finally:
+            anyio.run(_cleanup, run_id)

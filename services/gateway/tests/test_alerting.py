@@ -79,11 +79,26 @@ class TestSloAlerting:
             "cost_usd_today",
         }
 
+    def test_dead_letter_growth_fires_a_page_severity_breach(self) -> None:
+        """#124: any dead-lettered job is a page-level signal (ADR-034
+        decision 2), distinct from the warn-level breaches on the other
+        SLO dimensions."""
+        thresholds = SloThresholds(max_dead_letter_count=0)
+
+        snapshot = _snapshot(success_rate=1.0, dead_letter_count=1)
+        breaches = evaluate_slo_breaches(snapshot, thresholds)
+
+        dead_letter_breaches = [b for b in breaches if b.metric == "dead_letter_count"]
+        assert len(dead_letter_breaches) == 1
+        assert dead_letter_breaches[0].severity == "page"
+        assert dead_letter_breaches[0].observed == 1
+
     def test_thresholds_load_from_environment(self, monkeypatch) -> None:
         monkeypatch.setenv("OMC_SLO_MIN_SUCCESS_RATE", "0.8")
         monkeypatch.setenv("OMC_SLO_MAX_RUN_LATENCY_P95_SECONDS", "45")
         monkeypatch.setenv("OMC_SLO_MAX_GATE_BACKLOG", "2")
         monkeypatch.setenv("OMC_SLO_MAX_QUEUE_DEPTH", "5")
+        monkeypatch.setenv("OMC_SLO_MAX_DEAD_LETTER_COUNT", "1")
         monkeypatch.setenv("OMC_SLO_MAX_COST_USD_PER_DAY", "3.5")
         monkeypatch.setenv("OMC_SLO_ALERT_COOLDOWN_SECONDS", "30")
 
@@ -94,6 +109,7 @@ class TestSloAlerting:
             max_run_latency_p95_seconds=45,
             max_gate_backlog=2,
             max_queue_depth=5,
+            max_dead_letter_count=1,
             max_cost_usd_per_day=3.5,
             cooldown_seconds=30,
         )
@@ -148,6 +164,7 @@ def _snapshot(
     latency: float | None = None,
     gate_backlog: int = 0,
     queue_depth: int = 0,
+    dead_letter_count: int = 0,
     cost: float = 0,
 ) -> SloSnapshot:
     now = datetime(2026, 6, 30, 8, tzinfo=UTC)
@@ -163,6 +180,7 @@ def _snapshot(
             stage_latency_p95_seconds={},
             gate_backlog=gate_backlog,
             queue_depth=queue_depth,
+            dead_letter_count=dead_letter_count,
             cost_usd_today=cost,
         ),
     )

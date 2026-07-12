@@ -22,6 +22,9 @@ class SloDimension:
     gate_backlog: int
     queue_depth: int
     cost_usd_today: float
+    # #124: defaulted so existing call sites building an SloDimension without
+    # this metric don't need updating.
+    dead_letter_count: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +42,7 @@ class SloDimensionInput:
     runs: list[Run]
     queue_depth: int
     gate_backlog: int
+    dead_letter_count: int
     cost_usd_today: float
 
 
@@ -55,8 +59,11 @@ async def compute_slo_snapshot(
     )).scalars())
     queue_rows = await _queue_depth_by_teacher(session)
     gate_rows = await _gate_backlog_by_teacher(session, generated_at)
+    dead_letter_rows = await _dead_letter_count_by_teacher(session)
     cost_rows = await _cost_today_by_teacher(session, generated_at)
-    teachers = sorted({run.teacher_id for run in runs} | set(queue_rows) | set(gate_rows) | set(cost_rows))
+    teacher_ids = {run.teacher_id for run in runs}
+    teacher_ids |= set(queue_rows) | set(gate_rows) | set(dead_letter_rows) | set(cost_rows)
+    teachers = sorted(teacher_ids)
     teacher_dimensions = {
         teacher_id: _dimension(
             SloDimensionInput(
@@ -65,6 +72,7 @@ async def compute_slo_snapshot(
                 runs=[run for run in runs if run.teacher_id == teacher_id],
                 queue_depth=queue_rows.get(teacher_id, 0),
                 gate_backlog=gate_rows.get(teacher_id, 0),
+                dead_letter_count=dead_letter_rows.get(teacher_id, 0),
                 cost_usd_today=cost_rows.get(teacher_id, 0.0),
             ),
         )
@@ -80,6 +88,7 @@ async def compute_slo_snapshot(
                 runs=runs,
                 queue_depth=sum(queue_rows.values()),
                 gate_backlog=sum(gate_rows.values()),
+                dead_letter_count=sum(dead_letter_rows.values()),
                 cost_usd_today=sum(cost_rows.values()),
             ),
         ),
@@ -104,8 +113,21 @@ def _dimension(data: SloDimensionInput) -> SloDimension:
         stage_latency_p95_seconds={},
         gate_backlog=data.gate_backlog,
         queue_depth=data.queue_depth,
+        dead_letter_count=data.dead_letter_count,
         cost_usd_today=data.cost_usd_today,
     )
+
+
+async def _dead_letter_count_by_teacher(session: AsyncSession) -> dict[str, int]:
+    """#124: current dead-letter backlog per teacher -- the metric the
+    page-alert rule watches for DLQ growth (ADR-034 decision 2)."""
+    rows = await session.execute(
+        select(Run.teacher_id, func.count(RunJob.job_id))
+        .join(Run, Run.run_id == RunJob.run_id)
+        .where(RunJob.status == RunJobStatus.DEAD_LETTER)
+        .group_by(Run.teacher_id),
+    )
+    return {teacher_id: count for teacher_id, count in rows}
 
 
 async def _queue_depth_by_teacher(session: AsyncSession) -> dict[str, int]:
