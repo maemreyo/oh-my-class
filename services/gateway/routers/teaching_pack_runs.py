@@ -18,6 +18,7 @@ from services.gateway.auth.models import User  # noqa: TC001
 from services.gateway.backpressure import BackpressureConfig, check_backpressure
 from services.gateway.contract_confirmation_edits import contract_confirmation_edits
 from services.gateway.models import RunStatus
+from services.gateway.rate_limiting import enforce_payload_size_limits
 from services.gateway.teaching_pack_search_resume import (
     SearchPlanResumeContext,
     open_search_plan_gate_if_required,
@@ -81,6 +82,8 @@ async def create_teaching_pack_run(
     bp_config: BackpressureConfig = BACKPRESSURE_CONFIG,
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> TeachingPackRunAcceptedResponse:
+    enforce_payload_size_limits(payload.raw_request, payload.class_info)
+
     teacher_id = TeacherId(current_user.user_id)
     job_store = TeachingPackJobStore(session)
     request_hash = hash_json({
