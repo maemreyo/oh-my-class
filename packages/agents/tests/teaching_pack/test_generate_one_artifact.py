@@ -7,7 +7,10 @@ from common.contracts.artifact import ArtifactContent
 from packages.agents.sub_agents.content_creator.hierarchical import build_hierarchical_artifacts
 from packages.agents.config.features import reset_features
 from packages.agents.teaching_pack.content_orchestrator import ArtifactPersistenceResult, InMemoryArtifactContentStore
-from packages.agents.teaching_pack.generate_one_artifact import generate_one_artifact
+from packages.agents.teaching_pack.generate_one_artifact import (
+    UnsupportedArtifactCapabilityError,
+    generate_one_artifact,
+)
 from packages.agents.teaching_pack.stages import StageEnum
 from packages.quality.layer2_content.pedagogical import check_pedagogical_metrics
 
@@ -262,6 +265,53 @@ async def test_infrastructure_error_is_not_swallowed(monkeypatch: pytest.MonkeyP
 
     with pytest.raises(RuntimeError, match="provider unavailable"):
         await generate_one_artifact(_payload("lesson"))
+
+
+@pytest.mark.anyio
+async def test_undeclared_type_never_reaches_content_creator_node_with_flag_off(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """#464 required guard test: "no production code path calls
+    content_creator_node as an undeclared fallback." The flag defaults off
+    (no `_enable_generic_fallback` call here), so an undeclared artifact
+    type must raise UnsupportedArtifactCapabilityError before ever reaching
+    content_creator_node -- proven by making that function explode if
+    called at all."""
+    async def exploding_content_creator_node(_state: dict[str, object]) -> dict[str, object]:
+        raise AssertionError("content_creator_node must not be called when the fallback is off")
+
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.generate_one_artifact.content_creator_node",
+        exploding_content_creator_node,
+    )
+    monkeypatch.setattr(
+        "packages.agents.teaching_pack.generate_one_artifact.get_specialist", lambda _type: None,
+    )
+
+    result = await generate_one_artifact(_payload("an_undeclared_type"))
+
+    assert "artifact_references" not in result
+    state = result["artifact_workflow_states"][0]
+    assert state["status"] == "failed"
+    assert state["error_class"] == UnsupportedArtifactCapabilityError.__name__
+
+
+@pytest.mark.anyio
+async def test_lineage_stamp_is_present_on_the_persisted_projection() -> None:
+    store = InMemoryArtifactContentStore()
+    payload = _payload("lesson")
+    payload["lesson_plan"] = _lesson_plan_with_bloom()
+
+    result = await generate_one_artifact(payload, store)
+    persisted = await store.read_projection(result["artifact_references"][0]["document_id"])
+
+    lineage = persisted.metadata["specialist_lineage"]
+    assert lineage == {
+        "artifact_type": "lesson",
+        "specialist_id": "registry:lesson",
+        "module_version": "v1",
+        "consumed_content_brief_fields": [],
+    }
 
 
 def test_orchestrator_request_is_the_adr_053_name_for_the_payload_shape() -> None:

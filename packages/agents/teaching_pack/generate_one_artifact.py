@@ -14,7 +14,11 @@ from packages.agents.teaching_pack.specialist_capability import (
 from packages.agents.teaching_pack.specialist_capability import (
     NATIVELY_DISPATCHED_ARTIFACT_TYPES as _NATIVELY_DISPATCHED_ARTIFACT_TYPES,
 )
-from packages.agents.teaching_pack.specialist_capability import resolve_specialist_capability
+from packages.agents.teaching_pack.specialist_capability import (
+    CapabilityResolution,
+    resolve_specialist_capability,
+)
+from packages.agents.teaching_pack.specialist_module import SpecialistRequest, get_specialist_module
 from packages.agents.teaching_pack.specialist_registry import get_specialist
 from packages.agents.teaching_pack.stages import StageEnum
 
@@ -109,7 +113,21 @@ async def generate_one_artifact(
         elif artifact_type == "slide_deck":
             artifact = await _slide_deck_artifact(payload, dependency_artifacts)
         elif specialist is not None:
-            artifact = specialist(payload["lesson_plan"], payload["research_brief"])
+            module = get_specialist_module(artifact_type)
+            request = SpecialistRequest(
+                artifact_type=artifact_type,
+                lesson_plan=payload["lesson_plan"],
+                research_brief=payload["research_brief"],
+            )
+            # #464: dispatch through the typed SpecialistModule wrapper
+            # (SpecialistRequest in, declaration/lineage available) rather
+            # than calling the raw registry callable positionally -- falls
+            # back to the raw callable only if the registry and the module
+            # registry have somehow diverged (guarded by a registry-matrix
+            # test in test_specialist_module.py; should never happen).
+            artifact = module.generate(request) if module is not None else specialist(
+                payload["lesson_plan"], payload["research_brief"],
+            )
             artifact["theme"] = payload["theme"]
         else:
             result = await content_creator_node({
@@ -140,6 +158,7 @@ async def generate_one_artifact(
         )
     _stamp_research_sources(projection, payload["research_brief"])
     _stamp_pedagogy_context(projection, payload["lesson_plan"])
+    _stamp_specialist_lineage(projection, artifact_type, resolution)
     if content_store is not None:
         from packages.agents.teaching_pack.content_orchestrator import ArtifactPersistenceResult
 
@@ -230,6 +249,32 @@ def _stamp_pedagogy_context(chunk: dict[str, Any], lesson_plan: dict[str, Any]) 
         return
     metadata = dict(chunk.get("metadata") or {})
     metadata.setdefault("pedagogy_context", context)
+    chunk["metadata"] = metadata
+
+
+def _stamp_specialist_lineage(
+    chunk: dict[str, Any],
+    artifact_type: str,
+    resolution: CapabilityResolution,
+) -> None:
+    """Attach the ADR-053 `SpecialistLineage` provenance record -- which
+    module (specialist_id), at which version, generated this artifact, and
+    which `ContentBrief` fields it declares it consumed (`()` today; see
+    `specialist_module.py`'s module docstring). Fail-open like the other
+    stamps: an unknown artifact_type (should be unreachable past capability
+    resolution) leaves metadata untouched rather than raising here.
+    """
+    module = get_specialist_module(artifact_type)
+    if module is None:
+        return
+    lineage = module.lineage(resolution)
+    metadata = dict(chunk.get("metadata") or {})
+    metadata.setdefault("specialist_lineage", {
+        "artifact_type": lineage.artifact_type,
+        "specialist_id": lineage.specialist_id,
+        "module_version": lineage.module_version,
+        "consumed_content_brief_fields": list(lineage.consumed_content_brief_fields),
+    })
     chunk["metadata"] = metadata
 
 

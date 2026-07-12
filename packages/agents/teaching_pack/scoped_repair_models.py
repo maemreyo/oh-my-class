@@ -48,6 +48,14 @@ class ScopedRepairPlan:
     message: str
 
 
+# #464: ADR-053 names this "RepairRequest" -- an alias, not a parallel type.
+# `ScopedRepairPlan` already carries ADR-053's "dependency-aware repair
+# requests" (a scope, the triggering failure class, and the chosen repair
+# strategy); this alias makes the ADR-053 vocabulary directly importable
+# without a second, competing repair-request type.
+RepairRequest = ScopedRepairPlan
+
+
 @dataclass(frozen=True, slots=True)
 class ContentVersion:
     artifact_id: str
