@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from common.contracts.prerequisite_graph import (
+from common.contracts.content_intelligence_graph.prerequisite import (
     PrerequisiteAccessDeniedError,
     PrerequisiteCycleError,
     PrerequisiteGraph,

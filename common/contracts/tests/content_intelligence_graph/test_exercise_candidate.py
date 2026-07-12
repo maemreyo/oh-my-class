@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from common.contracts.exercise_candidate_graph import (
+from common.contracts.content_intelligence_graph.exercise_candidate import (
     ExerciseCandidateAccessDeniedError,
     ExerciseCandidateGraph,
     ExerciseCandidateNode,

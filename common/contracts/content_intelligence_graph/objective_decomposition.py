@@ -13,9 +13,10 @@ attempted by this module.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from common.contracts.prerequisite_graph import ContentAccessScope
+from common.contracts.content_intelligence_graph.prerequisite import ContentAccessScope
+from common.contracts.content_intelligence_graph.snapshot import assert_unique_node_ids
 
 
 class ObjectiveDecompositionGraphError(ValueError):
@@ -69,6 +70,11 @@ class ObjectiveDecompositionGraph(BaseModel):
 
     snapshot_version: str = Field(min_length=1, max_length=80)
     nodes: tuple[ObjectiveNode, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _require_unique_node_ids(self) -> ObjectiveDecompositionGraph:
+        assert_unique_node_ids(node.objective_id for node in self.nodes)
+        return self
 
     def node_by_id(self, objective_id: str) -> ObjectiveNode | None:
         return next((node for node in self.nodes if node.objective_id == objective_id), None)

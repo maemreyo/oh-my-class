@@ -14,7 +14,9 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from common.contracts.content_intelligence_graph.snapshot import assert_unique_node_ids
 
 # #465: "Support private_teacher, organization, and system scopes without
 # cross-tenant cache keys or retrieval." Mirrors the same three-tier tenant
@@ -92,6 +94,11 @@ class PrerequisiteGraph(BaseModel):
 
     snapshot_version: str = Field(min_length=1, max_length=80)
     nodes: tuple[PrerequisiteNode, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _require_unique_node_ids(self) -> PrerequisiteGraph:
+        assert_unique_node_ids(node.node_id for node in self.nodes)
+        return self
 
     def node_by_id(self, node_id: str) -> PrerequisiteNode | None:
         return next((node for node in self.nodes if node.node_id == node_id), None)

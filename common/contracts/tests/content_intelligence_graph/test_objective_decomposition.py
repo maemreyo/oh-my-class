@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from common.contracts.objective_decomposition_graph import (
+from common.contracts.content_intelligence_graph.objective_decomposition import (
     ObjectiveAccessDeniedError,
     ObjectiveDecompositionGraph,
     ObjectiveMissingError,
