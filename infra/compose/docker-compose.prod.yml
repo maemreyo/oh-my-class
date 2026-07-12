@@ -24,6 +24,17 @@ services:
         limits:
           memory: 1G
 
+  # #119 (OPS-06) floor replica count; the autoscaler
+  # (`python -m services.gateway.autoscaler`) drives this up/down between
+  # WORKER_FLOOR_REPLICAS and WORKER_MAX_REPLICAS on queue depth.
+  worker:
+    restart: always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1G
+
   proxy:
     restart: always
 
