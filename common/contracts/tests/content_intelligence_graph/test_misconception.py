@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from common.contracts.claim_evidence import ClaimEvidence
-from common.contracts.misconception_graph import (
+from common.contracts.content_intelligence_graph.misconception import (
     MisconceptionAccessDeniedError,
     MisconceptionGraph,
     MisconceptionNode,

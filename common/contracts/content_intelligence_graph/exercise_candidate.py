@@ -15,9 +15,10 @@ applicable."
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from common.contracts.prerequisite_graph import ContentAccessScope
+from common.contracts.content_intelligence_graph.prerequisite import ContentAccessScope
+from common.contracts.content_intelligence_graph.snapshot import assert_unique_node_ids
 
 
 class ExerciseCandidateGraphError(ValueError):
@@ -64,6 +65,11 @@ class ExerciseCandidateGraph(BaseModel):
 
     snapshot_version: str = Field(min_length=1, max_length=80)
     nodes: tuple[ExerciseCandidateNode, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _require_unique_node_ids(self) -> ExerciseCandidateGraph:
+        assert_unique_node_ids(node.candidate_id for node in self.nodes)
+        return self
 
 
 _DEFAULT_VISIBLE_ACCESS_SCOPES: frozenset[ContentAccessScope] = frozenset({"system"})

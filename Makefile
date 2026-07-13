@@ -31,7 +31,7 @@
 #   make check-schemas Verify schema parity (Pydantic ↔ Zod)
 # ════════════════════════════════════════════════════════════════════
 
-.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
+.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture check-content-intelligence setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
 
 # ── Docker compose path ──
 COMPOSE := docker compose -f infra/compose/docker-compose.yml
@@ -196,6 +196,9 @@ check-architecture: ## Verify runtime manifest and generated anatomy trace fresh
 	uv run pytest tests/test_architecture_sync.py tests/test_system_trace_refs.py tests/test_architecture_truth_gate.py -q
 	uv run python scripts/check_architecture_truth.py
 	uv run python scripts/verify_doc_refs.py
+
+check-content-intelligence: ## #465: Content Intelligence Graph contract/integrity/tenant-isolation tests
+	uv run pytest common/contracts/tests/content_intelligence_graph -q
 
 # ── Help ──
 help: ## Show this help message
