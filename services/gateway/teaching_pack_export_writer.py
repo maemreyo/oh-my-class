@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol
 
-from services.gateway.teaching_pack_types import JsonObject, RunId
 from services.gateway.teaching_pack_snapshot_validators import teacher_only_value_paths
+from services.gateway.teaching_pack_types import JsonObject, RunId
 
 if TYPE_CHECKING:
     from services.gateway.object_storage import ObjectStorageConfig, S3Client
@@ -163,11 +163,24 @@ def export_writer_for_environment(
     local dev) keeps the unchanged filesystem writer; only staging/production
     write to object storage."""
     if environment in ("staging", "production"):
-        from services.gateway.object_storage import build_s3_client, ensure_bucket_exists, object_storage_config_from_env
+        from services.gateway.object_storage import (
+            apply_export_lifecycle_rules,
+            build_s3_client,
+            ensure_bucket_exists,
+            object_storage_config_from_env,
+        )
+        from services.gateway.retention import RetentionConfig
 
         config = object_storage_config_from_env()
         client = build_s3_client(config)
         ensure_bucket_exists(client, config.bucket)
+        # #120 (OPS-07): align object expiry with the DB `artifacts`
+        # retention so a signed URL never outlives (or is outlived by) its
+        # DB key -- see `object_storage.py`'s `EXPORTS_LIFECYCLE_RULE_ID`
+        # docstring for what this rule can and can't prove.
+        apply_export_lifecycle_rules(
+            client, config.bucket, expiration_days=RetentionConfig().artifacts,
+        )
         return ObjectStorageTeachingPackExportWriter(config=config, client=client)
     return FileSystemTeachingPackExportWriter(base_dir=base_dir)
 

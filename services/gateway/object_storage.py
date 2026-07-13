@@ -73,3 +73,44 @@ def presigned_export_url(
         Params={"Bucket": bucket, "Key": key},
         ExpiresIn=expires_in_seconds,
     )
+
+
+# #120 (OPS-07): expire `exports/<run_id>/...` objects on the same clock as
+# the DB `artifacts`/`snapshots` retention (180d default -- RetentionConfig
+# in `retention.py`) so a signed URL never resolves to an object that
+# outlived its DB key, or vice versa.
+#
+# S3/MinIO lifecycle expiration is a blind object-age TTL -- it cannot see a
+# run's ADR-026 revision-window/pending/escalated state the way
+# `prune_policy.is_prunable` can for DB rows. This is a deliberate,
+# documented approximation, not a full join of "is this object's run
+# provably prunable": at 180 days of age, no run is plausibly still inside
+# its (900-second) fast-lane revert window, so a conservative age-only TTL
+# is safe in practice, but it is not a deterministic per-object safety proof
+# the way the DB-side predicate is. If exports ever need that same
+# provable guarantee, expiry needs to become app-driven (delete-on-prune)
+# rather than a bucket-level lifecycle rule.
+EXPORTS_LIFECYCLE_RULE_ID = "omc-exports-retention"
+
+
+def export_lifecycle_configuration(*, expiration_days: int) -> dict[str, list[dict[str, object]]]:
+    """The lifecycle rule body applied to the exports bucket -- a pure
+    builder so it's trivially unit-testable without a live S3/MinIO."""
+    return {
+        "Rules": [
+            {
+                "ID": EXPORTS_LIFECYCLE_RULE_ID,
+                "Status": "Enabled",
+                "Filter": {"Prefix": "exports/"},
+                "Expiration": {"Days": expiration_days},
+            },
+        ],
+    }
+
+
+def apply_export_lifecycle_rules(client: S3Client, bucket: str, *, expiration_days: int) -> None:
+    """Idempotent -- safe to call on every startup, like `ensure_bucket_exists`."""
+    client.put_bucket_lifecycle_configuration(
+        Bucket=bucket,
+        LifecycleConfiguration=export_lifecycle_configuration(expiration_days=expiration_days),
+    )

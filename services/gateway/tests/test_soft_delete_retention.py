@@ -19,7 +19,7 @@ from starlette.testclient import TestClient
 
 from services.gateway.auth.dependencies import get_current_user_for_status_stream, require_teacher
 from services.gateway.auth.models import Role, User
-from services.gateway.models import Base, Run
+from services.gateway.models import Base, Run, RunStatus
 from services.gateway.purge import purge_expired_runs, purge_student_evidence
 from services.gateway.retention import RetentionConfig, get_retention_days, is_expired
 from services.gateway.routers.teaching_pack_runs import router
@@ -35,7 +35,14 @@ from services.gateway.teaching_pack_control_store import (
     TeachingPackControlStore,
 )
 from services.gateway.teaching_pack_db import get_teaching_pack_session
-from services.gateway.teaching_pack_models import GateInterrupt, GateResponse, RunJob
+from services.gateway.teaching_pack_models import (
+    GateInterrupt,
+    GateResponse,
+    RunEvent,
+    RunJob,
+    RunStatusHistory,
+    TeachingPackEventVisibility,
+)
 from services.gateway.teaching_pack_store import TeachingPackRunCreate, TeachingPackRunStore
 from services.gateway.teaching_pack_types import RunId, TeacherId
 
@@ -148,9 +155,10 @@ class TestSoftDeleteRun:
 
 
 class TestHardPurge:
-    def test_purge_removes_expired_runs(self) -> None:
+    def test_purge_removes_expired_terminal_runs(self) -> None:
         run_id = RunId(f"test-{uuid4()}")
         anyio.run(_create_test_run, run_id)
+        anyio.run(_set_run_status, run_id, RunStatus.COMPLETED)
         # Set deleted_at far in the past (past retention window)
         anyio.run(_set_deleted_at, run_id, datetime.now(UTC) - timedelta(days=400))
 
@@ -163,6 +171,7 @@ class TestHardPurge:
     def test_purge_preserves_non_expired_runs(self) -> None:
         run_id = RunId(f"test-{uuid4()}")
         anyio.run(_create_test_run, run_id)
+        anyio.run(_set_run_status, run_id, RunStatus.COMPLETED)
         # Set deleted_at recently (within retention window)
         anyio.run(_set_deleted_at, run_id, datetime.now(UTC) - timedelta(days=10))
 
@@ -183,6 +192,77 @@ class TestHardPurge:
         run = anyio.run(_get_run, run_id)
         assert run is not None
         anyio.run(_cleanup_run, run_id)
+
+    def test_purge_never_removes_a_pending_run_even_far_past_retention(self) -> None:
+        """OPS-07 safety property: "pending" (non-terminal) runs are never
+        pruned, no matter how long ago `deleted_at` claims. A soft-deleted
+        PENDING run predates this policy fix and would previously have been
+        purged by age alone -- that was the exact bug OPS-07 closes."""
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_create_test_run, run_id)  # created as RunStatus.PENDING
+        anyio.run(_set_deleted_at, run_id, datetime.now(UTC) - timedelta(days=1000))
+
+        purged = anyio.run(_run_purge)
+        assert run_id not in purged
+
+        run = anyio.run(_get_run, run_id)
+        assert run is not None
+        assert run.status == RunStatus.PENDING
+        anyio.run(_cleanup_run, run_id)
+
+    def test_purge_never_removes_a_run_with_an_open_escalated_gate(self) -> None:
+        """A run left with an ACTIVE/EXPIRED gate is still awaiting
+        resolution (or was escalated by the recovery sweeper) -- never
+        prunable even if the run row itself is soft-deleted past retention."""
+        run_id = RunId(f"test-{uuid4()}")
+        gate_id = f"gate-{uuid4()}"
+        anyio.run(_create_run_with_gate, run_id, gate_id)
+        anyio.run(_set_run_status, run_id, RunStatus.COMPLETED)
+        anyio.run(_set_deleted_at, run_id, datetime.now(UTC) - timedelta(days=400))
+
+        purged = anyio.run(_run_purge)
+        assert run_id not in purged
+
+        run = anyio.run(_get_run, run_id)
+        assert run is not None
+        anyio.run(_cleanup_run, run_id)
+
+    def test_purge_never_removes_a_run_inside_its_adr026_revert_window(self) -> None:
+        """The ADR-026 safety property the issue names explicitly: a
+        fast-lane auto-approval stays revertible until export_finalize
+        materializes. A run that was auto-approved but never recorded an
+        export_finalize stage transition must never be pruned, even when
+        terminal and far past retention."""
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_create_test_run, run_id)
+        anyio.run(_set_run_status, run_id, RunStatus.COMPLETED)
+        anyio.run(_set_deleted_at, run_id, datetime.now(UTC) - timedelta(days=400))
+        anyio.run(_write_auto_approved_event, run_id, datetime.now(UTC) - timedelta(days=400))
+        # Deliberately no export_finalize RunStatusHistory row.
+
+        purged = anyio.run(_run_purge)
+        assert run_id not in purged
+
+        run = anyio.run(_get_run, run_id)
+        assert run is not None
+        anyio.run(_cleanup_run, run_id)
+
+    def test_purge_removes_a_fast_laned_run_once_finalized_and_window_elapsed(self) -> None:
+        """The mirror-image case: fast-laned, export_finalize recorded, and
+        the 900s revert window has long since elapsed -- this run is now
+        genuinely eligible."""
+        run_id = RunId(f"test-{uuid4()}")
+        anyio.run(_create_test_run, run_id)
+        anyio.run(_set_run_status, run_id, RunStatus.COMPLETED)
+        anyio.run(_set_deleted_at, run_id, datetime.now(UTC) - timedelta(days=400))
+        anyio.run(_write_auto_approved_event, run_id, datetime.now(UTC) - timedelta(days=400))
+        anyio.run(_write_export_finalize_stage, run_id)
+
+        purged = anyio.run(_run_purge)
+        assert run_id in purged
+
+        run = anyio.run(_get_run, run_id)
+        assert run is None
 
 
 # ---------------------------------------------------------------------------
@@ -401,6 +481,18 @@ async def _set_deleted_at(run_id: RunId, deleted_at: datetime) -> None:
     await engine.dispose()
 
 
+async def _set_run_status(run_id: RunId, status: object) -> None:
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        statement = select(Run).where(Run.run_id == run_id).with_for_update()
+        result = await session.execute(statement)
+        run = result.scalar_one()
+        run.status = status
+        await session.commit()
+    await engine.dispose()
+
+
 async def _soft_delete_run_direct(run_id: RunId, deleted_by: str) -> None:
     engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -417,7 +509,43 @@ async def _cleanup_run(run_id: RunId) -> None:
         await session.execute(delete(GateResponse).where(GateResponse.run_id == run_id))
         await session.execute(delete(GateInterrupt).where(GateInterrupt.run_id == run_id))
         await session.execute(delete(RunJob).where(RunJob.run_id == run_id))
+        await session.execute(delete(RunEvent).where(RunEvent.run_id == run_id))
+        await session.execute(delete(RunStatusHistory).where(RunStatusHistory.run_id == run_id))
         await session.execute(delete(Run).where(Run.run_id == run_id))
+        await session.commit()
+    await engine.dispose()
+
+
+async def _write_auto_approved_event(run_id: RunId, created_at: datetime) -> None:
+    """Simulate the `teaching_pack.content_approval.auto_approved` event
+    `teaching_pack_completion.py:104` emits on a fast-lane approval."""
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        session.add(RunEvent(
+            run_id=run_id,
+            sequence=1,
+            event_name="teaching_pack.content_approval.auto_approved",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            payload={"gate_name": "content_approval"},
+            created_at=created_at,
+        ))
+        await session.commit()
+    await engine.dispose()
+
+
+async def _write_export_finalize_stage(run_id: RunId) -> None:
+    """Simulate the `stage="export_finalize"` transition
+    `teaching_pack_completion.py:91-94` records right before a run completes."""
+    engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with session_factory() as session:
+        session.add(RunStatusHistory(
+            run_id=run_id,
+            status=RunStatus.EXPORTING,
+            stage="export_finalize",
+            reason="export_started",
+        ))
         await session.commit()
     await engine.dispose()
 
