@@ -58,10 +58,13 @@ def derive_answer_set(
             answer = component.get("answer")
             if not isinstance(question_id, str) or not question_id or not isinstance(answer, str) or not answer:
                 continue
+            options = component.get("options")
+            selected_response = isinstance(options, dict) and answer in options
             entries.append(AnswerEntry(
                 entity_id=f"answer-{question_id}",
                 question_id=question_id,
-                correct_option_ids=[answer],
+                correct_option_ids=[answer] if selected_response else [],
+                accepted_answers=[] if selected_response else [answer],
                 rationale=component.get("explain") if isinstance(component.get("explain"), str) else None,
             ))
     if not entries:
@@ -91,9 +94,14 @@ def verify_answer_set(artifact: dict[str, Any], answer_set: AnswerSet) -> None:
         question = questions.get(question_id)
         if question is None:
             raise AnswerSetVerificationError(f"answer references missing question {question_id}")
-        options = question.get("options")
-        if not isinstance(options, dict) or any(option_id not in options for option_id in entry.correct_option_ids):
-            raise AnswerSetVerificationError(f"answer for {question_id} references an unknown option")
+        if entry.correct_option_ids:
+            options = question.get("options")
+            if not isinstance(options, dict) or any(option_id not in options for option_id in entry.correct_option_ids):
+                raise AnswerSetVerificationError(f"answer for {question_id} references an unknown option")
+        if entry.accepted_answers and not all(answer.strip() for answer in entry.accepted_answers):
+            raise AnswerSetVerificationError(f"answer for {question_id} contains an empty accepted response")
+        if not entry.correct_option_ids and not entry.accepted_answers:
+            raise AnswerSetVerificationError(f"answer for {question_id} has no verifiable response")
 
 
 def derive_answer_key_artifact(

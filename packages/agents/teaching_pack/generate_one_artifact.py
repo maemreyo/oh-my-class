@@ -14,6 +14,10 @@ from common.contracts.strategy_review import (
 )
 from packages.agents.config.features import features
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
+from packages.agents.teaching_pack.pedagogical_compiler_runtime import (
+    compile_artifact_with_context,
+    compile_intelligence_context,
+)
 from packages.agents.teaching_pack.specialist_capability import ANSWER_SET_ARTIFACT_TYPES
 from packages.agents.teaching_pack.specialist_capability import (
     NATIVELY_DISPATCHED_ARTIFACT_TYPES as _NATIVELY_DISPATCHED_ARTIFACT_TYPES,
@@ -97,6 +101,7 @@ async def generate_one_artifact(
         }
     try:
         request = request_from_payload(dict(payload))
+        compiler_context = compile_intelligence_context(request)
         if content_store is not None and "tenant" in payload:
             from packages.agents.teaching_pack.tenant_scoped_content_store import (
                 TenantScopedArtifactContentStore,
@@ -167,6 +172,7 @@ async def generate_one_artifact(
                 research_brief=request.research_brief,
             )
             _enforce_specialist_declaration(artifact, request)
+        artifact = compile_artifact_with_context(artifact, compiler_context)
         if str(artifact.get("artifact_type", "")) != artifact_type:
             raise ArtifactTypeMismatchError(artifact_type, str(artifact.get("artifact_type", "")))
         parsed = ArtifactContent.model_validate(artifact)

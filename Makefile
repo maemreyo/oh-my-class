@@ -31,7 +31,7 @@
 #   make check-schemas Verify schema parity (Pydantic ↔ Zod)
 # ════════════════════════════════════════════════════════════════════
 
-.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture check-content-intelligence check-content-factory-v2 check-runtime-resilience setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
+.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture check-content-intelligence check-content-factory-v2 check-runtime-resilience check-teaching-intent check-objective-graph check-pedagogical-program-ir check-semantic-content-ir check-pedagogical-optimizer certify-domain-tools test-semantic-synthesis check-artifact-compilers check-pedagogical-compiler-waves benchmark-content-smoke benchmark-content-release check-effectiveness-loop setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
 
 # ── Docker compose path ──
 COMPOSE := docker compose -f infra/compose/docker-compose.yml
@@ -229,6 +229,53 @@ check-runtime-resilience: ## #471/#472: outbox replay and worker/job safety regr
 		services/gateway/tests/test_multi_worker_no_double_claim.py \
 		services/gateway/tests/test_idempotent_reclaim.py \
 		-q
+
+check-teaching-intent: ## #489: deterministic TeachingIntent and clarification gate
+	uv run pytest common/contracts/tests/pedagogical_compiler/test_compiler_kernel.py -q -k teaching_intent
+
+check-objective-graph: ## #490: objective/KC/prerequisite graph reasoning
+	uv run pytest common/contracts/tests/pedagogical_compiler/test_compiler_kernel.py -q -k objective_graph
+
+check-pedagogical-program-ir: ## #491: artifact-independent teach-learn-assess program
+	uv run pytest common/contracts/tests/pedagogical_compiler/test_compiler_kernel.py -q -k program_ir
+
+check-semantic-content-ir: ## #492: source-grounded semantic authority and answer separation
+	uv run pytest common/contracts/tests/pedagogical_compiler/test_compiler_kernel.py -q -k semantic_ir
+
+check-pedagogical-optimizer: ## #493: hard-filtered multi-objective candidate selection
+	uv run pytest common/contracts/tests/pedagogical_compiler/test_compiler_kernel.py -q -k optimizer
+
+certify-domain-tools: ## #494: deterministic governed domain-tool receipts
+	uv run pytest common/contracts/tests/pedagogical_compiler/test_compiler_kernel.py -q -k domain_tool
+
+test-semantic-synthesis: ## #495: multi-pass verification and scoped semantic repair
+	uv run pytest common/contracts/tests/pedagogical_compiler/test_compiler_kernel.py -q -k synthesis
+
+check-artifact-compilers: ## #496: semantic entity projection and live compiler adapter
+	uv run pytest \
+		common/contracts/tests/pedagogical_compiler/test_compiler_kernel.py \
+		packages/agents/tests/teaching_pack/test_pedagogical_compiler_runtime.py \
+		-q -k "artifact_compiler or runtime"
+
+check-pedagogical-compiler-waves: ## #489-#496: full compiler-kernel contract and live adapter suite
+	uv run pytest \
+		common/contracts/tests/pedagogical_compiler \
+		packages/agents/tests/teaching_pack/test_pedagogical_compiler_runtime.py \
+		common/contracts/tests/test_answer_set_constructed_response.py \
+		-q
+
+benchmark-content-smoke: ## #470: deterministic positive/negative benchmark controls
+	uv run pytest common/contracts/tests/content_evaluation -q
+	uv run python scripts/run_content_benchmark.py --output build/content-benchmark-smoke.json
+
+benchmark-content-release: ## #470: benchmark gate plus all Content Factory/compiler regressions
+	$(MAKE) benchmark-content-smoke
+	$(MAKE) check-content-factory-v2
+	$(MAKE) check-pedagogical-compiler-waves
+
+check-effectiveness-loop: ## #473: version-safe privacy-thresholded item observations
+	uv run pytest common/contracts/tests/effectiveness -q
+	uv run python scripts/run_effectiveness_simulation.py --output build/effectiveness-simulation.json
 
 # ── Help ──
 help: ## Show this help message
