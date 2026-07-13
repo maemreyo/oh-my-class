@@ -52,6 +52,31 @@ services:
       langfuse-web:
         condition: service_started
 
+  # ── Teaching-pack Worker (standalone, #119 OPS-06) ──────────────────
+  # Runs `services.gateway.worker_entrypoint` -- the same claim/execute loop
+  # as the gateway's in-process worker, scaled independently. Gateway does
+  # NOT also run an in-process worker once WORKER_MODE != in_process (see
+  # `_worker_runtime_config` in services/gateway/main.py).
+  worker:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.worker
+    env_file:
+      - ../../.env
+    environment:
+      DATABASE_URL: postgresql://omc_dev:omc_dev@db:5432/oh_my_class
+      REDIS_URL: redis://:${REDIS_AUTH:-omc_redis_secret}@redis:6379
+      WORKER_MODE: external
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-1}
+      LANGFUSE_BASE_URL: http://langfuse-web:3000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - worker
+
   # ── Langfuse v3 — Web UI ────────────────────────────────────────────
   langfuse-web:
     image: docker.io/langfuse/langfuse:3

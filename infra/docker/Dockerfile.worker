@@ -1,0 +1,30 @@
+
+# Standalone teaching-pack worker (#119 OPS-06) -- runs the worker
+# entrypoint instead of uvicorn, so the worker fleet scales independently
+# from the gateway API.
+#
+# Deliberately does NOT install from services/gateway/requirements.txt --
+# that file is a small, stale subset (confirmed missing pydantic-settings,
+# networkx, redis, etc. that packages/agents/pyproject.toml actually
+# declares) that only Dockerfile.gateway uses. CI and local dev instead
+# install the workspace packages editable (`pip install -e packages/agents
+# -e packages/quality -e common/contracts -e services/gateway`, see
+# .github/workflows/ci.yml and scripts/setup.sh) so each package's own
+# pyproject.toml is the single source of truth for its deps. This image
+# matches that real install path so the graph/checkpointer the worker
+# builds via teaching_pack_runtime.py actually import at runtime (verified
+# by building this image and running `python -m
+# services.gateway.worker_entrypoint` against a real Postgres).
+FROM python:3.12-slim
+WORKDIR /app
+COPY packages/ packages/
+COPY common/ common/
+COPY services/gateway/ services/gateway/
+RUN pip install --no-cache-dir \
+    -e packages/agents \
+    -e packages/quality \
+    -e common/contracts \
+    -e services/gateway
+ENV PYTHONPATH=/app
+ENV WORKER_MODE=external
+CMD ["python", "-m", "services.gateway.worker_entrypoint"]
