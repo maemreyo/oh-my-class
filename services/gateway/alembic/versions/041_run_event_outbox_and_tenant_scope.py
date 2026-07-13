@@ -1,6 +1,6 @@
 """#471/#472: transactional run-event outbox and mandatory run organization.
 
-Revision ID: 041_run_event_outbox_and_tenant_scope
+Revision ID: 041_run_event_outbox_tenant
 Revises: 040_run_event_kpi_rollups
 Create Date: 2026-07-13
 """
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "041_run_event_outbox_and_tenant_scope"
+revision: str = "041_run_event_outbox_tenant"
 down_revision: str | None = "040_run_event_kpi_rollups"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

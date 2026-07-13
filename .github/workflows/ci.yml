@@ -85,16 +85,35 @@ jobs:
   test-python:
     name: "Python Tests"
     runs-on: ubuntu-latest
+    env:
+      OMC_RUNTIME_DB_READY: "1"
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: oh_my_class
+          POSTGRES_USER: omc_dev
+          POSTGRES_PASSWORD: omc_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U omc_dev -d oh_my_class"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -e packages/agents -e packages/quality -e common/contracts -e services/gateway
+      - run: pytest tests/test_alembic_revision_contract.py -q
+      - run: cd services/gateway && alembic upgrade head
       - run: python scripts/check_env_drift.py
       - run: python scripts/verify_registry_drift.py
       - run: python scripts/verify_new_component_tests.py
       - run: pytest tests/test_parked_status_ttl.py --tb=short
+      - run: make check-runtime-resilience
       - run: pytest --tb=short
       - run: pytest packages/agents/tests --cov=packages/agents --cov-fail-under=85
       - run: pytest common/contracts/tests --cov=common/contracts --cov-fail-under=95

@@ -222,6 +222,13 @@ check-content-factory-v2: ## #464-#469: typed briefs, deep specialists, tenancy,
 		-q
 
 check-runtime-resilience: ## #471/#472: outbox replay and worker/job safety regression
+	uv run pytest tests/test_alembic_revision_contract.py -q
+	@if [ "$${OMC_RUNTIME_DB_READY:-0}" != "1" ]; then \
+		$(COMPOSE) up -d --wait db; \
+	else \
+		echo "Using externally managed PostgreSQL for runtime resilience gate"; \
+	fi
+	$(MAKE) migrate
 	uv run pytest \
 		services/gateway/tests/test_run_event_outbox.py \
 		services/gateway/tests/test_teaching_pack_store.py \
