@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .logging_config import configure_logging
 from .middleware.auth_middleware import JWTMiddleware
 from .middleware.error_handler import register_exception_handlers
+from .middleware.rate_limit_middleware import IPRateLimitMiddleware, TokenRateLimitMiddleware
 from .middleware.request_id import RequestIDMiddleware
 from .routers import (
     approvals,
@@ -207,7 +208,18 @@ app = FastAPI(
 
 register_exception_handlers(app)
 
+# Order (outer -> inner, i.e. request-side execution order): CORS,
+# RequestID, IPRateLimitMiddleware, JWTMiddleware, TokenRateLimitMiddleware,
+# router. Starlette's add_middleware() inserts at the front of the stack, so
+# the *first* call here ends up innermost/closest to the router (executes
+# last on the way in) -- hence TokenRateLimitMiddleware, which needs
+# `request.state.user_id` set by JWTMiddleware, is added first, and
+# IPRateLimitMiddleware -- cheap per-IP + body-size rejection that must also
+# cover unauthenticated paths like /auth/login -- is added before JWT so it
+# runs first (SEC-01).
+app.add_middleware(TokenRateLimitMiddleware)
 app.add_middleware(JWTMiddleware)
+app.add_middleware(IPRateLimitMiddleware)
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(
     CORSMiddleware,
