@@ -11,24 +11,24 @@
   },
   "modules": {
     "agents": {
-      "hash": "17f2f7bb61bf6a7713aee45401ae8bee21342d14d45b8c4c0ee496674cdd66df",
-      "file_count": 486
+      "hash": "677b83132dcb880ccf337f957e576175d2b1376a8cd6744887575f25568c996a",
+      "file_count": 494
     },
     "contracts": {
-      "hash": "6705a41870479d74b32fbb1b1b8d18900a43af22fa3a217df54dc1d24def2522",
-      "file_count": 152
+      "hash": "fcca76fd8f7e2f8cb2d951299f608c4cb3b8f5cfb876b6c7fcf427a034ecff75",
+      "file_count": 185
     },
     "exporters": {
       "hash": "09caca1f9dd6e771792fbe0640d5633557208356034ef1fa21a2e0a3456ed862",
       "file_count": 47
     },
     "gateway": {
-      "hash": "daca9b37653aca22cc9dbc26f9377b52a7044221bf7ea1f5dc0764dfe9c6006b",
-      "file_count": 384
+      "hash": "165cdf468d05e72096287a36bb154427d6b89489b4b9e024f24e5a64d2d57798",
+      "file_count": 404
     },
     "infra": {
-      "hash": "29998bb1544a7359b8a215117b404981d39bc35c147fa64570596089895f6e49",
-      "file_count": 6
+      "hash": "7603e187ce5f3c4e181658ee7f3cb52752aa1e4434e96e764cc02733bbd1d928",
+      "file_count": 7
     },
     "llm-client": {
       "hash": "d3c9a7d99e30f069306a25af98abb5cd1d5343bdb4c5a4a267e93849f1632e1f",
@@ -59,6 +59,6 @@
       "file_count": 161
     }
   },
-  "source_root": "/Users/trung.ngo/Documents/zaob-dev/oh-my-class",
-  "source_commit": "d52ad7b254edc770e25fdfd50b60ea6956fbc90d"
+  "source_root": "/var/folders/c_/91y1n1cd6rv5c9qxcxjnmr_w0000gn/T/omc-epic460-worktree-ostsrr85/repo",
+  "source_commit": "0ecc2b72f665acd6368cfa309f93a14f931a206c"
 }

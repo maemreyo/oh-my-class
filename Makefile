@@ -31,7 +31,7 @@
 #   make check-schemas Verify schema parity (Pydantic ↔ Zod)
 # ════════════════════════════════════════════════════════════════════
 
-.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture check-content-intelligence check-content-factory-v2 check-runtime-resilience check-teaching-intent check-objective-graph check-pedagogical-program-ir check-semantic-content-ir check-pedagogical-optimizer certify-domain-tools test-semantic-synthesis check-artifact-compilers check-pedagogical-compiler-waves benchmark-content-smoke benchmark-content-release check-effectiveness-loop setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
+.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture check-content-intelligence check-content-factory-v2 check-runtime-resilience check-teaching-intent check-objective-graph check-pedagogical-program-ir check-semantic-content-ir check-pedagogical-optimizer certify-domain-tools test-semantic-synthesis check-artifact-compilers check-pedagogical-compiler-waves benchmark-content-smoke benchmark-content-release check-effectiveness-loop setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help load-content-factory-smoke load-content-factory-release certify-content-factory-v2
 
 # ── Docker compose path ──
 COMPOSE := docker compose -f infra/compose/docker-compose.yml
@@ -275,14 +275,27 @@ benchmark-content-smoke: ## #470: deterministic positive/negative benchmark cont
 	uv run pytest common/contracts/tests/content_evaluation -q
 	uv run python scripts/run_content_benchmark.py --output build/content-benchmark-smoke.json
 
-benchmark-content-release: ## #470: benchmark gate plus all Content Factory/compiler regressions
-	$(MAKE) benchmark-content-smoke
+benchmark-content-release: ## #470: calibrated covering-array benchmark and regression gate
+	uv run pytest common/contracts/tests/content_evaluation -q
+	uv run python scripts/run_content_benchmark.py --profile release --output build/content-benchmark-release.json
 	$(MAKE) check-content-factory-v2
 	$(MAKE) check-pedagogical-compiler-waves
 
-check-effectiveness-loop: ## #473: version-safe privacy-thresholded item observations
-	uv run pytest common/contracts/tests/effectiveness -q
+check-effectiveness-loop: ## #473: governed privacy, lineage, diagnostics, ingestion, and policy boundary
+	uv run pytest common/contracts/tests/effectiveness services/gateway/tests/test_effectiveness_ingestion.py -q
 	uv run python scripts/run_effectiveness_simulation.py --output build/effectiveness-simulation.json
+
+load-content-factory-smoke: ## #130: deterministic green/red SLO controls
+	uv run pytest common/contracts/tests/performance -q
+	uv run python scripts/run_content_factory_load_test.py --profile smoke --output build/content-factory-load-smoke.json
+	! uv run python scripts/run_content_factory_load_test.py --profile red-control --output build/content-factory-load-red-control.json
+
+load-content-factory-release: ## #130: real API/worker load SLO and baseline regression profile
+	uv run python scripts/run_content_factory_load_test.py --profile release --output build/content-factory-load-release.json
+
+certify-content-factory-v2: ## #474: pinned real-surface release certification and evidence manifest
+	uv run pytest tests/test_content_factory_certification.py -q
+	uv run python scripts/certify_content_factory_v2.py --output build/content-factory-v2-certification.json
 
 # ── Help ──
 help: ## Show this help message

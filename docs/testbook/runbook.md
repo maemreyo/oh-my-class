@@ -507,3 +507,12 @@ most of this deterministically; treat it as a pre-check, not a replacement for t
 ---
 
 > Gateway `:8101` · 9router `:20228` model `4omc` · Alembic rev `020_fix_delivery_fk_deferrable`
+
+
+## Teaching Content Factory V2 final certification
+
+Run `make certify-content-factory-v2` with `OMC_CERTIFICATION_SIGNING_KEY`,
+`OMC_BENCHMARK_SIGNING_KEY`, `OMC_LOAD_BASE_URL`, and `OMC_LOAD_AUTH_TOKEN` set.
+The command writes `build/content-factory-v2-certification.json` and a human-readable
+Markdown report. `make load-content-factory-smoke` provides deterministic green/red
+controls; only the release command may be used as issue-closure evidence.
