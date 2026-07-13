@@ -18,6 +18,16 @@ class QuestionCard(BaseModel):
     essence: str | None = None
     tip: str | None = None
     kc_ids: list[str] = Field(default_factory=list)
+    blueprint_id: str | None = None
+    objective_id: str | None = None
+    knowledge_component_id: str | None = None
+    cognitive_demand: str | None = None
+    difficulty: str | None = None
+    misconception_target_id: str | None = None
+    evidence_statement_id: str | None = None
+    verification_method: str | None = None
+    verification: dict[str, str] | None = None
+    practice_stage: str | None = None
 
 
 class QuestionList(BaseModel):

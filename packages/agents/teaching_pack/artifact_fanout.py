@@ -4,6 +4,7 @@ from typing import Any, Final
 
 from langgraph.types import Send
 
+from common.contracts.content_factory.orchestration import build_content_brief
 from common.contracts.dependency_plan import DEFAULT_DEPENDENCY_PLAN
 from common.contracts.grade_band import GradeBand, grade_band_for_label
 from packages.agents.teaching_pack.artifact_fanout_helpers import (
@@ -112,15 +113,40 @@ def route_after_artifact_workflow(state: JsonObject) -> str | list[Send]:
 
 def _payload(state: JsonObject, generation_id: str, artifact_type: str) -> GenerateOneArtifactPayload:
     contract = json_object(state.get("contract"))
+    run_id = str(state["run_id"])
+    lesson_plan = any_json_object(state.get("lesson_plan"))
+    research_brief = any_json_object(state.get("research_brief"))
+    dependency_references = json_objects(state.get("artifact_references"))
+    teacher_id = string_field(contract, "teacher_id", string_field(state, "teacher_id", run_id))
+    organization_id = string_field(contract, "organization_id", f"teacher:{teacher_id}")
+    content_brief = build_content_brief(
+        run_id=run_id,
+        artifact_type=artifact_type,
+        lesson_plan=lesson_plan,
+        research_brief=research_brief,
+        dependency_document_ids=[
+            str(reference["document_id"])
+            for reference in dependency_references
+            if isinstance(reference.get("document_id"), str)
+        ],
+        allow_topic_fallback="contract_id" not in contract,
+    )
     return {
-        "run_id": str(state["run_id"]),
+        "run_id": run_id,
         "artifact_generation_id": generation_id,
         "artifact_type": artifact_type,
-        "lesson_plan": any_json_object(state.get("lesson_plan")),
-        "research_brief": any_json_object(state.get("research_brief")),
+        "lesson_plan": lesson_plan,
+        "research_brief": research_brief,
+        "content_brief": content_brief.model_dump(mode="json"),
+        "tenant": {
+            "organization_id": organization_id,
+            "principal_id": f"content-factory-worker:{run_id}",
+            "principal_role": "worker",
+            "teacher_id": teacher_id,
+        },
         "theme": string_field(contract, "theme", "default"),
         "revision_feedback": string_value(state.get("revision_feedback")),
-        "dependency_artifact_references": json_objects(state.get("artifact_references")),
+        "dependency_artifact_references": dependency_references,
         "subject": string_field(contract, "subject", "general"),
         "grade_band": _grade_band_value(contract),
     }

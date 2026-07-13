@@ -44,6 +44,9 @@ def test_payload_carries_subject_and_normalized_grade_band(monkeypatch: pytest.M
 
     assert quiz_send.arg["subject"] == "math"
     assert quiz_send.arg["grade_band"] == "grades_3_5"
+    assert quiz_send.arg["content_brief"]["artifact_type"] == "quiz"
+    assert quiz_send.arg["content_brief"]["objectives"] == ["Fractions"]
+    assert quiz_send.arg["tenant"]["organization_id"] == "teacher:run-payload-test"
 
 
 def test_payload_defaults_when_contract_omits_subject_and_grade_band(monkeypatch: pytest.MonkeyPatch) -> None:

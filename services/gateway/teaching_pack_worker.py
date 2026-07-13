@@ -54,13 +54,16 @@ class TeachingPackWorker:
         self._heartbeat_session_factory = heartbeat_session_factory
 
     async def run_one(self, now: datetime | None = None) -> bool:
+        outbox_published = await _publish_run_event_outbox(
+            self._job_store, self._config.worker_id,
+        )
         job = await self._job_store.claim_next(
             lease_owner=self._config.worker_id,
             lease_seconds=self._config.lease_seconds,
             now=now,
         )
         if job is None:
-            return False
+            return outbox_published > 0
         try:
             await self._execute_with_heartbeat(job)
         except Exception as exc:
@@ -68,6 +71,7 @@ class TeachingPackWorker:
         else:
             await self._job_store.mark_completed(job.job_id)
         await _persist_observability_events(self._job_store, str(job.run_id))
+        await _publish_run_event_outbox(self._job_store, self._config.worker_id)
         await self._job_store.promote_eligible(
             limit=self._config.promote_batch_size,
             now=now,
@@ -82,6 +86,7 @@ class TeachingPackWorker:
         else:
             await self._job_store.mark_completed(job.job_id)
         await _persist_observability_events(self._job_store, str(job.run_id))
+        await _publish_run_event_outbox(self._job_store, self._config.worker_id)
 
     async def _handle_job_error(
         self,
@@ -246,6 +251,15 @@ async def run_worker_batch(
     executor_factory: Callable[[AsyncSession], TeachingPackJobExecutor],
     config: TeachingPackWorkerConfig,
 ) -> int:
+    async with session_factory() as outbox_session:
+        from sqlalchemy.ext.asyncio import AsyncSession
+        from services.gateway.run_event_outbox import publish_run_event_outbox
+
+        if isinstance(outbox_session, AsyncSession):
+            await publish_run_event_outbox(
+                outbox_session, worker_id=f"{config.worker_id}:outbox", limit=100,
+            )
+            await outbox_session.commit()
     claimed = 0
     async with anyio.create_task_group() as task_group:
         for _ in range(config.worker_concurrency):
@@ -299,6 +313,21 @@ def _resume_payload(job: RunJobRead) -> JsonObject:
     if isinstance(resume_payload, dict):
         return resume_payload
     return {"response_id": job.payload.get("response_id", "")}
+
+
+async def _publish_run_event_outbox(
+    store: TeachingPackJobStore,
+    worker_id: str,
+) -> int:
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from services.gateway.run_event_outbox import publish_run_event_outbox
+
+    session = getattr(store, "session", None)
+    if not isinstance(session, AsyncSession):
+        return 0
+    return await publish_run_event_outbox(
+        session, worker_id=f"{worker_id}:outbox", limit=100,
+    )
 
 
 async def _persist_observability_events(

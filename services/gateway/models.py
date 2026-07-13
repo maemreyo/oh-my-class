@@ -35,6 +35,11 @@ def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
+def _personal_organization_id(context) -> str:
+    teacher_id = str(context.get_current_parameters().get("teacher_id") or "unknown")
+    return f"teacher:{teacher_id}"
+
+
 class UserRole(StrEnum):
     TEACHER = "teacher"
     ADMIN = "admin"
@@ -78,11 +83,15 @@ class Run(Base):
     __table_args__ = (
         UniqueConstraint("parent_run_id", "session_id", name="uq_runs_parent_session"),
         Index("ix_runs_parent_run_id", "parent_run_id"),
+        Index("ix_runs_organization_id", "organization_id"),
         {"schema": "public"},
     )
 
     run_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     teacher_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    organization_id: Mapped[str] = mapped_column(
+        String(80), nullable=False, default=_personal_organization_id,
+    )
     status: Mapped[RunStatus] = mapped_column(
         Enum(RunStatus, native_enum=False), nullable=False, default=RunStatus.PENDING,
     )

@@ -309,16 +309,20 @@ async def test_lineage_stamp_is_present_on_the_persisted_projection() -> None:
     assert lineage == {
         "artifact_type": "lesson",
         "specialist_id": "registry:lesson",
-        "module_version": "v1",
-        "consumed_content_brief_fields": [],
+        "module_version": "v2",
+        "consumed_content_brief_fields": [
+            "objectives", "scope", "methodology", "learning_moves", "must_include", "avoid",
+        ],
     }
 
 
-def test_orchestrator_request_is_the_adr_053_name_for_the_payload_shape() -> None:
-    """#464: OrchestratorRequest is an alias, not a parallel type."""
+def test_orchestrator_request_is_a_validated_contract_not_graph_state_alias() -> None:
+    from pydantic import BaseModel
+
     from packages.agents.teaching_pack.generate_one_artifact import (
         GenerateOneArtifactPayload,
         OrchestratorRequest,
     )
 
-    assert OrchestratorRequest is GenerateOneArtifactPayload
+    assert issubclass(OrchestratorRequest, BaseModel)
+    assert OrchestratorRequest is not GenerateOneArtifactPayload

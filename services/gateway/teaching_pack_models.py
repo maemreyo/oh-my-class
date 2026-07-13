@@ -54,6 +54,7 @@ __all__ = [
     "TeachingPackEventVisibility",
     "RunContract",
     "RunEvent",
+    "RunEventOutbox",
     "RunJob",
     "RunJobKind",
     "RunJobStatus",
@@ -225,6 +226,31 @@ class RunEvent(Base):
         Enum(TeachingPackEventVisibility, native_enum=False), nullable=False,
     )
     payload: Mapped[OrmJsonObject | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class RunEventOutbox(Base):
+    __tablename__ = "run_event_outbox"
+    __table_args__ = (
+        UniqueConstraint("dedupe_key", name="uq_run_event_outbox_dedupe_key"),
+        UniqueConstraint("run_id", "sequence", name="uq_run_event_outbox_run_sequence"),
+        Index("ix_run_event_outbox_claim", "status", "available_at", "lease_expires_at"),
+        {"schema": "public"},
+    )
+
+    outbox_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("public.runs.run_id", ondelete="CASCADE"), nullable=False,
+    )
+    sequence: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    dedupe_key: Mapped[str] = mapped_column(String(160), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    available_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lease_owner: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 

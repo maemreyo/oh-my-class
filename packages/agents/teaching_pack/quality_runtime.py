@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from common.contracts.artifact_workflow import ArtifactWorkflowState
+from common.contracts.content_factory.coherence import evaluate_pack_coherence
 from common.contracts.quality import QualityFailureClass
 
 from packages.agents.teaching_pack.healing_runtime import heal_quality_failure
@@ -55,6 +56,18 @@ async def render_quality(
     content_store: ArtifactContentStore | None = None,
 ) -> TeachingPackQualityState:
     artifacts = await _artifact_projections(state, content_store)
+    coherence = evaluate_pack_coherence(artifacts)
+    coherence_issues = coherence.issue_messages
+    if coherence_issues:
+        failure = render_quality_failure(str(state["run_id"]), coherence_issues)
+        scores = _with_scoped_repair(_json_object(failure.get("quality_scores")), coherence_issues)
+        scores["pack_coherence"] = coherence.model_dump(mode="json")
+        return _state_update({
+            "run_id": state["run_id"],
+            "quality_issues": coherence_issues,
+            "quality_recovery_route": _string_field(failure, "quality_recovery_route", "artifact_workflow"),
+            "quality_scores": scores,
+        })
     issues = quality_issues(artifacts)
     if issues:
         _log.warning("render_quality.layer1_issues run_id=%s artifact_count=%d issues=%r", state.get("run_id"), len(artifacts), issues)
@@ -151,6 +164,7 @@ async def render_quality(
         "overall": 8.0,
         "passed": True,
         "snapshot_count": len(snapshots),
+        "pack_coherence": coherence.model_dump(mode="json"),
     }
     if passing_reports:
         quality_scores["reports"] = [r.model_dump(mode="json") for r in passing_reports]

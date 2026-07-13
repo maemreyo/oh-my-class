@@ -1,23 +1,29 @@
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any, NotRequired, TypedDict
 
 from pydantic import ValidationError
 
 from common.contracts.answer_set import AnswerSet, derive_answer_key_artifact, derive_answer_set
 from common.contracts.artifact import ArtifactContent
+from common.contracts.content_factory.orchestration import OrchestratorRequest, request_from_payload
+from common.contracts.strategy_review import (
+    SpecialistOutputDeclaration,
+    enforce_content_brief_compliance,
+)
 from packages.agents.config.features import features
 from packages.agents.sub_agents.content_creator.nodes import content_creator_node
-from packages.agents.teaching_pack.specialist_capability import (
-    ANSWER_SET_ARTIFACT_TYPES,
-)
+from packages.agents.teaching_pack.specialist_capability import ANSWER_SET_ARTIFACT_TYPES
 from packages.agents.teaching_pack.specialist_capability import (
     NATIVELY_DISPATCHED_ARTIFACT_TYPES as _NATIVELY_DISPATCHED_ARTIFACT_TYPES,
 )
 from packages.agents.teaching_pack.specialist_capability import (
     CapabilityResolution,
+    family_for,
     resolve_specialist_capability,
 )
+from packages.agents.teaching_pack.specialist_depth import deepen_specialist_output
 from packages.agents.teaching_pack.specialist_module import SpecialistRequest, get_specialist_module
 from packages.agents.teaching_pack.specialist_registry import get_specialist
 from packages.agents.teaching_pack.stages import StageEnum
@@ -35,19 +41,14 @@ class GenerateOneArtifactPayload(TypedDict):
     theme: str
     revision_feedback: NotRequired[str]
     dependency_artifact_references: NotRequired[list[dict[str, Any]]]
-    # #464: threaded through by artifact_fanout.py's `_payload` so a caller
-    # can resolve `content_coverage_resolution.resolve_content_coverage`
-    # (subject/grade-band-scoped curriculum coverage, not just per-artifact-
-    # type code capability). `NotRequired` since not every caller of this
-    # payload (e.g. existing tests) supplies them yet.
     subject: NotRequired[str]
     grade_band: NotRequired[str]
-
-
-# #464: ADR-053 names this "OrchestratorRequest" -- an alias, not a parallel
-# type. Graph state stays a plain dict (LangGraph checkpoint requirement),
-# so this remains a TypedDict rather than a Pydantic model.
-OrchestratorRequest = GenerateOneArtifactPayload
+    content_brief: NotRequired[dict[str, Any]]
+    tenant: NotRequired[dict[str, Any]]
+    teacher_id: NotRequired[str]
+    principal_id: NotRequired[str]
+    principal_role: NotRequired[str]
+    budget: NotRequired[dict[str, Any]]
 
 
 class GenerateOneArtifactResult(TypedDict, total=False):
@@ -63,10 +64,7 @@ class ArtifactTypeMismatchError(ValueError):
 
 
 class UnsupportedArtifactCapabilityError(ValueError):
-    """#464: raised instead of silently reaching the generic content-creator
-    fallback for an artifact type with no registered specialist and no native
-    dispatch branch. Fails closed before any LLM call; names the artifact
-    types the teacher can actually pick instead."""
+    """Raised before an undeclared artifact can reach the generic creator."""
 
     def __init__(self, artifact_type: str, supported_alternatives: tuple[str, ...]) -> None:
         self.artifact_type = artifact_type
@@ -83,16 +81,35 @@ async def generate_one_artifact(
 ) -> GenerateOneArtifactResult:
     artifact_type = payload["artifact_type"]
     generation_id = payload["artifact_generation_id"]
+    # Resolve before parsing ContentBrief. An unknown type must fail with the
+    # actionable capability error, not an incidental Pydantic Literal error.
+    resolution = resolve_specialist_capability(
+        artifact_type,
+        generic_fallback_enabled=features().generic_content_creator_fallback_v1,
+    )
+    if resolution.status == "unsupported":
+        return {
+            "artifact_workflow_states": [_workflow_state(
+                payload,
+                "failed",
+                UnsupportedArtifactCapabilityError(artifact_type, resolution.supported_alternatives),
+            )],
+        }
     try:
+        request = request_from_payload(dict(payload))
+        if content_store is not None and "tenant" in payload:
+            from packages.agents.teaching_pack.tenant_scoped_content_store import (
+                TenantScopedArtifactContentStore,
+            )
+
+            content_store = TenantScopedArtifactContentStore(content_store, request.tenant)
         dependency_artifacts: list[dict[str, Any]] = []
         dependency_answer_sets: dict[str, AnswerSet] = {}
-        dependency_references = payload.get("dependency_artifact_references", [])
+        dependency_references = list(request.dependency_artifact_references)
         if content_store is not None:
             dependency_artifacts = [
                 projection.model_dump(mode="json")
-                for projection in await content_store.read_projections(
-                    dependency_references,
-                )
+                for projection in await content_store.read_projections(dependency_references)
             ]
             for reference in dependency_references:
                 document_id = reference.get("document_id")
@@ -101,52 +118,60 @@ async def generate_one_artifact(
                 answer_set = await content_store.read_answer_set(document_id)
                 if answer_set is not None:
                     dependency_answer_sets[document_id] = answer_set
-        resolution = resolve_specialist_capability(
-            artifact_type,
-            generic_fallback_enabled=features().generic_content_creator_fallback_v1,
-        )
         specialist = get_specialist(artifact_type)
-        if resolution.status == "unsupported":
-            raise UnsupportedArtifactCapabilityError(artifact_type, resolution.supported_alternatives)
-        if artifact_type == "answer_key":
-            artifact = _derived_answer_key(dependency_artifacts, dependency_references, dependency_answer_sets, payload["theme"])
-        elif artifact_type == "slide_deck":
-            artifact = await _slide_deck_artifact(payload, dependency_artifacts)
-        elif specialist is not None:
-            module = get_specialist_module(artifact_type)
-            request = SpecialistRequest(
-                artifact_type=artifact_type,
-                lesson_plan=payload["lesson_plan"],
-                research_brief=payload["research_brief"],
+        async with asyncio.timeout(request.budget.timeout_seconds):
+            if artifact_type == "answer_key":
+                artifact = _derived_answer_key(
+                    dependency_artifacts,
+                    dependency_references,
+                    dependency_answer_sets,
+                    request.theme,
+                )
+            elif artifact_type == "slide_deck":
+                artifact = await _slide_deck_artifact(request, dependency_artifacts)
+            elif specialist is not None:
+                module = get_specialist_module(artifact_type)
+                specialist_request = SpecialistRequest(
+                    artifact_type=artifact_type,
+                    lesson_plan=request.lesson_plan,
+                    research_brief=request.research_brief,
+                    content_brief=request.content_brief,
+                )
+                artifact = module.generate(specialist_request) if module is not None else specialist(
+                    request.lesson_plan,
+                    request.research_brief,
+                )
+                artifact["theme"] = request.theme
+            else:
+                result = await content_creator_node({
+                    "lesson_plan": request.lesson_plan,
+                    "research_bundle": request.research_brief,
+                    "artifact_types": [artifact_type],
+                    "theme": request.theme,
+                    "run_id": request.run_id,
+                    "current_step": StageEnum.ARTIFACT_WORKFLOW,
+                    "artifacts": dependency_artifacts,
+                    "revision_feedback": request.revision_feedback,
+                    "use_hierarchical_creator": True,
+                })
+                artifact = _single_artifact(result)
+        family = family_for(artifact_type)
+        if family is not None and (
+            specialist is not None or artifact_type in _NATIVELY_DISPATCHED_ARTIFACT_TYPES
+        ):
+            artifact = deepen_specialist_output(
+                artifact,
+                family=family,
+                content_brief=request.content_brief,
+                lesson_plan=request.lesson_plan,
+                research_brief=request.research_brief,
             )
-            # #464: dispatch through the typed SpecialistModule wrapper
-            # (SpecialistRequest in, declaration/lineage available) rather
-            # than calling the raw registry callable positionally -- falls
-            # back to the raw callable only if the registry and the module
-            # registry have somehow diverged (guarded by a registry-matrix
-            # test in test_specialist_module.py; should never happen).
-            artifact = module.generate(request) if module is not None else specialist(
-                payload["lesson_plan"], payload["research_brief"],
-            )
-            artifact["theme"] = payload["theme"]
-        else:
-            result = await content_creator_node({
-                "lesson_plan": payload["lesson_plan"],
-                "research_bundle": payload["research_brief"],
-                "artifact_types": [artifact_type],
-                "theme": payload["theme"],
-                "run_id": payload["run_id"],
-                "current_step": StageEnum.ARTIFACT_WORKFLOW,
-                "artifacts": dependency_artifacts,
-                "revision_feedback": payload.get("revision_feedback", ""),
-                "use_hierarchical_creator": True,
-            })
-            artifact = _single_artifact(result)
+            _enforce_specialist_declaration(artifact, request)
         if str(artifact.get("artifact_type", "")) != artifact_type:
             raise ArtifactTypeMismatchError(artifact_type, str(artifact.get("artifact_type", "")))
         parsed = ArtifactContent.model_validate(artifact)
         artifact_id = str(artifact.get("artifact_id", f"{artifact_type}-1"))
-    except (ArtifactTypeMismatchError, ValidationError, ValueError) as exc:
+    except (ArtifactTypeMismatchError, ValidationError, ValueError, TimeoutError) as exc:
         return {"artifact_workflow_states": [_workflow_state(payload, "failed", exc)]}
     projection = parsed.model_dump()
     answer_set: AnswerSet | None = None
@@ -156,9 +181,10 @@ async def generate_one_artifact(
             source_document_id=f"{generation_id}:{artifact_id}",
             source_version=1,
         )
-    _stamp_research_sources(projection, payload["research_brief"])
-    _stamp_pedagogy_context(projection, payload["lesson_plan"])
+    _stamp_research_sources(projection, request.research_brief)
+    _stamp_pedagogy_context(projection, request.lesson_plan)
     _stamp_specialist_lineage(projection, artifact_type, resolution)
+    _stamp_orchestration_context(projection, request)
     if content_store is not None:
         from packages.agents.teaching_pack.content_orchestrator import ArtifactPersistenceResult
 
@@ -169,7 +195,7 @@ async def generate_one_artifact(
             if isinstance(reference.get("document_id"), str)
         ) if artifact_type == "answer_key" else ()
         reference = await content_store.persist_result(
-            payload["run_id"],
+            request.run_id,
             generation_id,
             ArtifactPersistenceResult(
                 artifact=persisted,
@@ -197,15 +223,26 @@ async def generate_one_artifact(
     }
 
 
-def _stamp_research_sources(chunk: dict[str, Any], research_brief: dict[str, Any]) -> None:
-    """Attach the run's grounded research corpus to the artifact metadata.
+def _enforce_specialist_declaration(artifact: dict[str, Any], request: OrchestratorRequest) -> None:
+    metadata = artifact.get("metadata")
+    declaration = metadata.get("specialist_output_declaration") if isinstance(metadata, dict) else None
+    if not isinstance(declaration, dict):
+        raise ValueError("specialist output omitted specialist_output_declaration")
+    produced = SpecialistOutputDeclaration.model_validate(declaration)
+    enforce_content_brief_compliance(request.content_brief, produced)
 
-    This closes the researcher -> Layer-2 fact_check seam: the gate reads
-    ``artifact.metadata.research_sources`` and cross-references factual claims against
-    the source bodies. Only sources with a fetched ``excerpt`` (real content) are
-    carried — content-less sources are useless to fact_check. Fail-open: never
-    overwrite an existing ``research_sources`` and never add an empty list.
-    """
+
+def _stamp_orchestration_context(chunk: dict[str, Any], request: OrchestratorRequest) -> None:
+    metadata = dict(chunk.get("metadata") or {})
+    metadata.setdefault("content_brief_id", request.content_brief.content_brief_id)
+    metadata.setdefault("knowledge_db_version", request.content_brief.knowledge_db_version)
+    metadata.setdefault("organization_id", request.tenant.organization_id)
+    metadata.setdefault("tenant_audit_fingerprint", request.tenant.audit_fingerprint)
+    metadata.setdefault("generation_budget", request.budget.model_dump(mode="json"))
+    chunk["metadata"] = metadata
+
+
+def _stamp_research_sources(chunk: dict[str, Any], research_brief: dict[str, Any]) -> None:
     sources = research_brief.get("sources")
     if not isinstance(sources, list):
         return
@@ -229,13 +266,6 @@ def _stamp_research_sources(chunk: dict[str, Any], research_brief: dict[str, Any
 
 
 def _stamp_pedagogy_context(chunk: dict[str, Any], lesson_plan: dict[str, Any]) -> None:
-    """Attach a leakage-safe lesson-plan subset for the Layer-2 pedagogical check.
-
-    Only the learning objectives and target grade are carried — the fields the
-    pedagogical alignment/Bloom/readability checks need. Teacher scripts, answer keys,
-    and other plan internals are deliberately excluded. Without this the gate had no
-    lesson_plan and those metrics silently auto-passed. Fail-open and non-destructive.
-    """
     context: dict[str, Any] = {}
     objectives = lesson_plan.get("learning_objectives")
     if isinstance(objectives, list) and objectives:
@@ -257,13 +287,6 @@ def _stamp_specialist_lineage(
     artifact_type: str,
     resolution: CapabilityResolution,
 ) -> None:
-    """Attach the ADR-053 `SpecialistLineage` provenance record -- which
-    module (specialist_id), at which version, generated this artifact, and
-    which `ContentBrief` fields it declares it consumed (`()` today; see
-    `specialist_module.py`'s module docstring). Fail-open like the other
-    stamps: an unknown artifact_type (should be unreachable past capability
-    resolution) leaves metadata untouched rather than raising here.
-    """
     module = get_specialist_module(artifact_type)
     if module is None:
         return
@@ -309,18 +332,18 @@ def _derived_answer_key(
 
 
 async def _slide_deck_artifact(
-    payload: GenerateOneArtifactPayload,
+    request: OrchestratorRequest,
     dependencies: list[dict[str, Any]],
 ) -> dict[str, Any]:
     from packages.agents.sub_agents.content_creator.slide_deck_artifact import build_slide_deck_artifact
 
     return await build_slide_deck_artifact({
-        "lesson_plan": payload["lesson_plan"],
-        "research_bundle": payload["research_brief"],
-        "theme": payload["theme"],
-        "run_id": payload["run_id"],
+        "lesson_plan": request.lesson_plan,
+        "research_bundle": request.research_brief,
+        "theme": request.theme,
+        "run_id": request.run_id,
         "artifacts": dependencies,
-        "revision_feedback": payload.get("revision_feedback", ""),
+        "revision_feedback": request.revision_feedback,
     })
 
 

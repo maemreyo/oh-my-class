@@ -90,7 +90,6 @@ def test_lineage_carries_the_resolved_specialist_id_and_declared_brief_fields() 
 
     assert lineage.artifact_type == "quiz"
     assert lineage.specialist_id == "registry:quiz"
-    assert lineage.module_version == "v1"
-    # #464 honesty note: no specialist consumes ContentBrief fields today --
-    # see specialist_module.py's module docstring.
-    assert lineage.consumed_content_brief_fields == ()
+    assert lineage.module_version == "v2"
+    assert lineage.consumed_content_brief_fields == module.declaration.consumed_content_brief_fields
+    assert lineage.consumed_content_brief_fields

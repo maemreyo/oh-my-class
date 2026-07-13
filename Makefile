@@ -31,7 +31,7 @@
 #   make check-schemas Verify schema parity (Pydantic ↔ Zod)
 # ════════════════════════════════════════════════════════════════════
 
-.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture check-content-intelligence setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
+.PHONY: dev clean-ports infra infra-full dev-gateway dev-web dev-all docker stop prod-up prod-down up down logs test test-python test-ts test-integration check lint lint-python lint-ts fmt fmt-reports check-reports check-architecture check-content-intelligence check-content-factory-v2 check-runtime-resilience setup migrate seed reset-db calibrate gen-schemas check-schemas typecheck help
 
 # ── Docker compose path ──
 COMPOSE := docker compose -f infra/compose/docker-compose.yml
@@ -212,6 +212,23 @@ check-specialist-registry: ## #464: fail-closed capability resolution + Speciali
 		common/contracts/tests/test_strategy_review.py \
 		packages/agents/tests/test_scoped_repair_loop.py \
 		-v
+
+check-content-factory-v2: ## #464-#469: typed briefs, deep specialists, tenancy, coherence
+	uv run pytest \
+		common/contracts/tests/content_factory \
+		packages/agents/tests/teaching_pack/test_content_factory_depth.py \
+		packages/agents/tests/teaching_pack/test_tenant_scoped_content_store.py \
+		packages/agents/tests/teaching_pack/test_artifact_fanout_payload.py \
+		-q
+
+check-runtime-resilience: ## #471/#472: outbox replay and worker/job safety regression
+	uv run pytest \
+		services/gateway/tests/test_run_event_outbox.py \
+		services/gateway/tests/test_teaching_pack_store.py \
+		services/gateway/tests/test_teaching_pack_worker.py \
+		services/gateway/tests/test_multi_worker_no_double_claim.py \
+		services/gateway/tests/test_idempotent_reclaim.py \
+		-q
 
 # ── Help ──
 help: ## Show this help message

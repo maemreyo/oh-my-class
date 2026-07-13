@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from packages.agents.events import ObservabilityEvent
 from services.gateway.models import Run, RunStatus
 from services.gateway.observability_events import observability_event_row
+from services.gateway.run_event_outbox import RunEventOutboxStore
 from services.gateway.teaching_pack_event_bus import notify_run_event
 from services.gateway.teaching_pack_models import (
     GateInterrupt,
@@ -53,6 +54,7 @@ class TeachingPackRunCreate:
     raw_request: str
     class_info: JsonObject
     retention_days: int | None = None
+    organization_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,6 +63,7 @@ class TeachingPackRunRead:
     teacher_id: TeacherId
     status: RunStatus
     raw_request: str
+    organization_id: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,6 +108,7 @@ class TeachingPackRunStore:
         run = Run(
             run_id=payload.run_id,
             teacher_id=payload.teacher_id,
+            organization_id=payload.organization_id or f"teacher:{payload.teacher_id}",
             status=RunStatus.PENDING,
             current_step=1,
             raw_request=payload.raw_request,
@@ -137,6 +141,7 @@ class TeachingPackRunStore:
         return TeachingPackRunRead(
             run_id=RunId(run.run_id),
             teacher_id=TeacherId(run.teacher_id),
+            organization_id=run.organization_id,
             status=run.status,
             raw_request=run.raw_request,
         )
@@ -150,6 +155,7 @@ class TeachingPackRunStore:
         return TeachingPackRunRead(
             run_id=RunId(run.run_id),
             teacher_id=TeacherId(run.teacher_id),
+            organization_id=run.organization_id,
             status=run.status,
             raw_request=run.raw_request,
         )
@@ -224,6 +230,7 @@ class TeachingPackRunStore:
         )
         self._session.add(event)
         await self._session.flush()
+        await RunEventOutboxStore(self._session).enqueue(payload.run_id, sequence)
         run_ids = self._session.sync_session.info.setdefault(_PENDING_EVENT_RUN_IDS, set())
         run_ids.add(str(payload.run_id))
         return TeachingPackEventRead(
@@ -243,6 +250,7 @@ class TeachingPackRunStore:
         row = observability_event_row(event, sequence, visibility)
         self._session.add(row)
         await self._session.flush()
+        await RunEventOutboxStore(self._session).enqueue(RunId(event.run_id), sequence)
         run_ids = self._session.sync_session.info.setdefault(_PENDING_EVENT_RUN_IDS, set())
         run_ids.add(event.run_id)
         return TeachingPackEventRead(
