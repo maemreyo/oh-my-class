@@ -23,6 +23,9 @@ class SloThresholds:
     max_run_latency_p95_seconds: float = 900.0
     max_gate_backlog: int = 0
     max_queue_depth: int = 25
+    # #124: any dead-lettered job is a page-level signal (ADR-034 decision 2)
+    # -- a poison run needs ops triage, not a warning that waits for a batch.
+    max_dead_letter_count: int = 0
     max_cost_usd_per_day: float = 10.0
     cooldown_seconds: int = 900
 
@@ -36,6 +39,9 @@ class SloThresholds:
             ),
             max_gate_backlog=_int_env("OMC_SLO_MAX_GATE_BACKLOG", cls.max_gate_backlog),
             max_queue_depth=_int_env("OMC_SLO_MAX_QUEUE_DEPTH", cls.max_queue_depth),
+            max_dead_letter_count=_int_env(
+                "OMC_SLO_MAX_DEAD_LETTER_COUNT", cls.max_dead_letter_count,
+            ),
             max_cost_usd_per_day=_float_env("OMC_SLO_MAX_COST_USD_PER_DAY", cls.max_cost_usd_per_day),
             cooldown_seconds=_int_env("OMC_SLO_ALERT_COOLDOWN_SECONDS", cls.cooldown_seconds),
         )
@@ -50,6 +56,10 @@ class SloBreach:
     threshold: float
     teacher_id: str | None
     runbook_path: str
+    # #124: "page" vs "warn" per ADR-034 decision 2 -- dead-letter growth is
+    # the only page-tier signal today; every other metric keeps the prior
+    # (warn) behavior. Full OPS-04 tiered routing is out of scope here.
+    severity: str = "warn"
 
 
 class AlertSink(Protocol):
@@ -132,12 +142,27 @@ def _dimension_breaches(dimension: SloDimension, thresholds: SloThresholds) -> l
         breaches.append(_breach(dimension, "gate_backlog", dimension.gate_backlog, thresholds.max_gate_backlog))
     if dimension.queue_depth > thresholds.max_queue_depth:
         breaches.append(_breach(dimension, "queue_depth", dimension.queue_depth, thresholds.max_queue_depth))
+    if dimension.dead_letter_count > thresholds.max_dead_letter_count:
+        breaches.append(_breach(
+            dimension,
+            "dead_letter_count",
+            dimension.dead_letter_count,
+            thresholds.max_dead_letter_count,
+            severity="page",
+        ))
     if dimension.cost_usd_today > thresholds.max_cost_usd_per_day:
         breaches.append(_breach(dimension, "cost_usd_today", dimension.cost_usd_today, thresholds.max_cost_usd_per_day))
     return breaches
 
 
-def _breach(dimension: SloDimension, metric: str, observed: float, threshold: float) -> SloBreach:
+def _breach(
+    dimension: SloDimension,
+    metric: str,
+    observed: float,
+    threshold: float,
+    *,
+    severity: str = "warn",
+) -> SloBreach:
     return SloBreach(
         key=f"{dimension.name}:{metric}",
         dimension=dimension.name,
@@ -146,6 +171,7 @@ def _breach(dimension: SloDimension, metric: str, observed: float, threshold: fl
         threshold=threshold,
         teacher_id=dimension.teacher_id,
         runbook_path=_runbook_path(metric),
+        severity=severity,
     )
 
 
@@ -157,7 +183,7 @@ def _runbook_path(metric: str) -> str:
             return "docs/runbooks/render-pool-crash.md"
         case "gate_backlog":
             return "docs/runbooks/gate-timeout.md"
-        case "queue_depth":
+        case "queue_depth" | "dead_letter_count":
             return "docs/runbooks/job-queue-stuck.md"
         case _:
             return "docs/runbooks/provider-down.md"
@@ -179,7 +205,7 @@ def create_alert_http_client() -> httpx2.AsyncClient:
 def _webhook_payload(breach: SloBreach) -> JsonObject:
     return {
         "text": (
-            f"oh-my-class SLO breach: {breach.metric} on {breach.dimension} "
+            f"oh-my-class SLO breach [{breach.severity}]: {breach.metric} on {breach.dimension} "
             f"observed={breach.observed} threshold={breach.threshold}"
         ),
         "dimension": breach.dimension,
@@ -188,6 +214,7 @@ def _webhook_payload(breach: SloBreach) -> JsonObject:
         "threshold": breach.threshold,
         "teacher_id": breach.teacher_id,
         "runbook_path": breach.runbook_path,
+        "severity": breach.severity,
     }
 
 

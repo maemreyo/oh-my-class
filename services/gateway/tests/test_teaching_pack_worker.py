@@ -10,7 +10,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from packages.agents.events import clear_run, emit_run_event
-from services.gateway.models import Base, Run
+from services.gateway.models import Base, Run, RunStatus
 from services.gateway.teaching_pack_executor import TeachingPackResumeJob, TeachingPackStartJob
 from services.gateway.teaching_pack_job_store import TeachingPackJobStore, RunJobCreate
 from services.gateway.teaching_pack_models import (
@@ -204,6 +204,42 @@ class TestTeachingPackWorker:
 
         assert did_work is True
         assert status is RunJobStatus.DEAD_LETTER
+        await _delete_run(session, run_id)
+
+    async def test_dead_lettering_surfaces_failed_needs_attention_to_the_teacher(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        """#124: the teacher isn't an ops user and never sees the dead-letter
+        queue, but the run must still read as "failed - needs attention"
+        instead of silently stalling -- a plain RunStatus.FAILED plus a
+        distinct TEACHER-visibility event, separate from ADR-029
+        quality-escalate's own event/notification path."""
+        run_id = await _create_run(session)
+        job = await _enqueue_job(
+            session,
+            run_id,
+            RunJobKind.START,
+            {"initial_state": {"run_id": run_id}},
+        )
+        executor = RecordingExecutor(fail=True)
+        worker = TeachingPackWorker(
+            TeachingPackJobStore(session),
+            executor,
+            TeachingPackWorkerConfig(worker_id="worker-a", lease_seconds=30, idle_sleep_seconds=0),
+        )
+
+        await worker.run_one()
+        run = await TeachingPackRunStore(session).get_run_by_id(run_id)
+        events = await _run_events(session, run_id)
+        dead_letter_events = [e for e in events if e.event_name == "teaching_pack.run.dead_letter"]
+
+        assert run is not None
+        assert run.status is RunStatus.FAILED
+        assert len(dead_letter_events) == 1
+        assert dead_letter_events[0].visibility is TeachingPackEventVisibility.TEACHER
+        assert dead_letter_events[0].payload["message"] == "failed - needs attention"
+        assert dead_letter_events[0].payload["job_id"] == job.job_id
         await _delete_run(session, run_id)
 
     async def test_run_loop_drains_jobs_until_idle(self, session: AsyncSession) -> None:

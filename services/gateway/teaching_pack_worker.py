@@ -110,19 +110,67 @@ class TeachingPackWorker:
                 eligible_at = now + timedelta(seconds=root.retry_after_seconds)
                 await self._job_store.requeue_with_backoff(job.job_id, eligible_at)
                 return
-            await self._job_store.mark_dead_letter(
-                job.job_id,
-                error_summary=str(root)[:2000],
-                classification="transient_exhausted",
-                now=now,
-            )
+            classification = "transient_exhausted"
         else:
-            await self._job_store.mark_dead_letter(
-                job.job_id,
-                error_summary=str(root)[:2000],
-                classification="permanent",
-                now=now,
-            )
+            classification = "permanent"
+
+        error_summary = str(root)[:2000]
+        marked = await self._job_store.mark_dead_letter(
+            job.job_id,
+            error_summary=error_summary,
+            classification=classification,
+            now=now,
+        )
+        if marked:
+            await self._surface_dead_letter_to_teacher(job, error_summary, classification)
+
+    async def _surface_dead_letter_to_teacher(
+        self,
+        job: RunJobRead,
+        error_summary: str,
+        classification: str,
+    ) -> None:
+        """#124: a dead-lettered job is ops-triage material, but the teacher
+        still needs a clear, non-alarming signal that the run stopped -- a
+        plain "failed" status plus a distinct event name so the UI can render
+        "failed - needs attention" instead of a generic quality-escalate
+        notice (ADR-029 stays untouched; this never opens a GateInterrupt).
+        """
+        from services.gateway.models import RunStatus
+        from services.gateway.teaching_pack_store import (
+            InvalidRunStatusTransitionError,
+            TeachingPackEventCreate,
+            TeachingPackStatusTransition,
+            TeachingPackRunStore,
+        )
+        from services.gateway.teaching_pack_models import TeachingPackEventVisibility
+
+        store = TeachingPackRunStore(self._job_store.session)
+        run = await store.get_run_by_id(job.run_id)
+        if run is None:
+            return
+        try:
+            await store.transition_status(TeachingPackStatusTransition(
+                run_id=job.run_id,
+                status=RunStatus.FAILED,
+                stage=None,
+                reason=f"dead_letter:{classification}",
+            ))
+        except InvalidRunStatusTransitionError:
+            # Run already reached a different terminal state (e.g. completed
+            # via another job) -- don't clobber it.
+            pass
+        await store.write_event(TeachingPackEventCreate(
+            run_id=job.run_id,
+            event_name="teaching_pack.run.dead_letter",
+            visibility=TeachingPackEventVisibility.TEACHER,
+            payload={
+                "message": "failed - needs attention",
+                "job_id": job.job_id,
+                "classification": classification,
+                "error_summary": error_summary,
+            },
+        ))
 
     async def run_loop(self, max_iterations: int | None = None) -> int:
         completed = 0
