@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-12T02:00:45.956127+00:00",
+  "generated_at": "2026-07-13T02:27:19.690906+00:00",
   "scenarios": [
     {
       "checks": {
@@ -24,22 +24,22 @@
       "role_tokens_used": [
         {
           "role": "controller",
-          "token_fingerprint": "9711ad4063a63ce2"
+          "token_fingerprint": "0f91e336af225d1a"
         },
         {
           "role": "display",
-          "token_fingerprint": "2c2df05d150fe1f3"
+          "token_fingerprint": "9c4cd0b5e7f18f2d"
         },
         {
           "role": "student",
-          "token_fingerprint": "eba8d27e504ba705"
+          "token_fingerprint": "2e03229863a4b4c2"
         },
         {
           "role": "observer",
-          "token_fingerprint": "bb5b72bdabf12a2b"
+          "token_fingerprint": "23b1928161335e62"
         }
       ],
-      "session_id": "tsp08-8b671fdc-ebd8-4489-a213-68e0af5cd75a",
+      "session_id": "tsp08-a2803c7a-ac58-4083-b5f9-9e00e33875e7",
       "snapshot_id": "snap-tsp08"
     },
     {
@@ -59,14 +59,14 @@
       "role_tokens_used": [
         {
           "role": "controller",
-          "token_fingerprint": "74c61c34efebacd2"
+          "token_fingerprint": "6e14de586dcbf558"
         },
         {
           "role": "student",
-          "token_fingerprint": "e84c1a46ed0480ff"
+          "token_fingerprint": "750f8ee9c1e8abdd"
         }
       ],
-      "session_id": "tsp08-21a61537-f4bc-42f5-bed5-bda4fcd95d3d",
+      "session_id": "tsp08-a2619a3d-ad56-4e10-82fd-871d8df437d0",
       "snapshot_id": "snap-tsp08"
     },
     {
@@ -84,7 +84,7 @@
         "tier": "aggregate"
       },
       "role_tokens_used": [],
-      "session_id": "tsp08-4b382398-1b7d-4efd-9c02-8da9d215589b",
+      "session_id": "tsp08-c3c2e463-5109-4c01-83a1-d8ca5233b3c1",
       "snapshot_id": "snap-tsp08"
     }
   ],
