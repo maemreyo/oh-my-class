@@ -200,6 +200,19 @@ check-architecture: ## Verify runtime manifest and generated anatomy trace fresh
 check-content-intelligence: ## #465: Content Intelligence Graph contract/integrity/tenant-isolation tests
 	uv run pytest common/contracts/tests/content_intelligence_graph -q
 
+check-specialist-registry: ## #464: fail-closed capability resolution + SpecialistModule registry-matrix/contract tests
+	uv run pytest \
+		packages/agents/tests/teaching_pack/test_specialist_capability.py \
+		packages/agents/tests/teaching_pack/test_specialist_registry.py \
+		packages/agents/tests/teaching_pack/test_specialist_module.py \
+		packages/agents/tests/teaching_pack/test_content_coverage_resolution.py \
+		packages/agents/tests/teaching_pack/test_content_orchestrator.py \
+		packages/agents/tests/teaching_pack/test_generate_one_artifact.py \
+		common/contracts/tests/test_dependency_plan.py \
+		common/contracts/tests/test_strategy_review.py \
+		packages/agents/tests/test_scoped_repair_loop.py \
+		-v
+
 # ── Help ──
 help: ## Show this help message
 	@echo "oh-my-class dev commands:"

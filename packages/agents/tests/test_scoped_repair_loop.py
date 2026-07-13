@@ -10,6 +10,12 @@ from packages.agents.teaching_pack.scoped_regeneration import (
     apply_scoped_section_edit,
     apply_scoped_slide_deck_block_edit_on_artifacts,
 )
+from packages.agents.teaching_pack.scoped_repair_models import RepairRequest, ScopedRepairPlan
+
+
+def test_repair_request_is_the_adr_053_name_for_scoped_repair_plan() -> None:
+    """#464: RepairRequest is an alias, not a parallel type."""
+    assert RepairRequest is ScopedRepairPlan
 
 
 def test_scoped_repair_replaces_only_target_section_and_versions_lineage() -> None:
