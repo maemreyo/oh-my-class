@@ -66,7 +66,7 @@ def get_retention_days(data_class: str) -> int:
     return _DEFAULT_RETENTION[data_class]
 
 
-def retention_days_for_class_info(class_info: "JsonObject") -> int:
+def retention_days_for_class_info(class_info: JsonObject) -> int:
     if isinstance(class_info.get("student_evidence"), dict):
         return min(_DEFAULT_CONFIG.run_metadata, _DEFAULT_CONFIG.student_evidence)
     return _DEFAULT_CONFIG.run_metadata
@@ -82,6 +82,13 @@ def is_expired(deleted_at: datetime | None, retention_days: int) -> bool:
     """
     if deleted_at is None:
         return False
+    if deleted_at.tzinfo is None:
+        # asyncpg round-trips can hand back naive datetimes even for
+        # DateTime(timezone=True) columns depending on driver/session
+        # config -- every caller used to re-derive this normalization
+        # ad hoc (see git history of purge.py); do it once, here, so
+        # every caller compares apples to apples in UTC.
+        deleted_at = deleted_at.replace(tzinfo=UTC)
     now = datetime.now(UTC)
     expiry = deleted_at + timedelta(days=retention_days)
     return now > expiry

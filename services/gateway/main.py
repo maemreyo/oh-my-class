@@ -89,6 +89,45 @@ async def _run_teaching_pack_sweeper(app: FastAPI) -> None:
             await session.commit()
 
 
+# Daily, per ADR-034 §5 -- off-peak, not the 60s sweep.
+DATA_LIFECYCLE_CLEANUP_INTERVAL_SECONDS = 24 * 60 * 60
+
+
+async def _run_data_lifecycle_cleanup(app: FastAPI) -> None:
+    """OPS-07 scheduled prune/rollup/redact, modeled on
+    `_run_teaching_pack_sweeper` above but on its own (daily) cadence.
+
+    Dev never prunes real data: `OMC_ENVIRONMENT` defaults to
+    "development", and anything other than "staging"/"production" runs in
+    dry-run (log-only) mode -- fail-safe default, not an opt-in.
+    """
+    import logging
+
+    from .data_lifecycle_cleanup import run_data_lifecycle_cleanup
+
+    logger = logging.getLogger("omc.data_lifecycle_cleanup")
+    environment = os.getenv("OMC_ENVIRONMENT", "development")
+    dry_run = environment not in ("staging", "production")
+
+    while True:
+        await anyio.sleep(DATA_LIFECYCLE_CLEANUP_INTERVAL_SECONDS)
+        async with app.state.teaching_pack_session_factory() as session:
+            result = await run_data_lifecycle_cleanup(session, dry_run=dry_run)
+            logger.info(
+                "data_lifecycle_cleanup_completed",
+                extra={
+                    "dry_run": result.dry_run,
+                    "rolled_up_days": result.rolled_up_days,
+                    "purged_events": result.purged_events,
+                    "purged_snapshots": result.purged_snapshots,
+                    "purged_artifacts": result.purged_artifacts,
+                    "purged_runs": len(result.purged_runs),
+                    "purged_class_profiles": len(result.purged_class_profiles),
+                    "redacted_student_evidence": result.redacted_student_evidence,
+                },
+            )
+
+
 async def _run_teaching_pack_worker(app: FastAPI, task_group: TaskGroup) -> None:
     from .artifact_document_content_store import GatewayArtifactDocumentContentStore
     from .outcome_delivery import SqlAlchemyOutcomeDeliverySink
@@ -188,6 +227,7 @@ async def lifespan(app: FastAPI):
 
         async with anyio.create_task_group() as task_group:
             task_group.start_soon(_run_teaching_pack_sweeper, app)
+            task_group.start_soon(_run_data_lifecycle_cleanup, app)
             runtime = _worker_runtime_config()
             if runtime.mode == "in_process":
                 task_group.start_soon(_run_teaching_pack_worker, app, task_group)
